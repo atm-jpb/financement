@@ -1,0 +1,29 @@
+# TITRES ET MENUS
+Financement=Financement
+Simulations=Simulations
+Calculator=Calculateur
+Simulator=Simulateur
+SimulationList=Liste des simulations
+ListOfDossierFinancement=Dossiers de financement
+
+# SIMULATIONS
+CustomerSearch=Recherche client
+Coefficient=Coefficient
+Echeance=Écheance
+Calculate=Calculer
+TypeContrat=Type de contrat
+LocSimple=Location simple
+ForfaitGlobal=Forfait global
+Integral=Intégral
+CustomerInfos=Informations client
+CustomerDossierFinancement=Dossiers du client
+NoDossierFound=Aucun dossier trouvé
+CustomerScore=Score client
+CustomerEncoursMax=Encours maximum
+CustomerEncoursCPRO=Encours C'PRO
+
+# SCORE
+ScoreList=Scores
+ScoreDate=Date du score
+EncoursMax=Encours maximum
+NewScore=Nouveau score
