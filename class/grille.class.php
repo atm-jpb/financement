@@ -20,7 +20,7 @@
  *  \file       dev/skeletons/Grille.class.php
  *  \ingroup    mymodule othermodule1 othermodule2
  *  \brief      This file is an example for a CRUD class file (Create/Read/Update/Delete)
- *				Initialy built by build_class_from_table on 2012-12-11 12:47
+ *				Initialy built by build_class_from_table on 2012-12-16 13:32
  */
 
 // Put here all includes required by your class file
@@ -45,7 +45,7 @@ class Grille // extends CommonObject
 	var $fk_soc;
 	var $fk_type_contrat;
 	var $montant;
-	var $fk_periode;
+	var $periode;
 	var $coeff;
 	var $fk_user;
 	var $tms='';
@@ -82,7 +82,7 @@ class Grille // extends CommonObject
 		if (isset($this->fk_soc)) $this->fk_soc=trim($this->fk_soc);
 		if (isset($this->fk_type_contrat)) $this->fk_type_contrat=trim($this->fk_type_contrat);
 		if (isset($this->montant)) $this->montant=trim($this->montant);
-		if (isset($this->fk_periode)) $this->fk_periode=trim($this->fk_periode);
+		if (isset($this->periode)) $this->periode=trim($this->periode);
 		if (isset($this->coeff)) $this->coeff=trim($this->coeff);
 		if (isset($this->fk_user)) $this->fk_user=trim($this->fk_user);
 
@@ -97,9 +97,9 @@ class Grille // extends CommonObject
 		$sql.= "fk_soc,";
 		$sql.= "fk_type_contrat,";
 		$sql.= "montant,";
-		$sql.= "fk_periode,";
+		$sql.= "periode,";
 		$sql.= "coeff,";
-		$sql.= "fk_user,";
+		$sql.= "fk_user";
 
 		
         $sql.= ") VALUES (";
@@ -107,9 +107,9 @@ class Grille // extends CommonObject
 		$sql.= " ".(! isset($this->fk_soc)?'NULL':"'".$this->fk_soc."'").",";
 		$sql.= " ".(! isset($this->fk_type_contrat)?'NULL':"'".$this->fk_type_contrat."'").",";
 		$sql.= " ".(! isset($this->montant)?'NULL':"'".$this->montant."'").",";
-		$sql.= " ".(! isset($this->fk_periode)?'NULL':"'".$this->fk_periode."'").",";
+		$sql.= " ".(! isset($this->periode)?'NULL':"'".$this->periode."'").",";
 		$sql.= " ".(! isset($this->coeff)?'NULL':"'".$this->coeff."'").",";
-		$sql.= " ".(! isset($this->fk_user)?'NULL':"'".$this->fk_user."'").",";
+		$sql.= " ".(! isset($this->fk_user)?'NULL':"'".$this->fk_user."'");
 
         
 		$sql.= ")";
@@ -172,7 +172,7 @@ class Grille // extends CommonObject
 		$sql.= " t.fk_soc,";
 		$sql.= " t.fk_type_contrat,";
 		$sql.= " t.montant,";
-		$sql.= " t.fk_periode,";
+		$sql.= " t.periode,";
 		$sql.= " t.coeff,";
 		$sql.= " t.fk_user,";
 		$sql.= " t.tms";
@@ -194,7 +194,7 @@ class Grille // extends CommonObject
 				$this->fk_soc = $obj->fk_soc;
 				$this->fk_type_contrat = $obj->fk_type_contrat;
 				$this->montant = $obj->montant;
-				$this->fk_periode = $obj->fk_periode;
+				$this->periode = $obj->periode;
 				$this->coeff = $obj->coeff;
 				$this->fk_user = $obj->fk_user;
 				$this->tms = $this->db->jdate($obj->tms);
@@ -231,7 +231,7 @@ class Grille // extends CommonObject
 		if (isset($this->fk_soc)) $this->fk_soc=trim($this->fk_soc);
 		if (isset($this->fk_type_contrat)) $this->fk_type_contrat=trim($this->fk_type_contrat);
 		if (isset($this->montant)) $this->montant=trim($this->montant);
-		if (isset($this->fk_periode)) $this->fk_periode=trim($this->fk_periode);
+		if (isset($this->periode)) $this->periode=trim($this->periode);
 		if (isset($this->coeff)) $this->coeff=trim($this->coeff);
 		if (isset($this->fk_user)) $this->fk_user=trim($this->fk_user);
 
@@ -246,7 +246,7 @@ class Grille // extends CommonObject
 		$sql.= " fk_soc=".(isset($this->fk_soc)?$this->fk_soc:"null").",";
 		$sql.= " fk_type_contrat=".(isset($this->fk_type_contrat)?$this->fk_type_contrat:"null").",";
 		$sql.= " montant=".(isset($this->montant)?$this->montant:"null").",";
-		$sql.= " fk_periode=".(isset($this->fk_periode)?$this->fk_periode:"null").",";
+		$sql.= " periode=".(isset($this->periode)?$this->periode:"null").",";
 		$sql.= " coeff=".(isset($this->coeff)?$this->coeff:"null").",";
 		$sql.= " fk_user=".(isset($this->fk_user)?$this->fk_user:"null").",";
 		$sql.= " tms=".(dol_strlen($this->tms)!=0 ? "'".$this->db->idate($this->tms)."'" : 'null')."";
@@ -422,7 +422,7 @@ class Grille // extends CommonObject
 		$this->fk_soc='';
 		$this->fk_type_contrat='';
 		$this->montant='';
-		$this->fk_periode='';
+		$this->periode='';
 		$this->coeff='';
 		$this->fk_user='';
 		$this->tms='';
@@ -440,7 +440,7 @@ class Grille // extends CommonObject
 	 *  @param	int		$idTypeContrat  Id type contrat
      *  @return array   Tableau contenant les grilles de coeff, false si vide
      */
-    function get_grille($idSoc, $idTypeContrat)
+    function get_grille($idSoc, $idTypeContrat, $periodicite='T', $options=array())
     {
     	if(empty($idSoc) || empty($idTypeContrat)) return false;
 
@@ -451,7 +451,7 @@ class Grille // extends CommonObject
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
         $sql.= " WHERE t.fk_soc = ".$idSoc;
 		$sql.= " AND t.fk_type_contrat = ".$idTypeContrat;
-		$sql.= " ORDER BY t.montant ASC";
+		$sql.= " ORDER BY t.periode, t.montant ASC";
 
     	dol_syslog(get_class($this)."::fetch sql=".$sql, LOG_DEBUG);
         $resql=$this->db->query($sql);
@@ -460,24 +460,65 @@ class Grille // extends CommonObject
         	$num = $this->db->num_rows($resql);
 			$i = 0;
 			$result = array();
-			while($i < $num)
-            {
-                $obj = $this->db->fetch_object($resql);
+			$more = array();
+			while($i < $num) {
+				$obj = $this->db->fetch_object($resql);
 				$this->fetch($obj->rowid);
-				$result[$this->fk_periode][$this->montant]['rowid'] = $this->id;
-                $result[$this->fk_periode][$this->montant]['coeff'] = $this->coeff;
+				
+				$periode = $this->periode;
+				if($periodicite == 'M') $periode *= 3;
+				$montant = $this->montant;
+				$coeff = $this->_calculate_coeff($this->coeff, $options);
+				
+				$result[$periode][$montant]['rowid'] = $this->id;
+				$result[$periode][$montant]['coeff'] = $coeff;
+				
 				$i++;
-            }
-            $this->db->free($resql);
+			}
+			
+			$this->db->free($resql);
 
-            return (empty($result) ? false : $result);
-        }
-        else
-        {
-      	    $this->error="Error ".$this->db->lasterror();
-            dol_syslog(get_class($this)."::fetch ".$this->error, LOG_ERR);
-            return -1;
-        }
-    }
+			return (empty($result) ? false : $result);
+		} else {
+			$this->error="Error ".$this->db->lasterror();
+			dol_syslog(get_class($this)."::fetch ".$this->error, LOG_ERR);
+			return -1;
+		}
+	}
+
+	private function _calculate_coeff($coeff, $options) {
+		if(!empty($options)) {
+			foreach($options as $name) {
+				$penalite = $this->_get_penalite($name);
+				$coeff += $coeff * $penalite / 100;
+			}
+		}
+		
+		return round($coeff, 2);
+	}
+	
+	private function _get_penalite($name) {
+		$sql = "SELECT code FROM ".MAIN_DB_PREFIX."fin_const";
+		$sql.= " WHERE type = '".$name."'";
+		$sql.= " AND active = 1";
+		
+		$resql=$this->db->query($sql);
+		if ($resql)
+		{
+			$obj = $this->db->fetch_object($resql);
+			return $obj->code;
+		}
+		else
+		{
+			dol_print_error($this->db);
+		}
+	}
+	
+	/**
+	 * Calcul des élément du financement
+	 */
+	function calcul_financement(&$montant=0, &$duree=0, &$echeance=0, $vr=0) {
+		
+	}
 }
 ?>

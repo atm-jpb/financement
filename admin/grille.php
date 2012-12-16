@@ -49,12 +49,13 @@ $action = GETPOST('action', 'alpha');
 
 if($action == 'save') {
 	$tabCoeff = GETPOST('tabCoeff');
+	$tabPeriode = GETPOST('tabPeriode');
 	$tabPalier = GETPOST('tabPalier');
 	$idTypeContrat = GETPOST('idTypeContrat');
 	$idSoc = GETPOST('idSoc');
 	
 	if(!empty($tabCoeff)) {
-		foreach ($tabCoeff as $idPeriode => $tabVal) {
+		foreach ($tabCoeff as $iPeriode => $tabVal) {
 			foreach ($tabVal as $iPalier => $values) {
 				$coeff = $values['coeff'];
 				$rowid = $values['rowid'];
@@ -62,23 +63,25 @@ if($action == 'save') {
 				if(!empty($tabPalier[$iPalier])) {
 					if(!empty($rowid)) { // La valeur existait avant => mise à jour si modifiée
 						$g->fetch($rowid);
-						if($g->montant != $tabPalier[$iPalier] && $g->coeff != $coeff) {
+						if($g->periode != $tabPeriode[$iPeriode] || $g->montant != $tabPalier[$iPalier] || $g->coeff != $coeff) {
 							$g->fk_soc = $idSoc;
 							$g->fk_type_contrat = $idTypeContrat;
-							$g->fk_periode = $idPeriode;
+							$g->periode = $tabPeriode[$iPeriode];
 							$g->montant = $tabPalier[$iPalier];
 							$g->coeff = $coeff;
 							$g->fk_user = $user->id;
 							$res = $g->update($user);
 						}
 					} else { // Nouvelle valeur => création
-						$g->fk_soc = $idSoc;
-						$g->fk_type_contrat = $idTypeContrat;
-						$g->fk_periode = $idPeriode;
-						$g->montant = $tabPalier[$iPalier];
-						$g->coeff = $coeff;
-						$g->fk_user = $user->id;
-						$res = $g->create($user);
+						if(!empty($coeff)) {
+							$g->fk_soc = $idSoc;
+							$g->fk_type_contrat = $idTypeContrat;
+							$g->periode = $tabPeriode[$iPeriode];
+							$g->montant = $tabPalier[$iPalier];
+							$g->coeff = $coeff;
+							$g->fk_user = $user->id;
+							$res = $g->create($user);
+						}
 					}
 				} else { // Le montant du palier a été vidé, on supprime les coeff correspondants
 					if(!empty($rowid)) {
@@ -100,11 +103,10 @@ if($action == 'save') {
 
 // Grille de coeff globale + % de pénalité par option
 $idSoc = 2; // Identifiant de la société associée à la grille (C'PRO ici, sera l'identifiant leaser pour les grilles leaser)
-$liste_periode = $formfin->array_financement('periode_trim');
 $liste_type_contrat = $formfin->array_financement('type_contrat');
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$grille = new Grille($db);
-	$liste_coeff = $grille->get_grille($idSoc, $idTypeContrat);
+	$liste_coeff = $grille->get_grille($idSoc, $idTypeContrat, true);
 	
 	print_titre($langs->trans("GlobalCoeffGrille").' - '.$label);
 	

@@ -22,6 +22,16 @@
  */
 
 $first = true;
+
+// Mode admin, possibilité d'ajouter une période / un palier et les coeff correspondant
+if(!empty($liste_coeff)) {
+	$first_elem = reset($liste_coeff); // On recopie les coeff de la premiere ligne
+	foreach($first_elem as &$values) $values = array(); // On vide les valeurs
+	$liste_coeff[''] = $first_elem; // On ajoute cette ligne vide à la fin du tableau
+} else {
+	$liste_coeff[''] = array(); // Pas de coeff préexistant, on permet d'en créer un
+}
+
 ?>
 <form action="<?php echo $_SERVER["PHP_SELF"] ?>" method="POST">
 	<input type="hidden" name="action" value="save">
@@ -29,18 +39,17 @@ $first = true;
 	<input type="hidden" name="idSoc" value="<?php echo $idSoc ?>">
 	
 	<table class="noborder" width="100%">
-<?php foreach($liste_periode as $rowid_periode => $periode) { ?>
+<?php $i = 0; ?>
+<?php foreach($liste_coeff as $periode => $palier) { ?>
 	
 	<?php if($first) { ?>	
 	<tr class="liste_titre"><td><?php echo $langs->trans("Periode").' / '.$langs->trans("Paliers") ?></td>
 	<?php } ?>
 	
 	<?php
-	
-		$palier = $liste_coeff[$rowid_periode];
 		$palier[''] = '';
 		if($first) {
-			$i = 0;
+			$j = 0;
 			$min = 0;
 			foreach ($palier as $montant => $values) {
 				$coeff = $values['coeff'];
@@ -49,27 +58,33 @@ $first = true;
 				print '<td align="center">'.$langs->trans('From');
 				print ' '.$min.' ';
 				print $langs->trans('To');
-				print ' <input type="text" class="flat" style="text-align: center;" name="tabPalier['.$i.']" size="8" value="'.$max.'" /> &euro;</td>';
-				$i++;
+				print ' <input type="text" class="flat" style="text-align: center;" name="tabPalier['.$j.']" size="8" value="'.$max.'" /> &euro;</td>';
+				$j++;
 				$min = $max;
 			}
 			$first = false;
 		}
 	?>
 	
-	<tr><td><?php echo $periode . " " . $langs->trans("Trimestres") ?></td>
+	<tr>
+		<td>
+			<input type="text" class="flat" name="tabPeriode[<?php echo $i ?>]" size="2" value="<?php echo $periode ?>" />
+			<?php echo $langs->trans("Trimestres") ?>
+		</td>
 	
 	<?php
-		$i = 0;
+		$j = 0;
 		foreach ($palier as $montant => $values) {
 			$coeff = $values['coeff'];
 			$rowid = $values['rowid'];
 			print '<td align="center">';
-			print '<input type="hidden" name="tabCoeff['.$rowid_periode.']['.$i.'][rowid]" value="'.$rowid.'" />';
-			print '<input type="text" class="flat" name="tabCoeff['.$rowid_periode.']['.$i.'][coeff]" size="5" value="'.$coeff.'" /> %';
+			print '<input type="hidden" name="tabCoeff['.$i.']['.$j.'][rowid]" value="'.$rowid.'" />';
+			print '<input type="text" class="flat" name="tabCoeff['.$i.']['.$j.'][coeff]" size="5" value="'.$coeff.'" /> %';
 			print '</td>';
-			$i++;
+			$j++;
 		}
+		
+		$i++;
 	?>
 	</tr>
 <?php } ?>
