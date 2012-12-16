@@ -23,16 +23,14 @@
 
 $first = true;
 ?>	
-<table class="noborder" width="100%">
-<?php foreach($liste_periode as $rowid_periode => $periode) { ?>
+<table class="border" width="100%">
+<?php foreach($liste_coeff as $periode => $palier) { ?>
 	
 	<?php if($first) { ?>	
 	<tr class="liste_titre"><td><?php echo $langs->trans("Periode").' / '.$langs->trans("Paliers") ?></td>
 	<?php } ?>
 	
 	<?php
-	
-		$palier = $liste_coeff[$rowid_periode];
 		if($first) {
 			$i = 0;
 			$min = 0;
@@ -51,7 +49,7 @@ $first = true;
 		}
 	?>
 	
-	<tr><td><?php echo $periode . " " . $langs->trans("Trimestres") ?></td>
+	<tr><td><?php echo $periode . " " . (($periodicite == 'T') ? $langs->trans("Trimestres") : $langs->trans("Mois")) ?></td>
 	
 	<?php
 		$i = 0;

@@ -42,15 +42,15 @@
 		</tr>
 		<tr>
 			<td><?php echo $langs->trans('Periodicite') ?></td>
-			<td><?php echo $formfin->select_financement('periodicite', $periodicite, 'periodicite') ?></td>
+			<td><?php echo $formfin->select_periodicite($periodicite, 'periodicite') ?></td>
 			<td><?php echo $langs->trans('CreditBail') ?></td>
 			<td><input type="checkbox" name="opt_creditbail" value="1" /></td>
 		</tr>
 		<tr>
 			<td><?php echo $langs->trans('ModeReglement') ?></td>
 			<td><?php echo $formfin->select_financement('type_contrat', $type_contrat, 'type_contrat') ?></td>
-			<td><?php echo $langs->trans('Terme') ?></td>
-			<td><?php echo $formfin->select_financement('terme', $opt_terme, 'opt_terme') ?></td>
+			<td><?php echo $langs->trans('TermeEchu') ?></td>
+			<td><input type="checkbox" name="opt_terme_echu" value="1" /></td>
 		</tr>
 		<tr class="liste_titre">
 			<td colspan="4"><?php echo $langs->trans('FinancialParameters') ?></td>
@@ -71,7 +71,7 @@
 		</tr>
 		<tr>
 			<td><?php echo $langs->trans('Duration') ?></td>
-			<td><input type="text" name="duration" value="<?php echo $duration ?>" /></td>
+			<td><?php echo $formfin->select_duree($type_contrat, $periodicite, $duree, 'duree') ?></td>
 		</tr>
 		<tr>
 			<td><?php echo $langs->trans('Echeance') ?></td>
@@ -88,3 +88,5 @@
 </form>
 
 </div>
+
+<br />

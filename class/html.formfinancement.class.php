@@ -103,6 +103,25 @@ class FormFinancement
 		return $out;
 	}
 
+	function select_periodicite($selected='',$htmlname='periodicite')
+	{
+		global $conf,$langs,$user;
+		$langs->load("financement");
+
+		$out='';
+		$out.= '<select class="flat" name="'.$htmlname.'">';
+		//$out.= '<option value="">&nbsp;</option>';
+		$out.= '<option value="T"'.(($selected == 'T') ? 'selected="selected"' : '').'>';
+		$out.= $langs->trans('Trimestrielle');
+		$out.= '</option>';
+		$out.= '<option value="M"'.(($selected == 'M') ? 'selected="selected"' : '').'>';
+		$out.= $langs->trans('Mensuelle');
+		$out.= '</option>';
+		$out.= '</select>';
+		
+		return $out;
+	}
+
 	/**
 	 *  Return list with const from financement module
 	 *
@@ -142,6 +161,71 @@ class FormFinancement
 
 		return $out;
 	}
+	
+	/**
+	 *  Return combo list with period defined in grille from financement module
+	 *
+	 *  @param  string	$idTypeContrat		Contract type
+	 *  @param  string	$typePeriode		Period type (T or M)
+	 *  @param  string	$selected	Title preselected
+	 * 	@param	string	$htmlname	Name of HTML select combo field
+	 *  @return	void
+	 */
+	function select_duree($idTypeContrat=0, $typePeriode='T', $selected='',$htmlname='const_id')
+	{
+		global $conf,$langs,$user;
+		$langs->load("financement");
+
+		$out='';
+
+		$sql = "SELECT DISTINCT periode FROM ".MAIN_DB_PREFIX."fin_grille_leaser";
+		if(!empty($idTypeContrat)) $sql.= " WHERE fk_type_contrat = '".$idTypeContrat."'";
+		$sql.= " ORDER BY periode";
+
+		dol_syslog("Form::select_duree sql=".$sql);
+		$resql=$this->db->query($sql);
+		if ($resql)
+		{
+			$out.= '<select class="flat" name="'.$htmlname.'">';
+			$out.= '<option value="">&nbsp;</option>';
+			$num = $this->db->num_rows($resql);
+			$i = 0;
+			if ($num)
+			{
+				while ($i < $num)
+				{
+					$obj = $this->db->fetch_object($resql);
+					if($typePeriode == 'M') $obj->periode *= 3;
+					if ($selected == $obj->periode)
+					{
+						$out.= '<option value="'.$obj->periode.'" selected="selected">';
+					}
+					else
+					{
+						$out.= '<option value="'.$obj->periode.'">';
+					}
+					// Si traduction existe, on l'utilise, sinon on prend le libelle par defaut
+					$out.= $obj->periode.' ';
+					$out.= ($typePeriode == 'T') ? $langs->trans('Trimestres') : $langs->trans('Mois');
+					$out.= '</option>';
+					$i++;
+				}
+			}
+			$out.= '</select>';
+			//if ($user->admin) $out.= info_admin($langs->trans("YouCanChangeValuesForThisListFromDictionnarySetup"),1);
+		}
+		else
+		{
+			dol_print_error($this->db);
+		}
+
+		return $out;
+	}
+
+
+
+
+
 
 	/**
 	 *    	Return list of labels (translated) of third parties type

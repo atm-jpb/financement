@@ -25,6 +25,7 @@
 
 $res=@include("../main.inc.php");					// For root directory
 if (! $res) $res=@include("../../main.inc.php");	// For "custom" directory
+dol_include_once('/financement/class/grille.class.php');
 dol_include_once('/financement/class/html.formfinancement.class.php');
 
 if (!($user->rights->financement->allsimul->calcul || $user->rights->financement->allsimul->simul ||
@@ -40,9 +41,13 @@ $socid=GETPOST("socid");
 $search_customer=GETPOST("search_customer");
 $calculate=GETPOST("calculate");
 
+$periodicite = 'T';
+
 /*
  * Actions
  */
+
+$grille = new Grille($db);
 
 // Recherche client
 if(GETPOST('search') && !empty($search_customer)) {
@@ -103,18 +108,18 @@ if(!empty($socid)) {
 if($calculate) {
 	$type_contrat = GETPOST('type_contrat', 'int');
 	$montant = GETPOST('montant', 'int');
-	$duration = GETPOST('duration', 'int');
-	$periodicite = GETPOST('periodicite', 'int');
+	$duree = GETPOST('duree', 'int');
 	$echeance = GETPOST('echeance', 'int');
+	$vr = GETPOST('vr', 'int');
+	$periodicite = GETPOST('periodicite');
 	
-	// TODO : Revoir calculateur avec les règles finales
-	if(empty($montant)) {
-		$montant = $duration * $echeance;
-	} else if (empty($duration)) {
-		$duration = ceil($montant / $echeance);
-	} else if (empty($echeance)) {
-		$echeance = $montant / $duration * (1 + $coeff / 100);
-	}
+	$options = array();
+	if(GETPOST('opt_administration')) $options[] = 'opt_administration';
+	if(GETPOST('opt_creditbail')) $options[] = 'opt_creditbail';
+	if(GETPOST('opt_terme_echu')) $options[] = 'opt_terme_echu';
+	if($periodicite == 'M') $options[] = 'opt_mensuel';
+	
+	$grille->calcul_financement($montant, $duree, $echeance, $vr, $options);
 	
 	// TODO : Revoir validation financement avec les règles finales
 	if(!(empty($socid))) {

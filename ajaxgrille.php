@@ -50,33 +50,66 @@ top_httphead();
 dol_syslog(join(',',$_POST));
 //print_r($_POST);
 
-$idTypeContrat = GETPOST('idTypeContrat', 'int');
-
-if (empty($idTypeContrat)) {
-	print json_encode('KO');
-	exit();
+switch ($_POST['mode']) {
+	case 'grille':
+		get_grille();
+		break;
+	case 'duree':
+		get_duree();
+		break;
+	
+	default:
+		
+		break;
 }
 
-$outjson=GETPOST('outjson', 'int');
-$idSoc = GETPOST('idSoc', 'int');
+function get_duree() {
+	global $db, $conf, $langs, $user;
+	
+	$outjson = GETPOST('outjson', 'int');
 
-$formfin = new FormFinancement($db);
-$liste_periode = $formfin->array_financement('periode_trim');
-$grille = new Grille($db);
-$liste_coeff = $grille->get_grille($idSoc, $idTypeContrat);
+	$formfin = new FormFinancement($db);
+	$type_contrat = GETPOST('type_contrat');
+	$periodicite = GETPOST('periodicite');
 
-if (empty($liste_coeff)) {
-	print json_encode('KO');
-	exit();
+	$htmlresult = $formfin->select_duree($type_contrat, $periodicite, '', 'duration');
+	
+	$db->close();
+	
+	if ($outjson) print json_encode($htmlresult);
 }
 
-ob_start();
-include 'tpl/grille.tpl.php';
-$htmlresult = ob_get_clean();
+function get_grille() {
+	global $db, $conf, $langs, $user;
 
-$db->close();
+	$outjson = GETPOST('outjson', 'int');
+	$idTypeContrat = GETPOST('idTypeContrat', 'int');
+	$idSoc = GETPOST('idSoc', 'int');
+	$periodicite = GETPOST('periodicite');
+	$options = GETPOST('options');
 
-if ($outjson) print json_encode($htmlresult);
+	if (empty($idTypeContrat)) {
+		print json_encode('KO');
+		exit();
+	}
+	
+	$formfin = new FormFinancement($db);
+	$grille = new Grille($db);
+	$liste_coeff = $grille->get_grille($idSoc, $idTypeContrat, $periodicite, $options);
+	
+	if (empty($liste_coeff)) {
+		print json_encode('KO');
+		exit();
+	}
+
+	ob_start();
+	include 'tpl/grille.tpl.php';
+	$htmlresult = ob_get_clean();
+	
+	$db->close();
+	
+	if ($outjson) print json_encode($htmlresult);
+}
 
 //print "</body>";
 //print "</html>";
