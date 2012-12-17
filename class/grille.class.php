@@ -436,37 +436,36 @@ class Grille // extends CommonObject
     /**
      *  Chargement d'un tableau de grille pour un leaser donné, pour un type de contrat donné
      *
-     *  @param	int		$idSoc    		Id leaser
+     *  @param	int		$idLeaser    		Id leaser
 	 *  @param	int		$idTypeContrat  Id type contrat
      *  @return array   Tableau contenant les grilles de coeff, false si vide
      */
-    function get_grille($idSoc, $idTypeContrat, $periodicite='T', $options=array())
+    function get_grille($idLeaser, $idTypeContrat, $periodicite='opt_trimestriel', $options=array())
     {
-    	if(empty($idSoc) || empty($idTypeContrat)) return false;
+    	if(empty($idLeaser) || empty($idTypeContrat)) return false;
 
     	global $langs;
         $sql = "SELECT";
 		$sql.= " t.rowid";
 		
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
-        $sql.= " WHERE t.fk_soc = ".$idSoc;
+        $sql.= " WHERE t.fk_soc = ".$idLeaser;
 		$sql.= " AND t.fk_type_contrat = ".$idTypeContrat;
 		$sql.= " ORDER BY t.periode, t.montant ASC";
 
-    	dol_syslog(get_class($this)."::fetch sql=".$sql, LOG_DEBUG);
+    	dol_syslog(get_class($this)."::get_grille sql=".$sql, LOG_DEBUG);
         $resql=$this->db->query($sql);
         if ($resql)
         {
         	$num = $this->db->num_rows($resql);
 			$i = 0;
 			$result = array();
-			$more = array();
 			while($i < $num) {
 				$obj = $this->db->fetch_object($resql);
 				$this->fetch($obj->rowid);
 				
 				$periode = $this->periode;
-				if($periodicite == 'M') $periode *= 3;
+				if($periodicite == 'opt_mensuel') $periode *= 3;
 				$montant = $this->montant;
 				$coeff = $this->_calculate_coeff($this->coeff, $options);
 				
@@ -486,6 +485,49 @@ class Grille // extends CommonObject
 		}
 	}
 
+	function get_coeff($idLeaser, $idTypeContrat, $periodicite='opt_trimestriel', $montant, $duree, $options=array())
+    {
+    	if(empty($idLeaser) || empty($idTypeContrat)) return -1;
+		
+		if($periodicite == 'opt_mensuel') $duree /= 3;
+
+    	global $langs;
+        $sql = "SELECT";
+		$sql.= " t.montant, t.coeff";
+		
+        $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
+        $sql.= " WHERE t.fk_soc = ".$idLeaser;
+		$sql.= " AND t.fk_type_contrat = ".$idTypeContrat;
+		$sql.= " AND t.periode = ".$duree;
+		$sql.= " ORDER BY t.montant ASC";
+
+    	dol_syslog(get_class($this)."::get_coeff sql=".$sql, LOG_DEBUG);
+        $resql=$this->db->query($sql);
+        if ($resql)
+        {
+        	$num = $this->db->num_rows($resql);
+			$i = 0;
+			$coeff = -1;
+			while($i < $num) {
+				$obj = $this->db->fetch_object($resql);
+				if($montant <= $obj->montant) {
+					$coeff = $this->_calculate_coeff($obj->coeff, $options);
+					break;
+				}
+				
+				$i++;
+			}
+			
+			$this->db->free($resql);
+
+			return $coeff;
+		} else {
+			$this->error="Error ".$this->db->lasterror();
+			dol_syslog(get_class($this)."::fetch ".$this->error, LOG_ERR);
+			return -1;
+		}
+	}
+
 	private function _calculate_coeff($coeff, $options) {
 		if(!empty($options)) {
 			foreach($options as $name) {
@@ -494,31 +536,36 @@ class Grille // extends CommonObject
 			}
 		}
 		
-		return round($coeff, 2);
+		return number_format(round($coeff, 2), 2, ',', ' ');
 	}
 	
 	private function _get_penalite($name) {
-		$sql = "SELECT code FROM ".MAIN_DB_PREFIX."fin_const";
+		$sql = "SELECT value FROM ".MAIN_DB_PREFIX."fin_grille_penalite";
 		$sql.= " WHERE type = '".$name."'";
-		$sql.= " AND active = 1";
 		
 		$resql=$this->db->query($sql);
 		if ($resql)
 		{
 			$obj = $this->db->fetch_object($resql);
-			return $obj->code;
+			return floatval($obj->value);
 		}
 		else
 		{
 			dol_print_error($this->db);
+			return -1;
 		}
 	}
 	
 	/**
 	 * Calcul des élément du financement
 	 */
-	function calcul_financement(&$montant=0, &$duree=0, &$echeance=0, $vr=0) {
-		
+	function calcul_financement($idLeaser, $idTypeContrat, $periodicite, &$montant=0, &$duree=0, &$echeance=0, $vr=0, $options) {
+		if(empty($echeance)) {
+			$coeff = $this->get_coeff($idLeaser, $idTypeContrat, $periodicite, $montant, $duree, $options);
+			$echeance = ($montant - $vr) / $duree * $coeff / 100;
+		} else if(empty($montant)) {
+			$montant = $echeance * $duree + $vr;
+		}
 	}
 }
 ?>

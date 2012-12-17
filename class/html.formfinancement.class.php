@@ -103,9 +103,9 @@ class FormFinancement
 		return $out;
 	}
 
-	function select_periodicite($selected='',$htmlname='periodicite')
+	function select_penalite($group, $selected='',$htmlname='opt_id')
 	{
-		global $conf,$langs,$user;
+		/*global $conf,$langs,$user;
 		$langs->load("financement");
 
 		$out='';
@@ -119,6 +119,51 @@ class FormFinancement
 		$out.= '</option>';
 		$out.= '</select>';
 		
+		return $out;*/
+		
+		global $conf,$langs,$user;
+		$langs->load("financement");
+
+		$out='';
+
+		$sql = "SELECT type FROM ".MAIN_DB_PREFIX."fin_grille_penalite";
+		$sql.= " WHERE opt_group = '".$group."'";
+
+		dol_syslog("Form::select_financement sql=".$sql);
+		$resql=$this->db->query($sql);
+		if ($resql)
+		{
+			$out.= '<select class="flat" name="'.$htmlname.'">';
+			//$out.= '<option value="">&nbsp;</option>';
+			$num = $this->db->num_rows($resql);
+			$i = 0;
+			if ($num)
+			{
+				while ($i < $num)
+				{
+					$obj = $this->db->fetch_object($resql);
+					if ($selected == $obj->type)
+					{
+						$out.= '<option value="'.$obj->type.'" selected="selected">';
+					}
+					else
+					{
+						$out.= '<option value="'.$obj->type.'">';
+					}
+					// Si traduction existe, on l'utilise, sinon on prend le libelle par defaut
+					$out.= ($langs->trans($obj->type)!=$obj->type ? $langs->trans($obj->type) : $obj->type);
+					$out.= '</option>';
+					$i++;
+				}
+			}
+			$out.= '</select>';
+			//if ($user->admin) $out.= info_admin($langs->trans("YouCanChangeValuesForThisListFromDictionnarySetup"),1);
+		}
+		else
+		{
+			dol_print_error($this->db);
+		}
+
 		return $out;
 	}
 
@@ -171,7 +216,7 @@ class FormFinancement
 	 * 	@param	string	$htmlname	Name of HTML select combo field
 	 *  @return	void
 	 */
-	function select_duree($idTypeContrat=0, $typePeriode='T', $selected='',$htmlname='const_id')
+	function select_duree($idTypeContrat=0, $typePeriode='opt_trimestriel', $selected='',$htmlname='const_id')
 	{
 		global $conf,$langs,$user;
 		$langs->load("financement");
@@ -195,7 +240,7 @@ class FormFinancement
 				while ($i < $num)
 				{
 					$obj = $this->db->fetch_object($resql);
-					if($typePeriode == 'M') $obj->periode *= 3;
+					if($typePeriode == 'opt_mensuel') $obj->periode *= 3;
 					if ($selected == $obj->periode)
 					{
 						$out.= '<option value="'.$obj->periode.'" selected="selected">';
@@ -206,7 +251,8 @@ class FormFinancement
 					}
 					// Si traduction existe, on l'utilise, sinon on prend le libelle par defaut
 					$out.= $obj->periode.' ';
-					$out.= ($typePeriode == 'T') ? $langs->trans('Trimestres') : $langs->trans('Mois');
+					$out.= ($typePeriode == 'opt_trimestriel') ? $langs->trans('Trimestres') : '';
+					$out.= ($typePeriode == 'opt_mensuel') ? $langs->trans('Mois') : '';
 					$out.= '</option>';
 					$i++;
 				}

@@ -41,7 +41,14 @@ $socid=GETPOST("socid");
 $search_customer=GETPOST("search_customer");
 $calculate=GETPOST("calculate");
 
-$periodicite = 'T';
+$error = false;
+$mesg = '';
+
+// Valeur par défaut
+$periodicite = 'opt_trimestriel';
+$mode_reglement = 'opt_prelevement';
+$terme = 'opt_aechoir';
+$vr = 0;
 
 /*
  * Actions
@@ -106,28 +113,41 @@ if(!empty($socid)) {
 
 // Calcule du financement
 if($calculate) {
+	$idLeaser = 2;
 	$type_contrat = GETPOST('type_contrat', 'int');
 	$montant = GETPOST('montant', 'int');
 	$duree = GETPOST('duree', 'int');
 	$echeance = GETPOST('echeance', 'int');
 	$vr = GETPOST('vr', 'int');
-	$periodicite = GETPOST('periodicite');
+	$periodicite = GETPOST('opt_periodicite');
 	
 	$options = array();
-	if(GETPOST('opt_administration')) $options[] = 'opt_administration';
-	if(GETPOST('opt_creditbail')) $options[] = 'opt_creditbail';
-	if(GETPOST('opt_terme_echu')) $options[] = 'opt_terme_echu';
-	if($periodicite == 'M') $options[] = 'opt_mensuel';
+	foreach($_POST as $k => $v) {
+		if(substr($k, 0, 4) == 'opt_') $options[] = $v;
+		${$k} = $v;
+	}
 	
-	$grille->calcul_financement($montant, $duree, $echeance, $vr, $options);
-	
-	// TODO : Revoir validation financement avec les règles finales
-	if(!(empty($socid))) {
-		$accord = false;
-		if($customer->score > 50 && $customer->encours_max > ($customer->encours_cpro + $montant) * 0.8) {
-			$accord = true;
+	if(empty($duree)) {
+		$mesg = $langs->trans('ErrorDureeRequired');
+		$error = true;
+	} else if(empty($montant) && empty($echeance)) {
+		$mesg = $langs->trans('ErrorMontantOrEcheanceRequired');
+		$error = true;
+	} else {
+		$calcul_ok = $grille->calcul_financement($idLeaser, $type_contrat, $periodicite, $montant, $duree, $echeance, $vr, $options);
+		
+		// TODO : Revoir validation financement avec les règles finales
+		if(!(empty($socid))) {
+			$accord = false;
+			if($customer->score > 50 && $customer->encours_max > ($customer->encours_cpro + $montant) * 0.8) {
+				$accord = true;
+			}
 		}
 	}
+	
+	
+	
+	
 }
 
 /*

@@ -45,6 +45,7 @@ $formfin = new FormFinancement($db);
  */
 
 $error = false;
+$mesg = '';
 $action = GETPOST('action', 'alpha');
 
 if($action == 'save') {
@@ -52,32 +53,37 @@ if($action == 'save') {
 	$tabPeriode = GETPOST('tabPeriode');
 	$tabPalier = GETPOST('tabPalier');
 	$idTypeContrat = GETPOST('idTypeContrat');
-	$idSoc = GETPOST('idSoc');
+	$idLeaser = GETPOST('idLeaser');
+	
+	$tabStrConversion = array(',' => '.', ' ' => ''); // Permet de transformer les valeurs en nombres
 	
 	if(!empty($tabCoeff)) {
+		$g = new Grille($db);
 		foreach ($tabCoeff as $iPeriode => $tabVal) {
 			foreach ($tabVal as $iPalier => $values) {
-				$coeff = $values['coeff'];
+				$coeff = floatval(strtr($values['coeff'], $tabStrConversion));
 				$rowid = $values['rowid'];
-				$g = new Grille($db);
+				$periode = intval(strtr($tabPeriode[$iPeriode], $tabStrConversion));
+				$montant = floatval(strtr($tabPalier[$iPalier], $tabStrConversion));
+
 				if(!empty($tabPalier[$iPalier])) {
 					if(!empty($rowid)) { // La valeur existait avant => mise à jour si modifiée
 						$g->fetch($rowid);
 						if($g->periode != $tabPeriode[$iPeriode] || $g->montant != $tabPalier[$iPalier] || $g->coeff != $coeff) {
-							$g->fk_soc = $idSoc;
+							$g->fk_soc = $idLeaser;
 							$g->fk_type_contrat = $idTypeContrat;
-							$g->periode = $tabPeriode[$iPeriode];
-							$g->montant = $tabPalier[$iPalier];
+							$g->periode = $periode;
+							$g->montant = $montant;
 							$g->coeff = $coeff;
 							$g->fk_user = $user->id;
 							$res = $g->update($user);
 						}
 					} else { // Nouvelle valeur => création
 						if(!empty($coeff)) {
-							$g->fk_soc = $idSoc;
+							$g->fk_soc = $idLeaser;
 							$g->fk_type_contrat = $idTypeContrat;
-							$g->periode = $tabPeriode[$iPeriode];
-							$g->montant = $tabPalier[$iPalier];
+							$g->periode = $periode;
+							$g->montant = $montant;
 							$g->coeff = $coeff;
 							$g->fk_user = $user->id;
 							$res = $g->create($user);
@@ -95,18 +101,18 @@ if($action == 'save') {
 		if($res > 0) {
 			$mesg = $langs->trans('CoeffCorrectlySaved');
 		} else {
-			$mesg = $g->error;
+			$mesg .= $g->error;
 			$error = true;
 		}
 	}
 }
 
 // Grille de coeff globale + % de pénalité par option
-$idSoc = 2; // Identifiant de la société associée à la grille (C'PRO ici, sera l'identifiant leaser pour les grilles leaser)
+$idLeaser = 2; // Identifiant de la société associée à la grille (C'PRO ici, sera l'identifiant leaser pour les grilles leaser)
 $liste_type_contrat = $formfin->array_financement('type_contrat');
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$grille = new Grille($db);
-	$liste_coeff = $grille->get_grille($idSoc, $idTypeContrat, true);
+	$liste_coeff = $grille->get_grille($idLeaser, $idTypeContrat);
 	
 	print_titre($langs->trans("GlobalCoeffGrille").' - '.$label);
 	

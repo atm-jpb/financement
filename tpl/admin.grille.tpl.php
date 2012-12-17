@@ -36,7 +36,7 @@ if(!empty($liste_coeff)) {
 <form action="<?php echo $_SERVER["PHP_SELF"] ?>" method="POST">
 	<input type="hidden" name="action" value="save">
 	<input type="hidden" name="idTypeContrat" value="<?php echo $idTypeContrat ?>">
-	<input type="hidden" name="idSoc" value="<?php echo $idSoc ?>">
+	<input type="hidden" name="idLeaser" value="<?php echo $idLeaser ?>">
 	
 	<table class="noborder" width="100%">
 <?php $i = 0; ?>

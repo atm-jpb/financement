@@ -47,9 +47,17 @@ $first = true;
 			}
 			$first = false;
 		}
+		
+		if($periodicite == 'opt_trimestriel') {
+			$periodicite_label = $langs->trans("Trimestres");
+		} else if($periodicite == 'opt_mensuel') {
+			$periodicite_label = $langs->trans("Mois");
+		}  else {
+			$periodicite_label = '';
+		}
 	?>
 	
-	<tr><td><?php echo $periode . " " . (($periodicite == 'T') ? $langs->trans("Trimestres") : $langs->trans("Mois")) ?></td>
+	<tr><td><?php echo $periode . " " . $periodicite_label ?></td>
 	
 	<?php
 		$i = 0;

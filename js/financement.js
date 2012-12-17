@@ -1,26 +1,28 @@
 $(document).ready(function() {
-	$('select[name="periodicite"]').bind('change', get_periode);
+	$('select[name="opt_periodicite"]').bind('change', get_periode);
 	$('select[name="type_contrat"]').bind('change', get_grille);
 	$('input[name^="opt_"]').bind('click', get_grille);
+	$('select[name^="opt_"]').bind('change', get_grille);
+	
+	if($('select[name="type_contrat"]').val() != '') get_grille();
 });
 
 var get_grille = function() {
 	var fin_options = new Array();
-	if($('input[name="opt_administration"]:checked').length > 0) fin_options.push('opt_administration');
-	if($('input[name="opt_creditbail"]:checked').length > 0) fin_options.push('opt_creditbail');
-	if($('input[name="opt_terme_echu"]:checked').length > 0) fin_options.push('opt_terme_echu');
-	if($('select[name="periodicite"]').val() == 'M') fin_options.push('opt_mensuel');
+	var fin_options = $('input[name^="opt_"]checked, select[name^="opt_"]').map(function(){
+		return $(this).val();
+	}).get();
 	
 	var data = {
 		mode : 'grille',
 		outjson : 1,
-		idSoc : 2,
+		idLeaser : 2,
 		idTypeContrat : $('select[name="type_contrat"]').val(),
-		periodicite : $('select[name="periodicite"]').val(),
+		periodicite : $('select[name="opt_periodicite"]').val(),
 		options : fin_options
 	};
 	$.post(
-		'ajaxgrille.php',
+		'ajaxsimulateur.php',
 		data,
 		function(resHTML) {
 			$('#grille').remove();
@@ -36,10 +38,10 @@ var get_periode = function() {
 	var data = {
 		mode : 'duree',
 		outjson : 1,
-		periodicite : $('select[name="periodicite"]').val()
+		periodicite : $('select[name="opt_periodicite"]').val()
 	};
 	$.post(
-		'ajaxgrille.php',
+		'ajaxsimulateur.php',
 		data,
 		function(resHTML) {
 			$('select[name="duree"]').replaceWith(resHTML);
