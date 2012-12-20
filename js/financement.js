@@ -4,7 +4,7 @@ $(document).ready(function() {
 	$('input[name^="opt_"]').bind('click', get_grille);
 	$('select[name^="opt_"]').bind('change', get_grille);
 	
-	if($('select[name="type_contrat"]').val() != '') get_grille();
+	get_grille();
 });
 
 var get_grille = function() {
@@ -21,17 +21,20 @@ var get_grille = function() {
 		periodicite : $('select[name="opt_periodicite"]').val(),
 		options : fin_options
 	};
-	$.post(
-		'ajaxsimulateur.php',
-		data,
-		function(resHTML) {
-			$('#grille').remove();
-			var grille = $('<div />').append(resHTML);
-			grille.attr('id', 'grille');
-			$('div.fiche').append(grille);
-		},
-		'json'
-	);
+	
+	if(data.idTypeContrat != '') {
+		$.post(
+			'ajaxsimulateur.php',
+			data,
+			function(resHTML) {
+				$('#grille').remove();
+				var grille = $('<div />').append(resHTML);
+				grille.attr('id', 'grille');
+				$('div.fiche').append(grille);
+			},
+			'json'
+		);
+	}
 };
 
 var get_periode = function() {
