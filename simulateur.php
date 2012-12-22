@@ -45,9 +45,9 @@ $error = false;
 $mesg = '';
 
 // Valeur par défaut
-$periodicite = 'opt_trimestriel';
-$mode_reglement = 'opt_prelevement';
-$terme = 'opt_aechoir';
+$opt_periodicite = 'opt_trimestriel';
+$opt_mode_reglement = 'opt_prelevement';
+$opt_terme = 'opt_aechoir';
 $vr = 0;
 
 /*

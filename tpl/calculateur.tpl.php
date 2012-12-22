@@ -42,7 +42,7 @@
 		</tr>
 		<tr>
 			<td><?php echo $langs->trans('Periodicite') ?></td>
-			<td><?php echo $formfin->select_penalite('opt_periodicite', $periodicite, 'opt_periodicite') ?></td>
+			<td><?php echo $formfin->select_penalite('opt_periodicite', $opt_periodicite, 'opt_periodicite') ?></td>
 			<td><?php echo $langs->trans('CreditBail') ?></td>
 			<td><input type="checkbox" name="opt_creditbail" value="opt_creditbail"<?php echo empty($opt_creditbail) ? '' : ' checked="checked"' ?> /></td>
 		</tr>
