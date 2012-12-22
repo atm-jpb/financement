@@ -8,9 +8,21 @@ ListOfDossierFinancement=Dossiers de financement
 
 # SIMULATIONS
 CustomerSearch=Recherche client
-Coefficient=Coefficient
+GlobalParameters=Paramètres globaux
+Periodicite=Périodicité
+Periodes=Périodes
+Paliers=Paliers
+ModeReglement=Mode de règlement
+Administration=Administration
+CreditBail=Crédit-bail
+Terme=Terme
+FinancialParameters=Paramètres financiers
 Echeance=Écheance
+VR=Valeur de rachat
+Coefficient=Coefficient
+CoutTotalFinancement=Coût total du financement
 Calculate=Calculer
+ValidateSimul=Valider la simulation
 TypeContrat=Type de contrat
 LocSimple=Location simple
 ForfaitGlobal=Forfait global
@@ -21,6 +33,15 @@ NoDossierFound=Aucun dossier trouvé
 CustomerScore=Score client
 CustomerEncoursMax=Encours maximum
 CustomerEncoursCPRO=Encours C'PRO
+opt_mensuel=Mensuelle
+opt_trimestriel=Trimestrielle
+opt_prelevement=Prélèvement
+opt_cheque=Chèque
+opt_virement=Virement
+opt_aechoir=À échoir
+opt_echu=Échu
+FinancementOK=Financement OK
+FinancementWAIT=Financement en attente de validation
 
 # SCORE
 ScoreList=Scores

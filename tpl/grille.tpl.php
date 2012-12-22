@@ -27,7 +27,7 @@ $first = true;
 <?php foreach($liste_coeff as $periode => $palier) { ?>
 	
 	<?php if($first) { ?>	
-	<tr class="liste_titre"><td><?php echo $langs->trans("Periode").' / '.$langs->trans("Paliers") ?></td>
+	<tr class="liste_titre"><td><?php echo $langs->trans("Periodes").' / '.$langs->trans("Paliers") ?></td>
 	<?php } ?>
 	
 	<?php

@@ -36,7 +36,7 @@ dol_include_once('/financement/class/html.formfinancement.class.php');
 require_once(DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php');
 
 $langs->load("main");
-
+$langs->load('financement@financement');
 
 /*
  * View

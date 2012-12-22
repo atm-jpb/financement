@@ -50,7 +50,7 @@
 		<tr>
 			<td><?php echo $langs->trans('ModeReglement') ?></td>
 			<td><?php echo $formfin->select_penalite('opt_mode_reglement', $opt_mode_reglement, 'opt_mode_reglement') ?></td>
-			<td><?php echo $langs->trans('TermeEchu') ?></td>
+			<td><?php echo $langs->trans('Terme') ?></td>
 			<td><?php echo $formfin->select_penalite('opt_terme', $opt_terme, 'opt_terme') ?></td>
 		</tr>
 		<tr class="liste_titre">
@@ -63,9 +63,9 @@
 				<?php if($calcul) { ?>
 					<span style="font-size: 14px;"><?php echo $langs->trans('CoutTotalFinancement').' : '.number_format($cout_financement, 2, ',', ' ') ?> &euro;</span><br /><br />
 					<?php if($accord) { ?>
-						<span style="font-size: 14px;">Financement OK</span>
+						<span style="font-size: 14px;"><?php echo $langs->trans('FinancementOK') ?></span>
 					<?php } else { ?>
-						<span style="font-size: 14px;">Financement en attente</span>
+						<span style="font-size: 14px;"><?php echo $langs->trans('FinancementWAIT') ?></span>
 					<?php } ?>
 				<?php } ?>
 			</td>
