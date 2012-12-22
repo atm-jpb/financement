@@ -60,7 +60,7 @@
 			<td><?php echo $langs->trans('Amount') ?></td>
 			<td><input type="text" name="montant" value="<?php echo $montant ?>" /> &euro;</td>
 			<td colspan="2" rowspan="5" align="center">
-				<?php if($calcul) { ?>
+				<?php if($calcul && isset($accord)) { ?>
 					<span style="font-size: 14px;"><?php echo $langs->trans('CoutTotalFinancement').' : '.number_format($cout_financement, 2, ',', ' ') ?> &euro;</span><br /><br />
 					<?php if($accord) { ?>
 						<span style="font-size: 14px;"><?php echo $langs->trans('FinancementOK') ?></span>
@@ -89,7 +89,7 @@
 		<tr>
 			<td align="center" colspan="2"><input type="submit" name="calculate" value="<?php echo $langs->trans('Calculate') ?>" class="button" /></td>
 			<td align="center" colspan="2">
-				<?php if($calcul) { ?>
+				<?php if($calcul && isset($accord)) { ?>
 					<input type="submit" name="validate_simul" value="<?php echo $langs->trans('ValidateSimul') ?>" class="button" />
 				<?php } else { ?>
 					&nbsp;
