@@ -405,5 +405,39 @@ class Import // extends CommonObject
 		
 	}
 
+
+
+	/******************************************************************
+	 * PERSO FUNCTIONS
+	 ******************************************************************/
+    /**
+     * Récupération des fichiers à importer
+	 * Stockage dans le dossier import
+     *
+     * @return array   Tableau contenant la liste des fichiers récupérés
+     */
+    function getFiles($targetFolder)
+    {
+    	// TODO
+	}
+	
+	function getListOfFiles($folder, $filePrefix)
+    {
+    	$result = array();
+		
+		$dirHandle = opendir($folder);
+		while ($fname = readdir($dirHandle)) {
+			if(substr($fname, 0, strlen($filePrefix)) == $filePrefix) $result[] = $fname;
+		}
+		
+		sort($result);
+		
+		return $result;
+	}
+	
+	function getMapping($mappingFile) {
+		$mapping = file($mappingFile, FILE_IGNORE_NEW_LINES);
+		return $mapping;
+	}
 }
 ?>
