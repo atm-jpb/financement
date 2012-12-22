@@ -1,6 +1,6 @@
 $(document).ready(function() {
 	$('select[name="opt_periodicite"]').bind('change', get_periode);
-	$('select[name="type_contrat"]').bind('change', get_grille);
+	$('select[name="idTypeContrat"]').bind('change', get_grille);
 	$('input[name^="opt_"]').bind('click', get_grille);
 	$('select[name^="opt_"]').bind('change', get_grille);
 	
@@ -9,16 +9,16 @@ $(document).ready(function() {
 
 var get_grille = function() {
 	var fin_options = new Array();
-	var fin_options = $('input[name^="opt_"]checked, select[name^="opt_"]').map(function(){
+	var fin_options = $('input[name^="opt_"]:checked, select[name^="opt_"]').map(function(){
 		return $(this).val();
 	}).get();
 	
 	var data = {
 		mode : 'grille',
 		outjson : 1,
-		idLeaser : 2,
-		idTypeContrat : $('select[name="type_contrat"]').val(),
-		periodicite : $('select[name="opt_periodicite"]').val(),
+		idLeaser : $('input[name="idLeaser"]').val(),
+		idTypeContrat : $('select[name="idTypeContrat"]').val(),
+		opt_periodicite : $('select[name="opt_periodicite"]').val(),
 		options : fin_options
 	};
 	
@@ -41,7 +41,7 @@ var get_periode = function() {
 	var data = {
 		mode : 'duree',
 		outjson : 1,
-		periodicite : $('select[name="opt_periodicite"]').val()
+		opt_periodicite : $('select[name="opt_periodicite"]').val()
 	};
 	$.post(
 		'ajaxsimulateur.php',
@@ -52,4 +52,35 @@ var get_periode = function() {
 		},
 		'json'
 	);
+};
+
+var calcul_financement = function() {
+	var fin_options = new Array();
+	var fin_options = $('input[name^="opt_"]:checked, select[name^="opt_"]').map(function(){
+		return $(this).val();
+	}).get();
+	
+	var data = {
+		mode : 'calcul',
+		outjson : 1,
+		idLeaser : $('input[name="idLeaser"]').val(),
+		idTypeContrat : $('select[name="idTypeContrat"]').val(),
+		opt_periodicite : $('select[name="opt_periodicite"]').val(),
+		options : fin_options,
+		montant : $('input[name="montant"]').val(),
+		duree : $('select[name="duree"]').val(),
+		echeance : $('input[name="echeance"]').val(),
+		vr : $('input[name="vr"]').val()
+	};
+	
+	if(data.idTypeContrat != '') {
+		$.post(
+			'ajaxsimulateur.php',
+			data,
+			function(res) {
+				alert(res);
+			},
+			'json'
+		);
+	}
 };

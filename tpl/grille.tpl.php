@@ -48,16 +48,16 @@ $first = true;
 			$first = false;
 		}
 		
-		if($periodicite == 'opt_trimestriel') {
-			$periodicite_label = $langs->trans("Trimestres");
-		} else if($periodicite == 'opt_mensuel') {
-			$periodicite_label = $langs->trans("Mois");
+		if($opt_periodicite == 'opt_trimestriel') {
+			$opt_periodicite_label = $langs->trans("Trimestres");
+		} else if($opt_periodicite == 'opt_mensuel') {
+			$opt_periodicite_label = $langs->trans("Mois");
 		}  else {
-			$periodicite_label = '';
+			$opt_periodicite_label = '';
 		}
 	?>
 	
-	<tr><td><?php echo $periode . " " . $periodicite_label ?></td>
+	<tr><td><?php echo $periode . " " . $opt_periodicite_label ?></td>
 	
 	<?php
 		$i = 0;
@@ -65,7 +65,7 @@ $first = true;
 			$coeff = $values['coeff'];
 			$rowid = $values['rowid'];
 			print '<td align="center">';
-			print ' '.$coeff.' %';
+			print ' '.number_format($coeff, 2, ',', ' ').' %';
 			print '</td>';
 			$i++;
 		}

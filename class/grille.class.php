@@ -471,13 +471,15 @@ class Grille // extends CommonObject
 				
 				$result[$periode][$montant]['rowid'] = $this->id;
 				$result[$periode][$montant]['coeff'] = $coeff;
+				$result[$periode][$montant]['echeance'] = $montant / $periode * (1 + $coeff / 100);
 				
 				$i++;
 			}
 			
 			$this->db->free($resql);
+			$this->grille = $result;
 
-			return (empty($result) ? false : $result);
+			return (empty($this->grille) ? false : $this->grille);
 		} else {
 			$this->error="Error ".$this->db->lasterror();
 			dol_syslog(get_class($this)."::fetch ".$this->error, LOG_ERR);
@@ -536,7 +538,7 @@ class Grille // extends CommonObject
 			}
 		}
 		
-		return number_format(round($coeff, 2), 2, ',', ' ');
+		return round($coeff, 2);
 	}
 	
 	private function _get_penalite($name) {
@@ -558,14 +560,47 @@ class Grille // extends CommonObject
 	
 	/**
 	 * Calcul des élément du financement
+	 * @return $res :
+	 * 			1	= calcul OK
+	 * 			-1	= montant ou echeance vide (calcul impossible)
+	 * 			-2	= montant hors grille
+	 * 			-3	= echeance hors grille
+	 * 			-4	= Pas de grille chargée
 	 */
-	function calcul_financement($idLeaser, $idTypeContrat, $periodicite, &$montant=0, &$duree=0, &$echeance=0, $vr=0, $options) {
-		if(empty($echeance)) {
-			$coeff = $this->get_coeff($idLeaser, $idTypeContrat, $periodicite, $montant, $duree, $options);
-			$echeance = ($montant - $vr) / $duree * $coeff / 100;
-		} else if(empty($montant)) {
-			$montant = $echeance * $duree + $vr;
+	function calcul_financement(&$montant=0, &$duree=0, &$echeance=0, $vr=0, &$coeff) {
+		$found = false;
+		if(empty($this->grille)) { // Pas de grille chargée, pas de calcul
+			$this->error = 'ErrorNoGrilleSelected';
+		} else if(!empty($montant)) { // Calcul à partir du montant
+			foreach($this->grille[$duree] as $palier => $infos) {
+				if($montant <= $palier) {
+					$coeff = $infos['coeff'];
+					$echeance = ($montant - $vr) / $duree * (1 + $coeff / 100);
+					$echeance = round($echeance, 2);
+					$found = true;
+					break;
+				}
+			}
+			if(!$found) { // Montant hors grille
+				$this->error = 'ErrorAmountOutOfGrille';
+			}
+		} else if(!empty($echeance)) { // Calcul à partir de l'échéance
+			foreach($this->grille[$duree] as $palier => $infos) {
+				if($echeance <= $infos['echeance']) {
+					$coeff = $infos['coeff'];
+					$montant = $echeance * (1 - $coeff / 100) * $duree + $vr;
+					$montant = round($montant, 2);
+					$found = true;
+					break;
+				}
+			}
+			if(!$found) { // Echéance hors grille
+				$this->error = 'ErrorEcheanceOutOfGrille';
+			}
+		} else { // Montant et échéance vide
+			$this->error = 'ErrorMontantOrEcheanceRequired';
 		}
+		return $found;
 	}
 }
 ?>

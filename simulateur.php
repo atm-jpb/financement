@@ -49,6 +49,8 @@ $opt_periodicite = 'opt_trimestriel';
 $opt_mode_reglement = 'opt_prelevement';
 $opt_terme = 'opt_aechoir';
 $vr = 0;
+$idLeaser = 2;
+$coeff = 0;
 
 /*
  * Actions
@@ -111,15 +113,15 @@ if(!empty($socid)) {
 	$dossier_list=$db->query($sql);
 }
 
-// Calcule du financement
+// Calcul du financement
 if($calculate) {
-	$idLeaser = 2;
-	$type_contrat = GETPOST('type_contrat', 'int');
+	$idLeaser = GETPOST('idLeaser', 'int');
+	$idTypeContrat = GETPOST('idTypeContrat', 'int');
+	$opt_periodicite = GETPOST('opt_periodicite');
 	$montant = GETPOST('montant', 'int');
 	$duree = GETPOST('duree', 'int');
 	$echeance = GETPOST('echeance', 'int');
 	$vr = GETPOST('vr', 'int');
-	$periodicite = GETPOST('opt_periodicite');
 	
 	$options = array();
 	foreach($_POST as $k => $v) {
@@ -134,13 +136,20 @@ if($calculate) {
 		$mesg = $langs->trans('ErrorMontantOrEcheanceRequired');
 		$error = true;
 	} else {
-		$calcul_ok = $grille->calcul_financement($idLeaser, $type_contrat, $periodicite, $montant, $duree, $echeance, $vr, $options);
+		$grille->get_grille($idLeaser, $idTypeContrat, $opt_periodicite, $options); // Récupération de la grille pour les paramètre données
+		$calcul = $grille->calcul_financement($montant, $duree, $echeance, $vr, $coeff); // Calcul du financement
 		
-		// TODO : Revoir validation financement avec les règles finales
-		if(!(empty($socid))) {
-			$accord = false;
-			if($customer->score > 50 && $customer->encours_max > ($customer->encours_cpro + $montant) * 0.8) {
-				$accord = true;
+		if(!$calcul) { // Si calcul no correct
+			$mesg = $langs->trans($grille->error);
+			$error = true;
+		} else { // Sinon, vérification accord à partir du calcul
+			$cout_financement = $echeance * $duree - $montant;
+			// TODO : Revoir validation financement avec les règles finales
+			if(!(empty($socid))) {
+				$accord = false;
+				if($customer->score > 50 && $customer->encours_max > ($customer->encours_cpro + $montant) * 0.8) {
+					$accord = true;
+				}
 			}
 		}
 	}
@@ -180,7 +189,7 @@ switch ($mode) {
 
 include $tpl;
 
-dol_htmloutput_mesg($mesg);
+dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 
 llxFooter('');
 

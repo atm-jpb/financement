@@ -57,6 +57,9 @@ switch ($_POST['mode']) {
 	case 'duree':
 		get_duree();
 		break;
+	case 'calcul':
+		get_calcul();
+		break;
 	
 	default:
 		
@@ -69,10 +72,10 @@ function get_duree() {
 	$outjson = GETPOST('outjson', 'int');
 
 	$formfin = new FormFinancement($db);
-	$type_contrat = GETPOST('type_contrat');
-	$periodicite = GETPOST('periodicite');
+	$idTypeContrat = GETPOST('idTypeContrat');
+	$opt_periodicite = GETPOST('opt_periodicite');
 
-	$htmlresult = $formfin->select_duree($type_contrat, $periodicite, '', 'duration');
+	$htmlresult = $formfin->select_duree($idTypeContrat, $opt_periodicite, '', 'duree');
 	
 	$db->close();
 	
@@ -85,7 +88,7 @@ function get_grille() {
 	$outjson = GETPOST('outjson', 'int');
 	$idTypeContrat = GETPOST('idTypeContrat', 'int');
 	$idLeaser = GETPOST('idLeaser', 'int');
-	$periodicite = GETPOST('periodicite');
+	$opt_periodicite = GETPOST('opt_periodicite');
 	$options = GETPOST('options');
 
 	if (empty($idTypeContrat)) {
@@ -95,7 +98,7 @@ function get_grille() {
 	
 	$formfin = new FormFinancement($db);
 	$grille = new Grille($db);
-	$liste_coeff = $grille->get_grille($idLeaser, $idTypeContrat, $periodicite, $options);
+	$liste_coeff = $grille->get_grille($idLeaser, $idTypeContrat, $opt_periodicite, $options);
 	
 	if (empty($liste_coeff)) {
 		print json_encode('KO');
@@ -111,6 +114,40 @@ function get_grille() {
 	if ($outjson) print json_encode($htmlresult);
 }
 
+function get_calcul() {
+	$idLeaser = GETPOST('idLeaser', 'int');
+	$idTypeContrat = GETPOST('idTypeContrat', 'int');
+	$opt_periodicite = GETPOST('opt_periodicite');
+	$montant = GETPOST('montant', 'int');
+	$duree = GETPOST('duree', 'int');
+	$echeance = GETPOST('echeance', 'int');
+	$vr = GETPOST('vr', 'int');
+	
+	$options = array();
+	foreach($_POST as $k => $v) {
+		if(substr($k, 0, 4) == 'opt_') $options[] = $v;
+		${$k} = $v;
+	}
+	
+	if(empty($duree)) {
+		$mesg = $langs->trans('ErrorDureeRequired');
+		$error = true;
+	} else if(empty($montant) && empty($echeance)) {
+		$mesg = $langs->trans('ErrorMontantOrEcheanceRequired');
+		$error = true;
+	} else {
+		$grille->get_grille($idLeaser, $idTypeContrat);
+		$calcul_ok = $grille->calcul_financement($idLeaser, $idTypeContrat, $opt_periodicite, $montant, $duree, $echeance, $vr, $options);
+		
+		// TODO : Revoir validation financement avec les règles finales
+		if(!(empty($socid))) {
+			$accord = false;
+			if($customer->score > 50 && $customer->encours_max > ($customer->encours_cpro + $montant) * 0.8) {
+				$accord = true;
+			}
+		}
+	}
+}
 //print "</body>";
 //print "</html>";
 ?>

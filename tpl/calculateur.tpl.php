@@ -29,6 +29,7 @@
 <form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="post">
 	<input type="hidden" name="mode" value="<?php echo $mode ?>" />
 	<input type="hidden" name="socid" value="<?php echo $socid ?>" />
+	<input type="hidden" name="idLeaser" value="<?php echo $idLeaser ?>" />
 
 	<table class="border" width="100%">
 		<tr class="liste_titre">
@@ -36,7 +37,7 @@
 		</tr>
 		<tr>
 			<td><span class="fieldrequired"><?php echo $langs->trans('TypeContrat') ?></span></td>
-			<td><?php echo $formfin->select_financement('type_contrat', $type_contrat, 'type_contrat') ?></td>
+			<td><?php echo $formfin->select_financement('type_contrat', $idTypeContrat, 'idTypeContrat') ?></td>
 			<td><?php echo $langs->trans('Administration') ?></td>
 			<td><input type="checkbox" name="opt_administration" value="opt_administration"<?php echo empty($opt_administration) ? '' : ' checked="checked"' ?> /></td>
 		</tr>
@@ -59,19 +60,19 @@
 			<td><?php echo $langs->trans('Amount') ?></td>
 			<td><input type="text" name="montant" value="<?php echo $montant ?>" /> &euro;</td>
 			<td colspan="2" rowspan="5" align="center">
-				<?php if($calcul_ok) { ?>
+				<?php if($calcul) { ?>
+					<span style="font-size: 14px;"><?php echo $langs->trans('CoutTotalFinancement').' : '.number_format($cout_financement, 2, ',', ' ') ?> &euro;</span><br /><br />
 					<?php if($accord) { ?>
-						<span style="font-size: 14px;">Financement OK</span><br /><br />
+						<span style="font-size: 14px;">Financement OK</span>
 					<?php } else { ?>
-						<span style="font-size: 14px;">Financement en attente</span><br /><br />
+						<span style="font-size: 14px;">Financement en attente</span>
 					<?php } ?>
-					<input type="submit" name="validate_simul" value="<?php echo $langs->trans('ValidateSimul') ?>" class="button" />
 				<?php } ?>
 			</td>
 		</tr>
 		<tr>
 			<td><span class="fieldrequired"><?php echo $langs->trans('Duration') ?></span></td>
-			<td><?php echo $formfin->select_duree($type_contrat, $periodicite, $duree, 'duree') ?></td>
+			<td><?php echo $formfin->select_duree($idTypeContrat, $opt_periodicite, $duree, 'duree') ?></td>
 		</tr>
 		<tr>
 			<td><?php echo $langs->trans('Echeance') ?></td>
@@ -82,7 +83,18 @@
 			<td><input type="text" name="vr" value="<?php echo $vr ?>" /> &euro;</td>
 		</tr>
 		<tr>
-			<td colspan="2" align="center"><input type="submit" name="calculate" value="<?php echo $langs->trans('Calculate') ?>" class="button" /></td>
+			<td><?php echo $langs->trans('Coefficient') ?></td>
+			<td><input type="text" name="coefficient" value="<?php echo $coeff ?>" size="3" disabled /> %</td>
+		</tr>
+		<tr>
+			<td align="center" colspan="2"><input type="submit" name="calculate" value="<?php echo $langs->trans('Calculate') ?>" class="button" /></td>
+			<td align="center" colspan="2">
+				<?php if($calcul) { ?>
+					<input type="submit" name="validate_simul" value="<?php echo $langs->trans('ValidateSimul') ?>" class="button" />
+				<?php } else { ?>
+					&nbsp;
+				<?php } ?>
+			</td>
 		</tr>
 	</table>
 </form>
