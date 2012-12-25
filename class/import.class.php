@@ -393,7 +393,7 @@ class Import // extends CommonObject
 		$object->fetch($fromid);
 		$object->id=0;
 		$object->statut=0;
-²
+
 		// Clear fields
 		// ...
 
