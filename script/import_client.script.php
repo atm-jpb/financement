@@ -24,43 +24,9 @@
 
 
 dol_include_once("/societe/class/societe.class.php");
-
-$sqlSearch = "SELECT rowid FROM llx_societe WHERE code_client = '%s'";
+$sqlSearchClient = "SELECT rowid FROM llx_societe WHERE code_client = '%s'";
 
 while($dataline = fgetcsv($fileHandler, 1024, $delimiter, $enclosure)) {
-	$imp->nb_lines++;
-	
-	$rowid = 0;
-	$data = array();
-	
-	// Vérification cohérence des données
-	if(count($mapping) != count($dataline)) {
-		$imp->addError('ErrorNbColsNotMatchingMapping', $dataline);
-		continue;
-	}
-	
-	// Recherche si enregistrement existant dans la base
-	$sql = sprintf($sqlSearch, $data['code_client']);
-	$resql = $db->query($sql);
-	if($resql) {
-		$num = $db->num_rows($result);
-		if($num == 1) { // Client trouvé, mise à jour
-			$obj = $db->fetch_object($result);
-			$rowid = $obj->rowid;
-		} else if($num > 1) { // Plusieurs trouvés, erreur
-			$imp->addError('ErrorMultipleCustomerFound', $dataline);
-			continue;
-		}
-	} else {
-		$imp->addError('ErrorWhileSearchingCustomer', $dataline);
-		continue;
-	}
-	
-	// Construction du tableau de données et de l'objet correspondant
-	array_walk($dataline, 'trim');
-	$data = array_combine($mapping, $dataline);
-	$data['client'] = 1;
-
-	$imp->importLine($data, 'Societe', $rowid);
+	$imp->importLine($dataline, 'Societe', $sqlSearchClient);
 }
 ?>

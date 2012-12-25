@@ -20,7 +20,7 @@
  *  \file       dev/skeletons/Import.class.php
  *  \ingroup    mymodule othermodule1 othermodule2
  *  \brief      This file is an example for a CRUD class file (Create/Read/Update/Delete)
- *				Initialy built by build_class_from_table on 2012-12-23 18:33
+ *				Initialy built by build_class_from_table on 2012-12-25 19:07
  */
 
 // Put here all includes required by your class file
@@ -49,6 +49,8 @@ class Import // extends CommonObject
 	var $filename;
 	var $nb_lines;
 	var $nb_errors;
+	var $nb_create;
+	var $nb_update;
 
     
 
@@ -85,6 +87,8 @@ class Import // extends CommonObject
 		if (isset($this->filename)) $this->filename=trim($this->filename);
 		if (isset($this->nb_lines)) $this->nb_lines=trim($this->nb_lines);
 		if (isset($this->nb_errors)) $this->nb_errors=trim($this->nb_errors);
+		if (isset($this->nb_create)) $this->nb_create=trim($this->nb_create);
+		if (isset($this->nb_update)) $this->nb_update=trim($this->nb_update);
 
         
 
@@ -100,7 +104,9 @@ class Import // extends CommonObject
 		$sql.= "date,";
 		$sql.= "filename,";
 		$sql.= "nb_lines,";
-		$sql.= "nb_errors";
+		$sql.= "nb_errors,";
+		$sql.= "nb_create,";
+		$sql.= "nb_update";
 
 		
         $sql.= ") VALUES (";
@@ -111,7 +117,9 @@ class Import // extends CommonObject
 		$sql.= " ".(! isset($this->date) || dol_strlen($this->date)==0?'NULL':$this->db->idate($this->date)).",";
 		$sql.= " ".(! isset($this->filename)?'NULL':"'".$this->db->escape($this->filename)."'").",";
 		$sql.= " ".(! isset($this->nb_lines)?'NULL':"'".$this->nb_lines."'").",";
-		$sql.= " ".(! isset($this->nb_errors)?'NULL':"'".$this->nb_errors."'")."";
+		$sql.= " ".(! isset($this->nb_errors)?'NULL':"'".$this->nb_errors."'").",";
+		$sql.= " ".(! isset($this->nb_create)?'NULL':"'".$this->nb_create."'").",";
+		$sql.= " ".(! isset($this->nb_update)?'NULL':"'".$this->nb_update."'")."";
 
         
 		$sql.= ")";
@@ -177,7 +185,9 @@ class Import // extends CommonObject
 		$sql.= " t.date,";
 		$sql.= " t.filename,";
 		$sql.= " t.nb_lines,";
-		$sql.= " t.nb_errors";
+		$sql.= " t.nb_errors,";
+		$sql.= " t.nb_create,";
+		$sql.= " t.nb_update";
 
 		
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_import as t";
@@ -200,6 +210,8 @@ class Import // extends CommonObject
 				$this->filename = $obj->filename;
 				$this->nb_lines = $obj->nb_lines;
 				$this->nb_errors = $obj->nb_errors;
+				$this->nb_create = $obj->nb_create;
+				$this->nb_update = $obj->nb_update;
 
                 
             }
@@ -236,6 +248,8 @@ class Import // extends CommonObject
 		if (isset($this->filename)) $this->filename=trim($this->filename);
 		if (isset($this->nb_lines)) $this->nb_lines=trim($this->nb_lines);
 		if (isset($this->nb_errors)) $this->nb_errors=trim($this->nb_errors);
+		if (isset($this->nb_create)) $this->nb_create=trim($this->nb_create);
+		if (isset($this->nb_update)) $this->nb_update=trim($this->nb_update);
 
         
 
@@ -251,7 +265,9 @@ class Import // extends CommonObject
 		$sql.= " date=".(dol_strlen($this->date)!=0 ? "'".$this->db->idate($this->date)."'" : 'null').",";
 		$sql.= " filename=".(isset($this->filename)?"'".$this->db->escape($this->filename)."'":"null").",";
 		$sql.= " nb_lines=".(isset($this->nb_lines)?$this->nb_lines:"null").",";
-		$sql.= " nb_errors=".(isset($this->nb_errors)?$this->nb_errors:"null")."";
+		$sql.= " nb_errors=".(isset($this->nb_errors)?$this->nb_errors:"null").",";
+		$sql.= " nb_create=".(isset($this->nb_create)?$this->nb_create:"null").",";
+		$sql.= " nb_update=".(isset($this->nb_update)?$this->nb_update:"null")."";
 
         
         $sql.= " WHERE rowid=".$this->id;
@@ -377,7 +393,7 @@ class Import // extends CommonObject
 		$object->fetch($fromid);
 		$object->id=0;
 		$object->statut=0;
-
+²
 		// Clear fields
 		// ...
 
@@ -428,28 +444,27 @@ class Import // extends CommonObject
 		$this->filename='';
 		$this->nb_lines='';
 		$this->nb_errors='';
+		$this->nb_create='';
+		$this->nb_update='';
 
 		
 	}
 
-	/******************************************************************
+	/************************************************************************************************************************************
 	 * PERSO FUNCTIONS
-	 ******************************************************************/
-	// TODO : regénérer (type_import)
-    /**
-     * Récupération des fichiers à importer
+	 ************************************************************************************************************************************/
+	/**
+	 * Récupération des fichiers à importer
 	 * Stockage dans le dossier import
-     *
-     * @return array   Tableau contenant la liste des fichiers récupérés
-     */
-    function getFiles($targetFolder)
-    {
-    	// TODO
+	 */
+	function getFiles($targetFolder)
+	{
+		// TODO
 	}
 	
 	function getListOfFiles($folder, $filePrefix)
-    {
-    	$result = array();
+	{
+		$result = array();
 		
 		$dirHandle = opendir($folder);
 		while ($fname = readdir($dirHandle)) {
@@ -462,8 +477,7 @@ class Import // extends CommonObject
 	}
 	
 	function getMapping($mappingFile) {
-		$mapping = file($mappingFile, FILE_IGNORE_NEW_LINES);
-		return $mapping;
+		$this->mapping = parse_ini_file($mappingFile, true);
 	}
 	
 	function addError($errMsg, $dataLine) {
@@ -471,17 +485,53 @@ class Import // extends CommonObject
 		$impErr = new ImportError($this->db);
 		$impErr->fk_import = $this->id;
 		$impErr->num_line = $this->nb_lines;
-		$impErr->content_line = $dataLine;
+		$impErr->content_line = serialize($dataLine);
 		$impErr->error_msg = $errMsg;
 		$impErr->sql_errno = $this->db->lasterrno;
 		$impErr->sql_error = lastqueryerror."\n".$this->db->lasterror;
 		$impErr->create($user);
-		
+
 		$this->nb_errors++;
 	}
 	
-	function importLine($data, $objectType, $rowid) {
+	function importLine($dataline, $objectType, $sqlSearch) {
 		global $user;
+		
+		// Compteur du nombre de lignes
+		$this->nb_lines++;
+		
+		// Vérification cohérence des données
+		if(count($this->mapping['mapping']) != count($dataline)) {
+			$this->addError('ErrorNbColsNotMatchingMapping', $dataline);
+			continue;
+		}
+		
+		// Construction du tableau de données
+		$data = array();
+		array_walk($dataline, 'trim');
+		$data = array_combine($this->mapping['mapping'], $dataline); // Combinaison des valeurs de la ligne et du mapping
+		$data = array_merge($data, $this->mapping['more']); // Ajout des valeurs autres
+		
+		// Recherche si enregistrement existant dans la base
+		$rowid = 0;
+		$sql = sprintf($sqlSearch, $data[$this->mapping['search_key']]);
+		$resql = $this->db->query($sql);
+		if($resql) {
+			$num = $this->db->num_rows($resql);
+			if($num == 1) { // Enregistrement trouvé, mise à jour
+				$obj = $this->db->fetch_object($resql);
+				$rowid = $obj->rowid;
+				echo 'FOUND : '.$rowid.'<br>';
+			} else if($num > 1) { // Plusieurs trouvés, erreur
+				$this->addError('ErrorMultipleRecordsFound', $dataline);
+				continue;
+			}
+		} else {
+			$this->addError('ErrorWhileSearchingRecord', $dataline);
+			continue;
+		}
+		
+		// Construction de l'objet final
 		$object = new $objectType($this->db);
 		if($rowid > 0) {
 			$object->fetch($rowid);
@@ -491,14 +541,18 @@ class Import // extends CommonObject
 			$object->{$key} = $value;
 		}
 		
+		// Mise à jour ou créatioon
 		if($rowid > 0) {
-			$res = $object->update($user);
+			$res = $object->update($rowid, $user);
+			$this->nb_update++;
 		} else {
 			$res = $object->create($user);
+			$this->nb_create++;
 		}
 		
+		// Erreur si la mise à jour ou création n'a pas marché
 		if($res < 0) {
-			$this->addError('ErrorWhileImportingLine', $data);
+			$this->addError('ErrorWhileImportingLine', $dataline);
 		}
 	}
 }

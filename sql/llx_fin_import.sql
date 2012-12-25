@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Client: localhost
--- Généré le : Mar 25 Décembre 2012 à 13:11
+-- Généré le : Mar 25 Décembre 2012 à 19:11
 -- Version du serveur: 5.5.28
 -- Version de PHP: 5.3.10-1ubuntu3.4
 
@@ -27,18 +27,20 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE IF NOT EXISTS `llx_fin_import` (
-  `rowid` int(11) NOT NULL,
-  `entity` int(11) NOT NULL,
+  `rowid` int(11) NOT NULL AUTO_INCREMENT,
+  `entity` int(11) NOT NULL DEFAULT '1',
   `fk_user_author` int(11) NOT NULL,
   `type_import` varchar(32) NOT NULL,
   `date` datetime NOT NULL,
   `filename` varchar(255) NOT NULL,
-  `nb_lines` int(11) NOT NULL,
-  `nb_errors` int(11) NOT NULL,
+  `nb_lines` int(11) NOT NULL DEFAULT '0',
+  `nb_errors` int(11) NOT NULL DEFAULT '0',
+  `nb_create` int(11) NOT NULL DEFAULT '0',
+  `nb_update` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`rowid`),
   KEY `entity` (`entity`),
   KEY `fk_user_author` (`fk_user_author`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

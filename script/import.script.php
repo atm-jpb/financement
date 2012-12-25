@@ -101,11 +101,7 @@ foreach ($listOfFileType as $fileType) { // Pour chaque type de fichier
 		
 		$imp->update($user); // Mise à jour pour nombre de lignes et nombre d'erreurs
 		
-		//rename($importFolder.$fileName, $importFolderOK.$fileName);
-		
-		echo '<pre>';
-		print_r($imp);
-		echo '</pre>';
+		rename($importFolder.$fileName, $importFolderOK.$fileName);
 	}
 }
 

@@ -1,17 +1,17 @@
-# TITRES ET MENUS
+# GLOBAL
 Financement=Financement
+ListOfDossierFinancement=Dossiers de financement
+
+# ADMIN
+Admin=Administration
+GlobalCoeffGrille=Grille de coefficients
+CoeffCorrectlySaved=Coefficient enregistré(s)
+
+# SIMULATIONS
 Simulations=Simulations
 Calculator=Calculateur
 Simulator=Simulateur
 SimulationList=Liste des simulations
-ListOfDossierFinancement=Dossiers de financement
-
-# ADMIN GRILLE
-GlobalCoeffGrille=Grille de coefficients
-CoeffCorrectlySaved=Coefficient enregistré(s)
-
-
-# SIMULATIONS
 CustomerSearch=Recherche client
 GlobalParameters=Paramètres globaux
 Periodicite=Périodicité
@@ -53,3 +53,8 @@ ScoreList=Scores
 ScoreDate=Date du score
 EncoursMax=Encours maximum
 NewScore=Nouveau score
+
+# IMPORTS
+Imports=Imports
+NewImport=Nouvel import
+ImportList=Liste des imports

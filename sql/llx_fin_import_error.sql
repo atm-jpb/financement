@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Client: localhost
--- Généré le : Mar 25 Décembre 2012 à 13:12
+-- Généré le : Mar 25 Décembre 2012 à 19:12
 -- Version du serveur: 5.5.28
 -- Version de PHP: 5.3.10-1ubuntu3.4
 
@@ -32,8 +32,8 @@ CREATE TABLE IF NOT EXISTS `llx_fin_import_error` (
   `num_line` int(11) NOT NULL,
   `content_line` longtext NOT NULL,
   `error_msg` varchar(255) NOT NULL,
-  `sql_errno` varchar(255) NOT NULL,
-  `sql_error` longtext NOT NULL,
+  `sql_errno` varchar(255) DEFAULT NULL,
+  `sql_error` longtext,
   PRIMARY KEY (`rowid`),
   KEY `fk_import` (`fk_import`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
