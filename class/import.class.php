@@ -521,7 +521,6 @@ class Import // extends CommonObject
 			if($num == 1) { // Enregistrement trouvé, mise à jour
 				$obj = $this->db->fetch_object($resql);
 				$rowid = $obj->rowid;
-				echo 'FOUND : '.$rowid.'<br>';
 			} else if($num > 1) { // Plusieurs trouvés, erreur
 				$this->addError('ErrorMultipleRecordsFound', $dataline);
 				continue;

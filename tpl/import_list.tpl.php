@@ -34,6 +34,8 @@ print_barre_liste($langs->trans('ImportList'), $page,'import.php?mode=list',$par
 		<?php print_liste_field_titre($langs->trans('Author'),$_SERVER["PHP_SELF"],'u.login','',$param,'',$sortfield,$sortorder) ?>
 		<?php print_liste_field_titre($langs->trans('NbLines'),$_SERVER["PHP_SELF"],'i.nb_lines','',$param, 'align="center"',$sortfield,$sortorder) ?>
 		<?php print_liste_field_titre($langs->trans('NbErrors'),$_SERVER["PHP_SELF"],'i.nb_errors','',$param, 'align="center"',$sortfield,$sortorder) ?>
+		<?php print_liste_field_titre($langs->trans('NbCreate'),$_SERVER["PHP_SELF"],'i.nb_create','',$param, 'align="center"',$sortfield,$sortorder) ?>
+		<?php print_liste_field_titre($langs->trans('NbUpdate'),$_SERVER["PHP_SELF"],'i.nb_update','',$param, 'align="center"',$sortfield,$sortorder) ?>
 		<th class="liste_titre">&nbsp;</th>
 	</tr>
 	
@@ -52,6 +54,8 @@ print_barre_liste($langs->trans('ImportList'), $page,'import.php?mode=list',$par
 		<td class="liste_titre">
 			<input type="text" name="search_author" value="<?php echo $search_author ?>" class="flat" />
 		</td>
+		<td class="liste_titre">&nbsp;</td>
+		<td class="liste_titre">&nbsp;</td>
 		<td class="liste_titre">&nbsp;</td>
 		<td class="liste_titre">&nbsp;</td>
 		<td class="liste_titre" align="right">

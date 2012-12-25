@@ -93,6 +93,8 @@ foreach ($listOfFileType as $fileType) { // Pour chaque type de fichier
 		$imp->type_import = $fileType;
 		$imp->nb_lines = 0;
 		$imp->nb_errors = 0;
+		$imp->nb_create = 0;
+		$imp->nb_update = 0;
 		$imp->date = time();
 		$imp->create($user); // Création de l'import
 
@@ -110,11 +112,13 @@ foreach ($listOfFileType as $fileType) { // Pour chaque type de fichier
 
 if (! $error)
 {
+	$db->commit();
 	print '--- end ok'.$eol;
 }
 else
 {
 	print '--- end error code='.$error.$eol;
+	$db->rollback();
 }
 
 $db->close();	// Close database opened handler
