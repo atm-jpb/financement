@@ -25,109 +25,42 @@
 
 dol_include_once("/societe/class/societe.class.php");
 
-foreach ($currentFile as $i => $line) {
-	$societe=new Societe($db);
-	
-	$dataline = str_getcsv($line, $delimiter, $enclosure);
-	$data = array_combine($mapping, $dataline);
-	
-	foreach ($data as $key => $value) {
-		$societe->{$key} = $value;
-	}
-	echo '<pre>';
-	print_r($data);
-	echo '</pre>';
-	echo $eol;
-	
-	$id=$societe->create($user);
-	if ($id < 0) { $error++; dol_print_error($db,$societe->error); }
-	else print "Object created with id=".$id.$eol;
-	
-	// Example for inserting creating object in database
-	/*
-	dol_syslog($script_file." CREATE", LOG_DEBUG);
-	$myobject->prop1='value_prop1';
-	$myobject->prop2='value_prop2';
-	$id=$myobject->create($user);
-	if ($id < 0) { $error++; dol_print_error($db,$myobject->error); }
-	else print "Object created with id=".$id."\n";
-	*/
-	
-	// Example for reading object from database
-	/*
-	dol_syslog($script_file." FETCH", LOG_DEBUG);
-	$result=$myobject->fetch($id);
-	if ($result < 0) { $error; dol_print_error($db,$myobject->error); }
-	else print "Object with id=".$id." loaded\n";
-	*/
-	
-	// Example for updating object in database ($myobject must have been loaded by a fetch before)
-	/*
-	dol_syslog($script_file." UPDATE", LOG_DEBUG);
-	$myobject->prop1='newvalue_prop1';
-	$myobject->prop2='newvalue_prop2';
-	$result=$myobject->update($user);
-	if ($result < 0) { $error++; dol_print_error($db,$myobject->error); }
-	else print "Object with id ".$myobject->id." updated\n";
-	*/
-	
-	// Example for deleting object in database ($myobject must have been loaded by a fetch before)
-	/*
-	dol_syslog($script_file." DELETE", LOG_DEBUG);
-	$result=$myobject->delete($user);
-	if ($result < 0) { $error++; dol_print_error($db,$myobject->error); }
-	else print "Object with id ".$myobject->id." deleted\n";
-	*/
-	
-	
-	// An example of a direct SQL read without using the fetch method
-	/*
-	$sql = "SELECT field1, field2";
-	$sql.= " FROM ".MAIN_DB_PREFIX."c_pays";
-	$sql.= " WHERE field3 = 'xxx'";
-	$sql.= " ORDER BY field1 ASC";
-	
-	dol_syslog($script_file." sql=".$sql, LOG_DEBUG);
-	$resql=$db->query($sql);
-	if ($resql)
-	{
-		$num = $db->num_rows($resql);
-		$i = 0;
-		if ($num)
-		{
-			while ($i < $num)
-			{
-				$obj = $db->fetch_object($resql);
-				if ($obj)
-				{
-					// You can use here results
-					print $obj->field1;
-					print $obj->field2;
-				}
-				$i++;
-			}
-		}
-	}
-	else
-	{
-		$error++;
-		dol_print_error($db);
-	}
-	*/
-	
-	
-	// -------------------- END OF YOUR CODE --------------------
-	
-	if (! $error)
-	{
-		$db->commit();
-		print date('Y-m-d H:i:s').' : end ok'.$eol;
-	}
-	else
-	{
-		print date('Y-m-d H:i:s').' : error code='.$error.$eol;
-		$db->rollback();
-	}
+$sqlSearch = "SELECT rowid FROM llx_societe WHERE code_client = '%s'";
 
+while($dataline = fgetcsv($fileHandler, 1024, $delimiter, $enclosure)) {
+	$imp->nb_lines++;
+	
+	$rowid = 0;
+	$data = array();
+	
+	// Vérification cohérence des données
+	if(count($mapping) != count($dataline)) {
+		$imp->addError('ErrorNbColsNotMatchingMapping', $dataline);
+		continue;
+	}
+	
+	// Recherche si enregistrement existant dans la base
+	$sql = sprintf($sqlSearch, $data['code_client']);
+	$resql = $db->query($sql);
+	if($resql) {
+		$num = $db->num_rows($result);
+		if($num == 1) { // Client trouvé, mise à jour
+			$obj = $db->fetch_object($result);
+			$rowid = $obj->rowid;
+		} else if($num > 1) { // Plusieurs trouvés, erreur
+			$imp->addError('ErrorMultipleCustomerFound', $dataline);
+			continue;
+		}
+	} else {
+		$imp->addError('ErrorWhileSearchingCustomer', $dataline);
+		continue;
+	}
+	
+	// Construction du tableau de données et de l'objet correspondant
+	array_walk($dataline, 'trim');
+	$data = array_combine($mapping, $dataline);
+	$data['client'] = 1;
+
+	$imp->importLine($data, 'Societe', $rowid);
 }
 ?>

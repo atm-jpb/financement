@@ -63,7 +63,10 @@ $db->begin();
 
 // Examples for manipulating class skeleton_class
 dol_include_once("/financement/class/import.class.php");
+dol_include_once("/financement/class/import_error.class.php");
 $imp=new Import($db);
+$imp->entity = $conf->entity;
+$imp->fk_user_author = $user->id;
 
 $delimiter = ';'; $enclosure = '"';
 $listOfFileType = array('client');
@@ -74,20 +77,35 @@ $importFolderMapping = '../import/mappings/';
 // STEP 1 : récupération des fichiers source
 $imp->getFiles($importFolder);
 
-// STEP 2 : import fichiers client
-foreach ($listOfFileType as $fileType) {
+// STEP 2 : import des fichiers
+foreach ($listOfFileType as $fileType) { // Pour chaque type de fichier
 	$filePrefix = 'fin_'.$fileType;
 	$importScriptFile = 'import_'.$fileType.'.script.php';
 	$mappingFile = $fileType.'.mapping';
-	$mapping = $imp->getMapping($importFolderMapping.$mappingFile);
+	$mapping = $imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
 	
-	$filesToImport = $imp->getListOfFiles($importFolder, $filePrefix);
+	$filesToImport = $imp->getListOfFiles($importFolder, $filePrefix); // Récupération des fichiers à importer (dossier todo)
 	
 	print date('Y-m-d H:i:s').' : Récupération fichiers "'.$filePrefix.'", '.count($filesToImport).' fichier(s) trouvé(s)'.$eol;
 
-	foreach($filesToImport as $fileName) {
-		$currentFile = file($importFolder.$fileName);
+	foreach($filesToImport as $fileName) { // Pour chaque fichier à importer
+		$imp->filename = $fileName;
+		$imp->type_import = $fileType;
+		$imp->nb_lines = 0;
+		$imp->nb_errors = 0;
+		$imp->date = time();
+		$imp->create($user); // Création de l'import
+
+		$fileHandler = fopen($importFolder.$fileName, 'r');
 		include $importScriptFile;
+		
+		$imp->update($user); // Mise à jour pour nombre de lignes et nombre d'erreurs
+		
+		//rename($importFolder.$fileName, $importFolderOK.$fileName);
+		
+		echo '<pre>';
+		print_r($imp);
+		echo '</pre>';
 	}
 }
 
