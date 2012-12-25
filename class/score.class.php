@@ -46,7 +46,7 @@ class Score // extends CommonObject
 	var $score;
 	var $encours_max;
 	var $date='';
-	var $import_key;
+	var $fk_import;
 	var $fk_user_author;
 
     
@@ -81,7 +81,7 @@ class Score // extends CommonObject
 		if (isset($this->fk_soc)) $this->fk_soc=trim($this->fk_soc);
 		if (isset($this->score)) $this->score=trim($this->score);
 		if (isset($this->encours_max)) $this->encours_max=trim($this->encours_max);
-		if (isset($this->import_key)) $this->import_key=trim($this->import_key);
+		if (isset($this->fk_import)) $this->fk_import=trim($this->fk_import);
 		if (isset($this->fk_user_author)) $this->fk_user_author=trim($this->fk_user_author);
 
         
@@ -96,7 +96,7 @@ class Score // extends CommonObject
 		$sql.= "score,";
 		$sql.= "encours_max,";
 		$sql.= "date,";
-		$sql.= "import_key,";
+		$sql.= "fk_import,";
 		$sql.= "fk_user_author";
 
 		
@@ -106,7 +106,7 @@ class Score // extends CommonObject
 		$sql.= " ".(! isset($this->score)?'NULL':"'".$this->score."'").",";
 		$sql.= " ".(! isset($this->encours_max)?'NULL':"'".$this->encours_max."'").",";
 		$sql.= " ".(! isset($this->date) || dol_strlen($this->date)==0?'NULL':$this->db->idate($this->date)).",";
-		$sql.= " ".(! isset($this->import_key)?'NULL':"'".$this->db->escape($this->import_key)."'").",";
+		$sql.= " ".(! isset($this->fk_import)?'NULL':"'".$this->db->escape($this->fk_import)."'").",";
 		$sql.= " ".(! isset($this->fk_user_author)?'NULL':"'".$this->fk_user_author."'")."";
 
         
@@ -171,7 +171,7 @@ class Score // extends CommonObject
 		$sql.= " t.score,";
 		$sql.= " t.encours_max,";
 		$sql.= " t.date,";
-		$sql.= " t.import_key,";
+		$sql.= " t.fk_import,";
 		$sql.= " t.fk_user_author";
 
 		
@@ -192,7 +192,7 @@ class Score // extends CommonObject
 				$this->score = $obj->score;
 				$this->encours_max = $obj->encours_max;
 				$this->date = $this->db->jdate($obj->date);
-				$this->import_key = $obj->import_key;
+				$this->fk_import = $obj->fk_import;
 				$this->fk_user_author = $obj->fk_user_author;
 
                 
@@ -227,7 +227,7 @@ class Score // extends CommonObject
 		if (isset($this->fk_soc)) $this->fk_soc=trim($this->fk_soc);
 		if (isset($this->score)) $this->score=trim($this->score);
 		if (isset($this->encours_max)) $this->encours_max=trim($this->encours_max);
-		if (isset($this->import_key)) $this->import_key=trim($this->import_key);
+		if (isset($this->fk_import)) $this->fk_import=trim($this->fk_import);
 		if (isset($this->fk_user_author)) $this->fk_user_author=trim($this->fk_user_author);
 
         
@@ -242,7 +242,7 @@ class Score // extends CommonObject
 		$sql.= " score=".(isset($this->score)?$this->score:"null").",";
 		$sql.= " encours_max=".(isset($this->encours_max)?$this->encours_max:"null").",";
 		$sql.= " date=".(dol_strlen($this->date)!=0 ? "'".$this->db->idate($this->date)."'" : 'null').",";
-		$sql.= " import_key=".(isset($this->import_key)?"'".$this->db->escape($this->import_key)."'":"null").",";
+		$sql.= " fk_import=".(isset($this->fk_import)?"'".$this->db->escape($this->fk_import)."'":"null").",";
 		$sql.= " fk_user_author=".(isset($this->fk_user_author)?$this->fk_user_author:"null")."";
 
         
@@ -417,7 +417,7 @@ class Score // extends CommonObject
 		$this->score='';
 		$this->encours_max='';
 		$this->date='';
-		$this->import_key='';
+		$this->fk_import='';
 		$this->fk_user_author='';
 
 		

@@ -108,7 +108,7 @@ if($action == 'save') {
 }
 
 // Grille de coeff globale + % de pénalité par option
-$idLeaser = 2; // Identifiant de la société associée à la grille (C'PRO ici, sera l'identifiant leaser pour les grilles leaser)
+$idLeaser = 1; // Identifiant de la société associée à la grille (C'PRO ici, sera l'identifiant leaser pour les grilles leaser)
 $liste_type_contrat = $formfin->array_financement('type_contrat');
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$grille = new Grille($db);

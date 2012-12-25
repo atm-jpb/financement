@@ -49,7 +49,7 @@ $opt_periodicite = 'opt_trimestriel';
 $opt_mode_reglement = 'opt_prelevement';
 $opt_terme = 'opt_aechoir';
 $vr = 0;
-$idLeaser = 2;
+$idLeaser = 1;
 $coeff = 0;
 
 /*

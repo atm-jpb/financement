@@ -104,29 +104,13 @@ class FormFinancement
 	}
 
 	function select_penalite($group, $selected='',$htmlname='opt_id')
-	{
-		/*global $conf,$langs,$user;
-		$langs->load("financement");
-
-		$out='';
-		$out.= '<select class="flat" name="'.$htmlname.'">';
-		//$out.= '<option value="">&nbsp;</option>';
-		$out.= '<option value="T"'.(($selected == 'T') ? 'selected="selected"' : '').'>';
-		$out.= $langs->trans('Trimestrielle');
-		$out.= '</option>';
-		$out.= '<option value="M"'.(($selected == 'M') ? 'selected="selected"' : '').'>';
-		$out.= $langs->trans('Mensuelle');
-		$out.= '</option>';
-		$out.= '</select>';
-		
-		return $out;*/
-		
+	{		
 		global $conf,$langs,$user;
 		$langs->load("financement");
 
 		$out='';
 
-		$sql = "SELECT type FROM ".MAIN_DB_PREFIX."fin_grille_penalite";
+		$sql = "SELECT opt_name FROM ".MAIN_DB_PREFIX."fin_grille_penalite";
 		$sql.= " WHERE opt_group = '".$group."'";
 
 		dol_syslog("Form::select_financement sql=".$sql);
@@ -142,16 +126,16 @@ class FormFinancement
 				while ($i < $num)
 				{
 					$obj = $this->db->fetch_object($resql);
-					if ($selected == $obj->type)
+					if ($selected == $obj->opt_name)
 					{
-						$out.= '<option value="'.$obj->type.'" selected="selected">';
+						$out.= '<option value="'.$obj->opt_name.'" selected="selected">';
 					}
 					else
 					{
-						$out.= '<option value="'.$obj->type.'">';
+						$out.= '<option value="'.$obj->opt_name.'">';
 					}
 					// Si traduction existe, on l'utilise, sinon on prend le libelle par defaut
-					$out.= ($langs->trans($obj->type)!=$obj->type ? $langs->trans($obj->type) : $obj->type);
+					$out.= ($langs->trans($obj->opt_name)!=$obj->opt_name ? $langs->trans($obj->opt_name) : $obj->opt_name);
 					$out.= '</option>';
 					$i++;
 				}

@@ -248,8 +248,7 @@ class Grille // extends CommonObject
 		$sql.= " montant=".(isset($this->montant)?$this->montant:"null").",";
 		$sql.= " periode=".(isset($this->periode)?$this->periode:"null").",";
 		$sql.= " coeff=".(isset($this->coeff)?$this->coeff:"null").",";
-		$sql.= " fk_user=".(isset($this->fk_user)?$this->fk_user:"null").",";
-		$sql.= " tms=".(dol_strlen($this->tms)!=0 ? "'".$this->db->idate($this->tms)."'" : 'null')."";
+		$sql.= " fk_user=".(isset($this->fk_user)?$this->fk_user:"null");
 
         
         $sql.= " WHERE rowid=".$this->id;
@@ -542,14 +541,14 @@ class Grille // extends CommonObject
 	}
 	
 	private function _get_penalite($name) {
-		$sql = "SELECT value FROM ".MAIN_DB_PREFIX."fin_grille_penalite";
-		$sql.= " WHERE type = '".$name."'";
+		$sql = "SELECT opt_value FROM ".MAIN_DB_PREFIX."fin_grille_penalite";
+		$sql.= " WHERE opt_name = '".$name."'";
 		
 		$resql=$this->db->query($sql);
 		if ($resql)
 		{
 			$obj = $this->db->fetch_object($resql);
-			return floatval($obj->value);
+			return floatval($obj->opt_value);
 		}
 		else
 		{

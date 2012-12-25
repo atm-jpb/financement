@@ -6,6 +6,11 @@ Simulator=Simulateur
 SimulationList=Liste des simulations
 ListOfDossierFinancement=Dossiers de financement
 
+# ADMIN GRILLE
+GlobalCoeffGrille=Grille de coefficients
+CoeffCorrectlySaved=Coefficient enregistré(s)
+
+
 # SIMULATIONS
 CustomerSearch=Recherche client
 GlobalParameters=Paramètres globaux
@@ -38,7 +43,7 @@ opt_trimestriel=Trimestrielle
 opt_prelevement=Prélèvement
 opt_cheque=Chèque
 opt_virement=Virement
-opt_aechoir=À échoir
+opt_a_echoir=À échoir
 opt_echu=Échu
 FinancementOK=Financement OK
 FinancementWAIT=Financement en attente de validation
