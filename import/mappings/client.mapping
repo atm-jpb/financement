@@ -2,8 +2,8 @@ idprof2
 name
 idprof3
 address
-cp
-ville
-pays
+zip
+town
+country_code
 code_client
 code_compta
