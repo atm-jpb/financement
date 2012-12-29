@@ -37,7 +37,11 @@ if (!($user->rights->financement->import->read))
 
 $langs->load('financement@financement');
 
+$error = false;
+$mesg = '';
+
 $id=GETPOST("id");
+$import=GETPOST("import");
 $cancel=GETPOST("cancel");
 $mode=GETPOST("mode")?GETPOST("mode"):'list';
 
@@ -96,6 +100,56 @@ $mode=GETPOST("mode")?GETPOST("mode"):'list';
 	$import_list=$db->query($sql);
 }
 
+if($mode == 'new') {
+	if(!empty($import)) {
+		$delimiter = ';'; $enclosure = '"';
+		$listOfFileType = array('client');
+		$importFolder = '../import/todo/';
+		$importFolderOK = '../import/done/';
+		$importFolderMapping = '../import/mappings/';
+
+		if ($_FILES["fileToImport"]["error"] == UPLOAD_ERR_OK) {
+			$tmp_name = $_FILES["fileToImport"]["tmp_name"];
+			$fileName = $_FILES["fileToImport"]["name"];
+			move_uploaded_file($tmp_name, $importFolder.$fileName);
+		} else {
+			$mesg = 'ErrorUploadingFile_'.$_FILES["fileToImport"]["error"];
+			$error = true;
+		}
+
+		$fileType = GETPOST('type_import', 'alpha');
+		if(empty($fileType)) {
+			$mesg = 'ErrorTypeOfImportEmpty';
+			$error = true;
+		}
+
+		if(!$error) {
+			$imp=new Import($db);
+			$imp->entity = $conf->entity;
+			$imp->fk_user_author = $user->id;
+			
+			$importScriptFile = 'import_'.$fileType.'.script.php';
+			$mappingFile = $fileType.'.mapping';
+			$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
+			
+			$imp->filename = $fileName;
+			$imp->type_import = $fileType;
+			$imp->nb_lines = 0;
+			$imp->nb_errors = 0;
+			$imp->nb_create = 0;
+			$imp->nb_update = 0;
+			$imp->date = time();
+			$imp->create($user); // Création de l'import
+
+			$fileHandler = fopen($importFolder.$fileName, 'r');
+			include $importScriptFile;
+
+			$imp->update($user); // Mise à jour pour nombre de lignes et nombre d'erreurs
+
+			rename($importFolder.$fileName, $importFolderOK.$fileName);
+		}
+	}
+}
 
 /*
  * View
@@ -124,7 +178,7 @@ switch ($mode) {
 
 include $tpl;
 
-dol_htmloutput_mesg($mesg);
+dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 
 llxFooter('');
 

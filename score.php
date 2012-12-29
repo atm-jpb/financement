@@ -37,6 +37,9 @@ if (!($user->rights->financement->score->read))
 
 $langs->load('financement@financement');
 
+$error = false;
+$mesg = '';
+
 $id=GETPOST("id");
 $socid=GETPOST("socid");
 $action=GETPOST("action");
@@ -72,12 +75,16 @@ if ($action == 'add' && empty($cancel) && $user->rights->financement->score->wri
 	else
 	{
 		$mesg = '<div class="error">'.$object->error.'</div>';
+		$error = true;
 	}
 }
 else if ($action == 'delete' && !empty($id) && $user->rights->financement->score->delete)
 {
 	$result=$object->delete($user);
-	if ($result < 0) $mesg='<div class="error">'.$object->error.'</div>';
+	if ($result < 0) {
+		$mesg='<div class="error">'.$object->error.'</div>';
+		$error = true;
+	}
 }
 
 /*
@@ -166,7 +173,7 @@ else
 	dol_print_error($db);
 }
 
-dol_htmloutput_mesg($mesg);
+dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 
 // Footer
 llxFooter();

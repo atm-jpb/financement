@@ -21,7 +21,7 @@
  *		\brief		Liste des imports réalisés das le système
  */
 
- 
+
 print_barre_liste($langs->trans('ImportList'), $page,'import.php?mode=list',$param,$sortfield,$sortorder,'',$num,0,'import32.png@financement');
 ?>
 <br />
@@ -90,10 +90,10 @@ print_barre_liste($langs->trans('ImportList'), $page,'import.php?mode=list',$par
 				<td><?php echo $obj->type_import ?></td>
 				<td><?php echo $obj->filename ?></td>
 				<td><?php echo $userstatic->getLoginUrl(1) ?></td>
-				<td><?php echo $obj->nb_lines ?></td>
-				<td><?php echo $obj->nb_errors ?></td>
-				<td><?php echo $obj->nb_create ?></td>
-				<td><?php echo $obj->nb_update ?></td>
+				<td align="center"><?php echo $obj->nb_lines ?></td>
+				<td align="center"><?php echo $obj->nb_errors ?></td>
+				<td align="center"><?php echo $obj->nb_create ?></td>
+				<td align="center"><?php echo $obj->nb_update ?></td>
 				<td>&nbsp;</td>
 			</tr>
 			<?php

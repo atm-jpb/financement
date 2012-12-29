@@ -61,9 +61,10 @@ print 'Argument 2='.$argv[2].$eol;*/
 // Start of transaction
 $db->begin();
 
-// Examples for manipulating class skeleton_class
+// Inclusion des classes d'import
 dol_include_once("/financement/class/import.class.php");
 dol_include_once("/financement/class/import_error.class.php");
+
 $imp=new Import($db);
 $imp->entity = $conf->entity;
 $imp->fk_user_author = $user->id;
@@ -79,11 +80,11 @@ $imp->getFiles($importFolder);
 
 // STEP 2 : import des fichiers
 foreach ($listOfFileType as $fileType) { // Pour chaque type de fichier
-	$filePrefix = 'fin_'.$fileType;
 	$importScriptFile = 'import_'.$fileType.'.script.php';
 	$mappingFile = $fileType.'.mapping';
-	$mapping = $imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
+	$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
 	
+	$filePrefix = 'fin_'.$fileType;
 	$filesToImport = $imp->getListOfFiles($importFolder, $filePrefix); // Récupération des fichiers à importer (dossier todo)
 	
 	print date('Y-m-d H:i:s').' : Récupération fichiers "'.$filePrefix.'", '.count($filesToImport).' fichier(s) trouvé(s)'.$eol;

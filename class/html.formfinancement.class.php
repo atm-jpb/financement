@@ -54,10 +54,12 @@ class FormFinancement
 	 * 	@param	string	$htmlname	Name of HTML select combo field
 	 *  @return	void
 	 */
-	function select_financement($type, $selected='',$htmlname='const_id')
+	function select_financement($type, $selected='',$htmlname='const_id', $useId=true)
 	{
 		global $conf,$langs,$user;
 		$langs->load("financement");
+		
+		$field = $useId ? 'rowid' : 'code';
 
 		$out='';
 
@@ -78,13 +80,13 @@ class FormFinancement
 				while ($i < $num)
 				{
 					$obj = $this->db->fetch_object($resql);
-					if ($selected == $obj->rowid)
+					if ($selected == $obj->{$field})
 					{
-						$out.= '<option value="'.$obj->rowid.'" selected="selected">';
+						$out.= '<option value="'.$obj->{$field}.'" selected="selected">';
 					}
 					else
 					{
-						$out.= '<option value="'.$obj->rowid.'">';
+						$out.= '<option value="'.$obj->{$field}.'">';
 					}
 					// Si traduction existe, on l'utilise, sinon on prend le libelle par defaut
 					$out.= ($langs->trans($obj->code)!=$obj->code ? $langs->trans($obj->code) : $obj->code);
