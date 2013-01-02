@@ -2,5 +2,9 @@
 /*
  * fichier de configuration
  */
- 	
-	require('/var/www/ATM/dolibarr/htdocs/main.inc.php');
+
+if(defined('INC_FROM_CRON_SCRIPT')) {
+	require('/var/www/cpro/dolibarr/htdocs/master.inc.php');
+} else {
+	require('/var/www/cpro/dolibarr/htdocs/main.inc.php');
+}
