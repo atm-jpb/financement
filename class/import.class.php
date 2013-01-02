@@ -476,6 +476,16 @@ class Import // extends CommonObject
 		return $result;
 	}
 	
+	function init($fileName, $fileType) {
+		$this->filename = $fileName;
+		$this->type_import = $fileType;
+		$this->nb_lines = 0;
+		$this->nb_errors = 0;
+		$this->nb_create = 0;
+		$this->nb_update = 0;
+		$this->date = time();
+	}
+	
 	function getMapping($mappingFile) {
 		$this->mapping = parse_ini_file($mappingFile, true);
 	}
@@ -494,41 +504,8 @@ class Import // extends CommonObject
 		$this->nb_errors++;
 	}
 	
-	function importLine($dataline, $objectType, $sqlSearch) {
+	function importLine($data, $objectType, $rowid) {
 		global $user;
-		
-		// Compteur du nombre de lignes
-		$this->nb_lines++;
-		
-		// Vérification cohérence des données
-		if(count($this->mapping['mapping']) != count($dataline)) {
-			$this->addError('ErrorNbColsNotMatchingMapping', $dataline);
-			continue;
-		}
-		
-		// Construction du tableau de données
-		$data = array();
-		array_walk($dataline, 'trim');
-		$data = array_combine($this->mapping['mapping'], $dataline); // Combinaison des valeurs de la ligne et du mapping
-		$data = array_merge($data, $this->mapping['more']); // Ajout des valeurs autres
-		
-		// Recherche si enregistrement existant dans la base
-		$rowid = 0;
-		$sql = sprintf($sqlSearch, $data[$this->mapping['search_key']]);
-		$resql = $this->db->query($sql);
-		if($resql) {
-			$num = $this->db->num_rows($resql);
-			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$obj = $this->db->fetch_object($resql);
-				$rowid = $obj->rowid;
-			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError('ErrorMultipleRecordsFound', $dataline);
-				continue;
-			}
-		} else {
-			$this->addError('ErrorWhileSearchingRecord', $dataline);
-			continue;
-		}
 		
 		// Construction de l'objet final
 		$object = new $objectType($this->db);
@@ -543,16 +520,43 @@ class Import // extends CommonObject
 		// Mise à jour ou créatioon
 		if($rowid > 0) {
 			$res = $object->update($rowid, $user);
-			$this->nb_update++;
+			// Erreur : la mise à jour n'a pas marché
+			if($res < 0) {
+				$this->addError('ErrorWhileUpdatingLine', array_values($data));
+			} else {
+				$this->nb_update++;
+			}			
 		} else {
 			$res = $object->create($user);
-			$this->nb_create++;
+			// Erreur : la création n'a pas marché
+			if($res < 0) {
+				$this->addError('ErrorWhileCreatingLine', array_values($data));
+			} else {
+				$this->nb_create++;
+			}
 		}
 		
-		// Erreur si la mise à jour ou création n'a pas marché
-		if($res < 0) {
-			$this->addError('ErrorWhileImportingLine', $dataline);
+		
+	}
+
+	function checkData($dataline) {
+		// Vérification cohérence des données
+		if(count($this->mapping['mapping']) != count($dataline)) {
+			$this->addError('ErrorNbColsNotMatchingMapping', $dataline);
+			return false;
 		}
+		
+		return true;
+	}
+	
+	function contructDataTab($dataline) {
+		// Construction du tableau de données
+		$data = array();
+		array_walk($dataline, 'trim');
+		$data = array_combine($this->mapping['mapping'], $dataline); // Combinaison des valeurs de la ligne et du mapping
+		$data = array_merge($data, $this->mapping['more']); // Ajout des valeurs autres
+		
+		return $data;
 	}
 }
 ?>

@@ -40,7 +40,8 @@ $error=0;
 
 // -------------------- START OF YOUR CODE HERE --------------------
 // Include Dolibarr environment
-require_once($path."../../../../htdocs/master.inc.php");
+define('INC_FROM_CRON_SCRIPT', true);
+require_once($path."../main.inc.php");
 // After this $db, $mysoc, $langs and $conf->entity are defined. Opened handler to database will be closed at end of file.
 
 //$langs->setDefaultLang('en_US'); 	// To change default language of $langs
@@ -70,7 +71,7 @@ $imp->entity = $conf->entity;
 $imp->fk_user_author = $user->id;
 
 $delimiter = ';'; $enclosure = '"';
-$listOfFileType = array('client');
+$listOfFileType = array('client', 'facture_materiel');
 $importFolder = '../import/todo/';
 $importFolderOK = '../import/done/';
 $importFolderMapping = '../import/mappings/';
@@ -90,19 +91,15 @@ foreach ($listOfFileType as $fileType) { // Pour chaque type de fichier
 	print date('Y-m-d H:i:s').' : Récupération fichiers "'.$filePrefix.'", '.count($filesToImport).' fichier(s) trouvé(s)'.$eol;
 
 	foreach($filesToImport as $fileName) { // Pour chaque fichier à importer
-		$imp->filename = $fileName;
-		$imp->type_import = $fileType;
-		$imp->nb_lines = 0;
-		$imp->nb_errors = 0;
-		$imp->nb_create = 0;
-		$imp->nb_update = 0;
-		$imp->date = time();
+		$imp->init($fileName, $fileType);		
 		$imp->create($user); // Création de l'import
 
 		$fileHandler = fopen($importFolder.$fileName, 'r');
 		include $importScriptFile;
 		
 		$imp->update($user); // Mise à jour pour nombre de lignes et nombre d'erreurs
+		
+		print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;
 		
 		rename($importFolder.$fileName, $importFolderOK.$fileName);
 	}

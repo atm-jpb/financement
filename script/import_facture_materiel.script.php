@@ -16,14 +16,15 @@
  */
 
 /**
- *      \file       script/import_client.script.php
+ *      \file       script/import_facture_materiel.script.php
  *		\ingroup    financement
  *      \brief      This file is an example for a command line script
  *					Initialy built by build_class_from_table on 2012-12-20 10:36
  */
 
 
-dol_include_once("/societe/class/societe.class.php");
+dol_include_once("/societe/class/facture.class.php");
+$sqlSearchFacture = "SELECT rowid FROM llx_facture WHERE facnumber = '%s'";
 $sqlSearchClient = "SELECT rowid FROM llx_societe WHERE code_client = '%s'";
 
 while($dataline = fgetcsv($fileHandler, 1024, $delimiter, $enclosure)) {
@@ -33,9 +34,9 @@ while($dataline = fgetcsv($fileHandler, 1024, $delimiter, $enclosure)) {
 	if($imp->checkData($dataline)) {
 		$data = $imp->contructDataTab($dataline);
 		
-		// Recherche si tiers existant dans la base
+		// Recherche si facture existante dans la base
 		$rowid = 0;
-		$sql = sprintf($sqlSearchClient, $data[$imp->mapping['search_key']]);
+		$sql = sprintf($sqlSearchFacture, $data[$imp->mapping['search_key']]);
 		$resql = $db->query($sql);
 		if($resql) {
 			$num = $db->num_rows($resql);
@@ -43,13 +44,36 @@ while($dataline = fgetcsv($fileHandler, 1024, $delimiter, $enclosure)) {
 				$obj = $db->fetch_object($resql);
 				$rowid = $obj->rowid;
 			} else if($num > 1) { // Plusieurs trouvés, erreur
+				$imp->addError('ErrorMultipleFactureFound', $dataline);
+				continue;
+			}
+		} else {
+			$imp->addError('ErrorWhileSearchingFacture', $dataline);
+			continue;
+		}
+		
+		// Recherche tiers associé à la facture existant dans la base
+		$fk_soc = 0;
+		$sql = sprintf($sqlSearchClient, $data[$imp->mapping['search_key_client']]);
+		$resql = $db->query($sql);
+		if($resql) {
+			$num = $db->num_rows($resql);
+			if($num == 1) { // Enregistrement trouvé, mise à jour
+				$obj = $db->fetch_object($resql);
+				$fk_soc = $obj->rowid;
+			} else if($num > 1) { // Plusieurs trouvés, erreur
 				$imp->addError('ErrorMultipleClientFound', $dataline);
+				continue;
+			} else {
+				$imp->addError('ErrorNoClientFound', $dataline);
 				continue;
 			}
 		} else {
 			$imp->addError('ErrorWhileSearchingClient', $dataline);
 			continue;
 		}
+		
+		$data['fk_soc'] = $fk_soc;
 		
 		$imp->importLine($data, 'Societe', $rowid);
 	}
