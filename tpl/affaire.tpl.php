@@ -1,0 +1,2 @@
+numéro : <?=$affaire->reférence ?>
+
