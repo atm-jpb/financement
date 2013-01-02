@@ -1,0 +1,6 @@
+<?php
+/*
+ * fichier de configuration
+ */
+ 	
+	require('/var/www/ATM/dolibarr/htdocs/main.inc.php');
