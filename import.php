@@ -22,9 +22,7 @@
  *	\brief      Import de données dans Dolibarr
  */
 
-
-$res=@include("../main.inc.php");					// For root directory
-if (! $res) $res=@include("../../main.inc.php");	// For "custom" directory
+require('main.inc.php');
 
 dol_include_once('/financement/class/import.class.php');
 dol_include_once('/financement/class/html.formfinancement.class.php');

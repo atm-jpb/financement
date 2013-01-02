@@ -23,8 +23,7 @@
  */
 
 
-$res=@include("../main.inc.php");					// For root directory
-if (! $res) $res=@include("../../main.inc.php");	// For "custom" directory
+require('main.inc.php');
 
 dol_include_once('/financement/class/score.class.php');
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");

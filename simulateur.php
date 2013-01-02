@@ -22,9 +22,8 @@
  *	\brief      Outil de calculateur et de simulateur
  */
 
+require('main.inc.php');
 
-$res=@include("../main.inc.php");					// For root directory
-if (! $res) $res=@include("../../main.inc.php");	// For "custom" directory
 dol_include_once('/financement/class/grille.class.php');
 dol_include_once('/financement/class/html.formfinancement.class.php');
 

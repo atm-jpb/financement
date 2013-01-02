@@ -30,7 +30,7 @@ if (! defined('NOREQUIRESOC'))   define('NOREQUIRESOC','1');
 if (! defined('NOCSRFCHECK'))    define('NOCSRFCHECK','1');
 if (empty($_GET['keysearch']) && ! defined('NOREQUIREHTML'))  define('NOREQUIREHTML','1');
 
-require('../../main.inc.php');
+require('main.inc.php');
 dol_include_once('/financement/class/grille.class.php');
 dol_include_once('/financement/class/html.formfinancement.class.php');
 require_once(DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php');
