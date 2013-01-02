@@ -1,0 +1,12 @@
+search_key=facnumber
+search_key_client=code_client
+
+[mapping]
+1=facnumber
+2=date
+3=code_client
+4=code_affaire
+5=total_ttc
+6=matricule
+
+[more]

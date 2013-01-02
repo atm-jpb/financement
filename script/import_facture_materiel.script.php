@@ -23,20 +23,27 @@
  */
 
 
-dol_include_once("/societe/class/facture.class.php");
+dol_include_once("/compta/facture/class/facture.class.php");
 $sqlSearchFacture = "SELECT rowid FROM llx_facture WHERE facnumber = '%s'";
 $sqlSearchClient = "SELECT rowid FROM llx_societe WHERE code_client = '%s'";
+
+$oldfacnumber = '';
 
 while($dataline = fgetcsv($fileHandler, 1024, $delimiter, $enclosure)) {
 	// Compteur du nombre de lignes
 	$imp->nb_lines++;
+	
+	echo '<pre>';
+	print_r($dataline);
+	echo '</pre>';
 
 	if($imp->checkData($dataline)) {
 		$data = $imp->contructDataTab($dataline);
+		$facnumber = $data[$imp->mapping['search_key']];
 		
 		// Recherche si facture existante dans la base
 		$rowid = 0;
-		$sql = sprintf($sqlSearchFacture, $data[$imp->mapping['search_key']]);
+		$sql = sprintf($sqlSearchFacture, $facnumber);
 		$resql = $db->query($sql);
 		if($resql) {
 			$num = $db->num_rows($resql);
@@ -73,9 +80,17 @@ while($dataline = fgetcsv($fileHandler, 1024, $delimiter, $enclosure)) {
 			continue;
 		}
 		
-		$data['fk_soc'] = $fk_soc;
+		$data['socid'] = $fk_soc;
+		$data['lines']= array(array(
+			'desc' => 'Matricule '.$data['matricule'],
+			'subprice' => $data['total_ttc'],
+			'qty' => 1,
+			'tva_tx' => 19.6,
+			'product_type' => 0
+		));
 		
-		$imp->importLine($data, 'Societe', $rowid);
+		$fact = $imp->importLine($data, 'Facture', $rowid); // Création de la facture
+		$fact->validate($user, $facnumber); // Force la validation avec numéro de facture
 	}
 }
 ?>
