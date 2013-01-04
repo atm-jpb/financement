@@ -399,6 +399,79 @@ class modFinancement extends DolibarrModules
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 		
+		/*
+		 * Gestion des affaires
+		 */
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+								'type'=>'left',			                // This is a Left menu entry
+								'titre'=>$langs->trans('Affaires'),
+								'mainmenu'=>'financement',
+								'leftmenu'=>'affaire',
+								'url'=>'/financement/affaire.php',
+								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+								'position'=>410,
+								'enabled'=>'$conf->financement->enabled && ($user->rights->financement->allsimul->calcul || $user->rights->financement->allsimul->simul ||
+											$user->rights->financement->allsimul->simul_list || $user->rights->financement->mysimul->simul_list)',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'perms'=>'$user->rights->financement->allsimul->calcul || $user->rights->financement->allsimul->simul ||
+											$user->rights->financement->allsimul->simul_list || $user->rights->financement->mysimul->simul_list',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'target'=>'',
+								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+								'type'=>'left',			                // This is a Left menu entry
+								'titre'=>$langs->trans('Nouvelle affaire'),
+								'mainmenu'=>'financement',
+								'leftmenu'=>'affaire_new',
+								'url'=>'/financement/affaire.php?mode=new',
+								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+								'position'=>412,
+								'enabled'=>'$conf->financement->enabled && $user->rights->financement->allsimul->calcul',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'perms'=>'$user->rights->financement->allsimul->calcul',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'target'=>'',
+								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire_new',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+								'type'=>'left',			                // This is a Left menu entry
+								'titre'=>$langs->trans('Liste affaires'),
+								'mainmenu'=>'financement',
+								'leftmenu'=>'affaire_list',
+								'url'=>'/financement/affaire.php',
+								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+								'position'=>413,
+								'enabled'=>'$conf->financement->enabled && $user->rights->financement->allsimul->calcul',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'perms'=>'$user->rights->financement->allsimul->calcul',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'target'=>'',
+								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+								'type'=>'left',			                // This is a Left menu entry
+								'titre'=>$langs->trans('Nouveau dossier'),
+								'mainmenu'=>'financement',
+								'leftmenu'=>'dossier',
+								'url'=>'/financement/dossier.php?mode=new',
+								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+								'position'=>414,
+								'enabled'=>'$conf->financement->enabled && $user->rights->financement->allsimul->calcul',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'perms'=>'$user->rights->financement->allsimul->calcul',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'target'=>'',
+								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=dossier',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+								'type'=>'left',			                // This is a Left menu entry
+								'titre'=>$langs->trans('Liste des dossiers'),
+								'mainmenu'=>'financement',
+								'leftmenu'=>'dossier_list',
+								'url'=>'/financement/dossier.php',
+								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+								'position'=>415,
+								'enabled'=>'$conf->financement->enabled && $user->rights->financement->allsimul->calcul',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'perms'=>'$user->rights->financement->allsimul->calcul',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'target'=>'',
+								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
 		/*$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>'Lists',

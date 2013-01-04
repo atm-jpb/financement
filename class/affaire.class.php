@@ -3,19 +3,23 @@
 class TFin_affaire extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table('llx_fin_affaire');
-		parent::add_champs('reference,nature_financement,contrat,financement,type_materiel','type=chaine;');
+		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel','type=chaine;');
 		parent::add_champs('date_affaire','type=date;');
 		parent::start();
 		parent::_init_vars();
 		
 		$this->TLien=array();
 		
-		$this->TTypeContrat=array();
+		$this->TContrat=array();
 		$this->TTypeFinancement=array(//TODO
 			'PURE'=>'Location Pure'
 		);
 		
 		$this->TTypeMateriel=array(); //TODO
+		$this->TNatureFinancement=array(
+			'INTERNE'=>'Interne'
+			,'EXTERNE'=>'Externe'
+		);
 	}
 	
 	function load(&$db, $id, $annexe=true) {

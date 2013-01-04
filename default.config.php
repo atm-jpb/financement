@@ -19,7 +19,8 @@
 	define('DB_DRIVER','mysqli');
 
 	define('DOL_PACKAGE', true);
-
+	define('USE_TBS', true);
+	
 	require(COREROOT.'inc.core.php');
 	
 	
