@@ -5,6 +5,7 @@ class TFin_affaire extends TObjetStd {
 		parent::set_table('llx_fin_affaire');
 		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel','type=chaine;');
 		parent::add_champs('date_affaire','type=date;');
+		parent::add_champs('fk_soc','type=entier;index;');
 		parent::start();
 		parent::_init_vars();
 		

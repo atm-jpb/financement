@@ -3,13 +3,6 @@
 	require('./class/affaire.class.php');
 	require('./class/dossier.class.php');
 
-	
-	
-	$id=GETPOST("id");
-	$socid=GETPOST("socid");
-	$action=GETPOST("action");
-	$cancel=GETPOST("cancel");
-	
 	$affaire=new TFin_Affaire;
 	$ATMdb = new Tdb;
 	$tbs = new TTemplateTBS;
@@ -17,6 +10,7 @@
 	if(isset($_REQUEST['action'])) {
 		switch($_REQUEST['action']) {
 			case 'add':
+			case 'new':
 				
 				$affaire->set_values($_REQUEST);
 	
@@ -25,16 +19,18 @@
 				
 				break;	
 			case 'edit'	:
+			
 				$affaire->load($ATMdb, $_REQUEST['id']);
 				
 				_fiche($affaire,'edit');
 				break;
+				
 			case 'save':
 				$affaire->load($ATMdb, $_REQUEST['id']);
 				$affaire->set_values($_REQUEST);
 				
-				//$ATMdb->db->debug=true;
-				//print_r($_REQUEST);
+				$ATMdb->db->debug=true;
+				print_r($_REQUEST);
 				
 				$affaire->save($ATMdb);
 				
@@ -69,17 +65,21 @@
 		/*
 		 * Liste
 		 */
-		 _liste();
+		 _liste($affaire);
 	}
 	
 	
 	
 	llxFooter();
 	
-function _liste() {
+function _liste(&$affaire) {
+	llxHeader('','Affaires');
+	getStandartJS();
 	
+	$r = new TSSRenderControler($affaire);
 	
-	
+	$r->liste();
+	llxFooter();
 }	
 	
 function _fiche(&$affaire, $mode) {
