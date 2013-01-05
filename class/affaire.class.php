@@ -6,8 +6,8 @@ class TFin_affaire extends TObjetStd {
 		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel','type=chaine;');
 		parent::add_champs('date_affaire','type=date;');
 		parent::add_champs('fk_soc','type=entier;index;');
-		parent::start();
 		parent::_init_vars();
+		parent::start();
 		
 		$this->TLien=array();
 		
@@ -21,6 +21,8 @@ class TFin_affaire extends TObjetStd {
 			'INTERNE'=>'Interne'
 			,'EXTERNE'=>'Externe'
 		);
+		
+		
 	}
 	
 	function load(&$db, $id, $annexe=true) {

@@ -65,20 +65,37 @@
 		/*
 		 * Liste
 		 */
-		 _liste($affaire);
+		 _liste($ATMdb, $affaire);
 	}
 	
 	
 	
 	llxFooter();
 	
-function _liste(&$affaire) {
+function _liste(&$db, &$affaire) {
 	llxHeader('','Affaires');
 	getStandartJS();
 	
 	$r = new TSSRenderControler($affaire);
+	$sql="SELECT a.rowid as 'ID', a.reference as 'Numéro d\'affaire', a.fk_soc, s.nom as 'Société', a.nature_financement as 'Financement : Nature', a.type_financement as 'Type', a.contrat as 'Type de contrat', a.date_affaire as 'Date de l\'affaire'
+	FROM @table@ a LEFT JOIN llx_societe s ON (a.fk_soc=s.rowid)";
+	$r->liste($db, $sql, array(
+		'ligneParPage'=>'30'
+		/*,'subQuery'=>array(
+			'Société'=>"SELECT nom FROM llx_societe WHERE rowid=@val@"
+		)*/
+		,'link'=>array(
+			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" title="Afficher société: test" alt="Afficher société: test" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
+			,'Numéro d\'affaire'=>'<a href="?action=view&id=@ID@">@val@</a>'
+		)
+		,'translate'=>array(
+			'Financement : Nature'=>$affaire->TNatureFinancement
+			,'Type'=>$affaire->TTypeFinancement
+		)
+		,'hide'=>array('fk_soc')
+	));
 	
-	$r->liste();
+	
 	llxFooter();
 }	
 	
