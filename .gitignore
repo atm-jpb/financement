@@ -1,6 +1,5 @@
 .settings/
 /.project
-main.inc.php
 import/done/
 import/todo/
 config.php
