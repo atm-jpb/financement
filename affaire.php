@@ -29,8 +29,8 @@
 				$affaire->load($ATMdb, $_REQUEST['id']);
 				$affaire->set_values($_REQUEST);
 				
-				$ATMdb->db->debug=true;
-				print_r($_REQUEST);
+				//$ATMdb->db->debug=true;
+				//print_r($_REQUEST);
 				
 				$affaire->save($ATMdb);
 				
@@ -80,19 +80,29 @@ function _liste(&$db, &$affaire) {
 	$sql="SELECT a.rowid as 'ID', a.reference as 'Numéro d\'affaire', a.fk_soc, s.nom as 'Société', a.nature_financement as 'Financement : Nature', a.type_financement as 'Type', a.contrat as 'Type de contrat', a.date_affaire as 'Date de l\'affaire'
 	FROM @table@ a LEFT JOIN llx_societe s ON (a.fk_soc=s.rowid)";
 	$r->liste($db, $sql, array(
-		'ligneParPage'=>'30'
+		'limit'=>array(
+			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
+			,'nbLine'=>'30'
+		)
 		/*,'subQuery'=>array(
-			'Société'=>"SELECT nom FROM llx_societe WHERE rowid=@val@"
+			'Type de contrat'=>"SELECT code FROM llx_fin_const WHERE type='type_contrat'"
 		)*/
 		,'link'=>array(
 			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" title="Afficher société: test" alt="Afficher société: test" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
-			,'Numéro d\'affaire'=>'<a href="?action=view&id=@ID@">@val@</a>'
+			,'Numéro d\'affaire'=>'<a href="?id=@ID@">@val@</a>'
 		)
 		,'translate'=>array(
 			'Financement : Nature'=>$affaire->TNatureFinancement
 			,'Type'=>$affaire->TTypeFinancement
 		)
 		,'hide'=>array('fk_soc')
+		,'type'=>array('Date de l\'affaire'=>'date')
+		,'liste'=>array(
+			'titre'=>"Liste des affaires"
+			,'image'=>img_picto('','title.png', '', 0)
+			,'picto_precedent'=>img_picto('','back.png', '', 0)
+			,'picto_suivant'=>img_picto('','next.png', '', 0)
+		)
 	));
 	
 	
@@ -109,7 +119,26 @@ function _fiche(&$affaire, $mode) {
 	echo $form->hidden('id', $affaire->rowid);
 	echo $form->hidden('action', 'save');
 	
-	require('./tpl/affaire.tpl.php');
+	//require('./tpl/affaire.tpl.php');
+	$TBS=new TTemplateTBS();
+	
+	print $TBS->render('./tpl/affaire.tpl.php'
+		,array()
+		,array(
+			'affaire'=>array(
+				'id'=>$affaire->rowid
+				,'reference'=>$form->texte('', 'reference', $affaire->reference, 100,255,'','','à saisir') 
+				,'nature_financement'=>$form->combo('', 'nature_financement', $affaire->TNatureFinancement , $affaire->nature_financement)
+				,'type_financement'=>$form->combo('', '', $affaire->TTypeFinancement , $affaire->type_financement)
+				,'contrat'=>$form->combo('', 'contrat', $affaire->TContrat , $affaire->contrat) 
+				,'type_materiel'=>$form->combo('', '', $affaire->TTypeMateriel , $affaire->type_materiel) 
+			)
+			,'view'=>array(
+				'mode'=>$mode
+			)
+			
+		)
+	);
 	
 	echo $form->end_form();
 	// End of page
