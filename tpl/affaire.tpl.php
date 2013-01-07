@@ -35,7 +35,8 @@
 			[onshow;block=end]	
 			
 			<table width="100%" class="border" style="margin-top:20px;">
-			<tr><td width="20%">Dossier numéro([dossier.id])</td><td>[dossier.reference; block=table; strconv=no]</td></tr>
+			<tr><td width="20%">Dossier numéro <!-- [dossier.id] --></td><td>[dossier.reference; block=table; strconv=no]</td></tr>
+			<tr><td width="20%">Montant</td><td>[dossier.montant;strconv=no] &euro;</td></tr>
 			<tr><td width="20%">Date de début - fin</td><td>[dossier.date_debut; strconv=no] - [dossier.date_fin; strconv=no]</td></tr>
 			<tr><td width="20%">1ère échéance</td><td>[dossier.echeance1; strconv=no] &euro;</td></tr>
 			<tr><td width="20%">Echéance</td><td>[dossier.echeance; strconv=no] &euro;</td></tr>
