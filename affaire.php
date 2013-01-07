@@ -125,7 +125,6 @@ global $langs, $db;
 	
 	$THide = array('fk_soc');
 	
-	
 	if(isset($_REQUEST['socid'])) {
 		$sql.= ' WHERE a.fk_soc='.$_REQUEST['socid'];
 		$societe = new Societe($db);
@@ -147,7 +146,7 @@ global $langs, $db;
 			'Type de contrat'=>"SELECT code FROM llx_fin_const WHERE type='type_contrat'"
 		)*/
 		,'link'=>array(
-			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" title="Afficher société: test" alt="Afficher société: test" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
+			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
 			,'Numéro d\'affaire'=>'<a href="?id=@ID@">@val@</a>'
 		)
 		,'translate'=>array(
@@ -162,6 +161,7 @@ global $langs, $db;
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
 			,'noheader'=> (int)isset($_REQUEST['socid'])
+			,'messageNothing'=>"Il n'y a aucune affaire à afficher"
 		)
 	));
 	
@@ -170,7 +170,12 @@ global $langs, $db;
 }	
 	
 function _fiche(&$affaire, $mode) {
-	/*
+global $db;
+	
+	$societe = new Societe($db);
+	$societe->fetch($affaire->fk_soc); 
+	 
+	 /*
 	 * Liste des dossiers rattachés à cette affaire
 	 */ 
 	$TDossier=array();
@@ -195,10 +200,10 @@ function _fiche(&$affaire, $mode) {
 	 */
 	$otherDossier='';
 	if($mode=='edit') {
-		$db=new Tdb;
-		$Tab = TRequeteCore::get_id_from_what_you_want($db,'llx_fin_dossier', "solde>0" ,'reference');
+		$ATMdb=new Tdb;
+		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,'llx_fin_dossier', "solde>0" ,'reference');
 		$otherDossier = '["'. implode('","', $Tab). '"]';
-		$db->close(); 
+		$ATMdb->close(); 
 	}
 	
 	llxHeader('','Affaires');
@@ -230,6 +235,8 @@ function _fiche(&$affaire, $mode) {
 				,'solde'=>$affaire->solde.' &euro;' // montant à financer - somme des dossiers	
 				,'date_maj'=>$affaire->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$affaire->get_date('date_cre','d/m/Y')
+				
+				,'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$affaire->fk_soc.'"><img border="0" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> '.$societe->nom.'</a>'
 				
 			)
 			,'view'=>array(

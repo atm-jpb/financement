@@ -14,6 +14,9 @@
 				
 			<table width="100%" class="border">
 			<tr><td width="20%">Numéro</td><td>[affaire.reference; strconv=no]</td></tr>
+			<tr><td width="20%">Client</td><td>[affaire.societe; strconv=no]</td></tr>
+			
+			
 			
 			<tr><td>Montant du financement</td><td>[affaire.montant; strconv=no]</td></tr>
 			<tr><td>Nature du financement</td><td>[affaire.nature_financement; strconv=no]</td></tr>
