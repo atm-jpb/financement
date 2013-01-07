@@ -160,6 +160,7 @@ function _fiche(&$affaire, $mode) {
 			,'date_debut'=>$dossier->get_date('date_debut')
 			,'date_fin'=>$dossier->get_date('date_fin')
 			,'montant'=>$dossier->montant
+			,'taux'=>$dossier->taux
 			,'incident_paiement'=>$dossier->TIncidentPaiement [ $dossier->incident_paiement ]
 			,'echeance1'=>$dossier->echeance1			
 			,'echeance'=>$dossier->echeance			
@@ -203,7 +204,10 @@ function _fiche(&$affaire, $mode) {
 				,'date_affaire'=>$form->calendrier('', 'date_affaire', $affaire->get_date('date_affaire'),10)
 				,'montant'=>$form->texte('', 'montant', $affaire->montant, 20,255,'','','à saisir').' &euro;' 
 				,'montant_ok'=>$affaire->somme_dossiers.' &euro;' // somme des dossiers rattachés
-				,'montant_reste'=>($affaire->montant-$affaire->somme_dossiers).' &euro;' // montant à financer - somme des dossiers	
+				,'solde'=>$affaire->solde.' &euro;' // montant à financer - somme des dossiers	
+				,'date_maj'=>$affaire->get_date('date_maj','d/m/Y à H:i:s')
+				,'date_cre'=>$affaire->get_date('date_cre','d/m/Y')
+				
 			)
 			,'view'=>array(
 				'mode'=>$mode

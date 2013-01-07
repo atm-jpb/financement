@@ -7,6 +7,9 @@
 	$ATMdb = new Tdb;
 	$tbs = new TTemplateTBS;
 	
+	$mesg = '';
+	$error=false;
+	
 	if(isset($_REQUEST['action'])) {
 		switch($_REQUEST['action']) {
 			case 'add':
@@ -52,6 +55,42 @@
 				
 				
 				break;
+				
+			case 'add_affaire':
+			//$ATMdb->db->debug=true;
+				$dossier->load($ATMdb, $_REQUEST['id']);
+				$dossier->set_values($_REQUEST);
+			
+				if(!$dossier->addAffaire($ATMdb, null, $_REQUEST['affaire_to_add'])) {
+					$mesg = '<div class="error">Impossible d\'ajouter cette affaire au dossier. </div>';
+					$error=true;
+					
+				}	
+				else {
+					$mesg = '<div class="ok">Affaire ajoutée au dossier</div>';
+				}
+				//exit($mesg);
+				$dossier->save($ATMdb);
+				
+				_fiche($dossier,'edit');
+				
+				break;
+				
+			case 'delete_affaire':
+				//$ATMdb->db->debug=true;
+				//$affaire->set_values($_REQUEST);
+				$dossier->load($ATMdb, $_REQUEST['id']);
+				
+			
+				if($dossier->deleteAffaire($ATMdb, $_REQUEST['id_affaire'])) {
+					$mesg = '<div class="ok">Affaire retirée du dossier</div>';	
+				}	
+				
+				$dossier->save($ATMdb);
+				
+				_fiche($dossier,'edit');
+				
+				break;	
 		}
 		
 	}
@@ -111,6 +150,35 @@ function _liste(&$db, &$dossier) {
 }	
 	
 function _fiche(&$dossier, $mode) {
+	/*
+	 * Liste des dossiers rattachés à cette affaire
+	 */ 
+	$TAffaire=array();
+	foreach($dossier->TLien as &$lien) {
+		$affaire = &$lien->affaire;
+		
+		$TAffaire[]=array(
+			'id'=>$affaire->getId()
+			,'reference'=>$affaire->reference
+			,'date_affaire'=>$affaire->get_date('date_affaire')
+			,'montant'=>$affaire->montant
+			,'nature_financement'=>$affaire->TNatureFinancement [ $affaire->nature_financement ]
+			,'type_financement'=>$affaire->TTypeFinancement [ $affaire->type_financement ]
+			,'type_materiel'=>$affaire->TTypeMateriel [ $affaire->type_materiel ]
+			,'contrat'=>$affaire->TContrat [ $affaire->contrat ]
+		);
+	}
+	
+	/*
+	 * Pour autocomplete ajout dossier
+	 */
+	$otherAffaire='';
+	if($mode=='edit') {
+		$db=new Tdb;
+		$Tab = TRequeteCore::get_id_from_what_you_want($db,'llx_fin_affaire',array(),'reference');
+		$otherAffaire = '["'. implode('","', $Tab). '"]';
+		$db->close(); 
+	}
 	
 	llxHeader('','Dossier');
 	
@@ -124,14 +192,17 @@ function _fiche(&$dossier, $mode) {
 	$TBS=new TTemplateTBS();
 	
 	print $TBS->render('./tpl/dossier.tpl.php'
-		,array()
+		,array(
+			'affaire'=>$TAffaire
+		)
 		,array(
 			'dossier'=>array(
 				'id'=>$dossier->rowid
 				,'reference'=>$form->texte('', 'reference', $dossier->reference, 100,255,'','','à saisir') 
 				
 				,'montant'=>$form->texte('', 'montant', $dossier->montant, 20,255,'','','à saisir').' &euro;' 
-				,'echeance1'=>$form->texte('', 'montant', $dossier->echeance1, 20,255,'','','à saisir').' &euro;' 
+				,'taux'=>$form->texte('', 'taux', $dossier->taux, 5,255,'','','à saisir').' %' 
+				,'echeance1'=>$form->texte('', 'echeance1', $dossier->echeance1, 20,255,'','','à saisir').' &euro;' 
 				,'echeance'=>$form->texte('', 'echeance', $dossier->echeance, 20,255,'','','à saisir') .' &euro;'
 				,'reste'=>$form->texte('', 'reste', $dossier->reste, 20,255,'','','à saisir').' &euro;' 
 				,'montant_prestation'=>$form->texte('', 'montant_prestation', $dossier->montant_prestation, 20,255,'','','à saisir').' &euro;' 
@@ -149,11 +220,17 @@ function _fiche(&$dossier, $mode) {
 				,'date_prochaine_echeance'=>$form->calendrier('', 'date_prochaine_echeance', $dossier->get_date('date_prochaine_echeance'),10)
 				,'date_relocation'=>$form->calendrier('', 'date_relocation', $dossier->get_date('date_relocation'),10)
 				
+				,'solde'=>$dossier->solde
+				,'montant_ok'=>$dossier->somme_affaire
+				
+				,'date_maj'=>$dossier->get_date('date_maj','d/m/Y à H:i:s')
+				,'date_cre'=>$dossier->get_date('date_cre','d/m/Y')
 				
 				
 			)
 			,'view'=>array(
 				'mode'=>$mode
+				,'otherAffaire'=>$otherAffaire
 			)
 			
 		)
@@ -161,6 +238,8 @@ function _fiche(&$dossier, $mode) {
 	
 	echo $form->end_form();
 	// End of page
+	global $mesg, $error;
+	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 	
 	llxFooter();
 	

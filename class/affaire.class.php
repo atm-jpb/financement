@@ -59,6 +59,7 @@ class TFin_affaire extends TObjetStd {
 			$this->somme_dossiers += $this->TLien[$i]->dossier->montant;
 		}
 		
+		$this->solde = $this->montant - $this->somme_dossiers;
 	}
 	function delete(&$db) {
 		parent::delete($db);
