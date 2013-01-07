@@ -6,6 +6,8 @@ class TFin_affaire extends TObjetStd {
 		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel','type=chaine;');
 		parent::add_champs('date_affaire','type=date;');
 		parent::add_champs('fk_soc','type=entier;index;');
+		parent::add_champs('montant,solde','type=float;');
+		
 		parent::_init_vars();
 		parent::start();
 		
@@ -16,42 +18,52 @@ class TFin_affaire extends TObjetStd {
 			'PURE'=>'Location Pure'
 		);
 		
-		$this->TTypeMateriel=array(); //TODO
+		$this->TTypeMateriel=array(); 
 		$this->TNatureFinancement=array(
 			'INTERNE'=>'Interne'
 			,'EXTERNE'=>'Externe'
 		);
 		
-		
+		$this->somme_dossiers=0;
 	}
 	
 	function load(&$db, $id, $annexe=true) {
 		
-		parent::load($db, $id);
-		$this->load_type_contrat($db);
+		$res = parent::load($db, $id);
+		$this->loadTypeContrat($db);
 		
 		if($annexe) {
-			$this->load_dossier($db);
+			$this->loadDossier($db);
 			
 		}
 		
+		return $res;
 	}
-	function load_type_contrat(&$db) {
-		//TODO
-		
+	function loadTypeContrat(&$db) {
+		global $langs;
+		$langs->load('financement@financement');
+		$db->Execute("SELECT code FROM llx_fin_const WHERE type='type_contrat'");
+		while($db->Get_line()){
+			$this->TContrat[$db->Get_field('code')] = $langs->trans( $db->Get_field('code') );
+		}
 	}
-	function load_dossier(&$db) {
+	function loadDossier(&$db) {
 		
-		$Tab = TRequeteCore::get_id_from_what_you_want($db,'llx_fin_dossier_affaire',array('fk_affaire'=>$this->id));
+		$Tab = TRequeteCore::get_id_from_what_you_want($db,'llx_fin_dossier_affaire',array('fk_fin_affaire'=>$this->getId()));
 		
 		foreach($Tab as $i=>$id) {
 			$this->TLien[$i]=new TFin_dossier_affaire;
 			$this->TLien[$i]->load($db, $id);
-			$this->TLien[$i]->dossier->load($db, $id);
+			$this->TLien[$i]->dossier->load($db, $this->TLien[$i]->fk_fin_dossier, false);
+			
+			$this->somme_dossiers += $this->TLien[$i]->dossier->montant;
 		}
 		
 	}
-	
+	function delete(&$db) {
+		parent::delete($db);
+		$db->dbdelete('llx_fin_dossier_affaire', $this->getId(), 'fk_fin_affaire' );
+	}
 	function save(&$db) {
 		parent::save($db);
 		
@@ -59,7 +71,18 @@ class TFin_affaire extends TObjetStd {
 			$lien->save($db);
 		}
 	}
-	
+	function deleteDossier(&$db, $id) {
+		foreach($this->TLien as $k=>&$lien) {
+			if($lien->fk_fin_dossier==$id) {
+				$db->dbdelete('llx_fin_dossier_affaire', $lien->getId(), 'rowid' );
+				unset($this->TLien[$k]);
+				return true;
+				
+			}
+		}		 
+		
+		return false;
+	}
 	function addDossier(&$db, $id=null, $reference=null) {
 		$dossier =new TFin_dossier;
 		
@@ -68,24 +91,34 @@ class TFin_affaire extends TObjetStd {
 			/*
 			 * Le dossier existe liaison
 			 */
-			foreach($this->TLien as &$lien) {
-				if($lien->fk_dossier==$dossier->id) return false;
+			//print_r($this->TLien);
+			foreach($this->TLien as $k=>$lien) {
+				if($lien->fk_fin_dossier==$dossier->getId()) {return false;}
 			}		 
 			 
 			$i = count($this->TLien); 
 			$this->TLien[$i]=new TFin_dossier_affaire;
-			$this->fk_affaire = $this->id;
-			$this->fk_dossier = $dossier->id;  
+			$this->TLien[$i]->fk_fin_affaire = $this->rowid;
+			$this->TLien[$i]->fk_fin_dossier = $dossier->rowid;  
 			 
+			$this->TLien[$i]->dossier= $dossier;
+			
+		//	print_r($this->TLien[$i]);
+		
+			return true;
+		}
+		else {
+			//exit('Echec');
+			return false;
 		}
 		
 	}
 	
-	function loadReference(&$db, $reference) {
+	function loadReference(&$db, $reference,$annexe=false) {
 		
 		$db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference='".$reference."'");
 		if($db->Get_line()) {
-			return $this->load($db, $db->Get_field('rowid'));
+			return $this->load($db, $db->Get_field('rowid'), $annexe);
 		}
 		else {
 			return false;

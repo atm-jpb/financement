@@ -2,10 +2,13 @@
 	require('config.php');
 	require('./class/affaire.class.php');
 	require('./class/dossier.class.php');
-
+	$langs->load('financement@financement');
 	$affaire=new TFin_Affaire;
 	$ATMdb = new Tdb;
 	$tbs = new TTemplateTBS;
+	
+	$mesg = '';
+	$error=false;
 	
 	if(isset($_REQUEST['action'])) {
 		switch($_REQUEST['action']) {
@@ -40,17 +43,51 @@
 			
 				
 			case 'delete':
-				$affaire=new TAsset;
 				$affaire->load($ATMdb, $_REQUEST['id']);
 				//$ATMdb->db->debug=true;
 				$affaire->delete($ATMdb);
 				
 				?>
 				<script language="javascript">
-					document.location.href="<?=dirname($_SERVER['PHP_SELF'])?>/liste.php?delete_ok=1";					
+					document.location.href="?delete_ok=1";					
 				</script>
 				<?
 				
+				
+				break;
+			case 'add_dossier':
+			//$ATMdb->db->debug=true;
+				$affaire->load($ATMdb, $_REQUEST['id']);
+				$affaire->set_values($_REQUEST);
+			
+				if(!$affaire->addDossier($ATMdb, null, $_REQUEST['dossier_to_add'])) {
+					$mesg = '<div class="error">Impossible d\'ajouter ce dossier à l\'affaire. </div>';
+					$error=true;
+					
+				}	
+				else {
+					$mesg = '<div class="ok">Dossier ajouté à l\'affaire</div>';
+				}
+				//exit($mesg);
+				$affaire->save($ATMdb);
+				
+				_fiche($affaire,'edit');
+				
+				break;
+				
+			case 'delete_dossier':
+				//$ATMdb->db->debug=true;
+				//$affaire->set_values($_REQUEST);
+				$affaire->load($ATMdb, $_REQUEST['id']);
+				
+			
+				if($affaire->deleteDossier($ATMdb, $_REQUEST['id_dossier'])) {
+					$mesg = '<div class="ok">Dossier retiré de l\'affaire</div>';	
+				}	
+				
+				$affaire->save($ATMdb);
+				
+				_fiche($affaire,'edit');
 				
 				break;
 		}
@@ -59,7 +96,7 @@
 	elseif(isset($_REQUEST['id'])) {
 		$affaire->load($ATMdb, $_REQUEST['id']);
 		
-		_fiche($affaire, 'view');
+		_fiche($affaire, 'view');global $mesg, $error;
 	}
 	else {
 		/*
@@ -110,6 +147,35 @@ function _liste(&$db, &$affaire) {
 }	
 	
 function _fiche(&$affaire, $mode) {
+	/*
+	 * Liste des dossiers rattachés à cette affaire
+	 */ 
+	$TDossier=array();
+	foreach($affaire->TLien as &$lien) {
+		$dossier = &$lien->dossier;
+		
+		$TDossier[]=array(
+			'id'=>$dossier->getId()
+			,'reference'=>$dossier->reference
+			,'date_debut'=>$dossier->get_date('date_debut')
+			,'date_fin'=>$dossier->get_date('date_fin')
+			,'montant'=>$dossier->montant
+			,'incident_paiement'=>$dossier->TIncidentPaiement [ $dossier->incident_paiement ]
+			,'echeance1'=>$dossier->echeance1			
+			,'echeance'=>$dossier->echeance			
+		);
+	}
+	
+	/*
+	 * Pour autocomplete ajout dossier
+	 */
+	$otherDossier='';
+	if($mode=='edit') {
+		$db=new Tdb;
+		$Tab = TRequeteCore::get_id_from_what_you_want($db,'llx_fin_dossier',array(),'reference');
+		$otherDossier = '["'. implode('","', $Tab). '"]';
+		$db->close(); 
+	}
 	
 	llxHeader('','Affaires');
 	
@@ -123,7 +189,9 @@ function _fiche(&$affaire, $mode) {
 	$TBS=new TTemplateTBS();
 	
 	print $TBS->render('./tpl/affaire.tpl.php'
-		,array()
+		,array(
+			'dossier'=>$TDossier
+		)
 		,array(
 			'affaire'=>array(
 				'id'=>$affaire->rowid
@@ -131,10 +199,15 @@ function _fiche(&$affaire, $mode) {
 				,'nature_financement'=>$form->combo('', 'nature_financement', $affaire->TNatureFinancement , $affaire->nature_financement)
 				,'type_financement'=>$form->combo('', '', $affaire->TTypeFinancement , $affaire->type_financement)
 				,'contrat'=>$form->combo('', 'contrat', $affaire->TContrat , $affaire->contrat) 
-				,'type_materiel'=>$form->combo('', '', $affaire->TTypeMateriel , $affaire->type_materiel) 
+				,'type_materiel'=>$form->combo('', '', $affaire->TTypeMateriel , $affaire->type_materiel)
+				,'date_affaire'=>$form->calendrier('', 'date_affaire', $affaire->get_date('date_affaire'),10)
+				,'montant'=>$form->texte('', 'montant', $affaire->montant, 20,255,'','','à saisir').' &euro;' 
+				,'montant_ok'=>$affaire->somme_dossiers.' &euro;' // somme des dossiers rattachés
+				,'montant_reste'=>($affaire->montant-$affaire->somme_dossiers).' &euro;' // montant à financer - somme des dossiers	
 			)
 			,'view'=>array(
 				'mode'=>$mode
+				,'otherDossier'=>$otherDossier
 			)
 			
 		)
@@ -143,6 +216,8 @@ function _fiche(&$affaire, $mode) {
 	echo $form->end_form();
 	// End of page
 	
+	global $mesg, $error;
+	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 	llxFooter();
 	
 }
