@@ -127,7 +127,11 @@ class modFinancement extends DolibarrModules
 		// 'group'            to add a tab in group view
 		// 'contact'          to add a tab in contact view
 		// 'categories_x'	  to add a tab in category view (replace 'x' by type of category (0=product, 1=supplier, 2=customer, 3=member)
-        $this->tabs = array('thirdparty:+scores:ScoreList:financement@financement:$user->rights->financement->score->read:/financement/score.php?socid=__ID__');
+        $this->tabs = array(
+        	'thirdparty:+scores:ScoreList:financement@financement:$user->rights->financement->score->read:/financement/score.php?socid=__ID__'
+        	,'thirdparty:+affaire:Affaires:financement@financement:$user->rights->financement->score->read:/financement/affaire.php?socid=__ID__'
+		);
+ 		
 
         // Dictionnaries
         if (! isset($conf->financement->enabled)) $conf->financement->enabled=0;
