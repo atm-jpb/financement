@@ -196,7 +196,7 @@ function _fiche(&$affaire, $mode) {
 	$otherDossier='';
 	if($mode=='edit') {
 		$db=new Tdb;
-		$Tab = TRequeteCore::get_id_from_what_you_want($db,'llx_fin_dossier',array(),'reference');
+		$Tab = TRequeteCore::get_id_from_what_you_want($db,'llx_fin_dossier', "solde>0" ,'reference');
 		$otherDossier = '["'. implode('","', $Tab). '"]';
 		$db->close(); 
 	}

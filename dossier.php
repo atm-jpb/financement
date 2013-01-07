@@ -175,7 +175,7 @@ function _fiche(&$dossier, $mode) {
 	$otherAffaire='';
 	if($mode=='edit') {
 		$db=new Tdb;
-		$Tab = TRequeteCore::get_id_from_what_you_want($db,'llx_fin_affaire',array(),'reference');
+		$Tab = TRequeteCore::get_id_from_what_you_want($db,'llx_fin_affaire', "solde>0" ,'reference');
 		$otherAffaire = '["'. implode('","', $Tab). '"]';
 		$db->close(); 
 	}
