@@ -7,10 +7,15 @@ search_key=code_client
 4=address
 5=zip
 6=town
-7=country_code
+7=country_id
 8=code_client
 9=code_compta
 
 [more]
 client=1
 
+[transco]
+country_id=1
+
+[country_id]
+FR=1

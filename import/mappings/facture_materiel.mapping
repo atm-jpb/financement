@@ -10,3 +10,7 @@ search_key_client=code_client
 6=matricule
 
 [more]
+
+[format]
+date=date
+total_ttc=float
