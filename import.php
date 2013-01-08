@@ -66,7 +66,7 @@ $mode=GETPOST("mode")?GETPOST("mode"):'list';
 	if (! $sortorder) $sortorder='DESC';
 	$limit = $conf->liste_limit;
 	
-	$sql = "SELECT i.date, i.type_import, i.filename, i.fk_user_author, u.login, i.nb_lines, i.nb_errors, i.nb_create, i.nb_update";
+	$sql = "SELECT i.rowid, i.date, i.type_import, i.filename, i.fk_user_author, u.login, i.nb_lines, i.nb_errors, i.nb_create, i.nb_update";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_import i ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON i.fk_user_author = u.rowid";
 	$sql.= " WHERE i.entity = ".$conf->entity;
@@ -93,7 +93,7 @@ $mode=GETPOST("mode")?GETPOST("mode"):'list';
 		$sql.= " AND date_format(i.date, '%Y') = '".$year."'";
 	}
 	
-	$sql.= ' ORDER BY '.$sortfield.' '.$sortorder.', i.date DESC';
+	$sql.= ' ORDER BY '.$sortfield.' '.$sortorder;
 	$sql.= $db->plimit($limit + 1,$offset);
 	$import_list=$db->query($sql);
 }
@@ -149,6 +149,30 @@ if($mode == 'new') {
 	}
 }
 
+if($mode == 'list_error') {
+	$import = new Import($db);
+	$import->fetch($id);
+
+	$sortfield = GETPOST("sortfield",'alpha');
+	$sortorder = GETPOST("sortorder",'alpha');
+	$page = GETPOST("page",'int');
+	if ($page == -1) { $page = 0; }
+	$offset = $conf->liste_limit * $page;
+	$pageprev = $page - 1;
+	$pagenext = $page + 1;
+	
+	if (! $sortfield) $sortfield='ie.num_line';
+	if (! $sortorder) $sortorder='ASC';
+	$limit = $conf->liste_limit;
+
+	$sql = "SELECT ie.num_line, ie.error_msg, ie.content_line, ie.sql_errno, ie.sql_error";
+	$sql.= " FROM ".MAIN_DB_PREFIX."fin_import_error ie ";
+	$sql.= " WHERE ie.fk_import = ".$import->id;
+	$sql.= ' ORDER BY '.$sortfield.' '.$sortorder;
+	$sql.= $db->plimit($limit + 1,$offset);
+	$import_error_list=$db->query($sql);
+}
+
 /*
  * View
  */
@@ -167,6 +191,9 @@ switch ($mode) {
 		break;
 	case 'list':
 		$tpl = 'tpl/import_list.tpl.php';
+		break;
+	case 'list_error':
+		$tpl = 'tpl/import_error_list.tpl.php';
 		break;
 	
 	default:
