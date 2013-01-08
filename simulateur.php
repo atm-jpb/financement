@@ -22,7 +22,7 @@
  *	\brief      Outil de calculateur et de simulateur
  */
 
-require('main.inc.php');
+require('config.php');
 
 dol_include_once('/financement/class/grille.class.php');
 dol_include_once('/financement/class/html.formfinancement.class.php');

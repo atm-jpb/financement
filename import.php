@@ -22,7 +22,7 @@
  *	\brief      Import de données dans Dolibarr
  */
 
-require('main.inc.php');
+require('config.php');
 
 dol_include_once('/financement/class/import.class.php');
 dol_include_once('/financement/class/html.formfinancement.class.php');

@@ -23,7 +23,7 @@
  */
 
 
-require('main.inc.php');
+require('config.php');
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 
 if (!($user->rights->financement->allsimul->calcul || $user->rights->financement->allsimul->simul ||

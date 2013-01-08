@@ -23,7 +23,7 @@
  */
 
 
-require('main.inc.php');
+require('config.php');
 
 dol_include_once('/financement/class/score.class.php');
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");

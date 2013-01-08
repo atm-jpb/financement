@@ -23,7 +23,7 @@
  *  \brief      Description and activation file for module financement
  */
 
-require('../main.inc.php');
+require('../config.php');
 dol_include_once('/financement/lib/admin.lib.php');
 dol_include_once('/financement/class/html.formfinancement.class.php');
 dol_include_once('/financement/class/grille.class.php');
