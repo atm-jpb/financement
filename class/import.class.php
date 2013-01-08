@@ -638,13 +638,99 @@ class Import // extends CommonObject
 		}
 		
 		$data['socid'] = $fk_soc;
-		/*$data['lines']= array(array(
-			'desc' => 'Matricule '.$data['matricule'],
-			'subprice' => $data['total_ttc'],
-			'qty' => 1,
-			'tva_tx' => 19.6,
-			'product_type' => 0
-		));*/
+		
+		// Construction de l'objet final
+		$facture_mat = new Facture($this->db);
+		if($rowid > 0) {
+			$facture_mat->fetch($rowid);
+		}
+
+		foreach ($data as $key => $value) {
+			$facture_mat->{$key} = $this->validateValue($key, $value);
+		}
+		
+		// Mise à jour ou créatioon
+		if($rowid > 0) {
+			$res = $facture_mat->update($rowid, $user);
+			// Erreur : la mise à jour n'a pas marché
+			if($res < 0) {
+				$this->addError('ErrorWhileUpdatingLine', $dataline, true);
+				return false;
+			} else {
+				$this->nb_update++;
+			}			
+		} else {
+			$res = $facture_mat->create($user);
+			// Erreur : la création n'a pas marché
+			if($res < 0) {
+				$this->addError('ErrorWhileCreatingLine', $dataline, true);
+				return false;
+			} else {
+				$this->nb_create++;
+			}
+		}
+		
+		// Actions spécifiques
+		$facture_mat->addline($facture_mat->id, 'Matricule '.$data['matricule'], 0, 1, 19.6, 0, 0, 0, 0, '', '', 0, 0, '', 'TTC', $data['total_ttc']);
+		$facture_mat->validate($user, $facnumber); // Force la validation avec numéro de facture
+		
+		return true;
+	}
+
+	function importLineAffaire($dataline) { // TODO : finish !
+		global $user;
+		dol_include_once("/compta/facture/class/facture.class.php");
+		
+		// Compteur du nombre de lignes
+		$this->nb_lines++;
+
+		if(!$this->checkData($dataline)) return false;
+		$data = $this->contructDataTab($dataline);
+		
+		$facnumber = $data[$this->mapping['search_key']];
+		$socid = $data[$this->mapping['search_key_client']];
+		
+		$sqlSearchFacture = "SELECT rowid FROM llx_facture WHERE facnumber = '$facnumber'";
+		$sqlSearchClient = "SELECT rowid FROM llx_societe WHERE code_client = '$socid'";
+		
+		// Recherche si facture existante dans la base
+		$rowid = 0;
+		$resql = $this->db->query($sqlSearchFacture);
+		if($resql) {
+			$num = $this->db->num_rows($resql);
+			if($num == 1) { // Enregistrement trouvé, mise à jour
+				$obj = $this->db->fetch_object($resql);
+				$rowid = $obj->rowid;
+			} else if($num > 1) { // Plusieurs trouvés, erreur
+				$this->addError('ErrorMultipleFactureFound', $dataline);
+				return false;
+			}
+		} else {
+			$this->addError('ErrorWhileSearchingFacture', $dataline);
+			return false;
+		}
+		
+		// Recherche tiers associé à la facture existant dans la base
+		$fk_soc = 0;
+		$resql = $this->db->query($sqlSearchClient);
+		if($resql) {
+			$num = $this->db->num_rows($resql);
+			if($num == 1) { // Enregistrement trouvé, mise à jour
+				$obj = $this->db->fetch_object($resql);
+				$fk_soc = $obj->rowid;
+			} else if($num > 1) { // Plusieurs trouvés, erreur
+				$this->addError('ErrorMultipleClientFound', $dataline);
+				return false;
+			} else {
+				$this->addError('ErrorNoClientFound', $dataline);
+				return false;
+			}
+		} else {
+			$this->addError('ErrorWhileSearchingClient', $dataline, true);
+			return false;
+		}
+		
+		$data['socid'] = $fk_soc;
 		
 		// Construction de l'objet final
 		$facture_mat = new Facture($this->db);
@@ -713,7 +799,7 @@ class Import // extends CommonObject
 		if(!empty($this->mapping['format'][$key])) {
 			switch($this->mapping['format'][$key]) {
 				case 'date':
-					list($year, $month, $day) = explode("/", $value);
+					list($day, $month, $year) = explode("/", $value);
 					$value = mktime(0, 0, 0, $month, $day, $year);
 					break;
 				case 'float':

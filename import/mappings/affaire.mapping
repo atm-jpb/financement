@@ -1,0 +1,14 @@
+search_key=num_affaire
+search_key_client=code_client
+search_key_user=code_commercial
+
+[mapping]
+1=num_affaire
+2=date
+3=code_client
+4=code_commercial
+
+[more]
+
+[format]
+date=date
