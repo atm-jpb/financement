@@ -51,8 +51,8 @@ if(!empty($liste_coeff)) {
 			$j = 0;
 			$min = 0;
 			foreach ($palier as $montant => $values) {
-				$coeff = $values['coeff'];
-				$rowid = $values['rowid'];
+				$coeff = empty($values['coeff']) ? '' : $values['coeff'];
+				$rowid = empty($values['rowid']) ? '' : $values['rowid'];
 				$max = $montant;
 				print '<td align="center">'.$langs->trans('From');
 				print ' '.$min.' ';
@@ -74,8 +74,8 @@ if(!empty($liste_coeff)) {
 	<?php
 		$j = 0;
 		foreach ($palier as $montant => $values) {
-			$coeff = $values['coeff'];
-			$rowid = $values['rowid'];
+			$coeff = empty($values['coeff']) ? '' : $values['coeff'];
+			$rowid = empty($values['rowid']) ? '' : $values['rowid'];
 			print '<td align="center">';
 			print '<input type="hidden" name="tabCoeff['.$i.']['.$j.'][rowid]" value="'.$rowid.'" />';
 			print '<input type="text" class="flat" name="tabCoeff['.$i.']['.$j.'][coeff]" size="5" value="'.$coeff.'" /> %';
