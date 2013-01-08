@@ -41,7 +41,7 @@ $error=0;
 // -------------------- START OF YOUR CODE HERE --------------------
 // Include Dolibarr environment
 define('INC_FROM_CRON_SCRIPT', true);
-require_once($path."../main.inc.php");
+require_once($path."../config.php");
 // After this $db, $mysoc, $langs and $conf->entity are defined. Opened handler to database will be closed at end of file.
 
 //$langs->setDefaultLang('en_US'); 	// To change default language of $langs
@@ -95,7 +95,9 @@ foreach ($listOfFileType as $fileType) { // Pour chaque type de fichier
 		$imp->create($user); // Création de l'import
 
 		$fileHandler = fopen($importFolder.$fileName, 'r');
-		include $importScriptFile;
+		while($dataline = fgetcsv($fileHandler, 1024, $delimiter, $enclosure)) {
+			$imp->importLine($dataline, $fileType);
+		}
 		
 		$imp->update($user); // Mise à jour pour nombre de lignes et nombre d'erreurs
 		

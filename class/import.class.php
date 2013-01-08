@@ -490,53 +490,155 @@ class Import // extends CommonObject
 		$this->mapping = parse_ini_file($mappingFile, true);
 	}
 	
-	function addError($errMsg, $dataLine) {
+	function addError($errMsg, $dataLine, $is_sql=false) {
 		global $user;
-		$impErr = new ImportError($this->db);
-		$impErr->fk_import = $this->id;
-		$impErr->num_line = $this->nb_lines;
-		$impErr->content_line = serialize($dataLine);
-		$impErr->error_msg = $errMsg;
-		$impErr->sql_errno = $this->db->lasterrno;
-		$impErr->sql_error = lastqueryerror."\n".$this->db->lasterror;
-		$impErr->create($user);
+		$thisErr = new ImportError($this->db);
+		$thisErr->fk_import = $this->id;
+		$thisErr->num_line = $this->nb_lines;
+		$thisErr->content_line = serialize($dataLine);
+		$thisErr->error_msg = $errMsg;
+		if($is_sql) {
+			$thisErr->sql_errno = $this->db->lasterrno;
+			$thisErr->sql_error = lastqueryerror."\n".$this->db->lasterror."\n".$this->db->lastquery;
+		}
+		$thisErr->create($user);
 
 		$this->nb_errors++;
 	}
 	
-	function importLine($data, $objectType, $rowid) {
+	function importLine($dataline, $type) {
+		switch ($type) {
+			case 'client':
+				$this->importLineTiers($dataline);
+				break;
+			
+			default:
+				
+				break;
+		}
+	}
+	
+	function importLineTiers($dataline) {
 		global $user;
+		dol_include_once("/societe/class/societe.class.php");
+		$sqlSearchClient = "SELECT rowid FROM llx_societe WHERE code_client = '%s'";
+		
+		// Compteur du nombre de lignes
+		$this->nb_lines++;
+
+		if(!$this->checkData($dataline)) return false;
+		$data = $this->contructDataTab($dataline);
+		
+		// Recherche si tiers existant dans la base
+		$rowid = 0;
+		$sql = sprintf($sqlSearchClient, $data[$this->mapping['search_key']]);
+		$resql = $this->db->query($sql);
+		if($resql) {
+			$num = $this->db->num_rows($resql);
+			if($num == 1) { // Enregistrement trouvé, mise à jour
+				$obj = $this->db->fetch_object($resql);
+				$rowid = $obj->rowid;
+			} else if($num > 1) { // Plusieurs trouvés, erreur
+				$this->addError('ErrorMultipleClientFound', $dataline);
+				continue;
+			}
+		} else {
+			$this->addError('ErrorWhileSearchingClient', $dataline);
+			continue;
+		}
 		
 		// Construction de l'objet final
-		$object = new $objectType($this->db);
+		$societe = new Societe($this->db);
 		if($rowid > 0) {
-			$object->fetch($rowid);
+			$societe->fetch($rowid);
 		}
 		
 		foreach ($data as $key => $value) {
-			$object->{$key} = $value;
+			$societe->{$key} = $value;
 		}
 		
 		// Mise à jour ou créatioon
 		if($rowid > 0) {
-			$res = $object->update($rowid, $user);
+			$res = $societe->update($rowid, $user);
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
-				$this->addError('ErrorWhileUpdatingLine', array_values($data));
+				$this->addError('ErrorWhileUpdatingLine', $dataline, true);
+				return false;
 			} else {
 				$this->nb_update++;
 			}			
 		} else {
-			$res = $object->create($user);
+			$res = $societe->create($user);
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				$this->addError('ErrorWhileCreatingLine', array_values($data));
+				$this->addError('ErrorWhileCreatingLine', $dataline, true);
+				return false;
 			} else {
 				$this->nb_create++;
 			}
 		}
+	}
+
+	function importLineFactureMateriel($dataline) {
+		global $user;
+		dol_include_once("/compta/facture/class/facture.class.php");
+		$sqlSearchFacture = "SELECT rowid FROM llx_facture WHERE facnumber = '%s'";
+		$sqlSearchClient = "SELECT rowid FROM llx_societe WHERE code_client = '%s'";
 		
+		// Compteur du nombre de lignes
+		$this->nb_lines++;
+
+		if(!$this->checkData($dataline)) return false;
+		$data = $this->contructDataTab($dataline);
 		
+		// Recherche si tiers existant dans la base
+		$rowid = 0;
+		$sql = sprintf($sqlSearchClient, $data[$this->mapping['search_key']]);
+		$resql = $this->db->query($sql);
+		if($resql) {
+			$num = $this->db->num_rows($resql);
+			if($num == 1) { // Enregistrement trouvé, mise à jour
+				$obj = $this->db->fetch_object($resql);
+				$rowid = $obj->rowid;
+			} else if($num > 1) { // Plusieurs trouvés, erreur
+				$this->addError('ErrorMultipleClientFound', $dataline);
+				continue;
+			}
+		} else {
+			$this->addError('ErrorWhileSearchingClient', $dataline);
+			continue;
+		}
+		
+		// Construction de l'objet final
+		$societe = new Societe($this->db);
+		if($rowid > 0) {
+			$societe->fetch($rowid);
+		}
+		
+		foreach ($data as $key => $value) {
+			$societe->{$key} = $value;
+		}
+		
+		// Mise à jour ou créatioon
+		if($rowid > 0) {
+			$res = $societe->update($rowid, $user);
+			// Erreur : la mise à jour n'a pas marché
+			if($res < 0) {
+				$this->addError('ErrorWhileUpdatingLine', $dataline, true);
+				return false;
+			} else {
+				$this->nb_update++;
+			}			
+		} else {
+			$res = $societe->create($user);
+			// Erreur : la création n'a pas marché
+			if($res < 0) {
+				$this->addError('ErrorWhileCreatingLine', $dataline, true);
+				return false;
+			} else {
+				$this->nb_create++;
+			}
+		}
 	}
 
 	function checkData($dataline) {
