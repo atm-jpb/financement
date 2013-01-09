@@ -69,6 +69,7 @@ class TFin_affaire extends TObjetStd {
 		parent::save($db);
 		
 		foreach($this->TLien as &$lien) {
+			$lien->fk_fin_affaire = $this->getId();	
 			$lien->save($db);
 		}
 	}
@@ -85,6 +86,48 @@ class TFin_affaire extends TObjetStd {
 		return false;
 	}
 	function addDossier(&$db, $id=null, $reference=null) {
+		$dossier =new TFin_dossier;
+		
+		if((!is_null($id) && $dossier->load($db, $id)) 
+		|| (!is_null($reference)  && $dossier->loadReference($db, $reference))) {
+			/*
+			 * Le dossier existe liaison
+			 */
+			//print_r($this->TLien);
+			foreach($this->TLien as $k=>$lien) {
+				if($lien->fk_fin_dossier==$dossier->getId()) {return false;}
+			}		 
+			 
+			$i = count($this->TLien); 
+			$this->TLien[$i]=new TFin_dossier_affaire;
+			$this->TLien[$i]->fk_fin_affaire = $this->rowid;
+			$this->TLien[$i]->fk_fin_dossier = $dossier->rowid;  
+			 
+			$this->TLien[$i]->dossier= $dossier;
+			
+		//	print_r($this->TLien[$i]);
+		
+			return true;
+		}
+		else {
+			//exit('Echec');
+			return false;
+		}
+		
+	}
+	function deleteEquipement(&$db, $id) {
+		foreach($this->TLien as $k=>&$lien) {
+			if($lien->fk_fin_dossier==$id) {
+				$db->dbdelete('llx_fin_dossier_affaire', $lien->getId(), 'rowid' );
+				unset($this->TLien[$k]);
+				return true;
+				
+			}
+		}		 
+		
+		return false;
+	}
+	function addEquipement(&$db, $id=null, $reference=null) {
 		$dossier =new TFin_dossier;
 		
 		if((!is_null($id) && $dossier->load($db, $id)) 

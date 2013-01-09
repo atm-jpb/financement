@@ -566,7 +566,7 @@ class Grille // extends CommonObject
 	 * 			-3	= echeance hors grille
 	 * 			-4	= Pas de grille chargée
 	 */
-	function calcul_financement(&$montant=0, &$duree=0, &$echeance=0, $vr=0, &$coeff) {
+	function calcul_financement(&$montant, &$duree, &$echeance, $vr, &$coeff) {
 		$found = false;
 		if(empty($this->grille)) { // Pas de grille chargée, pas de calcul
 			$this->error = 'ErrorNoGrilleSelected';
@@ -601,5 +601,12 @@ class Grille // extends CommonObject
 		}
 		return $found;
 	}
+
+	function showEcheancier($montant, &$duree, &$echeance, $vr, &$coeff, $affichage = 'TRIMESTRE') {
+		/*
+		 * Affiche l'échéancier
+		 */
+	}
+
 }
 ?>

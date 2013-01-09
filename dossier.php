@@ -191,6 +191,9 @@ function _fiche(&$dossier, $mode) {
 	//require('./tpl/affaire.tpl.php');
 	$TBS=new TTemplateTBS();
 	
+	$financement=&$dossier->financement;
+	$financementLeaser=&$dossier->financementLeaser;
+	
 	print $TBS->render('./tpl/dossier.tpl.php'
 		,array(
 			'affaire'=>$TAffaire
@@ -199,35 +202,61 @@ function _fiche(&$dossier, $mode) {
 			'dossier'=>array(
 				'id'=>$dossier->rowid
 				,'reference'=>$form->texte('', 'reference', $dossier->reference, 100,255,'','','à saisir') 
-				
-				,'montant'=>$form->texte('', 'montant', $dossier->montant, 20,255,'','','à saisir').' &euro;' 
-				,'taux'=>$form->texte('', 'taux', $dossier->taux, 5,255,'','','à saisir').' %' 
-				,'echeance1'=>$form->texte('', 'echeance1', $dossier->echeance1, 20,255,'','','à saisir').' &euro;' 
-				,'echeance'=>$form->texte('', 'echeance', $dossier->echeance, 20,255,'','','à saisir') .' &euro;'
-				,'reste'=>$form->texte('', 'reste', $dossier->reste, 20,255,'','','à saisir').' &euro;' 
-				,'montant_prestation'=>$form->texte('', 'montant_prestation', $dossier->montant_prestation, 20,255,'','','à saisir').' &euro;' 
-					
-				,'numero_prochaine_echeance'=>$form->texte('', 'numero_prochaine_echeance', $dossier->numero_prochaine_echeance, 5,255,'','','à saisir') 
-				,'duree'=>$form->texte('', 'duree', $dossier->duree, 5,255,'','','à saisir')
-									
-								
-				,'periodicite'=>$form->combo('', 'periodicite', $dossier->TPeriodicite , $dossier->periodicite)
-				,'reglement'=>$form->combo('', '', $dossier->TReglement , $dossier->reglement)
-				,'incident_paiement'=>$form->combo('', 'incident_paiement', $dossier->TIncidentPaiement , $dossier->incident_paiement) 
-				
-				,'date_debut'=>$form->calendrier('', 'date_debut', $dossier->get_date('date_debut'),10)
-				,'date_fin'=>$form->calendrier('', 'date_fin', $dossier->get_date('date_fin'),10)
-				,'date_prochaine_echeance'=>$form->calendrier('', 'date_prochaine_echeance', $dossier->get_date('date_prochaine_echeance'),10)
 				,'date_relocation'=>$form->calendrier('', 'date_relocation', $dossier->get_date('date_relocation'),10)
-				
-				,'solde'=>$dossier->solde
-				,'montant_ok'=>$dossier->somme_affaire
-				
 				,'date_maj'=>$dossier->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$dossier->get_date('date_cre','d/m/Y')
 				
 				
+				)
+			,'financement'=>array(
+				'montant'=>$form->texte('', 'montant', $financement->montant, 20,255,'','','à saisir').' &euro;' 
+				,'taux'=>$form->texte('', 'taux', $financement->taux, 5,255,'','','à saisir').' %' 
+				,'echeance1'=>$form->texte('', 'echeance1', $financement->echeance1, 20,255,'','','à saisir').' &euro;' 
+				,'echeance'=>$form->texte('', 'echeance', $financement->echeance, 20,255,'','','à saisir') .' &euro;'
+				,'reste'=>$form->texte('', 'reste', $financement->reste, 20,255,'','','à saisir').' &euro;' 
+				,'montant_prestation'=>$form->texte('', 'montant_prestation', $financement->montant_prestation, 20,255,'','','à saisir').' &euro;' 
+					
+				,'numero_prochaine_echeance'=>$form->texte('', 'numero_prochaine_echeance', $financement->numero_prochaine_echeance, 5,255,'','','à saisir') 
+				,'duree'=>$form->texte('', 'duree', $financement->duree, 5,255,'','','à saisir')
+									
+								
+				,'periodicite'=>$form->combo('', 'periodicite', $financement->TPeriodicite , $financement->periodicite)
+				,'reglement'=>$form->combo('', '', $financement->TReglement , $financement->reglement)
+				,'incident_paiement'=>$form->combo('', 'incident_paiement', $financement->TIncidentPaiement , $financement->incident_paiement) 
+				
+				,'date_debut'=>$form->calendrier('', 'date_debut', $financement->get_date('date_debut'),10)
+				,'date_fin'=>$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
+				,'date_prochaine_echeance'=>$form->calendrier('', 'date_prochaine_echeance', $financement->get_date('date_prochaine_echeance'),10)
+				
+				,'solde'=>$financement->solde
+				,'montant_ok'=>$financement->somme_affaire
+				
 			)
+			,'financementLeaser'=>array(
+				'montant'=>$form->texte('', 'montant', $financementLeaser->montant, 20,255,'','','à saisir').' &euro;' 
+				,'taux'=>$form->texte('', 'taux', $financementLeaser->taux, 5,255,'','','à saisir').' %' 
+				,'echeance1'=>$form->texte('', 'echeance1', $financementLeaser->echeance1, 20,255,'','','à saisir').' &euro;' 
+				,'echeance'=>$form->texte('', 'echeance', $financementLeaser->echeance, 20,255,'','','à saisir') .' &euro;'
+				,'reste'=>$form->texte('', 'reste', $financementLeaser->reste, 20,255,'','','à saisir').' &euro;' 
+				,'montant_prestation'=>$form->texte('', 'montant_prestation', $financementLeaser->montant_prestation, 20,255,'','','à saisir').' &euro;' 
+					
+				,'numero_prochaine_echeance'=>$form->texte('', 'numero_prochaine_echeance', $financementLeaser->numero_prochaine_echeance, 5,255,'','','à saisir') 
+				,'duree'=>$form->texte('', 'duree', $financementLeaser->duree, 5,255,'','','à saisir')
+									
+								
+				,'periodicite'=>$form->combo('', 'periodicite', $financementLeaser->TPeriodicite , $financementLeaser->periodicite)
+				,'reglement'=>$form->combo('', '', $financementLeaser->TReglement , $financementLeaser->reglement)
+				,'incident_paiement'=>$form->combo('', 'incident_paiement', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement) 
+				
+				,'date_debut'=>$form->calendrier('', 'date_debut', $financementLeaser->get_date('date_debut'),10)
+				,'date_fin'=>$form->calendrier('', 'date_fin', $financementLeaser->get_date('date_fin'),10)
+				,'date_prochaine_echeance'=>$form->calendrier('', 'date_prochaine_echeance', $financementLeaser->get_date('date_prochaine_echeance'),10)
+				
+				,'solde'=>$financementLeaser->solde
+				,'montant_ok'=>$financementLeaser->somme_affaire
+				
+			)
+			
 			,'view'=>array(
 				'mode'=>$mode
 				,'otherAffaire'=>$otherAffaire
