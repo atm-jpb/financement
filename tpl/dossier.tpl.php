@@ -12,31 +12,76 @@
 				
 [onshow;block=end]				
 				
-			<table width="100%" class="border">
-			<tr><td width="20%">Numéro</td><td>[dossier.reference; strconv=no]</td></tr>
+		<table width="100%" class="border">
+		<tr><td width="20%">Numéro de contrat</td><td>[dossier.reference; strconv=no]</td></tr>
+		<tr>
+			<td colspan="2">
+				<table width="100%">
+				<tr>
+					<td>
+						<table width="100%"  class="border">	
+						<tr class="liste_titre"><td colspan="2">Client</td></tr>
+						
+						<tr><td width="20%">Montant financé HT</td><td>[financement.montant; strconv=no]</td></tr>
+						<tr><td>Taux</td><td>[financement.taux; strconv=no]</td></tr>
+						<tr><td>Périodicité</td><td>[financement.periodicite; strconv=no]</td></tr>
 			
-			<tr><td>Montant financé HT</td><td>[dossier.montant; strconv=no]</td></tr>
-			<tr><td>Taux</td><td>[dossier.taux; strconv=no]</td></tr>
-			<tr><td>Périodicité</td><td>[dossier.periodicite; strconv=no]</td></tr>
+						<tr><td>Durée</td><td>[financement.duree; strconv=no]</td></tr>
+						<tr><td>Date de début</td><td>[financement.date_debut; strconv=no]</td></tr>
+						<tr><td>Date de fin</td><td>[financement.date_fin; strconv=no]</td></tr>
+			
+						<tr><td>1ère échéance</td><td>[financement.echeance1; strconv=no]</td></tr>
+						<tr><td>Echéance</td><td>[financement.echeance; strconv=no]</td></tr>
+						<tr><td>N° prochaine échéance</td><td>[financement.numero_prochaine_echeance; strconv=no]</td></tr>
+						<tr><td>Date de prochaine échéance</td><td>[financement.date_prochaine_echeance; strconv=no]</td></tr>
+						
+						<tr><td>Valeur résiduelle</td><td>[financement.reste; strconv=no]</td></tr>
+						<tr><td>Mode de réglement</td><td>[financement.reglement; strconv=no]</td></tr>
+						<tr><td>Montant de prestation</td><td>[financement.montant_prestation; strconv=no]</td></tr>
+						
+						<tr><td>Incident de paiement</td><td>[financement.incident_paiement; strconv=no]</td></tr>
+						
+						</table>
+						
+						Echéancier CLient
+					</td>
+					<td>
+						<table width="100%" class="border">
+						<tr class="liste_titre"><td colspan="2">Leaser<!-- [onshow;block=table;when [financementLeaser.id]!=0] --></td></tr>
+						<tr><td width="20%">Montant financé HT</td><td>[financementLeaser.montant; strconv=no;]</td></tr>
+						<tr><td>Taux</td><td>[financementLeaser.taux; strconv=no]</td></tr>
+						<tr><td>Périodicité</td><td>[financementLeaser.periodicite; strconv=no]</td></tr>
+			
+						<tr><td>Durée</td><td>[financementLeaser.duree; strconv=no]</td></tr>
+						<tr><td>Date de début</td><td>[financementLeaser.date_debut; strconv=no]</td></tr>
+						<tr><td>Date de fin</td><td>[financementLeaser.date_fin; strconv=no]</td></tr>
+			
+						<tr><td>1ère échéance</td><td>[financementLeaser.echeance1; strconv=no]</td></tr>
+						<tr><td>Echéance</td><td>[financementLeaser.echeance; strconv=no]</td></tr>
+						<tr><td>N° prochaine échéance</td><td>[financementLeaser.numero_prochaine_echeance; strconv=no]</td></tr>
+						<tr><td>Date de prochaine échéance</td><td>[financementLeaser.date_prochaine_echeance; strconv=no]</td></tr>
+						
+						<tr><td>Valeur résiduelle</td><td>[financementLeaser.reste; strconv=no]</td></tr>
+						<tr><td>Mode de réglement</td><td>[financementLeaser.reglement; strconv=no]</td></tr>
+						<tr><td>Montant de prestation</td><td>[financementLeaser.montant_prestation; strconv=no]</td></tr>
+						
+						<tr><td>Incident de paiement</td><td>[financementLeaser.incident_paiement; strconv=no]</td></tr>
+						
+						</table>
+						
+						Echéancier Leaser
+					</td>
+				</tr>
+				</table>
+				
+				
+			</td>
+		</tr>
+		<tr><td>Date de mise en relocation</td><td>[dossier.date_relocation; strconv=no]</td></tr>
+						
+		
+		</table>
 
-			<tr><td>Durée</td><td>[dossier.duree; strconv=no]</td></tr>
-			<tr><td>Date de début</td><td>[dossier.date_debut; strconv=no]</td></tr>
-			<tr><td>Date de fin</td><td>[dossier.date_fin; strconv=no]</td></tr>
-
-			<tr><td>1ère échéance</td><td>[dossier.echeance1; strconv=no]</td></tr>
-			<tr><td>Echéance</td><td>[dossier.echeance; strconv=no]</td></tr>
-			<tr><td>N° prochaine échéance</td><td>[dossier.numero_prochaine_echeance; strconv=no]</td></tr>
-			<tr><td>Date de prochaine échéance</td><td>[dossier.date_prochaine_echeance; strconv=no]</td></tr>
-			
-			<tr><td>Valeur résiduelle</td><td>[dossier.reste; strconv=no]</td></tr>
-			<tr><td>Mode de réglement</td><td>[dossier.reglement; strconv=no]</td></tr>
-			<tr><td>Montant de prestation</td><td>[dossier.montant_prestation; strconv=no]</td></tr>
-			
-			<tr><td>Incident de paiement</td><td>[dossier.incident_paiement; strconv=no]</td></tr>
-			<tr><td>Date de mise en relocation</td><td>[dossier.date_relocation; strconv=no]</td></tr>
-			
-			</table>
-			
 			[onshow;block=begin;when [view.mode]!='view']
 			<p>Ajouter l'affaire numéro : <input type="text" value="" name="affaire_to_add" size="20" id="affaire_to_add" /><input type="button" value="Ajouter" name="add_affaire" class="button" onclick="$('#action').val('add_affaire'); $('#formAff').submit();"></p> 
 			<script language="javascript">

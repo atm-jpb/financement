@@ -129,7 +129,7 @@ class modFinancement extends DolibarrModules
 		// 'categories_x'	  to add a tab in category view (replace 'x' by type of category (0=product, 1=supplier, 2=customer, 3=member)
         $this->tabs = array(
         	'thirdparty:+scores:ScoreList:financement@financement:$user->rights->financement->score->read:/financement/score.php?socid=__ID__'
-        	,'thirdparty:+affaire:Affaires:financement@financement:$user->rights->financement->score->read:/financement/affaire.php?socid=__ID__'
+        	,'thirdparty:+affaire:Financement:financement@financement:$user->rights->financement->score->read:/financement/affaire.php?socid=__ID__'
 		);
  		
 
