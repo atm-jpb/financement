@@ -559,6 +559,12 @@ class Grille // extends CommonObject
 	
 	/**
 	 * Calcul des élément du financement
+	 * Montant : Capital emprunté
+	 * Durée : Durée en trimestre
+	 * échéance : Echéance trimestrielle
+	 * VR : Valeur residuelle du financement
+	 * coeff : taux d'emprunt annuel
+	 * 
 	 * @return $res :
 	 * 			1	= calcul OK
 	 * 			-1	= montant ou echeance vide (calcul impossible)
@@ -567,39 +573,60 @@ class Grille // extends CommonObject
 	 * 			-4	= Pas de grille chargée
 	 */
 	function calcul_financement(&$montant, &$duree, &$echeance, $vr, &$coeff) {
-		$found = false;
+		/*
+		 * Formule de calcul échéance
+		 * 
+		 * Echéance : Capital x tauxTrimestriel / (1 - (1 + tauxTrimestriel)^-nombreTrimestre )
+		 * 
+		 */ 
+		
 		if(empty($this->grille)) { // Pas de grille chargée, pas de calcul
 			$this->error = 'ErrorNoGrilleSelected';
-		} else if(!empty($montant)) { // Calcul à partir du montant
+		} 
+		else if(!empty($montant)) { // Calcul à partir du montant
+			
 			foreach($this->grille[$duree] as $palier => $infos) {
 				if($montant <= $palier) {
-					$coeff = $infos['coeff'];
-					$echeance = ($montant - $vr) / $duree * (1 + $coeff / 100);
+					$coeff = $infos['coeff']; // coef annuel
+					$coeffTrimestriel = $coeff / 4 /100; // en %
+					/*$echeance = ($montant - $vr) / $duree * (1 + $coeff / 100);*/
+					
+					$echeance = $montant * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$duree) );  
+					
+					//print "$echeance = $montant, &$duree, &$echeance, $vr, &$coeff::$coeffTrimestriel";
+					
 					$echeance = round($echeance, 2);
-					$found = true;
+					return true;
 					break;
 				}
 			}
-			if(!$found) { // Montant hors grille
-				$this->error = 'ErrorAmountOutOfGrille';
-			}
-		} else if(!empty($echeance)) { // Calcul à partir de l'échéance
+			
+			$this->error = 'ErrorAmountOutOfGrille';
+
+		} 
+		else if(!empty($echeance)) { // Calcul à partir de l'échéance
+		
 			foreach($this->grille[$duree] as $palier => $infos) {
 				if($echeance <= $infos['echeance']) {
 					$coeff = $infos['coeff'];
-					$montant = $echeance * (1 - $coeff / 100) * $duree + $vr;
+					$coeffTrimestriel = $coeff / 4 /100; // en %
+					/*$montant = $echeance * (1 - $coeff / 100) * $duree + $vr;*/
+					$montant =  $echeance * (1- pow(1+$coeffTrimestriel, -$duree) ) / $coeffTrimestriel ;
+					
+					
 					$montant = round($montant, 2);
-					$found = true;
+					return true;
 					break;
 				}
 			}
-			if(!$found) { // Echéance hors grille
-				$this->error = 'ErrorEcheanceOutOfGrille';
-			}
+			
+			$this->error = 'ErrorEcheanceOutOfGrille';
+			
 		} else { // Montant et échéance vide
 			$this->error = 'ErrorMontantOrEcheanceRequired';
 		}
-		return $found;
+		
+		return false; 
 	}
 
 	function showEcheancier($montant, &$duree, &$echeance, $vr, &$coeff, $affichage = 'TRIMESTRE') {

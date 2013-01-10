@@ -4,7 +4,7 @@
  */
 class TFin_dossier extends TObjetStd {
 	function __construct() { /* declaration */
-		parent::set_table('llx_fin_dossier');
+		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
 		parent::add_champs('solde','type=float;');
 		parent::add_champs('reference','type=chaine;');
 		parent::add_champs('date_relocation','type=date;');
@@ -44,7 +44,7 @@ class TFin_dossier extends TObjetStd {
 	}
 	function load_financement(&$db) {
 		
-		$Tab = TRequeteCore::get_id_from_what_you_want($db,'llx_fin_dossier_financement',array('fk_fin_dossier',$this->getId()));
+		$Tab = TRequeteCore::get_id_from_what_you_want($db,MAIN_DB_PREFIX.'fin_dossier_financement',array('fk_fin_dossier',$this->getId()));
 		
 		$somme_affaire = 0;
 		foreach($Tab as $i=>$id) {
@@ -57,7 +57,7 @@ class TFin_dossier extends TObjetStd {
 	
 	function load_affaire(&$db) {
 		
-		$Tab = TRequeteCore::get_id_from_what_you_want($db,'llx_fin_dossier_affaire',array('fk_fin_dossier',$this->getId()));
+		$Tab = TRequeteCore::get_id_from_what_you_want($db,MAIN_DB_PREFIX.'fin_dossier_affaire',array('fk_fin_dossier',$this->getId()));
 		
 		$somme_affaire = 0;
 		foreach($Tab as $i=>$id) {
@@ -114,8 +114,8 @@ class TFin_dossier extends TObjetStd {
 	}
 	function delete(&$db) {
 		parent::delete($db);
-		$db->dbdelete('llx_fin_dossier_affaire', $this->getId(), 'fk_fin_dossier');
-		$db->dbdelete('llx_fin_dossier_financement', $this->getId(), 'fk_fin_dossier');
+		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_affaire', $this->getId(), 'fk_fin_dossier');
+		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_financement', $this->getId(), 'fk_fin_dossier');
 	}
 	function save(&$db) {
 		parent::save($db);
@@ -136,7 +136,7 @@ class TFin_dossier extends TObjetStd {
  */
 class TFin_dossier_affaire extends TObjetStd {
 	function __construct() { /* declaration */
-		parent::set_table('llx_fin_dossier_affaire');
+		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_affaire');
 		parent::add_champs('fk_fin_affaire,fk_fin_dossier','type=entier;');
 		parent::start();
 		parent::_init_vars();
@@ -150,7 +150,7 @@ class TFin_dossier_affaire extends TObjetStd {
  */ 
 class TFin_financement extends TObjetStd {
 	function __construct() { /* declaration */
-		parent::set_table('llx_fin_dossier_financement');
+		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
 		parent::add_champs('duree,numero_prochaine_echeance,fk_fin_dossier','type=entier;');
 		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant','type=float;');
 		parent::add_champs('periodicite,reglement,incident_paiement,type','type=chaine;');
