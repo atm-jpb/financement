@@ -81,7 +81,6 @@ $imp->getFiles($importFolder);
 
 // STEP 2 : import des fichiers
 foreach ($listOfFileType as $fileType) { // Pour chaque type de fichier
-	$importScriptFile = 'import_'.$fileType.'.script.php';
 	$mappingFile = $fileType.'.mapping';
 	$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
 	
@@ -103,7 +102,7 @@ foreach ($listOfFileType as $fileType) { // Pour chaque type de fichier
 		
 		print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;
 		
-		rename($importFolder.$fileName, $importFolderOK.$fileName);
+		//rename($importFolder.$fileName, $importFolderOK.$fileName);
 	}
 }
 
