@@ -48,8 +48,10 @@ class TFin_dossier extends TObjetStd {
 		
 		$somme_affaire = 0;
 		foreach($Tab as $i=>$id) {
-			$this->TFinancement[$i]=new TFin_financement;
-			$this->TFinancement[$i]->load($db, $id);
+			$f=new TFin_financement;
+			$f->load($db, $id);
+			if($f->type=='LEASER') $this->financementLeaser = $f;
+			else  $this->financement = $f;
 		}
 	}
 	

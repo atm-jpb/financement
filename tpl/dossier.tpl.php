@@ -47,8 +47,8 @@
 					</td>
 					<td>
 						<table width="100%" class="border">
-						<tr class="liste_titre"><td colspan="2">Leaser</td></tr>
-						<tr><td width="20%">Montant financé HT</td><td>[financementLeaser.montant; block=table; strconv=no]</td></tr>
+						<tr class="liste_titre"><td colspan="2">Leaser<!-- [onshow;block=table;when [financementLeaser.id]!=0] --></td></tr>
+						<tr><td width="20%">Montant financé HT</td><td>[financementLeaser.montant; strconv=no;]</td></tr>
 						<tr><td>Taux</td><td>[financementLeaser.taux; strconv=no]</td></tr>
 						<tr><td>Périodicité</td><td>[financementLeaser.periodicite; strconv=no]</td></tr>
 			
