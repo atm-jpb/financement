@@ -194,6 +194,9 @@ switch ($mode) {
 		break;
 	case 'list_error':
 		$tpl = 'tpl/import_error_list.tpl.php';
+		/*print_barre_liste($langs->trans('ImportList'), $page,'import.php?mode=list',$param,$sortfield,$sortorder,'',$num,0,'import32.png@financement');
+		_liste_erreur();
+		*/
 		break;
 	
 	default:
@@ -208,4 +211,57 @@ dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 llxFooter('');
 
 $db->close();
-?>
+
+function _liste_erreur() {
+		//TODO
+	$r = new TSSRenderControler($affaire);
+	$sql="SELECT a.rowid as 'ID', a.reference as 'Numéro d\'affaire', a.fk_soc, s.nom as 'Société', a.nature_financement as 'Financement : Nature', a.type_financement as 'Type', a.contrat as 'Type de contrat', a.date_affaire as 'Date de l\'affaire'
+	FROM @table@ a LEFT JOIN llx_societe s ON (a.fk_soc=s.rowid)";
+	
+	$THide = array('fk_soc');
+	
+	if(isset($_REQUEST['socid'])) {
+		$sql.= ' WHERE a.fk_soc='.$_REQUEST['socid'];
+		$societe = new Societe($db);
+		$societe->fetch($_REQUEST['socid']);
+		$head = societe_prepare_head($societe);
+		dol_fiche_head($head, 'affaire', $langs->trans("ThirdParty"),0,'company');
+		
+		$THide[] = 'Société';
+	}
+	
+	
+	
+	$r->liste($ATMdb, $sql, array(
+		'limit'=>array(
+			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
+			,'nbLine'=>'30'
+		)
+		/*,'subQuery'=>array(
+			'Type de contrat'=>"SELECT code FROM llx_fin_const WHERE type='type_contrat'"
+		)*/
+		,'link'=>array(
+			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
+			,'Numéro d\'affaire'=>'<a href="?id=@ID@">@val@</a>'
+		)
+		,'translate'=>array(
+			'Financement : Nature'=>$affaire->TNatureFinancement
+			,'Type'=>$affaire->TTypeFinancement
+		)
+		,'hide'=>$THide
+		,'type'=>array('Date de l\'affaire'=>'date')
+		,'liste'=>array(
+			'titre'=>'Liste des affaires'
+			,'image'=>img_picto('','title.png', '', 0)
+			,'picto_precedent'=>img_picto('','back.png', '', 0)
+			,'picto_suivant'=>img_picto('','next.png', '', 0)
+			,'noheader'=> (int)isset($_REQUEST['socid'])
+			,'messageNothing'=>"Il n'y a aucune affaire à afficher"
+		)
+	));
+	
+	if(isset($_REQUEST['socid'])) {
+		?><div class="tabsAction"><a href="?action=new&fk_soc=<?=$_REQUEST['socid'] ?>" class="butAction">Créer une affaire</a></div><?
+	}
+	
+}

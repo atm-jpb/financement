@@ -517,6 +517,9 @@ class Import // extends CommonObject
 			case 'commercial':
 				$this->importLineCommercial($dataline);
 				break;
+			case 'affaire':
+				$this->importLineAffaire($dataline);
+				break;
 			
 			default:
 				
@@ -680,100 +683,57 @@ class Import // extends CommonObject
 		return true;
 	}
 
-	function importLineAffaire($dataline) { // TODO : Faux, pas affaire
+	function importLineAffaire($dataline) { 
 		global $user;
-		dol_include_once("/compta/facture/class/facture.class.php");
-		
+		/*
+		 *	référence	date_affaire, code_client login_user
+		 *  "002-53740";"24/09/2012";"012469";"dpn"
+		 */
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
-
+		
+		$ATMdb=new Tdb;	
+		
 		if(!$this->checkData($dataline)) return false;
-		$data = $this->contructDataTab($dataline);
+		$row = $this->contructDataTab($dataline);
 		
-		$facnumber = $data[$this->mapping['search_key']];
-		$socid = $data[$this->mapping['search_key_client']];
-		
-		$sqlSearchFacture = "SELECT rowid FROM llx_facture WHERE facnumber = '$facnumber'";
-		$sqlSearchClient = "SELECT rowid FROM llx_societe WHERE code_client = '$socid'";
-		
-		// Recherche si facture existante dans la base
-		$rowid = 0;
-		$resql = $this->db->query($sqlSearchFacture);
-		if($resql) {
-			$num = $this->db->num_rows($resql);
-			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$obj = $this->db->fetch_object($resql);
-				$rowid = $obj->rowid;
-			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError('ErrorMultipleFactureFound', $dataline);
-				return false;
-			}
-		} else {
-			$this->addError('ErrorWhileSearchingFacture', $dataline);
+		if(!$user->fetch('',$row['login'])) {
+			$this->addError('ErrorUserNotExist', $dataline);
 			return false;
 		}
+		else {
+			$fk_user = $user->id;
+		}
 		
-		// Recherche tiers associé à la facture existant dans la base
-		$fk_soc = 0;
-		$resql = $this->db->query($sqlSearchClient);
-		if($resql) {
-			$num = $this->db->num_rows($resql);
-			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$obj = $this->db->fetch_object($resql);
-				$fk_soc = $obj->rowid;
-			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError('ErrorMultipleClientFound', $dataline);
-				return false;
-			} else {
-				$this->addError('ErrorNoClientFound', $dataline);
-				return false;
-			}
-		} else {
-			$this->addError('ErrorWhileSearchingClient', $dataline, true);
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$row['code_client']));
+		if(count($TRes)==0) {
+			$this->addError('ErrorNoClientFound', $dataline);
 			return false;
 		}
-		
-		$data['socid'] = $fk_soc;
-		
-		// Construction de l'objet final
-		$facture_mat = new Facture($this->db);
-		if($rowid > 0) {
-			$facture_mat->fetch($rowid);
-		}
-
-		foreach ($data as $key => $value) {
-			$facture_mat->{$key} = $this->validateValue($key, $value);
-		}
-		
-		// Mise à jour ou créatioon
-		if($rowid > 0) {
-			$res = $facture_mat->update($rowid, $user);
-			// Erreur : la mise à jour n'a pas marché
-			if($res < 0) {
-				$this->addError('ErrorWhileUpdatingLine', $dataline, true);
-				return false;
-			} else {
-				$this->nb_update++;
-			}			
+		else if(count($TRes) > 1) { // Plusieurs trouvés, erreur
+			$this->addError('ErrorMultipleClientFound', $dataline);
+			return false;
 		} else {
-			$res = $facture_mat->create($user);
-			// Erreur : la création n'a pas marché
-			if($res < 0) {
-				$this->addError('ErrorWhileCreatingLine', $dataline, true);
-				return false;
-			} else {
-				$this->nb_create++;
-			}
+			$fk_soc = $TRes[0];
 		}
 		
-		// Actions spécifiques
-		$facture_mat->addline($facture_mat->id, 'Matricule '.$data['matricule'], 0, 1, 19.6, 0, 0, 0, 0, '', '', 0, 0, '', 'TTC', $data['total_ttc']);
-		$facture_mat->validate($user, $facnumber); // Force la validation avec numéro de facture
+		$a=new TFin_affaire;
+		
+		$a->loadReference($ATMdb, $row['num_affaire']);
+		
+		$a->reference = $row['num_affaire'];
+		$a->set_date('date_affaire', $row['date']);
+		$a->fk_soc = $fk_soc;
+		$a->addCommercial($ATMdb, $fk_user);
+		$a->save($ATMdb);
+		
+		$ATMdb->close();
 		
 		return true;
+		
 	}
 
-	function importLineCommercial($dataline) { // TODO : à tester
+	function importLineCommercial($dataline) { 
 		global $user;
 		/*
 		 *  code client; type_activité;login user
@@ -819,6 +779,7 @@ class Import // extends CommonObject
 		$c->save($ATMdb);
 		
 	
+		$ATMdb->close();
 		
 		return true;
 	}

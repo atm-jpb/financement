@@ -12,6 +12,8 @@ class TFin_affaire extends TObjetStd {
 		parent::start();
 		
 		$this->TLien=array();
+		$this->TCommercial=array();
+		$this->TAsset=array();
 		
 		$this->TContrat=array();
 		$this->TTypeFinancement=array(//TODO
@@ -34,7 +36,8 @@ class TFin_affaire extends TObjetStd {
 		
 		if($annexe) {
 			$this->loadDossier($db);
-			
+			$this->loadCommerciaux($db);	
+			$this->loadEquipement($db);	
 		}
 		
 		return $res;
@@ -45,6 +48,26 @@ class TFin_affaire extends TObjetStd {
 		$db->Execute("SELECT code FROM ".MAIN_DB_PREFIX."fin_const WHERE type='type_contrat'");
 		while($db->Get_line()){
 			$this->TContrat[$db->Get_field('code')] = $langs->trans( $db->Get_field('code') );
+		}
+	}
+	function loadCommerciaux(&$db) {
+		
+		$Tab = TRequeteCore::get_id_from_what_you_want($db,MAIN_DB_PREFIX.'fin_affaire_commercial',array('fk_fin_affaire'=>$this->getId()));
+		
+		foreach($Tab as $i=>$id) {
+			$this->TCommercial[$i]=new TFin_affaire_commercial;
+			$this->TCommercial[$i]->load($db, $id);
+			
+		}
+	}
+	function loadEquipement(&$db) {
+		
+		$Tab = TRequeteCore::get_id_from_what_you_want($db,MAIN_DB_PREFIX.'asset',array('fk_fin_affaire'=>$this->getId()));
+		
+		foreach($Tab as $i=>$id) {
+			$this->TAsset[$i]=new TAsset;
+			$this->TAsset[$i]->load($db, $id);
+			
 		}
 	}
 	function loadDossier(&$db) {
@@ -69,6 +92,14 @@ class TFin_affaire extends TObjetStd {
 		parent::save($db);
 		
 		foreach($this->TLien as &$lien) {
+			$lien->fk_fin_affaire = $this->getId();	
+			$lien->save($db);
+		}
+		foreach($this->TAsset as &$lien) {
+			$lien->fk_fin_affaire = $this->getId();	
+			$lien->save($db);
+		}
+		foreach($this->TCommerciaux as &$lien) {
 			$lien->fk_fin_affaire = $this->getId();	
 			$lien->save($db);
 		}
@@ -97,14 +128,7 @@ class TFin_affaire extends TObjetStd {
 			foreach($this->TLien as $k=>$lien) {
 				if($lien->fk_fin_dossier==$dossier->getId()) {return false;}
 			}		 
-			 parent::set_table(MAIN_DB_PREFIX.'fin_affaire');
-		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel','type=chaine;');
-		parent::add_champs('date_affaire','type=date;');
-		parent::add_champs('fk_soc,fk_soc_leaser','type=entier;index;');
-		parent::add_champs('montant,solde','type=float;');
-		
-		parent::_init_vars();
-		parent::start();
+			
 			$i = count($this->TLien); 
 			$this->TLien[$i]=new TFin_dossier_affaire;
 			$this->TLien[$i]->fk_fin_affaire = $this->rowid;
@@ -123,10 +147,10 @@ class TFin_affaire extends TObjetStd {
 		
 	}
 	function deleteEquipement(&$db, $id) {
-		foreach($this->TLien as $k=>&$lien) {
-			if($lien->fk_fin_dossier==$id) {
-				$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_affaire', $lien->getId(), 'rowid' );
-				unset($this->TLien[$k]);
+		foreach($this->TAsset as $k=>&$asset) {
+			if($asset->getId()==$id) {
+				$db->dbdelete(MAIN_DB_PREFIX.'asset', $asset->getId(), 'rowid' );
+				unset($this->TAsset[$k]);
 				return true;
 				
 			}
@@ -134,34 +158,41 @@ class TFin_affaire extends TObjetStd {
 		
 		return false;
 	}
-	function addEquipement(&$db, $id=null, $reference=null) {
-		$dossier =new TFin_dossier;
+	function addEquipement(&$db, $id) {
+		foreach($this->TAsset as $k=>&$asset) {
+			if($asset->getId()==$id) {return false;}
+		}		 
+		 
+		$i = count($this->TAsset); 
+		$this->TAsset[$i]=new TAsset;
+		$this->TAsset[$i]->fk_fin_affaire = $this->getId();
 		
-		if((!is_null($id) && $dossier->load($db, $id)) 
-		|| (!is_null($reference)  && $dossier->loadReference($db, $reference))) {
-			/*
-			 * Le dossier existe liaison
-			 */
-			//print_r($this->TLien);
-			foreach($this->TLien as $k=>$lien) {
-				if($lien->fk_fin_dossier==$dossier->getId()) {return false;}
-			}		 
-			 
-			$i = count($this->TLien); 
-			$this->TLien[$i]=new TFin_dossier_affaire;
-			$this->TLien[$i]->fk_fin_affaire = $this->rowid;
-			$this->TLien[$i]->fk_fin_dossier = $dossier->rowid;  
-			 
-			$this->TLien[$i]->dossier= $dossier;
-			
-		//	print_r($this->TLien[$i]);
+		return true;		
+	}
+	
+	function deleteCommercial(&$db, $id) {
+		foreach($this->TLien as $k=>&$lien) {
+			if($lien->fk_fin_dossier==$id) {
+				$db->dbdelete(MAIN_DB_PREFIX.'fin_affaire_commercial', $lien->getId(), 'rowid' );
+				unset($this->TLien[$k]);
+				return true;
+			}
+		}		 
 		
-			return true;
-		}
-		else {
-			//exit('Echec');
-			return false;
-		}
+		return false;
+	}
+	function addCommercial(&$db, $id) {
+		foreach($this->TCommercial as $k=>$lien) {
+			if($lien->fk_fin_affaire==$id) {return false;}
+		}		 
+		 
+		$i = count($this->TCommercial); 
+		$this->TCommercial[$i]=new TFin_affaire_commercial;
+		$this->TCommercial[$i]->fk_fin_affaire = $this->getId();
+		$this->TCommercial[$i]->fk_user = $id;  
+			 
+		
+		return true;
 		
 	}
 	
@@ -183,7 +214,7 @@ class TFin_affaire_commercial extends TObjetStd {
 	function __construct() { /* declaration */
 
 		parent::set_table(MAIN_DB_PREFIX.'fin_affaire_commercial');
-		parent::add_champs('fk_contact,fk_affaire','type=entier;index;');
+		parent::add_champs('fk_user,fk_fin_affaire','type=entier;index;');
 		
 		parent::_init_vars();
 		parent::start();

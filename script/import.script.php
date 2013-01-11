@@ -66,6 +66,8 @@ $db->begin();
 dol_include_once("/financement/class/import.class.php");
 dol_include_once("/financement/class/import_error.class.php");
 dol_include_once("/financement/class/commerciaux.class.php");
+dol_include_once("/financement/class/affaire.class.php");
+dol_include_once("/financement/class/dossier.class.php");
 
 
 $imp=new Import($db);
@@ -73,7 +75,7 @@ $imp->entity = $conf->entity;
 $imp->fk_user_author = $user->id;
 
 $delimiter = ';'; $enclosure = '"';
-$listOfFileType = array(/*'client', 'facture_materiel',*/'commercial');
+$listOfFileType = array('client', 'facture_materiel','commercial','affaire');
 $importFolder = '../import/todo/';
 $importFolderOK = '../import/done/';
 $importFolderMapping = '../import/mappings/';
