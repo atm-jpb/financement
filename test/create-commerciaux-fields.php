@@ -9,6 +9,6 @@
 	$db=new Tdb;
 	$db->db->debug=true;
 
-	$c=new TCommerciauxCpro;
+	$c=new TCommercialCpro;
 	
 	$c->addFieldsInDb($db);

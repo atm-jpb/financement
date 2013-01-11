@@ -514,6 +514,9 @@ class Import // extends CommonObject
 			case 'facture_materiel':
 				$this->importLineFactureMateriel($dataline);
 				break;
+			case 'commercial':
+				$this->importLineCommercial($dataline);
+				break;
 			
 			default:
 				
@@ -677,7 +680,7 @@ class Import // extends CommonObject
 		return true;
 	}
 
-	function importLineAffaire($dataline) { // TODO : finish !
+	function importLineAffaire($dataline) { // TODO : Faux, pas affaire
 		global $user;
 		dol_include_once("/compta/facture/class/facture.class.php");
 		
@@ -770,6 +773,56 @@ class Import // extends CommonObject
 		return true;
 	}
 
+	function importLineCommercial($dataline) { // TODO : à tester
+		global $user;
+		/*
+		 *  code client; type_activité;login user
+		 *  "000012";"Copieur";"ABX"
+		 */
+		// Compteur du nombre de lignes
+		$this->nb_lines++;
+
+		if(!$this->checkData($dataline)) return false;
+		$row = $this->contructDataTab($dataline);
+		
+		$ATMdb=new Tdb;	
+		$c=new TCommercialCpro;
+		$c->addFieldsInDb($ATMdb);
+		
+		if(!$user->fetch('',$row['login'])) {
+			$this->addError('ErrorUserNotExist', $dataline);
+			return false;
+		}
+		else {
+			$fk_user = $user->id;
+		}
+		
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$row['code_client']));
+		if(count($TRes)==0) {
+			$this->addError('ErrorNoClientFound', $dataline);
+			return false;
+		}
+		else if(count($TRes) > 1) { // Plusieurs trouvés, erreur
+			$this->addError('ErrorMultipleClientFound', $dataline);
+			return false;
+		} else {
+			$fk_soc = $TRes[0];
+		}
+		
+		$c->loadUserClient($ATMdb, $fk_user, $fk_soc); // charge l'objet si existant
+		
+		$c->fk_soc = $fk_soc;
+		$c->fk_user = $fk_user;
+		
+		$c->type_activite_cpro = $row['type_activite_cpro'];
+		//print_r($c); exit;
+		$c->save($ATMdb);
+		
+	
+		
+		return true;
+	}
+
 	function checkData($dataline) {
 		// Vérification cohérence des données
 		if(count($this->mapping['mapping']) != count($dataline)) {
@@ -785,7 +838,7 @@ class Import // extends CommonObject
 		$data = array();
 		array_walk($dataline, 'trim');
 		$data = array_combine($this->mapping['mapping'], $dataline); // Combinaison des valeurs de la ligne et du mapping
-		$data = array_merge($data, $this->mapping['more']); // Ajout des valeurs autres
+		if(isset($this->mapping['more'])) $data = array_merge($data, $this->mapping['more']); // Ajout des valeurs autres
 		
 		return $data;
 	}
