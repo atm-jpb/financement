@@ -563,7 +563,7 @@ class Import // extends CommonObject
 		}
 
 		foreach ($data as $key => $value) {
-			$societe->{$key} = $this->validateValue($key, $val);
+			$societe->{$key} = $this->validateValue($key, $value);
 		}
 
 		// Mise à jour ou créatioon
@@ -580,6 +580,7 @@ class Import // extends CommonObject
 			$res = $societe->create($user);
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
+				print_r($societe); exit;
 				$this->addError('ErrorWhileCreatingLine', $dataline, true);
 				return false;
 			} else {
