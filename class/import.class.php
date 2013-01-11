@@ -656,6 +656,15 @@ class Import // extends CommonObject
 			$facture_mat->{$key} = $this->validateValue($key, $value);
 		}
 		
+		$ATMdb=new Tdb;
+		$affaire = new TFin_affaire;
+		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
+			$facture_mat->linked_objects['affaire'] = $affaire->getId();	
+		}
+		$ATMdb->close();
+		
+		
+		
 		// Mise à jour ou créatioon
 		if($rowid > 0) {
 			$res = $facture_mat->update($rowid, $user);
@@ -684,7 +693,7 @@ class Import // extends CommonObject
 		return true;
 	}
 
-	function importLineAffaire($dataline) { 
+	function importLineAffaire($dataline) { // TODO : à compléter : manque champs nature & type Financement,type matériel?, montant?
 		global $user;
 		/*
 		 *	référence	date_affaire, code_client login_user

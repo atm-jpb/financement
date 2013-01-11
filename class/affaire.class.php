@@ -99,7 +99,7 @@ class TFin_affaire extends TObjetStd {
 			$lien->fk_fin_affaire = $this->getId();	
 			$lien->save($db);
 		}
-		foreach($this->TCommerciaux as &$lien) {
+		foreach($this->TCommercial as &$lien) {
 			$lien->fk_fin_affaire = $this->getId();	
 			$lien->save($db);
 		}
