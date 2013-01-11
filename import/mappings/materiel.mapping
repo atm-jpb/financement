@@ -1,0 +1,10 @@
+[mapping]
+1=serial_number
+2=libelle_produit
+3=date_achat
+4=marque
+5=type_copie
+6=cout_copie
+
+[format]
+cout_copie=float

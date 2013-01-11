@@ -511,6 +511,9 @@ class Import // extends CommonObject
 			case 'client':
 				$this->importLineTiers($dataline);
 				break;
+			case 'materiel':
+				$this->importLineMateriel($dataline);
+				break;
 			case 'facture_materiel':
 				$this->importLineFactureMateriel($dataline);
 				break;
@@ -738,6 +741,62 @@ class Import // extends CommonObject
 		$a->save($ATMdb);
 		
 		$ATMdb->close();
+		
+		return true;
+		
+	}
+	function importLineMateriel($dataline) { // TODO : manque une référence correcte
+	/*
+	 * J'insére les produits sans les lier à l'affaire. C'est l'import facture matériel qui le fera
+	 */
+		global $user;
+		dol_include_once("/product/class/product.class.php");
+		/*
+		 *	serial_number,libelle_produit, date_achat, marque, type_copie, cout_copie
+		 *  "C2I256312";"ES 256 COPIEUR STUDIO ES 256";"06/12/2012";"TOSHIBA";"MCENB";"0,004"
+		 */
+		// Compteur du nombre de lignes
+		$this->nb_lines++;
+		
+		$ATMdb=new Tdb;	
+		
+		if(!$this->checkData($dataline)) return false;
+		$row = $this->contructDataTab($dataline);
+	
+		$reference = $row['marque'].md5($row['libelle_produit']); // en attendant mieux AA
+		
+		$produit =new Product($this->db);
+		$res=$produit->fetch('', $reference);
+		$fk_produit = $produit->id;
+		
+		$produit->ref = $reference;
+		$produit->libelle = $row['libelle_produit'];
+		$produit->type=0;
+		
+		if(!$res) {
+			$fk_produit = $produit->create($user);
+			if($fk_produit<0)print $produit->error;
+		}	
+		else {
+			$produit->update($fk_produit, $user);
+		}
+			
+		$asset=new TAsset;
+		
+		$asset->fk_product = $fk_produit;
+		$asset->loadReference($ATMdb, $row['serial_number']);
+		
+		$asset->serial_number = $row['serial_number'];
+		
+		$asset->set_date('date_achat',$row['date_achat']);
+		if($row['type_copie']=='MCENB')$asset->copy_black = $this->validateValue('cout_copie', $row['cout_copie']); 
+		else $asset->copy_color = $this->validateValue('cout_copie', $row['cout_copie']); 
+		
+		print_r($asset);
+		$asset->save($ATMdb);
+		
+		$ATMdb->close();
+		exit;
 		
 		return true;
 		
