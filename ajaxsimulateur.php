@@ -148,6 +148,3 @@ function get_calcul() {
 		}
 	}
 }
-//print "</body>";
-//print "</html>";
-?>

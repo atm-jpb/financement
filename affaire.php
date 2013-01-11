@@ -165,6 +165,9 @@ global $langs, $db;
 		)
 	));
 	
+	if(isset($_REQUEST['socid'])) {
+		?><div class="tabsAction"><a href="?action=new&fk_soc=<?=$_REQUEST['socid'] ?>" class="butAction">Créer une affaire</a></div><?
+	}
 	
 	llxFooter();
 }	

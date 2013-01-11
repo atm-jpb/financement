@@ -5,7 +5,7 @@ class TFin_affaire extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_affaire');
 		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel','type=chaine;');
 		parent::add_champs('date_affaire','type=date;');
-		parent::add_champs('fk_soc','type=entier;index;');
+		parent::add_champs('fk_soc','type=entier;index;');//fk_soc_leaser
 		parent::add_champs('montant,solde','type=float;');
 		
 		parent::_init_vars();
@@ -97,7 +97,14 @@ class TFin_affaire extends TObjetStd {
 			foreach($this->TLien as $k=>$lien) {
 				if($lien->fk_fin_dossier==$dossier->getId()) {return false;}
 			}		 
-			 
+			 parent::set_table(MAIN_DB_PREFIX.'fin_affaire');
+		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel','type=chaine;');
+		parent::add_champs('date_affaire','type=date;');
+		parent::add_champs('fk_soc,fk_soc_leaser','type=entier;index;');
+		parent::add_champs('montant,solde','type=float;');
+		
+		parent::_init_vars();
+		parent::start();
 			$i = count($this->TLien); 
 			$this->TLien[$i]=new TFin_dossier_affaire;
 			$this->TLien[$i]->fk_fin_affaire = $this->rowid;
@@ -171,3 +178,16 @@ class TFin_affaire extends TObjetStd {
 	}
 	
 }
+
+class TFin_affaire_commercial extends TObjetStd {
+	function __construct() { /* declaration */
+
+		parent::set_table(MAIN_DB_PREFIX.'fin_affaire_commercial');
+		parent::add_champs('fk_contact,fk_affaire','type=entier;index;');
+		
+		parent::_init_vars();
+		parent::start();
+		
+	}
+}
+	

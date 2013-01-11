@@ -142,6 +142,8 @@ function _liste(&$db, &$dossier) {
 			,'image'=>img_picto('','title.png', '', 0)
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
+			,'noheader'=>FALSE
+			,'messageNothing'=>"Il n'y a aucun dossier"
 		)
 	));
 	
