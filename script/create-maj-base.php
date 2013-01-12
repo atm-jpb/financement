@@ -26,3 +26,6 @@
 	$o=new TFin_dossier;
 	$o->init_db_by_vars($db);
 	
+	$o=new TFin_financement;
+	$o->init_db_by_vars($db);
+	

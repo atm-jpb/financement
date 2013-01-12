@@ -124,10 +124,12 @@ class TFin_dossier extends TObjetStd {
 			$lien->fk_fin_dossier = $this->getId();
 			$lien->save($db);
 		}
-		foreach($this->TFinancement as &$lien) {
-			$lien->fk_fin_dossier = $this->getId();
-			$lien->save($db);
-		}
+		
+		$this->financementLeaser->fk_fin_dossier = $this->getId();
+		$this->financementLeaser->save($db);
+		
+		$this->financement->fk_fin_dossier = $this->getId();
+		$this->financement->save($db);	
 	}
 }
 
@@ -154,7 +156,7 @@ class TFin_financement extends TObjetStd {
 		parent::add_champs('duree,numero_prochaine_echeance,fk_fin_dossier','type=entier;');
 		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant','type=float;');
 		parent::add_champs('periodicite,reglement,incident_paiement,type','type=chaine;');
-		parent::add_champs('date_relocation','type=date;');
+		parent::add_champs('date_debut,date_fin','type=date;');
 		parent::start();
 		parent::_init_vars();
 		

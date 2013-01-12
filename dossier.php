@@ -16,6 +16,10 @@
 			case 'new':
 				
 				$dossier->set_values($_REQUEST);
+				if(isset($_REQUEST['fk_fin_affaire'])) {
+					$dossier->addAffaire($ATMdb, $_REQUEST['fk_fin_affaire']);
+					$dossier->financement->montant = $_REQUEST['montant'];
+				}
 	
 				$dossier->save($ATMdb);
 				_fiche($dossier,'edit');
@@ -115,12 +119,13 @@ function _liste(&$db, &$dossier) {
 	getStandartJS();
 	
 	$r = new TSSRenderControler($dossier);
-	$sql="SELECT d.rowid as 'ID', d.reference as 'Numéro dossier', a.fk_soc as 'fk_soc', s.nom as 'Société', d.montant as 'Montant financé'
-	, duree as 'Durée', date_debut as 'Début', date_fin as 'Fin',incident_paiement as 'Incident de paiment' 
-	FROM (((@table@ d 
-	LEFT OUTER JOIN  llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
-		LEFT OUTER JOIN llx_fin_affaire a ON (l.fk_fin_affaire=a.rowid))
-			LEFT OUTER JOIN llx_societe s ON (a.fk_soc=s.rowid))";
+	$sql="SELECT d.rowid as 'ID', d.reference as 'Numéro dossier', a.fk_soc as 'fk_soc', s.nom as 'Société', f.montant as 'Montant financé'
+	, f.duree as 'Durée', f.date_debut as 'Début', f.date_fin as 'Fin', f.incident_paiement as 'Incident de paiment' 
+	FROM ((((@table@ d
+	LEFT OUTER JOIN llx_fin_dossier_financement f ON (d.rowid=f.fk_fin_dossier AND f.type='client'))
+		LEFT OUTER JOIN  llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
+			LEFT OUTER JOIN llx_fin_affaire a ON (l.fk_fin_affaire=a.rowid))
+				LEFT OUTER JOIN llx_societe s ON (a.fk_soc=s.rowid))";
 			
 			
 	$r->liste($db, $sql, array(
@@ -196,6 +201,7 @@ function _fiche(&$dossier, $mode) {
 	$financement=&$dossier->financement;
 	$financementLeaser=&$dossier->financementLeaser;
 	if($financementLeaser>0) {
+		$form->Set_typeaff('view');
 		$TFinancementLeaser=array(
 				'id'=>$financementLeaser->getId()
 				,'montant'=>$form->texte('', 'leaser.montant', $financementLeaser->montant, 20,255,'','','à saisir').' &euro;' 
@@ -225,6 +231,7 @@ function _fiche(&$dossier, $mode) {
 		$TFinancementLeaser= array();
 	}
 	
+	$form->Set_typeaff($mode);
 	
 	print $TBS->render('./tpl/dossier.tpl.php'
 		,array(

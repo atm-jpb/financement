@@ -551,6 +551,7 @@ class modFinancement extends DolibarrModules
 	 */
 	function load_tables()
 	{
+			
 		return $this->_load_tables('/financement/sql/');
 	}
 }

@@ -62,11 +62,11 @@ class TFin_affaire extends TObjetStd {
 	}
 	function loadEquipement(&$db) {
 		
-		$Tab = TRequeteCore::get_id_from_what_you_want($db,MAIN_DB_PREFIX.'asset',array('fk_fin_affaire'=>$this->getId()));
+		$Tab = TRequeteCore::get_id_from_what_you_want($db,MAIN_DB_PREFIX.'asset_link',array('fk_document'=>$this->getId(), 'type_document'=>'affaire'));
 		
 		foreach($Tab as $i=>$id) {
-			$this->TAsset[$i]=new TAsset;
-			$this->TAsset[$i]->load($db, $id);
+			$this->TAsset[$i]=new TAssetLink;
+			$this->TAsset[$i]->load($db, $id, true);
 			
 		}
 	}
@@ -96,7 +96,7 @@ class TFin_affaire extends TObjetStd {
 			$lien->save($db);
 		}
 		foreach($this->TAsset as &$lien) {
-			$lien->fk_fin_affaire = $this->getId();	
+			$lien->fk_document = $this->getId();	
 			$lien->save($db);
 		}
 		foreach($this->TCommercial as &$lien) {
@@ -147,9 +147,9 @@ class TFin_affaire extends TObjetStd {
 		
 	}
 	function deleteEquipement(&$db, $id) {
-		foreach($this->TAsset as $k=>&$asset) {
-			if($asset->getId()==$id) {
-				$db->dbdelete(MAIN_DB_PREFIX.'asset', $asset->getId(), 'rowid' );
+		foreach($this->TAsset as $k=>&$lien) {
+			if($lien->asset->getId()==$id && $lien->fk_document==$this->getId() && $lien->type_document=='affaire') {
+				$lien->delete($db);
 				unset($this->TAsset[$k]);
 				return true;
 				
@@ -163,9 +163,15 @@ class TFin_affaire extends TObjetStd {
 			if($asset->getId()==$id) {return false;}
 		}		 
 		 
-		$i = count($this->TAsset); 
-		$this->TAsset[$i]=new TAsset;
-		$this->TAsset[$i]->fk_fin_affaire = $this->getId();
+		$asset =new TAsset;
+		$asset->load($db, $id); 
+		$i = $asset->add_link($this->getId(), 'affaire'); 
+		$asset->save($db);
+		 
+		$asset->TLink[$i]->asset = $asset ;
+		 
+		$this->TAsset[]=$asset->TLink[$i];
+		
 		
 		return true;		
 	}

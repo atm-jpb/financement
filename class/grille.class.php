@@ -629,10 +629,50 @@ class Grille // extends CommonObject
 		return false; 
 	}
 
-	function showEcheancier($montant, &$duree, &$echeance, $vr, &$coeff, $affichage = 'TRIMESTRE') {
+	function showEcheancier($montant, &$duree, &$echeance, $vr, &$coeff, $affichage = 'TRIMESTRE', $date=null) {
 		/*
 		 * Affiche l'échéancier
 		 */
+		 
+		 if(is_null($date))$date=date('Y-m-d');
+		 
+		 ?><table>
+		 	<tr>
+		 		<th>Date</th>
+		 		<th>Capital restant dû</th>
+		 		<th>Echéance</th>
+		 	</tr>
+		 <?
+		 
+		 $capital_restant = $montant;
+		 
+		 for($i=1; $i<=$duree; $i++) {
+		 	
+			$time = strtotime('+'.($i*3).' month',  strotime($date));	
+							
+		 	?><tr>				
+		 		<td><?=date('d/m/Y', $time)?></td>	
+		 		<td><?=$capital_restant?> &euro;</td>
+		 		<td><?=$echeance?> &euro;</td>
+		 	</tr><?
+		 	
+		 	$capital_restant-=$echeance;
+		 	
+		 }
+		 
+		 if($vr>0) {
+		 	?><tr>				
+		 		<td><?=date('d/m/Y', $time)?></td>	
+		 		<td><?=$capital_restant?> &euro;</td>
+		 		<td><?=$vr?> &euro;</td>
+		 	</tr><?
+		 	
+		 }
+		 
+		 
+		 ?></table><?
+		 
+		 
 	}
 
 }

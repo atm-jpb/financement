@@ -18,7 +18,7 @@
 			<td colspan="2">
 				<table width="100%">
 				<tr>
-					<td>
+					<td width="50%" valign="top">
 						<table width="100%"  class="border">	
 						<tr class="liste_titre"><td colspan="2">Client</td></tr>
 						
@@ -43,9 +43,9 @@
 						
 						</table>
 						
-						Echéancier CLient
+						
 					</td>
-					<td>
+					<td valign="top">
 						<table width="100%" class="border">
 						<tr class="liste_titre"><td colspan="2">Leaser<!-- [onshow;block=table;when [financementLeaser.id]!=0] --></td></tr>
 						<tr><td width="20%">Montant financé HT</td><td>[financementLeaser.montant; strconv=no;]</td></tr>
@@ -69,8 +69,12 @@
 						
 						</table>
 						
-						Echéancier Leaser
+						
 					</td>
+				</tr>
+				<tr>
+					<td>Echéancier Client</td>
+					<td>Echéancier Leaser</td>
 				</tr>
 				</table>
 				

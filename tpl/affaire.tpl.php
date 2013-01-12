@@ -65,6 +65,7 @@
 		<div class="tabsAction">
 		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="button" onclick="document.location.href='?action=delete&id=[affaire.id]'">
 		&nbsp; &nbsp; <a href="?id=[affaire.id]&action=edit" class="butAction">Modifier</a>
+		&nbsp; &nbsp; <a href="dossier.php?action=new&fk_fin_affaire=[affaire.id]&montant=[affaire.montant_val]" class="butAction">Créer un dossier de financement Client</a>
 		</div>
 [onshow;block=end]	
 [onshow;block=begin;when [view.mode]!='view']

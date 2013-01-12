@@ -240,7 +240,7 @@ global $db;
 				,'date_cre'=>$affaire->get_date('date_cre','d/m/Y')
 				
 				,'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$affaire->fk_soc.'"><img border="0" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> '.$societe->nom.'</a>'
-				
+				,'montant_val'=>$affaire->montant
 			)
 			,'view'=>array(
 				'mode'=>$mode
