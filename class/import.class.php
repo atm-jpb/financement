@@ -763,7 +763,7 @@ class Import // extends CommonObject
 		if(!$this->checkData($dataline)) return false;
 		$row = $this->contructDataTab($dataline);
 	
-		$reference = $row['marque'].md5($row['libelle_produit']); // en attendant mieux AA
+		$reference = $row['marque'].substr(md5($row['libelle_produit']),0,10); // en attendant mieux AA
 		
 		$produit =new Product($this->db);
 		$res=$produit->fetch('', $reference);
@@ -773,18 +773,51 @@ class Import // extends CommonObject
 		$produit->libelle = $row['libelle_produit'];
 		$produit->type=0;
 		
+		$produit->price_base_type    = 'TTC';
+        $produit->price_ttc = 0;
+		$produit->price_min_ttc = 0;
+
+        $produit->tva_tx             = 19.6;
+        $produit->tva_npr            = 0;
+
+        // local taxes.
+        $produit->localtax1_tx 			= get_localtax($produit->tva_tx,1);
+        $produit->localtax2_tx 			= get_localtax($produit->tva_tx,2);
+		
+	    $produit->status             	= 1;
+        $produit->status_buy           	= 1;
+        $produit->description        	= $row['marque'];
+        $produit->note               	= "Produit créé par import automatique";
+        $produit->customcode            = '';
+        $produit->country_id            = 1;
+        $produit->duration_value     	= 0;
+        $produit->duration_unit      	= 0;
+        $produit->seuil_stock_alerte 	= 0;
+        $produit->weight             	= 0;
+        $produit->weight_units       	= 0;
+        $produit->length             	= 0;
+        $produit->length_units       	= 0;
+        $produit->surface            	= 0;
+        $produit->surface_units      	= 0;
+        $produit->volume             	= 0;
+        $produit->volume_units       	= 0;
+        $produit->finished           	= 1;
+        $produit->hidden =0;       
+		
+		
 		if(!$res) {
 			$fk_produit = $produit->create($user);
-			if($fk_produit<0)print $produit->error;
+			print "Création du produit (".$produit->error.")";	
 		}	
 		else {
+			print "Mise à jour produit ($fk_produit)";
 			$produit->update($fk_produit, $user);
 		}
 			
 		$asset=new TAsset;
+		$asset->loadReference($ATMdb, $row['serial_number']);
 		
 		$asset->fk_product = $fk_produit;
-		$asset->loadReference($ATMdb, $row['serial_number']);
 		
 		$asset->serial_number = $row['serial_number'];
 		
@@ -792,12 +825,11 @@ class Import // extends CommonObject
 		if($row['type_copie']=='MCENB')$asset->copy_black = $this->validateValue('cout_copie', $row['cout_copie']); 
 		else $asset->copy_color = $this->validateValue('cout_copie', $row['cout_copie']); 
 		
-		print_r($asset);
+		//print_r($asset);
 		$asset->save($ATMdb);
 		
 		$ATMdb->close();
-		exit;
-		
+			
 		return true;
 		
 	}
