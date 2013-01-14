@@ -13,7 +13,6 @@
 [onshow;block=end]				
 				
 		<table width="100%" class="border">
-		<tr><td width="20%">Numéro de contrat</td><td>[dossier.reference; strconv=no]</td></tr>
 		<tr>
 			<td colspan="2">
 				<table width="100%">
@@ -22,6 +21,7 @@
 						<table width="100%"  class="border">	
 						<tr class="liste_titre"><td colspan="2">Client</td></tr>
 						
+						<tr><td width="20%">Numéro de Dossier Client</td><td>[financement.reference; strconv=no]</td></tr>
 						<tr><td width="20%">Montant financé HT</td><td>[financement.montant; strconv=no]</td></tr>
 						<tr><td>Taux</td><td>[financement.taux; strconv=no]</td></tr>
 						<tr><td>Périodicité</td><td>[financement.periodicite; strconv=no]</td></tr>
@@ -46,8 +46,10 @@
 						
 					</td>
 					<td valign="top">
+						
 						<table width="100%" class="border">
-						<tr class="liste_titre"><td colspan="2">Leaser<!-- [onshow;block=table;when [financementLeaser.id]!=0] --></td></tr>
+						<tr class="liste_titre"><td colspan="2">Leaser<!-- [onshow;block=((td));when [financementLeaser.id]!=0] --></td></tr>
+						<tr><td width="20%">Numéro de Dossier Leaser</td><td>[financementLeaser.reference; strconv=no]</td></tr>
 						<tr><td width="20%">Montant financé HT</td><td>[financementLeaser.montant; strconv=no;]</td></tr>
 						<tr><td>Taux</td><td>[financementLeaser.taux; strconv=no]</td></tr>
 						<tr><td>Périodicité</td><td>[financementLeaser.periodicite; strconv=no]</td></tr>
@@ -74,7 +76,7 @@
 				</tr>
 				<tr>
 					<td>Echéancier Client</td>
-					<td>Echéancier Leaser</td>
+					<td>Echéancier Leaser<!-- [onshow;block=(td);when [financementLeaser.id]!=0] --></td>
 				</tr>
 				</table>
 				

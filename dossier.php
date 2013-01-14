@@ -19,6 +19,9 @@
 				if(isset($_REQUEST['fk_fin_affaire'])) {
 					$dossier->addAffaire($ATMdb, $_REQUEST['fk_fin_affaire']);
 					$dossier->financement->montant = $_REQUEST['montant'];
+					if($_REQUEST['nature_financement']=='INTERNE') {
+						unset($dossier->financementLeaser);
+					}
 				}
 	
 				$dossier->save($ATMdb);
@@ -35,7 +38,8 @@
 			case 'save':
 				$dossier->load($ATMdb, $_REQUEST['id']);
 				$dossier->set_values($_REQUEST);
-				
+				$dossier->financement->set_values($_REQUEST);
+				$dossier->financementLeaser->reference = $_REQUEST['leaser.reference']; 
 				//$ATMdb->db->debug=true;
 				//print_r($_REQUEST);
 				
@@ -119,14 +123,19 @@ function _liste(&$db, &$dossier) {
 	getStandartJS();
 	
 	$r = new TSSRenderControler($dossier);
-	$sql="SELECT d.rowid as 'ID', d.reference as 'Numéro dossier', a.fk_soc as 'fk_soc', s.nom as 'Société', f.montant as 'Montant financé'
+	$sql="SELECT d.rowid as 'ID', f.reference as 'Dossier Leaser', a.fk_soc as 'fk_soc', s.nom as 'Société', f.montant as 'Montant financé'
 	, f.duree as 'Durée', f.date_debut as 'Début', f.date_fin as 'Fin', f.incident_paiement as 'Incident de paiment' 
 	FROM ((((@table@ d
-	LEFT OUTER JOIN llx_fin_dossier_financement f ON (d.rowid=f.fk_fin_dossier AND f.type='client'))
-		LEFT OUTER JOIN  llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
-			LEFT OUTER JOIN llx_fin_affaire a ON (l.fk_fin_affaire=a.rowid))
-				LEFT OUTER JOIN llx_societe s ON (a.fk_soc=s.rowid))";
-			
+	LEFT OUTER JOIN  llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
+		LEFT OUTER JOIN llx_fin_affaire a ON (l.fk_fin_affaire=a.rowid))
+			LEFT OUTER JOIN llx_fin_dossier_financement f ON (d.rowid=f.fk_fin_dossier AND ((a.nature_financement='INTERNE' AND f.type='CLIENT') OR (a.nature_financement='EXTERNE' AND f.type='LEASER')) ))
+						LEFT OUTER JOIN llx_societe s ON (a.fk_soc=s.rowid))";
+				
+				
+	$TOrder = array('ID'=>'DESC','Dossier Leaser'=>'ASC');
+	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
+	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
+				
 			
 	$r->liste($db, $sql, array(
 		'limit'=>array(
@@ -147,9 +156,13 @@ function _liste(&$db, &$dossier) {
 			,'image'=>img_picto('','title.png', '', 0)
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
+			,'order_down'=>img_picto('','1downarrow.png', '', 0)
+			,'order_up'=>img_picto('','1uparrow.png', '', 0)
 			,'noheader'=>FALSE
 			,'messageNothing'=>"Il n'y a aucun dossier"
-		)
+			)
+		,'orderBy'=>$TOrder
+		
 	));
 	
 	
@@ -200,38 +213,56 @@ function _fiche(&$dossier, $mode) {
 	
 	$financement=&$dossier->financement;
 	$financementLeaser=&$dossier->financementLeaser;
-	if($financementLeaser>0) {
-		$form->Set_typeaff('view');
+	//print_r($financementLeaser);
+	if(isset($financementLeaser) && $financementLeaser->GetId()>0) {
 		$TFinancementLeaser=array(
 				'id'=>$financementLeaser->getId()
-				,'montant'=>$form->texte('', 'leaser.montant', $financementLeaser->montant, 20,255,'','','à saisir').' &euro;' 
-				,'taux'=>$form->texte('', 'leaser.taux', $financementLeaser->taux, 5,255,'','','à saisir').' %' 
-				,'echeance1'=>$form->texte('', 'leaser.echeance1', $financementLeaser->echeance1, 20,255,'','','à saisir').' &euro;' 
-				,'echeance'=>$form->texte('', 'leaser.echeance', $financementLeaser->echeance, 20,255,'','','à saisir') .' &euro;'
-				,'reste'=>$form->texte('', 'leaser.reste', $financementLeaser->reste, 20,255,'','','à saisir').' &euro;' 
-				,'montant_prestation'=>$form->texte('', 'leaser.montant_prestation', $financementLeaser->montant_prestation, 20,255,'','','à saisir').' &euro;' 
+				,'reference'=>$form->texte('', 'leaser.reference', $financementLeaser->reference, 30,255,'','','à saisir')
+				,'montant'=>$financementLeaser->montant.' &euro;' 
+				,'taux'=> $financementLeaser->taux.' %' 
+				,'echeance1'=> $financementLeaser->echeance1.' &euro;' 
+				,'echeance'=> $financementLeaser->echeance .' &euro;'
+				,'reste'=> $financementLeaser->reste.' &euro;' 
+				,'montant_prestation'=>$financementLeaser->montant_prestation.' &euro;' 
 					
-				,'numero_prochaine_echeance'=>$form->texte('', 'leaser.numero_prochaine_echeance', $financementLeaser->numero_prochaine_echeance, 5,255,'','','à saisir') 
-				,'duree'=>$form->texte('', 'duree', $financementLeaser->duree, 5,255,'','','à saisir')
+				,'numero_prochaine_echeance'=> $financementLeaser->numero_prochaine_echeance
+				,'duree'=>$financementLeaser->duree
 									
 								
-				,'periodicite'=>$form->combo('', 'leaser.periodicite', $financementLeaser->TPeriodicite , $financementLeaser->periodicite)
-				,'reglement'=>$form->combo('', 'leaser.reglement', $financementLeaser->TReglement , $financementLeaser->reglement)
-				,'incident_paiement'=>$form->combo('', 'leaser.incident_paiement', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement) 
+				,'periodicite'=>$financementLeaser->TPeriodicite[$financementLeaser->periodicite]
+				,'reglement'=>$financementLeaser->TReglement[ $financementLeaser->reglement]
+				,'incident_paiement'=>$financementLeaser->TIncidentPaiement[ $financementLeaser->incident_paiement] 
 				
-				,'date_debut'=>$form->calendrier('', 'leaser.date_debut', $financementLeaser->get_date('date_debut'),10)
-				,'date_fin'=>$form->calendrier('', 'leaser.date_fin', $financementLeaser->get_date('date_fin'),10)
-				,'date_prochaine_echeance'=>$form->calendrier('', 'leaser.date_prochaine_echeance', $financementLeaser->get_date('date_prochaine_echeance'),10)
+				,'date_debut'=> $financementLeaser->get_date('date_debut')
+				,'date_fin'=>$financementLeaser->get_date('date_fin')
+				,'date_prochaine_echeance'=>$financementLeaser->get_date('date_prochaine_echeance')
 				
 				
 		);
 		
 	}
 	else {
-		$TFinancementLeaser= array();
+		$TFinancementLeaser= array('id'=>0,
+				'reference'=>''
+				,'montant'=>0
+				,'taux'=> 0
+				,'echeance1'=> 0
+				,'echeance'=> 0
+				,'reste'=> 0
+				,'montant_prestation'=>0
+					
+				,'numero_prochaine_echeance'=> 0
+				,'duree'=>0
+									
+								
+				,'periodicite'=>0
+				,'reglement'=>0
+				,'incident_paiement'=>0
+				
+				,'date_debut'=> 0
+				,'date_fin'=>0
+				,'date_prochaine_echeance'=>0);
 	}
-	
-	$form->Set_typeaff($mode);
 	
 	print $TBS->render('./tpl/dossier.tpl.php'
 		,array(
@@ -240,7 +271,7 @@ function _fiche(&$dossier, $mode) {
 		,array(
 			'dossier'=>array(
 				'id'=>$dossier->rowid
-				,'reference'=>$form->texte('', 'reference', $dossier->reference, 100,255,'','','à saisir') 
+				/*,'reference'=>$form->texte('', 'reference', $dossier->reference, 100,255,'','','à saisir')*/ 
 				,'date_relocation'=>$form->calendrier('', 'date_relocation', $dossier->get_date('date_relocation'),10)
 				,'date_maj'=>$dossier->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$dossier->get_date('date_cre','d/m/Y')
@@ -251,6 +282,7 @@ function _fiche(&$dossier, $mode) {
 				)
 			,'financement'=>array(
 				'montant'=>$form->texte('', 'montant', $financement->montant, 20,255,'','','à saisir').' &euro;' 
+				,'reference'=>$dossier->getId().'/'.$financement->getId()
 				,'taux'=>$form->texte('', 'taux', $financement->taux, 5,255,'','','à saisir').' %' 
 				,'echeance1'=>$form->texte('', 'echeance1', $financement->echeance1, 20,255,'','','à saisir').' &euro;' 
 				,'echeance'=>$form->texte('', 'echeance', $financement->echeance, 20,255,'','','à saisir') .' &euro;'

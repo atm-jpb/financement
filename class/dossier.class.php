@@ -17,6 +17,8 @@ class TFin_dossier extends TObjetStd {
 		$this->TLien=array();
 		$this->financement=new TFin_financement;
 		$this->financementLeaser=new TFin_financement;
+		
+		
 	}
 	
 	function loadReference(&$db, $reference, $annexe=false) {
@@ -125,10 +127,13 @@ class TFin_dossier extends TObjetStd {
 			$lien->save($db);
 		}
 		
-		$this->financementLeaser->fk_fin_dossier = $this->getId();
-		$this->financementLeaser->save($db);
-		
+		if(isset($this->financementLeaser)) {
+			$this->financementLeaser->fk_fin_dossier = $this->getId();
+			$this->financementLeaser->type='LEASER';
+			$this->financementLeaser->save($db);
+		}
 		$this->financement->fk_fin_dossier = $this->getId();
+		$this->financement->type='CLIENT';
 		$this->financement->save($db);	
 	}
 }
@@ -155,7 +160,7 @@ class TFin_financement extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
 		parent::add_champs('duree,numero_prochaine_echeance,fk_fin_dossier','type=entier;');
 		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant','type=float;');
-		parent::add_champs('periodicite,reglement,incident_paiement,type','type=chaine;');
+		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin','type=date;');
 		parent::start();
 		parent::_init_vars();

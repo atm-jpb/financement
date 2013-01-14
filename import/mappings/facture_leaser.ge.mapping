@@ -1,0 +1,14 @@
+search_key_dossier=code_dossier
+search_key_client=siret
+
+[mapping]
+7=siret
+10=code_dossier
+12=date_debut
+13=date_fin
+15=echeance
+
+[format]
+date_debut=date
+date_fin=date
+echeance=float

@@ -38,7 +38,7 @@
 			[onshow;block=end]	
 			
 			<table width="100%" class="border" style="margin-top:20px;">
-			<tr><td width="20%">Dossier numéro <!-- [dossier.id] --></td><td><a href="dossier.php?id=[dossier.id]">[dossier.reference; block=table; strconv=no]</a></td></tr>
+			<tr><td width="20%">Dossier numéro <!-- [dossier.id] --></td><td><a href="dossier.php?id=[dossier.id]">[dossier.id; block=table; strconv=no]</a> <span>/ [dossier.reference; strconv=no;magnet=span]</span></td></tr>
 			<tr><td width="20%">Montant</td><td>[dossier.montant;strconv=no] &euro; à [dossier.taux;strconv=no]%</td></tr>
 			<tr><td width="20%">Date de début - fin</td><td>[dossier.date_debut; strconv=no] - [dossier.date_fin; strconv=no]</td></tr>
 			<tr><td width="20%">1ère échéance</td><td>[dossier.echeance1; strconv=no] &euro;</td></tr>
@@ -65,7 +65,7 @@
 		<div class="tabsAction">
 		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="button" onclick="document.location.href='?action=delete&id=[affaire.id]'">
 		&nbsp; &nbsp; <a href="?id=[affaire.id]&action=edit" class="butAction">Modifier</a>
-		&nbsp; &nbsp; <a href="dossier.php?action=new&fk_fin_affaire=[affaire.id]&montant=[affaire.montant_val]" class="butAction">Créer un dossier de financement Client</a>
+		&nbsp; &nbsp; <a href="dossier.php?action=new&fk_fin_affaire=[affaire.id]&montant=[affaire.montant_val]&nature_financement=[affaire.nature_financement_val]" class="butAction">Créer un dossier de financement Client</a>
 		</div>
 [onshow;block=end]	
 [onshow;block=begin;when [view.mode]!='view']

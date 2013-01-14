@@ -22,14 +22,14 @@
 				$affaire->set_values($_REQUEST);
 	
 				$affaire->save($ATMdb);
-				_fiche($affaire,'edit');
+				_fiche($ATMdb, $affaire,'edit');
 				
 				break;	
 			case 'edit'	:
 			
 				$affaire->load($ATMdb, $_REQUEST['id']);
 				
-				_fiche($affaire,'edit');
+				_fiche($ATMdb, $affaire,'edit');
 				break;
 				
 			case 'save':
@@ -41,7 +41,7 @@
 				
 				$affaire->save($ATMdb);
 				
-				_fiche($affaire,'view');
+				_fiche($ATMdb, $affaire,'view');
 				
 				break;
 			
@@ -75,7 +75,7 @@
 				//exit($mesg);
 				$affaire->save($ATMdb);
 				
-				_fiche($affaire,'edit');
+				_fiche($ATMdb, $affaire,'edit');
 				
 				break;
 				
@@ -91,7 +91,7 @@
 				
 				$affaire->save($ATMdb);
 				
-				_fiche($affaire,'edit');
+				_fiche($ATMdb, $affaire,'edit');
 				
 				break;
 		}
@@ -100,7 +100,7 @@
 	elseif(isset($_REQUEST['id'])) {
 		$affaire->load($ATMdb, $_REQUEST['id']);
 		
-		_fiche($affaire, 'view');global $mesg, $error;
+		_fiche($ATMdb, $affaire, 'view');global $mesg, $error;
 	}
 	else {
 		/*
@@ -162,6 +162,9 @@ global $langs, $db;
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
 			,'noheader'=> (int)isset($_REQUEST['socid'])
 			,'messageNothing'=>"Il n'y a aucune affaire à afficher"
+			,'order_down'=>img_picto('','1downarrow.png', '', 0)
+			,'order_up'=>img_picto('','1uparrow.png', '', 0)
+			
 		)
 	));
 	
@@ -172,7 +175,7 @@ global $langs, $db;
 	llxFooter();
 }	
 	
-function _fiche(&$affaire, $mode) {
+function _fiche(&$ATMdb, &$affaire, $mode) {
 global $db;
 	
 	$societe = new Societe($db);
@@ -184,10 +187,10 @@ global $db;
 	$TDossier=array();
 	foreach($affaire->TLien as &$lien) {
 		$dossier = &$lien->dossier;
-		
+		$dossier->load_financement($ATMdb);
 		$TDossier[]=array(
 			'id'=>$dossier->getId()
-			,'reference'=>$dossier->reference
+			,'reference'=>$dossier->financementLeaser->reference
 			,'date_debut'=>$dossier->get_date('date_debut')
 			,'date_fin'=>$dossier->get_date('date_fin')
 			,'montant'=>$dossier->montant
@@ -241,6 +244,7 @@ global $db;
 				
 				,'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$affaire->fk_soc.'"><img border="0" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> '.$societe->nom.'</a>'
 				,'montant_val'=>$affaire->montant
+				,'nature_financement_val'=>$affaire->nature_financement
 			)
 			,'view'=>array(
 				'mode'=>$mode
