@@ -659,14 +659,29 @@ class Import // extends CommonObject
 			$facture_mat->{$key} = $this->validateValue($key, $value);
 		}
 		
+		
+		/*
+		 * Création du lien  affaire/facture + lien entre matériel et affaire
+		 */
 		$ATMdb=new Tdb;
 		$affaire = new TFin_affaire;
 		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
 			$facture_mat->linked_objects['affaire'] = $affaire->getId();	
+			
+			$asset=new TAsset;
+			if($asset->loadReference($ATMdb, $data['matricule'])) {
+				$asset->add_link($affaire->getId(),'affaire');	
+				
+				$asset->save($ATMdb);	
+			}
+			else {
+			//	print "ErrorMaterielNotExist";
+				$this->addError('ErrorMaterielNotExist', $dataline, true);
+				return false;
+			}
+			
 		}
 		$ATMdb->close();
-		
-		
 		
 		// Mise à jour ou créatioon
 		if($rowid > 0) {
@@ -692,6 +707,8 @@ class Import // extends CommonObject
 		// Actions spécifiques
 		$facture_mat->addline($facture_mat->id, 'Matricule '.$data['matricule'], 0, 1, 19.6, 0, 0, 0, 0, '', '', 0, 0, '', 'TTC', $data['total_ttc']);
 		$facture_mat->validate($user, $facnumber); // Force la validation avec numéro de facture
+		
+		
 		
 		return true;
 	}
@@ -807,10 +824,10 @@ class Import // extends CommonObject
 		
 		if(!$res) {
 			$fk_produit = $produit->create($user);
-			print "Création du produit (".$produit->error.")";	
+			//print "Création du produit (".$produit->error.")";	
 		}	
 		else {
-			print "Mise à jour produit ($fk_produit)";
+			//print "Mise à jour produit ($fk_produit)";
 			$produit->update($fk_produit, $user);
 		}
 			
