@@ -76,7 +76,7 @@ $imp->entity = $conf->entity;
 $imp->fk_user_author = $user->id;
 
 $delimiter = ';'; $enclosure = '"';
-$listOfFileType = array(/*'client','commercial','affaire','materiel',*/'facture_materiel');
+$listOfFileType = array('client','commercial','affaire','materiel','facture_materiel');
 $importFolder = '../import/todo/';
 $importFolderOK = '../import/done/';
 $importFolderMapping = '../import/mappings/';
