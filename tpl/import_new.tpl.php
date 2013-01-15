@@ -31,6 +31,10 @@ print_fiche_titre($langs->trans("NewImport"),'','import32.png@financement');
 		<tr>
 			<td><?php echo $langs->trans('ImportType') ?></td>
 			<td><?php echo $formfin->select_financement('type_import', $typeImport, 'type_import', false) ?></td>
+			<td><?php
+			$html=new Form($db);
+			print $html->select_company('','socid','fournisseur=1',0, 0,1);
+			?></td>
 			<td><?php echo $langs->trans('FileToImport') ?></td>
 			<td><input type="file" name="fileToImport" class="flat" /></td>
 			<td><input type="submit" name="import" class="button" value="<?php echo $langs->trans("Import") ?>"></td>

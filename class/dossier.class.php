@@ -161,7 +161,7 @@ class TFin_financement extends TObjetStd {
 		parent::add_champs('duree,numero_prochaine_echeance,fk_fin_dossier','type=entier;');
 		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
-		parent::add_champs('date_debut,date_fin','type=date;');
+		parent::add_champs('date_debut,date_fin,date_prochaine_echeance','type=date;');
 		parent::start();
 		parent::_init_vars();
 		
@@ -182,7 +182,8 @@ class TFin_financement extends TObjetStd {
 		);
 		
 		$this->somme_affaire = 0;
-		
+		$this->periodicite = 'TRIMESTRE';
+		$this->incident_paiement='NON';
 	}
 	
 }
