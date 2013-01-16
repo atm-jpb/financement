@@ -40,6 +40,8 @@ class TFin_affaire extends TObjetStd {
 			$this->loadEquipement($db);	
 		}
 		
+		$this->calculSolde();
+		
 		return $res;
 	}
 	function loadTypeContrat(&$db) {
@@ -70,6 +72,14 @@ class TFin_affaire extends TObjetStd {
 			
 		}
 	}
+	function calculSolde() {
+		$this->somme_dossiers =0;
+		foreach($this->TLien as &$lien) {
+			
+			$this->somme_dossiers += $lien->dossier->montant;
+		}
+		$this->solde = $this->montant - $this->somme_dossiers;
+	}
 	function loadDossier(&$db) {
 		
 		$Tab = TRequeteCore::get_id_from_what_you_want($db,MAIN_DB_PREFIX.'fin_dossier_affaire',array('fk_fin_affaire'=>$this->getId()));
@@ -79,16 +89,18 @@ class TFin_affaire extends TObjetStd {
 			$this->TLien[$i]->load($db, $id);
 			$this->TLien[$i]->dossier->load($db, $this->TLien[$i]->fk_fin_dossier, false);
 			
-			$this->somme_dossiers += $this->TLien[$i]->dossier->montant;
+			
 		}
 		
-		$this->solde = $this->montant - $this->somme_dossiers;
+		$this->calculSolde();
 	}
 	function delete(&$db) {
 		parent::delete($db);
 		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_affaire', $this->getId(), 'fk_fin_affaire' );
 	}
 	function save(&$db) {
+		$this->calculSolde();
+		
 		parent::save($db);
 		
 		foreach($this->TLien as &$lien) {
@@ -109,6 +121,7 @@ class TFin_affaire extends TObjetStd {
 			if($lien->fk_fin_dossier==$id) {
 				$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_affaire', $lien->getId(), 'rowid' );
 				unset($this->TLien[$k]);
+				$this->calculSolde();
 				return true;
 				
 			}
@@ -137,7 +150,7 @@ class TFin_affaire extends TObjetStd {
 			$this->TLien[$i]->dossier= $dossier;
 			
 		//	print_r($this->TLien[$i]);
-		
+			$this->calculSolde();
 			return true;
 		}
 		else {

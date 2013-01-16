@@ -19,7 +19,7 @@
 				<tr>
 					<td width="50%" valign="top">
 						<table width="100%"  class="border">	
-						<tr class="liste_titre"><td colspan="2">Client</td></tr>
+						<tr class="liste_titre"><td colspan="2">Client<!-- [onshow;block=((td));when [dossier.nature_financement]=='INTERNE'] --></td></tr>
 						
 						<tr><td width="20%">Numéro de Dossier Client</td><td>[financement.reference; strconv=no]</td></tr>
 						<tr><td width="20%">Montant financé HT</td><td>[financement.montant; strconv=no]</td></tr>
@@ -48,7 +48,7 @@
 					<td valign="top">
 						
 						<table width="100%" class="border">
-						<tr class="liste_titre"><td colspan="2">Leaser<!-- [onshow;block=((td));when [financementLeaser.id]!=0] --></td></tr>
+						<tr class="liste_titre"><td colspan="2">Leaser</td></tr>
 						<tr><td width="20%">Numéro de Dossier Leaser</td><td>[financementLeaser.reference; strconv=no]</td></tr>
 						<tr><td width="20%">Montant financé HT</td><td>[financementLeaser.montant; strconv=no;]</td></tr>
 						<tr><td>Taux</td><td>[financementLeaser.taux; strconv=no]</td></tr>
@@ -75,8 +75,8 @@
 					</td>
 				</tr>
 				<tr>
-					<td>Echéancier Client</td>
-					<td>Echéancier Leaser<!-- [onshow;block=(td);when [financementLeaser.id]!=0] --></td>
+					<td>Echéancier Client<!-- [onshow;block=(td);when [dossier.nature_financement]='INTERNE'] --></td>
+					<td>Echéancier Leaser</td>
 				</tr>
 				</table>
 				
@@ -89,12 +89,15 @@
 		</table>
 
 			[onshow;block=begin;when [view.mode]!='view']
+			<div>
+				[onshow;block=div;when [dossier.solde]+-0]
 			<p>Ajouter l'affaire numéro : <input type="text" value="" name="affaire_to_add" size="20" id="affaire_to_add" /><input type="button" value="Ajouter" name="add_affaire" class="button" onclick="$('#action').val('add_affaire'); $('#formAff').submit();"></p> 
 			<script language="javascript">
 				$('#affaire_to_add').autocomplete({
 					source: [view.otherAffaire; strconv=no; protect=no]
 				});
 			</script>
+			</div>
 			[onshow;block=end]	
 			
 			<table width="100%" class="border" style="margin-top:20px;">

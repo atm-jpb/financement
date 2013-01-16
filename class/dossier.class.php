@@ -5,8 +5,8 @@
 class TFin_dossier extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
-		parent::add_champs('solde','type=float;');
-		parent::add_champs('reference','type=chaine;');
+		parent::add_champs('solde,montant','type=float;');
+		parent::add_champs('reference,nature_financement','type=chaine;');
 		parent::add_champs('date_relocation','type=date;');
 			
 		parent::start();
@@ -18,7 +18,7 @@ class TFin_dossier extends TObjetStd {
 		$this->financement=new TFin_financement;
 		$this->financementLeaser=new TFin_financement;
 		
-		
+		$this->nature_financement='EXTERNE';
 	}
 	
 	function loadReference(&$db, $reference, $annexe=false) {
@@ -36,11 +36,12 @@ class TFin_dossier extends TObjetStd {
 		
 		$res = parent::load($db, $id);
 		
-		$this->load_financement($db);
-		
 		if($annexe) {
 			$this->load_affaire($db);
 		}
+		
+		$this->load_financement($db);
+		$this->calculSolde();
 		
 		return $res;
 	}
@@ -53,8 +54,10 @@ class TFin_dossier extends TObjetStd {
 			$f=new TFin_financement;
 			$f->load($db, $id);
 			if($f->type=='LEASER') $this->financementLeaser = $f;
-			else  $this->financement = $f;
+			elseif($this->nature_financement == 'INTERNE')  $this->financement = $f;
 		}
+		
+		$this->calculSolde();
 	}
 	
 	function load_affaire(&$db) {
@@ -68,7 +71,13 @@ class TFin_dossier extends TObjetStd {
 			$this->TLien[$i]->affaire->load($db, $this->TLien[$i]->fk_fin_affaire, false);
 			
 			$this->somme_affaire +=$this->TLien[$i]->affaire->montant;
+			
+			if($this->TLien[$i]->affaire->nature_financement=='INTERNE') {
+				$this->nature_financement = 'INTERNE';
+			}
 		}
+		
+		if(count($Tab)==0)$this->nature_financement = 'INTERNE';
 		
 		$this->solde = $this->montant - $this->somme_affaire;
 	}
@@ -92,6 +101,11 @@ class TFin_dossier extends TObjetStd {
 			/*
 			 * Le dossier existe liaison
 			 */
+			 
+			if($affaire->solde==0) {
+				return false; // cette affaire a déjà le financement nécessaire
+			} 
+			 
 			//print_r($this->TLien);
 			foreach($this->TLien as $k=>$lien) {
 				if($lien->fk_fin_affaire==$affaire->getId()) {return false;}
@@ -105,6 +119,8 @@ class TFin_dossier extends TObjetStd {
 			$this->TLien[$i]->affaire= $affaire;
 			
 		//	print_r($this->TLien[$i]);
+		
+			$this->calculSolde();
 		
 			return true;
 		}
@@ -120,6 +136,8 @@ class TFin_dossier extends TObjetStd {
 		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_financement', $this->getId(), 'fk_fin_dossier');
 	}
 	function save(&$db) {
+		$this->calculSolde();
+			
 		parent::save($db);
 		
 		foreach($this->TLien as &$lien) {
@@ -127,14 +145,52 @@ class TFin_dossier extends TObjetStd {
 			$lien->save($db);
 		}
 		
-		if(isset($this->financementLeaser)) {
-			$this->financementLeaser->fk_fin_dossier = $this->getId();
-			$this->financementLeaser->type='LEASER';
-			$this->financementLeaser->save($db);
+		
+		$this->financementLeaser->fk_fin_dossier = $this->getId();
+		$this->financementLeaser->type='LEASER';
+		$this->financementLeaser->save($db);
+		
+		if($this->nature_financement == 'INTERNE') {
+
+			$this->financement->fk_fin_dossier = $this->getId();
+			$this->financement->type='CLIENT';
+			$this->financement->save($db);	
+			
 		}
-		$this->financement->fk_fin_dossier = $this->getId();
-		$this->financement->type='CLIENT';
-		$this->financement->save($db);	
+	
+	}
+	function calculSolde() {
+
+		if($this->nature_financement == 'INTERNE') {
+			 $f= &$this->financement;	
+		}
+		else {
+			$f = &$this->financementLeaser;
+		}
+		
+		$this->montant = $f->montant;
+		$this->taux = $f->taux;
+		$this->date_debut = $f->date_debut;
+		$this->date_fin = $f->date_fin;
+		$this->echeance1 = $f->echeance1;
+		$this->echeance = $f->echeance;
+		$this->incident_paiement = $f->incident_paiement;
+		
+		
+		$this->somme_affaire=0;
+		
+		foreach($this->TLien as &$lien) { 
+			
+			$this->somme_affaire +=$lien->affaire->montant;
+			
+			if($lien->affaire->nature_financement=='INTERNE') {
+				$this->nature_financement = 'INTERNE';
+			}
+		}
+		
+		
+		$this->solde = $this->montant - $this->somme_affaire;// attention en cas d'affaire ajouté à la création du dossier ce chiffre sera faux, car non encore répercuté sur l'affaire
+		
 	}
 }
 

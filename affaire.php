@@ -135,7 +135,10 @@ global $langs, $db;
 		$THide[] = 'Société';
 	}
 	
-	
+	$TOrder = array('ID'=>'DESC','Numéro d\'affaire'=>'ASC');
+	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
+	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
+				
 	
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
@@ -166,6 +169,7 @@ global $langs, $db;
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
 			
 		)
+		,'orderBy'=>$TOrder
 	));
 	
 	if(isset($_REQUEST['socid'])) {
