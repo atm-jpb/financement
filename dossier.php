@@ -25,34 +25,34 @@
 				}
 	
 				$dossier->save($ATMdb);
-				_fiche($dossier,'edit');
+				_fiche($ATMdb,$dossier,'edit');
 				
 				break;	
 			case 'edit'	:
 			
 				$dossier->load($ATMdb, $_REQUEST['id']);
 				
-				_fiche($dossier,'edit');
+				_fiche($ATMdb,$dossier,'edit');
 				break;
 				
 			case 'save':
 				$dossier->load($ATMdb, $_REQUEST['id']);
 				$dossier->set_values($_REQUEST);
 				$dossier->financement->set_values($_REQUEST);
-				$dossier->financementLeaser->reference = $_REQUEST['leaser.reference']; 
+				$dossier->financementLeaser->reference = $_REQUEST['leaser_reference']; 
 				//$ATMdb->db->debug=true;
 				//print_r($_REQUEST);
 				
 				$dossier->save($ATMdb);
 				
-				_fiche($dossier,'view');
+				_fiche($ATMdb,$dossier,'view');
 				
 				break;
 			
 				
 			case 'delete':
-				$dossier->load($ATMdb, $_REQUEST['id']);
 				//$ATMdb->db->debug=true;
+				$dossier->load($ATMdb, $_REQUEST['id']);
 				$dossier->delete($ATMdb);
 				
 				?>
@@ -60,7 +60,7 @@
 					document.location.href="?delete_ok=1";					
 				</script>
 				<?
-				
+				unset($dossier);
 				
 				break;
 				
@@ -80,7 +80,7 @@
 				//exit($mesg);
 				$dossier->save($ATMdb);
 				
-				_fiche($dossier,'edit');
+				_fiche($ATMdb,$dossier,'edit');
 				
 				break;
 				
@@ -96,7 +96,7 @@
 				
 				$dossier->save($ATMdb);
 				
-				_fiche($dossier,'edit');
+				_fiche($ATMdb,$dossier,'edit');
 				
 				break;	
 		}
@@ -105,7 +105,7 @@
 	elseif(isset($_REQUEST['id'])) {
 		$dossier->load($ATMdb, $_REQUEST['id']);
 		
-		_fiche($dossier, 'view');
+		_fiche($ATMdb,$dossier, 'view');
 	}
 	else {
 		/*
@@ -123,7 +123,7 @@ function _liste(&$db, &$dossier) {
 	getStandartJS();
 	
 	$r = new TSSRenderControler($dossier);
-	$sql="SELECT d.rowid as 'ID', f.reference as 'Dossier Leaser', a.fk_soc as 'fk_soc', s.nom as 'Société', f.montant as 'Montant financé'
+	$sql="SELECT d.rowid as 'ID', f.reference as 'Dossier', a.fk_soc as 'fk_soc', s.nom as 'Société', f.montant as 'Montant financé'
 	, f.duree as 'Durée', f.date_debut as 'Début', f.date_fin as 'Fin', f.incident_paiement as 'Incident de paiment' 
 	FROM ((((@table@ d
 	LEFT OUTER JOIN  llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
@@ -132,7 +132,7 @@ function _liste(&$db, &$dossier) {
 						LEFT OUTER JOIN llx_societe s ON (a.fk_soc=s.rowid))";
 				
 				
-	$TOrder = array('ID'=>'DESC','Dossier Leaser'=>'ASC');
+	$TOrder = array('ID'=>'DESC','Dossier'=>'ASC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
 	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
 				
@@ -144,7 +144,7 @@ function _liste(&$db, &$dossier) {
 		)
 		,'link'=>array(
 			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" title="Afficher société: test" alt="Afficher société: test" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
-			,'Numéro dossier'=>'<a href="?id=@ID@">@val@</a>'
+			,'Dossier'=>'<a href="?id=@ID@">@val@</a>'
 		)
 		,'translate'=>array(
 			'Incident de paiment'=>$dossier->TIncidentPaiement
@@ -169,7 +169,7 @@ function _liste(&$db, &$dossier) {
 	llxFooter();
 }	
 	
-function _fiche(&$dossier, $mode) {
+function _fiche(&$ATMdb, &$dossier, $mode) {
 	/*
 	 * Liste des dossiers rattachés à cette affaire
 	 */ 
@@ -187,6 +187,11 @@ function _fiche(&$dossier, $mode) {
 			,'type_materiel'=>$affaire->TTypeMateriel [ $affaire->type_materiel ]
 			,'contrat'=>$affaire->TContrat [ $affaire->contrat ]
 		);
+		
+		if($affaire->nature_financement=='EXTERNE' && isset($dossier->financementLeaser) ) {
+			$dossier->financementLeaser = new TFin_financement;
+			$dossier->financementLeaser->save($ATMdb);
+		}  
 	}
 	
 	/*
@@ -217,7 +222,7 @@ function _fiche(&$dossier, $mode) {
 	if(isset($financementLeaser) && $financementLeaser->GetId()>0) {
 		$TFinancementLeaser=array(
 				'id'=>$financementLeaser->getId()
-				,'reference'=>$form->texte('', 'leaser.reference', $financementLeaser->reference, 30,255,'','','à saisir')
+				,'reference'=>$form->texte('', 'leaser_reference', $financementLeaser->reference, 30,255,'','','à saisir')
 				,'montant'=>$financementLeaser->montant.' &euro;' 
 				,'taux'=> $financementLeaser->taux.' %' 
 				,'echeance1'=> $financementLeaser->echeance1.' &euro;' 

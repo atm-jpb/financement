@@ -83,7 +83,7 @@
 				
 			</td>
 		</tr>
-		<tr><td>Date de mise en relocation</td><td>[dossier.date_relocation; strconv=no]</td></tr>
+		<tr><td width="20%">Date de mise en relocation</td><td>[dossier.date_relocation; strconv=no]</td></tr>
 						
 		
 		</table>
@@ -126,8 +126,9 @@
 		</div>
 		
 		<div class="tabsAction">
-		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="button" onclick="document.location.href='?action=delete&id=[dossier.id]'">
+			
 		&nbsp; &nbsp; <a href="?id=[dossier.id]&action=edit" class="butAction">Modifier</a>
+		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[dossier.id]'">
 		</div>
 [onshow;block=end]	
 [onshow;block=begin;when [view.mode]!='view']

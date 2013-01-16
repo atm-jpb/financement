@@ -46,7 +46,7 @@ class TFin_dossier extends TObjetStd {
 	}
 	function load_financement(&$db) {
 		
-		$Tab = TRequeteCore::get_id_from_what_you_want($db,MAIN_DB_PREFIX.'fin_dossier_financement',array('fk_fin_dossier',$this->getId()));
+		$Tab = TRequeteCore::get_id_from_what_you_want($db,MAIN_DB_PREFIX.'fin_dossier_financement',array('fk_fin_dossier'=>$this->getId()));
 		
 		$somme_affaire = 0;
 		foreach($Tab as $i=>$id) {
@@ -59,7 +59,7 @@ class TFin_dossier extends TObjetStd {
 	
 	function load_affaire(&$db) {
 		
-		$Tab = TRequeteCore::get_id_from_what_you_want($db,MAIN_DB_PREFIX.'fin_dossier_affaire',array('fk_fin_dossier',$this->getId()));
+		$Tab = TRequeteCore::get_id_from_what_you_want($db,MAIN_DB_PREFIX.'fin_dossier_affaire',array('fk_fin_dossier'=>$this->getId()));
 		
 		$somme_affaire = 0;
 		foreach($Tab as $i=>$id) {
