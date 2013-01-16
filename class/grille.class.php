@@ -572,7 +572,7 @@ class Grille // extends CommonObject
 	 * 			-3	= echeance hors grille
 	 * 			-4	= Pas de grille chargée
 	 */
-	function calcul_financement(&$montant, &$duree, &$echeance, $vr, &$coeff) {
+	function calcul_financement(&$montant, &$duree, &$echeance, $vr, &$coeff, $typeCalcul='cpro') {
 		/*
 		 * Formule de calcul échéance
 		 * 
@@ -589,9 +589,9 @@ class Grille // extends CommonObject
 				if($montant <= $palier) {
 					$coeff = $infos['coeff']; // coef annuel
 					$coeffTrimestriel = $coeff / 4 /100; // en %
-					/*$echeance = ($montant - $vr) / $duree * (1 + $coeff / 100);*/
 					
-					$echeance = $montant * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$duree) );  
+					if($typeCalcul=='cpro')$echeance = ($montant - $vr) / $duree * (1 + $coeff / 100);
+					else $echeance = $montant * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$duree) );  
 					
 					//print "$echeance = $montant, &$duree, &$echeance, $vr, &$coeff::$coeffTrimestriel";
 					
@@ -610,8 +610,9 @@ class Grille // extends CommonObject
 				if($echeance <= $infos['echeance']) {
 					$coeff = $infos['coeff'];
 					$coeffTrimestriel = $coeff / 4 /100; // en %
-					/*$montant = $echeance * (1 - $coeff / 100) * $duree + $vr;*/
-					$montant =  $echeance * (1- pow(1+$coeffTrimestriel, -$duree) ) / $coeffTrimestriel ;
+					
+					if($typeCalcul=='cpro')$montant = $echeance * (1 - $coeff / 100) * $duree + $vr;
+					else $montant =  $echeance * (1- pow(1+$coeffTrimestriel, -$duree) ) / $coeffTrimestriel ;
 					
 					
 					$montant = round($montant, 2);
