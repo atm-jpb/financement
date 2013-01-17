@@ -1,0 +1,7 @@
+search_key=siret
+
+[mapping]
+1=siret
+2=date
+3=score
+4=encours_max
