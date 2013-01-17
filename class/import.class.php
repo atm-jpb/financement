@@ -570,7 +570,7 @@ class Import // extends CommonObject
 		}
 		
 		if($societe->type_tiers == 'Client') $societe->client = 1;
-		if($societe->type_tiers == 'Financeuir') $societe->fournisseur = 1;
+		if($societe->type_tiers == 'Financeur') $societe->fournisseur = 1;
 
 		// Mise à jour ou créatioon
 		if($rowid > 0) {

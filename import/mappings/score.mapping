@@ -5,3 +5,7 @@ search_key=siret
 2=date
 3=score
 4=encours_max
+
+[format]
+date=date
+encours_max=float
