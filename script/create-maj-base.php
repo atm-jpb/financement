@@ -7,6 +7,7 @@
 	require('../class/commerciaux.class.php');
 	require('../class/affaire.class.php');
 	require('../class/dossier.class.php');
+	require('../class/simulation.class.php');
 
 	$db=new Tdb;
 	$db->db->debug=true;
@@ -29,3 +30,5 @@
 	$o=new TFin_financement;
 	$o->init_db_by_vars($db);
 	
+	$o=new TSimulation;
+	$o->init_db_by_vars($db);

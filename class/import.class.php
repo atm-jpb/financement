@@ -568,6 +568,9 @@ class Import // extends CommonObject
 		foreach ($data as $key => $value) {
 			$societe->{$key} = $this->validateValue($key, $value);
 		}
+		
+		if($societe->type_tiers == 'Client') $societe->client = 1;
+		if($societe->type_tiers == 'Financeur') $societe->fournisseur = 1;
 
 		// Mise à jour ou créatioon
 		if($rowid > 0) {
@@ -639,7 +642,7 @@ class Import // extends CommonObject
 				$this->addError('ErrorMultipleClientFound', $dataline);
 				return false;
 			} else {
-				$this->addError('ErrorNoClientFound', $dataline);
+				$this->addError('ErrorClientNotFound', $dataline);
 				return false;
 			}
 		} else {
@@ -900,6 +903,60 @@ class Import // extends CommonObject
 		
 	
 		$ATMdb->close();
+		
+		return true;
+	}
+
+	function importLineScore($dataline) {
+		global $user;
+		$sqlSearchClient = "SELECT rowid FROM llx_societe WHERE siret = '%s'";
+		
+		// Compteur du nombre de lignes
+		$this->nb_lines++;
+
+		if(!$this->checkData($dataline)) return false;
+		$data = $this->contructDataTab($dataline);
+		
+		// Recherche si tiers existant dans la base
+		$fk_soc = 0;
+		$sql = sprintf($sqlSearchClient, $data[$this->mapping['search_key']]);
+		$resql = $this->db->query($sql);
+		if($resql) {
+			$num = $this->db->num_rows($resql);
+			if($num == 1) { // Enregistrement trouvé, mise à jour
+				$obj = $this->db->fetch_object($resql);
+				$fk_soc = $obj->rowid;
+			} else if($num > 1) { // Plusieurs trouvés, erreur
+				$this->addError('ErrorMultipleClientFound', $dataline);
+				return false;
+			} else {
+				$this->addError('ErrorClientNotFound', $dataline);
+				return false;
+			}
+		} else {
+			$this->addError('ErrorWhileSearchingClient', $dataline);
+			return false;
+		}
+		
+		// Construction de l'objet final
+		$score = new Score($this->db);
+
+		foreach ($data as $key => $value) {
+			$score->{$key} = $this->validateValue($key, $value);
+		}
+		
+		$score->fk_soc = $fk_soc;
+		$score->fk_import = $this->id;
+		$score->fk_user_author = $user->id;
+
+		$res = $score->create($user);
+		// Erreur : la création n'a pas marché
+		if($res < 0) {
+			$this->addError('ErrorWhileCreatingLine', $dataline, true);
+			return false;
+		} else {
+			$this->nb_create++;
+		}
 		
 		return true;
 	}
