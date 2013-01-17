@@ -146,7 +146,7 @@ global $langs, $db;
 			'Type de contrat'=>"SELECT code FROM llx_fin_const WHERE type='type_contrat'"
 		)*/
 		,'link'=>array(
-			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
+			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
 			,'Numéro d\'affaire'=>'<a href="?id=@ID@">@val@</a>'
 		)
 		,'translate'=>array(
@@ -242,7 +242,7 @@ global $db;
 				,'date_maj'=>$affaire->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$affaire->get_date('date_cre','d/m/Y')
 				
-				,'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$affaire->fk_soc.'"><img border="0" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> '.$societe->nom.'</a>'
+				,'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$affaire->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$societe->nom.'</a>'
 				,'montant_val'=>$affaire->montant
 				,'nature_financement_val'=>$affaire->nature_financement
 			)
