@@ -10,9 +10,9 @@ search_key=code_client
 7=country_id
 8=code_client
 9=code_compta
+10=type_tiers
 
 [more]
-client=1
 
 [transco]
 country_id=1

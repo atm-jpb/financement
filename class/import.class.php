@@ -568,6 +568,9 @@ class Import // extends CommonObject
 		foreach ($data as $key => $value) {
 			$societe->{$key} = $this->validateValue($key, $value);
 		}
+		
+		if($societe->type_tiers == 'Client') $societe->client = 1;
+		if($societe->type_tiers == 'Financeuir') $societe->fournisseur = 1;
 
 		// Mise à jour ou créatioon
 		if($rowid > 0) {
