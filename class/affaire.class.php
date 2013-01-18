@@ -2,6 +2,8 @@
 
 class TFin_affaire extends TObjetStd {
 	function __construct() { /* declaration */
+		global $langs;
+
 		parent::set_table(MAIN_DB_PREFIX.'fin_affaire');
 		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel','type=chaine;');
 		parent::add_champs('date_affaire','type=date;');
@@ -15,7 +17,11 @@ class TFin_affaire extends TObjetStd {
 		$this->TCommercial=array();
 		$this->TAsset=array();
 		
-		$this->TContrat=array();
+		$this->TContrat=array(
+			'LOCSIMPLE'=>$langs->trans('LocSimple')
+			,'FORFAITGLOBAL'=>$langs->trans('ForfaitGlobal')
+			,'INTEGRAL'=>$langs->trans('Integral')
+		);
 		$this->TTypeFinancement=array(//TODO
 			'PURE'=>'Location Pure'
 		);
