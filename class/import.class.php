@@ -838,20 +838,26 @@ class Import // extends CommonObject
 			//print "Mise à jour produit ($fk_produit)";
 			$produit->update($fk_produit, $user);
 		}
+	
+	
+		$TSerial = explode(' - ',$row['serial_number']);
+		
+		foreach($TSerial as $serial) {
+			$asset=new TAsset;
+			$asset->loadReference($ATMdb,$serial);
 			
-		$asset=new TAsset;
-		$asset->loadReference($ATMdb, $row['serial_number']);
-		
-		$asset->fk_product = $fk_produit;
-		
-		$asset->serial_number = $row['serial_number'];
-		
-		$asset->set_date('date_achat',$row['date_achat']);
-		if($row['type_copie']=='MCENB')$asset->copy_black = $this->validateValue('cout_copie', $row['cout_copie']); 
-		else $asset->copy_color = $this->validateValue('cout_copie', $row['cout_copie']); 
-		
-		//print_r($asset);
-		$asset->save($ATMdb);
+			$asset->fk_product = $fk_produit;
+			
+			$asset->serial_number = $serial;
+			
+			$asset->set_date('date_achat',$row['date_achat']);
+			if($row['type_copie']=='MCENB')$asset->copy_black = $this->validateValue('cout_copie', $row['cout_copie']); 
+			else $asset->copy_color = $this->validateValue('cout_copie', $row['cout_copie']); 
+			
+			//print_r($asset);
+			$asset->save($ATMdb);
+			
+		}	
 		
 		$ATMdb->close();
 			
