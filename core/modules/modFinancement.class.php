@@ -367,7 +367,7 @@ class modFinancement extends DolibarrModules
 								'titre'=>$langs->trans('NewImport'),
 								'mainmenu'=>'financement',
 								'leftmenu'=>'import_new',
-								'url'=>'/financement/import.php?mode=new',
+								'url'=>'/financement/import.php?action=new',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>122,
 								'enabled'=>'$conf->financement->enabled && $user->rights->financement->import->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.

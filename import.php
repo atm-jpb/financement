@@ -17,7 +17,7 @@
 	if(isset($_REQUEST['action'])) {
 		switch($_REQUEST['action']) {
 			case 'new':
-				_form_new($ATMdb, $import, 'new');global $mesg, $error;
+				_fiche($ATMdb, $import, 'new');
 				break;
 			case 'add':
 				$delimiter = ';'; $enclosure = '"';
@@ -141,12 +141,18 @@ function _liste(&$ATMdb, &$import) {
 function _fiche(&$ATMdb, &$import, $mode) {
 	global $db, $langs;
 	
+	llxHeader('','Imports');
+	
+	$html=new Form($db);
 	$formfin = new FormFinancement($db);
+
+	$form=new TFormCore($_SERVER['PHP_SELF'],'formNewImport','POST', true);
+	$form->Set_typeaff($mode);
+
+	echo $form->hidden('action', 'add');
 
 	$user = new User($db);
 	$user->fetch($import->fk_user_author);
-	
-	llxHeader('','Imports');
 	
 	$TBS=new TTemplateTBS();
 	
@@ -154,10 +160,11 @@ function _fiche(&$ATMdb, &$import, $mode) {
 		,array()
 		,array(
 			'import'=>array(
-				'titre_fiche'=>load_fiche_titre($langs->trans("NewImport"),'','import32.png@financement')
+				'titre_new'=>load_fiche_titre($langs->trans("NewImport"),'','import32.png@financement')
+				,'titre_view'=>img_picto('','object_import.png@financement', '', 0).' '.$langs->trans("Import")
 			
 				,'id'=>$import->id
-				,'type_import'=>$mode == 'new' ? $formfin->select_financement('type_import', $typeImport, 'type_import', false) : $import->type_import 
+				,'type_import'=>$form->combo('', 'type_import', ($mode == 'new') ? $import->TType_import : array_merge($import->TType_import, $import->TType_import_interne), $import->type_import) 
 				,'date'=>date('d/m/Y à H:i:s', $import->date ? $import->date : time())
 				,'filename'=>'<a href="./import/done/'.$import->filename.'" target="_blank">'.$import->filename.'</a>'
 				
@@ -166,6 +173,8 @@ function _fiche(&$ATMdb, &$import, $mode) {
 				,'nb_errors'=>$import->nb_errors
 				,'nb_create'=>$import->nb_create
 				,'nb_update'=>$import->nb_update
+				
+				,'leaser'=>$html->select_company('','socid','fournisseur=1',0, 0,1)
 			)
 			,'view'=>array(
 				'mode'=>$mode
@@ -174,7 +183,7 @@ function _fiche(&$ATMdb, &$import, $mode) {
 		)
 	);
 	
-	
+	echo $form->end_form();
 	
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));

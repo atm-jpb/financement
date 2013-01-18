@@ -51,6 +51,9 @@ class Import // extends CommonObject
 	var $nb_errors;
 	var $nb_create;
 	var $nb_update;
+	
+	var $TType_import_interne = array('client' => 'Fichier client','commercial' => 'Fichier commercial','affaire' => 'Fichier affaire','materiel' => 'Fichier matériel','facture_materiel' => 'Fichier facture matériel');
+	var $TType_import = array('fichier_leaser' => 'Fichier leaser', 'score' => 'Fichier score');
 
     
 

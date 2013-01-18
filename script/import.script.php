@@ -76,7 +76,7 @@ $imp->entity = $conf->entity;
 $imp->fk_user_author = $user->id;
 
 $delimiter = ';'; $enclosure = '"';
-$listOfFileType = array('client','commercial','affaire','materiel','facture_materiel');
+$listOfFileType = $imp->TType_import_interne;
 $importFolder = '../import/todo/';
 $importFolderOK = '../import/done/';
 $importFolderMapping = '../import/mappings/';
@@ -85,7 +85,7 @@ $importFolderMapping = '../import/mappings/';
 $imp->getFiles($importFolder);
 
 // STEP 2 : import des fichiers
-foreach ($listOfFileType as $fileType) { // Pour chaque type de fichier
+foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fichier
 	$mappingFile = $fileType.'.mapping';
 	$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
 	
