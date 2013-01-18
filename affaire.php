@@ -114,14 +114,15 @@
 	llxFooter();
 	
 function _liste(&$ATMdb, &$affaire) {
-global $langs, $db;	
+global $langs,$conf, $db;	
 	
 	llxHeader('','Affaires');
 	getStandartJS();
 	
 	$r = new TSSRenderControler($affaire);
 	$sql="SELECT a.rowid as 'ID', a.reference as 'Numéro d\'affaire', a.fk_soc, s.nom as 'Société', a.nature_financement as 'Financement : Nature', a.type_financement as 'Type', a.contrat as 'Type de contrat', a.date_affaire as 'Date de l\'affaire'
-	FROM @table@ a LEFT JOIN llx_societe s ON (a.fk_soc=s.rowid)";
+		FROM @table@ a LEFT JOIN llx_societe s ON (a.fk_soc=s.rowid)
+		WHERE a.entity=".$conf->entity;
 	
 	$THide = array('fk_soc');
 	

@@ -127,6 +127,8 @@
 	llxFooter();
 	
 function _liste(&$db, &$dossier) {
+	global $conf;
+	
 	llxHeader('','Dossiers');
 	getStandartJS();
 	
@@ -137,7 +139,9 @@ function _liste(&$db, &$dossier) {
 	LEFT OUTER JOIN  llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
 		LEFT OUTER JOIN llx_fin_affaire a ON (l.fk_fin_affaire=a.rowid))
 			LEFT OUTER JOIN llx_fin_dossier_financement f ON (d.rowid=f.fk_fin_dossier AND ((a.nature_financement='INTERNE' AND f.type='CLIENT') OR (a.nature_financement='EXTERNE' AND f.type='LEASER')) ))
-						LEFT OUTER JOIN llx_societe s ON (a.fk_soc=s.rowid))";
+						LEFT OUTER JOIN llx_societe s ON (a.fk_soc=s.rowid))
+		
+		WHERE a.entity=".$conf->entity;
 				
 				
 	$TOrder = array('ID'=>'DESC','Dossier'=>'ASC');
