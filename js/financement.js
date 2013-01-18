@@ -1,10 +1,12 @@
 $(document).ready(function() {
 	$('select[name="opt_periodicite"]').bind('change', get_periode);
-	$('select[name="idTypeContrat"]').bind('change', get_grille);
+	$('select[name="fk_type_contrat"]').bind('change', get_grille);
 	$('input[name^="opt_"]').bind('click', get_grille);
 	$('select[name^="opt_"]').bind('change', get_grille);
-	
-	get_grille();
+
+	if($('select[name="fk_type_contrat"]').val() != 0) {
+		get_grille();
+	}
 });
 
 var get_grille = function() {
@@ -17,12 +19,12 @@ var get_grille = function() {
 		mode : 'grille',
 		outjson : 1,
 		idLeaser : $('input[name="idLeaser"]').val(),
-		idTypeContrat : $('select[name="idTypeContrat"]').val(),
+		fk_type_contrat : $('select[name="fk_type_contrat"]').val(),
 		opt_periodicite : $('select[name="opt_periodicite"]').val(),
 		options : fin_options
 	};
 	
-	if(data.idTypeContrat != '') {
+	if(data.fk_type_contrat != 0) {
 		$.post(
 			'ajaxsimulateur.php',
 			data,
@@ -64,7 +66,7 @@ var calcul_financement = function() {
 		mode : 'calcul',
 		outjson : 1,
 		idLeaser : $('input[name="idLeaser"]').val(),
-		idTypeContrat : $('select[name="idTypeContrat"]').val(),
+		fk_type_contrat : $('select[name="fk_type_contrat"]').val(),
 		opt_periodicite : $('select[name="opt_periodicite"]').val(),
 		options : fin_options,
 		montant : $('input[name="montant"]').val(),

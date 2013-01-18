@@ -449,7 +449,7 @@ class Grille // extends CommonObject
 		
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
         $sql.= " WHERE t.fk_soc = ".$idLeaser;
-		$sql.= " AND t.fk_type_contrat = ".$idTypeContrat;
+		$sql.= " AND t.fk_type_contrat = '".$idTypeContrat."'";
 		$sql.= " ORDER BY t.periode, t.montant ASC";
 
     	dol_syslog(get_class($this)."::get_grille sql=".$sql, LOG_DEBUG);

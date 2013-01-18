@@ -86,19 +86,19 @@ function get_grille() {
 	global $db, $conf, $langs, $user;
 
 	$outjson = GETPOST('outjson', 'int');
-	$idTypeContrat = GETPOST('idTypeContrat', 'int');
+	$fk_type_contrat = GETPOST('fk_type_contrat');
 	$idLeaser = GETPOST('idLeaser', 'int');
 	$opt_periodicite = GETPOST('opt_periodicite');
 	$options = GETPOST('options');
 
-	if (empty($idTypeContrat)) {
+	if (empty($fk_type_contrat)) {
 		print json_encode('KO');
 		exit();
 	}
 	
 	$formfin = new FormFinancement($db);
 	$grille = new Grille($db);
-	$liste_coeff = $grille->get_grille($idLeaser, $idTypeContrat, $opt_periodicite, $options);
+	$liste_coeff = $grille->get_grille($idLeaser, $fk_type_contrat, $opt_periodicite, $options);
 	
 	if (empty($liste_coeff)) {
 		print json_encode('KO');

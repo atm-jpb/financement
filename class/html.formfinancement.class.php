@@ -105,12 +105,13 @@ class FormFinancement
 		return $out;
 	}
 
-	function select_penalite($group, $selected='',$htmlname='opt_id')
+	function select_penalite($group, $selected='',$htmlname='opt_id', $array=false)
 	{		
 		global $conf,$langs,$user;
 		$langs->load("financement");
 
 		$out='';
+		$outArray = array();
 
 		$sql = "SELECT opt_name FROM ".MAIN_DB_PREFIX."fin_grille_penalite";
 		$sql.= " WHERE opt_group = '".$group."'";
@@ -139,6 +140,9 @@ class FormFinancement
 					// Si traduction existe, on l'utilise, sinon on prend le libelle par defaut
 					$out.= ($langs->trans($obj->opt_name)!=$obj->opt_name ? $langs->trans($obj->opt_name) : $obj->opt_name);
 					$out.= '</option>';
+					
+					$outArray[$obj->opt_name] = $obj->opt_name;
+					
 					$i++;
 				}
 			}
@@ -150,7 +154,7 @@ class FormFinancement
 			dol_print_error($this->db);
 		}
 
-		return $out;
+		return ($array ? $outArray : $out);
 	}
 
 	/**
@@ -194,15 +198,13 @@ class FormFinancement
 	}
 	
 	/**
-	 *  Return combo list with period defined in grille from financement module
+	 *  Return array list with period defined in grille from financement module
 	 *
 	 *  @param  string	$idTypeContrat		Contract type
-	 *  @param  string	$typePeriode		Period type (T or M)
-	 *  @param  string	$selected	Title preselected
-	 * 	@param	string	$htmlname	Name of HTML select combo field
-	 *  @return	void
+	 *  @param  string	$typePeriode		Period type
+	 *  @return	array
 	 */
-	function select_duree($idTypeContrat=0, $typePeriode='opt_trimestriel', $selected='',$htmlname='const_id')
+	function array_duree($idTypeContrat=0, $typePeriode='opt_trimestriel')
 	{
 		global $conf,$langs,$user;
 		$langs->load("financement");
@@ -217,8 +219,6 @@ class FormFinancement
 		$resql=$this->db->query($sql);
 		if ($resql)
 		{
-			$out.= '<select class="flat" name="'.$htmlname.'">';
-			$out.= '<option value="">&nbsp;</option>';
 			$num = $this->db->num_rows($resql);
 			$i = 0;
 			if ($num)
@@ -227,24 +227,15 @@ class FormFinancement
 				{
 					$obj = $this->db->fetch_object($resql);
 					if($typePeriode == 'opt_mensuel') $obj->periode *= 3;
-					if ($selected == $obj->periode)
-					{
-						$out.= '<option value="'.$obj->periode.'" selected="selected">';
-					}
-					else
-					{
-						$out.= '<option value="'.$obj->periode.'">';
-					}
 					// Si traduction existe, on l'utilise, sinon on prend le libelle par defaut
-					$out.= $obj->periode.' ';
-					$out.= ($typePeriode == 'opt_trimestriel') ? $langs->trans('Trimestres') : '';
-					$out.= ($typePeriode == 'opt_mensuel') ? $langs->trans('Mois') : '';
-					$out.= '</option>';
+					$label = $obj->periode.' ';
+					$label.= ($typePeriode == 'opt_trimestriel') ? $langs->trans('Trimestres') : '';
+					$label.= ($typePeriode == 'opt_mensuel') ? $langs->trans('Mois') : '';
+					
+					$out[$obj->periode] = $label;
 					$i++;
 				}
 			}
-			$out.= '</select>';
-			//if ($user->admin) $out.= info_admin($langs->trans("YouCanChangeValuesForThisListFromDictionnarySetup"),1);
 		}
 		else
 		{
