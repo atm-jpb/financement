@@ -21,7 +21,7 @@
 				
 				$affaire->set_values($_REQUEST);
 	
-				$affaire->save($ATMdb);
+				//$affaire->save($ATMdb);
 				_fiche($ATMdb, $affaire,'edit');
 				
 				break;	
@@ -221,8 +221,9 @@ global $db;
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formAff','POST');
 	$form->Set_typeaff($mode);
 	
-	echo $form->hidden('id', $affaire->rowid);
+	echo $form->hidden('id', $affaire->getId());
 	echo $form->hidden('action', 'save');
+	echo $form->hidden('fk_soc', $affaire->fk_soc);
 	
 	//require('./tpl/affaire.tpl.php');
 	$TBS=new TTemplateTBS();
@@ -264,5 +265,4 @@ global $db;
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 	llxFooter();
-	
 }
