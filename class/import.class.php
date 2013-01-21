@@ -52,7 +52,10 @@ class Import // extends CommonObject
 	var $nb_create;
 	var $nb_update;
 	
-	var $TType_import_interne = array('client' => 'Fichier client','commercial' => 'Fichier commercial','affaire' => 'Fichier affaire','materiel' => 'Fichier matériel','facture_materiel' => 'Fichier facture matériel');
+	var $TType_import_interne = array(
+		'client' => 'Fichier client','commercial' => 'Fichier commercial'
+		,'affaire' => 'Fichier affaire','materiel' => 'Fichier matériel','facture_materiel' => 'Fichier facture matériel'
+	);
 	var $TType_import = array('fichier_leaser' => 'Fichier leaser', 'score' => 'Fichier score');
 
     
@@ -674,17 +677,27 @@ class Import // extends CommonObject
 		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
 			$facture_mat->linked_objects['affaire'] = $affaire->getId();	
 			
-			$asset=new TAsset;
-			if($asset->loadReference($ATMdb, $data['matricule'])) {
-				$asset->add_link($affaire->getId(),'affaire');	
+			$TSerial = explode(' - ',$row['matricule']);
+		
+			foreach($TSerial as $serial) {
 				
-				$asset->save($ATMdb);	
+				$asset=new TAsset;
+				if($asset->loadReference($ATMdb, $data['matricule'])) {
+					$asset->fk_soc = $affaire->fk_soc;
+					
+					$asset->add_link($affaire->getId(),'affaire');	
+					
+					$asset->save($ATMdb);	
+				}
+				else {
+				//	print "ErrorMaterielNotExist";
+					$this->addError('ErrorMaterielNotExist', $dataline, true);
+					//return false;
+				}
+				
 			}
-			else {
-			//	print "ErrorMaterielNotExist";
-				$this->addError('ErrorMaterielNotExist', $dataline, true);
-				return false;
-			}
+			
+			
 			
 		}
 		$ATMdb->close();
