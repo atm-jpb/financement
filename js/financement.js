@@ -4,7 +4,7 @@ $(document).ready(function() {
 	$('input[name^="opt_"]').bind('click', get_grille);
 	$('select[name^="opt_"]').bind('change', get_grille);
 
-	if($('select[name="fk_type_contrat"]').val() != 0) {
+	if($('select[name="fk_type_contrat"]').length > 0) {
 		get_grille();
 	}
 });
