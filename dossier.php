@@ -47,13 +47,15 @@
 				break;
 				
 			case 'save':
+				$ATMdb->db->debug=true;
+				
 				$dossier->load($ATMdb, $_REQUEST['id']);
 				$dossier->set_values($_REQUEST);
 				if(isset($dossier->financement))$dossier->financement->set_values($_REQUEST);
 				$dossier->financementLeaser->reference = $_REQUEST['leaser_reference']; 
-				
+				//print_r($dossier->financementLeaser);
 				$dossier->save($ATMdb);
-				
+				//print 'nature_financement:'.$dossier->nature_financement;exit;
 				_fiche($ATMdb,$dossier,'view');
 				
 				break;
@@ -200,8 +202,10 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'contrat'=>$affaire->TContrat [ $affaire->contrat ]
 		);
 		
-		if($affaire->nature_financement=='EXTERNE' && isset($dossier->financementLeaser) ) {
+		if($affaire->nature_financement=='INTERNE' && !isset($dossier->financement) ) {
 			$dossier->financementLeaser = new TFin_financement;
+			$dossier->financementLeaser->fk_fin_dossier = $dossier->getId();
+			$dossier->financementLeaser->type='CLIENT';
 			$dossier->financementLeaser->save($ATMdb);
 		}  
 	}

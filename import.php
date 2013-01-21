@@ -21,9 +21,9 @@
 				break;
 			case 'add':
 				$delimiter = ';'; $enclosure = '"';
-				$importFolder = '../import/todo/';
-				$importFolderOK = '../import/done/';
-				$importFolderMapping = '../import/mappings/';
+				$importFolder = FIN_IMPORT_FOLDER.'todo/';
+				$importFolderOK = FIN_IMPORT_FOLDER.'done/';
+				$importFolderMapping = FIN_IMPORT_FOLDER.'mappings/';
 		
 				if ($_FILES["fileToImport"]["error"] == UPLOAD_ERR_OK) {
 					$tmp_name = $_FILES["fileToImport"]["tmp_name"];
@@ -44,22 +44,24 @@
 					$imp=new Import($db);
 					$imp->entity = $conf->entity;
 					$imp->fk_user_author = $user->id;
-					
-					$importScriptFile = 'import_'.$fileType.'.script.php';
-					$mappingFile = $fileType.'.mapping';
+				//	print_r($_REQUEST);
+					$mappingFile = $fileType.'.'.$_REQUEST['socid'].'.mapping';
 					$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
 					
 					$imp->init($fileName, $fileType);
 					$imp->create($user); // Création de l'import
 		
-					$fileHandler = fopen($importFolder.$fileName, 'r');
-					while($dataline = fgetcsv($fileHandler, 1024, $delimiter, $enclosure)) {
+					$f1 = fopen($importFolder.$fileName, 'r');
+					fgets($f1);
+					while($dataline = fgetcsv($f1, 1024, $delimiter, $enclosure)) {
 						$imp->importLine($dataline, $fileType);
 					}
 					
 					$imp->update($user); // Mise à jour pour nombre de lignes et nombre d'erreurs
 		
 					rename($importFolder.$fileName, $importFolderOK.$fileName);
+					
+					fclose($f1);
 					
 					_fiche($ATMdb, $import, 'view');
 				} else {

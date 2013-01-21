@@ -1,6 +1,6 @@
 <?php
 
-	define('ROOT','/var/www/ATM/dolibarr/');
+	define('ROOT','/var/www/ATM/dolibarr/htdocs/');
 	define('COREROOT','/var/www/ATM/atm-core/');
 	define('COREHTTP','http://127.0.0.1/ATM/atm-core/');
 	define('HTTP','http://127.0.0.1/ATM/dolibarr/');
@@ -24,4 +24,4 @@
 	require(COREROOT.'inc.core.php');
 	
 	define('DOL_ADMIN_USER', 'admin');
-	
+	define('FIN_IMPORT_FOLDER', ROOT.'custom/financement/import/');

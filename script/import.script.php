@@ -77,9 +77,9 @@ $imp->fk_user_author = $user->id;
 
 $delimiter = ';'; $enclosure = '"';
 $listOfFileType = $imp->TType_import_interne;
-$importFolder = '../import/todo/';
-$importFolderOK = '../import/done/';
-$importFolderMapping = '../import/mappings/';
+$importFolder = FIN_IMPORT_FOLDER.'todo/';
+$importFolderOK = FIN_IMPORT_FOLDER.'done/';
+$importFolderMapping = FIN_IMPORT_FOLDER.'mappings/';
 
 // STEP 1 : récupération des fichiers source
 $imp->getFiles($importFolder);

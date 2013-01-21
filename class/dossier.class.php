@@ -5,9 +5,9 @@
 class TFin_dossier extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
-		parent::add_champs('solde,montant','type=float;');
+		parent::add_champs('solde,montant,montant_solde','type=float;');
 		parent::add_champs('reference,nature_financement','type=chaine;');
-		parent::add_champs('date_relocation','type=date;');
+		parent::add_champs('date_relocation,date_solde','type=date;');
 			
 		parent::start();
 		parent::_init_vars();
@@ -54,7 +54,7 @@ class TFin_dossier extends TObjetStd {
 			$f=new TFin_financement;
 			$f->load($db, $id);
 			if($f->type=='LEASER') $this->financementLeaser = $f;
-			elseif($this->nature_financement == 'INTERNE')  $this->financement = $f;
+			elseif($this->nature_financement == 'INTERNE') $this->financement = $f;
 		}
 		
 		$this->calculSolde();
@@ -176,7 +176,6 @@ class TFin_dossier extends TObjetStd {
 		$this->echeance = $f->echeance;
 		$this->incident_paiement = $f->incident_paiement;
 		
-		
 		$this->somme_affaire=0;
 		
 		foreach($this->TLien as &$lien) { 
@@ -215,7 +214,7 @@ class TFin_financement extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
 		parent::add_champs('duree,numero_prochaine_echeance,fk_fin_dossier','type=entier;');
-		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant','type=float;');
+		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant,assurance','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance','type=date;');
 		parent::start();
@@ -241,5 +240,29 @@ class TFin_financement extends TObjetStd {
 		$this->periodicite = 'TRIMESTRE';
 		$this->incident_paiement='NON';
 	}
-	
+	function loadReference(&$db, $reference) {
+		return $this->loadBy($db, $reference, 'reference');	
+	}
+	function createWithfindClientBySiren(&$db, $siren) {
+		/*
+		 * Trouve le client via le siren, vérifie s'il existe une affaire avec financement sans référence pour association automatique
+		 */
+		
+		//TODO
+		
+		return false;
+	}
+
+	function save(&$ATMdb) {
+		global $db;
+		
+		require('grille.class.php');	
+		$g=new Grille($db);
+			
+		$g->calcul_financement($this->montant, $this->$duree, $this->$echeance, $this->reste, $this->taux);
+		
+		parent::save($ATMdb);
+		
+	}
+
 }

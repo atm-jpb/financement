@@ -529,13 +529,69 @@ class Import // extends CommonObject
 			case 'affaire':
 				$this->importLineAffaire($dataline);
 				break;
+			case 'fichier_leaser':
+				$this->importFichierLeaser($dataline);
+				break;
+			
 			
 			default:
 				
 				break;
 		}
 	}
+	function importFichierLeaser($dataline) {
+		dol_include_once("/custom/financement/class/dossier.class.php");	
+		dol_include_once("/custom/financement/class/affaire.class.php");	
+		
+		$ATMdb=new Tdb;
+		//	$ATMdb->db->debug=true;
+		$row= $this->contructDataTab($dataline);
+	//	print_r($row);
 	
+		if($row['echeance']==0) {
+			
+			return false;
+		}
+	
+		$f=new TFin_financement;
+		if($f->loadReference($ATMdb, $row['reference_financement'])) {
+			/*
+			 * Youpi, on a retrouvé le financement et donc le client
+			 */
+			 
+		}
+		elseif($f->createWithfindClientBySiren($ATMdb, $row['siren'])) {
+			/*
+			 * On trouve le financement recherch d'une affaire sans financement dans un client sur siren
+			 */
+		}
+		else {	
+			return false;	
+			
+		}
+		
+		$f->echeance = $this->validateValue('echeance', $row['echeance']);
+		$f->montant = $this->validateValue('montant', $row['montant']);
+		$f->numero_prochaine_echeance = $this->validateValue('montant', $row['nb_echeance']);
+		
+		if($f->duree<$f->numero_prochaine_echeance)$f->duree = $f->numero_prochaine_echeance;
+		
+		$f->periodicite = $row['periodicite'];
+		$f->date_debut = $this->validateValue('date_debut', $row['date_debut']);
+		$f->date_fin = $this->validateValue('date_fin',$row['date_fin']);
+		
+		$f->save($ATMdb);
+
+		$this->createFactureFournisseur();
+
+		$ATMdb->close();
+		
+		return true;
+		
+	}
+	private function createFactureFournisseur() {
+		
+	}
 	function importLineTiers($dataline) {
 		global $user;
 		dol_include_once("/societe/class/societe.class.php");
@@ -574,6 +630,8 @@ class Import // extends CommonObject
 		foreach ($data as $key => $value) {
 			$societe->{$key} = $this->validateValue($key, $value);
 		}
+		
+		$societe->idprof1 = substr($societe->idprof2,0,9);
 		
 		if($societe->type_tiers == 'Client') $societe->client = 1;
 		if($societe->type_tiers == 'Financeur') $societe->fournisseur = 1;
@@ -675,6 +733,9 @@ class Import // extends CommonObject
 		$ATMdb=new Tdb;
 		$affaire = new TFin_affaire;
 		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
+			$affaire->montant = $this->validateValue('total_ttc',$data['total_ttc']);	
+			$affaire->save($ATMdb);	
+				
 			$facture_mat->linked_objects['affaire'] = $affaire->getId();	
 			
 			$TSerial = explode(' - ',$row['matricule']);
@@ -1022,6 +1083,12 @@ class Import // extends CommonObject
 				case 'date':
 					list($day, $month, $year) = explode("/", $value);
 					$value = mktime(0, 0, 0, $month, $day, $year);
+					break;
+				case 'date_english':
+					$sep = (strpos($value,'-')===false) ? '/': '-';
+					list($year, $month, $day) = explode('/', $value);
+					$value = mktime(0, 0, 0, $month, $day, $year);
+					
 					break;
 				case 'float':
 					$value = strtr($value, array(',' => '.', ' ' => ''));
