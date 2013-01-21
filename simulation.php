@@ -95,22 +95,31 @@ else {
 llxFooter();
 	
 function _liste(&$ATMdb, &$simulation) {
-	global $langs, $db, $conf;	
+	global $langs, $db, $conf, $user;
+	
+	$affaire = new TFin_affaire();
 	
 	llxHeader('','Simulations');
 	getStandartJS();
 	
 	$r = new TSSRenderControler($simulation);
 	
-	$sql = "SELECT s.rowid as 'ID', s.date_simul as 'Date simulation', s.fk_soc, s.fk_user_author, s.fk_type_contrat,";
-	$sql.= " u.login as 'Utilisateur', soc.nom as 'Client'";
+	$THide = array('fk_soc', 'fk_user_author');
+	
+	$sql = "SELECT s.rowid as 'ID', soc.nom as 'Client', s.fk_soc, s.fk_user_author, s.fk_type_contrat as 'Type de contrat', s.montant as 'Montant', s.echeance as 'Echéance',";
+	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'opt_mensuel' THEN 'mois' ELSE 'trimestres' END) as 'Durée',";
+	$sql.= " s.date_simul as 'Date simulation', u.login as 'Utilisateur'";
 	$sql.= " FROM @table@ s ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON s.fk_user_author = u.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc ON s.fk_soc = soc.rowid";
+	if (!$user->rights->societe->client->voir && !$_REQUEST['socid']) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc";
 	$sql.= " WHERE s.entity = ".$conf->entity;
 	
-	$THide = array('fk_soc', 'fk_user_author');
-	
+	if (!$user->rights->societe->client->voir && !$_REQUEST['socid']) //restriction
+	{
+		$sql.= " AND sc.fk_user = " .$user->id;
+	}
+
 	if(isset($_REQUEST['socid'])) {
 		$sql.= ' AND s.fk_soc='.$_REQUEST['socid'];
 		$societe = new Societe($db);
@@ -121,7 +130,7 @@ function _liste(&$ATMdb, &$simulation) {
 		$THide[] = 'Client';
 	}
 	
-	$TOrder = array('Date simulation'=>'ASC');
+	$TOrder = array('Date simulation'=>'DESC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
 	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
 	
@@ -136,11 +145,10 @@ function _liste(&$ATMdb, &$simulation) {
 			,'Client'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
 		)
 		,'translate'=>array(
-			'Financement : Nature'=>$simulation->TNatureFinancement
-			,'Type'=>$simulation->TTypeFinancement
+			'Type de contrat'=>$affaire->TContrat
 		)
 		,'hide'=>$THide
-		,'type'=>array('Date de l\'affaire'=>'date')
+		,'type'=>array('Date simulation'=>'date')
 		,'liste'=>array(
 			'titre'=>'Liste des simulations'
 			,'image'=>img_picto('','simul32.png@financement', '', 0)
@@ -232,7 +240,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'titre_calcul'=>load_fiche_titre($langs->trans("Calculator"),'','simul32.png@financement')
 				
 				,'id'=>$simulation->rowid
-				,'fk_soc'=>$simulation->fk_soc 
+				,'fk_soc'=>$simulation->fk_soc
 				,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat,1,'','','flat')
 				,'opt_administration'=>$form->checkbox1('', 'opt_administration', 'opt_administration', $simulation->opt_administration) 
 				,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $formfin->select_penalite('opt_periodicite', $opt_periodicite, 'opt_periodicite', true), $simulation->opt_periodicite,1,'','','flat') 

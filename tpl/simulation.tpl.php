@@ -105,9 +105,11 @@
 		<tr>
 			<td align="center" colspan="2">
 				<input type="submit" name="calculate" value="Calculer" class="button" />
+				[onshow;block=begin;when [view.type]=='simul']
 				<input type="submit" name="cancel" value="Annuler" class="button">
+				[onshow;block=end]
 			</td>
-			[onshow;block=begin;when [view.calcul]==1]
+			[onshow;block=begin;when [view.type]=='simul'; when [view.calcul]==1]
 			<td align="center" colspan="2">
 				<input type="submit" name="validate_simul" value="Valider simulation" class="button" />
 			</td>

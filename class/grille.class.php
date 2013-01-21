@@ -582,7 +582,10 @@ class Grille // extends CommonObject
 		
 		if(empty($this->grille)) { // Pas de grille chargée, pas de calcul
 			$this->error = 'ErrorNoGrilleSelected';
-		} 
+		}
+		else if($vr > $montant) { // Erreur VR ne peut être supérieur au mopntant
+			$this->error = 'ErrorInvalidVR';
+		}
 		else if(!empty($montant)) { // Calcul à partir du montant
 			
 			foreach($this->grille[$duree] as $palier => $infos) {
