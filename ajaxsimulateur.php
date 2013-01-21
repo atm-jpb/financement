@@ -72,10 +72,11 @@ function get_duree() {
 	$outjson = GETPOST('outjson', 'int');
 
 	$formfin = new FormFinancement($db);
+	$form = new TFormCore();
 	$idTypeContrat = GETPOST('idTypeContrat');
 	$opt_periodicite = GETPOST('opt_periodicite');
 
-	$htmlresult = $formfin->select_duree($idTypeContrat, $opt_periodicite, '', 'duree');
+	$htmlresult = $form->combo('','duree', $formfin->array_duree($idTypeContrat, $opt_periodicite), '');
 	
 	$db->close();
 	

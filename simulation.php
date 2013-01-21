@@ -19,9 +19,17 @@ $error=false;
 
 $action = GETPOST('action');
 if(!empty($_REQUEST['calculate'])) $action = 'calcul';
+if(!empty($_REQUEST['cancel'])) { // Annulation
+	if(!empty($_REQUEST['id'])) { header('Location: '.$_SERVER['PHP_SELF'].'?id='.$_REQUEST['id']); exit; } // Retour sur simulation si mode modif
+	if(!empty($_REQUEST['fk_soc'])) { header('Location: ?socid='.$_REQUEST['fk_soc']); exit; } // Retour sur client sinon
+	header('Location: '.$_SERVER['PHP_SELF']); exit;
+}
 
 if(!empty($action)) {
 	switch($action) {
+		case 'list':
+			_liste($ATMdb, $simulation);
+			break;
 		case 'add':
 		case 'new':
 			
@@ -160,6 +168,40 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	if(empty($simulation->societe) && !empty($simulation->fk_soc)) {
 		$simulation->societe = new Societe($db);
 		$simulation->societe->fetch($simulation->fk_soc);
+		
+		if($user->rights->financement->score->read) {
+			// Récupération du score du client si droits ok
+			$sql = "SELECT s.score, s.date, s.encours_max";
+			$sql.= " FROM ".MAIN_DB_PREFIX."fin_score as s";
+			$sql.= " WHERE s.fk_soc = ".$simulation->fk_soc;
+			$sql.= " ORDER BY s.date DESC";
+			$sql.= " LIMIT 1";
+			
+			$score=$db->query($sql);
+			if($score) {
+				$obj = $db->fetch_object($dossier_list);
+				$simulation->societe->score = $obj->score;
+				$simulation->societe->score_date = $obj->date;
+				$simulation->societe->encours_max = $obj->encours_max;
+				$simulation->societe->encours_cpro = 0;
+			}
+		}
+		
+		if ($user->rights->financement->alldossier->read || $user->rights->financement->mydossier->read) {
+			// Récupération des dossiers du client
+			$sql = "SELECT d.ref, d.montant, d.datedeb, d.datefin";
+			$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier as d, ".MAIN_DB_PREFIX."societe as s";
+			$sql.= " WHERE d.fk_soc = s.rowid";
+			$sql.= " AND s.entity = ".$conf->entity;
+			
+			if (! $user->rights->financement->alldossier->read) //restriction
+			{
+				$sql.= " AND d.fk_user_author = " .$user->id;
+			}
+			
+			$sql.= " ORDER BY d.datedeb DESC";
+			$dossier_list=$db->query($sql);
+		}
 	}
 
 	$extrajs = array('/financement/js/financement.js');
@@ -191,23 +233,22 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				
 				,'id'=>$simulation->rowid
 				,'fk_soc'=>$simulation->fk_soc 
-				,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat)
-				,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
-				,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $formfin->select_penalite('opt_periodicite', $opt_periodicite, 'opt_periodicite', true), $simulation->opt_periodicite) 
-				,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 1, $simulation->opt_creditbail)
-				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $formfin->select_penalite('opt_mode_reglement', $opt_mode_reglement, 'opt_mode_reglement', true), $simulation->opt_mode_reglement)
-				,'opt_terme'=>$form->combo('', 'opt_terme', $formfin->select_penalite('opt_terme', $opt_mode_reglement, 'opt_terme', true), $simulation->opt_mode_reglement)
+				,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat,1,'','','flat')
+				,'opt_administration'=>$form->checkbox1('', 'opt_administration', 'opt_administration', $simulation->opt_administration) 
+				,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $formfin->select_penalite('opt_periodicite', $opt_periodicite, 'opt_periodicite', true), $simulation->opt_periodicite,1,'','','flat') 
+				,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 'opt_creditbail', $simulation->opt_creditbail)
+				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $formfin->select_penalite('opt_mode_reglement', $opt_mode_reglement, 'opt_mode_reglement', true), $simulation->opt_mode_reglement,1,'','','flat')
+				,'opt_terme'=>$form->combo('', 'opt_terme', $formfin->select_penalite('opt_terme', $opt_mode_reglement, 'opt_terme', true), $simulation->opt_mode_reglement,1,'','','flat')
 				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10).' &euro;'
-				,'duree'=>$form->combo('', 'duree', $formfin->array_duree($simulation->fk_type_contrat, $simulation->opt_periodicite), $simulation->duree)
+				,'duree'=>$form->combo('', 'duree', $formfin->array_duree($simulation->fk_type_contrat, $simulation->opt_periodicite), $simulation->duree,1,'','','flat')
 				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10).' &euro;'
-				,'vr'=>$form->texte('', 'echeance', $simulation->vr, 10).' &euro;'
-				,'coefficient'=>$form->texteRO('', 'echeance', $simulation->coeff, 5).' %'
+				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10).' &euro;'
+				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 5).' %'
 				,'cout_financement'=>$simulation->cout_financement
 				,'accord'=>$simulation->accord
 			)
 			,'client'=>array(
-				'titre_client'=>load_fiche_titre($langs->trans('CustomerInfos'), '', '')
-				,'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->societe->nom.'</a>'
+				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->societe->nom.'</a>'
 				,'adresse'=>$simulation->societe->address
 				,'cpville'=>$simulation->societe->cp.' / '.$simulation->societe->ville
 				,'siret'=>$simulation->societe->idprof2
@@ -220,6 +261,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 			,'view'=>array(
 				'mode'=>$mode
 				,'type'=>($simulation->fk_soc > 0) ? 'simul' : 'calcul'
+				,'calcul'=>empty($simulation->cout_financement) ? 0 : 1
 			)
 			
 		)
