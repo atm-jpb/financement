@@ -258,8 +258,8 @@ class TFin_financement extends TObjetStd {
 		
 		require('grille.class.php');	
 		$g=new Grille($db);
-			
-		$g->calcul_financement($this->montant, $this->$duree, $this->$echeance, $this->reste, $this->taux);
+		$g->get_grille(//TODO)	
+		$g->calcul_financement($this->montant, $this->duree, $this->echeance, $this->reste, $this->taux);
 		
 		parent::save($ATMdb);
 		
