@@ -626,55 +626,56 @@ class Grille // extends CommonObject
 		
 		if(empty($this->grille)) { // Pas de grille chargée, pas de calcul
 			$this->error = 'ErrorNoGrilleSelected';
+			return false;
+		}
+		else if(empty($montant) && empty($echeance)) {
+			$this->error = 'ErrorMontantOrEcheanceRequired';
+			return false;
 		}
 		else if($vr > $montant) { // Erreur VR ne peut être supérieur au mopntant
 			$this->error = 'ErrorInvalidVR';
+			return false;
 		}
-		else if(!empty($montant)) { // Calcul à partir du montant
-			
-			foreach($this->grille[$duree] as $palier => $infos) {
-				if($montant <= $palier) {
+		
+		$coeff=0;
+		foreach($this->grille[$duree] as $palier => $infos) {
+			if(( !empty( $montant ) && $montant <= $palier)
+			|| (!empty($echeance) && $echeance<=$infos['echeance']))
+			{
 					$coeff = $infos['coeff']; // coef annuel
-					$coeffTrimestriel = $coeff / 4 /100; // en %
-					
-					if($typeCalcul=='cpro')$echeance = ($montant - $vr) / $duree * (1 + $coeff / 100);
-					else $echeance = $montant * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$duree) );  
-					
-					//print "$echeance = $montant, &$duree, &$echeance, $vr, &$coeff::$coeffTrimestriel";
-					
-					$echeance = round($echeance, 2);
-					return true;
-					break;
-				}
 			}
-			
+		}
+		if($coeff==0){
 			$this->error = 'ErrorAmountOutOfGrille';
+			return false;
+		}
+		
+		$coeffTrimestriel = $coeff / 4 /100; // en %
 
+		if(!empty($montant)) { // Calcul à partir du montant
+					
+				if($typeCalcul=='cpro')$echeance = ($montant - $vr) / $duree * (1 + $coeff / 100);
+				else $echeance = $montant * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$duree) );  
+				
+				//print "$echeance = $montant, &$duree, &$echeance, $vr, &$coeff::$coeffTrimestriel";
+				
+				$echeance = round($echeance, 2);
+						
 		} 
 		else if(!empty($echeance)) { // Calcul à partir de l'échéance
 		
-			foreach($this->grille[$duree] as $palier => $infos) {
-				if($echeance <= $infos['echeance']) {
-					$coeff = $infos['coeff'];
-					$coeffTrimestriel = $coeff / 4 /100; // en %
-					
-					if($typeCalcul=='cpro')$montant = $echeance * (1 - $coeff / 100) * $duree + $vr;
-					else $montant =  $echeance * (1- pow(1+$coeffTrimestriel, -$duree) ) / $coeffTrimestriel ;
-					
-					
-					$montant = round($montant, 2);
-					return true;
-					break;
-				}
-			}
+				if($typeCalcul=='cpro')$montant = $echeance * (1 - $coeff / 100) * $duree + $vr;
+				else $montant =  $echeance * (1- pow(1+$coeffTrimestriel, -$duree) ) / $coeffTrimestriel ;
+				
+				
+				$montant = round($montant, 2);
+				
 			
-			$this->error = 'ErrorEcheanceOutOfGrille';
-			
-		} else { // Montant et échéance vide
-			$this->error = 'ErrorMontantOrEcheanceRequired';
-		}
 		
-		return false; 
+			
+		} 
+		
+		return true; 
 	}
 
 	function showEcheancier($montant, &$duree, &$echeance, $vr, &$coeff, $affichage = 'TRIMESTRE', $date=null) {
