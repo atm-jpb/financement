@@ -24,12 +24,31 @@ class TFin_affaire extends TObjetStd {
 		);
 		$this->TTypeFinancement=array(//TODO
 			'PURE'=>'Location Pure'
+			,'ADOSSEE'=>'Location adossée'
+			,'MANDATEE'=>'Location mandatée'
+			,'FINANCIERE'=>'Location financière'
 		);
 		
 		$this->TTypeMateriel=array(); 
 		$this->TNatureFinancement=array(
 			'INTERNE'=>'Interne'
 			,'EXTERNE'=>'Externe'
+		);
+		
+		$this->TPeriodicite=array(
+			'opt_trimestriel'=>$langs->trans('opt_trimestriel')
+			,'opt_mensuel'=>$langs->trans('opt_mensuel')
+		);
+		
+		$this->TModeReglement=array(
+			'opt_prelevement'=>$langs->trans('opt_prelevement')
+			,'opt_virement'=>$langs->trans('opt_virement')
+			,'opt_cheque'=>$langs->trans('opt_cheque')
+		);
+		
+		$this->TTerme=array(
+			'opt_a_echoir'=>$langs->trans('opt_a_echoir')
+			,'opt_echu'=>$langs->trans('opt_echu')
 		);
 		
 		$this->somme_dossiers=0;

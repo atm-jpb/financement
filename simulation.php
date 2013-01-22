@@ -11,6 +11,7 @@ require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 $langs->load('financement@financement');
 $simulation=new TSimulation;
 $simulation->init();
+$simulation->fk_user_author = $user->id;
 $ATMdb = new Tdb;
 $tbs = new TTemplateTBS;
 
@@ -38,7 +39,7 @@ if(!empty($action)) {
 			
 			break;
 		case 'calcul':
-		
+			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $_REQUEST['id']);
 			$simulation->set_values($_REQUEST);
 			_calcul($simulation);
 			_fiche($ATMdb, $simulation,'edit');
@@ -210,13 +211,18 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 			$sql.= " ORDER BY d.datedeb DESC";
 			$dossier_list=$db->query($sql);
 		}
+		
+		if(empty($simulation->user)) {
+			$simulation->user = new User($db);
+			$simulation->user->fetch($simulation->fk_user_author);
+		}
 	}
 
 	$extrajs = array('/financement/js/financement.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
 	
 	$affaire = new TFin_affaire;
-	$formfin = new FormFinancement($db);
+	$grille = new Grille($db);
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formSimulation','POST');
 	$form->Set_typeaff($mode);
 	
@@ -226,6 +232,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	echo $form->hidden('fk_user_author', $user->id);
 	echo $form->hidden('entity', $conf->entity);
 	echo $form->hidden('idLeaser', 1);
+	echo $form->hidden('cout_financement', $simulation->cout_financement);
+	echo $form->hidden('accord', $simulation->accord);
 	
 	//require('./tpl/affaire.tpl.php');
 	$TBS=new TTemplateTBS();
@@ -242,18 +250,21 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'id'=>$simulation->rowid
 				,'fk_soc'=>$simulation->fk_soc
 				,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat,1,'','','flat')
-				,'opt_administration'=>$form->checkbox1('', 'opt_administration', 'opt_administration', $simulation->opt_administration) 
-				,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $formfin->select_penalite('opt_periodicite', $opt_periodicite, 'opt_periodicite', true), $simulation->opt_periodicite,1,'','','flat') 
-				,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 'opt_creditbail', $simulation->opt_creditbail)
-				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $formfin->select_penalite('opt_mode_reglement', $opt_mode_reglement, 'opt_mode_reglement', true), $simulation->opt_mode_reglement,1,'','','flat')
-				,'opt_terme'=>$form->combo('', 'opt_terme', $formfin->select_penalite('opt_terme', $opt_mode_reglement, 'opt_terme', true), $simulation->opt_mode_reglement,1,'','','flat')
-				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10).' &euro;'
-				,'duree'=>$form->combo('', 'duree', $formfin->array_duree($simulation->fk_type_contrat, $simulation->opt_periodicite), $simulation->duree,1,'','','flat')
-				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10).' &euro;'
-				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10).' &euro;'
-				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 5).' %'
+				,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
+				,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $affaire->TPeriodicite, $simulation->opt_periodicite,1,'','','flat') 
+				,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 1, $simulation->opt_creditbail)
+				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $affaire->TModeReglement, $simulation->opt_mode_reglement,1,'','','flat')
+				,'opt_terme'=>$form->combo('', 'opt_terme', $affaire->TTerme, $simulation->opt_mode_reglement,1,'','','flat')
+				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)
+				,'duree'=>$form->combo('', 'duree', $grille->get_duree(1), $simulation->duree,1,'','','flat')
+				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
+				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
+				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 5)
 				,'cout_financement'=>$simulation->cout_financement
-				,'accord'=>$simulation->accord
+				,'accord'=>($simulation->accord ? 'Accord OK' : 'Accord en attente')
+				
+				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>'
+				,'date'=>$simulation->date_simul
 			)
 			,'client'=>array(
 				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->societe->nom.'</a>'
@@ -265,6 +276,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'score'=>$simulation->societe->score
 				,'encours_cpro'=>$simulation->societe->encours_cpro
 				,'encours_max'=>$simulation->societe->encours_max
+				
+				,'liste_dossier'=>_liste_dossier($ATMdb, $simulation)
 			)
 			,'view'=>array(
 				'mode'=>$mode
@@ -293,7 +306,10 @@ function _calcul(&$simulation) {
 
 	$options = array();
 	foreach($_POST as $k => $v) {
-		if(substr($k, 0, 4) == 'opt_') $options[] = $v;
+		if(substr($k, 0, 4) == 'opt_') {
+			if($v == 1) $options[] = $k;
+			else 		$options[] = $v;
+		} 
 		${$k} = $v;
 	}
 	
@@ -322,4 +338,54 @@ function _calcul(&$simulation) {
 			}
 		}
 	}
+}
+
+function _liste_dossier(&$ATMdb, &$simulation) {
+	global $langs,$conf, $db;
+	$r = new TListviewTBS('dossier_list', './tpl/html.list.tbs.php');
+
+	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', d.montant as 'Montant', d.rowid as 'IDDoss', d.datedeb as 'Début', d.datefin as 'Fin', ac.fk_user,";
+	$sql.= " u.login as 'Utilisateur'";
+	$sql.= " FROM ".MAIN_DB_PREFIX."fin_affaire a ";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_affaire = a.rowid";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON d.rowid = da.fk_fin_dossier";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire_commercial ac ON ac.fk_fin_affaire = a.rowid";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
+	$sql.= " WHERE a.entity = ".$conf->entity;
+	$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
+	
+	//return $sql;
+	
+	$THide = array('IDAff', 'IDoss', 'fk_user');
+	
+	return $r->render($ATMdb, $sql, array(
+		'limit'=>array(
+			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
+			,'nbLine'=>'30'
+		)
+		,'orderBy'=>array(
+			'N° affaire' => 'DESC'
+		)
+		,'link'=>array(
+			'N° affaire'=>'<a href="affaire.php?id=@ID@">@val@</a>'
+			,'Utilisateur'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user_author@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
+		)
+		,'translate'=>array(
+			//'Financement : Nature'=>$import->TNatureFinancement
+			//,'Type'=>$import->TTypeFinancement
+		)
+		,'hide'=>$THide
+		,'type'=>array('Début'=>'date', 'Fin'=>'date')
+		,'liste'=>array(
+			'titre'=>'Liste des imports'
+			,'image'=>img_picto('','import32.png@financement', '', 0)
+			,'picto_precedent'=>img_picto('','back.png', '', 0)
+			,'picto_suivant'=>img_picto('','next.png', '', 0)
+			,'noheader'=> 0
+			,'messageNothing'=>"Il n'y a aucun import à afficher"
+			,'order_down'=>img_picto('','1downarrow.png', '', 0)
+			,'order_up'=>img_picto('','1uparrow.png', '', 0)
+			
+		)
+	));
 }

@@ -10,11 +10,11 @@
 			<td colspan="4">Informations client</td>
 		</tr>
 		<tr>
-			<td width="25%">ThirdPartyName</td>
+			<td width="25%">Nom du tiers</td>
 			<td colspan="3">[client.societe; strconv=no]</td>
 		</tr>
 		<tr>
-			<td width="25%">Address</td>
+			<td width="25%">Adresse</td>
 			<td width="25%">[client.adresse]</td>
 			<td width="25%">SIRET</td>
 			<td width="25%">[client.siret]</td>
@@ -22,24 +22,26 @@
 		<tr>
 			<td>CP / Ville</td>
 			<td>[client.cpville]</td>
-			<td>ArtisCode</td>
+			<td>Code Artis</td>
 			<td>[client.code_client]</td>
 		</tr>
 		[onshow;block=begin;when [client.score]!='']
 		<tr>
-			<td>CustomerScoreDate</td>
+			<td>Date du score</td>
 			<td align="right">[client.score_date]</td>
-			<td>CustomerScore</td>
+			<td>Score</td>
 			<td align="center">[client.score] / 100</td>
 		</tr>
 		<tr>
-			<td>CustomerEncoursCPRO</td>
+			<td>Encours CPRO</td>
 			<td align="right">[client.encours_cpro]</td>
-			<td>CustomerEncoursMax</td>
+			<td>Encours Max</td>
 			<td align="right">[client.encours_max]</td>
 		</tr>
 		[onshow;block=end]
 	</table>
+	<br />
+	[client.liste_dossier; strconv=no]
 		
 	</div>
 </td>
@@ -53,19 +55,19 @@
 			<td colspan="4">Paramètres globaux</td>
 		</tr>
 		<tr>
-			<td><span class="fieldrequired">TypeContrat</span></td>
-			<td>[simulation.fk_type_contrat; strconv=no]</td>
-			<td>Administration</td>
-			<td>[simulation.opt_administration; strconv=no]</td>
+			<td width="25%"><span class="fieldrequired">Type de contrat</span></td>
+			<td width="25%">[simulation.fk_type_contrat; strconv=no]</td>
+			<td width="25%">Administration</td>
+			<td width="25%">[simulation.opt_administration; strconv=no]</td>
 		</tr>
 		<tr>
 			<td>Periodicite</td>
 			<td>[simulation.opt_periodicite; strconv=no]</td>
-			<td>CreditBail</td>
+			<td>Crédit-Bail</td>
 			<td>[simulation.opt_creditbail; strconv=no]</td>
 		</tr>
 		<tr>
-			<td>ModeReglement</td>
+			<td>Mode de règlement</td>
 			<td>[simulation.opt_mode_reglement; strconv=no]</td>
 			<td>Terme</td>
 			<td>[simulation.opt_terme; strconv=no]</td>
@@ -74,32 +76,35 @@
 			<td colspan="4">Paramètres financiers</td>
 		</tr>
 		<tr>
-			<td>Amount</td>
-			<td>[simulation.montant; strconv=no]</td>
-			
-			[onshow;block=begin;when [view.calcul]==1]
-			<td colspan="2" rowspan="5" align="center">
-				<span style="font-size: 14px;">CoutTotalFinancement : [simulation.cout_financement]</span>
+			<td>Montant</td>
+			<td>[simulation.montant; strconv=no; frm=0 000,00] &euro;</td>
+			<td>Utilisateur</td>
+			<td>[simulation.user; strconv=no]</td>
+		</tr>
+		<tr>
+			<td><span class="fieldrequired">Durée</span></td>
+			<td>[simulation.duree; strconv=no]</td>
+			<td>Date</td>
+			<td>[simulation.date; frm=dd/mm/yyyy]</td>
+		</tr>
+		<tr>
+			<td>&Eacute;chéance</td>
+			<td>[simulation.echeance; strconv=no; frm=0 000,00] &euro;</td>
+			<td colspan="2" rowspan="3" align="center">
+				[onshow;block=begin;when [view.calcul]==1]
+				<span style="font-size: 14px;">Cout total du financement : [simulation.cout_financement; frm=0 000,00] &euro;</span>
 				<br /><br />
 				<span style="font-size: 14px;">[simulation.accord]</span>
+				[onshow;block=end]
 			</td>
-			[onshow;block=end]
 		</tr>
 		<tr>
-			<td><span class="fieldrequired">Duration</span></td>
-			<td>[simulation.duree; strconv=no]</td>
-		</tr>
-		<tr>
-			<td>Echeance</td>
-			<td>[simulation.echeance; strconv=no]</td>
-		</tr>
-		<tr>
-			<td>VR</td>
-			<td>[simulation.vr; strconv=no]</td>
+			<td>Valeur Résiduelle</td>
+			<td>[simulation.vr; strconv=no; frm=0,00] &euro;</td>
 		</tr>
 		<tr>
 			<td>Coefficient</td>
-			<td>[simulation.coeff; strconv=no]</td>
+			<td>[simulation.coeff; strconv=no; frm=0,00] %</td>
 		</tr>
 		[onshow;block=begin;when [view.mode]=='edit']
 		<tr>
