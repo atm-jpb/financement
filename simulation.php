@@ -342,7 +342,7 @@ function _calcul(&$simulation) {
 
 function _liste_dossier(&$ATMdb, &$simulation) {
 	global $langs,$conf, $db;
-	$r = new TListviewTBS('dossier_list', './tpl/html.list.tbs.php');
+	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 
 	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', d.montant as 'Montant', d.rowid as 'IDDoss', d.datedeb as 'Début', d.datefin as 'Fin', ac.fk_user,";
 	$sql.= " u.login as 'Utilisateur'";
