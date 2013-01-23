@@ -306,6 +306,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 				,'numero_prochaine_echeance'=> 0
 				,'duree'=>0
 									
+				,'assurance'=>0	
 								
 				,'periodicite'=>0
 				,'reglement'=>0
