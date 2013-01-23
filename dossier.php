@@ -2,6 +2,8 @@
 	require('config.php');
 	require('./class/affaire.class.php');
 	require('./class/dossier.class.php');
+	require('./class/grille.class.php');
+	
 	$langs->load('financement@financement');
 	$dossier=new TFin_Dossier;
 	$ATMdb = new Tdb;
@@ -47,7 +49,7 @@
 				break;
 				
 			case 'save':
-				$ATMdb->db->debug=true;
+				//$ATMdb->db->debug=true;
 				
 				$dossier->load($ATMdb, $_REQUEST['id']);
 				$dossier->set_values($_REQUEST);
@@ -164,7 +166,7 @@ function _liste(&$db, &$dossier) {
 			'Incident de paiment'=>$dossier->TIncidentPaiement
 		)
 		,'hide'=>array('fk_soc')
-		,'type'=>array('Début'=>'date','Fin'=>'date')
+		,'type'=>array('Début'=>'date','Fin'=>'date', 'Montant financé'=>'money')
 		,'liste'=>array(
 			'titre'=>"Liste des dossiers"
 			,'image'=>img_picto('','title.png', '', 0)
@@ -267,7 +269,10 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 		$TFinancement = array(
 			'montant'=>$form->texte('', 'montant', $financement->montant, 20,255,'','','à saisir').' &euro;' 
 			,'reference'=>$dossier->getId().'/'.$financement->getId()
+			
 			,'taux'=>$form->texte('', 'taux', $financement->taux, 5,255,'','','à saisir').' %' 
+
+			,'assurance'=>$form->texte('', 'assurance', $financement->assurance, 20,255,'','','à saisir').' &euro;' 
 			,'echeance1'=>$form->texte('', 'echeance1', $financement->echeance1, 20,255,'','','à saisir').' &euro;' 
 			,'echeance'=>$form->texte('', 'echeance', $financement->echeance, 20,255,'','','à saisir') .' &euro;'
 			,'reste'=>$form->texte('', 'reste', $financement->reste, 20,255,'','','à saisir').' &euro;' 

@@ -679,8 +679,21 @@ class Grille // extends CommonObject
 	}
 
 	function showEcheancier($montant, &$duree, &$echeance, $vr, &$coeff, $affichage = 'TRIMESTRE', $date=null) {
-		/*
+		
+		  
+		 /*
 		 * Affiche l'échéancier
+		 * ----
+		 * Périodes
+		 * Dates des Loyers
+		 * Période
+		 * Valeurs de Rachat - Pénal 8.75%
+		 * Capital Résid.Risque Résid. HT
+		 * Amortissmt Capital HT
+		 * Part Intérêts
+		 * Assurance
+		 * Loyers HT 
+		 * Loyers TTC
 		 */
 		 
 		 if(is_null($date))$date=date('Y-m-d');

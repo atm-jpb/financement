@@ -211,6 +211,7 @@ class TFin_dossier_affaire extends TObjetStd {
  * Financement Dossier 
  */ 
 class TFin_financement extends TObjetStd {
+		
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
 		parent::add_champs('duree,numero_prochaine_echeance,fk_fin_dossier','type=entier;');
@@ -256,9 +257,10 @@ class TFin_financement extends TObjetStd {
 	function save(&$ATMdb) {
 		global $db;
 		
-		require('grille.class.php');	
 		$g=new Grille($db);
-		$g->get_grille();//TODO
+
+		$g->get_grille(1, $this->contrat);//TODO	
+		
 		$g->calcul_financement($this->montant, $this->duree, $this->echeance, $this->reste, $this->taux);
 		
 		parent::save($ATMdb);
