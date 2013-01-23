@@ -11,7 +11,8 @@ $(document).ready(function() {
 
 var get_grille = function() {
 	var fin_options = new Array();
-	var fin_options = $('input[name^="opt_"]:checked, select[name^="opt_"]').map(function(){
+	var fin_options = $('input[name^="opt_"]:checked, select[name^="opt_"]').map(function() {
+		if($(this).val() == 1) return $(this).attr('name');
 		return $(this).val();
 	}).get();
 	

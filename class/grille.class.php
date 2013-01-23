@@ -485,6 +485,49 @@ class Grille // extends CommonObject
 			return -1;
 		}
 	}
+	
+	/**
+	 * Récupération de la liste des durée possible pour un type de contrat et pour un leaser
+	 */
+	function get_duree($idLeaser, $idTypeContrat=0, $periodicite='opt_trimestriel') {
+		if(empty($idLeaser)) return -1;
+		global $langs;
+
+		$sql = "SELECT";
+		$sql.= " t.periode";		
+		$sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
+		$sql.= " WHERE t.fk_soc = ".$idLeaser;
+		if(!empty($idTypeContrat)) $sql.= " AND t.fk_type_contrat = ".$idTypeContrat;
+		$sql.= " ORDER BY t.periode ASC";
+
+    	dol_syslog(get_class($this)."::get_coeff sql=".$sql, LOG_DEBUG);
+        $resql=$this->db->query($sql);
+        if ($resql)
+        {
+        	$num = $this->db->num_rows($resql);
+			$i = 0;
+			$TDuree = array();
+			while($i < $num) {
+				$obj = $this->db->fetch_object($resql);
+				$duree = $obj->periode;
+				if($periodicite == 'opt_mensuel') $duree *= 3;
+				$label = $duree;
+				$label.= ($periodicite == 'opt_trimestriel') ? ' '.$langs->trans('Trimestres') : '';
+				$label.= ($periodicite == 'opt_mensuel') ? ' '.$langs->trans('Mois') : '';
+				$TDuree[$duree] = $label;
+				
+				$i++;
+			}
+			
+			$this->db->free($resql);
+
+			return $TDuree;
+		} else {
+			$this->error="Error ".$this->db->lasterror();
+			dol_syslog(get_class($this)."::fetch ".$this->error, LOG_ERR);
+			return -1;
+		}
+	}
 
 	function get_coeff($idLeaser, $idTypeContrat, $periodicite='opt_trimestriel', $montant, $duree, $options=array())
     {
@@ -533,6 +576,7 @@ class Grille // extends CommonObject
 		if(!empty($options)) {
 			foreach($options as $name) {
 				$penalite = $this->_get_penalite($name);
+				if($penalite < 0) return 0;
 				$coeff += $coeff * $penalite / 100;
 			}
 		}
