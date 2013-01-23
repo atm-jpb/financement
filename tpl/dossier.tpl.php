@@ -35,6 +35,8 @@
 						<tr><td>N° prochaine échéance</td><td>[financement.numero_prochaine_echeance; strconv=no]</td></tr>
 						<tr><td>Date de prochaine échéance</td><td>[financement.date_prochaine_echeance; strconv=no]</td></tr>
 						
+						<tr><td>Assurance</td><td>[financement.assurance; strconv=no]</td></tr>
+						
 						<tr><td>Valeur résiduelle</td><td>[financement.reste; strconv=no]</td></tr>
 						<tr><td>Mode de réglement</td><td>[financement.reglement; strconv=no]</td></tr>
 						<tr><td>Montant de prestation</td><td>[financement.montant_prestation; strconv=no]</td></tr>

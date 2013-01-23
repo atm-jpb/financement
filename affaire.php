@@ -251,6 +251,8 @@ global $db;
 				,'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$affaire->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$societe->nom.'</a>'
 				,'montant_val'=>$affaire->montant
 				,'nature_financement_val'=>$affaire->nature_financement
+				
+				,'addDossierButton'=>(($affaire->montant>0 && $affaire->nature_financement!='') ? 1 : 0)
 			)
 			,'view'=>array(
 				'mode'=>$mode
