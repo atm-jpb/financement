@@ -63,6 +63,7 @@
 		</div>
 		
 		<div class="tabsAction">
+			[onshow; block=div; when [view.userRight]==1]	
 		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="button" onclick="document.location.href='?action=delete&id=[affaire.id]'">
 		&nbsp; &nbsp; <a href="?id=[affaire.id]&action=edit" class="butAction">Modifier</a>
 		&nbsp; &nbsp; <a href="dossier.php?action=new&fk_fin_affaire=[affaire.id]&montant=[affaire.montant_val]&nature_financement=[affaire.nature_financement_val]" class="butAction">[onshow; block=a; when [affaire.addDossierButton]==1]Créer un dossier de financement Client</a>
@@ -71,6 +72,7 @@
 [onshow;block=begin;when [view.mode]!='view']
 
 		<p align="center">
+			[onshow; block=p; when [view.userRight]==1]	
 			<input type="submit" value="Enregistrer" name="save" class="button"> 
 			&nbsp; &nbsp; <input type="button" value="Annuler" name="cancel" class="button" onclick="document.location.href='?id=[affaire.id]'">
 		</p>

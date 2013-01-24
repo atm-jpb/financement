@@ -834,7 +834,7 @@ class Import // extends CommonObject
 		$a->reference = $row['num_affaire'];
 		$a->set_date('date_affaire', $row['date']);
 		$a->fk_soc = $fk_soc;
-		$a->nature_financement='EXTERNE';
+		$a->nature_financement='INTERNE';
 		
 		$a->addCommercial($ATMdb, $fk_user);
 		$a->save($ATMdb);

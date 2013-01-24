@@ -7,6 +7,11 @@
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 
 	$langs->load('financement@financement');
+	
+	
+	
+	if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
+	
 	$affaire=new TFin_Affaire;
 	$ATMdb = new Tdb;
 	$tbs = new TTemplateTBS;
@@ -181,7 +186,7 @@ global $langs,$conf, $db;
 }	
 	
 function _fiche(&$ATMdb, &$affaire, $mode) {
-global $db;
+global $db,$user;
 	
 	$societe = new Societe($db);
 	$societe->fetch($affaire->fk_soc); 
@@ -253,10 +258,12 @@ global $db;
 				,'nature_financement_val'=>$affaire->nature_financement
 				
 				,'addDossierButton'=>(($affaire->montant>0 && $affaire->nature_financement!='') ? 1 : 0)
+				
 			)
 			,'view'=>array(
 				'mode'=>$mode
 				,'otherDossier'=>$otherDossier
+				,'userRight'=>((int)$user->rights->financement->affaire->write)
 			)
 			
 		)

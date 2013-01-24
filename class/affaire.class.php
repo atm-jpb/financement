@@ -124,7 +124,9 @@ class TFin_affaire extends TObjetStd {
 		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_affaire', $this->getId(), 'fk_fin_affaire' );
 	}
 	function save(&$db) {
-		global $conf;
+		global $conf, $user;
+		
+		if(!$user->rights->financement->affaire->write) return false;
 		
 		$this->calculSolde();
 		$this->entity = $conf->entity;

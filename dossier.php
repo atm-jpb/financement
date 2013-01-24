@@ -5,6 +5,9 @@
 	require('./class/grille.class.php');
 	
 	$langs->load('financement@financement');
+	
+	if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
+	
 	$dossier=new TFin_Dossier;
 	$ATMdb = new Tdb;
 	$tbs = new TTemplateTBS;
@@ -186,6 +189,7 @@ function _liste(&$db, &$dossier) {
 }	
 	
 function _fiche(&$ATMdb, &$dossier, $mode) {
+	global $user;
 	/*
 	 * Liste des dossiers rattachés à cette affaire
 	 */ 
@@ -270,7 +274,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			'montant'=>$form->texte('', 'montant', $financement->montant, 20,255,'','','à saisir').' &euro;' 
 			,'reference'=>$dossier->getId().'/'.$financement->getId()
 			
-			,'taux'=>$form->texte('', 'taux', $financement->taux, 5,255,'','','à saisir').' %' 
+			,'taux'=> $financement->taux.' %'  //$form->texte('', 'taux', $financement->taux, 5,255,'','','à saisir')
 
 			,'assurance'=>$form->texte('', 'assurance', $financement->assurance, 20,255,'','','à saisir').' &euro;' 
 			,'echeance1'=>$form->texte('', 'echeance1', $financement->echeance1, 20,255,'','','à saisir').' &euro;' 
@@ -278,7 +282,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'reste'=>$form->texte('', 'reste', $financement->reste, 20,255,'','','à saisir').' &euro;' 
 			,'montant_prestation'=>$form->texte('', 'montant_prestation', $financement->montant_prestation, 20,255,'','','à saisir').' &euro;' 
 				
-			,'numero_prochaine_echeance'=>$form->texte('', 'numero_prochaine_echeance', $financement->numero_prochaine_echeance, 5,255,'','','à saisir') 
+			,'numero_prochaine_echeance'=>$financement->numero_prochaine_echeance 
 			,'duree'=>$form->texte('', 'duree', $financement->duree, 5,255,'','','à saisir')
 								
 							
@@ -288,7 +292,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			
 			,'date_debut'=>$form->calendrier('', 'date_debut', $financement->get_date('date_debut'),10)
 			,'date_fin'=>$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
-			,'date_prochaine_echeance'=>$form->calendrier('', 'date_prochaine_echeance', $financement->get_date('date_prochaine_echeance'),10)
+			,'date_prochaine_echeance'=>($financement->date_prochaine_echeance>0) ? $financement->get_date('date_prochaine_echeance') : ''
 			
 			
 		);
@@ -340,6 +344,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'view'=>array(
 				'mode'=>$mode
 				,'otherAffaire'=>$otherAffaire
+				,'userRight'=>((int)$user->rights->financement->affaire->write)
 			)
 			
 		)
