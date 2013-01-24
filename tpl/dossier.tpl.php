@@ -131,7 +131,7 @@
 		</div>
 		
 		<div class="tabsAction">
-			
+		[onshow; block=div; when [view.userRight]==1]	
 		&nbsp; &nbsp; <a href="?id=[dossier.id]&action=edit" class="butAction">Modifier</a>
 		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[dossier.id]'">
 		</div>
@@ -139,6 +139,7 @@
 [onshow;block=begin;when [view.mode]!='view']
 
 		<p align="center">
+			[onshow; block=p; when [view.userRight]==1]
 			<input type="submit" value="Enregistrer" name="save" class="button"> 
 			&nbsp; &nbsp; <input type="button" value="Annuler" name="cancel" class="button" onclick="document.location.href='?id=[dossier.id]'">
 		</p>

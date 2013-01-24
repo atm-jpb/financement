@@ -129,7 +129,7 @@ class modFinancement extends DolibarrModules
 		// 'categories_x'	  to add a tab in category view (replace 'x' by type of category (0=product, 1=supplier, 2=customer, 3=member)
         $this->tabs = array(
         	'thirdparty:+scores:ScoreList:financement@financement:$user->rights->financement->score->read:/financement/score.php?socid=__ID__'
-        	,'thirdparty:+affaire:Financement:financement@financement:$user->rights->financement->score->read:/financement/affaire.php?socid=__ID__'
+        	,'thirdparty:+affaire:Financement:financement@financement:$user->rights->financement->affaire->read:/financement/affaire.php?socid=__ID__'
         	,'thirdparty:+simulation:Simulations:financement@financement:$user->rights->financement->allsimul->simul_list || $user->rights->financement->mysimul->simul_list:/financement/simulation.php?socid=__ID__'
 		);
  		
@@ -263,6 +263,21 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'import';
 		$this->rights[$r][5] = 'write';
 		$r++;
+
+		$this->rights[$r][0] = 210053;
+		$this->rights[$r][1] = 'Gérer les affaires et dossiers de financement';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'affaire';
+		$this->rights[$r][5] = 'write';
+		$r++;
+		
+		$this->rights[$r][0] = 210054;
+		$this->rights[$r][1] = 'Voir les affaires et dossiers de financement';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'affaire';
+		$this->rights[$r][5] = 'read';
+		$r++;
+
 		
 		$this->rights[$r][0] = 210999;
 		$this->rights[$r][1] = 'Administration du module';
@@ -284,7 +299,7 @@ class modFinancement extends DolibarrModules
 								'titre'=>$langs->trans('Financement'),
 								'mainmenu'=>'financement',
 								'leftmenu'=>'financement',
-								'url'=>'/financement/index.php',
+								'url'=>'/financement/simulation.php?action=new',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>100,
 								'enabled'=>'$conf->financement->enabled && ($user->rights->financement->allsimul->calcul || $user->rights->financement->allsimul->simul ||

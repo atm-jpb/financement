@@ -136,6 +136,10 @@ class TFin_dossier extends TObjetStd {
 		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_financement', $this->getId(), 'fk_fin_dossier');
 	}
 	function save(&$db) {
+		global $user;
+		
+		if(!$user->rights->financement->affaire->write) return false;
+		
 		$this->calculSolde();
 			
 		parent::save($db);
@@ -218,6 +222,8 @@ class TFin_financement extends TObjetStd {
 		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant,assurance','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance','type=date;');
+		parent::add_champs('fk_soc','type=entier;index;');
+		
 		parent::start();
 		parent::_init_vars();
 		
@@ -240,6 +246,9 @@ class TFin_financement extends TObjetStd {
 		$this->somme_affaire = 0;
 		$this->periodicite = 'TRIMESTRE';
 		$this->incident_paiement='NON';
+		
+		$this->numero_prochaine_echeance = 1;
+		$this->date_prochaine_echeance = 0;
 	}
 	function loadReference(&$db, $reference) {
 		return $this->loadBy($db, $reference, 'reference');	
@@ -255,7 +264,14 @@ class TFin_financement extends TObjetStd {
 	}
 
 	function save(&$ATMdb) {
-		global $db;
+		global $db, $user;
+		
+		if(!$user->rights->financement->affaire->write) return false;
+		
+		if($this->date_prochaine_echeance<$this->date_debut) $this->date_prochaine_echeance = $this->date_debut;
+		
+		//$this->taux = 1 - (($this->montant * 100 / $this->echeance * $this->duree) - $this->reste);
+		@$this->taux = round(($this->echeance * $this->duree / ($this->montant - $this->reste)) - 1,2);
 		
 		$g=new Grille($db);
 
