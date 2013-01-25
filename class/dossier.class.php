@@ -191,9 +191,7 @@ class TFin_dossier extends TObjetStd {
 			}
 		}
 		
-		
 		$this->solde = $this->montant - $this->somme_affaire;// attention en cas d'affaire ajouté à la création du dossier ce chiffre sera faux, car non encore répercuté sur l'affaire
-		
 	}
 }
 
@@ -219,9 +217,9 @@ class TFin_financement extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
 		parent::add_champs('duree,numero_prochaine_echeance,fk_fin_dossier','type=entier;');
-		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant,assurance','type=float;');
+		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant,assurance,montant_solde','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
-		parent::add_champs('date_debut,date_fin,date_prochaine_echeance','type=date;');
+		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
 		parent::add_champs('fk_soc','type=entier;index;');
 		
 		parent::start();
@@ -263,12 +261,23 @@ class TFin_financement extends TObjetStd {
 		return false;
 	}
 
+	function calculDateFin() {
+		
+		if($this->periodicite=='TRIMESTRE')$iPeriode=3;
+		else if($this->periodicite=='ANNEE')$iPeriode=12;
+		else $iPeriode = 1;
+		
+		$this->date_fin = strtotime('+'.($iPeriode*$this->duree).' month', $this->date_debut);
+		
+	}
 	function save(&$ATMdb) {
 		global $db, $user;
 		
 		if(!$user->rights->financement->affaire->write) return false;
 		
 		if($this->date_prochaine_echeance<$this->date_debut) $this->date_prochaine_echeance = $this->date_debut;
+		
+		$this->calculDateFin();
 		
 		//$this->taux = 1 - (($this->montant * 100 / $this->echeance * $this->duree) - $this->reste);
 		@$this->taux = round(($this->echeance * $this->duree / ($this->montant - $this->reste)) - 1,2);
@@ -281,6 +290,65 @@ class TFin_financement extends TObjetStd {
 		
 		parent::save($ATMdb);
 		
+	}
+	
+	function getPenalite() {
+		return 1;
+	}
+	
+	function echeancier() {
+		 /*
+		 * Affiche l'échéancier
+		 * ----
+		 * Périodes
+		 * Dates des Loyers
+		 * Période
+		 * Valeurs de Rachat - Pénal 8.75%
+		 * Capital Résid.Risque Résid. HT
+		 * Amortissmt Capital HT
+		 * Part Intérêts
+		 * Assurance
+		 * Loyers HT 
+		 * Loyers TTC
+		 */
+		 
+		 
+		 $capital_restant = $this->montant;
+		 $TLigne=array();
+		 for($i=1; $i<=$this->duree; $i++) {
+		 	
+			$time = strtotime('+'.($i*3).' month',  $this->date_debut);	
+			$capital_restant-=$this->echeance;
+			
+			$TLigne[]=array(
+				'date'=>date('d/m/Y', $time)
+				,'valeur_rachat'=>$capital_restant*$this->getPenalite()
+				,'capital'=>$capital_restant
+				,'amortissement'=>$this->echeance
+				,'interet'=>0
+				,'assurance'=>$this->assurance
+				,'loyerHT'=>$this->echeance
+				,'loyer'=>$this->echeance * FIN_TVA_DEFAUT
+			);
+			
+		 	
+		 }
+		 
+		 
+		 $TBS=new TTemplateTBS;
+		 return $TBS->render('./tpl/echeancier.tpl.php'
+			,array(
+				'ligne'=>$TLigne
+			)
+			,array(
+				'autre'=>array(
+					'reste'=>$this->reste
+					,'resteTTC'=>($this->reste*FIN_TVA_DEFAUT)
+					,'capitalInit'=>$this->montant
+				)
+			)
+		);
+		 
 	}
 
 }

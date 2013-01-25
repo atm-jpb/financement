@@ -77,8 +77,8 @@
 					</td>
 				</tr>
 				<tr>
-					<td>Echéancier Client<!-- [onshow;block=(td);when [dossier.nature_financement]='INTERNE'] --></td>
-					<td>Echéancier Leaser</td>
+					<td valign="top">[financement.echeancier; strconv=no]<!-- [onshow;block=(td);when [dossier.nature_financement]='INTERNE'] --></td>
+					<td valign="top">[financementLeaser.echeancier; strconv=no]</td>
 				</tr>
 				</table>
 				
