@@ -274,6 +274,14 @@ class TFin_financement extends TObjetStd {
 		$this->date_fin = strtotime('+'.($iPeriode*$this->duree).' month', $this->date_debut);
 		
 	}
+	function calculTaux() {
+		if($this->periodicite=='TRIMESTRE')$iPeriode=3;
+		else if($this->periodicite=='ANNEE')$iPeriode=12;
+		else $iPeriode = 1;
+		
+		
+		@$this->taux = round($iPeriode* (($this->echeance * $this->duree / ($this->montant - $this->reste)) - 1),2);
+	}
 	
 	function load(&$ATMdb, $id, $annexe=false) {
 		
@@ -299,7 +307,7 @@ class TFin_financement extends TObjetStd {
 		$this->calculDateFin();
 		
 		//$this->taux = 1 - (($this->montant * 100 / $this->echeance * $this->duree) - $this->reste);
-		@$this->taux = round(($this->echeance * $this->duree / ($this->montant - $this->reste)) - 1,2);
+		$this->calculTaux();
 		
 		$g=new Grille($db);
 
