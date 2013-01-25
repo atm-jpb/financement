@@ -101,7 +101,7 @@ class Grille // extends CommonObject
 		$sql.= "montant,";
 		$sql.= "periode,";
 		$sql.= "coeff,";
-		$sql.= "fk_user";
+		$sql.= "fk_user,";
 		$sql.= "type";
 
 		
@@ -109,10 +109,10 @@ class Grille // extends CommonObject
         
 		$sql.= " ".(! isset($this->fk_soc)?'NULL':"'".$this->fk_soc."'").",";
 		$sql.= " ".(! isset($this->fk_type_contrat)?'NULL':"'".$this->fk_type_contrat."'").",";
-		$sql.= " ".(! isset($this->montant)?'NULL':"'".$this->montant."'").",";
+		$sql.= " ".(! isset($this->montant)?0:"'".$this->montant."'").",";
 		$sql.= " ".(! isset($this->periode)?'NULL':"'".$this->periode."'").",";
 		$sql.= " ".(! isset($this->coeff)?'NULL':"'".$this->coeff."'").",";
-		$sql.= " ".(! isset($this->fk_user)?'NULL':"'".$this->fk_user."'");
+		$sql.= " ".(! isset($this->fk_user)?'NULL':"'".$this->fk_user."'").",";
 		$sql.= " ".(! isset($this->type)?'NULL':"'".$this->type."'");
 
         
@@ -179,7 +179,7 @@ class Grille // extends CommonObject
 		$sql.= " t.periode,";
 		$sql.= " t.coeff,";
 		$sql.= " t.fk_user,";
-		$sql.= " t.tms,type";
+		$sql.= " t.tms,t.type";
 
 		
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
@@ -253,7 +253,7 @@ class Grille // extends CommonObject
 		$sql.= " montant=".(isset($this->montant)?$this->montant:"null").",";
 		$sql.= " periode=".(isset($this->periode)?$this->periode:"null").",";
 		$sql.= " coeff=".(isset($this->coeff)?$this->coeff:"null").",";
-		$sql.= " type=".(isset($this->type)?$this->type:"null").",";
+		$sql.= " type='".(isset($this->type)?$this->type:"null")."',";
 		$sql.= " fk_user=".(isset($this->fk_user)?$this->fk_user:"null");
 
         
