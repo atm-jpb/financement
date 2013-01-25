@@ -247,6 +247,10 @@ class TFin_financement extends TObjetStd {
 		
 		$this->numero_prochaine_echeance = 1;
 		$this->date_prochaine_echeance = 0;
+		
+		$this->somme_facture = 0;
+		$this->somme_echeance = 0;
+		
 	}
 	function loadReference(&$db, $reference) {
 		return $this->loadBy($db, $reference, 'reference');	
@@ -270,6 +274,21 @@ class TFin_financement extends TObjetStd {
 		$this->date_fin = strtotime('+'.($iPeriode*$this->duree).' month', $this->date_debut);
 		
 	}
+	
+	function load(&$ATMdb, $id, $annexe=false) {
+		
+		parent::load($ATMdb, $id);
+		
+		if($annexe) {
+			$this->load_facture($ATMdb);
+		}
+		
+	}
+	
+	function load_facture(&$ATMdb) {
+		$this->somme_facture = 0;
+	}
+	
 	function save(&$ATMdb) {
 		global $db, $user;
 		
@@ -311,7 +330,7 @@ class TFin_financement extends TObjetStd {
 		 * Loyers HT 
 		 * Loyers TTC
 		 */
-		 
+		 $this->somme_echeance = 0;
 		 
 		 $capital_restant = $this->montant;
 		 $TLigne=array();
@@ -331,6 +350,7 @@ class TFin_financement extends TObjetStd {
 				,'loyer'=>$this->echeance * FIN_TVA_DEFAUT
 			);
 			
+			$this->somme_echeance +=$this->echeance;
 		 	
 		 }
 		 

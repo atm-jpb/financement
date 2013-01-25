@@ -333,7 +333,8 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 				,'solde'=>$dossier->solde
 				,'montant_ok'=>$dossier->somme_affaire
 				,'nature_financement'=>$dossier->nature_financement
-				
+				,'rentabilite_attendue'=>$financement->somme_echeance - $financementLeaser->somme_echeance
+				,'rentabilite_reelle'=>$financement->somme_facture - $financementLeaser->somme_facture
 			)
 			,'financement'=>$TFinancement
 			,'financementLeaser'=>$TFinancementLeaser
