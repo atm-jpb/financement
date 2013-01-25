@@ -77,14 +77,18 @@
 					</td>
 				</tr>
 				<tr>
-					<td>Echéancier Client<!-- [onshow;block=(td);when [dossier.nature_financement]='INTERNE'] --></td>
-					<td>Echéancier Leaser</td>
+					<td valign="top">[financement.echeancier; strconv=no]<!-- [onshow;block=(td);when [dossier.nature_financement]='INTERNE'] --></td>
+					<td valign="top">[financementLeaser.echeancier; strconv=no]</td>
 				</tr>
 				</table>
 				
 				
 			</td>
 		</tr>
+		
+		
+		<tr><td width="20%">Rentabilité attendue</td><td>[dossier.rentabilite_attendue; frm='0,00 €']</td></tr>
+		<tr><td width="20%">Rentabilité réelle</td><td>[dossier.rentabilite_reelle; frm='0,00 €']</td></tr>
 		<tr><td width="20%">Date de mise en relocation</td><td>[dossier.date_relocation; strconv=no]</td></tr>
 						
 		

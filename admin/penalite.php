@@ -35,7 +35,7 @@ llxHeader('',$langs->trans("FinancementSetup"));
 print_fiche_titre($langs->trans("FinancementSetup"),'','setup32@financement');
 $head = financement_admin_prepare_head(null);
 
-dol_fiche_head($head, 'grille', $langs->trans("Financement"), 0, 'financementico@financement');
+dol_fiche_head($head, 'penalite', $langs->trans("Financement"), 0, 'financementico@financement');
 dol_htmloutput_mesg($mesg);
 
 $formfin = new FormFinancement($db);
@@ -64,18 +64,17 @@ if($action == 'save') {
 				$coeff = floatval(strtr($values['coeff'], $tabStrConversion));
 				$rowid = $values['rowid'];
 				$periode = intval(strtr($tabPeriode[$iPeriode], $tabStrConversion));
-				$montant = floatval(strtr($tabPalier[$iPalier], $tabStrConversion));
-
-				if(!empty($tabPalier[$iPalier])) {
+print "$coeff : $rowid : $periode";
+				
 					if(!empty($rowid)) { // La valeur existait avant => mise à jour si modifiée
 						$g->fetch($rowid);
-						if($g->periode != $tabPeriode[$iPeriode] || $g->montant != $tabPalier[$iPalier] || $g->coeff != $coeff) {
+						if($g->periode != $tabPeriode[$iPeriode]|| $g->coeff != $coeff) {
 							$g->fk_soc = $idLeaser;
 							$g->fk_type_contrat = $idTypeContrat;
 							$g->periode = $periode;
-							$g->montant = $montant;
 							$g->coeff = $coeff;
 							$g->fk_user = $user->id;
+							$g->type='PENALITE';
 							$res = $g->update($user);
 						}
 					} else { // Nouvelle valeur => création
@@ -83,19 +82,14 @@ if($action == 'save') {
 							$g->fk_soc = $idLeaser;
 							$g->fk_type_contrat = $idTypeContrat;
 							$g->periode = $periode;
-							$g->montant = $montant;
 							$g->coeff = $coeff;
 							$g->fk_user = $user->id;
+							$g->type='PENALITE';
 							$res = $g->create($user);
 						}
 					}
-				} else { // Le montant du palier a été vidé, on supprime les coeff correspondants
-					if(!empty($rowid)) {
-						$g->fetch($rowid);
-						$g->delete($user);
-					}
-				}
-			}
+				
+			
 		}
 		
 		if($res > 0) {
@@ -104,6 +98,7 @@ if($action == 'save') {
 			$mesg .= $g->error;
 			$error = true;
 		}
+		}
 	}
 }
 
@@ -111,12 +106,12 @@ if($action == 'save') {
 $idLeaser = FIN_LEASER_DEFAULT; // Identifiant de la société associée à la grille (C'PRO ici, sera l'identifiant leaser pour les grilles leaser)
 $liste_type_contrat = $formfin->array_financement('type_contrat');
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
-	$grille = new Grille($db);
-	$liste_coeff = $grille->get_grille($idLeaser, $idTypeContrat);
+	$grille = new Grille($db, 'PENALITE');
+	$liste_coeff = $grille->get_grille($idLeaser, $idTypeContrat,'opt_trimestriel', array(), 'PENALITE');
 	
 	print_titre($langs->trans("GlobalCoeffGrille").' - '.$label);
 	
-	include '../tpl/admin.grille.tpl.php';
+	include '../tpl/admin.grille.penalite.tpl.php';
 }
 
 dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));

@@ -263,11 +263,8 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'date_fin'=>$financementLeaser->get_date('date_fin')
 			,'date_prochaine_echeance'=>$financementLeaser->get_date('date_prochaine_echeance')
 			
-			
+			,'echeancier'=>$financementLeaser->echeancier()
 	);
-		
-	
-
 	
 	if(isset($financement)) {
 		$TFinancement = array(
@@ -285,16 +282,15 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'numero_prochaine_echeance'=>$financement->numero_prochaine_echeance 
 			,'duree'=>$form->texte('', 'duree', $financement->duree, 5,255,'','','à saisir')
 								
-							
 			,'periodicite'=>$form->combo('', 'periodicite', $financement->TPeriodicite , $financement->periodicite)
 			,'reglement'=>$form->combo('', 'reglement', $financement->TReglement , $financement->reglement)
 			,'incident_paiement'=>$form->combo('', 'incident_paiement', $financement->TIncidentPaiement , $financement->incident_paiement) 
 			
 			,'date_debut'=>$form->calendrier('', 'date_debut', $financement->get_date('date_debut'),10)
-			,'date_fin'=>$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
+			,'date_fin'=>$financement->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financement->date_prochaine_echeance>0) ? $financement->get_date('date_prochaine_echeance') : ''
 			
-			
+			,'echeancier'=>$financement->echeancier()
 		);
 	}
 	else {
@@ -319,6 +315,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 				,'date_debut'=> 0
 				,'date_fin'=>0
 				,'date_prochaine_echeance'=>0
+				,'echeancier'=>''
 			);
 	}
 	
@@ -336,7 +333,8 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 				,'solde'=>$dossier->solde
 				,'montant_ok'=>$dossier->somme_affaire
 				,'nature_financement'=>$dossier->nature_financement
-				
+				,'rentabilite_attendue'=>$financement->somme_echeance - $financementLeaser->somme_echeance
+				,'rentabilite_reelle'=>$financement->somme_facture - $financementLeaser->somme_facture
 			)
 			,'financement'=>$TFinancement
 			,'financementLeaser'=>$TFinancementLeaser

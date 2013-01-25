@@ -23,5 +23,7 @@
 	
 	require(COREROOT.'inc.core.php');
 	
+	define('FIN_LEASER_DEFAULT', 1); 
+	define('FIN_TVA_DEFAUT', 1.196);
 	define('DOL_ADMIN_USER', 'admin');
 	define('FIN_IMPORT_FOLDER', ROOT.'custom/financement/import/');

@@ -50,17 +50,19 @@ class Grille // extends CommonObject
 	var $fk_user;
 	var $tms='';
 
-    
-
+    var $type='';
+	
 
     /**
      *  Constructor
      *
      *  @param	DoliDb		$db      Database handler
      */
-    function __construct($db)
+    function __construct($db, $type='LEASER')
     {
         $this->db = $db;
+		$this->type=$type;
+		
         return 1;
     }
 
@@ -85,7 +87,7 @@ class Grille // extends CommonObject
 		if (isset($this->periode)) $this->periode=trim($this->periode);
 		if (isset($this->coeff)) $this->coeff=trim($this->coeff);
 		if (isset($this->fk_user)) $this->fk_user=trim($this->fk_user);
-
+		
         
 
 		// Check parameters
@@ -99,17 +101,19 @@ class Grille // extends CommonObject
 		$sql.= "montant,";
 		$sql.= "periode,";
 		$sql.= "coeff,";
-		$sql.= "fk_user";
+		$sql.= "fk_user,";
+		$sql.= "type";
 
 		
         $sql.= ") VALUES (";
         
 		$sql.= " ".(! isset($this->fk_soc)?'NULL':"'".$this->fk_soc."'").",";
 		$sql.= " ".(! isset($this->fk_type_contrat)?'NULL':"'".$this->fk_type_contrat."'").",";
-		$sql.= " ".(! isset($this->montant)?'NULL':"'".$this->montant."'").",";
+		$sql.= " ".(! isset($this->montant)?0:"'".$this->montant."'").",";
 		$sql.= " ".(! isset($this->periode)?'NULL':"'".$this->periode."'").",";
 		$sql.= " ".(! isset($this->coeff)?'NULL':"'".$this->coeff."'").",";
-		$sql.= " ".(! isset($this->fk_user)?'NULL':"'".$this->fk_user."'");
+		$sql.= " ".(! isset($this->fk_user)?'NULL':"'".$this->fk_user."'").",";
+		$sql.= " ".(! isset($this->type)?'NULL':"'".$this->type."'");
 
         
 		$sql.= ")";
@@ -175,7 +179,7 @@ class Grille // extends CommonObject
 		$sql.= " t.periode,";
 		$sql.= " t.coeff,";
 		$sql.= " t.fk_user,";
-		$sql.= " t.tms";
+		$sql.= " t.tms,t.type";
 
 		
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
@@ -198,7 +202,8 @@ class Grille // extends CommonObject
 				$this->coeff = $obj->coeff;
 				$this->fk_user = $obj->fk_user;
 				$this->tms = $this->db->jdate($obj->tms);
-
+				$this->type = $obj->type;
+				
                 
             }
             $this->db->free($resql);
@@ -248,6 +253,7 @@ class Grille // extends CommonObject
 		$sql.= " montant=".(isset($this->montant)?$this->montant:"null").",";
 		$sql.= " periode=".(isset($this->periode)?$this->periode:"null").",";
 		$sql.= " coeff=".(isset($this->coeff)?$this->coeff:"null").",";
+		$sql.= " type='".(isset($this->type)?$this->type:"null")."',";
 		$sql.= " fk_user=".(isset($this->fk_user)?$this->fk_user:"null");
 
         
@@ -425,7 +431,6 @@ class Grille // extends CommonObject
 		$this->coeff='';
 		$this->fk_user='';
 		$this->tms='';
-
 		
 	}
 
@@ -439,7 +444,7 @@ class Grille // extends CommonObject
 	 *  @param	int		$idTypeContrat  Id type contrat
      *  @return array   Tableau contenant les grilles de coeff, false si vide
      */
-    function get_grille($idLeaser, $idTypeContrat, $periodicite='opt_trimestriel', $options=array())
+    function get_grille($idLeaser, $idTypeContrat, $periodicite='opt_trimestriel' , $options=array(),$type='LEASER')
     {
     	if(empty($idLeaser) || empty($idTypeContrat)) return false;
 
@@ -448,7 +453,7 @@ class Grille // extends CommonObject
 		$sql.= " t.rowid";
 		
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
-        $sql.= " WHERE t.fk_soc = ".$idLeaser;
+        $sql.= " WHERE t.fk_soc = ".$idLeaser. " AND t.type='$type'";
 		$sql.= " AND t.fk_type_contrat = '".$idTypeContrat."'";
 		$sql.= " ORDER BY t.periode, t.montant ASC";
 
@@ -489,14 +494,14 @@ class Grille // extends CommonObject
 	/**
 	 * Récupération de la liste des durée possible pour un type de contrat et pour un leaser
 	 */
-	function get_duree($idLeaser, $idTypeContrat=0, $periodicite='opt_trimestriel') {
+	function get_duree($idLeaser, $idTypeContrat=0, $periodicite='opt_trimestriel',$type='LEASER') {
 		if(empty($idLeaser)) return -1;
 		global $langs;
 
 		$sql = "SELECT";
 		$sql.= " t.periode";		
 		$sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
-		$sql.= " WHERE t.fk_soc = ".$idLeaser;
+		$sql.= " WHERE t.fk_soc = ".$idLeaser. " AND t.type='$type'";
 		if(!empty($idTypeContrat)) $sql.= " AND t.fk_type_contrat = ".$idTypeContrat;
 		$sql.= " ORDER BY t.periode ASC";
 
@@ -529,7 +534,7 @@ class Grille // extends CommonObject
 		}
 	}
 
-	function get_coeff($idLeaser, $idTypeContrat, $periodicite='opt_trimestriel', $montant, $duree, $options=array())
+	function get_coeff($idLeaser, $idTypeContrat, $periodicite='opt_trimestriel', $montant, $duree, $options=array(),$type='LEASER')
     {
     	if(empty($idLeaser) || empty($idTypeContrat)) return -1;
 		
@@ -542,7 +547,7 @@ class Grille // extends CommonObject
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
         $sql.= " WHERE t.fk_soc = ".$idLeaser;
 		$sql.= " AND t.fk_type_contrat = ".$idTypeContrat;
-		$sql.= " AND t.periode = ".$duree;
+		$sql.= " AND t.periode = ".$duree. " AND t.type='$type'";
 		$sql.= " ORDER BY t.montant ASC";
 
     	dol_syslog(get_class($this)."::get_coeff sql=".$sql, LOG_DEBUG);
@@ -678,64 +683,7 @@ class Grille // extends CommonObject
 		return true; 
 	}
 
-	function showEcheancier($montant, &$duree, &$echeance, $vr, &$coeff, $affichage = 'TRIMESTRE', $date=null) {
-		
-		  
-		 /*
-		 * Affiche l'échéancier
-		 * ----
-		 * Périodes
-		 * Dates des Loyers
-		 * Période
-		 * Valeurs de Rachat - Pénal 8.75%
-		 * Capital Résid.Risque Résid. HT
-		 * Amortissmt Capital HT
-		 * Part Intérêts
-		 * Assurance
-		 * Loyers HT 
-		 * Loyers TTC
-		 */
-		 
-		 if(is_null($date))$date=date('Y-m-d');
-		 
-		 ?><table>
-		 	<tr>
-		 		<th>Date</th>
-		 		<th>Capital restant dû</th>
-		 		<th>Echéance</th>
-		 	</tr>
-		 <?
-		 
-		 $capital_restant = $montant;
-		 
-		 for($i=1; $i<=$duree; $i++) {
-		 	
-			$time = strtotime('+'.($i*3).' month',  strotime($date));	
-							
-		 	?><tr>				
-		 		<td><?=date('d/m/Y', $time)?></td>	
-		 		<td><?=$capital_restant?> &euro;</td>
-		 		<td><?=$echeance?> &euro;</td>
-		 	</tr><?
-		 	
-		 	$capital_restant-=$echeance;
-		 	
-		 }
-		 
-		 if($vr>0) {
-		 	?><tr>				
-		 		<td><?=date('d/m/Y', $time)?></td>	
-		 		<td><?=$capital_restant?> &euro;</td>
-		 		<td><?=$vr?> &euro;</td>
-		 	</tr><?
-		 	
-		 }
-		 
-		 
-		 ?></table><?
-		 
-		 
-	}
+	
 
 }
 ?>

@@ -35,10 +35,12 @@ CREATE TABLE IF NOT EXISTS `llx_fin_grille_leaser` (
   `coeff` float NOT NULL DEFAULT '0',
   `fk_user` int(11) NOT NULL,
   `tms` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `type` ENUM( 'LEASER', 'PENALITE' ) NOT NULL ,
   PRIMARY KEY (`rowid`),
   KEY `fk_soc` (`fk_soc`),
   KEY `fk_type_contrat` (`fk_type_contrat`),
-  KEY `coeff` (`coeff`)
+  KEY `coeff` (`coeff`),
+  KEY `type` (`coeff`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='utf8_general_ci' AUTO_INCREMENT=6 ;
 
 --
