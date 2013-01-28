@@ -257,13 +257,13 @@ class Grille // extends CommonObject
 		$sql.= " fk_user=".(isset($this->fk_user)?$this->fk_user:"null");
 
         
-        $sql.= " WHERE rowid=".$this->id;
+        $sql.= " WHERE rowid=".(int)$this->id;
 
 		$this->db->begin();
 
 		dol_syslog(get_class($this)."::update sql=".$sql, LOG_DEBUG);
         $resql = $this->db->query($sql);
-    	if (! $resql) { $error++; $this->errors[]="Error ".$this->db->lasterror(); }
+    	if (! $resql) { $error++; $this->errors[]="Error update ".$this->db->lasterror(); }
 
 		if (! $error)
 		{
@@ -332,12 +332,11 @@ class Grille // extends CommonObject
 
 		if (! $error)
 		{
-    		$sql = "DELETE FROM ".MAIN_DB_PREFIX."fin_grille_leaser";
-    		$sql.= " WHERE rowid=".$this->id;
-
+    		$sql = "DELETE FROM ".MAIN_DB_PREFIX."fin_grille_leaser WHERE rowid=".(int)$this->id;
+    		
     		dol_syslog(get_class($this)."::delete sql=".$sql);
     		$resql = $this->db->query($sql);
-        	if (! $resql) { $error++; $this->errors[]="Error ".$this->db->lasterror(); }
+        	if (! $resql) { $error++; $this->errors[]="Error delete ".$this->db->lasterror(); }
 		}
 
         // Commit or rollback

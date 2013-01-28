@@ -37,36 +37,15 @@ if(!empty($liste_coeff)) {
 	<input type="hidden" name="idTypeContrat" value="<?php echo $idTypeContrat ?>">
 	<input type="hidden" name="idLeaser" value="<?php echo $idLeaser ?>">
 	
-	<table class="noborder" width="100%">
-<?php $i = 0;
-//print_r($liste_coeff);
- foreach($liste_coeff as $periode => $palier) { 
-	
-	if($first) { 
-		?><tr class="liste_titre"><td><?php echo $langs->trans("Periode") ?></td><?
-	} 
-	
-		$palier[''] = '';
-		if($first) {
-			$j = 0;
-			$min = 0;
-			foreach ($palier as $montant => $values) {
-				$rowid = empty($values['rowid']) ? '' : $values['rowid'];
-			
-				print '<td align="center"> De';
-				print ' '.$min.' à ';
-				print ' <input type="text" class="flat" style="text-align: center;" name="tabPeriode['.$j.']" size="2" value="'.$periode.'" /> '.$langs->trans('Trimestres').'</td>';
-				$j++;
-				
-			}
-			$min = $periode;
-			$first = false;
-		}
-	?>
-	
-	<tr>
+	<table class="noborder" width="100%"><tr class="liste_titre"><td><?php echo $langs->trans("Periode") ?></td><td align="center">Coefficient</td>
+<?php $i = 0; 
+
+foreach($liste_coeff as $periode => $palier) { 
+		
+	?><tr>
 		<td>
-			Taux de pénalité
+			<input type="text" class="flat" name="tabPeriode[<?php echo $i ?>]" size="2" value="<?php echo $periode ?>" />
+			<?php echo $langs->trans("Trimestres") ?>
 		</td>
 	
 	<?php

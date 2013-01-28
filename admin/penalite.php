@@ -51,45 +51,51 @@ $action = GETPOST('action', 'alpha');
 if($action == 'save') {
 	$tabCoeff = GETPOST('tabCoeff');
 	$tabPeriode = GETPOST('tabPeriode');
-	$tabPalier = GETPOST('tabPalier');
 	$idTypeContrat = GETPOST('idTypeContrat');
 	$idLeaser = GETPOST('idLeaser');
 	
 	$tabStrConversion = array(',' => '.', ' ' => ''); // Permet de transformer les valeurs en nombres
 	
 	if(!empty($tabCoeff)) {
-		$g = new Grille($db);
+		$g = new Grille($db,'PENALITE');
 		foreach ($tabCoeff as $iPeriode => $tabVal) {
 			foreach ($tabVal as $iPalier => $values) {
 				$coeff = floatval(strtr($values['coeff'], $tabStrConversion));
 				$rowid = $values['rowid'];
 				$periode = intval(strtr($tabPeriode[$iPeriode], $tabStrConversion));
-print "$coeff : $rowid : $periode";
 				
+print "$iPeriode $iPalier $coeff $rowid $periode $montant<br>";
+				if(!empty($periode)) {
 					if(!empty($rowid)) { // La valeur existait avant => mise à jour si modifiée
 						$g->fetch($rowid);
-						if($g->periode != $tabPeriode[$iPeriode]|| $g->coeff != $coeff) {
-							$g->fk_soc = $idLeaser;
-							$g->fk_type_contrat = $idTypeContrat;
-							$g->periode = $periode;
-							$g->coeff = $coeff;
-							$g->fk_user = $user->id;
-							$g->type='PENALITE';
-							$res = $g->update($user);
-						}
+						
+						$g->fk_soc = $idLeaser;
+						$g->fk_type_contrat = $idTypeContrat;
+						$g->periode = $periode;
+						$g->montant = 0;
+						$g->coeff = $coeff;
+						$g->fk_user = $user->id;
+						$res = $g->update($user);
+						print "ok";
+								
 					} else { // Nouvelle valeur => création
 						if(!empty($coeff)) {
 							$g->fk_soc = $idLeaser;
 							$g->fk_type_contrat = $idTypeContrat;
 							$g->periode = $periode;
+							$g->montant = 0;
 							$g->coeff = $coeff;
 							$g->fk_user = $user->id;
-							$g->type='PENALITE';
 							$res = $g->create($user);
 						}
 					}
-				
-			
+				} else { // Le montant du palier a été vidé, on supprime les coeff correspondants
+					if(!empty($rowid)) {
+						$g->fetch($rowid);
+						$g->delete($user);
+					}
+				}
+			}
 		}
 		
 		if($res > 0) {
@@ -97,7 +103,6 @@ print "$coeff : $rowid : $periode";
 		} else {
 			$mesg .= $g->error;
 			$error = true;
-		}
 		}
 	}
 }
@@ -109,8 +114,8 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$grille = new Grille($db, 'PENALITE');
 	$liste_coeff = $grille->get_grille($idLeaser, $idTypeContrat,'opt_trimestriel', array(), 'PENALITE');
 	
-	print_titre($langs->trans("GlobalCoeffGrille").' - '.$label);
-	
+	print_titre('Grille de coefficient de pénalité'.' - '.$label);
+	print_r($liste_coeff);
 	include '../tpl/admin.grille.penalite.tpl.php';
 }
 
