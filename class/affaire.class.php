@@ -57,7 +57,6 @@ class TFin_affaire extends TObjetStd {
 	function load(&$db, $id, $annexe=true) {
 		
 		$res = parent::load($db, $id);
-		$this->loadTypeContrat($db);
 		
 		if($annexe) {
 			$this->loadDossier($db);
