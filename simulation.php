@@ -122,7 +122,7 @@ function _liste(&$ATMdb, &$simulation) {
 	if(isset($_REQUEST['socid'])) {
 		$sql.= ' AND s.fk_soc='.$_REQUEST['socid'];
 		$societe = new Societe($db);
-		$societe->fetch($_REQUEST['fk_soc']);
+		$societe->fetch($_REQUEST['socid']);
 		$head = societe_prepare_head($societe);
 		dol_fiche_head($head, 'simulation', $langs->trans("ThirdParty"),0,'company');
 		
