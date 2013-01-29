@@ -71,7 +71,7 @@ dol_fiche_head($head, 'scores', $langs->trans("ThirdParty"),0,'company');
 <form action="<?php echo $_SERVER["PHP_SELF"] ?>?socid=<?php echo $societe->id ?>" method="POST">
 	<input type="hidden" name="token" value="<?php echo $_SESSION['newtoken'] ?>">
 	<input type="hidden" name="action" value="add">
-	<input type="hidden" name="id" value="<?php echo $object->id ?>">
+	<input type="hidden" name="id" value="<?php echo $object->rowid ?>">
 
 	<table class="border" width="100%">
 	<tr>
@@ -81,7 +81,7 @@ dol_fiche_head($head, 'scores', $langs->trans("ThirdParty"),0,'company');
 
 	<tr>
 		<td width="15%"><?php echo  $langs->trans('EncoursMax') ?></td>
-		<td><input type="text" name="encours_max" value="<?php echo $object->encours_max ?>" /></td>
+		<td><input type="text" name="encours_conseille" value="<?php echo $object->encours_conseille ?>" /></td>
 	</tr>
 
 	<tr>

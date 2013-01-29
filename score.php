@@ -58,15 +58,11 @@ if ($action == 'add' && empty($cancel) && $user->rights->financement->score->wri
 {
 	$object->fk_soc = $socid;
 	$object->score = GETPOST('score', 'int');
-	$object->encours_max = GETPOST('encours_max', 'int');
-	$object->date=dol_mktime(0, 0, 0, GETPOST('dtmonth'), GETPOST('dtday'), GETPOST('dtyear'));
+	$object->encours_conseille = GETPOST('encours_conseille', 'int');
+	$object->date_score=dol_mktime(0, 0, 0, GETPOST('dtmonth'), GETPOST('dtday'), GETPOST('dtyear'));
 	$object->fk_user_author=$user->id;
 	
-	if(empty($id)) {
-		$result = $object->create($user);
-	} else {
-		$result = $object->update($user);
-	}
+	$result = $object->save($ATMdb);
 	
 	if($result > 0) {
 		$action = '';
@@ -80,7 +76,7 @@ if ($action == 'add' && empty($cancel) && $user->rights->financement->score->wri
 }
 else if ($action == 'delete' && !empty($id) && $user->rights->financement->score->delete)
 {
-	$result=$object->delete($user);
+	$result=$object->delete($ATMdb);
 	if ($result < 0) {
 		$mesg='<div class="error">'.$object->error.'</div>';
 		$error = true;
