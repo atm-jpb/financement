@@ -151,9 +151,6 @@ global $langs,$conf, $db;
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
 			,'nbLine'=>'30'
 		)
-		/*,'subQuery'=>array(
-			'Type de contrat'=>"SELECT code FROM llx_fin_const WHERE type='type_contrat'"
-		)*/
 		,'link'=>array(
 			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
 			,'Numéro d\'affaire'=>'<a href="?id=@ID@">@val@</a>'

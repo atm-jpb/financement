@@ -4,7 +4,6 @@
 	require('./class/import_error.class.php');
 	
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
-	dol_include_once('/financement/class/html.formfinancement.class.php');
 
 	$langs->load('financement@financement');
 	$import=new Import($db);
@@ -145,7 +144,6 @@ function _fiche(&$ATMdb, &$import, $mode) {
 	llxHeader('','Imports');
 	
 	$html=new Form($db);
-	$formfin = new FormFinancement($db);
 
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formNewImport','POST', true);
 	$form->Set_typeaff($mode);

@@ -32,7 +32,6 @@ if (empty($_GET['keysearch']) && ! defined('NOREQUIREHTML'))  define('NOREQUIREH
 
 require('config.php');
 dol_include_once('/financement/class/grille.class.php');
-dol_include_once('/financement/class/html.formfinancement.class.php');
 require_once(DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php');
 
 $langs->load("main");
@@ -71,12 +70,12 @@ function get_duree() {
 	
 	$outjson = GETPOST('outjson', 'int');
 
-	$formfin = new FormFinancement($db);
+	$grille = new Grille($db);
 	$form = new TFormCore();
 	$idTypeContrat = GETPOST('idTypeContrat');
 	$opt_periodicite = GETPOST('opt_periodicite');
 
-	$htmlresult = $form->combo('','duree', $formfin->array_duree($idTypeContrat, $opt_periodicite), '');
+	$htmlresult = $form->combo('','duree', $grille->get_duree(FIN_LEASER_DEFAULT, $idTypeContrat, $opt_periodicite), '');
 	
 	$db->close();
 	
@@ -97,7 +96,6 @@ function get_grille() {
 		exit();
 	}
 	
-	$formfin = new FormFinancement($db);
 	$grille = new Grille($db);
 	$liste_coeff = $grille->get_grille($idLeaser, $fk_type_contrat, $opt_periodicite, $options);
 	

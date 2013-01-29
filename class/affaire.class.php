@@ -69,14 +69,6 @@ class TFin_affaire extends TObjetStd {
 		
 		return $res;
 	}
-	function loadTypeContrat(&$db) {
-		global $langs;
-		$langs->load('financement@financement');
-		$db->Execute("SELECT code FROM ".MAIN_DB_PREFIX."fin_const WHERE type='type_contrat'");
-		while($db->Get_line()){
-			$this->TContrat[$db->Get_field('code')] = $langs->trans( $db->Get_field('code') );
-		}
-	}
 	function loadCommerciaux(&$db) {
 		
 		$Tab = TRequeteCore::get_id_from_what_you_want($db,MAIN_DB_PREFIX.'fin_affaire_commercial',array('fk_fin_affaire'=>$this->getId()));

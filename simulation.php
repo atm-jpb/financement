@@ -6,7 +6,6 @@ require('./class/affaire.class.php');
 require('./class/score.class.php');
 
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
-dol_include_once('/financement/class/html.formfinancement.class.php');
 require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 
 $langs->load('financement@financement');
@@ -211,7 +210,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $affaire->TModeReglement, $simulation->opt_mode_reglement,1,'','','flat')
 				,'opt_terme'=>$form->combo('', 'opt_terme', $affaire->TTerme, $simulation->opt_mode_reglement,1,'','','flat')
 				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)
-				,'duree'=>$form->combo('', 'duree', $grille->get_duree(1), $simulation->duree,1,'','','flat')
+				,'duree'=>$form->combo('', 'duree', $grille->get_duree(FIN_LEASER_DEFAULT), $simulation->duree,1,'','','flat')
 				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
 				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
 				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 5)
@@ -228,10 +227,10 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'siret'=>$simulation->societe->idprof2
 				,'code_client'=>$simulation->societe->code_client
 				,'display_score'=>$user->rights->financement->score->read && $simulation->societe->score->id > 0 ? 1 : 0
-				,'score_date'=>$simulation->societe->score->get_date('date_score')
-				,'score'=>$simulation->societe->score->score
-				,'encours_cpro'=>0
-				,'encours_conseille'=>$simulation->societe->score->encours_conseille
+				,'score_date'=>empty($simulation->societe) ? '' : $simulation->societe->score->get_date('date_score')
+				,'score'=>empty($simulation->societe) ? '' : $simulation->societe->score->score
+				,'encours_cpro'=>empty($simulation->societe) ? '' : 0
+				,'encours_conseille'=>empty($simulation->societe) ? '' : $simulation->societe->score->encours_conseille
 				
 				,'liste_dossier'=>_liste_dossier($ATMdb, $simulation)
 			)

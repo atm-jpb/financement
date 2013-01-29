@@ -25,10 +25,8 @@
 
 require('../config.php');
 dol_include_once('/financement/lib/admin.lib.php');
-dol_include_once('/financement/class/html.formfinancement.class.php');
 
 if (!$user->rights->financement->admin->write) accessforbidden();
-
 
 llxHeader('',$langs->trans("FinancementSetup"));
 print_fiche_titre($langs->trans("FinancementSetup"),'','setup32@financement');
@@ -36,8 +34,6 @@ $head = financement_admin_prepare_head(null);
 
 dol_fiche_head($head, 'other', $langs->trans("Financement"), 0, 'financementico@financement');
 dol_htmloutput_mesg($mesg);
-
-$formfin = new FormFinancement($db);
 
 dol_fiche_end();
 

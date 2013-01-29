@@ -25,7 +25,7 @@
 
 require('../config.php');
 dol_include_once('/financement/lib/admin.lib.php');
-dol_include_once('/financement/class/html.formfinancement.class.php');
+dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
 
 if (!$user->rights->financement->admin->write) accessforbidden();
@@ -37,8 +37,6 @@ $head = financement_admin_prepare_head(null);
 
 dol_fiche_head($head, 'grille', $langs->trans("Financement"), 0, 'financementico@financement');
 dol_htmloutput_mesg($mesg);
-
-$formfin = new FormFinancement($db);
 
 /**
  * ACTIONS
@@ -109,7 +107,8 @@ if($action == 'save') {
 
 // Grille de coeff globale + % de pénalité par option
 $idLeaser = FIN_LEASER_DEFAULT; // Identifiant de la société associée à la grille (C'PRO ici, sera l'identifiant leaser pour les grilles leaser)
-$liste_type_contrat = $formfin->array_financement('type_contrat');
+$affaire = new TFin_affaire();
+$liste_type_contrat = $affaire->TContrat;
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$grille = new Grille($db);
 	$liste_coeff = $grille->get_grille($idLeaser, $idTypeContrat);
