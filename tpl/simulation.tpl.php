@@ -25,18 +25,18 @@
 			<td>Code Artis</td>
 			<td>[client.code_client]</td>
 		</tr>
-		[onshow;block=begin;when [client.score]!='']
+		[onshow;block=begin;when [client.display_score]=1]
 		<tr>
 			<td>Date du score</td>
 			<td align="right">[client.score_date]</td>
 			<td>Score</td>
-			<td align="center">[client.score] / 100</td>
+			<td align="center">[client.score] / 20</td>
 		</tr>
 		<tr>
 			<td>Encours CPRO</td>
 			<td align="right">[client.encours_cpro]</td>
 			<td>Encours Max</td>
-			<td align="right">[client.encours_max]</td>
+			<td align="right">[client.encours_conseille]</td>
 		</tr>
 		[onshow;block=end]
 	</table>

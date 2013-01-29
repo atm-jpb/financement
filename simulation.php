@@ -3,6 +3,7 @@ require('config.php');
 require('./class/simulation.class.php');
 require('./class/grille.class.php');
 require('./class/affaire.class.php');
+require('./class/score.class.php');
 
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 dol_include_once('/financement/class/html.formfinancement.class.php');
@@ -10,8 +11,6 @@ require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 
 $langs->load('financement@financement');
 $simulation=new TSimulation;
-$simulation->init();
-$simulation->fk_user_author = $user->id;
 $ATMdb = new Tdb;
 $tbs = new TTemplateTBS;
 
@@ -39,7 +38,7 @@ if(!empty($action)) {
 			
 			break;
 		case 'calcul':
-			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $_REQUEST['id']);
+			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			$simulation->set_values($_REQUEST);
 			_calcul($simulation);
 			_fiche($ATMdb, $simulation,'edit');
@@ -47,13 +46,13 @@ if(!empty($action)) {
 			break;	
 		case 'edit'	:
 		
-			$simulation->load($ATMdb, $_REQUEST['id']);
+			$simulation->load($ATMdb, $db, $_REQUEST['id']);
 			
 			_fiche($ATMdb, $simulation,'edit');
 			break;
 			
 		case 'save':
-			$simulation->load($ATMdb, $_REQUEST['id']);
+			$simulation->load($ATMdb, $db, $_REQUEST['id']);
 			$simulation->set_values($_REQUEST);
 			
 			//$ATMdb->db->debug=true;
@@ -67,7 +66,7 @@ if(!empty($action)) {
 		
 			
 		case 'delete':
-			$simulation->load($ATMdb, $_REQUEST['id']);
+			$simulation->load($ATMdb, $db, $_REQUEST['id']);
 			//$ATMdb->db->debug=true;
 			$simulation->delete($ATMdb);
 			
@@ -83,7 +82,7 @@ if(!empty($action)) {
 	
 }
 elseif(isset($_REQUEST['id'])) {
-	$simulation->load($ATMdb, $_REQUEST['id']);
+	$simulation->load($ATMdb, $db, $_REQUEST['id']);
 	
 	_fiche($ATMdb, $simulation, 'view');global $mesg, $error;
 }
@@ -174,50 +173,6 @@ function _liste(&$ATMdb, &$simulation) {
 function _fiche(&$ATMdb, &$simulation, $mode) {
 	global $db, $langs, $user, $conf;
 	
-	if(empty($simulation->societe) && !empty($simulation->fk_soc)) {
-		$simulation->societe = new Societe($db);
-		$simulation->societe->fetch($simulation->fk_soc);
-		
-		if($user->rights->financement->score->read) {
-			// Récupération du score du client si droits ok
-			$sql = "SELECT s.score, s.date, s.encours_max";
-			$sql.= " FROM ".MAIN_DB_PREFIX."fin_score as s";
-			$sql.= " WHERE s.fk_soc = ".$simulation->fk_soc;
-			$sql.= " ORDER BY s.date DESC";
-			$sql.= " LIMIT 1";
-			
-			$score=$db->query($sql);
-			if($score) {
-				$obj = $db->fetch_object($dossier_list);
-				$simulation->societe->score = $obj->score;
-				$simulation->societe->score_date = $obj->date;
-				$simulation->societe->encours_max = $obj->encours_max;
-				$simulation->societe->encours_cpro = 0;
-			}
-		}
-		
-		if ($user->rights->financement->alldossier->read || $user->rights->financement->mydossier->read) {
-			// Récupération des dossiers du client
-			$sql = "SELECT d.ref, d.montant, d.datedeb, d.datefin";
-			$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier as d, ".MAIN_DB_PREFIX."societe as s";
-			$sql.= " WHERE d.fk_soc = s.rowid";
-			$sql.= " AND s.entity = ".$conf->entity;
-			
-			if (! $user->rights->financement->alldossier->read) //restriction
-			{
-				$sql.= " AND d.fk_user_author = " .$user->id;
-			}
-			
-			$sql.= " ORDER BY d.datedeb DESC";
-			$dossier_list=$db->query($sql);
-		}
-		
-		if(empty($simulation->user)) {
-			$simulation->user = new User($db);
-			$simulation->user->fetch($simulation->fk_user_author);
-		}
-	}
-
 	$extrajs = array('/financement/js/financement.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
 	
@@ -261,7 +216,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
 				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 5)
 				,'cout_financement'=>$simulation->cout_financement
-				,'accord'=>($simulation->accord ? 'Accord OK' : 'Accord en attente')
+				,'accord'=>strtr($simulation->accord, array('OK' => 'Accord OK', 'WAIT' => 'Accord en attente', 'KO' => 'Financement refusé'))
 				
 				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>'
 				,'date'=>$simulation->date_simul
@@ -272,10 +227,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'cpville'=>$simulation->societe->cp.' / '.$simulation->societe->ville
 				,'siret'=>$simulation->societe->idprof2
 				,'code_client'=>$simulation->societe->code_client
-				,'score_date'=>$simulation->societe->score_date
-				,'score'=>$simulation->societe->score
-				,'encours_cpro'=>$simulation->societe->encours_cpro
-				,'encours_max'=>$simulation->societe->encours_max
+				,'display_score'=>$user->rights->financement->score->read && $simulation->societe->score->id > 0 ? 1 : 0
+				,'score_date'=>$simulation->societe->score->get_date('date_score')
+				,'score'=>$simulation->societe->score->score
+				,'encours_cpro'=>0
+				,'encours_conseille'=>$simulation->societe->score->encours_conseille
 				
 				,'liste_dossier'=>_liste_dossier($ATMdb, $simulation)
 			)
@@ -298,11 +254,6 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 
 function _calcul(&$simulation) {
 	global $mesg, $error, $langs, $db;
-
-	if(empty($simulation->societe) && !empty($simulation->fk_soc)) {
-		$simulation->societe = new Societe($db);
-		$simulation->societe->fetch($simulation->fk_soc);
-	}
 
 	$options = array();
 	foreach($_POST as $k => $v) {
@@ -328,14 +279,7 @@ function _calcul(&$simulation) {
 			$mesg = $langs->trans($grille->error);
 			$error = true;
 		} else { // Sinon, vérification accord à partir du calcul
-			$simulation->cout_financement = $simulation->echeance * $simulation->duree - $simulation->montant;
-			// TODO : Revoir validation financement avec les règles finales
-			if(!(empty($simulation->fk_soc))) {
-				$simulation->accord = false;
-				if($simulation->societe->score > 50 && $simulation->societe->encours_max > ($simulation->societe->encours_cpro + $simulation-Wmontant) * 0.8) {
-					$simulation->accord = true;
-				}
-			}
+			$simulation->demande_accord();
 		}
 	}
 }
