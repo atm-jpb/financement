@@ -44,10 +44,11 @@ $socid=GETPOST("socid");
 $action=GETPOST("action");
 $cancel=GETPOST("cancel");
 
+$ATMdb = new Tdb();
 $societe = new Societe($db);
 $societe->fetch($socid);
-$object = new Score($db);
-$object->fetch($id);
+$object = new TScore($db);
+$object->load($ATMdb, $id);
 
 /*
  * Actions
@@ -99,11 +100,11 @@ include 'tpl/score.tpl.php';
 /*
  * Evolution des scores
  */
-$sql = "SELECT s.rowid, s.score, s.encours_max, s.date, u.login";
+$sql = "SELECT s.rowid, s.score, s.encours_conseille, s.date_score, u.login";
 $sql.= " FROM ".MAIN_DB_PREFIX."fin_score as s";
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as u ON s.fk_user_author = u.rowid';
 $sql.= " WHERE fk_soc = ".$societe->id;
-$sql.= " ORDER BY s.date DESC";
+$sql.= " ORDER BY s.date_score DESC";
 //$sql .= $db->plimit();
 
 $result = $db->query($sql);
@@ -139,9 +140,9 @@ if ($result)
 
 			$var=!$var;
 			print '<tr class="'.($var ? 'pair' : 'impair').'">';
-			print '<td>'.dol_print_date($db->jdate($obj->date),"day").'</td>';
+			print '<td>'.dol_print_date($db->jdate($obj->date_score),"day").'</td>';
 			print '<td align="center">'.$obj->score.'</td>';
-			print '<td align="center">'.$obj->encours_max.'</td>';
+			print '<td align="center">'.$obj->encours_conseille.'</td>';
 			print '<td align="center">'.$userstatic->getLoginUrl(1).'</td>';
 
 			// Action
