@@ -13,6 +13,7 @@ search_key=code_client
 10=type_tiers
 
 [more]
+client=1
 
 [transco]
 country_id=1

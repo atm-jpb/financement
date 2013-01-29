@@ -43,16 +43,6 @@ CREATE TABLE IF NOT EXISTS `llx_fin_grille_leaser` (
   KEY `type` (`coeff`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='utf8_general_ci' AUTO_INCREMENT=6 ;
 
---
--- Contenu de la table `llx_fin_grille_leaser`
---
-
-INSERT INTO `llx_fin_grille_leaser` (`rowid`, `fk_soc`, `fk_type_contrat`, `montant`, `periode`, `coeff`, `fk_user`, `tms`) VALUES
-(2, 1, 1, 10000, 8, 3.3, 1, '2012-12-25 12:09:21'),
-(3, 1, 1, 20000, 8, 3.42, 1, '2012-12-25 12:04:44'),
-(4, 1, 1, 10000, 12, 3.4, 1, '2012-12-25 12:04:44'),
-(5, 1, 1, 20000, 12, 3.48, 1, '2012-12-25 12:04:44');
-
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

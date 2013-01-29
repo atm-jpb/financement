@@ -632,9 +632,6 @@ class Import // extends CommonObject
 		}
 		
 		$societe->idprof1 = substr($societe->idprof2,0,9);
-		
-		if($societe->type_tiers == 'Client') $societe->client = 1;
-		if($societe->type_tiers == 'Financeur') $societe->fournisseur = 1;
 
 		// Mise à jour ou créatioon
 		if($rowid > 0) {
