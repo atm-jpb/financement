@@ -20,7 +20,6 @@
 				_fiche($ATMdb, $import, 'new');
 				break;
 			case 'add':
-				$delimiter = ';'; $enclosure = '"';
 				$importFolder = FIN_IMPORT_FOLDER.'todo/';
 				$importFolderOK = FIN_IMPORT_FOLDER.'done/';
 				$importFolderMapping = FIN_IMPORT_FOLDER.'mappings/';
@@ -44,7 +43,7 @@
 					$imp=new Import($db);
 					$imp->entity = $conf->entity;
 					$imp->fk_user_author = $user->id;
-				//	print_r($_REQUEST);
+					
 					$mappingFile = $fileType.'.'.$_REQUEST['socid'].'.mapping';
 					$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
 					
@@ -53,7 +52,7 @@
 		
 					$f1 = fopen($importFolder.$fileName, 'r');
 					fgets($f1);
-					while($dataline = fgetcsv($f1, 1024, $delimiter, $enclosure)) {
+					while($dataline = fgetcsv($f1, 1024, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
 						$imp->importLine($dataline, $fileType);
 					}
 					

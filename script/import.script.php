@@ -75,7 +75,6 @@ $imp=new Import($db);
 $imp->entity = $conf->entity;
 $imp->fk_user_author = $user->id;
 
-$delimiter = ';'; $enclosure = '"';
 $listOfFileType = $imp->TType_import_interne;
 $importFolder = FIN_IMPORT_FOLDER.'todo/';
 $importFolderOK = FIN_IMPORT_FOLDER.'done/';
@@ -99,9 +98,10 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		$imp->create($user); // Création de l'import
 
 		$fileHandler = fopen($importFolder.$fileName, 'r');
-		while($dataline = fgetcsv($fileHandler, 1024, $delimiter, $enclosure)) {
+		while($dataline = fgetcsv($fileHandler, 1024, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
 			$imp->importLine($dataline, $fileType);
 		}
+		fclose($fileHandler);
 		
 		$imp->update($user); // Mise à jour pour nombre de lignes et nombre d'erreurs
 		
