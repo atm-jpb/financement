@@ -29,19 +29,23 @@ class TSimulation extends TObjetStd {
 		parent::load($db, $id);
 		
 		if($annexe) {
-			if(!empty($this->fk_soc)) {
-				$this->societe = new Societe($doliDB);
-				$this->societe->fetch($this->fk_soc);
-				
-				// Récupération du score du client
-				$this->societe->score = new TScore();
-				$this->societe->score->load_by_soc($db, $this->fk_soc);
-			}
+			$this->load_annexe($db, $doliDB);
+		}
+	}
+	
+	function load_annexe(&$db, &$doliDB) {
+		if(!empty($this->fk_soc)) {
+			$this->societe = new Societe($doliDB);
+			$this->societe->fetch($this->fk_soc);
 			
-			if(!empty($this->fk_user_author)) {
-				$this->user = new User($doliDB);
-				$this->user->fetch($this->fk_user_author);
-			}
+			// Récupération du score du client
+			$this->societe->score = new TScore();
+			$this->societe->score->load_by_soc($db, $this->fk_soc);
+		}
+		
+		if(!empty($this->fk_user_author)) {
+			$this->user = new User($doliDB);
+			$this->user->fetch($this->fk_user_author);
 		}
 	}
 	

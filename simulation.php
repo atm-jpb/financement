@@ -123,10 +123,46 @@ function _liste(&$ATMdb, &$simulation) {
 		$sql.= ' AND s.fk_soc='.$_REQUEST['socid'];
 		$societe = new Societe($db);
 		$societe->fetch($_REQUEST['socid']);
-		$head = societe_prepare_head($societe);
-		dol_fiche_head($head, 'simulation', $langs->trans("ThirdParty"),0,'company');
 		
 		$THide[] = 'Client';
+		
+		// Affichage résumé client
+		$form = new Form($db);
+		$head = societe_prepare_head($societe);
+		dol_fiche_head($head, 'simulation', $langs->trans("ThirdParty"),0,'company');
+		?>
+		<table class="border" width="100%">
+			<tr>
+				<td width="20%"><?php echo $langs->trans('ThirdPartyName') ?></td>
+				<td colspan="3">
+					<?php echo $form->showrefnav($societe,'socid','',($user->societe_id?0:1),'rowid','nom') ?>
+				</td>
+			</tr>
+			<tr>
+				<td><?php echo $langs->transcountry('ProfId1',$societe->country_code) ?></td>
+				<td><?php echo $societe->idprof1 ?></td>
+			</tr>
+			<tr>
+				<td valign="top"><?php echo $langs->trans('Address') ?></td>
+				<td><?php echo dol_print_address($societe->address,'gmap','thirdparty',$societe->id) ?></td>
+			</tr>
+			<tr>
+				<td width="25%"><?php echo $langs->trans('Zip') ?> / <?php echo $langs->trans("Town") ?></td>
+				<td><?php echo $societe->zip.($societe->zip && $societe->town ? " / ":"").$societe->town ?></td>
+			</tr>
+			<tr>
+				<td><?php echo $langs->trans("Country") ?></td>
+				<td>
+					<?php
+					$img=picto_from_langcode($societe->country_code);
+					if ($societe->isInEEC()) print $form->textwithpicto(($img?$img.' ':'').$societe->country,$langs->trans("CountryIsInEEC"),1,0);
+					else print ($img?$img.' ':'').$societe->country;
+					?>
+				</td>
+			</tr>
+		</table>
+		<br />
+		<?
 	}
 	
 	$TOrder = array('Date simulation'=>'DESC');
@@ -167,10 +203,12 @@ function _liste(&$ATMdb, &$simulation) {
 	}
 	
 	llxFooter();
-}	
+}
 	
 function _fiche(&$ATMdb, &$simulation, $mode) {
 	global $db, $langs, $user, $conf;
+	
+	$simulation->load_annexe($ATMdb, $db);
 	
 	$extrajs = array('/financement/js/financement.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
@@ -188,8 +226,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	echo $form->hidden('idLeaser', 1);
 	echo $form->hidden('cout_financement', $simulation->cout_financement);
 	echo $form->hidden('accord', $simulation->accord);
-	
-	//require('./tpl/affaire.tpl.php');
+
 	$TBS=new TTemplateTBS();
 	
 	print $TBS->render('./tpl/simulation.tpl.php'
@@ -219,6 +256,9 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				
 				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>'
 				,'date'=>$simulation->date_simul
+				,'bt_calcul'=>$form->btsubmit('Calculer', 'calculate')
+				,'bt_cancel'=>$form->btsubmit('Annuler', 'cancel')
+				,'bt_save'=>$form->btsubmit('Valider simulation', 'validate_simul')
 			)
 			,'client'=>array(
 				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->societe->nom.'</a>'
