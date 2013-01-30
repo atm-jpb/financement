@@ -540,9 +540,6 @@ class Import // extends CommonObject
 		}
 	}
 	function importFichierLeaser($dataline) {
-		dol_include_once("/custom/financement/class/dossier.class.php");	
-		dol_include_once("/custom/financement/class/affaire.class.php");	
-		
 		$ATMdb=new Tdb;
 		//	$ATMdb->db->debug=true;
 		$row= $this->contructDataTab($dataline);
@@ -594,8 +591,7 @@ class Import // extends CommonObject
 	}
 	function importLineTiers($dataline) {
 		global $user;
-		dol_include_once("/societe/class/societe.class.php");
-		$sqlSearchClient = "SELECT rowid FROM llx_societe WHERE code_client = '%s'";
+		$sqlSearchClient = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE %s = '%s'";
 		
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
@@ -605,7 +601,7 @@ class Import // extends CommonObject
 		
 		// Recherche si tiers existant dans la base
 		$rowid = 0;
-		$sql = sprintf($sqlSearchClient, $data[$this->mapping['search_key']]);
+		$sql = sprintf($sqlSearchClient, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 		$resql = $this->db->query($sql);
 		if($resql) {
 			$num = $this->db->num_rows($resql);
@@ -659,7 +655,8 @@ class Import // extends CommonObject
 
 	function importLineFactureMateriel($dataline) {
 		global $user;
-		dol_include_once("/compta/facture/class/facture.class.php");
+		$sqlSearchFacture = "SELECT rowid FROM ".MAIN_DB_PREFIX."facture WHERE %s = '%s'";
+		$sqlSearchClient = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE %s = '%s'";
 		
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
@@ -667,15 +664,10 @@ class Import // extends CommonObject
 		if(!$this->checkData($dataline)) return false;
 		$data = $this->contructDataTab($dataline);
 		
-		$facnumber = $data[$this->mapping['search_key']];
-		$socid = $data[$this->mapping['search_key_client']];
-		
-		$sqlSearchFacture = "SELECT rowid FROM llx_facture WHERE facnumber = '$facnumber'";
-		$sqlSearchClient = "SELECT rowid FROM llx_societe WHERE code_client = '$socid'";
-		
 		// Recherche si facture existante dans la base
 		$rowid = 0;
-		$resql = $this->db->query($sqlSearchFacture);
+		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
+		$resql = $this->db->query($sql);
 		if($resql) {
 			$num = $this->db->num_rows($resql);
 			if($num == 1) { // Enregistrement trouvé, mise à jour
@@ -692,7 +684,8 @@ class Import // extends CommonObject
 		
 		// Recherche tiers associé à la facture existant dans la base
 		$fk_soc = 0;
-		$resql = $this->db->query($sqlSearchClient);
+		$sql = sprintf($sqlSearchClient, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']]);
+		$resql = $this->db->query($sql);
 		if($resql) {
 			$num = $this->db->num_rows($resql);
 			if($num == 1) { // Enregistrement trouvé, mise à jour
@@ -845,7 +838,6 @@ class Import // extends CommonObject
 	 * J'insére les produits sans les lier à l'affaire. C'est l'import facture matériel qui le fera
 	 */
 		global $user;
-		dol_include_once("/product/class/product.class.php");
 		/*
 		 *	serial_number,libelle_produit, date_achat, marque, type_copie, cout_copie
 		 *  "C2I256312";"ES 256 COPIEUR STUDIO ES 256";"06/12/2012";"TOSHIBA";"MCENB";"0,004"
@@ -949,7 +941,7 @@ class Import // extends CommonObject
 		
 		$ATMdb=new Tdb;	
 		$c=new TCommercialCpro;
-		$c->addFieldsInDb($ATMdb);
+		//$c->addFieldsInDb($ATMdb);
 		
 		if(!$user->fetch('',$row['login'])) {
 			$this->addError('ErrorUserNotFound', $dataline);
@@ -989,7 +981,7 @@ class Import // extends CommonObject
 
 	function importLineScore($dataline) {
 		global $user;
-		$sqlSearchClient = "SELECT rowid FROM llx_societe WHERE siret = '%s'";
+		$sqlSearchClient = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE %s = '%s'";
 		
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
@@ -999,7 +991,7 @@ class Import // extends CommonObject
 		
 		// Recherche si tiers existant dans la base
 		$fk_soc = 0;
-		$sql = sprintf($sqlSearchClient, $data[$this->mapping['search_key']]);
+		$sql = sprintf($sqlSearchClient, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 		$resql = $this->db->query($sql);
 		if($resql) {
 			$num = $this->db->num_rows($resql);
@@ -1019,7 +1011,8 @@ class Import // extends CommonObject
 		}
 		
 		// Construction de l'objet final
-		$score = new Score($this->db);
+		$ATMdb = new Tdb();
+		$score = new TScore();
 
 		foreach ($data as $key => $value) {
 			$score->{$key} = $this->validateValue($key, $value);
@@ -1029,7 +1022,7 @@ class Import // extends CommonObject
 		$score->fk_import = $this->id;
 		$score->fk_user_author = $user->id;
 
-		$res = $score->create($user);
+		$res = $score->save($ATMdb);
 		// Erreur : la création n'a pas marché
 		if($res < 0) {
 			$this->addError('ErrorWhileCreatingLine', $dataline, true);
@@ -1037,6 +1030,13 @@ class Import // extends CommonObject
 		} else {
 			$this->nb_create++;
 		}
+		
+		// Mise à jour de la fiche tiers
+		$societe = new Societe($this->db);
+		$societe->fetch($fk_soc);
+		$societe->capital = $this->validateValue('capital', $data['capital']);
+		$societe->fk_forme_juridique = $this->validateValue('forme_juridique', $data['forme_juridique']);
+		$societe->update($societe->id, $user);
 		
 		return true;
 	}

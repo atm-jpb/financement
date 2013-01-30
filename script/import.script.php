@@ -62,13 +62,16 @@ print 'Argument 2='.$argv[2].$eol;*/
 // Start of transaction
 $db->begin();
 
-// Inclusion des classes d'import
+// Inclusion des classes utiles pour les imports
 dol_include_once("/financement/class/import.class.php");
 dol_include_once("/financement/class/import_error.class.php");
 dol_include_once("/financement/class/commerciaux.class.php");
 dol_include_once("/financement/class/affaire.class.php");
 dol_include_once("/financement/class/dossier.class.php");
 dol_include_once("/equipement/class/asset.class.php");
+dol_include_once("/societe/class/societe.class.php");
+dol_include_once("/compta/facture/class/facture.class.php");
+dol_include_once("/product/class/product.class.php");
 
 
 $imp=new Import($db);
