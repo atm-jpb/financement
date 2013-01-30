@@ -13,4 +13,4 @@ search_key_client=code_client
 
 [format]
 date=date
-total_ttc=float
+total_ht=float
