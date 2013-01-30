@@ -29,7 +29,7 @@ SET time_zone = "+00:00";
 CREATE TABLE IF NOT EXISTS `llx_fin_grille_leaser` (
   `rowid` int(11) NOT NULL AUTO_INCREMENT,
   `fk_soc` int(11) NOT NULL DEFAULT '0',
-  `fk_type_contrat` int(11) NOT NULL DEFAULT '0',
+  `fk_type_contrat` varchar(255) NOT NULL,
   `montant` float NOT NULL DEFAULT '0',
   `periode` int(11) NOT NULL DEFAULT '0',
   `coeff` float NOT NULL DEFAULT '0',
