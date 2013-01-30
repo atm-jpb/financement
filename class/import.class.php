@@ -1256,8 +1256,16 @@ class Import // extends CommonObject
 	function validateValue($key, $value) {
 		// Nettoyage de la valeur
 		$value = trim($value);
+		
 		// Si un tableau de transco existe, on l'utilise
-		if(!empty($this->mapping['transco'][$key]) && !empty($this->mapping[$key][$value])) $value = $this->mapping[$key][$value];
+		if(!empty($this->mapping['transco'][$key])) {
+			if(!empty($this->mapping[$key][$value])) {
+				$value = $this->mapping[$key][$value];
+			} else {
+				$value = $this->mapping[$key]['default'];
+			}
+		}
+		
 		// Si un format spécial existe, on l'applique
 		if(!empty($this->mapping['format'][$key])) {
 			switch($this->mapping['format'][$key]) {
