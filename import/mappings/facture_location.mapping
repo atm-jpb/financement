@@ -6,17 +6,19 @@ search_key_client=code_client
 2=date
 3=code_client
 4=montant_ht
-5=matricule
-6=libelle_ligne
-7=quantite
-8=pu
-9=total_ht
-10=total_ttc
+5=date_lim_reglement
+6=matricule
+7=libelle_ligne
+8=quantite
+9=pu
+10=total_ht
+11=total_ttc
 
 [more]
 
 [format]
 date=date
+date_lim_reglement=date
 montant_ht=float
 pu=float
 total_ht=float

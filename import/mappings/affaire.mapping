@@ -7,6 +7,9 @@ search_key_user=code_commercial
 2=date_affaire
 3=code_client
 4=code_commercial
+5=nature_financement
+6=contrat
+7=type_financement
 
 [more]
 

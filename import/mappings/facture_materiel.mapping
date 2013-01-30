@@ -7,10 +7,12 @@ search_key_client=code_client
 3=code_client
 4=code_affaire
 5=total_ht
-6=matricule
+6=date_lim_reglement
+7=matricule
 
 [more]
 
 [format]
 date=date
+date_lim_reglement=date
 total_ht=float
