@@ -553,22 +553,22 @@ class Import // extends CommonObject
 	function importFichierLeaser($dataline) {
 		$ATMdb=new Tdb;
 		//	$ATMdb->db->debug=true;
-		$row= $this->contructDataTab($dataline);
-	//	print_r($row);
+		$data= $this->contructDataTab($dataline);
+	//	print_r($data);
 	
-		if($row['echeance']==0) {
+		if($data['echeance']==0) {
 			
 			return false;
 		}
 	
 		$f=new TFin_financement;
-		if($f->loadReference($ATMdb, $row['reference_financement'])) {
+		if($f->loadReference($ATMdb, $data['reference_financement'])) {
 			/*
 			 * Youpi, on a retrouvé le financement et donc le client
 			 */
 			 
 		}
-		elseif($f->createWithfindClientBySiren($ATMdb, $row['siren'])) {
+		elseif($f->createWithfindClientBySiren($ATMdb, $data['siren'])) {
 			/*
 			 * On trouve le financement recherch d'une affaire sans financement dans un client sur siren
 			 */
@@ -578,15 +578,15 @@ class Import // extends CommonObject
 			
 		}
 		
-		$f->echeance = $this->validateValue('echeance', $row['echeance']);
-		$f->montant = $this->validateValue('montant', $row['montant']);
-		$f->numero_prochaine_echeance = $this->validateValue('montant', $row['nb_echeance']);
+		$f->echeance = $this->validateValue('echeance', $data['echeance']);
+		$f->montant = $this->validateValue('montant', $data['montant']);
+		$f->numero_prochaine_echeance = $this->validateValue('montant', $data['nb_echeance']);
 		
 		if($f->duree<$f->numero_prochaine_echeance)$f->duree = $f->numero_prochaine_echeance;
 		
-		$f->periodicite = $row['periodicite'];
-		$f->date_debut = $this->validateValue('date_debut', $row['date_debut']);
-		$f->date_fin = $this->validateValue('date_fin',$row['date_fin']);
+		$f->periodicite = $data['periodicite'];
+		$f->date_debut = $this->validateValue('date_debut', $data['date_debut']);
+		$f->date_fin = $this->validateValue('date_fin',$data['date_fin']);
 		
 		$f->save($ATMdb);
 
@@ -612,14 +612,14 @@ class Import // extends CommonObject
 		$data = $this->contructDataTab($dataline);
 		
 		// Recherche si tiers existant dans la base
-		$rowid = 0;
+		$dataid = 0;
 		$sql = sprintf($sqlSearchClient, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 		$resql = $this->db->query($sql);
 		if($resql) {
 			$num = $this->db->num_rows($resql);
 			if($num == 1) { // Enregistrement trouvé, mise à jour
 				$obj = $this->db->fetch_object($resql);
-				$rowid = $obj->rowid;
+				$dataid = $obj->rowid;
 			} else if($num > 1) { // Plusieurs trouvés, erreur
 				$this->addError('ErrorMultipleClientFound', $dataline);
 				return false;
@@ -631,8 +631,8 @@ class Import // extends CommonObject
 		
 		// Construction de l'objet final
 		$societe = new Societe($this->db);
-		if($rowid > 0) {
-			$societe->fetch($rowid);
+		if($dataid > 0) {
+			$societe->fetch($dataid);
 		}
 
 		foreach ($data as $key => $value) {
@@ -642,8 +642,8 @@ class Import // extends CommonObject
 		$societe->idprof1 = substr($societe->idprof2,0,9);
 
 		// Mise à jour ou créatioon
-		if($rowid > 0) {
-			$res = $societe->update($rowid, $user);
+		if($dataid > 0) {
+			$res = $societe->update($dataid, $user);
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
 				$this->addError('ErrorWhileUpdatingLine', $dataline, true);
@@ -677,14 +677,14 @@ class Import // extends CommonObject
 		$data = $this->contructDataTab($dataline);
 		
 		// Recherche si facture existante dans la base
-		$rowid = 0;
+		$dataid = 0;
 		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 		$resql = $this->db->query($sql);
 		if($resql) {
 			$num = $this->db->num_rows($resql);
 			if($num == 1) { // Enregistrement trouvé, mise à jour
 				$obj = $this->db->fetch_object($resql);
-				$rowid = $obj->rowid;
+				$dataid = $obj->rowid;
 			} else if($num > 1) { // Plusieurs trouvés, erreur
 				$this->addError('ErrorMultipleFactureFound', $dataline);
 				return false;
@@ -719,8 +719,8 @@ class Import // extends CommonObject
 		
 		// Construction de l'objet final
 		$facture_mat = new Facture($this->db);
-		if($rowid > 0) {
-			$facture_mat->fetch($rowid);
+		if($dataid > 0) {
+			$facture_mat->fetch($dataid);
 		}
 
 		foreach ($data as $key => $value) {
@@ -739,7 +739,7 @@ class Import // extends CommonObject
 				
 			$facture_mat->linked_objects['affaire'] = $affaire->getId();	
 			
-			$TSerial = explode(' - ',$row['matricule']);
+			$TSerial = explode(' - ',$data['matricule']);
 		
 			foreach($TSerial as $serial) {
 				
@@ -765,8 +765,8 @@ class Import // extends CommonObject
 		$ATMdb->close();
 		
 		// Mise à jour ou créatioon
-		if($rowid > 0) {
-			$res = $facture_mat->update($rowid, $user);
+		if($dataid > 0) {
+			$res = $facture_mat->update($dataid, $user);
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
 				$this->addError('ErrorWhileUpdatingLine', $dataline, true);
@@ -806,14 +806,14 @@ class Import // extends CommonObject
 		$data = $this->contructDataTab($dataline);
 		
 		// Recherche si facture existante dans la base
-		$rowid = 0;
+		$dataid = 0;
 		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 		$resql = $this->db->query($sql);
 		if($resql) {
 			$num = $this->db->num_rows($resql);
 			if($num == 1) { // Enregistrement trouvé, mise à jour
 				$obj = $this->db->fetch_object($resql);
-				$rowid = $obj->rowid;
+				$dataid = $obj->rowid;
 			} else if($num > 1) { // Plusieurs trouvés, erreur
 				$this->addError('ErrorMultipleFactureFound', $dataline);
 				return false;
@@ -848,8 +848,8 @@ class Import // extends CommonObject
 		
 		// Construction de l'objet final
 		$facture_loc = new Facture($this->db);
-		if($rowid > 0) {
-			$facture_loc->fetch($rowid);
+		if($dataid > 0) {
+			$facture_loc->fetch($dataid);
 		}
 
 		foreach ($data as $key => $value) {
@@ -867,7 +867,7 @@ class Import // extends CommonObject
 				
 			$facture_mat->linked_objects['affaire'] = $affaire->getId();	
 			
-			$TSerial = explode(' - ',$row['matricule']);
+			$TSerial = explode(' - ',$data['matricule']);
 		
 			foreach($TSerial as $serial) {
 				
@@ -893,8 +893,8 @@ class Import // extends CommonObject
 		$ATMdb->close();
 		
 		// Mise à jour ou créatioon
-		if($rowid > 0) {
-			$res = $facture_loc->update($rowid, $user);
+		if($dataid > 0) {
+			$res = $facture_loc->update($dataid, $user);
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
 				$this->addError('ErrorWhileUpdatingLine', $dataline, true);
@@ -936,14 +936,14 @@ class Import // extends CommonObject
 		}
 		
 		// Recherche si facture existante dans la base
-		$rowid = 0;
+		$dataid = 0;
 		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 		$resql = $this->db->query($sql);
 		if($resql) {
 			$num = $this->db->num_rows($resql);
 			if($num == 1) { // Enregistrement trouvé, mise à jour
 				$obj = $this->db->fetch_object($resql);
-				$rowid = $obj->rowid;
+				$dataid = $obj->rowid;
 			} else if($num > 1) { // Plusieurs trouvés, erreur
 				$this->addError('ErrorMultipleFactureFound', $dataline);
 				return false;
@@ -958,7 +958,7 @@ class Import // extends CommonObject
 		
 		// Construction de l'objet final
 		$facture_loc = new Facture($this->db);
-		$facture_loc->fetch($rowid);
+		$facture_loc->fetch($dataid);
 		$res = $facture_loc->set_paid($user, '', $data['code_lettrage']);
 		if($res < 0) {
 			$this->addError('ErrorWhileUpdatingLine', $dataline, true);
@@ -982,10 +982,10 @@ class Import // extends CommonObject
 		$ATMdb=new Tdb;	
 		
 		if(!$this->checkData($dataline)) return false;
-		$row = $this->contructDataTab($dataline);
+		$data = $this->contructDataTab($dataline);
 		
 		$commercial = new User($db);
-		if(!$commercial->fetch('',$row['login'])) {
+		if(!$commercial->fetch('',$data['login'])) {
 			$this->addError('ErrorUserNotExist', $dataline);
 			return false;
 		}
@@ -993,7 +993,7 @@ class Import // extends CommonObject
 			$fk_user = $commercial->id;
 		}
 		
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$row['code_client']));
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$data['code_client']));
 		if(count($TRes)==0) {
 			$this->addError('ErrorClientNotFound', $dataline);
 			return false;
@@ -1006,7 +1006,7 @@ class Import // extends CommonObject
 		}
 		
 		$a=new TFin_affaire;
-		$a->loadReference($ATMdb, $row['num_affaire']);
+		$a->loadReference($ATMdb, $data['num_affaire']);
 		
 		if($a->fk_soc > 0 && $a->fk_soc != $fksoc) { // client ne correspond pas
 			$this->addError('ErrorClientDifferent', $dataline);
@@ -1048,16 +1048,16 @@ class Import // extends CommonObject
 		$ATMdb=new Tdb;	
 		
 		if(!$this->checkData($dataline)) return false;
-		$row = $this->contructDataTab($dataline);
+		$data = $this->contructDataTab($dataline);
 	
-		$reference = $row['marque'].substr(md5($row['libelle_produit']),0,10); // en attendant mieux AA
+		$reference = $data['marque'].substr(md5($data['libelle_produit']),0,10); // en attendant mieux AA
 		
 		$produit =new Product($this->db);
 		$res=$produit->fetch('', $reference);
 		$fk_produit = $produit->id;
 		
 		$produit->ref = $reference;
-		$produit->libelle = $row['libelle_produit'];
+		$produit->libelle = $data['libelle_produit'];
 		$produit->type=0;
 		
 		$produit->price_base_type    = 'TTC';
@@ -1073,7 +1073,7 @@ class Import // extends CommonObject
 		
 	    $produit->status             	= 1;
         $produit->status_buy           	= 1;
-        $produit->description        	= $row['marque'];
+        $produit->description        	= $data['marque'];
         $produit->note               	= "Produit créé par import automatique";
         $produit->customcode            = '';
         $produit->country_id            = 1;
@@ -1102,7 +1102,7 @@ class Import // extends CommonObject
 		}
 	
 	
-		$TSerial = explode(' - ',$row['serial_number']);
+		$TSerial = explode(' - ',$data['serial_number']);
 		
 		foreach($TSerial as $serial) {
 			$asset=new TAsset;
@@ -1112,9 +1112,9 @@ class Import // extends CommonObject
 			
 			$asset->serial_number = $serial;
 			
-			$asset->set_date('date_achat',$row['date_achat']);
-			if($row['type_copie']=='MCENB')$asset->copy_black = $this->validateValue('cout_copie', $row['cout_copie']); 
-			else $asset->copy_color = $this->validateValue('cout_copie', $row['cout_copie']); 
+			$asset->set_date('date_achat',$data['date_achat']);
+			if($data['type_copie']=='MCENB')$asset->copy_black = $this->validateValue('cout_copie', $data['cout_copie']); 
+			else $asset->copy_color = $this->validateValue('cout_copie', $data['cout_copie']); 
 			
 			if($asset->id > 0) {
 				$this->nb_update++;
@@ -1142,13 +1142,13 @@ class Import // extends CommonObject
 		$this->nb_lines++;
 
 		if(!$this->checkData($dataline)) return false;
-		$row = $this->contructDataTab($dataline);
+		$data = $this->contructDataTab($dataline);
 		
 		$ATMdb=new Tdb;
 		$c=new TCommercialCpro;
 
 		$commercial = new User($db);
-		if(!$commercial->fetch('',$row['login'])) {
+		if(!$commercial->fetch('',$data['login'])) {
 			$this->addError('ErrorUserNotFound', $dataline);
 			return false;
 		}
@@ -1156,7 +1156,7 @@ class Import // extends CommonObject
 			$fk_user = $commercial->id;
 		}
 		
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$row['code_client'], 'entity' => $conf->entity));
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$data['code_client'], 'entity' => $conf->entity));
 
 		if(count($TRes)==0) {
 			$this->addError('ErrorClientNotFound', $dataline);
@@ -1174,7 +1174,7 @@ class Import // extends CommonObject
 		$c->fk_soc = $fk_soc;
 		$c->fk_user = $fk_user;
 		
-		$c->type_activite_cpro = $row['type_activite_cpro'];
+		$c->type_activite_cpro = $data['type_activite_cpro'];
 		
 		if($c->id > 0) {
 			$this->nb_update++;
