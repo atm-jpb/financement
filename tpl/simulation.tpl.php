@@ -94,7 +94,7 @@
 				[onshow;block=begin;when [view.calcul]==1]
 				<span style="font-size: 14px;">Cout total du financement : [simulation.cout_financement; frm=0 000,00] &euro;</span>
 				<br /><br />
-				<span style="font-size: 14px;">[simulation.accord]</span>
+				<span style="font-size: 14px;">[simulation.accord; strconv=no]</span>
 				[onshow;block=end]
 			</td>
 		</tr>
@@ -121,6 +121,18 @@
 			[onshow;block=end]
 		</tr>
 		[onshow;block=end]
+		
+		[onshow;block=begin;when [simulation.display_preco]==1]
+		<tr class="liste_titre">
+			<td colspan="4">Préconisation</td>
+		</tr>
+		<tr>
+			<td>Type de financement</td>
+			<td>[simulation.type_financement; strconv=no]</td>
+			<td>Leaser</td>
+			<td>[simulation.leaser; strconv=no]</td>
+		</tr>
+		[onshow;block=end]
 	</table>	
 	</div>
 </td>
@@ -128,11 +140,13 @@
 </table>
 
 [onshow;block=begin;when [view.mode]=='view']
+[onshow;block=begin;when [simulation.accord_confirme]==0; when [simulation.display_preco]==1]
 <div class="tabsAction">
 	<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[simulation.id]'">
 	<a href="?id=[simulation.id]&action=edit" class="butAction">Modifier</a>
 </div>
 <br />
+[onshow;block=end]
 [onshow;block=end]
 
 [onshow;block=begin;when [view.mode]=='edit']

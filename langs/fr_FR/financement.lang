@@ -45,8 +45,10 @@ opt_cheque=Chèque
 opt_virement=Virement
 opt_a_echoir=À échoir
 opt_echu=Échu
-FinancementOK=Financement OK
-FinancementWAIT=Financement en attente de validation
+Etude=En étude
+Accord=Accord OK
+Refus=Financement refusé
+SansSuite=Sans suite
 
 # SCORE
 ScoreList=Scores

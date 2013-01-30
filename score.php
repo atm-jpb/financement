@@ -118,8 +118,6 @@ function _liste(&$ATMdb, &$score) {
 	
 	$r = new TSSRenderControler($score);
 	
-	$THide = array('ID');
-	
 	$sql = "SELECT s.rowid as 'ID', s.score as 'Score', s.encours_conseille as 'Encours conseillé', s.date_score as 'Date du score', u.login as 'Utilisateur',";
 	$sql.= " '' as 'Actions'";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_score as s";
@@ -130,8 +128,8 @@ function _liste(&$ATMdb, &$score) {
 	$formDoli = new Form($db);
 	
 	$TBS=new TTemplateTBS();
-	
-	print $TBS->render('./tpl/score.tpl.php'
+
+	print $TBS->render('./tpl/client_entete.tpl.php'
 		,array(
 			
 		)
@@ -149,6 +147,8 @@ function _liste(&$ATMdb, &$score) {
 			)
 		)
 	);
+	
+	$THide = array('ID');
 	
 	$TOrder = array('Date du score'=>'DESC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');

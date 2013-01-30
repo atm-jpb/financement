@@ -54,6 +54,9 @@ if(!empty($action)) {
 			$simulation->load($ATMdb, $db, $_REQUEST['id']);
 			$simulation->set_values($_REQUEST);
 			
+			// Si une donnée de préconisation a été remplie, on fige la simulation pour le commercial
+			if($simulation->fk_leaser > 0 || $simulation->type_financement != '') $simulation->accord_confirme = 1;
+			
 			//$ATMdb->db->debug=true;
 			//print_r($_REQUEST);
 			
@@ -107,7 +110,7 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$sql = "SELECT s.rowid as 'ID', soc.nom as 'Client', s.fk_soc, s.fk_user_author, s.fk_type_contrat as 'Type de contrat', s.montant as 'Montant', s.echeance as 'Echéance',";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'opt_mensuel' THEN 'mois' ELSE 'trimestres' END) as 'Durée',";
-	$sql.= " s.date_simul as 'Date simulation', u.login as 'Utilisateur'";
+	$sql.= " s.date_simul as 'Date simulation', u.login as 'Utilisateur', s.accord as 'Statut'";
 	$sql.= " FROM @table@ s ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON s.fk_user_author = u.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc ON s.fk_soc = soc.rowid";
@@ -124,45 +127,31 @@ function _liste(&$ATMdb, &$simulation) {
 		$societe = new Societe($db);
 		$societe->fetch($_REQUEST['socid']);
 		
-		$THide[] = 'Client';
-		
 		// Affichage résumé client
-		$form = new Form($db);
-		$head = societe_prepare_head($societe);
-		dol_fiche_head($head, 'simulation', $langs->trans("ThirdParty"),0,'company');
-		?>
-		<table class="border" width="100%">
-			<tr>
-				<td width="20%"><?php echo $langs->trans('ThirdPartyName') ?></td>
-				<td colspan="3">
-					<?php echo $form->showrefnav($societe,'socid','',($user->societe_id?0:1),'rowid','nom') ?>
-				</td>
-			</tr>
-			<tr>
-				<td><?php echo $langs->transcountry('ProfId1',$societe->country_code) ?></td>
-				<td><?php echo $societe->idprof1 ?></td>
-			</tr>
-			<tr>
-				<td valign="top"><?php echo $langs->trans('Address') ?></td>
-				<td><?php echo dol_print_address($societe->address,'gmap','thirdparty',$societe->id) ?></td>
-			</tr>
-			<tr>
-				<td width="25%"><?php echo $langs->trans('Zip') ?> / <?php echo $langs->trans("Town") ?></td>
-				<td><?php echo $societe->zip.($societe->zip && $societe->town ? " / ":"").$societe->town ?></td>
-			</tr>
-			<tr>
-				<td><?php echo $langs->trans("Country") ?></td>
-				<td>
-					<?php
-					$img=picto_from_langcode($societe->country_code);
-					if ($societe->isInEEC()) print $form->textwithpicto(($img?$img.' ':'').$societe->country,$langs->trans("CountryIsInEEC"),1,0);
-					else print ($img?$img.' ':'').$societe->country;
-					?>
-				</td>
-			</tr>
-		</table>
-		<br />
-		<?
+		$formDoli = new Form($db);
+		
+		$TBS=new TTemplateTBS();
+	
+		print $TBS->render('./tpl/client_entete.tpl.php'
+			,array(
+				
+			)
+			,array(
+				'client'=>array(
+					'dolibarr_societe_head'=>dol_get_fiche_head(societe_prepare_head($societe), 'scores', $langs->trans("ThirdParty"),0,'company')
+					,'showrefnav'=>$formDoli->showrefnav($societe,'socid','',($user->societe_id?0:1),'rowid','nom')
+					,'idprof1'=>$societe->idprof1
+					,'adresse'=>$societe->address
+					,'cpville'=>$societe->zip.($societe->zip && $societe->town ? " / ":"").$societe->town
+					,'pays'=>picto_from_langcode($societe->country_code).' '.$societe->country
+				)
+				,'view'=>array(
+					'mode'=>'view'
+				)
+			)
+		);
+		
+		$THide[] = 'Client';
 	}
 	
 	$TOrder = array('Date simulation'=>'DESC');
@@ -181,6 +170,7 @@ function _liste(&$ATMdb, &$simulation) {
 		)
 		,'translate'=>array(
 			'Type de contrat'=>$affaire->TContrat
+			,'Statut'=>$simulation->TStatut
 		)
 		,'hide'=>$THide
 		,'type'=>array('Date simulation'=>'date')
@@ -215,6 +205,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$affaire = new TFin_affaire;
 	$grille = new Grille($db);
+	$html=new Form($db);
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formSimulation','POST');
 	$form->Set_typeaff($mode);
 	
@@ -252,13 +243,18 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
 				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 5)
 				,'cout_financement'=>$simulation->cout_financement
-				,'accord'=>strtr($simulation->accord, array('OK' => 'Accord OK', 'WAIT' => 'Accord en attente', 'KO' => 'Financement refusé'))
+				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord,1,'','','flat') : $simulation->TStatut[$simulation->accord]
+				,'accord_confirme'=>$simulation->accord_confirme
 				
 				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>'
 				,'date'=>$simulation->date_simul
 				,'bt_calcul'=>$form->btsubmit('Calculer', 'calculate')
 				,'bt_cancel'=>$form->btsubmit('Annuler', 'cancel')
 				,'bt_save'=>$form->btsubmit('Valider simulation', 'validate_simul')
+				
+				,'display_preco'=>$user->rights->financement->allsimul->simul_preco ? 1 : 0
+				,'type_financement'=>$form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement,1,'','','flat')
+				,'leaser'=>$html->select_company('','socid','fournisseur=1',0, 0,1)
 			)
 			,'client'=>array(
 				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->societe->nom.'</a>'

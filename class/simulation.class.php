@@ -2,16 +2,25 @@
 
 class TSimulation extends TObjetStd {
 	function __construct() {
+		global $langs;
+		
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation');
-		parent::add_champs('entity,fk_soc,fk_user_author,fk_leaser','type=entier;');
+		parent::add_champs('entity,fk_soc,fk_user_author,fk_leaser,accord_confirme','type=entier;');
 		parent::add_champs('duree,opt_administration,opt_creditbail','type=entier;');
 		parent::add_champs('montant,echeance,vr,coeff,cout_financement','type=float;');
 		parent::add_champs('date_simul','type=date;');
-		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord','type=chaine;');
+		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement','type=chaine;');
 		parent::start();
 		parent::_init_vars();
 		
 		$this->init();
+		
+		$this->TStatut=array(
+			'OK'=>$langs->trans('Accord')
+			,'WAIT'=>$langs->trans('Etude')
+			,'KO'=>$langs->trans('Refus')
+			,'SS'=>$langs->trans('SansSuite')
+		);
 	}
 	
 	function init() {
