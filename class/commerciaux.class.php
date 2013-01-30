@@ -15,7 +15,7 @@ class TCommercialCpro extends TObjetStd {
 	}
 	function loadUserClient(&$db, $fk_user, $fk_soc) {
 		
-		$db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE fk_user='".$fk_user."' AND fk_soc=".$fk_soc);
+		$db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE fk_soc=".$fk_soc." AND fk_user=".$fk_user);
 		if($db->Get_line()) {
 			return $this->load($db, $db->Get_field('rowid'));
 		}

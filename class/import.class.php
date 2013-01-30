@@ -592,11 +592,12 @@ class Import // extends CommonObject
 		$ATMdb->close();
 		
 		return true;
-		
 	}
+
 	private function createFactureFournisseur() {
 		
 	}
+
 	function importLineTiers($dataline) {
 		global $user;
 		$sqlSearchClient = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE %s = '%s'";
@@ -1001,22 +1002,33 @@ class Import // extends CommonObject
 		}
 		
 		$a=new TFin_affaire;
-		
 		$a->loadReference($ATMdb, $row['num_affaire']);
 		
-		$a->reference = $row['num_affaire'];
-		$a->set_date('date_affaire', $row['date']);
-		$a->fk_soc = $fk_soc;
-		$a->nature_financement='INTERNE';
+		if($a->fk_soc > 0 && $a->fk_soc != $fksoc) { // client ne correspond pas
+			$this->addError('ErrorClientDifferent', $dataline);
+			return false;
+		}
 		
+		foreach ($data as $key => $value) {
+			$a->{$key} = $this->validateValue($key, $value);
+		}
+		
+		$a->fk_soc = $fk_soc;		
 		$a->addCommercial($ATMdb, $fk_user);
+		
+		if($a->id > 0) {
+			$this->nb_update++;
+		} else {
+			$this->nb_create++;
+		}
+		
 		$a->save($ATMdb);
 		
 		$ATMdb->close();
 		
 		return true;
-		
 	}
+
 	function importLineMateriel($dataline) { // TODO : manque une référence correcte
 	/*
 	 * J'insére les produits sans les lier à l'affaire. C'est l'import facture matériel qui le fera
@@ -1100,7 +1112,12 @@ class Import // extends CommonObject
 			if($row['type_copie']=='MCENB')$asset->copy_black = $this->validateValue('cout_copie', $row['cout_copie']); 
 			else $asset->copy_color = $this->validateValue('cout_copie', $row['cout_copie']); 
 			
-			//print_r($asset);
+			if($asset->id > 0) {
+				$this->nb_update++;
+			} else {
+				$this->nb_create++;
+			}
+			
 			$asset->save($ATMdb);
 			
 		}	
@@ -1112,7 +1129,7 @@ class Import // extends CommonObject
 	}
 
 	function importLineCommercial($dataline) { 
-		global $user;
+		global $user, $conf, $db;
 		/*
 		 *  code client; type_activité;login user
 		 *  "000012";"Copieur";"ABX"
@@ -1123,19 +1140,19 @@ class Import // extends CommonObject
 		if(!$this->checkData($dataline)) return false;
 		$row = $this->contructDataTab($dataline);
 		
-		$ATMdb=new Tdb;	
+		$ATMdb=new Tdb;
 		$c=new TCommercialCpro;
-		//$c->addFieldsInDb($ATMdb);
-		
-		if(!$user->fetch('',$row['login'])) {
+
+		$commercial = new User($db);
+		if(!$commercial->fetch('',$row['login'])) {
 			$this->addError('ErrorUserNotFound', $dataline);
 			return false;
 		}
 		else {
-			$fk_user = $user->id;
+			$fk_user = $commercial->id;
 		}
 		
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$row['code_client']));
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$row['code_client'], 'entity' => $conf->entity));
 
 		if(count($TRes)==0) {
 			$this->addError('ErrorClientNotFound', $dataline);
@@ -1154,10 +1171,15 @@ class Import // extends CommonObject
 		$c->fk_user = $fk_user;
 		
 		$c->type_activite_cpro = $row['type_activite_cpro'];
-		//print_r($c); exit;
-		$c->save($ATMdb);
 		
-	
+		if($c->id > 0) {
+			$this->nb_update++;
+		} else {
+			$this->nb_create++;
+		}
+		
+		$c->save($ATMdb);
+
 		$ATMdb->close();
 		
 		return true;
