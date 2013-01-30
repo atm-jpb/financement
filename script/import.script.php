@@ -96,6 +96,8 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 	foreach($filesToImport as $fileName) { // Pour chaque fichier à importer
 		$imp->init($fileName, $fileType);		
 		$imp->create($user); // Création de l'import
+		
+		$db->commit();
 
 		$fileHandler = fopen($importFolder.$fileName, 'r');
 		while($dataline = fgetcsv($fileHandler, 1024, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
@@ -104,10 +106,11 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		fclose($fileHandler);
 		
 		$imp->update($user); // Mise à jour pour nombre de lignes et nombre d'erreurs
+		$db->commit();
 		
 		print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;
 		
-		//rename($importFolder.$fileName, $importFolderOK.$fileName);
+		rename($importFolder.$fileName, $importFolderOK.$fileName);
 	}
 }
 
