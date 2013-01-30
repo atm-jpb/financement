@@ -101,22 +101,20 @@ function _liste(&$ATMdb, &$import) {
 	
 	$THide = array('fk_user_author');
 	
+	$TOrder = array('Date import' => 'DESC');
+	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
+	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
+	
 	echo $r->render($ATMdb, $sql, array(
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
 			,'nbLine'=>'30'
 		)
-		,'orderBy'=>array(
-			'Date import' => 'DESC'
-		)
+		,'orderBy'=>$TOrder
 		,'link'=>array(
 			'ID'=>'<a href="?id=@ID@">@val@</a>'
 			,'Utilisateur'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user_author@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
 			,'Nb erreurs'=>'<a href="?id=@ID@">@val@</a>'
-		)
-		,'translate'=>array(
-			//'Financement : Nature'=>$import->TNatureFinancement
-			//,'Type'=>$import->TTypeFinancement
 		)
 		,'hide'=>$THide
 		,'type'=>array('Date import'=>'datetime')

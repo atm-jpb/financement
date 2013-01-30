@@ -5,12 +5,19 @@ search_key_client=code_client
 1=facnumber
 2=date
 3=code_client
-4=code_affaire
-5=total_ht
-6=matricule
+4=montant_ht
+5=matricule
+6=libelle_ligne
+7=quantite
+8=pu
+9=total_ht
+10=total_ttc
 
 [more]
 
 [format]
 date=date
+montant_ht=float
+pu=float
+total_ht=float
 total_ttc=float

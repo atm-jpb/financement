@@ -54,7 +54,9 @@ class Import // extends CommonObject
 	
 	var $TType_import_interne = array(
 		'client' => 'Fichier client','commercial' => 'Fichier commercial'
-		,'affaire' => 'Fichier affaire','materiel' => 'Fichier matériel','facture_materiel' => 'Fichier facture matériel'
+		,'affaire' => 'Fichier affaire','materiel' => 'Fichier matériel'
+		,'facture_materiel' => 'Fichier facture matériel','facture_location' => 'Fichier facture location'
+		,'facture_lettree' => 'Fichier facture lettrée'
 	);
 	var $TType_import = array('fichier_leaser' => 'Fichier leaser', 'score' => 'Fichier score');
 
@@ -523,6 +525,12 @@ class Import // extends CommonObject
 			case 'facture_materiel':
 				$this->importLineFactureMateriel($dataline);
 				break;
+			case 'facture_location':
+				$this->importLineFactureLocation($dataline);
+				break;
+			case 'facture_lettree':
+				$this->importLineFactureLettree($dataline);
+				break;
 			case 'commercial':
 				$this->importLineCommercial($dataline);
 				break;
@@ -722,7 +730,7 @@ class Import // extends CommonObject
 		$ATMdb=new Tdb;
 		$affaire = new TFin_affaire;
 		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
-			$affaire->montant = $this->validateValue('total_ttc',$data['total_ttc']);	
+			$affaire->montant = $this->validateValue('total_ht',$data['total_ht']);	
 			$affaire->save($ATMdb);	
 				
 			$facture_mat->linked_objects['affaire'] = $affaire->getId();	
@@ -774,11 +782,187 @@ class Import // extends CommonObject
 		}
 		
 		// Actions spécifiques
-		$facture_mat->addline($facture_mat->id, 'Matricule '.$data['matricule'], 0, 1, 19.6, 0, 0, 0, 0, '', '', 0, 0, '', 'TTC', $data['total_ttc']);
+		$facture_mat->addline($facture_mat->id, 'Matricule '.$data['matricule'], 0, 1, 19.6, 0, 0, 0, 0, '', '', 0, 0, '', 'HT', $data['total_ht']);
 		$facture_mat->validate($user, $facnumber); // Force la validation avec numéro de facture
 		
 		
 		
+		return true;
+	}
+
+	function importLineFactureLocation($dataline) {
+		global $user;
+		$sqlSearchFacture = "SELECT rowid FROM ".MAIN_DB_PREFIX."facture WHERE %s = '%s'";
+		$sqlSearchClient = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE %s = '%s'";
+		
+		// Compteur du nombre de lignes
+		$this->nb_lines++;
+
+		if(!$this->checkData($dataline)) return false;
+		$data = $this->contructDataTab($dataline);
+		
+		// Recherche si facture existante dans la base
+		$rowid = 0;
+		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
+		$resql = $this->db->query($sql);
+		if($resql) {
+			$num = $this->db->num_rows($resql);
+			if($num == 1) { // Enregistrement trouvé, mise à jour
+				$obj = $this->db->fetch_object($resql);
+				$rowid = $obj->rowid;
+			} else if($num > 1) { // Plusieurs trouvés, erreur
+				$this->addError('ErrorMultipleFactureFound', $dataline);
+				return false;
+			}
+		} else {
+			$this->addError('ErrorWhileSearchingFacture', $dataline);
+			return false;
+		}
+		
+		// Recherche tiers associé à la facture existant dans la base
+		$fk_soc = 0;
+		$sql = sprintf($sqlSearchClient, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']]);
+		$resql = $this->db->query($sql);
+		if($resql) {
+			$num = $this->db->num_rows($resql);
+			if($num == 1) { // Enregistrement trouvé, mise à jour
+				$obj = $this->db->fetch_object($resql);
+				$fk_soc = $obj->rowid;
+			} else if($num > 1) { // Plusieurs trouvés, erreur
+				$this->addError('ErrorMultipleClientFound', $dataline);
+				return false;
+			} else {
+				$this->addError('ErrorClientNotFound', $dataline);
+				return false;
+			}
+		} else {
+			$this->addError('ErrorWhileSearchingClient', $dataline, true);
+			return false;
+		}
+		
+		$data['socid'] = $fk_soc;
+		
+		// Construction de l'objet final
+		$facture_loc = new Facture($this->db);
+		if($rowid > 0) {
+			$facture_loc->fetch($rowid);
+		}
+
+		foreach ($data as $key => $value) {
+			$facture_loc->{$key} = $this->validateValue($key, $value);
+		}
+		
+		/*
+		 * Création du lien  affaire/facture + lien entre matériel et affaire
+		 */
+		$ATMdb=new Tdb;
+		$affaire = new TFin_affaire;
+		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
+			$affaire->montant = $this->validateValue('total_ttc',$data['total_ttc']);
+			$affaire->save($ATMdb);	
+				
+			$facture_mat->linked_objects['affaire'] = $affaire->getId();	
+			
+			$TSerial = explode(' - ',$row['matricule']);
+		
+			foreach($TSerial as $serial) {
+				
+				$asset=new TAsset;
+				if($asset->loadReference($ATMdb, $data['matricule'])) {
+					$asset->fk_soc = $affaire->fk_soc;
+					
+					$asset->add_link($affaire->getId(),'affaire');	
+					
+					$asset->save($ATMdb);	
+				}
+				else {
+				//	print "ErrorMaterielNotExist";
+					$this->addError('ErrorMaterielNotExist', $dataline, true);
+					//return false;
+				}
+				
+			}
+			
+			
+			
+		}
+		$ATMdb->close();
+		
+		// Mise à jour ou créatioon
+		if($rowid > 0) {
+			$res = $facture_loc->update($rowid, $user);
+			// Erreur : la mise à jour n'a pas marché
+			if($res < 0) {
+				$this->addError('ErrorWhileUpdatingLine', $dataline, true);
+				return false;
+			} else {
+				$this->nb_update++;
+			}
+		} else {
+			$res = $facture_loc->create($user);
+			// Erreur : la création n'a pas marché
+			if($res < 0) {
+				$this->addError('ErrorWhileCreatingLine', $dataline, true);
+				return false;
+			} else {
+				$this->nb_create++;
+			}
+		}
+		
+		// Actions spécifiques
+		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], 0, 1, 19.6, 0, 0, 0, 0, '', '', 0, 0, '', 'HT', $data['total_ht']);
+		$facture_loc->validate($user, $facnumber); // Force la validation avec numéro de facture
+		
+		return true;
+	}
+
+	function importLineFactureLettree($dataline) {
+		global $user;
+		$sqlSearchFacture = "SELECT rowid FROM ".MAIN_DB_PREFIX."facture WHERE %s = '%s'";
+		
+		// Compteur du nombre de lignes
+		$this->nb_lines++;
+
+		if(!$this->checkData($dataline)) return false;
+		$data = $this->contructDataTab($dataline);
+		
+		if (!preg_match('/^[A-Z]+$/', $data['code_lettrage'])) {
+			// Code lettrage en minuscule = pré-lettrage = ne pas prendre en compte (ajout d'un addWarning ou addInfo ?)
+			return false;
+		}
+		
+		// Recherche si facture existante dans la base
+		$rowid = 0;
+		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
+		$resql = $this->db->query($sql);
+		if($resql) {
+			$num = $this->db->num_rows($resql);
+			if($num == 1) { // Enregistrement trouvé, mise à jour
+				$obj = $this->db->fetch_object($resql);
+				$rowid = $obj->rowid;
+			} else if($num > 1) { // Plusieurs trouvés, erreur
+				$this->addError('ErrorMultipleFactureFound', $dataline);
+				return false;
+			} else {
+				$this->addError('ErrorFactureNotFound', $dataline);
+				return false;
+			}
+		} else {
+			$this->addError('ErrorWhileSearchingFacture', $dataline);
+			return false;
+		}
+		
+		// Construction de l'objet final
+		$facture_loc = new Facture($this->db);
+		$facture_loc->fetch($rowid);
+		$res = $facture_loc->set_paid($user, '', $data['code_lettrage']);
+		if($res < 0) {
+			$this->addError('ErrorWhileUpdatingLine', $dataline, true);
+			return false;
+		} else {
+			$this->nb_update++;
+		}
+
 		return true;
 	}
 
