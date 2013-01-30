@@ -813,7 +813,7 @@ class Import // extends CommonObject
 		
 		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$row['code_client']));
 		if(count($TRes)==0) {
-			$this->addError('ErrorNoClientFound', $dataline);
+			$this->addError('ErrorClientNotFound', $dataline);
 			return false;
 		}
 		else if(count($TRes) > 1) { // Plusieurs trouvés, erreur
@@ -952,7 +952,7 @@ class Import // extends CommonObject
 		$c->addFieldsInDb($ATMdb);
 		
 		if(!$user->fetch('',$row['login'])) {
-			$this->addError('ErrorUserNotExist', $dataline);
+			$this->addError('ErrorUserNotFound', $dataline);
 			return false;
 		}
 		else {
@@ -960,8 +960,9 @@ class Import // extends CommonObject
 		}
 		
 		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$row['code_client']));
+
 		if(count($TRes)==0) {
-			$this->addError('ErrorNoClientFound', $dataline);
+			$this->addError('ErrorClientNotFound', $dataline);
 			return false;
 		}
 		else if(count($TRes) > 1) { // Plusieurs trouvés, erreur
