@@ -468,6 +468,7 @@ class Import // extends CommonObject
 	function getFiles($targetFolder)
 	{
 		// TODO
+		// Fonction inutile car fichier déposés directement par CPRO dans le répertoire qui est partagé en samba
 	}
 	
 	function getListOfFiles($folder, $filePrefix)
@@ -784,7 +785,7 @@ class Import // extends CommonObject
 		
 		// Actions spécifiques
 		$facture_mat->addline($facture_mat->id, 'Matricule '.$data['matricule'], 0, 1, 19.6, 0, 0, 0, 0, '', '', 0, 0, '', 'HT', $data['total_ht']);
-		$facture_mat->validate($user, $facnumber); // Force la validation avec numéro de facture
+		$facture_mat->validate($user, $data[$this->mapping['search_key']]); // Force la validation avec numéro de facture
 		
 		
 		
@@ -912,7 +913,7 @@ class Import // extends CommonObject
 		
 		// Actions spécifiques
 		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], 0, 1, 19.6, 0, 0, 0, 0, '', '', 0, 0, '', 'HT', $data['total_ht']);
-		$facture_loc->validate($user, $facnumber); // Force la validation avec numéro de facture
+		$facture_loc->validate($user, $data[$this->mapping['search_key']]); // Force la validation avec numéro de facture
 		
 		return true;
 	}
@@ -968,7 +969,7 @@ class Import // extends CommonObject
 	}
 
 	function importLineAffaire($dataline) { // TODO : à compléter : manque champs nature & type Financement,type matériel?, montant?
-		global $user;
+		global $user, $db;
 		/*
 		 *	référence	date_affaire, code_client login_user
 		 *  "002-53740";"24/09/2012";"012469";"dpn"
@@ -981,12 +982,13 @@ class Import // extends CommonObject
 		if(!$this->checkData($dataline)) return false;
 		$row = $this->contructDataTab($dataline);
 		
-		if(!$user->fetch('',$row['login'])) {
+		$commercial = new User($db);
+		if(!$commercial->fetch('',$row['login'])) {
 			$this->addError('ErrorUserNotExist', $dataline);
 			return false;
 		}
 		else {
-			$fk_user = $user->id;
+			$fk_user = $commercial->id;
 		}
 		
 		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$row['code_client']));
