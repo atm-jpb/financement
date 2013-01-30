@@ -25,10 +25,19 @@
 		<tr>
 			<td>Type d'import</td>
 			<td>[import.type_import; strconv=no]</td>
+			<td>Leaser</td>
 			<td>[import.leaser; strconv=no]</td>
 			<td>Fichier à importer</td>
-			<td><input type="file" name="fileToImport" class="flat" /></td>
-			<td><input type="submit" name="import" class="button" value="Importer"></td>
+			<td>[import.fileToImport; strconv=no]</td>
+			<td rowspan="2"><input type="submit" name="import" class="button" value="Importer"></td>
+		</tr>
+		<tr>
+			<td>Ignorer la premi&agrave;re ligne</td>
+			<td>[import.ignore_first_line; strconv=no]</td>
+			<td>Valeurs d&eacute;limit&eacute;es par</td>
+			<td>[import.delimiter; strconv=no]</td>
+			<td>Encadrement des valeurs</td>
+			<td>[import.enclosure; strconv=no]</td>
 		</tr>
 	</table>
 

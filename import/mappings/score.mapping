@@ -58,5 +58,5 @@ forme_juridique=1
 
 [forme_juridique]
 default=0
-Société par actions simplifiée (SAS)=39
-SA à conseil d'administration (SA)=37
+Société par actions simplifiée SAS=39
+SA à conseil d'administration SA=37

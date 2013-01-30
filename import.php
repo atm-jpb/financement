@@ -43,7 +43,7 @@
 					$imp->entity = $conf->entity;
 					$imp->fk_user_author = $user->id;
 					
-					$mappingFile = $fileType.'.'.$_REQUEST['socid'].'.mapping';
+					$mappingFile = ($fileType == 'fichier_leaser' ? $fileType.'.'.$_REQUEST['socid'].'.mapping' : $fileType.'.mapping');
 					$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
 					
 					$imp->init($fileName, $fileType);
@@ -51,17 +51,18 @@
 		
 					$f1 = fopen($importFolder.$fileName, 'r');
 					fgets($f1);
-					while($dataline = fgetcsv($f1, 1024, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
+					while($dataline = fgetcsv($f1, 1024, $_REQUEST['delimiter'], $_REQUEST['enclosure'])) {
+						if(!empty($_REQUEST['ignore_first_line'])) continue;
 						$imp->importLine($dataline, $fileType);
 					}
 					
 					$imp->update($user); // Mise à jour pour nombre de lignes et nombre d'erreurs
-		
+
 					rename($importFolder.$fileName, $importFolderOK.$fileName);
 					
 					fclose($f1);
 					
-					_fiche($ATMdb, $import, 'view');
+					_fiche($ATMdb, $imp, 'view');
 				} else {
 					_fiche($ATMdb, $import, 'new');
 				}
@@ -161,9 +162,13 @@ function _fiche(&$ATMdb, &$import, $mode) {
 				,'titre_view'=>img_picto('','object_import.png@financement', '', 0).' '.$langs->trans("Import")
 			
 				,'id'=>$import->id
-				,'type_import'=>$form->combo('', 'type_import', ($mode == 'new') ? $import->TType_import : array_merge($import->TType_import, $import->TType_import_interne), $import->type_import) 
+				,'type_import'=>$form->combo('', 'type_import', ($mode == 'new') ? $import->TType_import : array_merge($import->TType_import, $import->TType_import_interne), $import->type_import, 1, '', '', 'flat') 
 				,'date'=>date('d/m/Y à H:i:s', $import->date ? $import->date : time())
 				,'filename'=>'<a href="./import/done/'.$import->filename.'" target="_blank">'.$import->filename.'</a>'
+				,'ignore_first_line'=>$form->checkbox1('', 'ignore_first_line', 0)
+				,'delimiter'=>$form->texte('', 'delimiter', FIN_IMPORT_FIELD_DELIMITER, 5)
+				,'enclosure'=>$form->texte('', 'enclosure', FIN_IMPORT_FIELD_ENCLOSURE, 5)
+				,'fileToImport'=>$form->fichier('', 'fileToImport', '', 10)
 				
 				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$import->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$user->nom.'</a>'
 				,'nb_lines'=>$import->nb_lines

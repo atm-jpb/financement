@@ -541,7 +541,9 @@ class Import // extends CommonObject
 			case 'fichier_leaser':
 				$this->importFichierLeaser($dataline);
 				break;
-			
+			case 'score':
+				$this->importLineScore($dataline);
+				break;
 			
 			default:
 				
