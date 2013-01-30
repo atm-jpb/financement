@@ -647,7 +647,6 @@ class Import // extends CommonObject
 			$res = $societe->create($user);
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				print_r($societe); exit;
 				$this->addError('ErrorWhileCreatingLine', $dataline, true);
 				return false;
 			} else {
