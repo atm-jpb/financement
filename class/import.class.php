@@ -1045,13 +1045,13 @@ class Import // extends CommonObject
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
 		
-		$ATMdb=new Tdb;	
+		$ATMdb=new Tdb;
 		
 		if(!$this->checkData($dataline)) return false;
 		$data = $this->contructDataTab($dataline);
 	
 		$produit =new Product($this->db);
-		$res=$produit->fetch('', $reference);
+		$res=$produit->fetch('', $data['ref_produit']);
 		$fk_produit = $produit->id;
 		
 		$produit->ref = $data['ref_produit'];
