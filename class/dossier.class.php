@@ -291,8 +291,8 @@ class TFin_financement extends TObjetStd {
 		 * Trouve le client via le siren, vérifie s'il existe une affaire avec financement sans référence pour association automatique
 		 */
 		$db->Execute("SELECT s.id as 'fk_soc',a.rowid as 'fk_fin_affaire', f.rowid as 'fk_financement' 
-			FROM ((llx_fin_affaire a LEFT JOIN llx_societe s ON (a.fk_soc=s.rowid) 
-				LEFT OUTER JOIN llx_fin_dossier_affaire l ON (l.fk_fin_affaire=a.rowid))
+			FROM ((".MAIN_DB_PREFIX."fin_affaire a LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid) 
+				LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire l ON (l.fk_fin_affaire=a.rowid))
 					LEFT JOIN OUTER ".$this->get_table()." f ON (f.fk_fin_dossier=a.fk_fin_dossier))
 					
 			WHERE s.siren='".$siren."' AND `fk_fin_affaire`>0 AND `fk_financement` IS NULL 

@@ -104,22 +104,60 @@ if($action == 'save') {
 		}
 	}
 }
-
+$ATMdb=new Tdb;
 // Grille de coeff globale + % de pénalité par option
 $idLeaser = FIN_LEASER_DEFAULT; // Identifiant de la société associée à la grille (C'PRO ici, sera l'identifiant leaser pour les grilles leaser)
 $affaire = new TFin_affaire();
 $liste_type_contrat = $affaire->TContrat;
+
+
+$mode = 'edit';
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
-	$grille = new Grille($db);
-	$liste_coeff = $grille->get_grille($idLeaser, $idTypeContrat);
+	$grille = new TFin_grille_leaser;
+	
+	$TCoeff = $grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
 	
 	print_titre($langs->trans("GlobalCoeffGrille").' - '.$label);
 	
-	include '../tpl/admin.grille.tpl.php';
+	//include '../tpl/admin.grille.tpl.php';
+	
+	$form=new TFormCore($_SERVER['PHP_SELF'],'formGrille'.$idTypeContrat,'POST');
+	$form->Set_typeaff($mode);
+	
+	
+	$TPalier=array();
+	foreach($grille->TPalier as $k=>$palier) {
+		$TPalier[]=array(
+			'montant'=>$form->texte('','TPalier['.$k.']', $palier['montant'],10,255).' &euro;'
+			,'lastMontant'=>$palier['lastMontant']
+		);
+	}
+	
+	
+	echo $form->hidden('action', 'save');
+	echo $form->hidden('idTypeContrat', $idTypeContrat );
+	echo $form->hidden('idLeaser', $idLeaser);
+	print '<pre>';
+	print_r($TCoeff);
+	print '</pre>';
+	$TBS=new TTemplateTBS;
+	print $TBS->render('../tpl/fingrille.tpl.php'
+		,array(
+			'palier'=>$TPalier
+		)
+		,array(
+			'view'=>array('mode'=>$mode)
+		)
+	);
+	
+	print $form->end_form();
+	
 }
 
 dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 
 llxFooter('');
+
+$ATMdb->close();
 
 $db->close();
