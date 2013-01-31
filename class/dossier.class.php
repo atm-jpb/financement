@@ -382,4 +382,96 @@ class TFin_financement extends TObjetStd {
 		 
 	}
 
+	/**
+	 * FONCTION FINANCIERES PROVENANT D'EXCEL PERMETTANT DE CALCULER LE LOYER, LE MONTANT OU LE TAUX
+	 * Source : http://www.tiloweb.com/php/php-formules-financieres-excel-en-php
+	 */
+	
+	/**
+	 * VPM : Calcule le montant total de chaque remboursement périodique d'un investissement à remboursements et taux d'intérêt constants
+	 * @param $taux Float : Le taux d'intérêt par période (à diviser par 4 si remboursement trimestriel, par 12 si mensuel, ...)
+	 * @param $npm Float : Le nombre total de périodes de paiement de l'annuité (= Duree)
+	 * @param $va Float : Valeur actuelle. La valeur, à la date d'aujourd'hui, d'une série de remboursement futurs (= Montant financé)
+	 * @param $vc Float : Valeur future. La valeur capitalisée que vous souhaitez obtenir après le dernier paiement (= Valeur résiduelle)
+	 * @param $type Int : Terme de l'échéance (0 = terme échu, 1 = terme à échoir)
+	 * @return $vpm Float : Montant d'une échéance
+	 */
+	function vpm($taux, $npm, $va, $vc = 0, $type = 0){
+		if(!is_numeric($taux) || !is_numeric($npm) || !is_numeric($va) || !is_numeric($vc) || !is_numeric($type)) return false;
+		if($type > 1|| $type < 0) return false;
+		
+		$tauxAct = pow(1 + $taux, -$npm);
+		
+		if((1 - $tauxAct) == 0) return 0;
+		
+		$vpm = ( ($va + $vc * $tauxAct) * $taux / (1 - $tauxAct) ) / (1 + $taux * $type);
+		
+		return -$vpm;
+	}
+
+	/**
+	 * VA : Calcule la valeur actuelle d'un investissement
+	 * @param $taux Float : Le taux d'intérêt par période (à diviser par 4 si remboursement trimestriel, par 12 si mensuel, ...)
+	 * @param $npm Float : Le nombre total de périodes de paiement de l'annuité (= Duree)
+	 * @param $vpm Float : Echéance constante payée pour chaque période
+	 * @param $vc Float : Valeur future. La valeur capitalisée que vous souhaitez obtenir après le dernier paiement (= Valeur résiduelle)
+	 * @param $type Int : Terme de l'échéance (0 = terme échu, 1 = terme à échoir)
+	 * @return $va Float : Montant de l'investissement
+	 */
+	function va($taux, $npm, $vpm, $vc = 0, $type = 0){
+		if(!is_numeric($taux) || !is_numeric($npm) || !is_numeric($vpm) || !is_numeric($vc) || !is_numeric($type)) return false;
+		if($type > 1|| $type < 0) return false;
+		
+		$tauxAct = pow(1 + $taux, -$npm);
+		
+		if((1 - $tauxAct) == 0) return 0;
+		
+		$va = $vpm * (1 + $taux * $type) * (1 - $tauxAct) / $taux - $vc * $tauxAct;
+		
+		return $va;
+	}
+
+	/**
+	 * VA : Calcule la valeur actuelle d'un investissement
+	 * @param $nper Float : Le nombre total de périodes de paiement de l'annuité (= Duree)
+	 * @param $pmt Float : Echéance constante payée pour chaque période
+	 * @param $pv Float : Valeur actuelle. La valeur, à la date d'aujourd'hui, d'une série de remboursement futurs (= Montant financé)
+	 * @param $fv Float : Valeur future. La valeur capitalisée que vous souhaitez obtenir après le dernier paiement (= Valeur résiduelle)
+	 * @param $type Int : Terme de l'échéance (0 = terme échu, 1 = terme à échoir)
+	 * @param $guess Float : ???
+	 * @return $rate Float : Taux d'intérêt
+	 */
+	function taux($nper, $pmt, $pv, $fv = 0.0, $type = 0, $guess = 0.1) {
+		$rate = $guess;
+		if (abs($rate) < 20) {
+			$y = $pv * (1 + $nper * $rate) + $pmt * (1 + $rate * $type) * $nper + $fv;
+		} else {
+			$f = exp($nper * log(1 + $rate));
+			$y = $pv * $f + $pmt * (1 / $rate + $type) * ($f - 1) + $fv;
+		}
+		
+		$y0 = $pv + $pmt * $nper + $fv;
+		$y1 = $pv * $f + $pmt * (1 / $rate + $type) * ($f - 1) + $fv;
+		
+		$i = $x0 = 0.0;
+		$x1 = $rate;
+		while ((abs($y0 - $y1) > 0.0000001) && ($i < 20)) {
+			$rate = ($y1 * $x0 - $y0 * $x1) / ($y1 - $y0);
+			$x0 = $x1;
+			$x1 = $rate;
+			
+			if(abs($rate) < 0.0000001) {
+				$y = $pv * (1 + $nper * $rate) + $pmt * (1 + $rate * $type) * $nper + $fv;
+			} else {
+				$f = exp($nper * log(1 + $rate));
+				$y = $pv * $f + $pmt * (1 / $rate + $type) * ($f - 1) + $fv;
+			}
+			
+			$y0 = $y1;
+			$y1 = $y;
+			$i++;
+		}
+		
+		return $rate;
+	}
 }
