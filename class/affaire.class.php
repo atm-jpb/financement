@@ -35,17 +35,6 @@ class TFin_affaire extends TObjetStd {
 			,'EXTERNE'=>'Externe'
 		);
 		
-		$this->TPeriodicite=array(
-			'opt_trimestriel'=>$langs->trans('opt_trimestriel')
-			,'opt_mensuel'=>$langs->trans('opt_mensuel')
-		);
-		
-		
-		$this->TTerme=array(
-			'opt_a_echoir'=>$langs->trans('opt_a_echoir')
-			,'opt_echu'=>$langs->trans('opt_echu')
-		);
-		
 		$this->somme_dossiers=0;
 	}
 	

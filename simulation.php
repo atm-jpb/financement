@@ -3,6 +3,7 @@ require('config.php');
 require('./class/simulation.class.php');
 require('./class/grille.class.php');
 require('./class/affaire.class.php');
+require('./class/dossier.class.php');
 require('./class/score.class.php');
 
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
@@ -204,6 +205,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
 	
 	$affaire = new TFin_affaire;
+	$financement = new TFin_financement;
 	$grille = new Grille($db);
 	$html=new Form($db);
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formSimulation','POST');
@@ -231,19 +233,19 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				
 				,'id'=>$simulation->rowid
 				,'fk_soc'=>$simulation->fk_soc
-				,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat,1,'','','flat')
+				,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat)
 				,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
-				,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $affaire->TPeriodicite, $simulation->opt_periodicite,1,'','','flat') 
+				,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $financement->TPeriodicite, $simulation->opt_periodicite) 
 				,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 1, $simulation->opt_creditbail)
-				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $affaire->TModeReglement, $simulation->opt_mode_reglement,1,'','','flat')
-				,'opt_terme'=>$form->combo('', 'opt_terme', $affaire->TTerme, $simulation->opt_mode_reglement,1,'','','flat')
+				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement)
+				,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme)
 				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)
-				,'duree'=>$form->combo('', 'duree', $grille->get_duree(FIN_LEASER_DEFAULT), $simulation->duree,1,'','','flat')
+				,'duree'=>$form->combo('', 'duree', $grille->get_duree(FIN_LEASER_DEFAULT), $simulation->duree)
 				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
 				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
 				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 5)
 				,'cout_financement'=>$simulation->cout_financement
-				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord,1,'','','flat') : $simulation->TStatut[$simulation->accord]
+				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
 				,'accord_confirme'=>$simulation->accord_confirme
 				
 				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>'
@@ -253,7 +255,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'bt_save'=>$form->btsubmit('Valider simulation', 'validate_simul')
 				
 				,'display_preco'=>$user->rights->financement->allsimul->simul_preco ? 1 : 0
-				,'type_financement'=>$form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement,1,'','','flat')
+				,'type_financement'=>$form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement)
 				,'leaser'=>$html->select_company('','socid','fournisseur=1',0, 0,1)
 			)
 			,'client'=>array(

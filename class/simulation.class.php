@@ -25,9 +25,9 @@ class TSimulation extends TObjetStd {
 	
 	function init() {
 		global $user;
-		$this->opt_periodicite = 'opt_trimestriel';
-		$this->opt_mode_reglement = 'opt_prelevement';
-		$this->opt_terme = 'opt_aechoir';
+		$this->opt_periodicite = 'TRIMESTRE';
+		$this->opt_mode_reglement = 'PRE';
+		$this->opt_terme = '1';
 		$this->vr = 0;
 		$this->coeff = 0;
 		$this->fk_user_author = $user->id;
