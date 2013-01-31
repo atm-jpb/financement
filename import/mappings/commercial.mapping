@@ -1,3 +1,6 @@
+search_key=login
+search_key_client=code_client
+
 [mapping]
 1=code_client
 2=type_activite_cpro

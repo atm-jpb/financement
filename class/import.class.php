@@ -60,7 +60,7 @@ class Import // extends CommonObject
 	);
 	var $TType_import = array('fichier_leaser' => 'Fichier leaser', 'score' => 'Fichier score');
 
-    
+
 
 
     /**
@@ -499,13 +499,16 @@ class Import // extends CommonObject
 		$this->mapping = parse_ini_file($mappingFile, true);
 	}
 	
-	function addError($errMsg, $dataLine, $is_sql=false) {
+	function addError($errMsg, $errData, $dataLine, $sqlExecuted='', $type='ERROR', $is_sql=false) {
 		global $user;
 		$thisErr = new ImportError($this->db);
 		$thisErr->fk_import = $this->id;
 		$thisErr->num_line = $this->nb_lines;
 		$thisErr->content_line = serialize($dataLine);
 		$thisErr->error_msg = $errMsg;
+		$thisErr->error_data = $errData;
+		$thisErr->sql_executed = $sqlExecuted;
+		$thisErr->type_erreur = $type;
 		if($is_sql) {
 			$thisErr->sql_errno = $this->db->lasterrno;
 			$thisErr->sql_error = lastqueryerror."\n".$this->db->lasterror."\n".$this->db->lastquery;
@@ -621,11 +624,11 @@ class Import // extends CommonObject
 				$obj = $this->db->fetch_object($resql);
 				$rowid = $obj->rowid;
 			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError('ErrorMultipleClientFound', $dataline);
+				$this->addError('ErrorMultipleClientFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
 			}
 		} else {
-			$this->addError('ErrorWhileSearchingClient', $dataline);
+			$this->addError('ErrorWhileSearchingClient', $data[$this->mapping['search_key']], $dataline, $sql, 'ERROR', true);
 			return false;
 		}
 		
@@ -646,7 +649,7 @@ class Import // extends CommonObject
 			$res = $societe->update($rowid, $user);
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
-				$this->addError('ErrorWhileUpdatingLine', $dataline, true);
+				$this->addError('ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
 				return false;
 			} else {
 				$this->nb_update++;
@@ -655,7 +658,7 @@ class Import // extends CommonObject
 			$res = $societe->create($user);
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				$this->addError('ErrorWhileCreatingLine', $dataline, true);
+				$this->addError('ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
 				return false;
 			} else {
 				$this->nb_create++;
@@ -686,11 +689,11 @@ class Import // extends CommonObject
 				$obj = $this->db->fetch_object($resql);
 				$rowid = $obj->rowid;
 			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError('ErrorMultipleFactureFound', $dataline);
+				$this->addError('ErrorMultipleFactureFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
 			}
 		} else {
-			$this->addError('ErrorWhileSearchingFacture', $dataline);
+			$this->addError('ErrorWhileSearchingFacture', $data[$this->mapping['search_key']], $dataline, $sql, 'ERROR', true);
 			return false;
 		}
 		
@@ -704,14 +707,14 @@ class Import // extends CommonObject
 				$obj = $this->db->fetch_object($resql);
 				$fk_soc = $obj->rowid;
 			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError('ErrorMultipleClientFound', $dataline);
+				$this->addError('ErrorMultipleClientFound', $data[$this->mapping['search_key_client']], $dataline, $sql);
 				return false;
 			} else {
-				$this->addError('ErrorClientNotFound', $dataline);
+				$this->addError('ErrorClientNotFound', $data[$this->mapping['search_key_client']], $dataline, $sql);
 				return false;
 			}
 		} else {
-			$this->addError('ErrorWhileSearchingClient', $dataline, true);
+			$this->addError('ErrorWhileSearchingClient', $data[$this->mapping['search_key_client']], $dataline, $sql, 'ERROR', true);
 			return false;
 		}
 		
@@ -769,7 +772,7 @@ class Import // extends CommonObject
 			$res = $facture_mat->update($rowid, $user);
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
-				$this->addError('ErrorWhileUpdatingLine', $dataline, true);
+				$this->addError('ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
 				return false;
 			} else {
 				$this->nb_update++;
@@ -778,7 +781,7 @@ class Import // extends CommonObject
 			$res = $facture_mat->create($user);
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				$this->addError('ErrorWhileCreatingLine', $dataline, true);
+				$this->addError('ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
 				return false;
 			} else {
 				$this->nb_create++;
@@ -815,11 +818,11 @@ class Import // extends CommonObject
 				$obj = $this->db->fetch_object($resql);
 				$rowid = $obj->rowid;
 			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError('ErrorMultipleFactureFound', $dataline);
+				$this->addError('ErrorMultipleFactureFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
 			}
 		} else {
-			$this->addError('ErrorWhileSearchingFacture', $dataline);
+			$this->addError('ErrorWhileSearchingFacture', $data[$this->mapping['search_key']], $dataline, $sql, 'ERROR', true);
 			return false;
 		}
 		
@@ -833,14 +836,14 @@ class Import // extends CommonObject
 				$obj = $this->db->fetch_object($resql);
 				$fk_soc = $obj->rowid;
 			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError('ErrorMultipleClientFound', $dataline);
+				$this->addError('ErrorMultipleClientFound', $data[$this->mapping['search_key_client']], $dataline, $sql);
 				return false;
 			} else {
-				$this->addError('ErrorClientNotFound', $dataline);
+				$this->addError('ErrorClientNotFound', $data[$this->mapping['search_key_client']], $dataline, $sql);
 				return false;
 			}
 		} else {
-			$this->addError('ErrorWhileSearchingClient', $dataline, true);
+			$this->addError('ErrorWhileSearchingClient', $data[$this->mapping['search_key_client']], $dataline, $sql, 'ERROR', true);
 			return false;
 		}
 		
@@ -897,7 +900,7 @@ class Import // extends CommonObject
 			$res = $facture_loc->update($rowid, $user);
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
-				$this->addError('ErrorWhileUpdatingLine', $dataline, true);
+				$this->addError('ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
 				return false;
 			} else {
 				$this->nb_update++;
@@ -906,7 +909,7 @@ class Import // extends CommonObject
 			$res = $facture_loc->create($user);
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				$this->addError('ErrorWhileCreatingLine', $dataline, true);
+				$this->addError('ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
 				return false;
 			} else {
 				$this->nb_create++;
@@ -945,14 +948,14 @@ class Import // extends CommonObject
 				$obj = $this->db->fetch_object($resql);
 				$rowid = $obj->rowid;
 			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError('ErrorMultipleFactureFound', $dataline);
+				$this->addError('ErrorMultipleFactureFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
 			} else {
-				$this->addError('ErrorFactureNotFound', $dataline);
+				$this->addError('ErrorFactureNotFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
 			}
 		} else {
-			$this->addError('ErrorWhileSearchingFacture', $dataline);
+			$this->addError('ErrorWhileSearchingFacture', $data[$this->mapping['search_key']], $dataline, $sql, 'ERROR', true);
 			return false;
 		}
 		
@@ -961,7 +964,7 @@ class Import // extends CommonObject
 		$facture_loc->fetch($rowid);
 		$res = $facture_loc->set_paid($user, '', $data['code_lettrage']);
 		if($res < 0) {
-			$this->addError('ErrorWhileUpdatingLine', $dataline, true);
+			$this->addError('ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
 			return false;
 		} else {
 			$this->nb_update++;
@@ -986,7 +989,7 @@ class Import // extends CommonObject
 		
 		$commercial = new User($db);
 		if(!$commercial->fetch('',$data[$this->mapping['search_key_user']])) {
-			$this->addError('ErrorUserNotExist', $dataline);
+			$this->addError('ErrorUserNotFound', $data[$this->mapping['search_key_user']], $dataline);
 			return false;
 		}
 		else {
@@ -995,11 +998,11 @@ class Import // extends CommonObject
 		
 		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array($this->mapping['search_key_client']=>$data[$this->mapping['search_key_client']]));
 		if(count($TRes)==0) {
-			$this->addError('ErrorClientNotFound', $dataline);
+			$this->addError('ErrorClientNotFound', $data[$this->mapping['search_key_client']], $dataline);
 			return false;
 		}
 		else if(count($TRes) > 1) { // Plusieurs trouvés, erreur
-			$this->addError('ErrorMultipleClientFound', $dataline);
+			$this->addError('ErrorMultipleClientFound', $data[$this->mapping['search_key_client']], $dataline);
 			return false;
 		} else {
 			$fk_soc = $TRes[0];
@@ -1009,7 +1012,7 @@ class Import // extends CommonObject
 		$a->loadReference($ATMdb, $data[$this->mapping['search_key']]);
 		
 		if($a->fk_soc > 0 && $a->fk_soc != $fksoc) { // client ne correspond pas
-			$this->addError('ErrorClientDifferent', $dataline);
+			$this->addError('ErrorClientDifferent', $data[$this->mapping['search_key']], $dataline);
 			return false;
 		}
 		
@@ -1146,22 +1149,22 @@ class Import // extends CommonObject
 		$c=new TCommercialCpro;
 
 		$commercial = new User($db);
-		if(!$commercial->fetch('',$data['login'])) {
-			$this->addError('ErrorUserNotFound', $dataline);
+		if(!$commercial->fetch('',$data[$this->mapping['search_key']])) {
+			$this->addError('ErrorUserNotFound', $data[$this->mapping['search_key']], $dataline);
 			return false;
 		}
 		else {
 			$fk_user = $commercial->id;
 		}
 		
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$data['code_client'], 'entity' => $conf->entity));
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$data[$this->mapping['search_key_client']], 'entity' => $conf->entity));
 
 		if(count($TRes)==0) {
-			$this->addError('ErrorClientNotFound', $dataline);
+			$this->addError('ErrorClientNotFound', $data[$this->mapping['search_key_client']], $dataline);
 			return false;
 		}
 		else if(count($TRes) > 1) { // Plusieurs trouvés, erreur
-			$this->addError('ErrorMultipleClientFound', $dataline);
+			$this->addError('ErrorMultipleClientFound', $data[$this->mapping['search_key_client']], $dataline);
 			return false;
 		} else {
 			$fk_soc = $TRes[0];
@@ -1207,14 +1210,14 @@ class Import // extends CommonObject
 				$obj = $this->db->fetch_object($resql);
 				$fk_soc = $obj->rowid;
 			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError('ErrorMultipleClientFound', $dataline);
+				$this->addError('ErrorMultipleClientFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
 			} else {
-				$this->addError('ErrorClientNotFound', $dataline);
+				$this->addError('ErrorClientNotFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
 			}
 		} else {
-			$this->addError('ErrorWhileSearchingClient', $dataline);
+			$this->addError('ErrorWhileSearchingClient', $data[$this->mapping['search_key']], $dataline, $sql, 'ERROR', true);
 			return false;
 		}
 		
@@ -1233,7 +1236,7 @@ class Import // extends CommonObject
 		$res = $score->save($ATMdb);
 		// Erreur : la création n'a pas marché
 		if($res < 0) {
-			$this->addError('ErrorWhileCreatingLine', $dataline, true);
+			$this->addError('ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
 			return false;
 		} else {
 			$this->nb_create++;
@@ -1265,12 +1268,9 @@ class Import // extends CommonObject
 		$data = array();
 		array_walk($dataline, 'trim');
 		
-		//$data = array_combine($this->mapping['mapping'], $dataline); // Combinaison des valeurs de la ligne et du mapping
-		
 		foreach($this->mapping['mapping'] as $k=>$field) {
 			$data[$field] = $dataline[$k-1];
 		}
-		
 		
 		if(isset($this->mapping['more'])) $data = array_merge($data, $this->mapping['more']); // Ajout des valeurs autres
 		

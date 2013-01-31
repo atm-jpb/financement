@@ -13,7 +13,7 @@
 		<tr><td>Nombre de création</td><td>[import.nb_create; strconv=no]</td><td>Nombre de mise à jour</td><td>[import.nb_update; strconv=no]</td></tr>
 		</table>
 	</div>
-	
+	<br />
 	[liste_errors; strconv=no]
 
 [onshow;block=end]
