@@ -542,6 +542,8 @@ class Import // extends CommonObject
 				$this->importLineAffaire($dataline);
 				break;
 			case 'fichier_leaser':
+				/*print_r($dataline); 
+				print '<br>';*/
 				$this->importFichierLeaser($dataline);
 				break;
 			case 'score':
@@ -571,14 +573,13 @@ class Import // extends CommonObject
 			 */
 			 
 		}
-		elseif($f->createWithfindClientBySiren($ATMdb, $data['siren'])) {
+		elseif($f->createWithfindClientBySiren($ATMdb, $data['siren'], $data['reference_financement'])) {
 			/*
 			 * On trouve le financement recherch d'une affaire sans financement dans un client sur siren
 			 */
 		}
 		else {	
-			return false;	
-			
+			return false;		
 		}
 		
 		$f->echeance = $this->validateValue('echeance', $data['echeance']);
@@ -601,7 +602,9 @@ class Import // extends CommonObject
 	}
 
 	private function createFactureFournisseur() {
-		
+		/*
+		 * Finalement cette fonction est remplacer par un cron mensuel de création de facture
+		 */
 	}
 
 	function importLineTiers($dataline) {

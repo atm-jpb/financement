@@ -32,7 +32,7 @@
 			<td rowspan="2"><input type="submit" name="import" class="button" value="Importer"></td>
 		</tr>
 		<tr>
-			<td>Ignorer la premi&agrave;re ligne</td>
+			<td>Ignorer la premi&egrave;re ligne</td>
 			<td>[import.ignore_first_line; strconv=no]</td>
 			<td>Valeurs d&eacute;limit&eacute;es par</td>
 			<td>[import.delimiter; strconv=no]</td>

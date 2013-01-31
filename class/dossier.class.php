@@ -255,12 +255,31 @@ class TFin_financement extends TObjetStd {
 	function loadReference(&$db, $reference) {
 		return $this->loadBy($db, $reference, 'reference');	
 	}
-	function createWithfindClientBySiren(&$db, $siren) {
+	function createWithfindClientBySiren(&$db, $siren, $reference) {
 		/*
 		 * Trouve le client via le siren, vérifie s'il existe une affaire avec financement sans référence pour association automatique
 		 */
+		$db->Execute("SELECT s.id as 'fk_soc',a.rowid as 'fk_fin_affaire', f.rowid as 'fk_financement' 
+			FROM ((llx_fin_affaire a LEFT JOIN llx_societe s ON (a.fk_soc=s.rowid) 
+				LEFT OUTER JOIN llx_fin_dossier_affaire l ON (l.fk_fin_affaire=a.rowid))
+					LEFT JOIN OUTER ".$this->get_table()." f ON (f.fk_fin_dossier=a.fk_fin_dossier))
+					
+			WHERE s.siren='".$siren."' AND `fk_fin_affaire`>0 AND `fk_financement` IS NULL 
+		");
+		if($db->Get_line()) {
+			$idAffaire =  $db->Get_field('fk_fin_affaire');
+			
+			$a=new TFin_affaire;
+			$a->load($db, $idAffaire);
+			
+			$d=new TFin_dossier;
+			$d->financementLeaser->reference = 
+			$d->save($db);
+			
+			$a->addDossier();
+			
+		}
 		
-		//TODO
 		
 		return false;
 	}

@@ -43,16 +43,24 @@
 					$imp->entity = $conf->entity;
 					$imp->fk_user_author = $user->id;
 					
-					$mappingFile = ($fileType == 'fichier_leaser' ? $fileType.'.'.$_REQUEST['socid'].'.mapping' : $fileType.'.mapping');
+					$societe =new Societe($db);
+					$societe->fetch($_REQUEST['socid']);
+					
+					$mappingFile = ($fileType == 'fichier_leaser' ? $fileType.'.'.$societe->code_client.'.mapping' : $fileType.'.mapping');
 					$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
 					
 					$imp->init($fileName, $fileType);
 					$imp->create($user); // Création de l'import
 		
 					$f1 = fopen($importFolder.$fileName, 'r');
-					fgets($f1);
+					
+					if(isset($_REQUEST['ignore_first_line'])) {
+						fgetcsv($f1 ,1024, $_REQUEST['delimiter'], $_REQUEST['enclosure']);
+					//	print "Ignore l'entête";
+					} 
+					
 					while($dataline = fgetcsv($f1, 1024, $_REQUEST['delimiter'], $_REQUEST['enclosure'])) {
-						if(!empty($_REQUEST['ignore_first_line'])) continue;
+						
 						$imp->importLine($dataline, $fileType);
 					}
 					
