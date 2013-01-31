@@ -24,15 +24,123 @@
  */
 
 require('../config.php');
+require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 dol_include_once('/financement/lib/admin.lib.php');
 
 if (!$user->rights->financement->admin->write) accessforbidden();
+
+$langs->load("admin");
+$langs->load("errors");
+$langs->load('other');
+
+$action = GETPOST('action','alpha');
+
+/*
+ * Actions
+ */
+
+if(substr($action,0,4) == 'set_') {
+	$key = substr($action, 4);
+	$action = 'setvalue';
+	$value = GETPOST($key);
+} else {
+	$value = GETPOST('value','alpha');
+}
+
+if ($action == 'setvalue')
+{
+	$res = dolibarr_set_const($db,$key,$value,'chaine',0,'',$conf->entity);
+
+	if (! $res > 0) $error++;
+
+ 	if (! $error)
+    {
+        $mesg = "<font class=\"ok\">".$langs->trans("SetupSaved")."</font>";
+    }
+    else
+    {
+        $mesg = "<font class=\"error\">".$langs->trans("Error")."</font>";
+    }
+}
+
+/*
+ * View
+ */
 
 llxHeader('',$langs->trans("FinancementSetup"));
 print_fiche_titre($langs->trans("FinancementSetup"),'','setup32@financement');
 $head = financement_admin_prepare_head(null);
 
 dol_fiche_head($head, 'config', $langs->trans("Financement"), 0, 'financementico@financement');
+
+print_titre($langs->trans("GlobalOptionsForFinancement"));
+
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameter").'</td>';
+print '<td align="center" width="60">'.$langs->trans("Value").'</td>';
+print '<td width="80">&nbsp;</td>';
+print "</tr>\n";
+$var=true;
+
+// % validation montant pour simulateur
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_PERCENT_VALID_AMOUNT" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("AmountValidationPercent").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_PERCENT_VALID_AMOUNT" value="'.$conf->global->FINANCEMENT_PERCENT_VALID_AMOUNT.'" /> %';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+// % validation score pour simulateur
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_SCORE_MINI" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("AmountValidationScore").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_SCORE_MINI" value="'.$conf->global->FINANCEMENT_SCORE_MINI.'" /> / 20';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+// % validation naf pour simulateur
+$var=! $var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_NAF_BLACKLIST" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("NAFBlackList").'</td>';
+print '<td><textarea name="FINANCEMENT_NAF_BLACKLIST" class="flat" cols="80">'.$conf->global->FINANCEMENT_NAF_BLACKLIST.'</textarea>';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+/*
+$var=! $var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="setforcedate" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("AmountValidationPercent");
+print '</td><td width="60" align="center">';
+print $form->selectyesno("forcedate",$conf->global->FINANCEMENT_PERCENT_VALID_AMOUNT,1);
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+*/
+
+
+
+print '</table>';
+
+
 dol_htmloutput_mesg($mesg);
 
 dol_fiche_end();

@@ -6,6 +6,11 @@ ListOfDossierFinancement=Dossiers de financement
 Admin=Administration
 GlobalCoeffGrille=Grille de coefficients
 CoeffCorrectlySaved=Coefficient enregistré(s)
+GlobalOptionsForFinancement=Options globale du module de financement
+GlobalAdmin=Options globales
+AmountValidationPercent=Pourcentage d'endettement maximum : montant finançable max = (encours conseillé - encours cpro) * X
+AmountValidationScore=Score minimum de validation de simulation
+NAFBlackList=Liste des codes NAF non acceptés (séparés par des point-virgules)
 
 # SIMULATIONS
 Simulations=Simulations
@@ -66,3 +71,4 @@ NbLines=Nb de lignes
 NbErrors=Nb d'erreurs
 NbCreate=Nb de création
 NbUpdate=Nb de mise à jour
+ErrorUserNotFound=Client non trouvé
