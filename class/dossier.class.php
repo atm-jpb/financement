@@ -216,7 +216,7 @@ class TFin_financement extends TObjetStd {
 		
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
-		parent::add_champs('duree,numero_prochaine_echeance,fk_fin_dossier','type=entier;');
+		parent::add_champs('duree,numero_prochaine_echeance,fk_fin_dossier,terme','type=entier;');
 		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant,assurance,montant_solde','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
@@ -251,6 +251,11 @@ class TFin_financement extends TObjetStd {
 		$this->somme_facture = 0;
 		$this->somme_echeance = 0;
 		
+		$this->terme = 1;
+		$this->TTerme = array(
+			0=>'Echu'
+			,1=>'A Echoir'
+		);
 	}
 	function loadReference(&$db, $reference) {
 		return $this->loadBy($db, $reference, 'reference');	
@@ -300,9 +305,11 @@ class TFin_financement extends TObjetStd {
 		if($this->periodicite=='TRIMESTRE')$iPeriode=3;
 		else if($this->periodicite=='ANNEE')$iPeriode=12;
 		else $iPeriode = 1;
-		
+		/*
 		if(($this->echeance*$this->montant)==0)$this->taux =  0;
-		else $this->taux = round($this->getiPeriode()* (($this->echeance * $this->duree / ($this->montant - $this->reste)) - 1),2);
+		else $this->taux = round($this->getiPeriode()* (($this->echeance * $this->duree / ($this->montant - $this->reste)) - 1),2);*/
+		
+		$this->taux = $this->taux($this->duree, $this->echeance, $this->montant, $this->reste, $this->terme);
 	}
 	
 	function load(&$ATMdb, $id, $annexe=false) {
@@ -415,7 +422,7 @@ class TFin_financement extends TObjetStd {
 	 * @param $type Int : Terme de l'échéance (0 = terme échu, 1 = terme à échoir)
 	 * @return $vpm Float : Montant d'une échéance
 	 */
-	function vpm($taux, $npm, $va, $vc = 0, $type = 0){
+	private function vpm($taux, $npm, $va, $vc = 0, $type = 0){
 		if(!is_numeric($taux) || !is_numeric($npm) || !is_numeric($va) || !is_numeric($vc) || !is_numeric($type)) return false;
 		if($type > 1|| $type < 0) return false;
 		
@@ -437,7 +444,7 @@ class TFin_financement extends TObjetStd {
 	 * @param $type Int : Terme de l'échéance (0 = terme échu, 1 = terme à échoir)
 	 * @return $va Float : Montant de l'investissement
 	 */
-	function va($taux, $npm, $vpm, $vc = 0, $type = 0){
+	private function va($taux, $npm, $vpm, $vc = 0, $type = 0){
 		if(!is_numeric($taux) || !is_numeric($npm) || !is_numeric($vpm) || !is_numeric($vc) || !is_numeric($type)) return false;
 		if($type > 1|| $type < 0) return false;
 		
@@ -460,7 +467,7 @@ class TFin_financement extends TObjetStd {
 	 * @param $guess Float : ???
 	 * @return $rate Float : Taux d'intérêt
 	 */
-	function taux($nper, $pmt, $pv, $fv = 0.0, $type = 0, $guess = 0.1) {
+	private function taux($nper, $pmt, $pv, $fv = 0.0, $type = 0, $guess = 0.1) {
 		$rate = $guess;
 		if (abs($rate) < 20) {
 			$y = $pv * (1 + $nper * $rate) + $pmt * (1 + $rate * $type) * $nper + $fv;
