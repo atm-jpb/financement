@@ -23,7 +23,7 @@
 						
 						<tr><td width="20%">Numéro de Dossier Client</td><td>[financement.reference; strconv=no]</td></tr>
 						<tr><td width="20%">Montant financé HT</td><td>[financement.montant; strconv=no]</td></tr>
-						<tr><td>Taux</td><td>[financement.taux; strconv=no]</td></tr>
+						<tr><td>Taux</td><td>[financement.taux; frm=0 000,00]%</td></tr>
 						<tr><td>Périodicité</td><td>[financement.periodicite; strconv=no]</td></tr>
 			
 						<tr><td>Durée</td><td>[financement.duree; strconv=no]</td></tr>
@@ -39,7 +39,11 @@
 						
 						<tr><td>Valeur résiduelle</td><td>[financement.reste; strconv=no]</td></tr>
 						<tr><td>Mode de réglement</td><td>[financement.reglement; strconv=no]</td></tr>
-						<tr><td>Montant de prestation</td><td>[financement.montant_prestation; strconv=no]</td></tr>
+						<tr><td>Terme</td><td>[financement.terme; strconv=no]</td></tr>
+						<!-- <tr><td>Montant de prestation</td><td>[financement.montant_prestation; strconv=no]</td></tr> -->
+						
+						<tr><td>Pénalité de reprise de dossier</td><td>[financement.penalite_reprise; strconv=no]</td></tr>
+						<tr><td>Taux de commission</td><td>[financement.taux_commission; strconv=no; frm=0,00]%</td></tr>
 						
 						<tr><td>Incident de paiement</td><td>[financement.incident_paiement; strconv=no]</td></tr>
 						
@@ -53,7 +57,7 @@
 						<tr class="liste_titre"><td colspan="2">Leaser</td></tr>
 						<tr><td width="20%">Numéro de Dossier Leaser</td><td>[financementLeaser.reference; strconv=no]</td></tr>
 						<tr><td width="20%">Montant financé HT</td><td>[financementLeaser.montant; strconv=no;]</td></tr>
-						<tr><td>Taux</td><td>[financementLeaser.taux; strconv=no]</td></tr>
+						<tr><td>Taux</td><td>[financementLeaser.taux; frm=0 000,00]%</td></tr>
 						<tr><td>Périodicité</td><td>[financementLeaser.periodicite; strconv=no]</td></tr>
 			
 						<tr><td>Durée</td><td>[financementLeaser.duree; strconv=no]</td></tr>
@@ -67,6 +71,8 @@
 						
 						<tr><td>Valeur résiduelle</td><td>[financementLeaser.reste; strconv=no]</td></tr>
 						<tr><td>Mode de réglement</td><td>[financementLeaser.reglement; strconv=no]</td></tr>
+						<tr><td>Terme</td><td>[financementLeaser.terme; strconv=no]</td></tr>
+						
 						<tr><td>Montant de prestation</td><td>[financementLeaser.montant_prestation; strconv=no]</td></tr>
 						
 						<tr><td>Incident de paiement</td><td>[financementLeaser.incident_paiement; strconv=no]</td></tr>

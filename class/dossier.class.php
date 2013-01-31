@@ -215,9 +215,11 @@ class TFin_dossier_affaire extends TObjetStd {
 class TFin_financement extends TObjetStd {
 		
 	function __construct() { /* declaration */
+	global $langs;
+	
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
 		parent::add_champs('duree,numero_prochaine_echeance,fk_fin_dossier,terme','type=entier;');
-		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant,assurance,montant_solde','type=float;');
+		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant,assurance,montant_solde,penalite_reprise,taux_commission','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
 		parent::add_champs('fk_soc','type=entier;index;');
@@ -231,10 +233,17 @@ class TFin_financement extends TObjetStd {
 			,'ANNEE'=>'Annuel'
 		);
 		
-		$this->TReglement=array(
-			'CHEQUE'=>'Chèque'
-			,'VIREMENT'=>'Virement'
-		);
+		$this->TReglement=array();
+		$this->load_reglement();  
+		 
+		 /*
+		 array(
+			'opt_prelevement'=>$langs->trans('opt_prelevement')
+			,'opt_virement'=>$langs->trans('opt_virement')
+			,'opt_cheque'=>$langs->trans('opt_cheque')
+		);*/
+		
+		$this->taux_commission = 1;
 		
 		$this->TIncidentPaiement=array(
 			'OUI'=>'Oui'
@@ -256,6 +265,23 @@ class TFin_financement extends TObjetStd {
 			0=>'Echu'
 			,1=>'A Echoir'
 		);
+	}
+	function load_reglement() {
+	global $db;
+	
+		if(!isset($db) ) return false;
+	
+		$this->TReglement=array();
+		
+		$form = new Form($db);	
+		$form->load_cache_types_paiements();
+		
+		foreach($form->cache_types_paiements as $row) {
+			if($row['code']!='') {
+				$this->TReglement[$row['code']] = $row['label'];	
+			}	
+		}
+		
 	}
 	function loadReference(&$db, $reference) {
 		return $this->loadBy($db, $reference, 'reference');	
@@ -308,7 +334,7 @@ class TFin_financement extends TObjetStd {
 		/*
 		if(($this->echeance*$this->montant)==0)$this->taux =  0;
 		else $this->taux = round($this->getiPeriode()* (($this->echeance * $this->duree / ($this->montant - $this->reste)) - 1),2);*/
-		$this->taux = $this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100;
+		$this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100,2);
 	}
 	
 	function load(&$ATMdb, $id, $annexe=false) {
@@ -317,12 +343,17 @@ class TFin_financement extends TObjetStd {
 		
 		if($annexe) {
 			$this->load_facture($ATMdb);
+			$this->load_factureFournisseur($ATMdb);
 		}
 		
 	}
 	
 	function load_facture(&$ATMdb) {
 		$this->somme_facture = 0;
+		$this->somme_facture_reglee=0;
+	}
+	function load_factureFournisseur(&$ATMdb) {
+		$this->somme_facture_fournisseur = 0;
 	}
 	
 	function save(&$ATMdb) {
@@ -349,6 +380,67 @@ class TFin_financement extends TObjetStd {
 	
 	function getPenalite() {
 		return 1;
+	}
+	function getRentabilite() {
+		return 1;
+		
+	}
+	function getRentabiliteAttendue() {
+		return $this->montant * $this->getRentabilite()	;	
+	}
+	function getRentabiliteReelle() {
+		
+		return $this->somme_facture_reglee - $this->somme_facture_fournisseur;
+	}
+	function getSolde($type='SRBANK') {
+		
+		$CRD = $this->va();
+		$LRD = $this->echeance * $this->duree_restante;
+		
+		$nature_financement = $affaire->nature_financement;
+		
+		
+		switch($type) {
+			case 'SRBANK':
+				if($nature_financement=='EXTERNE' && $this->duree_passe<4) {
+					return $this->montant;
+				}
+				else {
+					return $CRD * $this->getPenalite('R');
+				}
+
+				break;
+			case 'SNRBANK':
+				if($nature_financement=='EXTERNE' && $this->duree_passe<4) {
+					return $this->montant;
+				}
+				else {
+					return $CRD * $this->getPenalite('NR');
+				}
+				break;
+				
+			case 'SNRCPRO':
+				return $LRD;
+				break;
+					
+			case 'SRCPRO':
+				if($this->duree_passe<=5) {
+					return $this->montant;
+				}
+				else {
+					if($nature_financement=='EXTERNE') {
+						return $CRD + $this->getRentabiliteAttendue();
+					}
+					else {
+						return $CRD + $this->getRentabiliteAttendue() - $this->getRentabiliteReelle() + $this->penalite_reprise + ($this->taux_commission/100 * $this->montant) ;
+					}
+					
+				}
+				
+				break;
+		}
+		
+		
 	}
 	
 	function echeancier() {

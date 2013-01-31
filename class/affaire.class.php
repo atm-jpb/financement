@@ -40,11 +40,6 @@ class TFin_affaire extends TObjetStd {
 			,'opt_mensuel'=>$langs->trans('opt_mensuel')
 		);
 		
-		$this->TModeReglement=array(
-			'opt_prelevement'=>$langs->trans('opt_prelevement')
-			,'opt_virement'=>$langs->trans('opt_virement')
-			,'opt_cheque'=>$langs->trans('opt_cheque')
-		);
 		
 		$this->TTerme=array(
 			'opt_a_echoir'=>$langs->trans('opt_a_echoir')
