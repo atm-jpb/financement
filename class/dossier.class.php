@@ -308,8 +308,7 @@ class TFin_financement extends TObjetStd {
 		/*
 		if(($this->echeance*$this->montant)==0)$this->taux =  0;
 		else $this->taux = round($this->getiPeriode()* (($this->echeance * $this->duree / ($this->montant - $this->reste)) - 1),2);*/
-		
-		$this->taux = $this->taux($this->duree, $this->echeance, $this->montant, $this->reste, $this->terme);
+		$this->taux = $this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100;
 	}
 	
 	function load(&$ATMdb, $id, $annexe=false) {
@@ -495,7 +494,7 @@ class TFin_financement extends TObjetStd {
 			
 			$y0 = $y1;
 			$y1 = $y;
-			$i++;
+			++$i;
 		}
 		
 		return $rate;
