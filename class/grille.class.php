@@ -118,7 +118,7 @@ class TFin_grille_leaser extends TObjetStd {
 					,'coeff'=>0
 					,'echeance'=>0
 					,'periode'=>$periode
-					,'montant'=>$palier['montant']
+					,'montant'=>$row['montant']
 				);
 			
 		}

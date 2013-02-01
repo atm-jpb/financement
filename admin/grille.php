@@ -62,6 +62,7 @@ $action = GETPOST('action', 'alpha');
 if($action == 'save') {
 	$TCoeff = GETPOST('TCoeff');
 	$TPalier = GETPOST('TPalier');
+	$TPeriode = GETPOST('TPeriode');
 	
 	$idTypeContrat = GETPOST('idTypeContrat');
 	$idLeaser = GETPOST('idLeaser');
@@ -78,27 +79,29 @@ if($action == 'save') {
 	$grille->addPalier($newPalier);
 	$grille->addPeriode($newPeriode);
 	
-	$ATMdb->db->debug=true;
+	//$ATMdb->db->debug=true;
 	
 	if(!empty($TCoeff)) {
+		print_r($TPalier);
+		print_r($TPeriode);
 		
-		foreach($TCoeff as $iPeriode=>$TPalier) {
-			
-			$periode = $TPeriode[$iPeriode];
-			
-			foreach($TPalier as $montant=>$palier) {
+		foreach($TCoeff as $i=>$TLigne) {
+			$periode = $TPeriode[$i];
+							
+			foreach($TLigne as $j=>$coeff) {
+				$montant = $TPalier[$j];
+			//print "$i/$j $periode/$montant ".$coeff['coeff']."<br>";
 				$grilleLigne = new TFin_grille_leaser;
-				if($palier['rowid']>0)	$grilleLigne->load($ATMdb, $palier['rowid']);
+				if($coeff['rowid']>0)	$grilleLigne->load($ATMdb, $coeff['rowid']);
 				
-				if($palier['rowid']>0 && empty($palier['coeff'])) $grilleLigne->delete($ATMdb);
+				if($coeff['rowid']>0 && empty($coeff['coeff'])) $grilleLigne->delete($ATMdb);
 				else {
-					$grilleLigne->coeff=(double)strtr($palier['coeff'], $tabStrConversion);
+					$grilleLigne->coeff=(double)strtr($coeff['coeff'], $tabStrConversion);
 					$grilleLigne->montant=(double)strtr($montant, $tabStrConversion);
-					$grilleLigne->periode=(int)$palier['periode'];
+					$grilleLigne->periode=(int)$periode;
 					$grilleLigne->fk_soc = $idLeaser;
 					$grilleLigne->fk_type_contrat = $idTypeContrat;
 					$grilleLigne->save($ATMdb);
-					
 				}
 			}
 		}
@@ -126,7 +129,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$TPalier=array();
 	foreach($grille->TPalier as $i=>$palier) {
 		$TPalier[]=array(
-			'montant'=>$form->texte('','TPalier['.$i.']', $palier['montant'],10,255).' &euro;'
+			'montant'=>$form->texte('','TPalier['.($i+1).']', $palier['montant'],10,255).' &euro;'
 			,'lastMontant'=>$palier['lastMontant']
 		);
 		
