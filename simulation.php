@@ -206,7 +206,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$affaire = new TFin_affaire;
 	$financement = new TFin_financement;
-	$grille = new Grille($db);
+	$grille = new TFin_grille_leaser();
 	$html=new Form($db);
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formSimulation','POST');
 	$form->Set_typeaff($mode);
@@ -221,6 +221,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	echo $form->hidden('accord', $simulation->accord);
 
 	$TBS=new TTemplateTBS();
+	$ATMdb=new Tdb;
 	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
@@ -240,7 +241,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement)
 				,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme)
 				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)
-				,'duree'=>$form->combo('', 'duree', $grille->get_duree(FIN_LEASER_DEFAULT), $simulation->duree)
+				,'duree'=>$form->combo('', 'duree', $grille->get_duree($ATMdb,FIN_LEASER_DEFAULT), $simulation->duree)
 				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
 				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
 				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 5)
@@ -308,8 +309,9 @@ function _calcul(&$simulation) {
 		$mesg = $langs->trans('ErrorMontantOrEcheanceRequired');
 		$error = true;
 	} else {
-		$grille = new Grille($db);
-		$grille->get_grille(1, $simulation->fk_type_contrat, $simulation->opt_periodicite, $options); // Récupération de la grille pour les paramètre données
+		$grille = new TFin_grille_leaser;
+		$ATMdb=new Tdb;
+		$grille->get_grille($ATMdb,1, $simulation->fk_type_contrat, $simulation->opt_periodicite, $options); // Récupération de la grille pour les paramètre données
 		$calcul = $grille->calcul_financement($simulation->montant, $simulation->duree, $simulation->echeance, $simulation->vr, $simulation->coeff); // Calcul du financement
 		
 		if(!$calcul) { // Si calcul non correct
@@ -325,11 +327,12 @@ function _liste_dossier(&$ATMdb, &$simulation) {
 	global $langs,$conf, $db;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 
-	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', d.montant as 'Montant', d.rowid as 'IDDoss', d.datedeb as 'Début', d.datefin as 'Fin', ac.fk_user,";
+	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', d.montant as 'Montant', d.rowid as 'IDDoss',f.date_debut as 'Début', f.date_fin as 'Fin', ac.fk_user,";
 	$sql.= " u.login as 'Utilisateur'";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_affaire = a.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON d.rowid = da.fk_fin_dossier";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement f ON f.fk_fin_dossier = d.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire_commercial ac ON ac.fk_fin_affaire = a.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
 	$sql.= " WHERE a.entity = ".$conf->entity;

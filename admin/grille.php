@@ -70,10 +70,9 @@ if($action == 'save') {
 	$newPalier = GETPOST('newPalier');
 	$newPeriode = GETPOST('newPeriode');
 	$TNewCoeff = GETPOST('TNewCoeff');
-	print_r($TCoeff);
+	//print_r($TCoeff);
 	
-	$tabStrConversion = array(',' => '.', ' ' => ''); // Permet de transformer les valeurs en nombres
-
+	
 	$grille = & $TGrille[$idTypeContrat];
 	
 	$grille->addPalier($newPalier);
@@ -91,18 +90,9 @@ if($action == 'save') {
 			foreach($TLigne as $j=>$coeff) {
 				$montant = $TPalier[$j];
 			//print "$i/$j $periode/$montant ".$coeff['coeff']."<br>";
-				$grilleLigne = new TFin_grille_leaser;
-				if($coeff['rowid']>0)	$grilleLigne->load($ATMdb, $coeff['rowid']);
 				
-				if($coeff['rowid']>0 && empty($coeff['coeff'])) $grilleLigne->delete($ATMdb);
-				else {
-					$grilleLigne->coeff=(double)strtr($coeff['coeff'], $tabStrConversion);
-					$grilleLigne->montant=(double)strtr($montant, $tabStrConversion);
-					$grilleLigne->periode=(int)$periode;
-					$grilleLigne->fk_soc = $idLeaser;
-					$grilleLigne->fk_type_contrat = $idTypeContrat;
-					$grilleLigne->save($ATMdb);
-				}
+				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, $montant, $coeff['coeff'] );
+				
 			}
 		}
 		

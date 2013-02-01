@@ -127,6 +127,37 @@ class TFin_grille_leaser extends TObjetStd {
 		
 		return true;
 	}
+	function setCoef(&$ATMdb, $idCoeff ,$idLeaser, $idTypeContrat, $periode, $montant, $coeff) {
+		$grilleLigne = new TFin_grille_leaser;
+		if($idCoeff>0) $grilleLigne->load($ATMdb, $idCoeff);
+		if($idCoeff>0 && empty($coeff)) {
+			$grilleLigne->delete($ATMdb);
+			unset($this->TGrille[$periode][$montant]);
+			
+		}
+		else {
+			$tabStrConversion = array(',' => '.', ' ' => ''); // Permet de transformer les valeurs en nombres
+			
+			$grilleLigne->coeff=(double)strtr($coeff, $tabStrConversion);
+			$grilleLigne->montant=(double)strtr($montant, $tabStrConversion);
+			$grilleLigne->periode=(int)$periode;
+			$grilleLigne->fk_soc = $idLeaser;
+			$grilleLigne->fk_type_contrat = $idTypeContrat;
+			$grilleLigne->save($ATMdb);
+			
+			if($idCoeff==0) {
+				$this->TGrille[$periode][$montant]=array(
+					'rowid'=>$grilleLigne->id
+					,'coeff'=>$coeff
+					,'echeance'=>0
+					,'periode'=>$periode
+					,'montant'=>$montant
+				);
+			}
+		}
+		
+		$this->normalizeGrille();
+	}
 	function addPeriode($periode) {
 		if(empty($periode)) { return false; }
 		
@@ -152,16 +183,16 @@ class TFin_grille_leaser extends TObjetStd {
 		if(!empty($idTypeContrat)) $sql.= " AND t.fk_type_contrat = ".$idTypeContrat;
 		$sql.= " ORDER BY t.periode ASC";
 
+		$ATMdb->Execute($sql);
+
     	dol_syslog(get_class($this)."::get_coeff sql=".$sql, LOG_DEBUG);
-        $resql=$this->db->query($sql);
-        if ($resql)
+		
+        if ($ATMdb->Get_Recordcount()>0)
         {
-        	$num = $this->db->num_rows($resql);
-			$i = 0;
+        	
 			$TDuree = array();
-			while($i < $num) {
-				$obj = $this->db->fetch_object($resql);
-				$duree = $obj->periode;
+			while($ATMdb->Get_line()) {
+				$duree = $ATMdb->Get_field('periode');
 				if($periodicite == 'MOIS') $duree *= 3;
 				$label = $duree;
 				$label.= ($periodicite == 'TRIMESTRE') ? ' '.$langs->trans('Trimestres') : '';
@@ -171,12 +202,9 @@ class TFin_grille_leaser extends TObjetStd {
 				$i++;
 			}
 			
-			$this->db->free($resql);
-
 			return $TDuree;
 		} else {
-			$this->error="Error ".$this->db->lasterror();
-			dol_syslog(get_class($this)."::fetch ".$this->error, LOG_ERR);
+			
 			return -1;
 		}
 	}
