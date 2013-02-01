@@ -1,21 +1,23 @@
 <?php
 
 class TFin_grille_leaser extends TObjetStd {
-	function __construct() { /* declaration */
+	function __construct($type='LEASER') { /* declaration */
 		global $langs;
 
 		parent::set_table(MAIN_DB_PREFIX.'fin_grille_leaser');
-		parent::add_champs('fk_type_contrat');
-		parent::add_champs('fk_soc,fk_user','type=entier;index;');//fk_soc_leaser
+		parent::add_champs('fk_type_contrat,type');
+		parent::add_champs('fk_soc','type=entier;index;');//fk_soc_leaser
 		parent::add_champs('periode','type=entier;');
 		parent::add_champs('montant,coeff','type=float;');
 		
 		parent::_init_vars();
 		parent::start();
 		
-		$this->grille=array();
+		$this->TGrille=array();
 		$this->TPalier=array();
 		$this->TPeriode=array();
+		
+		$this->type=$type;
 	}
 	/******************************************************************
 	 * PERSO FUNCTIONS
@@ -33,19 +35,21 @@ class TFin_grille_leaser extends TObjetStd {
 
 		$this->fk_soc = $idLeaser;
 
-    	$sql = "SELECT t.rowid, t.periode, t.montant
-        	 	FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t
-        	 	WHERE t.fk_soc = ".$idLeaser. " AND t.type='$type' AND t.fk_type_contrat = '".$idTypeContrat."'
-        	 	ORDER BY t.periode, t.montant ASC";
+    	$sql = "SELECT rowid, periode, montant,coeff
+        	 	FROM ".MAIN_DB_PREFIX."fin_grille_leaser
+        	 	WHERE fk_soc = ".$idLeaser. " AND type='$type' AND fk_type_contrat = '".$idTypeContrat."'
+        	 	ORDER BY periode, montant ASC";
 
 		$ATMdb->Execute($sql);
 		
 		$this->TPalier=array();
 		$this->TPeriode=array();
 		
-		$result = &$this->grille;
+		$result = &$this->TGrille;
 		$result = array();
 		$lastMontant=0;
+		
+		$Tmp=array();
 		
 		while($ATMdb->get_line()) {
 			
@@ -55,22 +59,85 @@ class TFin_grille_leaser extends TObjetStd {
 			$montant = $ATMdb->get_field('montant');
 			$coeff = $this->_calculate_coeff($ATMdb, $ATMdb->get_field('coeff'), $options);
 			
-			$result[$periode][$montant]['rowid'] = $ATMdb->Get_field('rowid');
-			$result[$periode][$montant]['coeff'] = $coeff;
-			$result[$periode][$montant]['echeance'] = $montant / $periode * (1 + $coeff / 100);
-
-			$this->TPalier[$periode]=array(
-				'montant'=>$montant
-				,'lastMontant'=>$lastMontant
+			$result[$periode][$montant]=array(
+				'rowid' => $ATMdb->Get_field('rowid')
+				,'coeff' => $coeff
+				,'echeance' => $montant / $periode * (1 + $coeff / 100)
+				,'montant' => $montant
+				,'periode' => $periode
 			);
+			
+			if(!in_array($montant, $Tmp)) {
+				$Tmp[]=$montant;
+				$this->TPalier[]=array(
+					'montant'=>$montant
+					,'lastMontant'=>$lastMontant
+				);
+			}
 			
 			$lastMontant=$montant;	
 		}
 		
+		$this->normalizeGrille();
 		
 		return $result;
 	}
-	
+	private function normalizeGrille() {
+			/* S'assure que toutes les colonnes sont correctement définie dans la grille (parfois selon la base il en manque) */
+		
+			foreach($this->TPalier as $palier) {
+				
+				foreach($this->TGrille as $periode=>&$row) {
+					//print $palier['montant'];
+					if(!isset($row[$palier['montant']])) {
+							
+						$row[$palier['montant']]=array(
+							'rowid'=>0
+							,'coeff'=>0
+							,'echeance'=>0
+							,'periode'=>$periode
+							,'montant'=>$palier['montant']
+						);
+					}
+				}
+			}
+		
+	}
+	function addPalier($palier) {
+		if(empty($palier)) { return false; }
+		
+		$this->TPalier[]=array(
+					'montant'=>$palier
+					,'lastMontant'=>$lastMontant
+			);
+		
+		foreach($this->TGrille as $periode=>&$row) {
+			
+				$row[$palier] = array(
+					'rowid'=>0
+					,'coeff'=>0
+					,'echeance'=>0
+					,'periode'=>$periode
+					,'montant'=>$palier['montant']
+				);
+			
+		}
+		
+		$this->normalizeGrille();
+		
+		return true;
+	}
+	function addPeriode($periode) {
+		if(empty($periode)) { return false; }
+		
+		if(!isset($this->TGrille[$periode])) {
+			$this->TGrille[$periode]=array();
+		}
+		
+		$this->normalizeGrille();
+		
+		return true;
+	}
 	/**
 	 * Récupération de la liste des durée possible pour un type de contrat et pour un leaser
 	 */

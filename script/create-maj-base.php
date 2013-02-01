@@ -10,6 +10,8 @@
 	require('../class/simulation.class.php');
 	require('../class/score.class.php');
 
+	require('../class/grille.class.php');
+
 	$ATMdb=new Tdb;
 	$ATMdb->db->debug=true;
 
@@ -33,6 +35,11 @@
 	
 	$o=new TSimulation;
 	$o->init_db_by_vars($ATMdb);
+	
+	$o=new TFin_grille_leaser;
+	$o->init_db_by_vars($ATMdb);
+	
+	
 	
 	$s=new TScore;
 	$s->init_db_by_vars($ATMdb);
