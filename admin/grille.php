@@ -26,7 +26,7 @@
 require('../config.php');
 dol_include_once('/financement/lib/admin.lib.php');
 dol_include_once('/financement/class/affaire.class.php');
-dol_include_once('/financement/class/grille.class.php');
+dol_include_once('/financement/class/grille.leaser.class.php');
 
 if (!$user->rights->financement->admin->write) accessforbidden();
 
@@ -81,9 +81,9 @@ if($action == 'save') {
 	//$ATMdb->db->debug=true;
 	
 	if(!empty($TCoeff)) {
-		print_r($TPalier);
+		/*print_r($TPalier);
 		print_r($TPeriode);
-		
+		*/
 		foreach($TCoeff as $i=>$TLigne) {
 			$periode = $TPeriode[$i];
 							
@@ -95,9 +95,9 @@ if($action == 'save') {
 				
 			}
 		}
-		
-	
 	}
+	
+	$grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
 }
 
 // Grille de coeff globale + % de pénalité par option
