@@ -69,7 +69,7 @@ if($action == 'save') {
 	
 	$newPalier = GETPOST('newPalier');
 	$newPeriode = GETPOST('newPeriode');
-	$TNewCoeff = GETPOST('TNewCoeff');
+	//$TNewCoeff = GETPOST('TNewCoeff');
 	//print_r($TCoeff);
 	
 	
@@ -97,7 +97,6 @@ if($action == 'save') {
 		}
 	}
 	
-	$grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
 }
 
 // Grille de coeff globale + % de pénalité par option

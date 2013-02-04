@@ -29,7 +29,7 @@ class TFin_grille_leaser extends TObjetStd {
 	 *  @param	int		$idTypeContrat  Id type contrat
      *  @return array   Tableau contenant les grilles de coeff, false si vide
      */
-    function get_grille(&$ATMdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE' , $options=array(),$type='LEASER')
+    function get_grille(&$ATMdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE' , $options=array())
     {
     	if(empty($idLeaser) || empty($idTypeContrat)) return false;
 
@@ -37,7 +37,7 @@ class TFin_grille_leaser extends TObjetStd {
 
     	$sql = "SELECT rowid, periode, montant,coeff
         	 	FROM ".MAIN_DB_PREFIX."fin_grille_leaser
-        	 	WHERE fk_soc = ".$idLeaser. " AND type='$type' AND fk_type_contrat = '".$idTypeContrat."'
+        	 	WHERE fk_soc = ".$idLeaser. " AND type='".$this->type."' AND fk_type_contrat = '".$idTypeContrat."'
         	 	ORDER BY periode, montant ASC";
 
 		$ATMdb->Execute($sql);
@@ -108,17 +108,17 @@ class TFin_grille_leaser extends TObjetStd {
 		
 		$this->TPalier[]=array(
 					'montant'=>$palier
-					,'lastMontant'=>$lastMontant
+					,'lastMontant'=>$this->TPalier[ count($this->TPalier)-1 ]['montant']
 			);
 		
 		foreach($this->TGrille as $periode=>&$row) {
-			
+				
 				$row[$palier] = array(
 					'rowid'=>0
 					,'coeff'=>0
 					,'echeance'=>0
 					,'periode'=>$periode
-					,'montant'=>$row['montant']
+					,'montant'=>$palier
 				);
 			
 		}
@@ -133,7 +133,6 @@ class TFin_grille_leaser extends TObjetStd {
 		if($idCoeff>0 && empty($coeff)) {
 			$grilleLigne->delete($ATMdb);
 			unset($this->TGrille[$periode][$montant]);
-			
 		}
 		else {
 			$tabStrConversion = array(',' => '.', ' ' => ''); // Permet de transformer les valeurs en nombres
@@ -143,6 +142,9 @@ class TFin_grille_leaser extends TObjetStd {
 			$grilleLigne->periode=(int)$periode;
 			$grilleLigne->fk_soc = $idLeaser;
 			$grilleLigne->fk_type_contrat = $idTypeContrat;
+			
+			$grilleLigne->type = $this->type;
+			
 			$grilleLigne->save($ATMdb);
 			
 			if($idCoeff==0) {
@@ -162,7 +164,12 @@ class TFin_grille_leaser extends TObjetStd {
 		if(empty($periode)) { return false; }
 		
 		if(!isset($this->TGrille[$periode])) {
-			$this->TGrille[$periode]=array();
+				
+			foreach($this->TGrille as $lastPeriode=>$row) { null; }	
+				
+			$this->TGrille[$periode]=$this->TGrille[$lastPeriode];
+			
+			foreach($this->TGrille[$periode] as &$palier) $palier['rowid']=0;
 		}
 		
 		$this->normalizeGrille();

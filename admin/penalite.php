@@ -26,7 +26,7 @@
 require('../config.php');
 dol_include_once('/financement/lib/admin.lib.php');
 dol_include_once('/financement/class/affaire.class.php');
-dol_include_once('/financement/class/grille.class.php');
+dol_include_once('/financement/class/grille.leaser.class.php');
 
 if (!$user->rights->financement->admin->write) accessforbidden();
 
@@ -35,91 +35,124 @@ llxHeader('',$langs->trans("FinancementSetup"));
 print_fiche_titre($langs->trans("FinancementSetup"),'','setup32@financement');
 $head = financement_admin_prepare_head(null);
 
-dol_fiche_head($head, 'penalite', $langs->trans("Financement"), 0, 'financementico@financement');
+dol_fiche_head($head, 'penalite', $langs->trans("penalite"), 0, 'financementico@financement');
 dol_htmloutput_mesg($mesg);
 
 /**
  * ACTIONS
  */
 
+$ATMdb=new Tdb;
+$idLeaser = isset($_REQUEST['socid']) ? $_REQUEST['socid'] : FIN_LEASER_DEFAULT; // Identifiant de la société associée à la grille (C'PRO ici, sera l'identifiant leaser pour les grilles leaser)
+$affaire = new TFin_affaire();
+$liste_type_contrat = $affaire->TContrat;
+$TGrille=array();
+
+foreach ($liste_type_contrat as $idTypeContrat => $label) {
+	$grille = new TFin_grille_leaser('PENALITE');
+	$grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
+	
+	if(count($grille->TPalier)==0) $grille->addPalier(999999999); // il n'y aura d'un palier caché
+	
+	$TGrille[$idTypeContrat] = $grille;
+}
+
+
 $error = false;
 $mesg = '';
 $action = GETPOST('action', 'alpha');
-
 if($action == 'save') {
-	$tabCoeff = GETPOST('tabCoeff');
-	$tabPeriode = GETPOST('tabPeriode');
+	$TCoeff = GETPOST('TCoeff');
+	$TPalier = GETPOST('TPalier');
+	$TPeriode = GETPOST('TPeriode');
+	
 	$idTypeContrat = GETPOST('idTypeContrat');
 	$idLeaser = GETPOST('idLeaser');
+
+	$newPeriode = GETPOST('newPeriode');
+	//$TNewCoeff = GETPOST('TNewCoeff');
+	//print_r($TCoeff);
 	
-	$tabStrConversion = array(',' => '.', ' ' => ''); // Permet de transformer les valeurs en nombres
 	
-	if(!empty($tabCoeff)) {
-		$g = new Grille($db,'PENALITE');
-		foreach ($tabCoeff as $iPeriode => $tabVal) {
-			foreach ($tabVal as $iPalier => $values) {
-				$coeff = floatval(strtr($values['coeff'], $tabStrConversion));
-				$rowid = $values['rowid'];
-				$periode = intval(strtr($tabPeriode[$iPeriode], $tabStrConversion));
+	$grille = & $TGrille[$idTypeContrat];
+	
+	$grille->addPeriode($newPeriode);
+	
+	//$ATMdb->db->debug=true;
+	
+	if(!empty($TCoeff)) {
+		/*print_r($TPalier);
+		print_r($TPeriode);
+		*/
+		foreach($TCoeff as $i=>$TLigne) {
+			$periode = $TPeriode[$i];
+							
+			foreach($TLigne as $j=>$coeff) {
+			
+				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, 999999999, $coeff['coeff'] );
 				
-print "$iPeriode $iPalier $coeff $rowid $periode $montant<br>";
-				if(!empty($periode)) {
-					if(!empty($rowid)) { // La valeur existait avant => mise à jour si modifiée
-						$g->fetch($rowid);
-						
-						$g->fk_soc = $idLeaser;
-						$g->fk_type_contrat = $idTypeContrat;
-						$g->periode = $periode;
-						$g->montant = 0;
-						$g->coeff = $coeff;
-						$g->fk_user = $user->id;
-						$res = $g->update($user);
-						print "ok";
-								
-					} else { // Nouvelle valeur => création
-						if(!empty($coeff)) {
-							$g->fk_soc = $idLeaser;
-							$g->fk_type_contrat = $idTypeContrat;
-							$g->periode = $periode;
-							$g->montant = 0;
-							$g->coeff = $coeff;
-							$g->fk_user = $user->id;
-							$res = $g->create($user);
-						}
-					}
-				} else { // Le montant du palier a été vidé, on supprime les coeff correspondants
-					if(!empty($rowid)) {
-						$g->fetch($rowid);
-						$g->delete($user);
-					}
-				}
 			}
 		}
-		
-		if($res > 0) {
-			$mesg = $langs->trans('CoeffCorrectlySaved');
-		} else {
-			$mesg .= $g->error;
-			$error = true;
-		}
 	}
+	
 }
 
 // Grille de coeff globale + % de pénalité par option
-$idLeaser = FIN_LEASER_DEFAULT; // Identifiant de la société associée à la grille (C'PRO ici, sera l'identifiant leaser pour les grilles leaser)
-$affaire = new TFin_affaire();
-$liste_type_contrat = $affaire->TContrat;
+
+$mode = 'edit';
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
-	$grille = new Grille($db, 'PENALITE');
-	$liste_coeff = $grille->get_grille($idLeaser, $idTypeContrat,'opt_trimestriel', array(), 'PENALITE');
+	$grille = & $TGrille[$idTypeContrat];
 	
-	print_titre('Grille de coefficient de pénalité'.' - '.$label);
-	print_r($liste_coeff);
-	include '../tpl/admin.grille.penalite.tpl.php';
+	$TCoeff = $grille->TGrille;
+	
+	print_titre($langs->trans("GlobalCoeffGrille").' - '.$label);
+	
+	//include '../tpl/admin.grille.tpl.php';
+	
+	$form=new TFormCore($_SERVER['PHP_SELF'],'formGrille'.$idTypeContrat,'POST');
+	$form->Set_typeaff($mode);
+	
+	
+	$TPalier=array();
+	foreach($grille->TPalier as $i=>$palier) {
+		$TPalier[]=array(
+			'montant'=>$form->texte('','TPalier['.($i+1).']', $palier['montant'],10,255).' &euro;'
+			,'lastMontant'=>$palier['lastMontant']
+		);
+		
+		
+	}
+	
+	
+	
+	echo $form->hidden('action', 'save');
+	echo $form->hidden('idTypeContrat', $idTypeContrat );
+	echo $form->hidden('idLeaser', $idLeaser);
+	/*print '<pre>';
+	print_r($grille->TPalier);
+	print_r($TCoeff);
+	print '</pre>';*/
+	$TBS=new TTemplateTBS;
+	
+	print $TBS->render('../tpl/fingrille.penalite.tpl.php'
+		,array(
+			'palier'=>$TPalier
+			,'coefficient'=>$TCoeff
+		)
+		,array(
+			'view'=>array('mode'=>$mode)
+			
+		)
+	);
+	
+	print $form->end_form();
+	
 }
 
 dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 
 llxFooter('');
+
+$ATMdb->close();
 
 $db->close();
