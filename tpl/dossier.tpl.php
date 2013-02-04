@@ -65,6 +65,8 @@
 						<tr><td>Date de fin</td><td>[financementLeaser.date_fin; strconv=no]</td></tr>
 			
 						<tr><td>1ère échéance</td><td>[financementLeaser.echeance1; strconv=no]</td></tr>
+						<tr><td>Frais de dossier</td><td>[financementLeaser.frais_dossier; strconv=no]</td></tr>
+						
 						<tr><td>Echéance</td><td>[financementLeaser.echeance; strconv=no]</td></tr>
 						<tr><td>N° prochaine échéance</td><td>[financementLeaser.numero_prochaine_echeance; strconv=no]</td></tr>
 						<tr><td>Date de prochaine échéance</td><td>[financementLeaser.date_prochaine_echeance; strconv=no]</td></tr>

@@ -257,6 +257,8 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'echeance'=>$form->texte('', 'leaser[echeance]', $financementLeaser->echeance, 20,255,'','','à saisir') .' &euro;'
 			,'reste'=>$form->texte('', 'leaser[reste]', $financementLeaser->reste, 20,255,'','','à saisir').' &euro;' 
 			,'montant_prestation'=>$form->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 20,255,'','','à saisir').' &euro;' 
+			,'frais_dossier'=>$form->texte('', 'leaser[frais_dossier]', $financementLeaser->frais_dossier, 20,255,'','','à saisir').' &euro;' 
+							
 				
 			,'numero_prochaine_echeance'=>$financementLeaser->numero_prochaine_echeance 
 			,'duree'=>$form->texte('', 'leaser[duree]', $financementLeaser->duree, 5,255,'','','à saisir')
