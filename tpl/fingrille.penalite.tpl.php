@@ -1,7 +1,7 @@
 <table class="noborder" width="100%">
 	<tr class="liste_titre">
 		<td>Périodes</td>
-		<td align="center"><input type="hidden" value="999999999" name="TPalier[1]" id="TPalier[1]" class="text"></td>
+		<td align="center"><input type="hidden" value="[view.MONTANT_PALIER_DEFAUT]" name="TPalier[1]" id="TPalier[1]" class="text"></td>
 		
 	</tr>
 	<tr >

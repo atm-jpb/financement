@@ -42,7 +42,6 @@ class TFin_grille_leaser extends TObjetStd {
 
 		$ATMdb->Execute($sql);
 		
-		$this->TPalier=array();
 		$this->TPeriode=array();
 		
 		$result = &$this->TGrille;
@@ -53,10 +52,10 @@ class TFin_grille_leaser extends TObjetStd {
 		
 		while($ATMdb->get_line()) {
 			
-			$periode = $ATMdb->get_field('periode');
+			$periode = (int)$ATMdb->get_field('periode');
 			if($periodicite == 'MOIS') $periode *= 3;
 			
-			$montant = $ATMdb->get_field('montant');
+			$montant = (int)$ATMdb->get_field('montant');
 			$coeff = $this->_calculate_coeff($ATMdb, $ATMdb->get_field('coeff'), $options);
 			
 			$result[$periode][$montant]=array(
@@ -67,23 +66,41 @@ class TFin_grille_leaser extends TObjetStd {
 				,'periode' => $periode
 			);
 			
-			if(!in_array($montant, $Tmp)) {
-				$Tmp[]=$montant;
-				$this->TPalier[]=array(
-					'montant'=>$montant
-					,'lastMontant'=>$lastMontant
-				);
-			}
-			
-			$lastMontant=$montant;	
 		}
-		
+
 		$this->normalizeGrille();
 		
 		return $result;
 	}
-	private function normalizeGrille() {
+	
+	private function setPalier() {
+		
+		$this->TPalier=array();
+		$Tmp=array();
+		
+		foreach($this->TGrille as $periode=>$TPalier) {
+			foreach($TPalier as $palier=>$row) {
+				$Tmp[$palier]=true;
+				
+			}
+		}
+
+		ksort($Tmp, SORT_NUMERIC);
+		$lastMontant=0;
+		foreach($Tmp as $montant=>$null) {
+			$this->TPalier[]=array(
+				'montant'=>$montant
+				,'lastMontant'=>$lastMontant
+			);
+			$lastMontant=$montant;
+		}
+
+	}
+	
+	function normalizeGrille() {
 			/* S'assure que toutes les colonnes sont correctement définie dans la grille (parfois selon la base il en manque) */
+		
+			$this->setPalier();
 		
 			foreach($this->TPalier as $palier) {
 				
@@ -98,18 +115,23 @@ class TFin_grille_leaser extends TObjetStd {
 							,'periode'=>$periode
 							,'montant'=>$palier['montant']
 						);
+						
 					}
 				}
 			}
 		
 	}
 	function addPalier($palier) {
+		$palier = (int)$palier;
+		//print "addPalier:".$palier;
+		
 		if(empty($palier)) { return false; }
 		
+		
 		$this->TPalier[]=array(
-					'montant'=>$palier
-					,'lastMontant'=>$this->TPalier[ count($this->TPalier)-1 ]['montant']
-			);
+				'montant'=>$palier
+				,'lastMontant'=>(empty($this->TPalier) ? 0 : $this->TPalier[ count($this->TPalier)-1 ]['montant'])
+		);
 		
 		foreach($this->TGrille as $periode=>&$row) {
 				
@@ -128,11 +150,29 @@ class TFin_grille_leaser extends TObjetStd {
 		return true;
 	}
 	function setCoef(&$ATMdb, $idCoeff ,$idLeaser, $idTypeContrat, $periode, $montant, $coeff) {
+		
+		$periode=(int)$periode;
+		$montant=(int)$montant;
+		
 		$grilleLigne = new TFin_grille_leaser;
 		if($idCoeff>0) $grilleLigne->load($ATMdb, $idCoeff);
-		if($idCoeff>0 && empty($coeff)) {
-			$grilleLigne->delete($ATMdb);
+		if(empty($coeff)) {
+			if($idCoeff>0) $grilleLigne->delete($ATMdb);
+			
+			/*print "$periode, $montant<br>"; 
+			print_r($this->TGrille[$periode][$montant]);
+			print "<hr>";
+			*/
 			unset($this->TGrille[$periode][$montant]);
+			
+			/*print "<hr>";
+			print "$periode, $montant<br>"; 
+			print_r($this->TGrille[$periode][$montant]);
+			*/
+			
+			if(empty($this->TGrille[$periode])) unset($this->TGrille[$periode]);
+			
+			
 		}
 		else {
 			$tabStrConversion = array(',' => '.', ' ' => ''); // Permet de transformer les valeurs en nombres
@@ -158,16 +198,22 @@ class TFin_grille_leaser extends TObjetStd {
 			}
 		}
 		
-		$this->normalizeGrille();
+		
 	}
 	function addPeriode($periode) {
-		if(empty($periode)) { return false; }
+		$periode = (int)$periode;
+		
+		if($periode==0) { return false; }
 		
 		if(!isset($this->TGrille[$periode])) {
 				
-			foreach($this->TGrille as $lastPeriode=>$row) { null; }	
-				
-			$this->TGrille[$periode]=$this->TGrille[$lastPeriode];
+		/*	if(!empty($this->TGrille)) {
+				foreach($this->TGrille as $lastPeriode=>$row) { null; }	
+				$this->TGrille[$periode]=$row;
+			}
+			else {*/
+				$this->TGrille[$periode]=array();
+			//}	
 			
 			foreach($this->TGrille[$periode] as &$palier) $palier['rowid']=0;
 		}
@@ -179,14 +225,14 @@ class TFin_grille_leaser extends TObjetStd {
 	/**
 	 * Récupération de la liste des durée possible pour un type de contrat et pour un leaser
 	 */
-	function get_duree(&$ATMdb,$idLeaser, $idTypeContrat=0, $periodicite='TRIMESTRE',$type='LEASER') {
+	function get_duree(&$ATMdb,$idLeaser, $idTypeContrat=0, $periodicite='TRIMESTRE') {
 		if(empty($idLeaser)) return -1;
 		global $langs;
 
 		$sql = "SELECT";
 		$sql.= " t.periode";		
 		$sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
-		$sql.= " WHERE t.fk_soc = ".$idLeaser. " AND t.type='$type'";
+		$sql.= " WHERE t.fk_soc = ".$idLeaser. " AND t.type='".$this->type."'";
 		if(!empty($idTypeContrat)) $sql.= " AND t.fk_type_contrat = ".$idTypeContrat;
 		$sql.= " ORDER BY t.periode ASC";
 
@@ -216,11 +262,11 @@ class TFin_grille_leaser extends TObjetStd {
 		}
 	}
 
-	function get_coeff($idLeaser, $idTypeContrat, $periodicite='opt_trimestriel', $montant, $duree, $options=array(),$type='LEASER')
-    {
+	function get_coeff(&$ATMdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE', $montant, $duree, $options=array()) {
+		
     	if(empty($idLeaser) || empty($idTypeContrat)) return -1;
 		
-		if($periodicite == 'opt_mensuel') $duree /= 3;
+		if($periodicite == 'MOIS') $duree /= 3;
 
     	global $langs;
         $sql = "SELECT";
@@ -229,9 +275,25 @@ class TFin_grille_leaser extends TObjetStd {
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
         $sql.= " WHERE t.fk_soc = ".$idLeaser;
 		$sql.= " AND t.fk_type_contrat = ".$idTypeContrat;
-		$sql.= " AND t.periode = ".$duree. " AND t.type='$type'";
-		$sql.= " ORDER BY t.montant ASC";
+		$sql.= " AND t.periode <= ".$duree. " AND t.type='".$this->type."' AND t.montant>=".$montant;
+		$sql.= " ORDER BY t.periode DESC, t.montant ASC LIMIT 1";
 
+		$ATMdb->Execute($sql);
+		if($db->Get_recordCount()>0) {
+		/*	while($db->Get_line()) {
+				if($montant <= $db->Get_field('montant')) {*/
+					$db->Get_line();
+					$coeff = $this->_calculate_coeff($db->Get_field('coeff'), $options);
+					return $coeff;
+				//}	
+		//	}	
+				
+			
+		}
+		else {
+			return -1;
+		}
+/*
     	dol_syslog(get_class($this)."::get_coeff sql=".$sql, LOG_DEBUG);
         $resql=$this->db->query($sql);
         if ($resql)
@@ -256,13 +318,13 @@ class TFin_grille_leaser extends TObjetStd {
 			$this->error="Error ".$this->db->lasterror();
 			dol_syslog(get_class($this)."::fetch ".$this->error, LOG_ERR);
 			return -1;
-		}
+		}*/
 	}
 
 	private function _calculate_coeff(&$ATMdb, $coeff, $options) {
 		if(!empty($options)) {
 			foreach($options as $name) {
-				$penalite = $this->_get_penalite($name);
+				$penalite = $this->_get_penalite($ATMdb, $name);
 				if($penalite < 0) return 0;
 				$coeff += $coeff * $penalite / 100;
 			}

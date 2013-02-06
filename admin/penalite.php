@@ -23,6 +23,8 @@
  *  \brief      Description and activation file for module financement
  */
 
+define('MONTANT_PALIER_DEFAUT', 100000000);
+ 
 require('../config.php');
 dol_include_once('/financement/lib/admin.lib.php');
 dol_include_once('/financement/class/affaire.class.php');
@@ -35,7 +37,7 @@ llxHeader('',$langs->trans("FinancementSetup"));
 print_fiche_titre($langs->trans("FinancementSetup"),'','setup32@financement');
 $head = financement_admin_prepare_head(null);
 
-dol_fiche_head($head, 'penalite', $langs->trans("penalite"), 0, 'financementico@financement');
+dol_fiche_head($head, 'penalite'.$_REQUEST['type'], $langs->trans("penalite".$_REQUEST['type']), 0, 'financementico@financement');
 dol_htmloutput_mesg($mesg);
 
 /**
@@ -49,10 +51,10 @@ $liste_type_contrat = $affaire->TContrat;
 $TGrille=array();
 
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
-	$grille = new TFin_grille_leaser('PENALITE');
+	$grille = new TFin_grille_leaser('PENALITE_'.$_REQUEST['type']);
 	$grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
 	
-	if(count($grille->TPalier)==0) $grille->addPalier(999999999); // il n'y aura d'un palier caché
+	if(count($grille->TPalier)==0) $grille->addPalier(MONTANT_PALIER_DEFAUT); // il n'y aura d'un palier caché
 	
 	$TGrille[$idTypeContrat] = $grille;
 }
@@ -88,11 +90,19 @@ if($action == 'save') {
 			$periode = $TPeriode[$i];
 							
 			foreach($TLigne as $j=>$coeff) {
-			
-				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, 999999999, $coeff['coeff'] );
+			//$ATMdb->db->debug=true;
+				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, MONTANT_PALIER_DEFAUT, $coeff['coeff'] );
 				
 			}
 		}
+		
+		$grille->normalizeGrille();
+	/*	
+		print '<pre>';
+		print_r($grille->TGrille);
+		print '</pre>';
+		*/
+	
 	}
 	
 }
@@ -128,6 +138,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	echo $form->hidden('action', 'save');
 	echo $form->hidden('idTypeContrat', $idTypeContrat );
 	echo $form->hidden('idLeaser', $idLeaser);
+	echo $form->hidden('type', $_REQUEST['type']);
 	/*print '<pre>';
 	print_r($grille->TPalier);
 	print_r($TCoeff);
@@ -140,7 +151,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 			,'coefficient'=>$TCoeff
 		)
 		,array(
-			'view'=>array('mode'=>$mode)
+			'view'=>array('mode'=>$mode, 'MONTANT_PALIER_DEFAUT'=>MONTANT_PALIER_DEFAUT)
 			
 		)
 	);

@@ -89,12 +89,19 @@ if($action == 'save') {
 							
 			foreach($TLigne as $j=>$coeff) {
 				$montant = $TPalier[$j];
-			//print "$i/$j $periode/$montant ".$coeff['coeff']."<br>";
+		//	print "$i/$j $periode/$montant ".$coeff['coeff']."<br>";
 				
 				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, $montant, $coeff['coeff'] );
 				
 			}
 		}
+		
+		$grille->normalizeGrille();
+		
+		/*print '<pre>';
+		print_r($grille->TGrille);
+		print '</pre>';
+		*/
 	}
 	
 }

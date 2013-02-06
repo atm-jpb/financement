@@ -72,3 +72,6 @@ NbErrors=Nb d'erreurs
 NbCreate=Nb de création
 NbUpdate=Nb de mise à jour
 ErrorUserNotFound=Client non trouvé
+
+penaliteR=Pénalités renouvellantes
+penaliteNR=Pénalités non-renouvellantes

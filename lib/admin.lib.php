@@ -21,9 +21,13 @@ function financement_admin_prepare_head()
 	$h++;
 	
 		
-	$head[$h][0] = dol_buildpath('/financement/admin/penalite.php', 1);
-	$head[$h][1] = $langs->trans("penalite");
-	$head[$h][2] = 'penalite';
+	$head[$h][0] = dol_buildpath('/financement/admin/penalite.php?type=R', 1);
+	$head[$h][1] = $langs->trans("penaliteR");
+	$head[$h][2] = 'penaliteR';
+	$h++;
+	$head[$h][0] = dol_buildpath('/financement/admin/penalite.php?type=NR', 1);
+	$head[$h][1] = $langs->trans("penaliteNR");
+	$head[$h][2] = 'penaliteNR';
 	$h++;
 	
 	$head[$h][0] = dol_buildpath('/financement/admin/rentabilite.php', 1);
