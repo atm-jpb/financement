@@ -26,7 +26,7 @@
 require('../config.php');
 dol_include_once('/financement/lib/admin.lib.php');
 dol_include_once('/financement/class/affaire.class.php');
-dol_include_once('/financement/class/grille.leaser.class.php');
+dol_include_once('/financement/class/grille.class.php');
 
 if (!$user->rights->financement->admin->write) accessforbidden();
 

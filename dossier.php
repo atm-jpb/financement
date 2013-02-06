@@ -279,7 +279,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 	if(isset($financement)) {
 		$TFinancement = array(
 			'montant'=>$form->texte('', 'montant', $financement->montant, 20,255,'','','à saisir').' &euro;' 
-			,'reference'=>$dossier->getId().'/'.$financement->getId()
+			,'reference'=>$form->texte('', 'reference', $financement->reference, 30,255,'','','à saisir')/*$dossier->getId().'/'.$financement->getId()*/
 			
 			,'taux'=> $financement->taux //$form->texte('', 'taux', $financement->taux, 5,255,'','','à saisir')
 			

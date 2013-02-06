@@ -35,7 +35,7 @@ llxHeader('',$langs->trans("FinancementSetup"));
 print_fiche_titre($langs->trans("FinancementSetup"),'','setup32@financement');
 $head = financement_admin_prepare_head(null);
 
-dol_fiche_head($head, 'grille', $langs->trans("Financement"), 0, 'financementico@financement');
+dol_fiche_head($head, 'rentabilite', $langs->trans("rentabilite"), 0, 'financementico@financement');
 dol_htmloutput_mesg($mesg);
 
 /**
@@ -49,8 +49,10 @@ $liste_type_contrat = $affaire->TContrat;
 $TGrille=array();
 
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
-	$grille = new TFin_grille_leaser;
+	$grille = new TFin_grille_leaser('RENTABILITE');
 	$grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
+	
+	if(count($grille->TPalier)==0) $grille->addPalier(999999999); // il n'y aura d'un palier caché
 	
 	$TGrille[$idTypeContrat] = $grille;
 }
@@ -66,8 +68,7 @@ if($action == 'save') {
 	
 	$idTypeContrat = GETPOST('idTypeContrat');
 	$idLeaser = GETPOST('idLeaser');
-	
-	$newPalier = GETPOST('newPalier');
+
 	$newPeriode = GETPOST('newPeriode');
 	//$TNewCoeff = GETPOST('TNewCoeff');
 	//print_r($TCoeff);
@@ -75,7 +76,6 @@ if($action == 'save') {
 	
 	$grille = & $TGrille[$idTypeContrat];
 	
-	$grille->addPalier($newPalier);
 	$grille->addPeriode($newPeriode);
 	
 	//$ATMdb->db->debug=true;
@@ -88,10 +88,8 @@ if($action == 'save') {
 			$periode = $TPeriode[$i];
 							
 			foreach($TLigne as $j=>$coeff) {
-				$montant = $TPalier[$j];
-			//print "$i/$j $periode/$montant ".$coeff['coeff']."<br>";
-				
-				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, $montant, $coeff['coeff'] );
+			
+				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, 999999999, $coeff['coeff'] );
 				
 			}
 		}
@@ -136,7 +134,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	print '</pre>';*/
 	$TBS=new TTemplateTBS;
 	
-	print $TBS->render('../tpl/fingrille.tpl.php'
+	print $TBS->render('../tpl/fingrille.penalite.tpl.php'
 		,array(
 			'palier'=>$TPalier
 			,'coefficient'=>$TCoeff
