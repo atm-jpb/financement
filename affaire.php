@@ -145,10 +145,11 @@ global $langs,$conf, $db;
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
 	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
 				
-	
+	$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;			
+	//print $page;
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
-			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
+			'page'=>$page
 			,'nbLine'=>'30'
 		)
 		,'link'=>array(
@@ -173,6 +174,7 @@ global $langs,$conf, $db;
 			
 		)
 		,'orderBy'=>$TOrder
+		
 	));
 	
 	if(isset($_REQUEST['socid'])) {
