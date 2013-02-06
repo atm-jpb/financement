@@ -10,8 +10,8 @@
 	require('../class/simulation.class.php');
 	require('../class/score.class.php');
 
-//	require('../class/grille.class.php');
-	require('../class/grille.leaser.class.php');
+	require('../class/grille.class.php');
+//	require('../class/grille.leaser.class.php');
 
 	$ATMdb=new Tdb;
 	$ATMdb->db->debug=true;
