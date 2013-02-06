@@ -105,7 +105,8 @@
 	elseif(isset($_REQUEST['id'])) {
 		$affaire->load($ATMdb, $_REQUEST['id']);
 		
-		_fiche($ATMdb, $affaire, 'view');global $mesg, $error;
+		_fiche($ATMdb, $affaire, 'view');
+		
 	}
 	else {
 		/*
@@ -242,7 +243,7 @@ global $db,$user;
 				'id'=>$affaire->rowid
 				,'reference'=>$form->texte('', 'reference', $affaire->reference, 100,255,'','','à saisir') 
 				,'nature_financement'=>$form->combo('', 'nature_financement', $affaire->TNatureFinancement , $affaire->nature_financement)
-				,'type_financement'=>$form->combo('', '', $affaire->TTypeFinancement , $affaire->type_financement)
+				,'type_financement'=>$form->combo('', 'type_financement', $affaire->TTypeFinancement , $affaire->type_financement)
 				,'contrat'=>$form->combo('', 'contrat', $affaire->TContrat , $affaire->contrat) 
 				,'type_materiel'=>$form->combo('', '', $affaire->TTypeMateriel , $affaire->type_materiel)
 				,'date_affaire'=>$form->calendrier('', 'date_affaire', $affaire->get_date('date_affaire'),10)

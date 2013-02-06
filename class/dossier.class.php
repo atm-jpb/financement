@@ -71,6 +71,7 @@ class TFin_dossier extends TObjetStd {
 			$this->TLien[$i]->affaire->load($db, $this->TLien[$i]->fk_fin_affaire, false);
 			
 			$this->somme_affaire +=$this->TLien[$i]->affaire->montant;
+			$this->contrat = $this->TLien[$i]->affaire->contrat;
 			
 			if($this->TLien[$i]->affaire->nature_financement=='INTERNE') {
 				$this->nature_financement = 'INTERNE';
@@ -193,6 +194,161 @@ class TFin_dossier extends TObjetStd {
 		
 		$this->solde = $this->montant - $this->somme_affaire;// attention en cas d'affaire ajouté à la création du dossier ce chiffre sera faux, car non encore répercuté sur l'affaire
 	}
+	
+		
+	function load_facture(&$ATMdb) {
+		$this->somme_facture = 0;
+		$this->somme_facture_reglee=0;
+	}
+	function load_factureFournisseur(&$ATMdb) {
+		$this->somme_facture_fournisseur = 0;
+	}
+	
+	function getPenalite(&$ATMdb, $type) {
+		$g=new TFin_grille_leaser('PENALITE_'.$type);
+		$g->get_grille($ATMdb);	
+		
+		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
+		else {	$f = &$this->financementLeaser; }
+		
+		return (double)$g->get_coeff($ATMdb, $f->fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree);
+	}
+	function getRentabilite(&$ATMdb) {
+		
+		$g=new TFin_grille_leaser('RENTABILITE');
+		$g->get_grille($ATMdb);	
+		
+		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
+		else {	$f = &$this->financementLeaser; }
+			
+		return (double)$g->get_coeff($ATMdb, $f->fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree);
+		
+	}
+	function getRentabiliteAttendue(&$ATMdb) {
+		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
+		else {	$f = &$this->financementLeaser; }
+		
+		return $f->montant * $this->getRentabilite($ATMdb)	;	
+	}
+	function getRentabiliteReelle() {
+		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
+		else {	$f = &$this->financementLeaser; }
+		
+		return $this->somme_facture_reglee - $this->somme_facture_fournisseur;
+	}
+	function getSolde($ATMdb, $type='SRBANK') {
+		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
+		else {	$f = &$this->financementLeaser; }
+		
+		$CRD = $this->va();
+		$LRD = $this->echeance * $this->duree_restante;
+		
+		switch($type) {
+			case 'SRBANK':
+				if($this->nature_financement=='EXTERNE' && $f->duree_passe<4) {
+					return $f->montant;
+				}
+				else {
+					return $CRD * $this->getPenalite($ATMdb,'R');
+				}
+
+				break;
+			case 'SNRBANK':
+				if($this->nature_financement=='EXTERNE' && $f->duree_passe<4) {
+					return $f->montant;
+				}
+				else {
+					return $CRD * $this->getPenalite($ATMdb,'NR');
+				}
+				break;
+				
+			case 'SNRCPRO':
+				return $LRD;
+				break;
+					
+			case 'SRCPRO':
+				if($f->duree_passe<=5) {
+					return $f->montant;
+				}
+				else {
+					if($this->nature_financement=='EXTERNE') {
+						return $CRD + $this->getRentabiliteAttendue();
+					}
+					else {
+						return $CRD + $this->getRentabiliteAttendue() - $this->getRentabiliteReelle() + $f->penalite_reprise + ($f->taux_commission/100 * $f->montant) ;
+					}
+					
+				}
+				
+				break;
+		}
+		
+		
+	}
+	
+	function echeancier(&$ATMdb,$nature_financement='INTERNE') {
+		if($nature_financement == 'INTERNE') { $f= &$this->financement; }
+		else {	$f = &$this->financementLeaser; }
+		
+		 /*
+		 * Affiche l'échéancier
+		 * ----
+		 * Périodes
+		 * Dates des Loyers
+		 * Période
+		 * Valeurs de Rachat - Pénal 8.75%
+		 * Capital Résid.Risque Résid. HT
+		 * Amortissmt Capital HT
+		 * Part Intérêts
+		 * Assurance
+		 * Loyers HT 
+		 * Loyers TTC
+		 */
+		 $this->somme_echeance = 0;
+		 $capital_restant_init=$f->montant-$f->reste;
+		 $capital_restant = $capital_restant_init;
+		 $TLigne=array();
+		 for($i=1; $i<=$f->duree; $i++) {
+		 	
+			$time = strtotime('+'.($i*3).' month',  $f->date_debut);	
+			
+			$capital_amortit = $f->echeance * (1 - $f->taux/100);
+			$part_interet = $f->echeance-$capital_amortit;
+			
+			$capital_restant-=$capital_amortit;
+			
+			$TLigne[]=array(
+				'date'=>date('d/m/Y', $time)
+				/*,'valeur_rachat'=>$capital_restant*$this->getPenalite($ATMdb,'NR')*/
+				,'capital'=>$capital_restant
+				,'amortissement'=>$capital_amortit
+				,'interet'=>$part_interet
+				,'assurance'=>$f->assurance
+				,'loyerHT'=>$f->echeance+$f->assurance
+				,'loyer'=>($f->echeance+$f->assurance) * FIN_TVA_DEFAUT
+			);
+			
+			$this->somme_echeance +=$f->echeance;
+		 	
+		 }
+		 
+		// print $f->montant.' = '.$capital_restant_init;
+		 $TBS=new TTemplateTBS;
+		 return $TBS->render('./tpl/echeancier.tpl.php'
+			,array(
+				'ligne'=>$TLigne
+			)
+			,array(
+				'autre'=>array(
+					'reste'=>$f->reste
+					,'resteTTC'=>($f->reste*FIN_TVA_DEFAUT)
+					,'capitalInit'=>$capital_restant_init
+				)
+			)
+		);
+		 
+	}
+	
 }
 
 /*
@@ -347,15 +503,6 @@ class TFin_financement extends TObjetStd {
 		}
 		
 	}
-	
-	function load_facture(&$ATMdb) {
-		$this->somme_facture = 0;
-		$this->somme_facture_reglee=0;
-	}
-	function load_factureFournisseur(&$ATMdb) {
-		$this->somme_facture_fournisseur = 0;
-	}
-	
 	function save(&$ATMdb) {
 		global $db, $user;
 		
@@ -368,137 +515,26 @@ class TFin_financement extends TObjetStd {
 		//$this->taux = 1 - (($this->montant * 100 / $this->echeance * $this->duree) - $this->reste);
 		$this->calculTaux();
 		
-		$g=new Grille($db);
+		$g=new TFin_grille_leaser();
 
-		$g->get_grille(1, $this->contrat);//TODO	
+		$g->get_grille($ATMdb, 1, $this->contrat);//TODO	
 		
 		$g->calcul_financement($this->montant, $this->duree, $this->echeance, $this->reste, $this->taux);
 		
 		parent::save($ATMdb);
 		
 	}
-	
-	function getPenalite() {
-		return 1;
-	}
-	function getRentabilite() {
-		return 1;
-		
-	}
-	function getRentabiliteAttendue() {
-		return $this->montant * $this->getRentabilite()	;	
-	}
-	function getRentabiliteReelle() {
-		
-		return $this->somme_facture_reglee - $this->somme_facture_fournisseur;
-	}
-	function getSolde($type='SRBANK') {
-		
-		$CRD = $this->va();
-		$LRD = $this->echeance * $this->duree_restante;
-		
-		$nature_financement = $affaire->nature_financement;
-		
-		
-		switch($type) {
-			case 'SRBANK':
-				if($nature_financement=='EXTERNE' && $this->duree_passe<4) {
-					return $this->montant;
-				}
-				else {
-					return $CRD * $this->getPenalite('R');
-				}
-
-				break;
-			case 'SNRBANK':
-				if($nature_financement=='EXTERNE' && $this->duree_passe<4) {
-					return $this->montant;
-				}
-				else {
-					return $CRD * $this->getPenalite('NR');
-				}
-				break;
-				
-			case 'SNRCPRO':
-				return $LRD;
-				break;
-					
-			case 'SRCPRO':
-				if($this->duree_passe<=5) {
-					return $this->montant;
-				}
-				else {
-					if($nature_financement=='EXTERNE') {
-						return $CRD + $this->getRentabiliteAttendue();
-					}
-					else {
-						return $CRD + $this->getRentabiliteAttendue() - $this->getRentabiliteReelle() + $this->penalite_reprise + ($this->taux_commission/100 * $this->montant) ;
-					}
-					
-				}
-				
-				break;
+	private function getTypeContrat(&$ATMdb) {
+		if(!isset($this->idTypeContrat)) {
+			$ATMdb->Execute("SELECT contrat 
+			FROM ".MAIN_DB_PREFIX."fin_affaire a LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire l ON (a.rowid=fk_fin_affaire AND l.fk_fin_dossier=".$this->fk_fin_dossier.")
+			LIMIT 1");
+			$ATMdb->Get_line();
+			$this->idTypeContrat = $ATMdb->Get_field('contrat');	
 		}
-		
-		
-	}
-	
-	function echeancier() {
-		 /*
-		 * Affiche l'échéancier
-		 * ----
-		 * Périodes
-		 * Dates des Loyers
-		 * Période
-		 * Valeurs de Rachat - Pénal 8.75%
-		 * Capital Résid.Risque Résid. HT
-		 * Amortissmt Capital HT
-		 * Part Intérêts
-		 * Assurance
-		 * Loyers HT 
-		 * Loyers TTC
-		 */
-		 $this->somme_echeance = 0;
-		 
-		 $capital_restant = $this->montant;
-		 $TLigne=array();
-		 for($i=1; $i<=$this->duree; $i++) {
-		 	
-			$time = strtotime('+'.($i*3).' month',  $this->date_debut);	
-			$capital_restant-=$this->echeance;
-			
-			$TLigne[]=array(
-				'date'=>date('d/m/Y', $time)
-				,'valeur_rachat'=>$capital_restant*$this->getPenalite()
-				,'capital'=>$capital_restant
-				,'amortissement'=>$this->echeance
-				,'interet'=>0
-				,'assurance'=>$this->assurance
-				,'loyerHT'=>$this->echeance
-				,'loyer'=>$this->echeance * FIN_TVA_DEFAUT
-			);
-			
-			$this->somme_echeance +=$this->echeance;
-		 	
-		 }
-		 
-		 
-		 $TBS=new TTemplateTBS;
-		 return $TBS->render('./tpl/echeancier.tpl.php'
-			,array(
-				'ligne'=>$TLigne
-			)
-			,array(
-				'autre'=>array(
-					'reste'=>$this->reste
-					,'resteTTC'=>($this->reste*FIN_TVA_DEFAUT)
-					,'capitalInit'=>$this->montant
-				)
-			)
-		);
-		 
-	}
+	} 
 
+	
 	/**
 	 * FONCTION FINANCIERES PROVENANT D'EXCEL PERMETTANT DE CALCULER LE LOYER, LE MONTANT OU LE TAUX
 	 * Source : http://www.tiloweb.com/php/php-formules-financieres-excel-en-php

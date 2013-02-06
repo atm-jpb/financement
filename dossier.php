@@ -269,11 +269,11 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'incident_paiement'=>$form->combo('', 'leaser[incident_paiement]', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement) 
 			
 			,'date_debut'=>$form->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
-			,'date_fin'=>$financement->get_date('leaser[date_fin]') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
+			,'date_fin'=>$financementLeaser->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financementLeaser->date_prochaine_echeance>0) ? $financementLeaser->get_date('date_prochaine_echeance') : ''
 			
 			
-			,'echeancier'=>$financementLeaser->echeancier()
+			,'echeancier'=>$dossier->echeancier($ATMdb,'EXTERNE')
 	);
 	
 	if(isset($financement)) {
@@ -301,11 +301,10 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'date_fin'=>$financement->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financement->date_prochaine_echeance>0) ? $financement->get_date('date_prochaine_echeance') : ''
 			
-			,'echeancier'=>$financement->echeancier()
-	
 			,'penalite_reprise'=>$form->texte('', 'penalite_reprise', $financement->penalite_reprise, 20,255,'','','à saisir').' &euro;' 
 			,'taux_commission'=>$form->texte('', 'taux_commission', $financement->taux_commission, 5,255,'','') 
 	
+			,'echeancier'=>$dossier->echeancier($ATMdb)
 		);
 	}
 	else {
@@ -318,6 +317,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 				,'reste'=> 0
 				,'montant_prestation'=>0
 					
+				,'terme'=>''
 				,'numero_prochaine_echeance'=> 0
 				,'duree'=>0
 									
