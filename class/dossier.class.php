@@ -305,17 +305,20 @@ class TFin_dossier extends TObjetStd {
 		 * Loyers TTC
 		 */
 		 $this->somme_echeance = 0;
-		 $capital_restant_init=$f->montant-$f->reste;
+		 $montant_finance = 0;
+		 $capital_restant_init=$f->montant;
 		 $capital_restant = $capital_restant_init;
 		 $TLigne=array();
 		 for($i=1; $i<=$f->duree; $i++) {
 		 	
 			$time = strtotime('+'.($i*3).' month',  $f->date_debut);	
 			
-			$capital_amortit = $f->echeance * (1 - $f->taux/100);
-			$part_interet = $f->echeance-$capital_amortit;
 			
+			$capital_amortit = $f->amortissement_echeance( $i ) ;
+			$part_interet = $f->echeance -$capital_amortit; 			
+
 			$capital_restant-=$capital_amortit;
+			$montant_finance+=$capital_amortit;
 			
 			$TLigne[]=array(
 				'date'=>date('d/m/Y', $time)
@@ -539,6 +542,24 @@ class TFin_financement extends TObjetStd {
 	 * FONCTION FINANCIERES PROVENANT D'EXCEL PERMETTANT DE CALCULER LE LOYER, LE MONTANT OU LE TAUX
 	 * Source : http://www.tiloweb.com/php/php-formules-financieres-excel-en-php
 	 */
+	
+	function amortissement_echeance($periode) {
+		
+		$duree = $this->duree;
+		
+		$r = $this->PRINCPER($this->taux / 100 / 12, $periode, $this->duree, $this->montant, $this->reste, $this->terme );
+
+		$r = -$r;
+		
+	//	print "amortissement_echeance ".$this->montant."($periode) |$duree| $r <br>";
+		
+		return $r;
+	}
+	
+	private function PRINCPER($taux, $p, $NPM, $VA, $valeur_residuelle, $type)
+	{
+		return $taux / (1 + $taux * $type) * $VA * (pow(1 + $taux,-$NPM+$p - 1)) / (pow(1 + $taux,-$NPM) - 1) - $valeur_residuelle * (pow(1 + $taux,$p - 1)) / (pow(1 + $taux,$NPM) - 1);
+	} 
 	
 	/**
 	 * VPM : Calcule le montant total de chaque remboursement périodique d'un investissement à remboursements et taux d'intérêt constants
