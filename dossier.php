@@ -60,6 +60,7 @@
 				
 				if(isset($_REQUEST['leaser'])){
 					$dossier->financementLeaser->set_values($_REQUEST['leaser']);
+					$dossier->financementLeaser->okPourFacturation = (int)isset($_REQUEST['leaser']['okPourFacturation']);
 					
 				}
 				
@@ -280,6 +281,8 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'date_prochaine_echeance'=>($financementLeaser->date_prochaine_echeance>0) ? $financementLeaser->get_date('date_prochaine_echeance') : ''
 			
 			,'leaser'=>($mode=='edit') ? $html->select_company('','leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->nom
+			
+			,'okPourFacturation'=>$form->checkbox1('', 'leaser[okPourFacturation]', 1, $financementLeaser->okPourFacturation )
 			
 			,'echeancier'=>$dossier->echeancier($ATMdb,'EXTERNE')
 	);
