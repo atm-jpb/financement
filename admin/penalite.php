@@ -54,8 +54,6 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$grille = new TFin_grille_leaser('PENALITE_'.$_REQUEST['type']);
 	$grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
 	
-	if(count($grille->TPalier)==0) $grille->addPalier(MONTANT_PALIER_DEFAUT); // il n'y aura d'un palier caché
-	
 	$TGrille[$idTypeContrat] = $grille;
 }
 
@@ -79,6 +77,8 @@ if($action == 'save') {
 	$grille = & $TGrille[$idTypeContrat];
 	
 	$grille->addPeriode($newPeriode);
+	if(count($grille->TPalier)==0) $grille->addPalier(MONTANT_PALIER_DEFAUT); // il n'y aura d'un palier caché
+	
 	
 	//$ATMdb->db->debug=true;
 	
