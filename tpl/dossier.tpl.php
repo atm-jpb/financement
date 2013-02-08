@@ -46,6 +46,7 @@
 						<tr><td>Taux de commission</td><td>[financement.taux_commission; strconv=no; frm=0,00]%</td></tr>
 						
 						<tr><td>Incident de paiement</td><td>[financement.incident_paiement; strconv=no]</td></tr>
+					
 						
 						</table>
 						
@@ -56,6 +57,7 @@
 						<table width="100%" class="border">
 						<tr class="liste_titre"><td colspan="2">Leaser</td></tr>
 						<tr><td width="20%">Numéro de Dossier Leaser</td><td>[financementLeaser.reference; strconv=no]</td></tr>
+						<tr><td width="20%">Leaser</td><td>[financementLeaser.leaser; strconv=no]</td></tr>
 						<tr><td width="20%">Montant financé HT</td><td>[financementLeaser.montant; strconv=no;]</td></tr>
 						<tr><td>Taux</td><td>[financementLeaser.taux; frm=0 000,00]%</td></tr>
 						<tr><td>Périodicité</td><td>[financementLeaser.periodicite; strconv=no]</td></tr>
@@ -79,6 +81,7 @@
 						
 						<tr><td>Incident de paiement</td><td>[financementLeaser.incident_paiement; strconv=no]</td></tr>
 						
+						
 						</table>
 						
 						
@@ -98,7 +101,14 @@
 		<tr><td width="20%">Rentabilité attendue</td><td>[dossier.rentabilite_attendue; frm='0,00 €']</td></tr>
 		<tr><td width="20%">Rentabilité réelle</td><td>[dossier.rentabilite_reelle; frm='0,00 €']</td></tr>
 		<tr><td width="20%">Date de mise en relocation</td><td>[dossier.date_relocation; strconv=no]</td></tr>
-						
+		<tr>
+			<td colspan="2"><strong>Soldes</strong></td>
+		</tr>
+	
+		<tr><td>Renouvellant banque</td><td>[dossier.soldeRBANK;frm=0 000,00 €]</td></tr>
+		<tr><td>Non renouvellant banque</td><td>[dossier.soldeNRBANK;frm=0 000,00 €]</td></tr>
+		<tr><td>Renouvellant CPRO</td><td>[dossier.soldeRCPRO;frm=0 000,00 €]</td></tr>
+		<tr><td>Non renouvellant CPRO</td><td>[dossier.soldeNRCPRO;frm=0 000,00 €]</td></tr>				
 		
 		</table>
 
