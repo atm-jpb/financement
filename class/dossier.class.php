@@ -158,6 +158,7 @@ class TFin_dossier extends TObjetStd {
 		if($this->nature_financement == 'INTERNE') {
 
 			$this->financement->fk_fin_dossier = $this->getId();
+			$this->financement->fk_soc = FIN_LEASER_DEFAULT;
 			$this->financement->type='CLIENT';
 			$this->financement->save($db);	
 			
@@ -206,20 +207,22 @@ class TFin_dossier extends TObjetStd {
 	
 	function getPenalite(&$ATMdb, $type) {
 		$g=new TFin_grille_leaser('PENALITE_'.$type);
-		$g->get_grille($ATMdb);	
 		
 		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
 		else {	$f = &$this->financementLeaser; }
+
+		$g->get_grille($ATMdb,$f->fk_soc,$this->contrat);	
 		
 		return (double)$g->get_coeff($ATMdb, $f->fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree);
 	}
 	function getRentabilite(&$ATMdb) {
 		
 		$g=new TFin_grille_leaser('RENTABILITE');
-		$g->get_grille($ATMdb);	
 		
 		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
 		else {	$f = &$this->financementLeaser; }
+		
+		$g->get_grille($ATMdb,$f->fk_soc,$this->contrat);	
 			
 		return (double)$g->get_coeff($ATMdb, $f->fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree);
 		
@@ -240,8 +243,8 @@ class TFin_dossier extends TObjetStd {
 		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
 		else {	$f = &$this->financementLeaser; }
 		
-		$CRD = $this->va();
-		$LRD = $this->echeance * $this->duree_restante;
+		$CRD = $f->valeur_actuelle();
+		$LRD = $f->echeance * $f->duree_restante;
 		
 		switch($type) {
 			case 'SRBANK':
@@ -272,10 +275,10 @@ class TFin_dossier extends TObjetStd {
 				}
 				else {
 					if($this->nature_financement=='EXTERNE') {
-						return $CRD + $this->getRentabiliteAttendue();
+						return $CRD + $this->getRentabiliteAttendue($ATMdb);
 					}
 					else {
-						return $CRD + $this->getRentabiliteAttendue() - $this->getRentabiliteReelle() + $f->penalite_reprise + ($f->taux_commission/100 * $f->montant) ;
+						return $CRD + $this->getRentabiliteAttendue($ATMdb) - $this->getRentabiliteReelle() + $f->penalite_reprise + ($f->taux_commission/100 * $f->montant) ;
 					}
 					
 				}
@@ -381,7 +384,7 @@ class TFin_financement extends TObjetStd {
 		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
-		parent::add_champs('fk_soc','type=entier;index;');
+		parent::add_champs('fk_soc,okPourFacturation','type=entier;index;');
 		
 		parent::start();
 		parent::_init_vars();
@@ -403,7 +406,8 @@ class TFin_financement extends TObjetStd {
 		);*/
 		
 		$this->taux_commission = 1;
-		
+		$this->duree_passe=0;
+		$this->duree_restante=0;
 		$this->TIncidentPaiement=array(
 			'OUI'=>'Oui'
 			,'NON'=>'Non'
@@ -499,7 +503,8 @@ class TFin_financement extends TObjetStd {
 	function load(&$ATMdb, $id, $annexe=false) {
 		
 		parent::load($ATMdb, $id);
-		
+		$this->duree_passe = $this->numero_prochaine_echeance-1;
+		$this->duree_restante = $this->duree - $this->duree_passe;
 		if($annexe) {
 			$this->load_facture($ATMdb);
 			$this->load_factureFournisseur($ATMdb);
@@ -582,7 +587,9 @@ class TFin_financement extends TObjetStd {
 		
 		return -$vpm;
 	}
-
+	function valeur_actuelle() {
+		return -$this->va($this->taux / 12 / 100, $this->duree, $this->echeance, $this->reste, $this->terme);
+	}
 	/**
 	 * VA : Calcule la valeur actuelle d'un investissement
 	 * @param $taux Float : Le taux d'intérêt par période (à diviser par 4 si remboursement trimestriel, par 12 si mensuel, ...)

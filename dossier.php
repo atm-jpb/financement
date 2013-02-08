@@ -60,6 +60,7 @@
 				
 				if(isset($_REQUEST['leaser'])){
 					$dossier->financementLeaser->set_values($_REQUEST['leaser']);
+					$dossier->financementLeaser->okPourFacturation = (int)isset($_REQUEST['leaser']['okPourFacturation']);
 					
 				}
 				
@@ -138,7 +139,7 @@
 	
 	llxFooter();
 	
-function _liste(&$db, &$dossier) {
+function _liste(&$ATMdb, &$dossier) {
 	global $conf;
 	
 	llxHeader('','Dossiers');
@@ -161,7 +162,7 @@ function _liste(&$db, &$dossier) {
 	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
 				
 			
-	$r->liste($db, $sql, array(
+	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
 			,'nbLine'=>'30'
@@ -194,7 +195,9 @@ function _liste(&$db, &$dossier) {
 }	
 	
 function _fiche(&$ATMdb, &$dossier, $mode) {
-	global $user;
+	global $user,$db;
+	
+	$html=new Form($db);
 	/*
 	 * Liste des dossiers rattachés à cette affaire
 	 */ 
@@ -226,10 +229,10 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 	 */
 	$otherAffaire='';
 	if($mode=='edit') {
-		$db=new Tdb;
-		$Tab = TRequeteCore::get_id_from_what_you_want($db,'llx_fin_affaire', "solde>0" ,'reference');
+		
+		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,'llx_fin_affaire', "solde>0" ,'reference');
 		$otherAffaire = '["'. implode('","', $Tab). '"]';
-		$db->close(); 
+		
 	}
 	
 	llxHeader('','Dossier');
@@ -242,9 +245,14 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 	
 	//require('./tpl/affaire.tpl.php');
 	$TBS=new TTemplateTBS();
+	$TBS->TBS->noErr=true;
 	
 	$financement=&$dossier->financement;
 	$financementLeaser=&$dossier->financementLeaser;
+
+	$leaser=new Societe($db);
+	if($financementLeaser->fk_soc>0)$leaser->fetch($financementLeaser->fk_soc);
+	else { $leaser->nom="Non défini"; }
 
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()
@@ -272,6 +280,9 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'date_fin'=>$financementLeaser->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financementLeaser->date_prochaine_echeance>0) ? $financementLeaser->get_date('date_prochaine_echeance') : ''
 			
+			,'leaser'=>($mode=='edit') ? $html->select_company('','leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->nom
+			
+			,'okPourFacturation'=>$form->checkbox1('', 'leaser[okPourFacturation]', 1, $financementLeaser->okPourFacturation )
 			
 			,'echeancier'=>$dossier->echeancier($ATMdb,'EXTERNE')
 	);
@@ -352,6 +363,10 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 				,'nature_financement'=>$dossier->nature_financement
 				,'rentabilite_attendue'=>$financement->somme_echeance - $financementLeaser->somme_echeance
 				,'rentabilite_reelle'=>$financement->somme_facture - $financementLeaser->somme_facture
+				,'soldeRBANK'=>$dossier->getSolde($ATMdb, 'SRBANK')
+				,'soldeNRBANK'=>$dossier->getSolde($ATMdb, 'SNRBANK')
+				,'soldeRCPRO'=>$dossier->getSolde($ATMdb, 'SRCPRO')
+				,'soldeNRCPRO'=>$dossier->getSolde($ATMdb, 'SNRCPRO')
 			)
 			,'financement'=>$TFinancement
 			,'financementLeaser'=>$TFinancementLeaser

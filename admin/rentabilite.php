@@ -22,7 +22,8 @@
  *  \ingroup    Financement
  *  \brief      Description and activation file for module financement
  */
-
+define('MONTANT_PALIER_DEFAUT', 100000000);
+ 
 require('../config.php');
 dol_include_once('/financement/lib/admin.lib.php');
 dol_include_once('/financement/class/affaire.class.php');
@@ -51,12 +52,8 @@ $TGrille=array();
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$grille = new TFin_grille_leaser('RENTABILITE');
 	$grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
-	
-	if(count($grille->TPalier)==0) $grille->addPalier(999999999); // il n'y aura d'un palier caché
-	
 	$TGrille[$idTypeContrat] = $grille;
 }
-
 
 $error = false;
 $mesg = '';
@@ -77,6 +74,7 @@ if($action == 'save') {
 	$grille = & $TGrille[$idTypeContrat];
 	
 	$grille->addPeriode($newPeriode);
+	if(count($grille->TPalier)==0) $grille->addPalier(MONTANT_PALIER_DEFAUT); // il n'y aura d'un palier caché
 	
 	//$ATMdb->db->debug=true;
 	
@@ -88,12 +86,22 @@ if($action == 'save') {
 			$periode = $TPeriode[$i];
 							
 			foreach($TLigne as $j=>$coeff) {
-			
-				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, 999999999, $coeff['coeff'] );
+			//$ATMdb->db->debug=true;
+				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, MONTANT_PALIER_DEFAUT, $coeff['coeff'] );
 				
 			}
 		}
+		
+		
 	}
+	
+	$grille->normalizeGrille();
+	/*	
+		print '<pre>';
+		print_r($grille->TGrille);
+		print '</pre>';
+		
+	*/
 	
 }
 
@@ -140,7 +148,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 			,'coefficient'=>$TCoeff
 		)
 		,array(
-			'view'=>array('mode'=>$mode)
+			'view'=>array('mode'=>$mode,'MONTANT_PALIER_DEFAUT'=>MONTANT_PALIER_DEFAUT)
 			
 		)
 	);

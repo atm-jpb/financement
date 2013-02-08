@@ -23,7 +23,6 @@
 			<tr><td>type de financement</td><td>[affaire.type_financement; strconv=no]</td></tr>
 
 			<tr><td>type de contrat</td><td>[affaire.contrat; strconv=no]</td></tr>
-			<tr><td>type de matériel</td><td>[affaire.type_materiel; strconv=no]</td></tr>
 			<tr><td>Date de l'affaire</td><td>[affaire.date_affaire; strconv=no]</td></tr>
 			
 			</table>

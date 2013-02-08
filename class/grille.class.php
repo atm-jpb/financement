@@ -31,7 +31,7 @@ class TFin_grille_leaser extends TObjetStd {
      */
     function get_grille(&$ATMdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE' , $options=array())
     {
-    	if(empty($idLeaser) || empty($idTypeContrat)) return false;
+    	if(empty($idLeaser)) $idLeaser = FIN_LEASER_DEFAULT;
 
 		$this->fk_soc = $idLeaser;
 
@@ -274,16 +274,16 @@ class TFin_grille_leaser extends TObjetStd {
 		
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
         $sql.= " WHERE t.fk_soc = ".$idLeaser;
-		$sql.= " AND t.fk_type_contrat = ".$idTypeContrat;
-		$sql.= " AND t.periode <= ".$duree. " AND t.type='".$this->type."' AND t.montant>=".$montant;
+		$sql.= " AND t.fk_type_contrat = '".$idTypeContrat."'
+		 AND t.periode <= ".$duree. " AND t.type='".$this->type."' AND t.montant>=".$montant;
 		$sql.= " ORDER BY t.periode DESC, t.montant ASC LIMIT 1";
 
 		$ATMdb->Execute($sql);
-		if($db->Get_recordCount()>0) {
+		if($ATMdb->Get_recordCount()>0) {
 		/*	while($db->Get_line()) {
 				if($montant <= $db->Get_field('montant')) {*/
-					$db->Get_line();
-					$coeff = $this->_calculate_coeff($db->Get_field('coeff'), $options);
+					$ATMdb->Get_line();
+					$coeff = $this->_calculate_coeff($ATMdb, $ATMdb->Get_field('coeff'), $options);
 					return $coeff;
 				//}	
 		//	}	
