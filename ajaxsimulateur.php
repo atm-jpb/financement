@@ -37,6 +37,9 @@ require_once(DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php');
 $langs->load("main");
 $langs->load('financement@financement');
 
+$ATMdb = new Tdb();
+//$ATMdb->db->debug = true;
+
 /*
  * View
  */
@@ -51,13 +54,10 @@ dol_syslog(join(',',$_POST));
 
 switch ($_POST['mode']) {
 	case 'grille':
-		get_grille();
+		get_grille($ATMdb);
 		break;
 	case 'duree':
-		get_duree();
-		break;
-	case 'calcul':
-		get_calcul();
+		get_duree($ATMdb);
 		break;
 	
 	default:
@@ -65,24 +65,24 @@ switch ($_POST['mode']) {
 		break;
 }
 
-function get_duree() {
+function get_duree(&$ATMdb) {
 	global $db, $conf, $langs, $user;
 	
 	$outjson = GETPOST('outjson', 'int');
 
-	$grille = new Grille($db);
+	$grille = new TFin_grille_leaser();
 	$form = new TFormCore();
 	$idTypeContrat = GETPOST('idTypeContrat');
 	$opt_periodicite = GETPOST('opt_periodicite');
 
-	$htmlresult = $form->combo('','duree', $grille->get_duree(FIN_LEASER_DEFAULT, $idTypeContrat, $opt_periodicite), '');
+	$htmlresult = $form->combo('','duree', $grille->get_duree($ATMdb, FIN_LEASER_DEFAULT, $idTypeContrat, $opt_periodicite), '');
 	
 	$db->close();
 	
 	if ($outjson) print json_encode($htmlresult);
 }
 
-function get_grille() {
+function get_grille(&$ATMdb) {
 	global $db, $conf, $langs, $user;
 
 	$outjson = GETPOST('outjson', 'int');
@@ -96,54 +96,30 @@ function get_grille() {
 		exit();
 	}
 	
-	$grille = new Grille($db);
-	$liste_coeff = $grille->get_grille($idLeaser, $fk_type_contrat, $opt_periodicite, $options);
+	$grille = new TFin_grille_leaser();
+	$grille->get_grille($ATMdb, $idLeaser, $fk_type_contrat, $opt_periodicite, $options);
 	
-	if (empty($liste_coeff)) {
+	
+	if (empty($grille->TGrille)) {
 		print json_encode('KO');
 		exit();
 	}
-
-	ob_start();
-	include 'tpl/grille.tpl.php';
-	$htmlresult = ob_get_clean();
+	
+	$TBS=new TTemplateTBS;
+	
+	$htmlresult = $TBS->render('tpl/fingrille.tpl.php'
+		,array(
+			'palier'=>$grille->TPalier
+			,'coefficient'=>$grille->TGrille
+		)
+		,array(
+			'view'=>array('mode'=>'view')
+			
+		)
+	);
 	
 	$db->close();
 	
 	if ($outjson) print json_encode($htmlresult);
-}
-
-function get_calcul() {
-	$idLeaser = GETPOST('idLeaser', 'int');
-	$idTypeContrat = GETPOST('idTypeContrat', 'int');
-	$opt_periodicite = GETPOST('opt_periodicite');
-	$montant = GETPOST('montant', 'int');
-	$duree = GETPOST('duree', 'int');
-	$echeance = GETPOST('echeance', 'int');
-	$vr = GETPOST('vr', 'int');
-	
-	$options = array();
-	foreach($_POST as $k => $v) {
-		if(substr($k, 0, 4) == 'opt_') $options[] = $v;
-		${$k} = $v;
-	}
-	
-	if(empty($duree)) {
-		$mesg = $langs->trans('ErrorDureeRequired');
-		$error = true;
-	} else if(empty($montant) && empty($echeance)) {
-		$mesg = $langs->trans('ErrorMontantOrEcheanceRequired');
-		$error = true;
-	} else {
-		$grille->get_grille($idLeaser, $idTypeContrat);
-		$calcul_ok = $grille->calcul_financement($idLeaser, $idTypeContrat, $opt_periodicite, $montant, $duree, $echeance, $vr, $options);
-		
-		// TODO : Revoir validation financement avec les règles finales
-		if(!(empty($socid))) {
-			$accord = false;
-			if($customer->score > 50 && $customer->encours_max > ($customer->encours_cpro + $montant) * 0.8) {
-				$accord = true;
-			}
-		}
-	}
+	else print $htmlresult;
 }

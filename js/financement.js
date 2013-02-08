@@ -12,9 +12,17 @@ $(document).ready(function() {
 var get_grille = function() {
 	var fin_options = new Array();
 	var fin_options = $('input[name^="opt_"]:checked, select[name^="opt_"]').map(function() {
-		if($(this).val() == 1) return $(this).attr('name');
+		if($(this).attr('type') == 'checkbox') return $(this).attr('name');
 		return $(this).val();
 	}).get();
+	
+	var fin_options = {
+		'opt_periodicite' : $('select[name="opt_periodicite"]').val()
+		,'opt_mode_reglement' : $('select[name="opt_mode_reglement"]').val()
+		,'opt_terme' : $('select[name="opt_terme"]').val()
+		,'opt_administration' : $('input[name="opt_administration"]:checked').length > 0 ? $('input[name^="opt_"]:checked').val() : 0
+		,'opt_creditbail' : $('input[name="opt_creditbail"]:checked').length > 0 ? $('input[name^="opt_"]:checked').val() : 0
+	};
 	
 	var data = {
 		mode : 'grille',
@@ -55,35 +63,4 @@ var get_periode = function() {
 		},
 		'json'
 	);
-};
-
-var calcul_financement = function() {
-	var fin_options = new Array();
-	var fin_options = $('input[name^="opt_"]:checked, select[name^="opt_"]').map(function(){
-		return $(this).val();
-	}).get();
-	
-	var data = {
-		mode : 'calcul',
-		outjson : 1,
-		idLeaser : $('input[name="idLeaser"]').val(),
-		fk_type_contrat : $('select[name="fk_type_contrat"]').val(),
-		opt_periodicite : $('select[name="opt_periodicite"]').val(),
-		options : fin_options,
-		montant : $('input[name="montant"]').val(),
-		duree : $('select[name="duree"]').val(),
-		echeance : $('input[name="echeance"]').val(),
-		vr : $('input[name="vr"]').val()
-	};
-	
-	if(data.idTypeContrat != '') {
-		$.post(
-			'ajaxsimulateur.php',
-			data,
-			function(res) {
-				alert(res);
-			},
-			'json'
-		);
-	}
 };

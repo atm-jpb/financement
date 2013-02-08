@@ -19,9 +19,7 @@ class TFin_grille_leaser extends TObjetStd {
 		
 		$this->type=$type;
 	}
-	/******************************************************************
-	 * PERSO FUNCTIONS
-	 ******************************************************************/
+
     /**
      *  Chargement d'un tableau de grille pour un leaser donné, pour un type de contrat donné
      *
@@ -48,18 +46,27 @@ class TFin_grille_leaser extends TObjetStd {
 		$result = array();
 		$lastMontant=0;
 		
-		$Tmp=array();
+		$TResult=array();
 		
 		while($ATMdb->get_line()) {
+			$TResult[] = array(
+				'rowid' => $ATMdb->Get_field('rowid')
+				,'periode' => $ATMdb->Get_field('periode')
+				,'montant' => $ATMdb->Get_field('montant')
+				,'coeff' => $ATMdb->Get_field('coeff')
+			);
+		}
+		
+		foreach($TResult as $ligne_grille) {
 			
-			$periode = (int)$ATMdb->get_field('periode');
+			$periode = (int)$ligne_grille['periode'];
 			if($periodicite == 'MOIS') $periode *= 3;
 			
-			$montant = (int)$ATMdb->get_field('montant');
-			$coeff = $this->_calculate_coeff($ATMdb, $ATMdb->get_field('coeff'), $options);
+			$montant = (int)$ligne_grille['montant'];
+			$coeff = $this->_calculate_coeff($ATMdb, $ligne_grille['coeff'], $options);
 			
 			$result[$periode][$montant]=array(
-				'rowid' => $ATMdb->Get_field('rowid')
+				'rowid' => $ligne_grille['rowid']
 				,'coeff' => $coeff
 				,'echeance' => $montant / $periode * (1 + $coeff / 100)
 				,'montant' => $montant
@@ -293,39 +300,13 @@ class TFin_grille_leaser extends TObjetStd {
 		else {
 			return -1;
 		}
-/*
-    	dol_syslog(get_class($this)."::get_coeff sql=".$sql, LOG_DEBUG);
-        $resql=$this->db->query($sql);
-        if ($resql)
-        {
-        	$num = $this->db->num_rows($resql);
-			$i = 0;
-			$coeff = -1;
-			while($i < $num) {
-				$obj = $this->db->fetch_object($resql);
-				if($montant <= $obj->montant) {
-					$coeff = $this->_calculate_coeff($obj->coeff, $options);
-					break;
-				}
-				
-				$i++;
-			}
-			
-			$this->db->free($resql);
-
-			return $coeff;
-		} else {
-			$this->error="Error ".$this->db->lasterror();
-			dol_syslog(get_class($this)."::fetch ".$this->error, LOG_ERR);
-			return -1;
-		}*/
 	}
 
 	private function _calculate_coeff(&$ATMdb, $coeff, $options) {
 		if(!empty($options)) {
-			foreach($options as $name) {
-				$penalite = $this->_get_penalite($ATMdb, $name);
-				if($penalite < 0) return 0;
+			foreach($options as $name => $value) {
+				$penalite = $this->_get_penalite($ATMdb, $name, $value);
+				if($penalite < 0) continue;
 				$coeff += $coeff * $penalite / 100;
 			}
 		}
@@ -333,13 +314,14 @@ class TFin_grille_leaser extends TObjetStd {
 		return round($coeff, 2);
 	}
 	
-	private function _get_penalite(&$ATMdb, $name) {
-		$sql = "SELECT opt_value FROM ".MAIN_DB_PREFIX."fin_grille_penalite";
+	private function _get_penalite(&$ATMdb, $name, $value) {
+		$sql = "SELECT penalite FROM ".MAIN_DB_PREFIX."fin_grille_penalite";
 		$sql.= " WHERE opt_name = '".$name."'";
+		$sql.= " AND opt_value = '".$value."'";
 		
 		$ATMdb->Execute($sql);
 		if($ATMdb->Get_line()) {
-			return (double)$db->Get_field('opt_value');
+			return (double)$ATMdb->Get_field('penalite');
 		}
 		else {
 			return -1;
