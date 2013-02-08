@@ -758,15 +758,10 @@ class Import // extends CommonObject
 					$asset->save($ATMdb);	
 				}
 				else {
-				//	print "ErrorMaterielNotExist";
-					$this->addError('ErrorMaterielNotExist', $dataline, true);
-					//return false;
+					$this->addError('ErrorMaterielNotExist', $data['matricule'], $dataline);
+					return false;
 				}
-				
 			}
-			
-			
-			
 		}
 		$ATMdb->close();
 		
@@ -865,7 +860,7 @@ class Import // extends CommonObject
 		/*
 		 * Création du lien  affaire/facture + lien entre matériel et affaire
 		 */
-		$ATMdb=new Tdb;
+		/*$ATMdb=new Tdb;
 		$affaire = new TFin_affaire;
 		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
 			$affaire->montant = $this->validateValue('total_ttc',$data['total_ttc']);
@@ -896,7 +891,7 @@ class Import // extends CommonObject
 			
 			
 		}
-		$ATMdb->close();
+		$ATMdb->close();*/
 		
 		// Mise à jour ou créatioon
 		if($rowid > 0) {
@@ -919,9 +914,13 @@ class Import // extends CommonObject
 			}
 		}
 		
+		echo '<pre>';
+		print_r($data);
+		echo '</pre>';
 		// Actions spécifiques
-		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], 0, 1, 19.6, 0, 0, 0, 0, '', '', 0, 0, '', 'HT', $data['total_ht']);
-		$facture_loc->validate($user, $data[$this->mapping['search_key']]); // Force la validation avec numéro de facture
+		echo 'add: '.$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 19.6);
+		if($facture_loc->statut == 0) $facture_loc->validate($user, $data[$this->mapping['search_key']]); // Force la validation avec numéro de facture
+		$this->db->commit();
 		
 		return true;
 	}
@@ -992,8 +991,10 @@ class Import // extends CommonObject
 		
 		$commercial = new User($db);
 		if(!$commercial->fetch('',$data[$this->mapping['search_key_user']])) {
-			$this->addError('ErrorUserNotFound', $data[$this->mapping['search_key_user']], $dataline);
-			return false;
+			// Pas d'erreur si l'utilisateur n'est pas trouvé, lien avec l'utilisateur admin
+			$fk_user = $user->id;
+			//$this->addError('ErrorUserNotFound', $data[$this->mapping['search_key_user']], $dataline);
+			//return false;
 		}
 		else {
 			$fk_user = $commercial->id;
@@ -1014,7 +1015,7 @@ class Import // extends CommonObject
 		$a=new TFin_affaire;
 		$a->loadReference($ATMdb, $data[$this->mapping['search_key']]);
 		
-		if($a->fk_soc > 0 && $a->fk_soc != $fksoc) { // client ne correspond pas
+		if($a->fk_soc > 0 && $a->fk_soc != $fk_soc) { // client ne correspond pas
 			$this->addError('ErrorClientDifferent', $data[$this->mapping['search_key']], $dataline);
 			return false;
 		}
@@ -1153,7 +1154,8 @@ class Import // extends CommonObject
 
 		$commercial = new User($db);
 		if(!$commercial->fetch('',$data[$this->mapping['search_key']])) {
-			$this->addError('ErrorUserNotFound', $data[$this->mapping['search_key']], $dataline);
+			// Pas d'erreur si l'utilisateur n'est pas trouvé, pas de lien créé
+			//$this->addError('ErrorUserNotFound', $data[$this->mapping['search_key']], $dataline);
 			return false;
 		}
 		else {
