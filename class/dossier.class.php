@@ -446,8 +446,12 @@ class TFin_financement extends TObjetStd {
 		}
 		
 	}
-	function loadReference(&$db, $reference) {
-		return $this->loadBy($db, $reference, 'reference');	
+	function loadReference(&$db, $reference, $type='LEASER') {
+		$Tab = TRequeteCore::get_id_from_what_you_want($db,$this->get_table(),array('reference'=>$reference,'type'=>$type));
+		if(count($Tab)>0) return $this->load($db, $Tab[0]);
+
+		return false;
+	
 	}
 	function createWithfindClientBySiren(&$db, $siren, $reference) {
 		/*

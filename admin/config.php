@@ -121,6 +121,14 @@ print '</td><td align="right">';
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
 print "</td></tr>\n";
 print '</form>';
+
+?><tr>
+	<td colspan="2">Lancer le script de génération des factures Leaser</td>
+	<td>
+		<a href="../script/create-facture-leaser.php" target="_blank">Lancer le script</a>
+	</td>
+</tr><?
+
 /*
 $var=! $var;
 print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';

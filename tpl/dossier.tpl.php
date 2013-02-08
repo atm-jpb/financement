@@ -80,7 +80,7 @@
 						<tr><td>Montant de prestation</td><td>[financementLeaser.montant_prestation; strconv=no]</td></tr>
 						
 						<tr><td>Incident de paiement</td><td>[financementLeaser.incident_paiement; strconv=no]</td></tr>
-						<tr><td>Bon pour facturation ?</td><td>[financementLeaser.okPourFacturation; strconv=no]</td></tr>
+						<tr><td>Bon pour facturation ?</td><td>[financementLeaser.okPourFacturation; strconv=no][onshow;block=tr;when [dossier.nature_financement]=='INTERNE']</td></tr>
 						
 						
 						</table>

@@ -2,6 +2,8 @@
 	require('config.php');
 	require('./class/import.class.php');
 	require('./class/import_error.class.php');
+	require('./class/dossier.class.php');
+	require('./class/affaire.class.php');
 	
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 

@@ -567,7 +567,7 @@ class Import // extends CommonObject
 		}
 	
 		$f=new TFin_financement;
-		if($f->loadReference($ATMdb, $data['reference_financement'])) {
+		if($f->loadReference($ATMdb, $data['reference_financement'], 'LEASER')) {
 			/*
 			 * Youpi, on a retrouvé le financement et donc le client
 			 */
@@ -579,33 +579,40 @@ class Import // extends CommonObject
 			 */
 		}
 		else {	
+			$this->addError('cantFindOrCreateFinancement', $data['reference_financement'], $dataline, '', 'ERROR');
 			return false;		
 		}
 		
-		$f->echeance = $this->validateValue('echeance', $data['echeance']);
-		$f->montant = $this->validateValue('montant', $data['montant']);
-		$f->numero_prochaine_echeance = $this->validateValue('montant', $data['nb_echeance']);
+		$echeance = $this->validateValue('echeance', $data['echeance']);
+		$montant = $this->validateValue('echeance', $data['montant']);
+		$date_debut = $this->validateValue('date_debut', $data['date_debut']);
+		$date_fin = $this->validateValue('date_fin', $data['date_fin']);
+		
+		if($echeance!=$f->echeance || $montant!=$f->montant || $date_debut!=$f->date_debut || $date_fin!=$f->date_fin) {
+			$this->addError('cantMatchDataLine', $data['reference_financement'], $dataline, '', 'WARNING');	
+		}
+		else {
+			$f->okPourFacturation=1;
+		}
+		
+		$f->echeance = $echeance;
+		$f->montant = $montant;
+		$f->numero_prochaine_echeance = $this->validateValue('nb_echeance', $data['nb_echeance']);
 		
 		if($f->duree<$f->numero_prochaine_echeance)$f->duree = $f->numero_prochaine_echeance;
 		
 		$f->periodicite = $data['periodicite'];
-		$f->date_debut = $this->validateValue('date_debut', $data['date_debut']);
-		$f->date_fin = $this->validateValue('date_fin',$data['date_fin']);
+		$f->date_debut = $date_debut;
+		$f->date_fin = $date_fin;
 		
 		$f->save($ATMdb);
 
-		$this->createFactureFournisseur();
-
+		
 		$ATMdb->close();
 		
 		return true;
 	}
 
-	private function createFactureFournisseur() {
-		/*
-		 * Finalement cette fonction est remplacer par un cron mensuel de création de facture
-		 */
-	}
 
 	function importLineTiers($dataline) {
 		global $user;
