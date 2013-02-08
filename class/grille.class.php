@@ -351,7 +351,7 @@ class TFin_grille_leaser extends TObjetStd {
 		 * 
 		 */ 
 		
-		if(empty($this->grille)) { // Pas de grille chargée, pas de calcul
+		if(empty($this->TGrille)) { // Pas de grille chargée, pas de calcul
 			$this->error = 'ErrorNoGrilleSelected';
 			return false;
 		}
@@ -365,7 +365,7 @@ class TFin_grille_leaser extends TObjetStd {
 		}
 		
 		$coeff=0;
-		foreach($this->grille[$duree] as $palier => $infos) {
+		foreach($this->TGrille[$duree] as $palier => $infos) {
 			if(( !empty( $montant ) && $montant <= $palier)
 			|| (!empty($echeance) && $echeance<=$infos['echeance']))
 			{
