@@ -506,7 +506,7 @@ class TFin_financement extends TObjetStd {
 	
 	function load(&$ATMdb, $id, $annexe=false) {
 		
-		parent::load($ATMdb, $id);
+		$res = parent::load($ATMdb, $id);
 		$this->duree_passe = $this->numero_prochaine_echeance-1;
 		$this->duree_restante = $this->duree - $this->duree_passe;
 		if($annexe) {
@@ -514,6 +514,7 @@ class TFin_financement extends TObjetStd {
 			$this->load_factureFournisseur($ATMdb);
 		}
 		
+		return $res;
 	}
 	function save(&$ATMdb) {
 		global $db, $user;

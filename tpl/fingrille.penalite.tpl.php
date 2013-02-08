@@ -17,7 +17,9 @@
 	</tr>
 	
 </table>
-
+<span>[onshow;block=span;when [view.mode]=='edit']
 <input type="submit" name="save" value="Enregistrer" class="button" />
+</span>
+
 
 <br /><br />

@@ -4,6 +4,7 @@
 	require('./class/import_error.class.php');
 	require('./class/dossier.class.php');
 	require('./class/affaire.class.php');
+	require('./class/grille.class.php');
 	
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 
@@ -62,7 +63,7 @@
 					} 
 					
 					while($dataline = fgetcsv($f1, 1024, $_REQUEST['delimiter'], $_REQUEST['enclosure'])) {
-						
+						$dataline[9999] = $societe->id;
 						$imp->importLine($dataline, $fileType);
 					}
 					

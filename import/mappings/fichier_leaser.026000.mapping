@@ -20,7 +20,7 @@ echeance=float
 montant=float
 
 [transco]
-periodicite=MENSUEL
+periodicite=1
 
 [periodicite]
-MOIS=MENSUEL
+MENSUEL=MOIS
