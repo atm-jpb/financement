@@ -118,7 +118,7 @@ function _liste(&$ATMdb, &$import) {
 	
 	echo $r->render($ATMdb, $sql, array(
 		'limit'=>array(
-			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
+			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
 			,'nbLine'=>'30'
 		)
 		,'orderBy'=>$TOrder
