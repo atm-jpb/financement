@@ -30,7 +30,9 @@
 		
 		_createFacture($f);
 		
-		$f->okPourFacturation=0;
+		$f->okPourFacturation=1;
+		$f->setNextEcheance();
+		
 		$f->save($ATMdb);
 	}
 

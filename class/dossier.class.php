@@ -429,6 +429,16 @@ class TFin_financement extends TObjetStd {
 			,1=>'A Echoir'
 		);
 	}
+	/*
+	 * Définie la prochaine échéance
+	 */
+	function setNextEcheance() {
+		
+		$this->date_prochaine_echeance = time() + strotime( $this->getiPeriode().' month' );
+		
+		$this->numero_prochaine_echeance++;
+	}
+
 	function load_reglement() {
 	global $db;
 	
