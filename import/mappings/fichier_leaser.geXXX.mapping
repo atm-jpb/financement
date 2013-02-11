@@ -1,14 +1,26 @@
 search_key_dossier=code_dossier
-search_key_client=siret
+search_key_client=siren
 
 [mapping]
-7=siret
-10=code_dossier
+7=siren
+10=reference_financement
+33=reference_materiel
 12=date_debut
 13=date_fin
+29=montant
+14=nb_echeance
 15=echeance
+16=periodicite
 
 [format]
-date_debut=date
-date_fin=date
+date_debut=date_english
+date_fin=date_english
 echeance=float
+montant=float
+
+[transco]
+periodicite=1
+
+[periodicite]
+1=MOIS
+3=TRIMESTRE

@@ -1,5 +1,5 @@
 search_key_dossier=code_dossier
-search_key_client=siret
+search_key_client=siren
 
 [mapping]
 2=siren
