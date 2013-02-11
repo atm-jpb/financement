@@ -239,6 +239,9 @@ class TFin_dossier extends TObjetStd {
 		
 		return $this->somme_facture_reglee - $this->somme_facture_fournisseur;
 	}
+	
+	
+	
 	function getSolde($ATMdb, $type='SRBANK') {
 		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
 		else {	$f = &$this->financementLeaser; }
@@ -247,6 +250,9 @@ class TFin_dossier extends TObjetStd {
 		$LRD = $f->echeance * $f->duree_restante;
 		
 		switch($type) {
+			case 'CRD':
+				return $CRD;
+				break;
 			case 'SRBANK':
 				if($this->nature_financement=='EXTERNE' && $f->duree_passe<4) {
 					return $f->montant;
@@ -429,6 +435,16 @@ class TFin_financement extends TObjetStd {
 			,1=>'A Echoir'
 		);
 	}
+	/*
+	 * Définie la prochaine échéance
+	 */
+	function setNextEcheance() {
+		
+		$this->date_prochaine_echeance = time() + strotime( $this->getiPeriode().' month' );
+		
+		$this->numero_prochaine_echeance++;
+	}
+
 	function load_reglement() {
 	global $db;
 	
@@ -506,7 +522,7 @@ class TFin_financement extends TObjetStd {
 	
 	function load(&$ATMdb, $id, $annexe=false) {
 		
-		parent::load($ATMdb, $id);
+		$res = parent::load($ATMdb, $id);
 		$this->duree_passe = $this->numero_prochaine_echeance-1;
 		$this->duree_restante = $this->duree - $this->duree_passe;
 		if($annexe) {
@@ -514,6 +530,7 @@ class TFin_financement extends TObjetStd {
 			$this->load_factureFournisseur($ATMdb);
 		}
 		
+		return $res;
 	}
 	function save(&$ATMdb) {
 		global $db, $user;

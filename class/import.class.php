@@ -560,6 +560,7 @@ class Import // extends CommonObject
 		//	$ATMdb->db->debug=true;
 		$data= $this->contructDataTab($dataline);
 	//	print_r($data);
+		$this->nb_lines++;
 	
 		if($data['echeance']==0) {
 			
@@ -583,10 +584,15 @@ class Import // extends CommonObject
 			return false;		
 		}
 		
-		$echeance = $this->validateValue('echeance', $data['echeance']);
-		$montant = $this->validateValue('echeance', $data['montant']);
-		$date_debut = $this->validateValue('date_debut', $data['date_debut']);
-		$date_fin = $this->validateValue('date_fin', $data['date_fin']);
+		if($f->fk_soc!=$data['idLeaser']) {
+			$this->addError('leaserNotAllgood', $data['idLeaser'], $dataline, '', 'ERROR');
+			return false;
+		}
+		
+		$echeance = $data['echeance'];
+		$montant = $data['montant'];
+		$date_debut =$data['date_debut'];
+		$date_fin = $data['date_fin'];
 		
 		if($echeance!=$f->echeance || $montant!=$f->montant || $date_debut!=$f->date_debut || $date_fin!=$f->date_fin) {
 			$this->addError('cantMatchDataLine', $data['reference_financement'], $dataline, '', 'WARNING');	
@@ -597,7 +603,7 @@ class Import // extends CommonObject
 		
 		$f->echeance = $echeance;
 		$f->montant = $montant;
-		$f->numero_prochaine_echeance = $this->validateValue('nb_echeance', $data['nb_echeance']);
+		$f->numero_prochaine_echeance = $data['nb_echeance'];
 		
 		if($f->duree<$f->numero_prochaine_echeance)$f->duree = $f->numero_prochaine_echeance;
 		
@@ -606,7 +612,7 @@ class Import // extends CommonObject
 		$f->date_fin = $date_fin;
 		
 		$f->save($ATMdb);
-
+		$this->nb_update++;
 		
 		$ATMdb->close();
 		
@@ -1282,7 +1288,11 @@ class Import // extends CommonObject
 		
 		foreach($this->mapping['mapping'] as $k=>$field) {
 			$data[$field] = $dataline[$k-1];
+			$data[$field] = $this->validateValue($field,$data[$field]);
+			
 		}
+		
+		if(isset($dataline[9999])) $data['idLeaser'] = $dataline[9999];
 		
 		if(isset($this->mapping['more'])) $data = array_merge($data, $this->mapping['more']); // Ajout des valeurs autres
 		
