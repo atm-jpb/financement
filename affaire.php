@@ -6,6 +6,9 @@
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 
+	dol_include_once('/equipement/class/asset.class.php');
+	dol_include_once('/product/class/product.class.php');
+
 	$langs->load('financement@financement');
 	
 	
@@ -211,6 +214,20 @@ global $db,$user;
 		);
 	}
 	
+	$TAsset=array();
+	foreach($affaire->TAsset as $link) {
+		
+		$row = $link->asset->get_values();
+		
+		$product = new Product($db);
+		$product->fetch($link->asset->fk_product);
+		
+		$row['produit'] = '<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$link->asset->fk_product.'">'.img_picto('','object_product.png', '', 0).' '.$product->label.'</a>';
+		
+		$TAsset[]=$row;
+		
+	}
+	
 	/*
 	 * Pour autocomplete ajout dossier
 	 */
@@ -237,6 +254,7 @@ global $db,$user;
 	print $TBS->render('./tpl/affaire.tpl.php'
 		,array(
 			'dossier'=>$TDossier
+			,'asset'=>$TAsset
 		)
 		,array(
 			'affaire'=>array(

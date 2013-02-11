@@ -51,6 +51,13 @@
 			</table>
 			
 			<table width="100%" class="border" style="margin-top:20px;">
+			<tr><td width="20%">Equipement numéro</td><td><a href="../equipement/fiche.php?id=[asset.rowid]">[asset.serial_number; block=table; strconv=no]</a> </td></tr>
+			<tr><td width="20%">Produit</td><td>[asset.produit;strconv=no]</td></tr>
+			<tr><td width="20%">Coût copie Noire</td><td>[asset.copy_black; strconv=no; frm=0,00 €]</td></tr>
+			<tr><td width="20%">Coût copie Couleure</td><td>[asset.copy_color; strconv=no; frm=0,00 €]</td></tr>
+			</table>
+
+			<table width="100%" class="border" style="margin-top:20px;">
 			<tr><td width="20%">Montant total financé</td><td>[affaire.montant_ok; strconv=no]</td></tr>
 			<tr><td width="20%">Montant restant à financer</td><td>[affaire.solde; strconv=no]</td></tr>
 			</table>
