@@ -94,6 +94,18 @@ class TFin_affaire extends TObjetStd {
 		
 		$this->calculSolde();
 	}
+	function getSolde(&$ATMdb, $type='SRBANK') {
+		
+		$solde=0;
+		foreach($this->TLien as $link) {
+			
+			$solde+=$link->dossier->getSolde($ATMdb, $type);
+			
+		}
+
+		return $solde;
+
+	}
 	function delete(&$db) {
 		parent::delete($db);
 		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_affaire', $this->getId(), 'fk_fin_affaire' );

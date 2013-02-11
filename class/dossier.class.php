@@ -239,6 +239,9 @@ class TFin_dossier extends TObjetStd {
 		
 		return $this->somme_facture_reglee - $this->somme_facture_fournisseur;
 	}
+	
+	
+	
 	function getSolde($ATMdb, $type='SRBANK') {
 		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
 		else {	$f = &$this->financementLeaser; }
@@ -247,6 +250,9 @@ class TFin_dossier extends TObjetStd {
 		$LRD = $f->echeance * $f->duree_restante;
 		
 		switch($type) {
+			case 'CRD':
+				return $CRD;
+				break;
 			case 'SRBANK':
 				if($this->nature_financement=='EXTERNE' && $f->duree_passe<4) {
 					return $f->montant;
