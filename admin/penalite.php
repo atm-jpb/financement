@@ -34,10 +34,9 @@ if (!$user->rights->financement->admin->write) accessforbidden();
 
 
 llxHeader('',$langs->trans("FinancementSetup"));
-print_fiche_titre($langs->trans("FinancementSetup"),'','setup32@financement');
 $head = financement_admin_prepare_head(null);
 
-dol_fiche_head($head, 'penalite'.$_REQUEST['type'], $langs->trans("penalite".$_REQUEST['type']), 0, 'financementico@financement');
+dol_fiche_head($head, 'penalite'.$_REQUEST['type'], $langs->trans("Financement"), 0, 'financementico@financement');
 dol_htmloutput_mesg($mesg);
 
 /**
@@ -115,7 +114,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	
 	$TCoeff = $grille->TGrille;
 	
-	print_titre($langs->trans("GlobalCoeffGrille").' - '.$label);
+	print_titre($label);
 	
 	//include '../tpl/admin.grille.tpl.php';
 	

@@ -68,7 +68,6 @@ if ($action == 'setvalue')
  */
 
 llxHeader('',$langs->trans("FinancementSetup"));
-print_fiche_titre($langs->trans("FinancementSetup"),'','setup32@financement');
 $head = financement_admin_prepare_head(null);
 
 dol_fiche_head($head, 'config', $langs->trans("Financement"), 0, 'financementico@financement');

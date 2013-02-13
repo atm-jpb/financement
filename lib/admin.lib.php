@@ -16,7 +16,7 @@ function financement_admin_prepare_head()
 	$h++;
 	
 	$head[$h][0] = dol_buildpath('/financement/admin/grille.php', 1);
-	$head[$h][1] = $langs->trans("Grille");
+	$head[$h][1] = $langs->trans("coeff");
 	$head[$h][2] = 'grille';
 	$h++;
 	
