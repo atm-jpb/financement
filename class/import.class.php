@@ -819,10 +819,6 @@ class Import // extends CommonObject
 		if(!$this->checkData($dataline)) return false;
 		$data = $this->contructDataTab($dataline);
 		
-		echo '<pre>';
-		print_r($data);
-		echo '</pre>';
-		
 		// Recherche si facture existante dans la base
 		$rowid = 0;
 		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
@@ -840,8 +836,6 @@ class Import // extends CommonObject
 			$this->addError('ErrorWhileSearchingFacture', $data[$this->mapping['search_key']], $dataline, $sql, 'ERROR', true);
 			return false;
 		}
-		
-		echo 'id fact = '.$rowid.'<br />';
 		
 		// Recherche tiers associé à la facture existant dans la base
 		$fk_soc = 0;
@@ -863,8 +857,6 @@ class Import // extends CommonObject
 			$this->addError('ErrorWhileSearchingClient', $data[$this->mapping['search_key_client']], $dataline, $sql, 'ERROR', true);
 			return false;
 		}
-
-		echo 'id cli = '.$fk_soc.'<br />';
 		
 		$data['socid'] = $fk_soc;
 		

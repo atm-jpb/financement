@@ -114,7 +114,6 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		$fileHandler = fopen($importFolder.$fileName, 'r');
 		while($dataline = fgetcsv($fileHandler, 1024, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
 			$imp->importLine($dataline, $fileType);
-			if($imp->nb_lines >= 2) break;
 		}
 		fclose($fileHandler);
 		
@@ -123,7 +122,7 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		
 		print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;
 		
-		//rename($importFolder.$fileName, $importFolderOK.$fileName);
+		rename($importFolder.$fileName, $importFolderOK.$fileName);
 	}
 }
 
