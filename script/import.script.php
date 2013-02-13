@@ -79,6 +79,15 @@ $imp->entity = $conf->entity;
 $imp->fk_user_author = $user->id;
 
 $listOfFileType = $imp->TType_import_interne;
+$listOfFileType = array(
+		//'client' => 'Fichier client'
+		//,'commercial' => 'Fichier commercial'
+		//,'affaire' => 'Fichier affaire'
+		//,'materiel' => 'Fichier matériel'
+		//,'facture_materiel' => 'Fichier facture matériel'
+		'facture_location' => 'Fichier facture location'
+		//,'facture_lettree' => 'Fichier facture lettrée'
+	);
 $importFolder = FIN_IMPORT_FOLDER.'todo/';
 $importFolderOK = FIN_IMPORT_FOLDER.'done/';
 $importFolderMapping = FIN_IMPORT_FOLDER.'mappings/';
@@ -105,6 +114,7 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		$fileHandler = fopen($importFolder.$fileName, 'r');
 		while($dataline = fgetcsv($fileHandler, 1024, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
 			$imp->importLine($dataline, $fileType);
+			if($imp->nb_lines >= 2) break;
 		}
 		fclose($fileHandler);
 		
@@ -113,7 +123,7 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		
 		print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;
 		
-		rename($importFolder.$fileName, $importFolderOK.$fileName);
+		//rename($importFolder.$fileName, $importFolderOK.$fileName);
 	}
 }
 

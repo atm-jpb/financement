@@ -819,6 +819,10 @@ class Import // extends CommonObject
 		if(!$this->checkData($dataline)) return false;
 		$data = $this->contructDataTab($dataline);
 		
+		echo '<pre>';
+		print_r($data);
+		echo '</pre>';
+		
 		// Recherche si facture existante dans la base
 		$rowid = 0;
 		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
@@ -836,6 +840,8 @@ class Import // extends CommonObject
 			$this->addError('ErrorWhileSearchingFacture', $data[$this->mapping['search_key']], $dataline, $sql, 'ERROR', true);
 			return false;
 		}
+		
+		echo 'id fact = '.$rowid.'<br />';
 		
 		// Recherche tiers associé à la facture existant dans la base
 		$fk_soc = 0;
@@ -857,6 +863,8 @@ class Import // extends CommonObject
 			$this->addError('ErrorWhileSearchingClient', $data[$this->mapping['search_key_client']], $dataline, $sql, 'ERROR', true);
 			return false;
 		}
+
+		echo 'id cli = '.$fk_soc.'<br />';
 		
 		$data['socid'] = $fk_soc;
 		
@@ -867,9 +875,9 @@ class Import // extends CommonObject
 		}
 
 		foreach ($data as $key => $value) {
-			$facture_loc->{$key} = $this->validateValue($key, $value);
+			$facture_loc->{$key} = $value;
 		}
-		
+
 		/*
 		 * Création du lien  affaire/facture + lien entre matériel et affaire
 		 */
@@ -927,12 +935,15 @@ class Import // extends CommonObject
 			}
 		}
 		
-		echo '<pre>';
-		print_r($data);
-		echo '</pre>';
 		// Actions spécifiques
-		echo 'add: '.$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 19.6);
-		if($facture_loc->statut == 0) $facture_loc->validate($user, $data[$this->mapping['search_key']]); // Force la validation avec numéro de facture
+
+		// On repasse en brouillon pour ajouter la ligne
+		$facture_loc->set_draft($user);
+		// On ajoute la ligne
+		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 19.6);
+		// Force la validation avec numéro de facture
+		$facture_loc->validate($user, $data[$this->mapping['search_key']]);
+		
 		$this->db->commit();
 		
 		return true;
@@ -1323,6 +1334,10 @@ class Import // extends CommonObject
 					$sep = (strpos($value,'-')===false) ? '/': '-';
 					list($year, $month, $day) = explode('/', $value);
 					$value = mktime(0, 0, 0, $month, $day, $year);
+				case 'date_doli':
+					list($day, $month, $year) = explode("/", $value);
+					$value = dol_mktime(0, 0, 0, $month, $day, $year);
+					break;
 					
 					break;
 				case 'float':
