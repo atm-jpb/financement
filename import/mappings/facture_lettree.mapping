@@ -2,4 +2,6 @@ search_key=facnumber
 
 [mapping]
 1=facnumber
-2=code_lettrage
+2=code_client
+3=code_lettrage
+4=date_facture
