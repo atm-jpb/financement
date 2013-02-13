@@ -93,8 +93,10 @@
 			<td colspan="2" rowspan="3" align="center">
 				[onshow;block=begin;when [view.calcul]==1]
 				<span style="font-size: 14px;">Cout total du financement : [simulation.cout_financement; frm=0 000,00] &euro;</span>
+				[onshow;block=begin;when [view.type]=='simul']
 				<br /><br />
 				<span style="font-size: 14px;">[simulation.accord; strconv=no]</span>
+				[onshow;block=end]
 				[onshow;block=end]
 			</td>
 		</tr>
@@ -114,7 +116,7 @@
 				[simulation.bt_cancel; strconv=no]
 				[onshow;block=end]
 			</td>
-			[onshow;block=begin;when [view.type]=='simul'; when [view.calcul]==1]
+			[onshow;block=begin;when [view.type]=='simul', when [view.calcul]==1]
 			<td align="center" colspan="2">
 				[simulation.bt_save; strconv=no]
 			</td>

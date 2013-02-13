@@ -255,7 +255,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'bt_cancel'=>$form->btsubmit('Annuler', 'cancel')
 				,'bt_save'=>$form->btsubmit('Valider simulation', 'validate_simul')
 				
-				,'display_preco'=>$user->rights->financement->allsimul->simul_preco ? 1 : 0
+				,'display_preco'=>$user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0 ? 1 : 0
 				,'type_financement'=>$form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement)
 				,'leaser'=>$html->select_company('','socid','fournisseur=1',0, 0,1)
 			)
@@ -296,16 +296,14 @@ function _calcul(&$simulation) {
 	$options = array();
 	foreach($_POST as $k => $v) {
 		if(substr($k, 0, 4) == 'opt_') {
-			if($v == 1) $options[] = $k;
-			else 		$options[] = $v;
-		} 
-		${$k} = $v;
+			$options[$k] = $v;
+		}
 	}
 	
-	if(empty($duree)) {
+	if(empty($simulation->duree)) {
 		$mesg = $langs->trans('ErrorDureeRequired');
 		$error = true;
-	} else if(empty($montant) && empty($echeance)) {
+	} else if(empty($simulation->montant) && empty($simulation->echeance)) {
 		$mesg = $langs->trans('ErrorMontantOrEcheanceRequired');
 		$error = true;
 	} else {

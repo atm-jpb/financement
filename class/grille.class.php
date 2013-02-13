@@ -355,13 +355,17 @@ class TFin_grille_leaser extends TObjetStd {
 			$this->error = 'ErrorNoGrilleSelected';
 			return false;
 		}
-		else if(empty($montant) && empty($echeance)) {
+		else if(empty($montant) && empty($echeance)) { // Montant ou échéance obligatoire
 			$this->error = 'ErrorMontantOrEcheanceRequired';
 			return false;
 		}
 		else if($vr > $montant) { // Erreur VR ne peut être supérieur au mopntant
 			$this->error = 'ErrorInvalidVR';
 			return false;
+		}
+
+		if(!empty($montant) && !empty($echeance)) { // Si montant ET échéance renseignés, on calcule à partir du montant
+			$echeance = 0;
 		}
 		
 		$coeff=0;
@@ -370,6 +374,7 @@ class TFin_grille_leaser extends TObjetStd {
 			|| (!empty($echeance) && $echeance<=$infos['echeance']))
 			{
 					$coeff = $infos['coeff']; // coef annuel
+					break;
 			}
 		}
 		if($coeff==0){

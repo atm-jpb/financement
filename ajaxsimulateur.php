@@ -107,14 +107,14 @@ function get_grille(&$ATMdb) {
 	
 	$TBS=new TTemplateTBS;
 	
-	$htmlresult = $TBS->render('tpl/fingrille.tpl.php'
+	$htmlresult = $TBS->render('tpl/view.fingrille.tpl.php'
 		,array(
 			'palier'=>$grille->TPalier
 			,'coefficient'=>$grille->TGrille
 		)
 		,array(
 			'view'=>array('mode'=>'view')
-			
+			,'label_periode' => strtr($opt_periodicite, array('MOIS'=>'mois','TRIMESTRE'=>'trimestres','ANNEE'=>'années'))
 		)
 	);
 	
