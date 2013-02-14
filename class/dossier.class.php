@@ -511,12 +511,6 @@ class TFin_financement extends TObjetStd {
 		
 	}
 	function calculTaux() {
-		if($this->periodicite=='TRIMESTRE')$iPeriode=3;
-		else if($this->periodicite=='ANNEE')$iPeriode=12;
-		else $iPeriode = 1;
-		/*
-		if(($this->echeance*$this->montant)==0)$this->taux =  0;
-		else $this->taux = round($this->getiPeriode()* (($this->echeance * $this->duree / ($this->montant - $this->reste)) - 1),2);*/
 		$this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100,2);
 	}
 	
@@ -573,7 +567,7 @@ class TFin_financement extends TObjetStd {
 		
 		$duree = $this->duree;
 		
-		$r = $this->PRINCPER($this->taux / 100 / 12, $periode, $this->duree, $this->montant, $this->reste, $this->terme );
+		$r = $this->PRINCPER($this->taux / 100 / (12 / $this->getiPeriode()), $periode, $this->duree, $this->montant);
 
 		$r = -$r;
 		
@@ -582,8 +576,9 @@ class TFin_financement extends TObjetStd {
 		return $r;
 	}
 	
-	private function PRINCPER($taux, $p, $NPM, $VA, $valeur_residuelle, $type)
+	private function PRINCPER($taux, $p, $NPM, $VA)
 	{
+		$valeur_residuelle=0;$type=0;
 		return $taux / (1 + $taux * $type) * $VA * (pow(1 + $taux,-$NPM+$p - 1)) / (pow(1 + $taux,-$NPM) - 1) - $valeur_residuelle * (pow(1 + $taux,$p - 1)) / (pow(1 + $taux,$NPM) - 1);
 	} 
 	
