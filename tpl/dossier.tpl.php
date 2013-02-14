@@ -131,7 +131,6 @@
 			<tr><td width="20%">Nature du financement</td><td>[affaire.nature_financement; strconv=no]</td></tr>
 			<tr><td width="20%">Type de financement</td><td>[affaire.type_financement; strconv=no]</td></tr>
 			<tr><td width="20%">Type de contrat</td><td>[affaire.contrat; strconv=no]</td></tr>
-			<tr><td width="20%">Type de matériel</td><td>[affaire.type_materiel; strconv=no]</td></tr>
 			<tr><td width="20%">Date</td><td>[affaire.date_affaire; strconv=no]</td></tr>
 			[onshow;block=begin;when [view.mode]!='view']
 			<tr><td colspan="2" align="right">

@@ -212,7 +212,6 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'montant'=>$affaire->montant
 			,'nature_financement'=>$affaire->TNatureFinancement [ $affaire->nature_financement ]
 			,'type_financement'=>$affaire->TTypeFinancement [ $affaire->type_financement ]
-			,'type_materiel'=>$affaire->TTypeMateriel [ $affaire->type_materiel ]
 			,'contrat'=>$affaire->TContrat [ $affaire->contrat ]
 		);
 		

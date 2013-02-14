@@ -129,20 +129,43 @@ global $langs,$conf, $db;
 	getStandartJS();
 	
 	$r = new TSSRenderControler($affaire);
-	$sql="SELECT a.rowid as 'ID', a.reference as 'Numéro d\'affaire', a.montant as 'Montant', a.fk_soc, s.nom as 'Société', a.nature_financement as 'Financement : Nature', a.type_financement as 'Type', a.contrat as 'Type de contrat', a.date_affaire as 'Date de l\'affaire'
+	$sql="SELECT a.rowid as 'ID', a.reference as 'Numéro d\'affaire', a.montant as 'Montant', a.fk_soc, s.nom as 'Société', a.nature_financement as 'Nature', a.type_financement as 'Type', a.contrat as 'Type de contrat', a.date_affaire as 'Date de l\'affaire'
 		FROM @table@ a LEFT JOIN llx_societe s ON (a.fk_soc=s.rowid)
 		WHERE a.entity=".$conf->entity;
 	
 	$THide = array('fk_soc');
 	
 	if(isset($_REQUEST['socid'])) {
-		$sql.= ' WHERE a.fk_soc='.$_REQUEST['socid'];
+		$sql.= ' AND a.fk_soc='.$_REQUEST['socid'];
 		$societe = new Societe($db);
 		$societe->fetch($_REQUEST['socid']);
 		$head = societe_prepare_head($societe);
-		dol_fiche_head($head, 'affaire', $langs->trans("ThirdParty"),0,'company');
 		
 		$THide[] = 'Société';
+		
+		// Affichage résumé client
+		$formDoli = new Form($db);
+		
+		$TBS=new TTemplateTBS();
+	
+		print $TBS->render('./tpl/client_entete.tpl.php'
+			,array(
+				
+			)
+			,array(
+				'client'=>array(
+					'dolibarr_societe_head'=>dol_get_fiche_head(societe_prepare_head($societe), 'affaire', $langs->trans("ThirdParty"),0,'company')
+					,'showrefnav'=>$formDoli->showrefnav($societe,'socid','',($user->societe_id?0:1),'rowid','nom')
+					,'idprof1'=>$societe->idprof1
+					,'adresse'=>$societe->address
+					,'cpville'=>$societe->zip.($societe->zip && $societe->town ? " / ":"").$societe->town
+					,'pays'=>picto_from_langcode($societe->country_code).' '.$societe->country
+				)
+				,'view'=>array(
+					'mode'=>'view'
+				)
+			)
+		);
 	}
 	
 	$TOrder = array('ID'=>'DESC','Numéro d\'affaire'=>'ASC');

@@ -20,9 +20,9 @@
 			
 			<tr><td>Montant du financement</td><td>[affaire.montant; strconv=no]</td></tr>
 			<tr><td>Nature du financement</td><td>[affaire.nature_financement; strconv=no]</td></tr>
-			<tr><td>type de financement</td><td>[affaire.type_financement; strconv=no]</td></tr>
+			<tr><td>Type de financement</td><td>[affaire.type_financement; strconv=no]</td></tr>
 
-			<tr><td>type de contrat</td><td>[affaire.contrat; strconv=no]</td></tr>
+			<tr><td>Type de contrat</td><td>[affaire.contrat; strconv=no]</td></tr>
 			<tr><td>Date de l'affaire</td><td>[affaire.date_affaire; strconv=no]</td></tr>
 			
 			</table>

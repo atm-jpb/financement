@@ -34,6 +34,7 @@ $langs->load("errors");
 $langs->load('other');
 
 $action = GETPOST('action','alpha');
+$ATMdb = new Tdb;
 
 /*
  * Actions
@@ -63,6 +64,13 @@ if ($action == 'setvalue')
     }
 }
 
+if ($action == 'save_penalites_simulateur') {
+	foreach($_REQUEST['penalite'] as $rowid => $penalite) {
+		$sql = "UPDATE ".MAIN_DB_PREFIX."fin_grille_penalite SET penalite = ".floatval($penalite)." WHERE rowid = ".$rowid;
+		$ATMdb->Execute($sql);
+	}
+}
+
 /*
  * View
  */
@@ -72,12 +80,12 @@ $head = financement_admin_prepare_head(null);
 
 dol_fiche_head($head, 'config', $langs->trans("Financement"), 0, 'financementico@financement');
 
-print_titre($langs->trans("GlobalOptionsForFinancement"));
+print_titre($langs->trans("GlobalOptionsForFinancementSimulation"));
 
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';
 print '<td>'.$langs->trans("Parameter").'</td>';
-print '<td align="center" width="60">'.$langs->trans("Value").'</td>';
+print '<td align="center">'.$langs->trans("Value").'</td>';
 print '<td width="80">&nbsp;</td>';
 print "</tr>\n";
 $var=true;
@@ -121,12 +129,60 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 
-?><tr>
-	<td colspan="2">Lancer le script de génération des factures Leaser</td>
-	<td>
+print '</table>';
+
+print_titre($langs->trans("PenalitesForSimulation"));
+
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="save_penalites_simulateur" />';
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameter").'</td>';
+print '<td align="center">'.$langs->trans("Value").'</td>';
+print '<td width="80"><input type="submit" class="button" value="'.$langs->trans("Enregistrer").'" /></td>';
+print "</tr>\n";
+$var=true;
+
+// Pénalités simulateur
+$ATMdb->Execute("SELECT rowid, opt_name, opt_value, penalite FROM ".MAIN_DB_PREFIX."fin_grille_penalite");
+$var=! $var;
+
+while($ATMdb->Get_line()) {
+	print '<tr '.$bc[$var].'><td>';
+	print $langs->trans($ATMdb->Get_field('opt_name')).' : '.$langs->trans($ATMdb->Get_field('opt_value')).'</td>';
+	print '<td colspan="2"><input type="text" name="penalite['.$ATMdb->Get_field('rowid').']" value="'.$ATMdb->Get_field('penalite').'" size="5"/> %';
+	print '</td>';
+	print "</tr>\n";
+	$var=! $var;
+}
+
+print '</table>';
+
+print '</form>';
+
+
+
+
+
+print_titre($langs->trans("ScriptsManuallyLaunchable"));
+
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameter").'</td>';
+print '<td align="center" width="60">'.$langs->trans("Value").'</td>';
+print '<td width="80">&nbsp;</td>';
+print "</tr>\n";
+$var=true;
+
+?>
+<tr>
+	<td>Génération des factures Leaser</td>
+	<td colspan="2">
 		<a href="../script/create-facture-leaser.php" target="_blank">Lancer le script</a>
 	</td>
-</tr><?
+</tr>
+<?
 
 /*
 $var=! $var;
@@ -145,7 +201,6 @@ print '</form>';
 
 
 
-print '</table>';
 
 
 dol_htmloutput_mesg($mesg);

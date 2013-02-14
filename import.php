@@ -207,10 +207,11 @@ function _fiche(&$ATMdb, &$import, $mode) {
 function _liste_errors(&$ATMdb, $import) {
 	$r = new TListviewTBS('import_error_list');
 	$sql = "SELECT ie.num_line as 'Numéro ligne', ie.error_msg as 'Message', ie.content_line as 'Ligne', ie.sql_errno as 'Erreur SQL', ie.sql_error as 'Trace SQL'";
+	$sql.= " , ie.error_data as 'Donnée utilisée'";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_import_error ie ";
 	$sql.= " WHERE ie.fk_import = ".$import->id;
 	
-	$THide = array();
+	$THide = array('Ligne', 'Erreur SQL', 'Trace SQL');
 	
 	return $r->render($ATMdb, $sql, array(
 		'limit'=>array(

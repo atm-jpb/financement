@@ -37,7 +37,7 @@ INSERT INTO `llx_fin_grille_penalite` (`rowid`, `opt_name`, `opt_value`, `penali
 (2, 'opt_periodicite', 'MOIS', 5),
 (3, 'opt_mode_reglement', 'PRE', 0),
 (4, 'opt_mode_reglement', 'VIR', 3),
-(5, 'opt_mode_reglement', 'oCHQ', 8),
+(5, 'opt_mode_reglement', 'CHQ', 8),
 (6, 'opt_terme', '1', 0),
 (7, 'opt_terme', '0', 4),
 (8, 'opt_administration', '1', 4.5),
