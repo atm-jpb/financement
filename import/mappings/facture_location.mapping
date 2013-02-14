@@ -17,8 +17,8 @@ search_key_client=code_client
 [more]
 
 [format]
-date=date_doli
-date_lim_reglement=date_doli
+date=date
+date_lim_reglement=date
 montant_ht=float
 pu=float
 total_ht=float

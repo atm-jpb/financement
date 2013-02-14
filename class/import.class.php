@@ -1320,16 +1320,12 @@ class Import // extends CommonObject
 			switch($this->mapping['format'][$key]) {
 				case 'date':
 					list($day, $month, $year) = explode("/", $value);
-					$value = mktime(0, 0, 0, $month, $day, $year);
+					$value = dol_mktime(0, 0, 0, $month, $day, $year);
 					break;
 				case 'date_english':
 					$sep = (strpos($value,'-')===false) ? '/': '-';
 					list($year, $month, $day) = explode('/', $value);
 					$value = mktime(0, 0, 0, $month, $day, $year);
-				case 'date_doli':
-					list($day, $month, $year) = explode("/", $value);
-					$value = dol_mktime(0, 0, 0, $month, $day, $year);
-					break;
 					
 					break;
 				case 'float':
