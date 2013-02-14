@@ -1,7 +1,7 @@
 <table class="noborder" width="100%">
 	<tr class="liste_titre">
 		<td align="center" width="10%">Périodes / Paliers</td>
-		<td align="center">de [palier.lastMontant;block=td;0 000,00] &euro; à [palier.montant;strconv=no;0 000,00] &euro;</td>
+		<td align="center">de [palier.lastMontant;block=td] &euro; à [palier.montant;strconv=no] &euro;</td>
 	</tr>
 	<tr>
 		<td align="center">[coefficient.$; block=tr;strconv=no;sub1] [label_periode]</td>

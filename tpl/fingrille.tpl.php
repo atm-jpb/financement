@@ -1,8 +1,8 @@
 <table class="noborder" width="100%">
 	<tr class="liste_titre">
 		<td>Périodes / Paliers</td>
-		<td align="center">de [palier.lastMontant; block=td] à [palier.montant;strconv=no]</td>
-		<td><input type="text" name="newPalier" value="" size="10" /> €[onshow;block=td;when [view.mode]=='edit']</td>
+		<td align="center">de [palier.lastMontant; block=td] &euro; à [palier.montant;strconv=no] &euro;</td>
+		<td><input type="text" name="newPalier" value="" size="10" /> &euro;[onshow;block=td;when [view.mode]=='edit']</td>
 	</tr>
 	<tr >
 		<td align="center"><input type="text" class="flat" name="TPeriode[[coefficient.#]]" size="3" value="[coefficient.$; block=tr;strconv=no;sub1]" /> Trimestres</td>

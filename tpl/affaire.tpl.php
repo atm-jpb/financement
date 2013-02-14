@@ -13,12 +13,12 @@
 [onshow;block=end]				
 				
 			<table width="100%" class="border">
-			<tr><td width="20%">Numéro</td><td>[affaire.reference; strconv=no]</td></tr>
+			<tr><td width="20%">Numéro d'affaire Artis</td><td>[affaire.reference; strconv=no]</td></tr>
 			<tr><td width="20%">Client</td><td>[affaire.societe; strconv=no]</td></tr>
 			
 			
 			
-			<tr><td>Montant du financement</td><td>[affaire.montant; strconv=no]</td></tr>
+			<tr><td>Montant du financement</td><td>[affaire.montant; strconv=no; frm=0 000,00] &euro;</td></tr>
 			<tr><td>Nature du financement</td><td>[affaire.nature_financement; strconv=no]</td></tr>
 			<tr><td>Type de financement</td><td>[affaire.type_financement; strconv=no]</td></tr>
 
@@ -53,13 +53,13 @@
 			<table width="100%" class="border" style="margin-top:20px;">
 			<tr><td width="20%">Equipement numéro</td><td><a href="../equipement/fiche.php?id=[asset.rowid]">[asset.serial_number; block=table; strconv=no]</a> </td></tr>
 			<tr><td width="20%">Produit</td><td>[asset.produit;strconv=no]</td></tr>
-			<tr><td width="20%">Coût copie Noire</td><td>[asset.copy_black; strconv=no; frm=0,00 €]</td></tr>
-			<tr><td width="20%">Coût copie Couleure</td><td>[asset.copy_color; strconv=no; frm=0,00 €]</td></tr>
+			<tr><td width="20%">Coût copie Noire</td><td>[asset.copy_black; strconv=no; frm=0 000,00] &euro;</td></tr>
+			<tr><td width="20%">Coût copie Couleure</td><td>[asset.copy_color; strconv=no; frm=0 000,00] &euro;</td></tr>
 			</table>
 
 			<table width="100%" class="border" style="margin-top:20px;">
-			<tr><td width="20%">Montant total financé</td><td>[affaire.montant_ok; strconv=no]</td></tr>
-			<tr><td width="20%">Montant restant à financer</td><td>[affaire.solde; strconv=no]</td></tr>
+			<tr><td width="20%">Montant total financé</td><td>[affaire.montant_ok; strconv=no; frm=0 000,00] &euro;</td></tr>
+			<tr><td width="20%">Montant restant à financer</td><td>[affaire.solde; strconv=no; frm=0 000,00] &euro;</td></tr>
 			</table>
 			
 [onshow;block=begin;when [view.mode]=='view']
@@ -70,7 +70,7 @@
 		
 		<div class="tabsAction">
 			[onshow; block=div; when [view.userRight]==1]	
-		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="button" onclick="document.location.href='?action=delete&id=[affaire.id]'">
+		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[affaire.id]'">
 		&nbsp; &nbsp; <a href="?id=[affaire.id]&action=edit" class="butAction">Modifier</a>
 		&nbsp; &nbsp; <a href="dossier.php?action=new&fk_fin_affaire=[affaire.id]&montant=[affaire.montant_val]&nature_financement=[affaire.nature_financement_val]" class="butAction">[onshow; block=a; when [affaire.addDossierButton]==1]Créer un dossier de financement Client</a>
 		</div>

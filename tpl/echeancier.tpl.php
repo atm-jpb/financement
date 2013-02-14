@@ -1,7 +1,7 @@
 <table class="echeancier border" width="100%">
 
 	<tr class="entete liste_titre">
-		<td>Périodes</td>
+		<td>P</td>
 		<td>Dates des<br />Loyers</td>
 		<td align="right">Capital <br />restant dû HT</td>
 		<td align="right">Amortissmt<br />Capital HT</td>
@@ -18,7 +18,17 @@
 	</tr>
 
 	
-	<tr class="ligne">
+	<tr class="impair">
+		<td>[ligne.#; block=tr]</td>
+		<td>[ligne.date]</td>
+		<td align="right"><strong>[ligne.capital; frm='0,00 €']</strong></td>
+		<td align="right">[ligne.amortissement; frm='0,00 €']</td>
+		<td align="right">[ligne.interet; frm='0,00 €']</td>
+		<td align="right">[ligne.assurance; frm='0,00 €']</td>
+		<td align="right">[ligne.loyerHT; frm='0,00 €']</td>
+		<td align="right">[ligne.loyer; frm='0,00 €']</td>
+	</tr>
+	<tr class="pair">
 		<td>[ligne.#; block=tr]</td>
 		<td>[ligne.date]</td>
 		<td align="right"><strong>[ligne.capital; frm='0,00 €']</strong></td>

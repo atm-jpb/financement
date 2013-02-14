@@ -255,16 +255,16 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()
-			,'reference'=>$form->texte('', 'leaser[reference]', $financementLeaser->reference, 30,255,'','','à saisir')
-			,'montant'=>$form->texte('', 'leaser[montant]', $financementLeaser->montant, 20,255,'','','à saisir').' &euro;' 
+			,'reference'=>$form->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir')
+			,'montant'=>$form->texte('', 'leaser[montant]', $financementLeaser->montant, 10,255,'','','à saisir')
 			,'taux'=> $financementLeaser->taux
 			
-			,'assurance'=>$form->texte('', 'leaser[assurance]', $financementLeaser->assurance, 20,255,'','','à saisir').' &euro;' 
-			,'echeance1'=>$form->texte('', 'leaser[echeance1]', $financementLeaser->echeance1, 20,255,'','','à saisir').' &euro;' 
-			,'echeance'=>$form->texte('', 'leaser[echeance]', $financementLeaser->echeance, 20,255,'','','à saisir') .' &euro;'
-			,'reste'=>$form->texte('', 'leaser[reste]', $financementLeaser->reste, 20,255,'','','à saisir').' &euro;' 
-			,'montant_prestation'=>$form->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 20,255,'','','à saisir').' &euro;' 
-			,'frais_dossier'=>$form->texte('', 'leaser[frais_dossier]', $financementLeaser->frais_dossier, 20,255,'','','à saisir').' &euro;' 
+			,'assurance'=>$form->texte('', 'leaser[assurance]', $financementLeaser->assurance, 10,255,'','','à saisir')
+			,'echeance1'=>$form->texte('', 'leaser[echeance1]', $financementLeaser->echeance1, 10,255,'','','à saisir')
+			,'echeance'=>$form->texte('', 'leaser[echeance]', $financementLeaser->echeance, 10,255,'','','à saisir')
+			,'reste'=>$form->texte('', 'leaser[reste]', $financementLeaser->reste, 10,255,'','','à saisir')
+			,'montant_prestation'=>$form->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 10,255,'','','à saisir')
+			,'frais_dossier'=>$form->texte('', 'leaser[frais_dossier]', $financementLeaser->frais_dossier, 10,255,'','','à saisir')
 							
 				
 			,'numero_prochaine_echeance'=>$financementLeaser->numero_prochaine_echeance 
@@ -273,7 +273,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'periodicite'=>$form->combo('', 'leaser[periodicite]', $financementLeaser->TPeriodicite , $financementLeaser->periodicite)
 			,'terme'=>$form->combo('', 'leaser[terme]', $financementLeaser->TTerme , $financementLeaser->terme)
 			,'reglement'=>$form->combo('', 'leaser[reglement]', $financementLeaser->TReglement , $financementLeaser->reglement)
-			,'incident_paiement'=>$form->combo('', 'leaser[incident_paiement]', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement) 
+			,'incident_paiement'=>$form->combo('', 'leaser[incident_paiement]', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement)
 			
 			,'date_debut'=>$form->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
 			,'date_fin'=>$financementLeaser->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
@@ -288,16 +288,16 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 	
 	if(isset($financement)) {
 		$TFinancement = array(
-			'montant'=>$form->texte('', 'montant', $financement->montant, 20,255,'','','à saisir').' &euro;' 
-			,'reference'=>$form->texte('', 'reference', $financement->reference, 30,255,'','','à saisir')/*$dossier->getId().'/'.$financement->getId()*/
+			'montant'=>$form->texte('', 'montant', $financement->montant, 10,255,'','','à saisir') 
+			,'reference'=>$form->texte('', 'reference', $financement->reference, 20,255,'','','à saisir')/*$dossier->getId().'/'.$financement->getId()*/
 			
 			,'taux'=> $financement->taux //$form->texte('', 'taux', $financement->taux, 5,255,'','','à saisir')
 			
-			,'assurance'=>$form->texte('', 'assurance', $financement->assurance, 20,255,'','','à saisir').' &euro;' 
-			,'echeance1'=>$form->texte('', 'echeance1', $financement->echeance1, 20,255,'','','à saisir').' &euro;' 
-			,'echeance'=>$form->texte('', 'echeance', $financement->echeance, 20,255,'','','à saisir') .' &euro;'
-			,'reste'=>$form->texte('', 'reste', $financement->reste, 20,255,'','','à saisir').' &euro;' 
-			,'montant_prestation'=>$form->texte('', 'montant_prestation', $financement->montant_prestation, 20,255,'','','à saisir').' &euro;' 
+			,'assurance'=>$form->texte('', 'assurance', $financement->assurance, 10,255,'','','à saisir')
+			,'echeance1'=>$form->texte('', 'echeance1', $financement->echeance1, 10,255,'','','à saisir')
+			,'echeance'=>$form->texte('', 'echeance', $financement->echeance, 10,255,'','','à saisir')
+			,'reste'=>$form->texte('', 'reste', $financement->reste, 10,255,'','','à saisir')
+			,'montant_prestation'=>$form->texte('', 'montant_prestation', $financement->montant_prestation, 10,255,'','','à saisir')
 				
 			,'numero_prochaine_echeance'=>$financement->numero_prochaine_echeance 
 			,'duree'=>$form->texte('', 'duree', $financement->duree, 5,255,'','','à saisir')
@@ -311,7 +311,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'date_fin'=>$financement->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financement->date_prochaine_echeance>0) ? $financement->get_date('date_prochaine_echeance') : ''
 			
-			,'penalite_reprise'=>$form->texte('', 'penalite_reprise', $financement->penalite_reprise, 20,255,'','','à saisir').' &euro;' 
+			,'penalite_reprise'=>$form->texte('', 'penalite_reprise', $financement->penalite_reprise, 10,255,'','','à saisir') 
 			,'taux_commission'=>$form->texte('', 'taux_commission', $financement->taux_commission, 5,255,'','') 
 	
 			,'echeancier'=>$dossier->echeancier($ATMdb)

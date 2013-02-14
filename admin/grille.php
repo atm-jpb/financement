@@ -124,7 +124,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$TPalier=array();
 	foreach($grille->TPalier as $i=>$palier) {
 		$TPalier[]=array(
-			'montant'=>$form->texte('','TPalier['.($i+1).']', $palier['montant'],10,255).' &euro;'
+			'montant'=>$form->texte('','TPalier['.($i+1).']', $palier['montant'],10,255)
 			,'lastMontant'=>$palier['lastMontant']
 		);
 		

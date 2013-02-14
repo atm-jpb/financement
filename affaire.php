@@ -288,9 +288,9 @@ global $db,$user;
 				,'contrat'=>$form->combo('', 'contrat', $affaire->TContrat , $affaire->contrat) 
 				,'type_materiel'=>$form->combo('', '', $affaire->TTypeMateriel , $affaire->type_materiel)
 				,'date_affaire'=>$form->calendrier('', 'date_affaire', $affaire->get_date('date_affaire'),10)
-				,'montant'=>$form->texte('', 'montant', $affaire->montant, 20,255,'','','à saisir').' &euro;' 
-				,'montant_ok'=>$affaire->somme_dossiers.' &euro;' // somme des dossiers rattachés
-				,'solde'=>$affaire->solde.' &euro;' // montant à financer - somme des dossiers	
+				,'montant'=>$form->texte('', 'montant', $affaire->montant, 20,255,'','','à saisir')
+				,'montant_ok'=>$affaire->somme_dossiers // somme des dossiers rattachés
+				,'solde'=>$affaire->solde // montant à financer - somme des dossiers	
 				,'date_maj'=>$affaire->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$affaire->get_date('date_cre','d/m/Y')
 				
