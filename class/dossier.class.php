@@ -205,15 +205,25 @@ class TFin_dossier extends TObjetStd {
 		$this->somme_facture_fournisseur = 0;
 	}
 	
-	function getPenalite(&$ATMdb, $type) {
+	function getPenalite(&$ATMdb, $type, $nature_financement='INTERNE') {
+		/*
+		 * TODO
+		 * à vérifier
+		 */
 		$g=new TFin_grille_leaser('PENALITE_'.$type);
 		
-		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
+		if($nature_financement == 'INTERNE') { $f= &$this->financement; }
 		else {	$f = &$this->financementLeaser; }
 
 		$g->get_grille($ATMdb,$f->fk_soc,$this->contrat);	
 		
 		return (double)$g->get_coeff($ATMdb, $f->fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree);
+	}
+	function getMontantCommission() {
+		$f= &$this->financement; 
+		
+		return ($f->taux_commission / 100) * $f->montant;
+		
 	}
 	function getRentabilite(&$ATMdb) {
 		
@@ -240,54 +250,49 @@ class TFin_dossier extends TObjetStd {
 		return $this->somme_facture_reglee - $this->somme_facture_fournisseur;
 	}
 	
-	
+	function getRentabiliteReste(&$ATMdb) {
+		
+		$r = $this->getRentabiliteAttendue($ATMdb) - $this->getRentabiliteReelle();
+		if($r<0)$r=0;
+		return $r;
+		
+	}
 	
 	function getSolde($ATMdb, $type='SRBANK') {
-		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
-		else {	$f = &$this->financementLeaser; }
+	
+		$CRD_Leaser = $this->financementLeaser->valeur_actuelle();
+		$LRD_Leaser = $this->financementLeaser->echeance * $this->financementLeaser->duree_restante;
 		
-		$CRD = $f->valeur_actuelle();
-		$LRD = $f->echeance * $f->duree_restante;
+		$CRD = $this->financement->valeur_actuelle();
+		$LRD = $this->financement->echeance * $this->financement->duree_restante;
+		
 		
 		switch($type) {
-			case 'CRD':
-				return $CRD;
-				break;
 			case 'SRBANK':
-				if($this->nature_financement=='EXTERNE' && $f->duree_passe<4) {
-					return $f->montant;
-				}
-				else {
-					return $CRD * $this->getPenalite($ATMdb,'R');
-				}
+				return $CRD_Leaser * $this->getPenalite($ATMdb,'R', 'EXTERNE');
 
 				break;
 			case 'SNRBANK':
-				if($this->nature_financement=='EXTERNE' && $f->duree_passe<4) {
-					return $f->montant;
-				}
-				else {
-					return $CRD * $this->getPenalite($ATMdb,'NR');
-				}
+				return $LRD_Leaser * $this->getPenalite($ATMdb,'NR', 'EXTERNE');
 				break;
 				
 			case 'SNRCPRO':
-				return $LRD;
+				if($this->nature_financement == 'INTERNE') {
+					return (($CRD + $this->getRentabiliteReste($ATMdb)) * $this->getPenalite($ATMdb,'R','INTERNE')) + $this->getMontantCommission();
+				}
+				else {
+					return $LRD_Leaser * $this->getPenalite($ATMdb,'NR', 'EXTERNE') * $this->getPenalite($ATMdb,'NR', 'INTERNE');
+				}
 				break;
 					
 			case 'SRCPRO':
-				if($f->duree_passe<=5) {
-					return $f->montant;
+				if($this->nature_financement == 'INTERNE') {
+					return $LRD;
 				}
 				else {
-					if($this->nature_financement=='EXTERNE') {
-						return $CRD + $this->getRentabiliteAttendue($ATMdb);
-					}
-					else {
-						return $CRD + $this->getRentabiliteAttendue($ATMdb) - $this->getRentabiliteReelle() + $f->penalite_reprise + ($f->taux_commission/100 * $f->montant) ;
-					}
-					
+					return $CRD_Leaser * $this->getPenalite($ATMdb,'R', 'EXTERNE') * $this->getPenalite($ATMdb,'R', 'INTERNE');
 				}
+				
 				
 				break;
 		}
