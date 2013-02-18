@@ -78,6 +78,12 @@
 		<tr>
 			<td>Montant</td>
 			<td>[simulation.montant; strconv=no; frm=0 000,00] &euro;</td>
+			<td>Coefficient</td>
+			<td>[simulation.coeff; strconv=no; frm=0,00] %</td>
+		</tr>
+		<tr>
+			<td>Montant rachat</td>
+			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 			<td>Utilisateur</td>
 			<td>[simulation.user; strconv=no]</td>
 		</tr>
@@ -103,10 +109,6 @@
 		<tr>
 			<td>Valeur Résiduelle</td>
 			<td>[simulation.vr; strconv=no; frm=0,00] &euro;</td>
-		</tr>
-		<tr>
-			<td>Coefficient</td>
-			<td>[simulation.coeff; strconv=no; frm=0,00] %</td>
 		</tr>
 		[onshow;block=begin;when [view.mode]=='edit']
 		<tr>

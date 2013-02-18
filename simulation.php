@@ -216,7 +216,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	echo $form->hidden('fk_soc', $simulation->fk_soc);
 	echo $form->hidden('fk_user_author', $user->id);
 	echo $form->hidden('entity', $conf->entity);
-	echo $form->hidden('idLeaser', 1);
+	echo $form->hidden('idLeaser', FIN_LEASER_DEFAULT);
 	echo $form->hidden('cout_financement', $simulation->cout_financement);
 	echo $form->hidden('accord', $simulation->accord);
 
@@ -241,6 +241,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement)
 				,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme)
 				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)
+				,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)
 				,'duree'=>$form->combo('', 'duree', $grille->get_duree($ATMdb,FIN_LEASER_DEFAULT), $simulation->duree)
 				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
 				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
@@ -325,7 +326,8 @@ function _liste_dossier(&$ATMdb, &$simulation) {
 	global $langs,$conf, $db;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 
-	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', d.montant as 'Montant', d.rowid as 'IDDoss',f.date_debut as 'Début', f.date_fin as 'Fin', ac.fk_user,";
+	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', d.montant as 'Solde', d.rowid as 'IDDoss', f.reference as 'N° contrat'";
+	$sql.= " , f.date_debut as 'Début', f.date_fin as 'Fin', ac.fk_user,";
 	$sql.= " u.login as 'Utilisateur'";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_affaire = a.rowid";
@@ -335,26 +337,43 @@ function _liste_dossier(&$ATMdb, &$simulation) {
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
 	$sql.= " WHERE a.entity = ".$conf->entity;
 	$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
+	$sql.= " AND f.type = 'CLIENT'";
 	
 	//return $sql;
 	
-	$THide = array('IDAff', 'IDoss', 'fk_user');
+	$TDossier = array();
+	$ATMdb->Execute($sql);
+	$ATMdb2 = new Tdb;
+	while ($ATMdb->Get_line()) {
+		$dossier=new TFin_Dossier;
+		$dossier->load($ATMdb2, $ATMdb->Get_field('IDDoss'));
+		$TDossier[] = array(
+			'IDAff' => $ATMdb->Get_field('IDAff')
+			,'N° affaire' => $ATMdb->Get_field('N° affaire')
+			,'IDDoss' => $ATMdb->Get_field('IDDoss')
+			,'N° contrat' => $ATMdb->Get_field('N° contrat')
+			,'Début' => $ATMdb->Get_field('Début')
+			,'Fin' => $ATMdb->Get_field('Fin')
+			,'Solde R' => $dossier->getSolde($ATMdb2, 'SRCPRO')
+			,'Solde NR' => $dossier->getSolde($ATMdb2, 'SNRCPRO')
+			,'Utilisateur' => $ATMdb->Get_field('Utilisateur')
+		);
+	}
 	
-	return $r->render($ATMdb, $sql, array(
+	$THide = array('IDAff', 'IDDoss', 'fk_user');
+	
+	return $r->renderArray($ATMdb, $TDossier, array(
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
-			,'nbLine'=>'30'
+			,'nbLine'=>'10'
 		)
 		,'orderBy'=>array(
 			'N° affaire' => 'DESC'
 		)
 		,'link'=>array(
-			'N° affaire'=>'<a href="affaire.php?id=@ID@">@val@</a>'
-			,'Utilisateur'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user_author@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
-		)
-		,'translate'=>array(
-			//'Financement : Nature'=>$import->TNatureFinancement
-			//,'Type'=>$import->TTypeFinancement
+			'N° affaire'=>'<a href="affaire.php?id=@IDAff@">@val@</a>'
+			,'N° contrat'=>'<a href="dossier.php?id=@IDDoss@">@val@</a>'
+			,'Utilisateur'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
 		)
 		,'hide'=>$THide
 		,'type'=>array('Début'=>'date', 'Fin'=>'date')
@@ -364,7 +383,36 @@ function _liste_dossier(&$ATMdb, &$simulation) {
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
 			,'noheader'=> 0
-			,'messageNothing'=>"Il n'y a aucun import à afficher"
+			,'messageNothing'=>"Il n'y a aucun dossier à afficher"
+			,'order_down'=>img_picto('','1downarrow.png', '', 0)
+			,'order_up'=>img_picto('','1uparrow.png', '', 0)
+			
+		)
+	));
+	
+	$THide = array('IDAff', 'IDDoss', 'fk_user');
+	
+	return $r->render($ATMdb, $sql, array(
+		'limit'=>array(
+			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
+			,'nbLine'=>'10'
+		)
+		,'orderBy'=>array(
+			'N° affaire' => 'DESC'
+		)
+		,'link'=>array(
+			'N° affaire'=>'<a href="affaire.php?id=@IDAff@">@val@</a>'
+			,'Utilisateur'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
+		)
+		,'hide'=>$THide
+		,'type'=>array('Début'=>'date', 'Fin'=>'date')
+		,'liste'=>array(
+			'titre'=>'Liste des imports'
+			,'image'=>img_picto('','import32.png@financement', '', 0)
+			,'picto_precedent'=>img_picto('','back.png', '', 0)
+			,'picto_suivant'=>img_picto('','next.png', '', 0)
+			,'noheader'=> 0
+			,'messageNothing'=>"Il n'y a aucun dossier à afficher"
 			,'order_down'=>img_picto('','1downarrow.png', '', 0)
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
 			
