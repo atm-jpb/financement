@@ -265,6 +265,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'reste'=>$form->texte('', 'leaser[reste]', $financementLeaser->reste, 10,255,'','','à saisir')
 			,'montant_prestation'=>$form->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 10,255,'','','à saisir')
 			,'frais_dossier'=>$form->texte('', 'leaser[frais_dossier]', $financementLeaser->frais_dossier, 10,255,'','','à saisir')
+			,'montant_solde'=>$form->texte('', 'leaser[montant_solde]', $financementLeaser->frais_dossier, 10,255,'','','')
 							
 				
 			,'numero_prochaine_echeance'=>$financementLeaser->numero_prochaine_echeance 
@@ -278,12 +279,15 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'date_debut'=>$form->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
 			,'date_fin'=>$financementLeaser->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financementLeaser->date_prochaine_echeance>0) ? $financementLeaser->get_date('date_prochaine_echeance') : ''
-			
+			,'date_solde'=>$form->calendrier('', 'leaser[date_solde]', $financementLeaser->get_date('date_solde'),10)
+						
 			,'leaser'=>($mode=='edit') ? $html->select_company('','leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->nom
 			
 			,'okPourFacturation'=>$form->checkbox1('', 'leaser[okPourFacturation]', 1, $financementLeaser->okPourFacturation )
 			
 			,'echeancier'=>$dossier->echeancier($ATMdb,'EXTERNE')
+			
+			
 	);
 	
 	if(isset($financement)) {
@@ -298,6 +302,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'echeance'=>$form->texte('', 'echeance', $financement->echeance, 10,255,'','','à saisir')
 			,'reste'=>$form->texte('', 'reste', $financement->reste, 10,255,'','','à saisir')
 			,'montant_prestation'=>$form->texte('', 'montant_prestation', $financement->montant_prestation, 10,255,'','','à saisir')
+			,'montant_solde'=>$form->texte('', 'montant_solde', $financement->montant_solde, 10,255,'','','à saisir')
 				
 			,'numero_prochaine_echeance'=>$financement->numero_prochaine_echeance 
 			,'duree'=>$form->texte('', 'duree', $financement->duree, 5,255,'','','à saisir')
@@ -310,7 +315,8 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'date_debut'=>$form->calendrier('', 'date_debut', $financement->get_date('date_debut'),10)
 			,'date_fin'=>$financement->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financement->date_prochaine_echeance>0) ? $financement->get_date('date_prochaine_echeance') : ''
-			
+			,'date_solde'=>$form->calendrier('', 'date_solde', $financement->get_date('date_solde'),10)
+						
 			,'penalite_reprise'=>$form->texte('', 'penalite_reprise', $financement->penalite_reprise, 10,255,'','','à saisir') 
 			,'taux_commission'=>$form->texte('', 'taux_commission', $financement->taux_commission, 5,255,'','') 
 	
@@ -345,7 +351,8 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 				,'penalite_reprise'=>0
 			);
 	}
-	
+	$TBS->TBS->protect=false;
+	$TBS->TBS->noerr=true;
 	print $TBS->render('./tpl/dossier.tpl.php'
 		,array(
 			'affaire'=>$TAffaire

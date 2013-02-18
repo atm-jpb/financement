@@ -44,8 +44,11 @@
 						
 						<tr><td>Pénalité de reprise de dossier</td><td>[financement.penalite_reprise; strconv=no; frm=0 000,00] &euro;</td></tr>
 						<tr><td>Taux de commission</td><td>[financement.taux_commission; strconv=no; frm=0,00]%</td></tr>
-						
+					
 						<tr><td>Incident de paiement</td><td>[financement.incident_paiement; strconv=no]</td></tr>
+					
+						<tr><td>Date du solde</td><td>[financement.date_solde; strconv=no;] </td></tr>
+						<tr><td>Montant du solde</td><td>[financement.montant_solde; strconv=no; frm=0 000,00] &euro;</td></tr>
 					
 						
 						</table>
@@ -65,24 +68,27 @@
 						<tr><td>Périodicité</td><td colspan="3">[financementLeaser.periodicite; strconv=no]</td></tr>
 			
 						<tr><td>Durée</td><td colspan="3">[financementLeaser.duree; strconv=no]</td></tr>
-						<tr><td>Date de début</td><td colspan="3">[financementLeaser.date_debut; strconv=no]</td></tr>
-						<tr><td>Date de fin</td><td colspan="3">[financementLeaser.date_fin; strconv=no]</td></tr>
+						<tr><td>Date de début</td><td colspan="3">[financementLeaser.date_debut; strconv=no;protect=no]</td></tr>
+						<tr><td>Date de fin</td><td colspan="3">[financementLeaser.date_fin; strconv=no;protect=no]</td></tr>
 			
 						<tr><td>1ère échéance</td><td colspan="3">[financementLeaser.echeance1; strconv=no; frm=0 000,00] &euro;</td></tr>
 						<tr><td>Frais de dossier</td><td colspan="3">[financementLeaser.frais_dossier; strconv=no; frm=0 000,00] &euro;</td></tr>
 						
 						<tr><td>Echéance</td><td colspan="3">[financementLeaser.echeance; strconv=no; frm=0 000,00] &euro;</td></tr>
 						<tr><td>N° prochaine échéance</td><td colspan="3">[financementLeaser.numero_prochaine_echeance; strconv=no]</td></tr>
-						<tr><td>Date de prochaine échéance</td><td colspan="3">[financementLeaser.date_prochaine_echeance; strconv=no]</td></tr>
+						<tr><td>Date de prochaine échéance</td><td colspan="3">[financementLeaser.date_prochaine_echeance; strconv=no;protect=no]</td></tr>
 						
 						<tr><td>Valeur résiduelle</td><td colspan="3">[financementLeaser.reste; strconv=no; frm=0 000,00] &euro;</td></tr>
 						<tr><td>Mode de réglement</td><td colspan="3">[financementLeaser.reglement; strconv=no]</td></tr>
 						<tr><td>Terme</td><td>[financementLeaser.terme; strconv=no]</td colspan="3"></tr>
 						
 						<tr><td>Montant de prestation</td><td colspan="3">[financementLeaser.montant_prestation; strconv=no; frm=0 000,00] &euro;</td></tr>
-						
+
 						<tr><td>Incident de paiement</td><td colspan="3">[financementLeaser.incident_paiement; strconv=no]</td></tr>
 						<tr><td>Bon pour facturation ?</td><td colspan="3">[financementLeaser.okPourFacturation; strconv=no][onshow;block=tr;when [dossier.nature_financement]=='INTERNE']</td></tr>
+
+						<tr><td>Date du solde</td><td>[financementLeaser.date_solde; strconv=no;protect=no] </td></tr>
+						<tr><td>Montant du solde</td><td>[financementLeaser.montant_solde; strconv=no; frm=0 000,00] &euro;</td></tr>
 						
 						
 						</table>

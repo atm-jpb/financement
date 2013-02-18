@@ -318,7 +318,7 @@ class TFin_dossier extends TObjetStd {
 		 $capital_restant_init=$f->montant;
 		 $capital_restant = $capital_restant_init;
 		 $TLigne=array();
-		 for($i=1; $i<=$f->duree; $i++) {
+		 for($i=0; $i<$f->duree; $i++) {
 		 	
 			$time = strtotime('+'.($i*3).' month',  $f->date_debut);	
 			
@@ -505,13 +505,11 @@ class TFin_financement extends TObjetStd {
 		return $iPeriode;
 	} 
 	function calculDateFin() {
-		
-		
-		$this->date_fin = strtotime('+'.($this->getiPeriode()*$this->duree).' month', $this->date_debut);
+		$this->date_fin = strtotime('+'.($this->getiPeriode()*($this->duree - 1)).' month', $this->date_debut);
 		
 	}
 	function calculTaux() {
-		$this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100,2);
+		$this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100,4);
 	}
 	
 	function load(&$ATMdb, $id, $annexe=false) {
