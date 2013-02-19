@@ -307,13 +307,11 @@ function _calcul(&$simulation) {
 		}
 	}
 	
-	$grille = new TFin_grille_leaser;
 	$ATMdb=new Tdb;
-	$grille->get_grille($ATMdb, FIN_LEASER_DEFAULT, $simulation->fk_type_contrat, $simulation->opt_periodicite, $options); // Récupération de la grille pour les paramètre données
-	$calcul = $grille->calcul_financement($simulation); // Calcul du financement
+	$calcul = $simulation->calcul_financement($ATMdb, FIN_LEASER_DEFAULT, $options); // Calcul du financement
 		
 	if(!$calcul) { // Si calcul non correct
-		$mesg = $langs->trans($grille->error);
+		$mesg = $langs->trans($simulation->error);
 		$error = true;
 	} else { // Sinon, vérification accord à partir du calcul
 		$simulation->demande_accord();

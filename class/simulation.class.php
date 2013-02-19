@@ -74,6 +74,103 @@ class TSimulation extends TObjetStd {
 		}
 	}
 	
+	/**
+	 * Calcul des élément du financement
+	 * Montant : Capital emprunté
+	 * Durée : Durée en trimestre
+	 * échéance : Echéance trimestrielle
+	 * VR : Valeur residuelle du financement
+	 * coeff : taux d'emprunt annuel
+	 * 
+	 * @return $res :
+	 * 			1	= calcul OK
+	 * 			-1	= montant ou echeance vide (calcul impossible)
+	 * 			-2	= montant hors grille
+	 * 			-3	= echeance hors grille
+	 * 			-4	= Pas de grille chargée
+	 */
+	function calcul_financement(&$ATMdb, $idLeaser, $options, $typeCalcul='cpro') {
+		/*
+		 * Formule de calcul échéance
+		 * 
+		 * Echéance : Capital x tauxTrimestriel / (1 - (1 + tauxTrimestriel)^-nombreTrimestre )
+		 * 
+		 */
+		
+		// Calcul du montant total financé
+		$this->montant_finance = $this->montant + $this->montant_rachete + $this->montant_rachete_concurrence;
+
+		if(empty($this->fk_type_contrat)) { // Tyupe de contrat obligatoire
+			$this->error = 'ErrorNoTypeContratSelected';
+			return false;
+		}
+		else if(empty($this->montant_finance) && empty($this->echeance)) { // Montant ou échéance obligatoire
+			$this->error = 'ErrorMontantOrEcheanceRequired';
+			return false;
+		}
+		else if($this->vr > $this->montant_finance) { // Erreur VR ne peut être supérieur au mopntant
+			$this->error = 'ErrorInvalidVR';
+			return false;
+		}
+		else if(empty($this->duree)) { // Durée obligatoire
+			$this->error = 'ErrorDureeRequired';
+			return false;
+		}
+		else if(empty($this->opt_periodicite)) { // Périodicité obligatoire
+			$this->error = 'ErrorPeriodiciteRequired';
+			return false;
+		}
+		
+		// Récupération de la grille pour les paramètres donnés
+		$grille = new TFin_grille_leaser;
+		$grille->get_grille($ATMdb, $idLeaser, $this->fk_type_contrat, $this->opt_periodicite, $options);
+		
+		if(empty($grille->TGrille)) { // Pas de grille chargée, pas de calcul
+			$this->error = 'ErrorNoGrilleSelected';
+			return false;
+		}
+
+		if(!empty($this->montant_finance) && !empty($this->echeance)) { // Si montant ET échéance renseignés, on calcule à partir du montant
+			$this->echeance = 0;
+		}
+		
+		$this->coeff=0;
+		foreach($grille->TGrille[$this->duree] as $palier => $infos) {
+			if((!empty($this->montant_finance) && $this->montant_finance <= $palier)
+			|| (!empty($this->echeance) && $this->echeance <= $infos['echeance']))
+			{
+					$this->coeff = $infos['coeff']; // coef annuel
+					break;
+			}
+		}
+		if($this->coeff==0){
+			$this->error = 'ErrorAmountOutOfGrille';
+			return false;
+		}
+		
+		$coeffTrimestriel = $this->coeff / 4 /100; // en %
+
+		if(!empty($this->montant_finance)) { // Calcul à partir du montant
+					
+				if($typeCalcul=='cpro')$this->echeance = ($this->montant_finance - $this->vr) / $this->duree * (1 + $this->coeff / 100);
+				else $this->echeance = $this->montant_finance * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$this->duree) );  
+				
+				//print "$this->echeance = $this->montant_finance, &$this->duree, &$this->echeance, $this->vr, &$this->coeff::$coeffTrimestriel";
+				
+				$this->echeance = round($this->echeance, 2);
+		} 
+		else if(!empty($this->echeance)) { // Calcul à partir de l'échéance
+		
+				if($typeCalcul=='cpro')$this->montant = $this->echeance * (1 - $this->coeff / 100) * $this->duree + $this->vr;
+				else $this->montant =  $this->echeance * (1- pow(1+$coeffTrimestriel, -$this->duree) ) / $coeffTrimestriel ;
+				
+				$this->montant = round($this->montant, 2);
+				$this->montant_finance = $this->montant;
+		} 
+		
+		return true;
+	}
+	
 	// TODO : Revoir validation financement avec les règles finales
 	function demande_accord() {
 		global $conf;
