@@ -11,7 +11,7 @@
 		</tr>
 		<tr>
 			<td width="25%">Nom du tiers</td>
-			<td colspan="3">[client.societe; strconv=no]</td>
+			<td colspan="3">[client.societe; strconv=no] [client.autres_simul; strconv=no]</a></td>
 		</tr>
 		<tr>
 			<td width="25%">Adresse</td>
@@ -55,9 +55,9 @@
 			<td colspan="4">Paramètres globaux</td>
 		</tr>
 		<tr>
-			<td width="25%"><span class="fieldrequired">Type de contrat</span></td>
+			<td width="30%"><span class="fieldrequired">Type de contrat</span></td>
 			<td width="25%">[simulation.fk_type_contrat; strconv=no]</td>
-			<td width="25%">Administration</td>
+			<td width="20%">Administration</td>
 			<td width="25%">[simulation.opt_administration; strconv=no]</td>
 		</tr>
 		<tr>
@@ -88,23 +88,27 @@
 			<td>[simulation.user; strconv=no]</td>
 		</tr>
 		<tr>
-			<td><span class="fieldrequired">Durée</span></td>
-			<td>[simulation.duree; strconv=no]</td>
+			<td>Montant rachat concurrence</td>
+			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
 			<td>Date</td>
 			<td>[simulation.date; frm=dd/mm/yyyy]</td>
 		</tr>
 		<tr>
-			<td>&Eacute;chéance</td>
-			<td>[simulation.echeance; strconv=no; frm=0 000,00] &euro;</td>
+			<td><span class="fieldrequired">Durée</span></td>
+			<td>[simulation.duree; strconv=no]</td>
 			<td colspan="2" rowspan="3" align="center">
 				[onshow;block=begin;when [view.calcul]==1]
-				<span style="font-size: 14px;">Cout total du financement : [simulation.cout_financement; frm=0 000,00] &euro;</span>
+				<span style="font-size: 14px;">Montant total financé : [simulation.total_financement; frm=0 000,00] &euro;</span>
 				[onshow;block=begin;when [view.type]=='simul']
 				<br /><br />
 				<span style="font-size: 14px;">[simulation.accord; strconv=no]</span>
 				[onshow;block=end]
 				[onshow;block=end]
 			</td>
+		</tr>
+		<tr>
+			<td>&Eacute;chéance</td>
+			<td>[simulation.echeance; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
 			<td>Valeur Résiduelle</td>
@@ -118,7 +122,7 @@
 				[simulation.bt_cancel; strconv=no]
 				[onshow;block=end]
 			</td>
-			[onshow;block=begin;when [view.type]=='simul', when [view.calcul]==1]
+			[onshow;block=begin;when [view.type]=='simul'; when [view.calcul]==1]
 			<td align="center" colspan="2">
 				[simulation.bt_save; strconv=no]
 			</td>

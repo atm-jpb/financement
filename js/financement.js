@@ -7,15 +7,12 @@ $(document).ready(function() {
 	if($('select[name="fk_type_contrat"]').length > 0) {
 		get_grille();
 	}
+	
+	$('input[name^="dossiers_rachetes"]').bind('click', calcul_montant_rachat);
+	$('select[name="fk_type_contrat"]').bind('change', calcul_montant_rachat);
 });
 
 var get_grille = function() {
-	var fin_options = new Array();
-	var fin_options = $('input[name^="opt_"]:checked, select[name^="opt_"]').map(function() {
-		if($(this).attr('type') == 'checkbox') return $(this).attr('name');
-		return $(this).val();
-	}).get();
-	
 	var fin_options = {
 		'opt_periodicite' : $('select[name="opt_periodicite"]').val()
 		,'opt_mode_reglement' : $('select[name="opt_mode_reglement"]').val()
@@ -64,3 +61,15 @@ var get_periode = function() {
 		'json'
 	);
 };
+
+var calcul_montant_rachat = function() {
+	var montant_rachat = 0;
+	var type_contrat = $('select[name="fk_type_contrat"]').val();
+	var type_solde = 'solde_nr';
+	$('input[name^="dossiers_rachetes"]:checked').each(function() {
+		type_solde = ($(this).attr('contrat') == type_contrat) ? 'solde_r' : 'solde_nr';
+		montant_rachat += parseFloat($(this).attr(type_solde));
+	});
+	
+	$('input[name="montant_rachete"]').val(montant_rachat);
+}

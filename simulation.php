@@ -86,7 +86,6 @@ if(!empty($action)) {
 }
 elseif(isset($_REQUEST['id'])) {
 	$simulation->load($ATMdb, $db, $_REQUEST['id']);
-	
 	_fiche($ATMdb, $simulation, 'view');global $mesg, $error;
 }
 else {
@@ -139,7 +138,7 @@ function _liste(&$ATMdb, &$simulation) {
 			)
 			,array(
 				'client'=>array(
-					'dolibarr_societe_head'=>dol_get_fiche_head(societe_prepare_head($societe), 'scores', $langs->trans("ThirdParty"),0,'company')
+					'dolibarr_societe_head'=>dol_get_fiche_head(societe_prepare_head($societe), 'simulation', $langs->trans("ThirdParty"),0,'company')
 					,'showrefnav'=>$formDoli->showrefnav($societe,'socid','',($user->societe_id?0:1),'rowid','nom')
 					,'idprof1'=>$societe->idprof1
 					,'adresse'=>$societe->address
@@ -199,8 +198,6 @@ function _liste(&$ATMdb, &$simulation) {
 function _fiche(&$ATMdb, &$simulation, $mode) {
 	global $db, $langs, $user, $conf;
 	
-	$simulation->load_annexe($ATMdb, $db);
-	
 	$extrajs = array('/financement/js/financement.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
 	
@@ -242,6 +239,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme)
 				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)
 				,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)
+				,'montant_rachete_concurrence'=>$form->texte('', 'montant_rachete_concurrence', $simulation->montant_rachete_concurrence, 10)
 				,'duree'=>$form->combo('', 'duree', $grille->get_duree($ATMdb,FIN_LEASER_DEFAULT), $simulation->duree)
 				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
 				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
@@ -249,6 +247,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'cout_financement'=>$simulation->cout_financement
 				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
 				,'accord_confirme'=>$simulation->accord_confirme
+				,'total_financement'=>$simulation->montant + $simulation->montant_rachete + $simulation->montat_rachete_concurrence
 				
 				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>'
 				,'date'=>$simulation->date_simul
@@ -258,10 +257,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				
 				,'display_preco'=>$user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0 ? 1 : 0
 				,'type_financement'=>$form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement)
-				,'leaser'=>$html->select_company('','socid','fournisseur=1',0, 0,1)
+				,'leaser'=>($mode=='edit') ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_leaser.'">'.$simulation->leaser->nom.'</a>'
 			)
 			,'client'=>array(
 				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->societe->nom.'</a>'
+				,'autres_simul'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/simulation.php?socid='.$simulation->fk_soc.'">(autres simulations)</a>'
 				,'adresse'=>$simulation->societe->address
 				,'cpville'=>$simulation->societe->cp.' / '.$simulation->societe->ville
 				,'siret'=>$simulation->societe->idprof2
@@ -272,7 +272,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'encours_cpro'=>empty($simulation->societe) ? '' : 0
 				,'encours_conseille'=>empty($simulation->societe) ? '' : $simulation->societe->score->encours_conseille
 				
-				,'liste_dossier'=>_liste_dossier($ATMdb, $simulation)
+				,'liste_dossier'=>_liste_dossier($ATMdb, $simulation, $mode)
 			)
 			,'view'=>array(
 				'mode'=>$mode
@@ -322,12 +322,14 @@ function _calcul(&$simulation) {
 	}
 }
 
-function _liste_dossier(&$ATMdb, &$simulation) {
+function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	global $langs,$conf, $db;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 
-	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', d.montant as 'Solde', d.rowid as 'IDDoss', f.reference as 'N° contrat'";
-	$sql.= " , f.date_debut as 'Début', f.date_fin as 'Fin', ac.fk_user,";
+	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', a.contrat as 'Type contrat'";
+	$sql.= " , d.montant as 'Solde', d.rowid as 'IDDoss'";
+	$sql.= " , f.reference as 'N° contrat', f.date_debut as 'Début', f.date_fin as 'Fin'";
+	$sql.= " , ac.fk_user,";
 	$sql.= " u.login as 'Utilisateur'";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_affaire = a.rowid";
@@ -342,25 +344,40 @@ function _liste_dossier(&$ATMdb, &$simulation) {
 	//return $sql;
 	
 	$TDossier = array();
+	$form=new TFormCore;
+	$form->Set_typeaff($mode);
 	$ATMdb->Execute($sql);
 	$ATMdb2 = new Tdb;
+	
+	$TDossierUsed = $simulation->get_list_dossier_used(true);
+	
 	while ($ATMdb->Get_line()) {
 		$dossier=new TFin_Dossier;
 		$dossier->load($ATMdb2, $ATMdb->Get_field('IDDoss'));
+		
+		$checked = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes) ? true : false;
+		$checkbox_more = 'solde_r="'.$dossier->getSolde($ATMdb2, 'SRCPRO').'"';
+		$checkbox_more.= ' solde_nr="'.$dossier->getSolde($ATMdb2, 'SNRCPRO').'"';
+		$checkbox_more.= ' contrat="'.$ATMdb->Get_field('Type contrat').'"';
+		$checkbox_more.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
+		
 		$TDossier[] = array(
-			'IDAff' => $ATMdb->Get_field('IDAff')
-			,'N° affaire' => $ATMdb->Get_field('N° affaire')
-			,'IDDoss' => $ATMdb->Get_field('IDDoss')
-			,'N° contrat' => $ATMdb->Get_field('N° contrat')
-			,'Début' => $ATMdb->Get_field('Début')
-			,'Fin' => $ATMdb->Get_field('Fin')
-			,'Solde R' => $dossier->getSolde($ATMdb2, 'SRCPRO')
-			,'Solde NR' => $dossier->getSolde($ATMdb2, 'SNRCPRO')
-			,'Utilisateur' => $ATMdb->Get_field('Utilisateur')
+			'id_affaire' => $ATMdb->Get_field('IDAff')
+			,'num_affaire' => $ATMdb->Get_field('N° affaire')
+			,'id_dossier' => $ATMdb->Get_field('IDDoss')
+			,'num_contrat' => $ATMdb->Get_field('N° contrat')
+			,'debut' => $ATMdb->Get_field('Début')
+			,'fin' => $ATMdb->Get_field('Fin')
+			,'solde_r' => $dossier->getSolde($ATMdb2, 'SRCPRO')
+			,'solde_nr' => $dossier->getSolde($ATMdb2, 'SNRCPRO')
+			,'fk_user' => $ATMdb->Get_field('fk_user')
+			,'user' => $ATMdb->Get_field('Utilisateur')
+			,'choice_solde' => ($simulation->contrat == $ATMdb->Get_field('Type contrat')) ? 'solde_r' : 'solde_nr'
+			,'checkbox'=>$form->checkbox1('', 'dossiers_rachetes['.$ATMdb->Get_field('IDDoss').']', $ATMdb->Get_field('IDDoss'), $checked, $checkbox_more)
 		);
 	}
 	
-	$THide = array('IDAff', 'IDDoss', 'fk_user');
+	$THide = array('IDAff', 'IDDoss', 'fk_user', 'Type contrat');
 	
 	return $r->renderArray($ATMdb, $TDossier, array(
 		'limit'=>array(
@@ -368,12 +385,12 @@ function _liste_dossier(&$ATMdb, &$simulation) {
 			,'nbLine'=>'10'
 		)
 		,'orderBy'=>array(
-			'N° affaire' => 'DESC'
+			'num_affaire' => 'DESC'
 		)
 		,'link'=>array(
-			'N° affaire'=>'<a href="affaire.php?id=@IDAff@">@val@</a>'
-			,'N° contrat'=>'<a href="dossier.php?id=@IDDoss@">@val@</a>'
-			,'Utilisateur'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
+			'num_affaire'=>'<a href="affaire.php?id=@id_affaire@">@val@</a>'
+			,'num_contrat'=>'<a href="dossier.php?id=@id_dossier@">@val@</a>'
+			,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
 		)
 		,'hide'=>$THide
 		,'type'=>array('Début'=>'date', 'Fin'=>'date')

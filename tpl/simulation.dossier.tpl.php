@@ -1,20 +1,32 @@
 <table id="[liste.id]" class="liste" width="100%">
 	<tr class="liste_titre">
-		<td class="liste_titre">[entete.val;block=td]</td>
+		<td>N° affaire</td>
+		<td>N° contrat</td>
+		<td>Début</td>
+		<td>Fin</td>
+		<td>Solde R.</td>
+		<td>Solde NR.</td>
+		<td>Utilisateur</td>
 		<td align="center" class="liste_titre">&nbsp;</td>
 	</tr>
 	<tr class="impair">
-		<!-- [champs.$;block=tr;sub1] -->
-		<td>[champs_sub1.val;block=td; strconv=no]</td>
-		<td align="center"><input type="checkbox" name="doss_[champs_sub1.rowid]" montant="[champs_sub1.montant]" /></td>
+		<td>[champs.num_affaire;block=tr; strconv=no]</td>
+		<td>[champs.num_contrat; strconv=no]</td>
+		<td>[champs.debut; strconv=no; frm=dd/mm/yy]</td>
+		<td>[champs.fin; strconv=no; frm=dd/mm/yy]</td>
+		<td>[champs.solde_r; strconv=no; frm=0 000,00] &euro;</td>
+		<td>[champs.solde_nr; strconv=no; frm=0 000,00] &euro;</td>
+		<td>[champs.user; strconv=no]</td>
+		<td align="center">[champs.checkbox; strconv=no]</td>
 	</tr>
 	<tr class="pair">
-		<!-- [champs.$;block=tr;sub1] -->
-		<td>[champs_sub1.val;block=td; strconv=no]</td>
-		<td align="center"><input type="checkbox" name="doss_[champs_sub1.rowid]" montant="[champs_sub1.montant]" /></td>
+		<td>[champs.num_affaire;block=tr; strconv=no]</td>
+		<td>[champs.num_contrat; strconv=no]</td>
+		<td>[champs.debut; strconv=no; frm=dd/mm/yy]</td>
+		<td>[champs.fin; strconv=no; frm=dd/mm/yy]</td>
+		<td>[champs.solde_r; strconv=no; frm=0 000,00] &euro;</td>
+		<td>[champs.solde_nr; strconv=no; frm=0 000,00] &euro;</td>
+		<td>[champs.user; strconv=no]</td>
+		<td align="center">[champs.checkbox; strconv=no]</td>
 	</tr>
 </table>
-<p align="center">
-	[liste.messageNothing] [onshow; block=p; strconv=no; when [liste.totalNB]==0]
-</p>
-	

@@ -7,7 +7,7 @@ class TSimulation extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation');
 		parent::add_champs('entity,fk_soc,fk_user_author,fk_leaser,accord_confirme','type=entier;');
 		parent::add_champs('duree,opt_administration,opt_creditbail','type=entier;');
-		parent::add_champs('montant,montant_rachete,echeance,vr,coeff,cout_financement','type=float;');
+		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,echeance,vr,coeff,cout_financement','type=float;');
 		parent::add_champs('date_simul','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement','type=chaine;');
 		parent::add_champs('dossiers_rachetes', 'type=tableau;');
@@ -51,6 +51,14 @@ class TSimulation extends TObjetStd {
 			// Récupération du score du client
 			$this->societe->score = new TScore();
 			$this->societe->score->load_by_soc($db, $this->fk_soc);
+			
+			// Récupération des autres simulations du client
+			$this->societe->TSimulations = $this->load_by_soc($db, $doliDB, $this->fk_soc);
+		}
+		
+		if(!empty($this->fk_leaser)) {
+			$this->leaser = new Societe($doliDB);
+			$this->leaser->fetch($this->fk_leaser);
 		}
 		
 		if(!empty($this->fk_user_author)) {
@@ -83,6 +91,37 @@ class TSimulation extends TObjetStd {
 				}
 			}
 		}
+	}
+	
+	function load_by_soc(&$db, &$doliDB, $fk_soc) {
+		$sql = "SELECT ".OBJETSTD_MASTERKEY;
+		$sql.= " FROM ".$this->get_table();
+		$sql.= " WHERE fk_soc = ".$fk_soc;
+
+		$db->Execute($sql);
+		
+		$TIdSimu = array();
+		while($db->Get_line()) {
+			$TIdSimu[] = $db->Get_field(OBJETSTD_MASTERKEY);
+		}
+		
+		$TResult = array();
+		foreach($TIdSimu as $idSimu) {
+			$simu = new TSimulation;
+			$simu->load($db, $doliDB, $idSimu, false);
+			$TResult[] = $simu;
+		}
+		
+		return $TResult;
+	}
+	
+	function get_list_dossier_used($except_current=false) {
+		$TDossier = array();
+		foreach ($this->societe->TSimulations as $simu) {
+			if($except_current && $simu->{OBJETSTD_MASTERKEY} == $this->{OBJETSTD_MASTERKEY}) continue;
+			$TDossier = array_merge($TDossier, $simu->dossiers_rachetes);
+		}
+		return $TDossier;
 	}
 }
 
