@@ -122,10 +122,12 @@
 				[simulation.bt_cancel; strconv=no]
 				[onshow;block=end]
 			</td>
-			[onshow;block=begin;when [view.type]=='simul'; when [view.calcul]==1]
+			[onshow;block=begin;when [view.type]=='simul']
+			[onshow;block=begin;when [view.calcul]==1]
 			<td align="center" colspan="2">
 				[simulation.bt_save; strconv=no]
 			</td>
+			[onshow;block=end]
 			[onshow;block=end]
 		</tr>
 		[onshow;block=end]

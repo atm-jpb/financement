@@ -45,15 +45,22 @@ class TSimulation extends TObjetStd {
 	
 	function load_annexe(&$db, &$doliDB) {
 		if(!empty($this->fk_soc)) {
-			$this->societe = new Societe($doliDB);
-			$this->societe->fetch($this->fk_soc);
+			// Récupếration des infos du client
+			if(empty($this->societe)) {
+				$this->societe = new Societe($doliDB);
+				$this->societe->fetch($this->fk_soc);
+			}
 			
 			// Récupération du score du client
-			$this->societe->score = new TScore();
-			$this->societe->score->load_by_soc($db, $this->fk_soc);
+			if(empty($this->societe->score)) {
+				$this->societe->score = new TScore();
+				$this->societe->score->load_by_soc($db, $this->fk_soc);
+			}
 			
 			// Récupération des autres simulations du client
-			$this->societe->TSimulations = $this->load_by_soc($db, $doliDB, $this->fk_soc);
+			if(empty($this->societe->TSimulations)) {
+				$this->societe->TSimulations = $this->load_by_soc($db, $doliDB, $this->fk_soc);
+			}
 		}
 		
 		if(!empty($this->fk_leaser)) {
@@ -97,14 +104,8 @@ class TSimulation extends TObjetStd {
 		$sql = "SELECT ".OBJETSTD_MASTERKEY;
 		$sql.= " FROM ".$this->get_table();
 		$sql.= " WHERE fk_soc = ".$fk_soc;
-
-		$db->Execute($sql);
 		
-		$TIdSimu = array();
-		while($db->Get_line()) {
-			$TIdSimu[] = $db->Get_field(OBJETSTD_MASTERKEY);
-		}
-		
+		$TIdSimu = TRequeteCore::_get_id_by_sql($db, $sql, OBJETSTD_MASTERKEY);
 		$TResult = array();
 		foreach($TIdSimu as $idSimu) {
 			$simu = new TSimulation;
@@ -117,9 +118,11 @@ class TSimulation extends TObjetStd {
 	
 	function get_list_dossier_used($except_current=false) {
 		$TDossier = array();
-		foreach ($this->societe->TSimulations as $simu) {
-			if($except_current && $simu->{OBJETSTD_MASTERKEY} == $this->{OBJETSTD_MASTERKEY}) continue;
-			$TDossier = array_merge($TDossier, $simu->dossiers_rachetes);
+		if(!empty($this->societe->TSimulations)) {
+			foreach ($this->societe->TSimulations as $simu) {
+				if($except_current && $simu->{OBJETSTD_MASTERKEY} == $this->{OBJETSTD_MASTERKEY}) continue;
+				$TDossier = array_merge($TDossier, $simu->dossiers_rachetes);
+			}
 		}
 		return $TDossier;
 	}

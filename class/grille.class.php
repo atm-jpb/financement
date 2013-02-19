@@ -343,64 +343,70 @@ class TFin_grille_leaser extends TObjetStd {
 	 * 			-3	= echeance hors grille
 	 * 			-4	= Pas de grille chargée
 	 */
-	function calcul_financement(&$montant, &$duree, &$echeance, $vr, &$coeff, $typeCalcul='cpro') {
+	function calcul_financement($simulation, $typeCalcul='cpro') {
 		/*
 		 * Formule de calcul échéance
 		 * 
 		 * Echéance : Capital x tauxTrimestriel / (1 - (1 + tauxTrimestriel)^-nombreTrimestre )
 		 * 
-		 */ 
+		 */
+		
+		$simulation->montant_finance = $simulation->montant + $simulation->montant_rachete + $simulation->montant_rachete_concurrence;
 		
 		if(empty($this->TGrille)) { // Pas de grille chargée, pas de calcul
 			$this->error = 'ErrorNoGrilleSelected';
 			return false;
 		}
-		else if(empty($montant) && empty($echeance)) { // Montant ou échéance obligatoire
+		else if(empty($simulation->montant_finance) && empty($simulation->echeance)) { // Montant ou échéance obligatoire
 			$this->error = 'ErrorMontantOrEcheanceRequired';
 			return false;
 		}
-		else if($vr > $montant) { // Erreur VR ne peut être supérieur au mopntant
+		else if($simulation->vr > $simulation->montant_finance) { // Erreur VR ne peut être supérieur au mopntant
 			$this->error = 'ErrorInvalidVR';
 			return false;
 		}
+		else if(empty($simulation->duree)) {
+			$this->error = 'ErrorDureeRequired';
+			return false;
+		}
 
-		if(!empty($montant) && !empty($echeance)) { // Si montant ET échéance renseignés, on calcule à partir du montant
-			$echeance = 0;
+		if(!empty($simulation->montant_finance) && !empty($simulation->echeance)) { // Si montant ET échéance renseignés, on calcule à partir du montant
+			$simulation->echeance = 0;
 		}
 		
-		$coeff=0;
-		foreach($this->TGrille[$duree] as $palier => $infos) {
-			if(( !empty( $montant ) && $montant <= $palier)
-			|| (!empty($echeance) && $echeance<=$infos['echeance']))
+		$simulation->coeff=0;
+		foreach($this->TGrille[$simulation->duree] as $palier => $infos) {
+			if((!empty($simulation->montant_finance) && $simulation->montant_finance <= $palier)
+			|| (!empty($simulation->echeance) && $simulation->echeance <= $infos['echeance']))
 			{
-					$coeff = $infos['coeff']; // coef annuel
+					$simulation->coeff = $infos['coeff']; // coef annuel
 					break;
 			}
 		}
-		if($coeff==0){
+		if($simulation->coeff==0){
 			$this->error = 'ErrorAmountOutOfGrille';
 			return false;
 		}
 		
-		$coeffTrimestriel = $coeff / 4 /100; // en %
+		$coeffTrimestriel = $simulation->coeff / 4 /100; // en %
 
-		if(!empty($montant)) { // Calcul à partir du montant
+		if(!empty($simulation->montant_finance)) { // Calcul à partir du montant
 					
-				if($typeCalcul=='cpro')$echeance = ($montant - $vr) / $duree * (1 + $coeff / 100);
-				else $echeance = $montant * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$duree) );  
+				if($typeCalcul=='cpro')$simulation->echeance = ($simulation->montant_finance - $simulation->vr) / $simulation->duree * (1 + $simulation->coeff / 100);
+				else $simulation->echeance = $simulation->montant_finance * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$simulation->duree) );  
 				
-				//print "$echeance = $montant, &$duree, &$echeance, $vr, &$coeff::$coeffTrimestriel";
+				//print "$simulation->echeance = $simulation->montant_finance, &$simulation->duree, &$simulation->echeance, $simulation->vr, &$simulation->coeff::$coeffTrimestriel";
 				
-				$echeance = round($echeance, 2);
+				$simulation->echeance = round($simulation->echeance, 2);
 						
 		} 
-		else if(!empty($echeance)) { // Calcul à partir de l'échéance
+		else if(!empty($simulation->echeance)) { // Calcul à partir de l'échéance
 		
-				if($typeCalcul=='cpro')$montant = $echeance * (1 - $coeff / 100) * $duree + $vr;
-				else $montant =  $echeance * (1- pow(1+$coeffTrimestriel, -$duree) ) / $coeffTrimestriel ;
+				if($typeCalcul=='cpro')$simulation->montant_finance = $simulation->echeance * (1 - $simulation->coeff / 100) * $simulation->duree + $simulation->vr;
+				else $simulation->montant_finance =  $simulation->echeance * (1- pow(1+$coeffTrimestriel, -$simulation->duree) ) / $coeffTrimestriel ;
 				
 				
-				$montant = round($montant, 2);
+				$simulation->montant_finance = round($simulation->montant_finance, 2);
 				
 			
 		

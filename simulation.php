@@ -24,6 +24,10 @@ if(!empty($_REQUEST['cancel'])) { // Annulation
 	if(!empty($_REQUEST['fk_soc'])) { header('Location: ?socid='.$_REQUEST['fk_soc']); exit; } // Retour sur client sinon
 	header('Location: '.$_SERVER['PHP_SELF']); exit;
 }
+if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase' && !empty($_REQUEST['code_artis'])) { // On arrive de Wonderbase, direction nouvelle simulation
+	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe', array('code_client'=>$_REQUEST['code_artis']));
+	header('Location: ?action=new&fk_soc='.$TId[0]); exit;
+}
 
 if(!empty($action)) {
 	switch($action) {
@@ -180,7 +184,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)
 			,'noheader'=> (int)isset($_REQUEST['socid'])
-			,'messageNothing'=>"Il n'y a aucune affaire à afficher"
+			,'messageNothing'=>"Il n'y a aucune simulation à afficher"
 			,'order_down'=>img_picto('','1downarrow.png', '', 0)
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
 			
@@ -197,6 +201,8 @@ function _liste(&$ATMdb, &$simulation) {
 	
 function _fiche(&$ATMdb, &$simulation, $mode) {
 	global $db, $langs, $user, $conf;
+	
+	$simulation->load_annexe($ATMdb, $db);
 	
 	$extrajs = array('/financement/js/financement.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
@@ -247,7 +253,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'cout_financement'=>$simulation->cout_financement
 				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
 				,'accord_confirme'=>$simulation->accord_confirme
-				,'total_financement'=>$simulation->montant + $simulation->montant_rachete + $simulation->montat_rachete_concurrence
+				,'total_financement'=>$simulation->montant_finance
 				
 				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>'
 				,'date'=>$simulation->date_simul
@@ -301,24 +307,16 @@ function _calcul(&$simulation) {
 		}
 	}
 	
-	if(empty($simulation->duree)) {
-		$mesg = $langs->trans('ErrorDureeRequired');
-		$error = true;
-	} else if(empty($simulation->montant) && empty($simulation->echeance)) {
-		$mesg = $langs->trans('ErrorMontantOrEcheanceRequired');
-		$error = true;
-	} else {
-		$grille = new TFin_grille_leaser;
-		$ATMdb=new Tdb;
-		$grille->get_grille($ATMdb, FIN_LEASER_DEFAULT, $simulation->fk_type_contrat, $simulation->opt_periodicite, $options); // Récupération de la grille pour les paramètre données
-		$calcul = $grille->calcul_financement($simulation->montant, $simulation->duree, $simulation->echeance, $simulation->vr, $simulation->coeff); // Calcul du financement
+	$grille = new TFin_grille_leaser;
+	$ATMdb=new Tdb;
+	$grille->get_grille($ATMdb, FIN_LEASER_DEFAULT, $simulation->fk_type_contrat, $simulation->opt_periodicite, $options); // Récupération de la grille pour les paramètre données
+	$calcul = $grille->calcul_financement($simulation); // Calcul du financement
 		
-		if(!$calcul) { // Si calcul non correct
-			$mesg = $langs->trans($grille->error);
-			$error = true;
-		} else { // Sinon, vérification accord à partir du calcul
-			$simulation->demande_accord();
-		}
+	if(!$calcul) { // Si calcul non correct
+		$mesg = $langs->trans($grille->error);
+		$error = true;
+	} else { // Sinon, vérification accord à partir du calcul
+		$simulation->demande_accord();
 	}
 }
 
