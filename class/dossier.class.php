@@ -395,8 +395,9 @@ class TFin_financement extends TObjetStd {
 		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
-		parent::add_champs('fk_soc,okPourFacturation','type=entier;index;');
-		
+		parent::add_champs('fk_soc','type=entier;index;');
+		parent::add_champs('okPourFacturation','type=chaine;index;');
+				
 		parent::start();
 		parent::_init_vars();
 		
@@ -439,6 +440,16 @@ class TFin_financement extends TObjetStd {
 			0=>'Echu'
 			,1=>'A Echoir'
 		);
+		
+		$this->okPourFacturation='NON';
+		$this->TOkPourFacturation =array(
+			'NON'=>'Non'
+			,'OUI'=>'Oui'
+			,'AUTO'=>'Toujours'
+		);
+		
+		$this->date_solde=0;
+		
 	}
 	/*
 	 * Définie la prochaine échéance
@@ -541,12 +552,12 @@ class TFin_financement extends TObjetStd {
 		//$this->taux = 1 - (($this->montant * 100 / $this->echeance * $this->duree) - $this->reste);
 		$this->calculTaux();
 		
-		$g=new TFin_grille_leaser();
+		/*$g=new TFin_grille_leaser();
 
-		$g->get_grille($ATMdb, 1, $this->contrat);//TODO	
+		$g->get_grille($ATMdb, 1, $this->contrat);	
 		
 		$g->calcul_financement($this->montant, $this->duree, $this->echeance, $this->reste, $this->taux);
-		
+		*/
 		parent::save($ATMdb);
 		
 	}

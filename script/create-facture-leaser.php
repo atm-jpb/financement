@@ -21,7 +21,10 @@
 
 	$ATMdb=new Tdb;
 	
-	$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'fin_dossier_financement',array('okPourFacturation'=>1));
+	/*
+	 * Création des factures bon pour facturation
+	 */
+	$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'fin_dossier_financement',array('okPourFacturation'=>'OUI', 'date_solde'=>'0000-00-00 00:00:00'));
 	
 	foreach($Tab as $id) {
 		
@@ -30,12 +33,31 @@
 		
 		_createFacture($f);
 		
-		$f->okPourFacturation=1;
+		$f->okPourFacturation='NON';
 		$f->setNextEcheance();
 		
 		$f->save($ATMdb);
 	}
 
+	if(isset($_REQUEST['with-auto-facture'])) {
+	/*
+	 * Création des factures non contrôlée par import Leaser le 1er de chaque mois
+	 */		
+
+		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'fin_dossier_financement',array('okPourFacturation'=>'AUTO', 'date_solde'=>'0000-00-00 00:00:00'));
+		
+		foreach($Tab as $id) {
+			
+			$f=new TFin_financement;
+			$f->load($ATMdb, $id);
+			
+			_createFacture($f);
+			
+			$f->setNextEcheance();
+			
+			$f->save($ATMdb);
+		}
+	}
 	
 function _createFacture(&$f) {
 	global $user, $db, $conf;

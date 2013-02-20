@@ -279,17 +279,17 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'date_debut'=>$form->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
 			,'date_fin'=>$financementLeaser->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financementLeaser->date_prochaine_echeance>0) ? $financementLeaser->get_date('date_prochaine_echeance') : ''
-			,'date_solde'=>$form->calendrier('', 'leaser[date_solde]', $financementLeaser->get_date('date_solde'),10)
+			,'date_solde'=>$form->calendrier('', 'leaser[date_solde]', $financementLeaser->get_date('date_solde','d/m/Y',true),10)
 						
 			,'leaser'=>($mode=='edit') ? $html->select_company('','leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->nom
 			
-			,'okPourFacturation'=>$form->checkbox1('', 'leaser[okPourFacturation]', 1, $financementLeaser->okPourFacturation )
+			,'okPourFacturation'=>$form->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
 			
 			,'echeancier'=>$dossier->echeancier($ATMdb,'EXTERNE')
 			
 			
 	);
-	
+	print $financement->get_date('date_solde','d/m/Y',true);
 	if(isset($financement)) {
 		$TFinancement = array(
 			'montant'=>$form->texte('', 'montant', $financement->montant, 10,255,'','','à saisir') 
@@ -315,7 +315,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'date_debut'=>$form->calendrier('', 'date_debut', $financement->get_date('date_debut'),10)
 			,'date_fin'=>$financement->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financement->date_prochaine_echeance>0) ? $financement->get_date('date_prochaine_echeance') : ''
-			,'date_solde'=>$form->calendrier('', 'date_solde', $financement->get_date('date_solde'),10)
+			,'date_solde'=>$form->calendrier('', 'date_solde', $financement->get_date('date_solde','d/m/Y',true),10)
 						
 			,'penalite_reprise'=>$form->texte('', 'penalite_reprise', $financement->penalite_reprise, 10,255,'','','à saisir') 
 			,'taux_commission'=>$form->texte('', 'taux_commission', $financement->taux_commission, 5,255,'','') 
