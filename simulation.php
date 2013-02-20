@@ -44,6 +44,7 @@ if(!empty($action)) {
 		case 'calcul':
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			$simulation->set_values($_REQUEST);
+
 			_calcul($simulation);
 			_fiche($ATMdb, $simulation,'edit');
 		
@@ -61,6 +62,10 @@ if(!empty($action)) {
 			
 			// Si une donnée de préconisation a été remplie, on fige la simulation pour le commercial
 			if($simulation->fk_leaser > 0 || $simulation->type_financement != '') $simulation->accord_confirme = 1;
+			// On recalcule le montant total finance
+			$simulation->montant_total_finance = $simulation->montant + $simulation->montant_rachete + $simulation->montant_rachete_concurrence;
+			// On vérifie que les dossiers sélectionnés n'ont pas été décochés
+			if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
 			
 			//$ATMdb->db->debug=true;
 			//print_r($_REQUEST);
@@ -112,7 +117,7 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$THide = array('fk_soc', 'fk_user_author');
 	
-	$sql = "SELECT s.rowid as 'ID', soc.nom as 'Client', s.fk_soc, s.fk_user_author, s.fk_type_contrat as 'Type de contrat', s.montant as 'Montant', s.echeance as 'Echéance',";
+	$sql = "SELECT s.rowid as 'ID', soc.nom as 'Client', s.fk_soc, s.fk_user_author, s.fk_type_contrat as 'Type de contrat', s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'opt_mensuel' THEN 'mois' ELSE 'trimestres' END) as 'Durée',";
 	$sql.= " s.date_simul as 'Date simulation', u.login as 'Utilisateur', s.accord as 'Statut'";
 	$sql.= " FROM @table@ s ";
@@ -253,7 +258,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'cout_financement'=>$simulation->cout_financement
 				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
 				,'accord_confirme'=>$simulation->accord_confirme
-				,'total_financement'=>$simulation->montant_finance
+				,'total_financement'=>$simulation->montant_total_finance
 				
 				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>'
 				,'date'=>$simulation->date_simul
@@ -283,7 +288,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 			,'view'=>array(
 				'mode'=>$mode
 				,'type'=>($simulation->fk_soc > 0) ? 'simul' : 'calcul'
-				,'calcul'=>empty($simulation->cout_financement) ? 0 : 1
+				,'calcul'=>empty($simulation->montant_total_finance) ? 0 : 1
 			)
 			
 		)
@@ -311,6 +316,7 @@ function _calcul(&$simulation) {
 	$calcul = $simulation->calcul_financement($ATMdb, FIN_LEASER_DEFAULT, $options); // Calcul du financement
 		
 	if(!$calcul) { // Si calcul non correct
+		$simulation->montant_total_finance = 0;
 		$mesg = $langs->trans($simulation->error);
 		$error = true;
 	} else { // Sinon, vérification accord à partir du calcul

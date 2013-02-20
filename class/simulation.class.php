@@ -7,7 +7,7 @@ class TSimulation extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation');
 		parent::add_champs('entity,fk_soc,fk_user_author,fk_leaser,accord_confirme','type=entier;');
 		parent::add_champs('duree,opt_administration,opt_creditbail','type=entier;');
-		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,echeance,vr,coeff,cout_financement','type=float;');
+		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_total_finance,echeance,vr,coeff,cout_financement','type=float;');
 		parent::add_champs('date_simul','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement','type=chaine;');
 		parent::add_champs('dossiers_rachetes', 'type=tableau;');
@@ -61,6 +61,18 @@ class TSimulation extends TObjetStd {
 			if(empty($this->societe->TSimulations)) {
 				$this->societe->TSimulations = $this->load_by_soc($db, $doliDB, $this->fk_soc);
 			}
+			
+			// Récupération des dossiers en cours du client et de l'encours CPRO
+			if(empty($this->societe->TDossiers)) {
+				$TDossiers = TRequeteCore::get_id_from_what_you_want($db, MAIN_DB_PREFIX.'fin_dossier', array('fk_soc' => $this->fk_soc));
+				$this->societe->encours_cpro = 0;
+				foreach ($TDossiers as $idDossier) {
+					$doss = new TFin_dossier;
+					$doss->load($db, $idDossier);
+					$this->societe->TDossiers[] = $doss;
+					$this->societe->encours_cpro += $doss->getSolde($db, 'SNRCPRO');
+				}
+			}
 		}
 		
 		if(!empty($this->fk_leaser)) {
@@ -98,17 +110,17 @@ class TSimulation extends TObjetStd {
 		 */
 		
 		// Calcul du montant total financé
-		$this->montant_finance = $this->montant + $this->montant_rachete + $this->montant_rachete_concurrence;
+		$this->montant_total_finance = $this->montant + $this->montant_rachete + $this->montant_rachete_concurrence;
 
-		if(empty($this->fk_type_contrat)) { // Tyupe de contrat obligatoire
+		if(empty($this->fk_type_contrat)) { // Type de contrat obligatoire
 			$this->error = 'ErrorNoTypeContratSelected';
 			return false;
 		}
-		else if(empty($this->montant_finance) && empty($this->echeance)) { // Montant ou échéance obligatoire
+		else if(empty($this->montant_total_finance) && empty($this->echeance)) { // Montant ou échéance obligatoire
 			$this->error = 'ErrorMontantOrEcheanceRequired';
 			return false;
 		}
-		else if($this->vr > $this->montant_finance) { // Erreur VR ne peut être supérieur au mopntant
+		else if($this->vr > $this->montant_total_finance) { // Erreur VR ne peut être supérieur au mopntant
 			$this->error = 'ErrorInvalidVR';
 			return false;
 		}
@@ -130,13 +142,13 @@ class TSimulation extends TObjetStd {
 			return false;
 		}
 
-		if(!empty($this->montant_finance) && !empty($this->echeance)) { // Si montant ET échéance renseignés, on calcule à partir du montant
+		if(!empty($this->montant_total_finance) && !empty($this->echeance)) { // Si montant ET échéance renseignés, on calcule à partir du montant
 			$this->echeance = 0;
 		}
 		
 		$this->coeff=0;
 		foreach($grille->TGrille[$this->duree] as $palier => $infos) {
-			if((!empty($this->montant_finance) && $this->montant_finance <= $palier)
+			if((!empty($this->montant_total_finance) && $this->montant_total_finance <= $palier)
 			|| (!empty($this->echeance) && $this->echeance <= $infos['echeance']))
 			{
 					$this->coeff = $infos['coeff']; // coef annuel
@@ -150,12 +162,12 @@ class TSimulation extends TObjetStd {
 		
 		$coeffTrimestriel = $this->coeff / 4 /100; // en %
 
-		if(!empty($this->montant_finance)) { // Calcul à partir du montant
+		if(!empty($this->montant_total_finance)) { // Calcul à partir du montant
 					
-				if($typeCalcul=='cpro')$this->echeance = ($this->montant_finance - $this->vr) / $this->duree * (1 + $this->coeff / 100);
-				else $this->echeance = $this->montant_finance * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$this->duree) );  
+				if($typeCalcul=='cpro')$this->echeance = ($this->montant_total_finance - $this->vr) / $this->duree * (1 + $this->coeff / 100);
+				else $this->echeance = $this->montant_total_finance * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$this->duree) );  
 				
-				//print "$this->echeance = $this->montant_finance, &$this->duree, &$this->echeance, $this->vr, &$this->coeff::$coeffTrimestriel";
+				//print "$this->echeance = $this->montant_total_finance, &$this->duree, &$this->echeance, $this->vr, &$this->coeff::$coeffTrimestriel";
 				
 				$this->echeance = round($this->echeance, 2);
 		} 
@@ -165,7 +177,7 @@ class TSimulation extends TObjetStd {
 				else $this->montant =  $this->echeance * (1- pow(1+$coeffTrimestriel, -$this->duree) ) / $coeffTrimestriel ;
 				
 				$this->montant = round($this->montant, 2);
-				$this->montant_finance = $this->montant;
+				$this->montant_total_finance = $this->montant;
 		} 
 		
 		return true;
@@ -177,19 +189,22 @@ class TSimulation extends TObjetStd {
 		
 		// Calcul du coût du financement
 		$this->cout_financement = $this->echeance * $this->duree - $this->montant;
+		
+		// Résultat de l'accord
 		$this->accord = '';
 
 		// Accord interne de financement
 		if(!(empty($this->fk_soc))) {
 			$this->accord = 'WAIT';
 			if($this->societe->score->rowid == 0 // Pas de score => WAIT
-				|| $this->societe->idprof3 == '') // Pas de NAF => WAIT
+				|| empty($this->societe->idprof3) == '') // Pas de NAF => WAIT
 			{
 				$this->accord = 'WAIT';
 			} else { // Donnée suffisantes pour faire les vérifications pour l'accord
-				if($this->societe->score->score > $conf->global->FINANCEMENT_SCORE_MINI
-					&& ($this->societe->socre->encours_conseille - $this->societe->encours_cpro) * $conf->global->FINANCEMENT_PERCENT_VALID_AMOUNT > $this->montant
-					&& !in_array($this->societe->idprof3, explode(FIN_IMPORT_FIELD_DELIMITER, $conf->global->FINANCEMENT_NAF_BLACKLIST)))
+				if($this->societe->score->score > $conf->global->FINANCEMENT_SCORE_MINI // Score minimum
+					&& ($this->societe->score->encours_conseille - $this->societe->encours_cpro) * $conf->global->FINANCEMENT_PERCENT_VALID_AMOUNT > $this->montant_total_finance // % "d'endettement"
+					&& !in_array($this->societe->idprof3, explode(FIN_IMPORT_FIELD_DELIMITER, $conf->global->FINANCEMENT_NAF_BLACKLIST)) // NAF non black-listé
+					&& !empty($this->societe->TDossiers)) // A déjà eu au moins un dossier chez CPRO
 				{
 					$this->accord = 'OK';
 				}

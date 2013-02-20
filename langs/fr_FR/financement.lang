@@ -3,7 +3,10 @@ Financement=Financement
 ListOfDossierFinancement=Dossiers de financement
 
 # ADMIN
+FinancementSetup=Configuration du module financement
 Admin=Administration
+PenaliteOnlyOnFournisseur=Les pénalités ne sont associées qu'à des tiers fournisseurs
+PenaliteSetup=Gestion des coefficients de pénalité
 CoeffCorrectlySaved=Coefficient enregistré(s)
 GlobalOptionsForFinancement=Options globale du module de financement
 GlobalOptionsForFinancementSimulation=Options globales pour les simulations

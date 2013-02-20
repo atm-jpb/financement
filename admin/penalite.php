@@ -26,36 +26,31 @@
 define('MONTANT_PALIER_DEFAUT', 100000000);
  
 require('../config.php');
-dol_include_once('/financement/lib/admin.lib.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
+require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 
 if (!$user->rights->financement->admin->write) accessforbidden();
 
+if(empty($_REQUEST['socid'])) { // Redirection sur l'admin financement si pas de société spécifiée
+	header('Location: '.DOL_MAIN_URL_ROOT.'/custom/financement/admin/config.php'); exit;
+}
 
-llxHeader('',$langs->trans("FinancementSetup"));
-$head = financement_admin_prepare_head(null);
+$langs->load('financement@financement');
 
-dol_fiche_head($head, 'penalite'.$_REQUEST['type'], $langs->trans("Financement"), 0, 'financementico@financement');
-dol_htmloutput_mesg($mesg);
+$socid = $_REQUEST['socid'];
+$societe = new Societe($db);
+$societe->fetch($socid);
+$typePenalite = empty($_REQUEST['type']) ? 'R': $_REQUEST['type'];
+
+llxHeader('',$langs->trans("PenaliteSetup"));
+
+$ATMdb=new Tdb;
+$TGrille=array();
 
 /**
  * ACTIONS
  */
-
-$ATMdb=new Tdb;
-$idLeaser = isset($_REQUEST['socid']) ? $_REQUEST['socid'] : FIN_LEASER_DEFAULT; // Identifiant de la société associée à la grille (C'PRO ici, sera l'identifiant leaser pour les grilles leaser)
-$affaire = new TFin_affaire();
-$liste_type_contrat = $affaire->TContrat;
-$TGrille=array();
-
-foreach ($liste_type_contrat as $idTypeContrat => $label) {
-	$grille = new TFin_grille_leaser('PENALITE_'.$_REQUEST['type']);
-	$grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
-	
-	$TGrille[$idTypeContrat] = $grille;
-}
-
 
 $error = false;
 $mesg = '';
@@ -68,95 +63,100 @@ if($action == 'save') {
 	$idTypeContrat = GETPOST('idTypeContrat');
 	$idLeaser = GETPOST('idLeaser');
 
-	$newPeriode = GETPOST('newPeriode');
-	//$TNewCoeff = GETPOST('TNewCoeff');
-	//print_r($TCoeff);
-	
+	$newPeriode = GETPOST('newPeriode');	
 	
 	$grille = & $TGrille[$idTypeContrat];
 	
 	$grille->addPeriode($newPeriode);
 	if(count($grille->TPalier)==0) $grille->addPalier(MONTANT_PALIER_DEFAUT); // il n'y aura d'un palier caché
 	
-	
-	//$ATMdb->db->debug=true;
-	
 	if(!empty($TCoeff)) {
-		/*print_r($TPalier);
-		print_r($TPeriode);
-		*/
 		foreach($TCoeff as $i=>$TLigne) {
 			$periode = $TPeriode[$i];
 							
 			foreach($TLigne as $j=>$coeff) {
-			//$ATMdb->db->debug=true;
 				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, MONTANT_PALIER_DEFAUT, $coeff['coeff'] );
-				
 			}
 		}
 		
-		$grille->normalizeGrille();
-	/*	
-		print '<pre>';
-		print_r($grille->TGrille);
-		print '</pre>';
-		*/
-	
+		$grille->normalizeGrille();	
 	}
-	
 }
 
-// Grille de coeff globale + % de pénalité par option
+/**
+ * VIEW
+ */
 
-$mode = 'edit';
-foreach ($liste_type_contrat as $idTypeContrat => $label) {
-	$grille = & $TGrille[$idTypeContrat];
+// Affichage résumé client
+$formDoli = new Form($db);
+
+$TBS=new TTemplateTBS();
+
+print $TBS->render('../tpl/client_entete.tpl.php'
+	,array(
+		
+	)
+	,array(
+		'client'=>array(
+			'dolibarr_societe_head'=>dol_get_fiche_head(societe_prepare_head($societe), 'penalite'.$typePenalite, $langs->trans("ThirdParty"),0,'company')
+			,'showrefnav'=>$formDoli->showrefnav($societe,'socid','',($user->societe_id?0:1),'rowid','nom')
+			,'idprof1'=>$societe->idprof1
+			,'adresse'=>$societe->address
+			,'cpville'=>$societe->zip.($societe->zip && $societe->town ? " / ":"").$societe->town
+			,'pays'=>picto_from_langcode($societe->country_code).' '.$societe->country
+		)
+		,'view'=>array(
+			'mode'=>'view'
+		)
+	)
+);
+
+if($societe->fournisseur == 0) {
+	echo $langs->trans('PenaliteOnlyOnFournisseur');
+} else {
+	// Grille de coeff globale + % de pénalité par option
 	
-	$TCoeff = $grille->TGrille;
-	
-	print_titre($label);
-	
-	//include '../tpl/admin.grille.tpl.php';
-	
-	$form=new TFormCore($_SERVER['PHP_SELF'],'formGrille'.$idTypeContrat,'POST');
-	$form->Set_typeaff($mode);
-	
-	
-	$TPalier=array();
-	foreach($grille->TPalier as $i=>$palier) {
-		$TPalier[]=array(
-			'montant'=>$form->texte('','TPalier['.($i+1).']', $palier['montant'],10,255)
-			,'lastMontant'=>$palier['lastMontant']
+	$mode = 'edit';
+	foreach ($liste_type_contrat as $idTypeContrat => $label) {
+		$grille = & $TGrille[$idTypeContrat];
+		
+		$TCoeff = $grille->TGrille;
+		
+		print_titre($label);
+		
+		$form=new TFormCore($_SERVER['PHP_SELF'],'formGrille'.$idTypeContrat,'POST');
+		$form->Set_typeaff($mode);
+		
+		
+		$TPalier=array();
+		foreach($grille->TPalier as $i=>$palier) {
+			$TPalier[]=array(
+				'montant'=>$form->texte('','TPalier['.($i+1).']', $palier['montant'],10,255)
+				,'lastMontant'=>$palier['lastMontant']
+			);
+		}
+		
+		echo $form->hidden('action', 'save');
+		echo $form->hidden('idTypeContrat', $idTypeContrat );
+		echo $form->hidden('idLeaser', $idLeaser);
+		echo $form->hidden('socid', $socid);
+		echo $form->hidden('type', $typePenalite);
+		
+		$TBS=new TTemplateTBS;
+		
+		print $TBS->render('../tpl/fingrille.penalite.tpl.php'
+			,array(
+				'palier'=>$TPalier
+				,'coefficient'=>$TCoeff
+			)
+			,array(
+				'view'=>array('mode'=>$mode, 'MONTANT_PALIER_DEFAUT'=>MONTANT_PALIER_DEFAUT)
+			)
 		);
 		
+		print $form->end_form();
 		
 	}
-	
-	
-	
-	echo $form->hidden('action', 'save');
-	echo $form->hidden('idTypeContrat', $idTypeContrat );
-	echo $form->hidden('idLeaser', $idLeaser);
-	echo $form->hidden('type', $_REQUEST['type']);
-	/*print '<pre>';
-	print_r($grille->TPalier);
-	print_r($TCoeff);
-	print '</pre>';*/
-	$TBS=new TTemplateTBS;
-	
-	print $TBS->render('../tpl/fingrille.penalite.tpl.php'
-		,array(
-			'palier'=>$TPalier
-			,'coefficient'=>$TCoeff
-		)
-		,array(
-			'view'=>array('mode'=>$mode, 'MONTANT_PALIER_DEFAUT'=>MONTANT_PALIER_DEFAUT)
-			
-		)
-	);
-	
-	print $form->end_form();
-	
 }
 
 dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));

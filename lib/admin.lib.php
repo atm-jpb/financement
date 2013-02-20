@@ -20,16 +20,6 @@ function financement_admin_prepare_head()
 	$head[$h][2] = 'grille';
 	$h++;
 	
-		
-	$head[$h][0] = dol_buildpath('/financement/admin/penalite.php?type=R', 1);
-	$head[$h][1] = $langs->trans("penaliteR");
-	$head[$h][2] = 'penaliteR';
-	$h++;
-	$head[$h][0] = dol_buildpath('/financement/admin/penalite.php?type=NR', 1);
-	$head[$h][1] = $langs->trans("penaliteNR");
-	$head[$h][2] = 'penaliteNR';
-	$h++;
-	
 	$head[$h][0] = dol_buildpath('/financement/admin/rentabilite.php', 1);
 	$head[$h][1] = $langs->trans("rentabilite");
 	$head[$h][2] = 'rentabilite';

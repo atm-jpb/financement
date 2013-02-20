@@ -29,6 +29,7 @@ dol_include_once('/financement/lib/admin.lib.php');
 
 if (!$user->rights->financement->admin->write) accessforbidden();
 
+$langs->load('financement@financement');
 $langs->load("admin");
 $langs->load("errors");
 $langs->load('other');

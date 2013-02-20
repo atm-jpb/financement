@@ -113,7 +113,7 @@ function _liste(&$ATMdb, &$import) {
 	
 	$THide = array('fk_user_author');
 	
-	$TOrder = array('Date import' => 'DESC');
+	$TOrder = array('Date import' => 'DESC', 'ID' => 'DESC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
 	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
 	
