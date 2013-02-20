@@ -931,8 +931,21 @@ class Import // extends CommonObject
 
 		// On repasse en brouillon pour ajouter la ligne
 		$facture_loc->set_draft($user);
+		
+		/*
+		 * Création du service
+		 */
+		$fk_service = $this->createProduct(
+			array(
+				'ref_produit'=>$data['ref_service']
+				,'libelle_produit'=>$data['libelle_ligne']
+				,'prix_ttc'=> $data['pu']*FIN_TVA_DEFAUT
+				,'marque'=> 'Service'
+			)
+		,1);		
+		
 		// On ajoute la ligne
-		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 19.6);
+		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 19.6,0,0,$fk_service);
 		// Force la validation avec numéro de facture
 		$facture_loc->validate($user, $data[$this->mapping['search_key']]);
 		
@@ -1068,7 +1081,7 @@ class Import // extends CommonObject
 		$produit->type=$type; //0 produit, 1 service
 		
 		$produit->price_base_type    = 'TTC';
-        $produit->price_ttc = 0;
+        $produit->price_ttc = isset($data['prix_ttc']) ? $data['prix_ttc'] : 0;
 		$produit->price_min_ttc = 0;
 
         $produit->tva_tx             = 19.6;
