@@ -1056,30 +1056,16 @@ class Import // extends CommonObject
 		return true;
 	}
 
-	function importLineMateriel($dataline) {
-	/*
-	 * J'insére les produits sans les lier à l'affaire. C'est l'import facture matériel qui le fera
-	 */
-		global $user;
-		/*
-		 *	serial_number,libelle_produit, date_achat, marque, type_copie, cout_copie
-		 *  "C2I256312";"ES 256 COPIEUR STUDIO ES 256";"06/12/2012";"TOSHIBA";"MCENB";"0,004"
-		 */
-		// Compteur du nombre de lignes
-		$this->nb_lines++;
+	function createProduct($data, $type=0) {
+		global $user;	
 		
-		$ATMdb=new Tdb;
-		
-		if(!$this->checkData($dataline)) return false;
-		$data = $this->contructDataTab($dataline);
-	
 		$produit =new Product($this->db);
 		$res=$produit->fetch('', $data['ref_produit']);
 		$fk_produit = $produit->id;
 		
 		$produit->ref = $data['ref_produit'];
 		$produit->libelle = $data['libelle_produit'];
-		$produit->type=0;
+		$produit->type=$type; //0 produit, 1 service
 		
 		$produit->price_base_type    = 'TTC';
         $produit->price_ttc = 0;
@@ -1122,6 +1108,27 @@ class Import // extends CommonObject
 			$produit->update($fk_produit, $user);
 		}
 	
+		return $fk_produit;
+	}
+
+	function importLineMateriel($dataline) {
+	/*
+	 * J'insére les produits sans les lier à l'affaire. C'est l'import facture matériel qui le fera
+	 */
+		global $user;
+		/*
+		 *	serial_number,libelle_produit, date_achat, marque, type_copie, cout_copie
+		 *  "C2I256312";"ES 256 COPIEUR STUDIO ES 256";"06/12/2012";"TOSHIBA";"MCENB";"0,004"
+		 */
+		// Compteur du nombre de lignes
+		$this->nb_lines++;
+		
+		$ATMdb=new Tdb;
+		
+		if(!$this->checkData($dataline)) return false;
+		$data = $this->contructDataTab($dataline);
+	
+		$fk_produit = $this->createProduct($data,0);
 	
 		$TSerial = explode(' - ',$data['serial_number']);
 		
