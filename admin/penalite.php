@@ -46,7 +46,17 @@ $typePenalite = empty($_REQUEST['type']) ? 'R': $_REQUEST['type'];
 llxHeader('',$langs->trans("PenaliteSetup"));
 
 $ATMdb=new Tdb;
+$idLeaser = $socid;
+$affaire = new TFin_affaire();
+$liste_type_contrat = $affaire->TContrat;
 $TGrille=array();
+
+foreach ($liste_type_contrat as $idTypeContrat => $label) {
+	$grille = new TFin_grille_leaser('PENALITE_'.$_REQUEST['type']);
+	$grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
+
+	$TGrille[$idTypeContrat] = $grille;
+}
 
 /**
  * ACTIONS
