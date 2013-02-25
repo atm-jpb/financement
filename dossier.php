@@ -289,7 +289,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			
 			
 	);
-	print $financement->get_date('date_solde','d/m/Y',true);
+	//print $financement->get_date('date_solde','d/m/Y',true);
 	if(isset($financement)) {
 		$TFinancement = array(
 			'montant'=>$form->texte('', 'montant', $financement->montant, 10,255,'','','à saisir') 

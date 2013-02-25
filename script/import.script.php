@@ -42,6 +42,7 @@ $error=0;
 // Include Dolibarr environment
 define('INC_FROM_CRON_SCRIPT', true);
 require_once($path."../config.php");
+
 // After this $db, $mysoc, $langs and $conf->entity are defined. Opened handler to database will be closed at end of file.
 
 //$langs->setDefaultLang('en_US'); 	// To change default language of $langs
@@ -72,13 +73,19 @@ dol_include_once("/equipement/class/asset.class.php");
 dol_include_once("/societe/class/societe.class.php");
 dol_include_once("/compta/facture/class/facture.class.php");
 dol_include_once("/product/class/product.class.php");
-
+dol_include_once("/core/class/html.form.class.php");	
+		
 
 $imp=new Import($db);
 $imp->entity = $conf->entity;
 $imp->fk_user_author = $user->id;
 
 $listOfFileType = $imp->TType_import_interne;
+//print_r($listOfFileType);exit;
+$listOfFileType=array(
+	'affaire'=>'Fichier affaire'
+	,'facture_location' => 'Fichier facture location'
+);
 $importFolder = FIN_IMPORT_FOLDER.'todo/';
 $importFolderOK = FIN_IMPORT_FOLDER.'done/';
 $importFolderMapping = FIN_IMPORT_FOLDER.'mappings/';
