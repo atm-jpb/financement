@@ -397,6 +397,24 @@ class TFin_dossier_affaire extends TObjetStd {
 		$this->affaire=new TFin_affaire;
 	}
 }	
+
+/*
+ * Lien dossier facture
+ */
+class TFin_dossier_facture extends TObjetStd {
+	function __construct() { /* declaration */
+		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_facture');
+		parent::add_champs('fk_fin_dossier,fk_facture','type=entier;');
+		parent::add_champs('type','type=chaine;');
+		parent::add_champs('montant','type=float;');
+		parent::start();
+		parent::_init_vars();
+		
+		$this->dossier = new TFin_dossier;
+		$this->affaire=new TFin_affaire;
+	}
+}	
+
 /*
  * Financement Dossier 
  */ 
