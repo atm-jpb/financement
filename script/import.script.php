@@ -81,11 +81,6 @@ $imp->entity = $conf->entity;
 $imp->fk_user_author = $user->id;
 
 $listOfFileType = $imp->TType_import_interne;
-//print_r($listOfFileType);exit;
-$listOfFileType=array(
-	'affaire'=>'Fichier affaire'
-	,'facture_location' => 'Fichier facture location'
-);
 $importFolder = FIN_IMPORT_FOLDER.'todo/';
 $importFolderOK = FIN_IMPORT_FOLDER.'done/';
 $importFolderMapping = FIN_IMPORT_FOLDER.'mappings/';

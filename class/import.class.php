@@ -633,7 +633,7 @@ class Import // extends CommonObject
 		// Recherche si tiers existant dans la base
 		$rowid = 0;
 		$sql = sprintf($sqlSearchClient, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		print $sql;
+		//print $sql;
 		$resql = $this->db->query($sql);
 		if($resql) {
 			$num = $this->db->num_rows($resql);
@@ -674,16 +674,16 @@ class Import // extends CommonObject
 				$this->nb_update++;
 			}			
 		} else {
-				print "CREATE...";
+			//	print "CREATE...";
 			$res = $societe->create($user);
 			print "!";
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				print 'NOK';
+				//print 'NOK';
 				$this->addError('ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
 				return false;
 			} else {
-				print 'OK';
+				//print 'OK';
 				$this->nb_create++;
 			}
 		}
