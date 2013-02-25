@@ -633,6 +633,7 @@ class Import // extends CommonObject
 		// Recherche si tiers existant dans la base
 		$rowid = 0;
 		$sql = sprintf($sqlSearchClient, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
+		//print $sql;
 		$resql = $this->db->query($sql);
 		if($resql) {
 			$num = $this->db->num_rows($resql);
@@ -661,9 +662,11 @@ class Import // extends CommonObject
 		$societe->idprof1 = substr($societe->idprof2,0,9);
 
 		// Mise à jour ou créatioon
+		
 		if($rowid > 0) {
 			$res = $societe->update($rowid, $user);
 			// Erreur : la mise à jour n'a pas marché
+			
 			if($res < 0) {
 				$this->addError('ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
 				return false;
@@ -671,16 +674,21 @@ class Import // extends CommonObject
 				$this->nb_update++;
 			}			
 		} else {
+			//	print "CREATE...";
 			$res = $societe->create($user);
+			print "!";
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
+				//print 'NOK';
 				$this->addError('ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
 				return false;
 			} else {
+				//print 'OK';
 				$this->nb_create++;
 			}
 		}
-		
+			
+	
 		return true;
 	}
 
@@ -870,41 +878,8 @@ class Import // extends CommonObject
 			$facture_loc->{$key} = $value;
 		}
 
-		/*
-		 * Création du lien  affaire/facture + lien entre matériel et affaire
-		 */
-		/*$ATMdb=new Tdb;
-		$affaire = new TFin_affaire;
-		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
-			$affaire->montant = $this->validateValue('total_ttc',$data['total_ttc']);
-			$affaire->save($ATMdb);	
-				
-			$facture_mat->linked_objects['affaire'] = $affaire->getId();	
-			
-			$TSerial = explode(' - ',$data['matricule']);
 		
-			foreach($TSerial as $serial) {
-				
-				$asset=new TAsset;
-				if($asset->loadReference($ATMdb, $data['matricule'])) {
-					$asset->fk_soc = $affaire->fk_soc;
-					
-					$asset->add_link($affaire->getId(),'affaire');	
-					
-					$asset->save($ATMdb);	
-				}
-				else {
-				//	print "ErrorMaterielNotExist";
-					$this->addError('ErrorMaterielNotExist', $dataline, true);
-					//return false;
-				}
-				
-			}
-			
-			
-			
-		}
-		$ATMdb->close();*/
+		
 		
 		// Mise à jour ou créatioon
 		if($rowid > 0) {
@@ -942,12 +917,44 @@ class Import // extends CommonObject
 				,'prix_ttc'=> $data['pu']*FIN_TVA_DEFAUT
 				,'marque'=> 'Service'
 			)
-		,1);		
+		,1);	
+		 print "Création du service($fk_service)";
+			
 		
 		// On ajoute la ligne
 		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 19.6,0,0,$fk_service);
 		// Force la validation avec numéro de facture
 		$facture_loc->validate($user, $data[$this->mapping['search_key']]);
+		
+		/*
+		 * Création du lien  affaire/facture
+		 */
+		$ATMdb=new Tdb;
+		$financement=new TFin_financement;
+		if($financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
+			/* OK */
+			$dossier=new TFin_dossier_affaire;
+			$dossier->load($ATMdb, $financement->fk_fin_dossier);
+			if(!empty($dossier->TLien)) {
+				$facture_loc->add_object_linked('affaire', $dossier->TLien[0]->fk_fin_affaire);	
+			}
+			else {
+				$this->addError('ErrorDossierWithoutAffaire', $data[$this->mapping['search_key_client']], $dataline, $sql);
+				return false;
+				
+			}
+							
+		}
+		else {
+			/* PAS OK, création du dossier et du financement */
+			$this->addError('ErrorWhereIsFinancement', $data[$this->mapping['search_key_client']], $dataline, $sql);
+			return false;
+		}
+		
+		
+		$ATMdb->close();
+		
+		
 		
 		$this->db->commit();
 		
@@ -1050,7 +1057,7 @@ class Import // extends CommonObject
 		}
 		
 		foreach ($data as $key => $value) {
-			$a->{$key} = $this->validateValue($key, $value);
+			$a->{$key} = $value /*$this->validateValue($key, $value)*/;
 		}
 		
 		$a->fk_soc = $fk_soc;		
@@ -1344,7 +1351,7 @@ class Import // extends CommonObject
 					break;
 				case 'date_english':
 					$sep = (strpos($value,'-')===false) ? '/': '-';
-					list($year, $month, $day) = explode('/', $value);
+					list($year, $month, $day) = explode($sep, $value);
 					$value = mktime(0, 0, 0, $month, $day, $year);
 					
 					break;
