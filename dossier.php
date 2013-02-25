@@ -146,8 +146,8 @@ function _liste(&$ATMdb, &$dossier) {
 	getStandartJS();
 	
 	$r = new TSSRenderControler($dossier);
-	$sql="SELECT d.rowid as 'ID', f.reference as 'Dossier', a.fk_soc as 'fk_soc', s.nom as 'Société', f.montant as 'Montant financé'
-	, f.duree as 'Durée', f.date_debut as 'Début', f.date_fin as 'Fin', f.incident_paiement as 'Incident de paiment' 
+	$sql="SELECT d.rowid as 'ID', f.reference as 'N° contrat', a.rowid as 'ID affaire', a.reference as 'N° affaire', a.fk_soc as 'fk_soc', s.nom as 'Société', 
+	f.duree as 'Durée', f.montant as 'Montant financé', f.echeance as 'Echéance', f.date_prochaine_echeance as 'Prochaine échéance', f.date_debut as 'Début', f.date_fin as 'Fin'
 	FROM ((((@table@ d
 	LEFT OUTER JOIN  llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
 		LEFT OUTER JOIN llx_fin_affaire a ON (l.fk_fin_affaire=a.rowid))
@@ -157,7 +157,7 @@ function _liste(&$ATMdb, &$dossier) {
 		WHERE a.entity=".$conf->entity;
 				
 				
-	$TOrder = array('ID'=>'DESC','Dossier'=>'ASC');
+	$TOrder = array('ID'=>'DESC','N° contrat'=>'ASC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
 	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
 				
@@ -169,13 +169,14 @@ function _liste(&$ATMdb, &$dossier) {
 		)
 		,'link'=>array(
 			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" title="Afficher société: test" alt="Afficher société: test" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
-			,'Dossier'=>'<a href="?id=@ID@">@val@</a>'
+			,'N° contrat'=>'<a href="?id=@ID@">@val@</a>'
+			,'N° affaire'=>'<a href="?id=@ID affaire@">@val@</a>'
 		)
 		,'translate'=>array(
 			'Incident de paiment'=>$dossier->TIncidentPaiement
 		)
-		,'hide'=>array('fk_soc')
-		,'type'=>array('Début'=>'date','Fin'=>'date', 'Montant financé'=>'money')
+		,'hide'=>array('fk_soc','ID','ID affaire')
+		,'type'=>array('Début'=>'date','Fin'=>'date','Prochaine échéance'=>'date', 'Montant financé'=>'money', 'Echéance'=>'money')
 		,'liste'=>array(
 			'titre'=>"Liste des dossiers"
 			,'image'=>img_picto('','title.png', '', 0)
