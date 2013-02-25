@@ -91,4 +91,5 @@ NbLines=Nb de lignes
 NbErrors=Nb d'erreurs
 NbCreate=Nb de création
 NbUpdate=Nb de mise à jour
-ErrorUserNotFound=Client non trouvé
+ErrorUserNotFound=Utilisateur non trouvé
+ErrorClientNotFound=Client non trouvé

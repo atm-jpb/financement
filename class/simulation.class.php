@@ -70,7 +70,7 @@ class TSimulation extends TObjetStd {
 					$doss = new TFin_dossier;
 					$doss->load($db, $idDossier);
 					$this->societe->TDossiers[] = $doss;
-					$this->societe->encours_cpro += $doss->getSolde($db, 'SNRCPRO');
+					$this->societe->encours_cpro += $doss->financementLeaser->valeur_actuelle();
 				}
 			}
 		}
