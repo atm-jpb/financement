@@ -918,7 +918,7 @@ class Import // extends CommonObject
 				,'marque'=> 'Service'
 			)
 		,1);	
-		 print "Création du service($fk_service)";
+		// print "Création du service($fk_service)";
 			
 		
 		// On ajoute la ligne
@@ -935,14 +935,11 @@ class Import // extends CommonObject
 			/* OK */
 			$dossier=new TFin_dossier_affaire;
 			$dossier->load($ATMdb, $financement->fk_fin_dossier);
-			if(!empty($dossier->TLien)) {
-				$facture_loc->add_object_linked('affaire', $dossier->TLien[0]->fk_fin_affaire);	
-			}
-			else {
-				$this->addError('ErrorDossierWithoutAffaire', $data[$this->mapping['search_key_client']], $dataline, $sql);
-				return false;
-				
-			}
+
+			/*
+			 * $dossier->addLiaisonFacture()
+			 * 
+			 */
 							
 		}
 		else {

@@ -19,6 +19,10 @@ class TFin_dossier extends TObjetStd {
 		$this->financementLeaser=new TFin_financement;
 		
 		$this->nature_financement='EXTERNE';
+		
+		$this->TFacture=array();
+		$this->TFactureFournisseur=array();
+		
 	}
 	
 	function loadReference(&$db, $reference, $annexe=false) {
@@ -200,9 +204,20 @@ class TFin_dossier extends TObjetStd {
 	function load_facture(&$ATMdb) {
 		$this->somme_facture = 0;
 		$this->somme_facture_reglee=0;
+		
+		$ATMdb->Execute("SELECT fk_target
+		FROM ll_element_element WHERE targettype='affaire' AND sourcetype='facture'");
+		
+		while($db->Get_line()) {
+			
+		}
+		
 	}
 	function load_factureFournisseur(&$ATMdb) {
 		$this->somme_facture_fournisseur = 0;
+		
+		
+		
 	}
 	
 	function getPenalite(&$ATMdb, $type, $nature_financement='INTERNE') {
@@ -504,7 +519,7 @@ class TFin_financement extends TObjetStd {
 			
 			$d=new TFin_dossier;
 			$d->financementLeaser->reference = 
-			$d->save($db);
+			$d->savell_element_element($db);
 			
 			$a->addDossier();
 			
@@ -550,7 +565,7 @@ class TFin_financement extends TObjetStd {
 		$this->calculDateFin();
 		
 		//$this->taux = 1 - (($this->montant * 100 / $this->echeance * $this->duree) - $this->reste);
-		$this->calculTaux();
+		$this->calculll_element_elementTaux();
 		
 		/*$g=new TFin_grille_leaser();
 

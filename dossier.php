@@ -157,10 +157,10 @@ function _liste(&$ATMdb, &$dossier) {
 		WHERE a.entity=".$conf->entity;
 				
 				
-	$TOrder = array('ID'=>'DESC','N° contrat'=>'ASC');
-	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
-	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
-				
+	$TOrder=array();
+	if(!empty($_REQUEST['orderDown']))$TOrder = array_merge( $TOrder , array($_REQUEST['orderDown']=>'DESC'));
+	if(!empty($_REQUEST['orderUp']))$TOrder = array_merge( $TOrder , array($_REQUEST['orderUp']=>'ASC'));
+	if(empty($TOrder)) { $TOrder = array('ID'=>'DESC','Dossier'=>'ASC'); }
 			
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
@@ -357,6 +357,8 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 	print $TBS->render('./tpl/dossier.tpl.php'
 		,array(
 			'affaire'=>$TAffaire
+			,'facture'=>$dossier->TFacture
+			,'factureFournisseur'=>$dossier->TFactureFournisseur
 		)
 		,array(
 			'dossier'=>array(
