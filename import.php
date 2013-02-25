@@ -5,6 +5,7 @@
 	require('./class/dossier.class.php');
 	require('./class/affaire.class.php');
 	require('./class/grille.class.php');
+	require('./class/score.class.php');
 	
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 
@@ -205,11 +206,26 @@ function _fiche(&$ATMdb, &$import, $mode) {
 }
 
 function _liste_errors(&$ATMdb, $import) {
+	global $langs;
+	$langs->load("financement@financement");
 	$r = new TListviewTBS('import_error_list');
 	$sql = "SELECT ie.num_line as 'Numéro ligne', ie.error_msg as 'Message', ie.content_line as 'Ligne', ie.sql_errno as 'Erreur SQL', ie.sql_error as 'Trace SQL'";
 	$sql.= " , ie.error_data as 'Donnée utilisée'";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_import_error ie ";
 	$sql.= " WHERE ie.fk_import = ".$import->id;
+	
+	/*$ATMdb->Execute($sql);
+	$TErrors = array();
+	while ($ATMdb->Get_line()) {
+		$TErrors[] = array(
+			'Numéro ligne' => $ATMdb->Get_field('Numéro ligne')
+			,'Message' => $langs->trans($ATMdb->Get_field('Message'))
+			,'Ligne' => $ATMdb->Get_field('Ligne')
+			,'Erreur SQL' => $ATMdb->Get_field('Erreur SQL')
+			,'Trace SQL' => $ATMdb->Get_field('Trace SQL')
+			,'Donnée utilisée' => $ATMdb->Get_field('Donnée utilisée')
+		);
+	}*/
 	
 	$THide = array('Ligne', 'Erreur SQL', 'Trace SQL');
 	
@@ -223,6 +239,7 @@ function _liste_errors(&$ATMdb, $import) {
 		)
 		,'link'=>array()
 		,'translate'=>array()
+		,'eval'=>array('Message'=>'_langs_trans("@val@")')
 		,'hide'=>$THide
 		,'type'=>array()
 		,'liste'=>array(
@@ -237,4 +254,10 @@ function _liste_errors(&$ATMdb, $import) {
 			
 		)
 	));
+}
+
+function _langs_trans($str) {
+	global $langs;
+	$langs->load("financement@financement");
+	return $langs->trans($str);
 }
