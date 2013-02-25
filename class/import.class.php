@@ -656,7 +656,7 @@ class Import // extends CommonObject
 		}
 
 		foreach ($data as $key => $value) {
-			$societe->{$key} = $this->validateValue($key, $value);
+			$societe->{$key} = $value;
 		}
 		
 		$societe->idprof1 = substr($societe->idprof2,0,9);
@@ -751,7 +751,7 @@ class Import // extends CommonObject
 		}
 
 		foreach ($data as $key => $value) {
-			$facture_mat->{$key} = $this->validateValue($key, $value);
+			$facture_mat->{$key} = $value;
 		}
 		
 		
@@ -1057,7 +1057,7 @@ class Import // extends CommonObject
 		}
 		
 		foreach ($data as $key => $value) {
-			$a->{$key} = $value /*$this->validateValue($key, $value)*/;
+			$a->{$key} = $value;
 		}
 		
 		$a->fk_soc = $fk_soc;		
@@ -1274,7 +1274,7 @@ class Import // extends CommonObject
 		$score = new TScore();
 
 		foreach ($data as $key => $value) {
-			$score->{$key} = $this->validateValue($key, $value);
+			$score->{$key} = $value;
 		}
 		
 		$score->fk_soc = $fk_soc;
