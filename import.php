@@ -214,19 +214,6 @@ function _liste_errors(&$ATMdb, $import) {
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_import_error ie ";
 	$sql.= " WHERE ie.fk_import = ".$import->id;
 	
-	/*$ATMdb->Execute($sql);
-	$TErrors = array();
-	while ($ATMdb->Get_line()) {
-		$TErrors[] = array(
-			'Numéro ligne' => $ATMdb->Get_field('Numéro ligne')
-			,'Message' => $langs->trans($ATMdb->Get_field('Message'))
-			,'Ligne' => $ATMdb->Get_field('Ligne')
-			,'Erreur SQL' => $ATMdb->Get_field('Erreur SQL')
-			,'Trace SQL' => $ATMdb->Get_field('Trace SQL')
-			,'Donnée utilisée' => $ATMdb->Get_field('Donnée utilisée')
-		);
-	}*/
-	
 	$THide = array('Ligne', 'Erreur SQL', 'Trace SQL');
 	
 	return $r->render($ATMdb, $sql, array(
