@@ -661,7 +661,7 @@ class Import // extends CommonObject
 		
 		$societe->idprof1 = substr($societe->idprof2,0,9);
 
-		// Mise à jour ou créatioon
+		// Mise à jour ou création
 		
 		if($rowid > 0) {
 			$res = $societe->update($rowid, $user);
@@ -674,10 +674,9 @@ class Import // extends CommonObject
 				$this->nb_update++;
 			}			
 		} else {
-			//	print "CREATE...";
 			$res = $societe->create($user);
-			print "!";
 			// Erreur : la création n'a pas marché
+			
 			if($res < 0) {
 				//print 'NOK';
 				$this->addError('ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
@@ -687,8 +686,7 @@ class Import // extends CommonObject
 				$this->nb_create++;
 			}
 		}
-			
-	
+		
 		return true;
 	}
 
@@ -727,7 +725,7 @@ class Import // extends CommonObject
 		$resql = $this->db->query($sql);
 		if($resql) {
 			$num = $this->db->num_rows($resql);
-			if($num == 1) { // Enregistrement trouvé, mise à jour
+			if($num == 1) { // Enregistrement trouvé
 				$obj = $this->db->fetch_object($resql);
 				$fk_soc = $obj->rowid;
 			} else if($num > 1) { // Plusieurs trouvés, erreur
@@ -779,14 +777,14 @@ class Import // extends CommonObject
 					$asset->save($ATMdb);	
 				}
 				else {
-					$this->addError('ErrorMaterielNotExist', $data['matricule'], $dataline);
+					$this->addError('ErrorMaterielNotFound', $data['matricule'], $dataline);
 					return false;
 				}
 			}
 		}
 		$ATMdb->close();
 		
-		// Mise à jour ou créatioon
+		// Mise à jour ou création
 		if($rowid > 0) {
 			$res = $facture_mat->update($rowid, $user);
 			// Erreur : la mise à jour n'a pas marché
@@ -808,10 +806,12 @@ class Import // extends CommonObject
 		}
 		
 		// Actions spécifiques
-		$facture_mat->addline($facture_mat->id, 'Matricule '.$data['matricule'], 0, 1, 19.6, 0, 0, 0, 0, '', '', 0, 0, '', 'HT', $data['total_ht']);
+		// On repasse en brouillon pour ajouter la ligne
+		$facture_mat->set_draft($user);
+		// On ajoute la ligne 
+		$facture_mat->addline($facture_mat->id, 'Matricule '.$data['matricule'], $data['total_ht'], 1, 19.6);
+		// Force la validation avec numéro de facture
 		$facture_mat->validate($user, $data[$this->mapping['search_key']]); // Force la validation avec numéro de facture
-		
-		
 		
 		return true;
 	}
@@ -881,7 +881,7 @@ class Import // extends CommonObject
 		
 		
 		
-		// Mise à jour ou créatioon
+		// Mise à jour ou création
 		if($rowid > 0) {
 			$res = $facture_loc->update($rowid, $user);
 			// Erreur : la mise à jour n'a pas marché

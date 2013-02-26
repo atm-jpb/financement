@@ -9,6 +9,7 @@ search_key_client=code_client
 5=total_ht
 6=date_lim_reglement
 7=matricule
+8=reference_dossier_interne
 
 [more]
 
