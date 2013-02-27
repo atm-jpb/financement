@@ -182,7 +182,7 @@ global $langs,$conf, $db;
 		)
 		,'link'=>array(
 			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
-			,'Numéro d\'affaire'=>'<a href="?id=@ID@">@val@</a>'
+			,'reference'=>'<a href="?id=@ID@">@val@</a>'
 		)
 		,'translate'=>array(
 			'nature_financement'=>$affaire->TNatureFinancement

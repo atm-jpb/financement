@@ -74,20 +74,24 @@ if($action == 'save') {
 	
 	$grille = & $TGrille[$idTypeContrat];
 	
-	$grille->addPalier($newPalier);
-	$grille->addPeriode($newPeriode);
+	$grille->addPeriode($newPeriode[$idTypeContrat]);
+	$grille->addPalier($newPalier[$idTypeContrat]);
 	
 	//$ATMdb->db->debug=true;
-	
+	/*print '<pre>';
+		print_r($grille->TGrille);
+		print '</pre>';
+		*/
+		
 	if(!empty($TCoeff)) {
 		/*print_r($TPalier);
 		print_r($TPeriode);
 		*/
-		foreach($TCoeff as $i=>$TLigne) {
-			$periode = $TPeriode[$i];
+		foreach($TCoeff[$idTypeContrat] as $i=>$TLigne) {
+			$periode = $TPeriode[$idTypeContrat][$i];
 							
 			foreach($TLigne as $j=>$coeff) {
-				$montant = $TPalier[$j];
+				$montant = $TPalier[$idTypeContrat][$j];
 		//	print "$i/$j $periode/$montant ".$coeff['coeff']."<br>";
 				
 				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, $montant, $coeff['coeff'] );
@@ -124,7 +128,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$TPalier=array();
 	foreach($grille->TPalier as $i=>$palier) {
 		$TPalier[]=array(
-			'montant'=>$form->texte('','TPalier['.($i+1).']', $palier['montant'],10,255)
+			'montant'=>$form->texte('','TPalier['.$idTypeContrat.']['.($i+1).']', $palier['montant'],10,255)
 			,'lastMontant'=>$palier['lastMontant']
 		);
 		
@@ -136,7 +140,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	echo $form->hidden('action', 'save');
 	echo $form->hidden('idTypeContrat', $idTypeContrat );
 	echo $form->hidden('idLeaser', $idLeaser);
-	/*print '<pre>';
+/*print '<pre>';
 	print_r($grille->TPalier);
 	print_r($TCoeff);
 	print '</pre>';*/
@@ -148,7 +152,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 			,'coefficient'=>$TCoeff
 		)
 		,array(
-			'view'=>array('mode'=>$mode)
+			'view'=>array('mode'=>$mode, 'contrat'=>$idTypeContrat)
 			
 		)
 	);
