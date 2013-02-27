@@ -501,13 +501,15 @@ class TFin_financement extends TObjetStd {
 	
 		$this->TReglement=array();
 		
-		$form = new Form($db);	
-		$form->load_cache_types_paiements();
-		
-		foreach($form->cache_types_paiements as $row) {
-			if($row['code']!='') {
-				$this->TReglement[$row['code']] = $row['label'];	
-			}	
+		if(class_exists('Form')) {
+			$form = new Form($db);	
+			$form->load_cache_types_paiements();
+			
+			foreach($form->cache_types_paiements as $row) {
+				if($row['code']!='') {
+					$this->TReglement[$row['code']] = $row['label'];	
+				}	
+			}
 		}
 		
 	}
