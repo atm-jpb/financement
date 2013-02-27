@@ -202,7 +202,7 @@ class TSimulation extends TObjetStd {
 				$this->accord = 'WAIT';
 			} else { // Donnée suffisantes pour faire les vérifications pour l'accord
 				if($this->societe->score->score > $conf->global->FINANCEMENT_SCORE_MINI // Score minimum
-					&& ($this->societe->score->encours_conseille - $this->societe->encours_cpro) * $conf->global->FINANCEMENT_PERCENT_VALID_AMOUNT > $this->montant_total_finance // % "d'endettement"
+					&& ($this->societe->score->encours_conseille - $this->societe->encours_cpro) * ($conf->global->FINANCEMENT_PERCENT_VALID_AMOUNT / 100) > $this->montant_total_finance // % "d'endettement"
 					&& !in_array($this->societe->idprof3, explode(FIN_IMPORT_FIELD_DELIMITER, $conf->global->FINANCEMENT_NAF_BLACKLIST)) // NAF non black-listé
 					&& !empty($this->societe->TDossiers)) // A déjà eu au moins un dossier chez CPRO
 				{
