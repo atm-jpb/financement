@@ -129,7 +129,8 @@ global $langs,$conf, $db;
 	getStandartJS();
 	
 	$r = new TSSRenderControler($affaire);
-	$sql="SELECT a.rowid as 'ID', a.reference as 'Numéro d\'affaire', a.montant as 'Montant', a.fk_soc, s.nom as 'Société', a.nature_financement as 'Nature', a.type_financement as 'Type', a.contrat as 'Type de contrat', a.date_affaire as 'Date de l\'affaire'
+	$sql="SELECT a.rowid as 'ID', a.reference, a.montant as 'Montant', a.fk_soc, s.nom as 'Société'
+	, a.nature_financement, a.type_financement, a.contrat as 'Type de contrat', a.date_affaire as 'Date de l\'affaire'
 		FROM @table@ a LEFT JOIN llx_societe s ON (a.fk_soc=s.rowid)
 		WHERE a.entity=".$conf->entity;
 	
@@ -168,6 +169,8 @@ global $langs,$conf, $db;
 		);
 	}
 	
+	$form=new TFormCore($_SERVER['PHP_SELF'], 'formAffaire', 'GET');
+	
 	//$TOrder = empty($_REQUEST['TOrder'][]) ? array('ID'=>'DESC','Numéro d\'affaire'=>'ASC') : $_REQUEST['TOrder'];
 	//$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 	//print_r($_REQUEST);
@@ -182,8 +185,8 @@ global $langs,$conf, $db;
 			,'Numéro d\'affaire'=>'<a href="?id=@ID@">@val@</a>'
 		)
 		,'translate'=>array(
-			'Financement : Nature'=>$affaire->TNatureFinancement
-			,'Type'=>$affaire->TTypeFinancement
+			'nature_financement'=>$affaire->TNatureFinancement
+			,'type_financement'=>$affaire->TTypeFinancement
 		)
 		,'hide'=>$THide
 		,'type'=>array('Date de l\'affaire'=>'date', 'Montant'=>'money')
@@ -196,11 +199,23 @@ global $langs,$conf, $db;
 			,'messageNothing'=>"Il n'y a aucune affaire à afficher"
 			,'order_down'=>img_picto('','1downarrow.png', '', 0)
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
-			
+			,'picto_search'=>img_picto('','search.png', '', 0)
 		)
-		,'orderBy'=>array('ID'=>'DESC','Numéro d\'affaire'=>'ASC')
+		,'title'=>array(
+			'reference'=>'Numéro d\'affaire'
+			,'nature_financement'=>'Nature'
+			,'type_financement'=> 'Type'
+		)
+		,'orderBy'=>array('ID'=>'DESC','reference'=>'ASC')
+		,'search'=>array(
+			'reference'=>true
+			,'nature_financement'=>$affaire->TNatureFinancement
+			,'type_financement'=>$affaire->TTypeFinancement
+		)
 		
 	));
+	
+	$form->end();
 	
 	if(isset($_REQUEST['socid'])) {
 		?><div class="tabsAction"><a href="?action=new&fk_soc=<?=$_REQUEST['socid'] ?>" class="butAction">Créer une affaire</a></div><?
