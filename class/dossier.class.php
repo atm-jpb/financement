@@ -583,7 +583,7 @@ class TFin_financement extends TObjetStd {
 		$this->calculDateFin();
 		
 		//$this->taux = 1 - (($this->montant * 100 / $this->echeance * $this->duree) - $this->reste);
-		$this->calculll_element_elementTaux();
+		$this->calculTaux();
 		
 		/*$g=new TFin_grille_leaser();
 
