@@ -284,16 +284,25 @@ class TFin_dossier extends TObjetStd {
 		
 		switch($type) {
 			case 'SRBANK':
+				
+				if($this->financementLeaser->duree_passe <= 5) return $this->financementLeaser->montant; 
+				
 				return $CRD_Leaser * $this->getPenalite($ATMdb,'R', 'EXTERNE');
 
 				break;
 			case 'SNRBANK':
+				if($this->financementLeaser->duree_passe <= 5) return $this->financementLeaser->montant;
+				
 				return $LRD_Leaser * $this->getPenalite($ATMdb,'NR', 'EXTERNE');
 				break;
 				
 			case 'SNRCPRO':
+				
+				if($this->financement->duree_passe <= 5) return $this->financementLeaser->montant;
+				
 				if($this->nature_financement == 'INTERNE') {
-					return (($CRD + $this->getRentabiliteReste($ATMdb)) * $this->getPenalite($ATMdb,'R','INTERNE')) + $this->getMontantCommission();
+
+					return ($CRD * $this->getPenalite($ATMdb,'R','INTERNE')) + $this->getRentabiliteReste($ATMdb) + $this->getMontantCommission();
 				}
 				else {
 					return $LRD_Leaser * $this->getPenalite($ATMdb,'NR', 'EXTERNE') * $this->getPenalite($ATMdb,'NR', 'INTERNE');
@@ -301,6 +310,8 @@ class TFin_dossier extends TObjetStd {
 				break;
 					
 			case 'SRCPRO':
+				if($this->financement->duree_passe <= 5) return $this->financementLeaser->montant;
+
 				if($this->nature_financement == 'INTERNE') {
 					return $LRD;
 				}

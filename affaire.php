@@ -168,15 +168,13 @@ global $langs,$conf, $db;
 		);
 	}
 	
-	$TOrder = array('ID'=>'DESC','Numéro d\'affaire'=>'ASC');
-	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
-	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
-				
-	$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;			
+	//$TOrder = empty($_REQUEST['TOrder'][]) ? array('ID'=>'DESC','Numéro d\'affaire'=>'ASC') : $_REQUEST['TOrder'];
+	//$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+	//print_r($_REQUEST);
 	//print $page;
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
-			'page'=>$page
+			'page'=>1
 			,'nbLine'=>'30'
 		)
 		,'link'=>array(
@@ -200,7 +198,7 @@ global $langs,$conf, $db;
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
 			
 		)
-		,'orderBy'=>$TOrder
+		,'orderBy'=>array('ID'=>'DESC','Numéro d\'affaire'=>'ASC')
 		
 	));
 	

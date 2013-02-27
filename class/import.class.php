@@ -943,7 +943,7 @@ class Import // extends CommonObject
 							
 		}
 		else {
-			/* PAS OK, création du dossier et du financement */
+			/* PAS OK */
 			$this->addError('ErrorWhereIsFinancement', $data[$this->mapping['search_key_client']], $dataline, $sql);
 			return false;
 		}

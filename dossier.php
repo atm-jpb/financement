@@ -160,7 +160,7 @@ function _liste(&$ATMdb, &$dossier) {
 	$TOrder=array();
 	if(!empty($_REQUEST['orderDown']))$TOrder = array_merge( $TOrder , array($_REQUEST['orderDown']=>'DESC'));
 	if(!empty($_REQUEST['orderUp']))$TOrder = array_merge( $TOrder , array($_REQUEST['orderUp']=>'ASC'));
-	if(empty($TOrder)) { $TOrder = array('ID'=>'DESC','Dossier'=>'ASC'); }
+	if(empty($TOrder)) { $TOrder = array('ID'=>'DESC','N° contrat'=>'ASC'); }
 			
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
