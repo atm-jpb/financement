@@ -23,7 +23,7 @@
 						
 						<tr><td width="50%">Numéro de contrat Client</td><td>[financement.reference; strconv=no]</td></tr>
 						<tr><td>Montant financé HT</td><td>[financement.montant; strconv=no] &euro;</td></tr>
-						<tr><td>Taux</td><td>[financement.taux; frm=0 000,00] %</td></tr>
+						<tr><td>Taux</td><td>[financement.taux; frm=0 000,0000] %</td></tr>
 						<tr><td>Périodicité</td><td>[financement.periodicite; strconv=no]</td></tr>
 			
 						<tr><td>Durée</td><td>[financement.duree; strconv=no]</td></tr>
@@ -64,7 +64,7 @@
 							
 						</tr>
 						<tr><td>Montant financé HT</td><td >[financementLeaser.montant; strconv=no; frm=0 000,00] &euro;</td></tr>
-						<tr><td>Taux</td><td >[financementLeaser.taux; frm=0 000,00] %</td></tr>
+						<tr><td>Taux</td><td >[financementLeaser.taux; frm=0 000,0000] %</td></tr>
 						<tr><td>Périodicité</td><td >[financementLeaser.periodicite; strconv=no]</td></tr>
 			
 						<tr><td>Durée</td><td >[financementLeaser.duree; strconv=no]</td></tr>
