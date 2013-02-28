@@ -130,7 +130,7 @@ global $langs,$conf, $db;
 	
 	$r = new TSSRenderControler($affaire);
 	$sql="SELECT a.rowid as 'ID', a.reference, a.montant as 'Montant', a.fk_soc, s.nom as 'Société'
-	, a.nature_financement, a.type_financement, a.contrat as 'Type de contrat', a.date_affaire as 'Date de l\'affaire'
+	, a.nature_financement, a.type_financement, a.contrat as 'Type de contrat', a.date_affaire
 		FROM @table@ a LEFT JOIN llx_societe s ON (a.fk_soc=s.rowid)
 		WHERE a.entity=".$conf->entity;
 	
@@ -189,7 +189,7 @@ global $langs,$conf, $db;
 			,'type_financement'=>$affaire->TTypeFinancement
 		)
 		,'hide'=>$THide
-		,'type'=>array('Date de l\'affaire'=>'date', 'Montant'=>'money')
+		,'type'=>array('date_affaire'=>'date', 'Montant'=>'money')
 		,'liste'=>array(
 			'titre'=>'Liste des affaires'
 			,'image'=>img_picto('','title.png', '', 0)
@@ -205,12 +205,14 @@ global $langs,$conf, $db;
 			'reference'=>'Numéro d\'affaire'
 			,'nature_financement'=>'Nature'
 			,'type_financement'=> 'Type'
+			,'date_affaire'=>'Date de l\'affaire'
 		)
 		,'orderBy'=>array('ID'=>'DESC','reference'=>'ASC')
 		,'search'=>array(
 			'reference'=>true
 			,'nature_financement'=>$affaire->TNatureFinancement
 			,'type_financement'=>$affaire->TTypeFinancement
+			,'date_affaire'=>'calendar'
 		)
 		
 	));
