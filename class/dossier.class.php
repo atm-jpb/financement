@@ -231,8 +231,8 @@ class TFin_dossier extends TObjetStd {
 		else {	$f = &$this->financementLeaser; }
 
 		$g->get_grille($ATMdb,$f->fk_soc,$this->contrat);	
-		
-		return (double)$g->get_coeff($ATMdb, $f->fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree);
+		$coeff = (double)$g->get_coeff($ATMdb, $f->fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree);
+		return $coeff > 0 ? $coeff : 0;
 	}
 	function getMontantCommission() {
 		$f= &$this->financement; 
@@ -285,38 +285,37 @@ class TFin_dossier extends TObjetStd {
 		switch($type) {
 			case 'SRBANK':
 				
-				if($this->financementLeaser->duree_passe <= 5) return $this->financementLeaser->montant; 
+				//if($this->financementLeaser->duree_passe <= 5) return $this->financementLeaser->montant;
 				
-				return $CRD_Leaser * $this->getPenalite($ATMdb,'R', 'EXTERNE');
+				return $CRD_Leaser * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
 
 				break;
 			case 'SNRBANK':
-				if($this->financementLeaser->duree_passe <= 5) return $this->financementLeaser->montant;
+				//if($this->financementLeaser->duree_passe <= 5) return $this->financementLeaser->montant;
 				
-				return $LRD_Leaser * $this->getPenalite($ATMdb,'NR', 'EXTERNE');
+				return $LRD_Leaser * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100);
 				break;
 				
 			case 'SNRCPRO':
 				
-				if($this->financement->duree_passe <= 5) return $this->financementLeaser->montant;
+				//if($this->financement->duree_passe <= 5) return $this->financementLeaser->montant;
 				
 				if($this->nature_financement == 'INTERNE') {
-
-					return ($CRD * $this->getPenalite($ATMdb,'R','INTERNE')) + $this->getRentabiliteReste($ATMdb) + $this->getMontantCommission();
+					return ($CRD * (1 + $this->getPenalite($ATMdb,'R','INTERNE') / 100)) + $this->getRentabiliteReste($ATMdb) + $this->getMontantCommission();
 				}
 				else {
-					return $LRD_Leaser * $this->getPenalite($ATMdb,'NR', 'EXTERNE') * $this->getPenalite($ATMdb,'NR', 'INTERNE');
+					return $LRD_Leaser * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'NR', 'INTERNE') / 100);
 				}
 				break;
 					
 			case 'SRCPRO':
-				if($this->financement->duree_passe <= 5) return $this->financementLeaser->montant;
+				//if($this->financement->duree_passe <= 5) return $this->financementLeaser->montant;
 
 				if($this->nature_financement == 'INTERNE') {
 					return $LRD;
 				}
 				else {
-					return $CRD_Leaser * $this->getPenalite($ATMdb,'R', 'EXTERNE') * $this->getPenalite($ATMdb,'R', 'INTERNE');
+					return $CRD_Leaser * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
 				}
 				
 				
@@ -354,7 +353,7 @@ class TFin_dossier extends TObjetStd {
 			$time = strtotime('+'.($i*3).' month',  $f->date_debut);	
 			
 			
-			$capital_amortit = $f->amortissement_echeance( $i ) ;
+			$capital_amortit = $f->amortissement_echeance( $i + 1 ) ;
 			$part_interet = $f->echeance -$capital_amortit; 			
 
 			$capital_restant-=$capital_amortit;
@@ -626,8 +625,7 @@ class TFin_financement extends TObjetStd {
 	function amortissement_echeance($periode) {
 		
 		$duree = $this->duree;
-		
-		$r = $this->PRINCPER($this->taux / 100 / (12 / $this->getiPeriode()), $periode, $this->duree, $this->montant);
+		$r = $this->PRINCPER(($this->taux / (12 / $this->getiPeriode())) / 100, $periode, $this->duree, $this->montant, $this->reste, $this->terme);
 
 		$r = -$r;
 		
@@ -636,11 +634,11 @@ class TFin_financement extends TObjetStd {
 		return $r;
 	}
 	
-	private function PRINCPER($taux, $p, $NPM, $VA)
+	private function PRINCPER($taux, $p, $NPM, $VA, $valeur_residuelle, $type)
 	{
 		$valeur_residuelle=0;$type=0;
 		return $taux / (1 + $taux * $type) * $VA * (pow(1 + $taux,-$NPM+$p - 1)) / (pow(1 + $taux,-$NPM) - 1) - $valeur_residuelle * (pow(1 + $taux,$p - 1)) / (pow(1 + $taux,$NPM) - 1);
-	} 
+	}
 	
 	/**
 	 * VPM : Calcule le montant total de chaque remboursement périodique d'un investissement à remboursements et taux d'intérêt constants
@@ -664,7 +662,7 @@ class TFin_financement extends TObjetStd {
 		return -$vpm;
 	}
 	function valeur_actuelle() {
-		return -$this->va($this->taux / 12 / 100, $this->duree, $this->echeance, $this->reste, $this->terme);
+		return $this->va($this->taux / (12 / $this->getiPeriode()) / 100, $this->duree, $this->echeance, $this->reste, $this->terme);
 	}
 	/**
 	 * VA : Calcule la valeur actuelle d'un investissement
