@@ -252,7 +252,7 @@ class TFin_dossier extends TObjetStd {
 		return $coeff > 0 ? $coeff : 0;
 		
 	}
-	function getRentabiliteAttendue() {
+	function getRentabilitePrevisionnelle() {
 		return $this->financement->somme_echeance - $this->financementLeaser->somme_echeance;
 	}
 	function getRentabiliteAttendue(&$ATMdb) {
