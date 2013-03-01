@@ -622,7 +622,7 @@ class TFin_financement extends TObjetStd {
 	function amortissement_echeance($periode) {
 		
 		$duree = $this->duree;
-		$r = $this->PRINCPER(($this->taux / (12 / $this->getiPeriode())) / 100, $periode, $this->duree, $this->montant, $this->reste, $this->terme);
+		$r = $this->PRINCPER(($this->taux / (12 / $this->getiPeriode())) / 100, $periode, $this->duree, $this->montant - $this->reste, $this->reste, $this->terme);
 
 		$r = -$r;
 		
