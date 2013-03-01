@@ -248,20 +248,17 @@ class TFin_dossier extends TObjetStd {
 		else {	$f = &$this->financementLeaser; }
 		
 		$g->get_grille($ATMdb,$f->fk_soc,$this->contrat);	
-			
-		return (double)$g->get_coeff($ATMdb, $f->fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree);
+		$coeff = (double)$g->get_coeff($ATMdb, $f->fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree);
+		return $coeff > 0 ? $coeff : 0;
 		
+	}
+	function getRentabilitePrevisionnelle() {
+		return $this->financement->somme_echeance - $this->financementLeaser->somme_echeance;
 	}
 	function getRentabiliteAttendue(&$ATMdb) {
-		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
-		else {	$f = &$this->financementLeaser; }
-		
-		return $f->montant * $this->getRentabilite($ATMdb)	;	
+		return $this->financement->montant * $this->getRentabilite($ATMdb) / 100;
 	}
 	function getRentabiliteReelle() {
-		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
-		else {	$f = &$this->financementLeaser; }
-		
 		return $this->somme_facture_reglee - $this->somme_facture_fournisseur;
 	}
 	
@@ -298,7 +295,7 @@ class TFin_dossier extends TObjetStd {
 				
 			case 'SNRCPRO':
 				
-				//if($this->financement->duree_passe <= 5) return $this->financementLeaser->montant;
+				//if($this->financement->duree_passe <= 5) return $this->financement->montant;
 				
 				if($this->nature_financement == 'INTERNE') {
 					return ($CRD * (1 + $this->getPenalite($ATMdb,'R','INTERNE') / 100)) + $this->getRentabiliteReste($ATMdb) + $this->getMontantCommission();
@@ -309,7 +306,7 @@ class TFin_dossier extends TObjetStd {
 				break;
 					
 			case 'SRCPRO':
-				//if($this->financement->duree_passe <= 5) return $this->financementLeaser->montant;
+				//if($this->financement->duree_passe <= 5) return $this->financement->montant;
 
 				if($this->nature_financement == 'INTERNE') {
 					return $LRD;

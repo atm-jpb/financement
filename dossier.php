@@ -376,8 +376,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'solde'=>$dossier->solde
 				,'montant_ok'=>$dossier->somme_affaire
 				,'nature_financement'=>$dossier->nature_financement
-				,'rentabilite_attendue'=>$financement->somme_echeance - $financementLeaser->somme_echeance
-				,'rentabilite_reelle'=>$financement->somme_facture - $financementLeaser->somme_facture
+				,'rentabilite_attendue'=>$dossier->getRentabilitePrevisionnelle()
+				,'rentabilite_reelle'=>$dossier->getRentabiliteReelle()
 				,'soldeRBANK'=>$dossier->getSolde($PDOdb, 'SRBANK')
 				,'soldeNRBANK'=>$dossier->getSolde($PDOdb, 'SNRBANK')
 				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO')
