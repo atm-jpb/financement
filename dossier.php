@@ -9,7 +9,7 @@
 	if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
 	
 	$dossier=new TFin_Dossier;
-	$ATMdb = new Tdb;
+	$PDOdb=new TPDOdb;
 	$tbs = new TTemplateTBS;
 	
 	$mesg = '';
@@ -22,39 +22,39 @@
 				
 				$dossier->set_values($_REQUEST);
 				if(isset($_REQUEST['fk_fin_affaire'])) {
-					if($dossier->addAffaire($ATMdb, $_REQUEST['fk_fin_affaire'])) {
+					if($dossier->addAffaire($PDOdb, $_REQUEST['fk_fin_affaire'])) {
 						$dossier->financement->montant = $_REQUEST['montant'];
 						if($_REQUEST['nature_financement']=='EXTERNE') {
 							unset($dossier->financement);
 						}
-						$dossier->save($ATMdb);
+						$dossier->save($PDOdb);
 					}
 					else {
 						$mesg = '<div class="error">Impossible d\'ajouter créer un dossier dans cette affaire. </div>';
 						$error=true;
 						
-						_liste($ATMdb, $dossier);
+						_liste($PDOdb, $dossier);
 					}
 				}
 				else {
-					$dossier->save($ATMdb);
+					$dossier->save($PDOdb);
 				}
 	
 				
-				_fiche($ATMdb,$dossier,'edit');
+				_fiche($PDOdb,$dossier,'edit');
 				
 				break;	
 			case 'edit'	:
 			
-				$dossier->load($ATMdb, $_REQUEST['id']);
+				$dossier->load($PDOdb, $_REQUEST['id']);
 				
-				_fiche($ATMdb,$dossier,'edit');
+				_fiche($PDOdb,$dossier,'edit');
 				break;
 				
 			case 'save':
-				//$ATMdb->db->debug=true;
+				//$PDOdb->db->debug=true;
 				
-				$dossier->load($ATMdb, $_REQUEST['id']);
+				$dossier->load($PDOdb, $_REQUEST['id']);
 				$dossier->set_values($_REQUEST);
 				if(isset($dossier->financement))$dossier->financement->set_values($_REQUEST);
 				
@@ -65,17 +65,17 @@
 				}
 				
 				//print_r($dossier->financementLeaser);
-				$dossier->save($ATMdb);
+				$dossier->save($PDOdb);
 				//print 'nature_financement:'.$dossier->nature_financement;exit;
-				_fiche($ATMdb,$dossier,'view');
+				_fiche($PDOdb,$dossier,'view');
 				
 				break;
 			
 				
 			case 'delete':
-				//$ATMdb->db->debug=true;
-				$dossier->load($ATMdb, $_REQUEST['id']);
-				$dossier->delete($ATMdb);
+				//$PDOdb->db->debug=true;
+				$dossier->load($PDOdb, $_REQUEST['id']);
+				$dossier->delete($PDOdb);
 				
 				?>
 				<script language="javascript">
@@ -87,11 +87,11 @@
 				break;
 				
 			case 'add_affaire':
-			//$ATMdb->db->debug=true;
-				$dossier->load($ATMdb, $_REQUEST['id']);
+			//$PDOdb->db->debug=true;
+				$dossier->load($PDOdb, $_REQUEST['id']);
 				$dossier->set_values($_REQUEST);
 			
-				if(!$dossier->addAffaire($ATMdb, null, $_REQUEST['affaire_to_add'])) {
+				if(!$dossier->addAffaire($PDOdb, null, $_REQUEST['affaire_to_add'])) {
 					$mesg = '<div class="error">Impossible d\'ajouter cette affaire au dossier. </div>';
 					$error=true;
 					
@@ -100,53 +100,53 @@
 					$mesg = '<div class="ok">Affaire ajoutée au dossier</div>';
 				}
 				//exit($mesg);
-				$dossier->save($ATMdb);
+				$dossier->save($PDOdb);
 				
-				_fiche($ATMdb,$dossier,'edit');
+				_fiche($PDOdb,$dossier,'edit');
 				
 				break;
 				
 			case 'delete_affaire':
-				//$ATMdb->db->debug=true;
+				//$PDOdb->db->debug=true;
 				//$affaire->set_values($_REQUEST);
-				$dossier->load($ATMdb, $_REQUEST['id']);
+				$dossier->load($PDOdb, $_REQUEST['id']);
 				
 			
-				if($dossier->deleteAffaire($ATMdb, $_REQUEST['id_affaire'])) {
+				if($dossier->deleteAffaire($PDOdb, $_REQUEST['id_affaire'])) {
 					$mesg = '<div class="ok">Affaire retirée du dossier</div>';	
 				}	
 				
-				$dossier->save($ATMdb);
+				$dossier->save($PDOdb);
 				
-				_fiche($ATMdb,$dossier,'edit');
+				_fiche($PDOdb,$dossier,'edit');
 				
 				break;	
 		}
 		
 	}
 	elseif(isset($_REQUEST['id'])) {
-		$dossier->load($ATMdb, $_REQUEST['id']);
-		_fiche($ATMdb,$dossier, 'view');
+		$dossier->load($PDOdb, $_REQUEST['id']);
+		_fiche($PDOdb,$dossier, 'view');
 	}
 	else {
 		/*
 		 * Liste
 		 */
-		_liste($ATMdb, $dossier);
+		_liste($PDOdb, $dossier);
 	}
 	
 	
 	
 	llxFooter();
 	
-function _liste(&$ATMdb, &$dossier) {
+function _liste(&$PDOdb, &$dossier) {
 	global $conf;
 	
 	llxHeader('','Dossiers');
 	getStandartJS();
 	
 	$r = new TSSRenderControler($dossier);
-	$sql="SELECT d.rowid as 'ID', f.reference as 'N° contrat', a.rowid as 'ID affaire', a.reference as 'N° affaire', a.fk_soc as 'fk_soc', s.nom as 'Société', 
+	$sql="SELECT d.rowid as 'ID', f.reference, a.rowid as 'ID affaire', a.reference as 'N° Affaire', a.fk_soc as 'fk_soc', s.nom as 'Société', 
 	f.duree as 'Durée', f.montant as 'Montant financé', f.echeance as 'Echéance', f.date_prochaine_echeance as 'Prochaine échéance', f.date_debut as 'Début', f.date_fin as 'Fin'
 	FROM ((((@table@ d
 	LEFT OUTER JOIN  llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
@@ -156,20 +156,19 @@ function _liste(&$ATMdb, &$dossier) {
 		
 		WHERE a.entity=".$conf->entity;
 				
-				
-	$TOrder=array();
-	if(!empty($_REQUEST['orderDown']))$TOrder = array_merge( $TOrder , array($_REQUEST['orderDown']=>'DESC'));
-	if(!empty($_REQUEST['orderUp']))$TOrder = array_merge( $TOrder , array($_REQUEST['orderUp']=>'ASC'));
-	if(empty($TOrder)) { $TOrder = array('ID'=>'DESC','N° contrat'=>'ASC'); }
+	
+	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
+	
+	
 			
-	$r->liste($ATMdb, $sql, array(
+	$r->liste($PDOdb, $sql, array(
 		'limit'=>array(
-			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
+			'page'=>1
 			,'nbLine'=>'30'
 		)
 		,'link'=>array(
 			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" title="Afficher société: test" alt="Afficher société: test" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
-			,'N° contrat'=>'<a href="?id=@ID@">@val@</a>'
+			,'reference'=>'<a href="?id=@ID@">@val@</a>'
 			,'N° affaire'=>'<a href="?id=@ID affaire@">@val@</a>'
 		)
 		,'translate'=>array(
@@ -186,16 +185,23 @@ function _liste(&$ATMdb, &$dossier) {
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
 			,'noheader'=>FALSE
 			,'messageNothing'=>"Il n'y a aucun dossier"
+			,'picto_search'=>img_picto('','search.png', '', 0)
 			)
-		,'orderBy'=>$TOrder
-		
+		,'title'=>array(
+			'reference'=>'N° contrat'
+		)
+		,'orderBy'=> array('ID'=>'DESC','f.reference'=>'ASC')
+		,'search'=>array(
+			'reference'=>array('recherche'=>true, 'table'=>'d')
+			
+		)
 	));
-	
+	$form->end();
 	
 	llxFooter();
 }	
 	
-function _fiche(&$ATMdb, &$dossier, $mode) {
+function _fiche(&$PDOdb, &$dossier, $mode) {
 	global $user,$db;
 	
 	$html=new Form($db);
@@ -220,7 +226,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			$dossier->financementLeaser = new TFin_financement;
 			$dossier->financementLeaser->fk_fin_dossier = $dossier->getId();
 			$dossier->financementLeaser->type='CLIENT';
-			$dossier->financementLeaser->save($ATMdb);
+			$dossier->financementLeaser->save($PDOdb);
 		}  
 	}
 	
@@ -230,7 +236,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 	$otherAffaire='';
 	if($mode=='edit') {
 		
-		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,'llx_fin_affaire', "solde>0" ,'reference');
+		$Tab = TRequeteCore::get_id_from_what_you_want($PDOdb,'llx_fin_affaire', "solde>0" ,'reference');
 		$otherAffaire = '["'. implode('","', $Tab). '"]';
 		
 	}
@@ -286,7 +292,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			
 			,'okPourFacturation'=>$form->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
 			
-			,'echeancier'=>$dossier->echeancier($ATMdb,'EXTERNE')
+			,'echeancier'=>$dossier->echeancier($PDOdb,'EXTERNE')
 			
 			
 	);
@@ -321,7 +327,7 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 			,'penalite_reprise'=>$form->texte('', 'penalite_reprise', $financement->penalite_reprise, 10,255,'','','à saisir') 
 			,'taux_commission'=>$form->texte('', 'taux_commission', $financement->taux_commission, 5,255,'','') 
 	
-			,'echeancier'=>$dossier->echeancier($ATMdb)
+			,'echeancier'=>$dossier->echeancier($PDOdb)
 		);
 	}
 	else {
@@ -372,10 +378,10 @@ function _fiche(&$ATMdb, &$dossier, $mode) {
 				,'nature_financement'=>$dossier->nature_financement
 				,'rentabilite_attendue'=>$dossier->getRentabilitePrevisionnelle()
 				,'rentabilite_reelle'=>$dossier->getRentabiliteReelle()
-				,'soldeRBANK'=>$dossier->getSolde($ATMdb, 'SRBANK')
-				,'soldeNRBANK'=>$dossier->getSolde($ATMdb, 'SNRBANK')
-				,'soldeRCPRO'=>$dossier->getSolde($ATMdb, 'SRCPRO')
-				,'soldeNRCPRO'=>$dossier->getSolde($ATMdb, 'SNRCPRO')
+				,'soldeRBANK'=>$dossier->getSolde($PDOdb, 'SRBANK')
+				,'soldeNRBANK'=>$dossier->getSolde($PDOdb, 'SNRBANK')
+				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO')
+				,'soldeNRCPRO'=>$dossier->getSolde($PDOdb, 'SNRCPRO')
 			)
 			,'financement'=>$TFinancement
 			,'financementLeaser'=>$TFinancementLeaser

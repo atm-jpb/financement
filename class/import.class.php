@@ -914,7 +914,7 @@ class Import // extends CommonObject
 			array(
 				'ref_produit'=>$data['ref_service']
 				,'libelle_produit'=>$data['libelle_ligne']
-				,'prix_ttc'=> $data['pu']*FIN_TVA_DEFAUT
+				,'prix_ttc'=> 0/*$data['pu']*FIN_TVA_DEFAUT*/
 				,'marque'=> 'Service'
 			)
 		,1);	
@@ -1132,7 +1132,7 @@ class Import // extends CommonObject
 	/*
 	 * J'insére les produits sans les lier à l'affaire. C'est l'import facture matériel qui le fera
 	 */
-		global $user;
+		global $user,$conf;
 		/*
 		 *	serial_number,libelle_produit, date_achat, marque, type_copie, cout_copie
 		 *  "C2I256312";"ES 256 COPIEUR STUDIO ES 256";"06/12/2012";"TOSHIBA";"MCENB";"0,004"
@@ -1166,6 +1166,8 @@ class Import // extends CommonObject
 			} else {
 				$this->nb_create++;
 			}
+			
+			$asset->entity = $conf->entity;
 			
 			$asset->save($ATMdb);
 			
