@@ -36,6 +36,7 @@ class ActionsFinancement
 			  $sql = "SELECT type_activite_cpro FROM llx_societe_commerciaux WHERE fk_soc=".$object->id." AND fk_user=".$commercial['id'];
 			  if($resql=$db->query($sql)) {
 			      $obj = $db->fetch_object($resql);
+				  if($obj->type_activite_cpro!='') {
 						
 					?><script type="text/javascript">
 						/*alert("<?=$obj->type_activite_cpro ?>");*/
@@ -52,6 +53,8 @@ class ActionsFinancement
 						
 					</script>
 					<?
+					
+				  }
 			  	
 			  }
 
@@ -69,9 +72,10 @@ class ActionsFinancement
 		  
 		  if( $resql=$db->query($sql)) {
 			  $obj = $db->fetch_object($resql);
-						
-			  $object->lastname.=' ['.$obj->type_activite_cpro.']';	
-			  if(isset($object->name)) $object->name.=' ['.$obj->type_activite_cpro.']';
+			  if($obj->type_activite_cpro!='') {
+				  $object->lastname.=' ['.$obj->type_activite_cpro.']';	
+				  if(isset($object->name)) $object->name.=' ['.$obj->type_activite_cpro.']';
+			  }			
 		  	
 		  }
 
