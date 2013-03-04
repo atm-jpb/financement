@@ -340,15 +340,16 @@ class TFin_dossier extends TObjetStd {
 		 * Loyers HT 
 		 * Loyers TTC
 		 */
-		 $this->somme_echeance = 0;
-		 $total_capital_amortit = 0;
-		 $total_part_interet = 0;
-		 $total_loyer = 0;
-		 $capital_restant_init=$f->montant;
-		 $capital_restant = $capital_restant_init;
-		 $TLigne=array();
-		 for($i=0; $i<$f->duree; $i++) {
-		 	
+		$this->somme_echeance = 0;
+		$total_capital_amortit = 0;
+		$total_part_interet = 0;
+		$total_assurance = 0;
+		$total_loyer = 0;
+		$capital_restant_init=$f->montant;
+		$capital_restant = $capital_restant_init;
+		$TLigne=array();
+		for($i=0; $i<$f->duree; $i++) {
+			
 			$time = strtotime('+'.($i*3).' month',  $f->date_debut);	
 			
 			
@@ -357,6 +358,7 @@ class TFin_dossier extends TObjetStd {
 
 			$capital_restant-=$capital_amortit;
 			$total_loyer+=$f->echeance;
+			$total_assurance+=$f->assurance;
 			$total_capital_amortit+=$capital_amortit;
 			$total_part_interet+=$part_interet;
 			
@@ -373,11 +375,12 @@ class TFin_dossier extends TObjetStd {
 			
 			$this->somme_echeance +=$f->echeance;
 		 	
-		 }
-		 
+		}
+		$total_loyer += $f->reste;
+		
 		// print $f->montant.' = '.$capital_restant_init;
-		 $TBS=new TTemplateTBS;
-		 return $TBS->render('./tpl/echeancier.tpl.php'
+		$TBS=new TTemplateTBS;
+		return $TBS->render('./tpl/echeancier.tpl.php'
 			,array(
 				'ligne'=>$TLigne
 			)
@@ -389,10 +392,11 @@ class TFin_dossier extends TObjetStd {
 					,'total_capital_amortit'=>$total_capital_amortit
 					,'total_part_interet'=>$total_part_interet
 					,'total_loyer'=>$total_loyer
+					,'total_assurance'=>$total_assurance
 				)
 			)
 		);
-		 
+		
 	}
 	
 }

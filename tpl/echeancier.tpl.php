@@ -35,11 +35,16 @@
 		<td align="right">[ligne.loyerHT; frm=0 000,00] &euro;</td>
 	</tr>
 
+	<tr class="ligne">
+		<td align="right" colspan="6">Val. Résiduelle</td>
+		<td align="right">[autre.reste; frm=0 000,00] &euro;</td>
+	</tr>
+
 	<tr class="liste_titre">
 		<td align="center" colspan="3">Totaux</td>
 		<td align="right">[autre.total_capital_amortit; frm=0 000,00] &euro;</td>
 		<td align="right">[autre.total_part_interet; frm=0 000,00] &euro;</td>
-		<td align="right">[ligne.assurance; frm=0 000,00] &euro;</td>
+		<td align="right">[autre.total_assurance; frm=0 000,00] &euro;</td>
 		<td align="right">[autre.total_loyer; frm=0 000,00] &euro;</td>
 	</tr>
 	
