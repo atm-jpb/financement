@@ -146,8 +146,8 @@ function _liste(&$PDOdb, &$dossier) {
 	getStandartJS();
 	
 	$r = new TSSRenderControler($dossier);
-	$sql="SELECT d.rowid as 'ID', f.reference, a.rowid as 'ID affaire', a.reference as 'N° Affaire', a.fk_soc as 'fk_soc', s.nom as 'Société', 
-	f.duree as 'Durée', f.montant as 'Montant financé', f.echeance as 'Echéance', f.date_prochaine_echeance as 'Prochaine échéance', f.date_debut as 'Début', f.date_fin as 'Fin'
+	$sql="SELECT d.rowid as 'ID', f.reference, a.rowid as 'ID affaire', a.reference as 'N° Affaire', a.fk_soc as 'fk_soc', s.nom, 
+	f.duree as 'Durée', f.montant as 'Montant financé', f.echeance as 'Echéance', f.date_prochaine_echeance as 'Prochaine échéance', f.date_debut, f.date_fin as 'Fin'
 	FROM ((((@table@ d
 	LEFT OUTER JOIN  llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
 		LEFT OUTER JOIN llx_fin_affaire a ON (l.fk_fin_affaire=a.rowid))
@@ -167,7 +167,7 @@ function _liste(&$PDOdb, &$dossier) {
 			,'nbLine'=>'30'
 		)
 		,'link'=>array(
-			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" title="Afficher société: test" alt="Afficher société: test" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
+			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" title="Afficher société: test" alt="Afficher société: test" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
 			,'reference'=>'<a href="?id=@ID@">@val@</a>'
 			,'N° affaire'=>'<a href="?id=@ID affaire@">@val@</a>'
 		)
@@ -175,7 +175,7 @@ function _liste(&$PDOdb, &$dossier) {
 			'Incident de paiment'=>$dossier->TIncidentPaiement
 		)
 		,'hide'=>array('fk_soc','ID','ID affaire')
-		,'type'=>array('Début'=>'date','Fin'=>'date','Prochaine échéance'=>'date', 'Montant financé'=>'money', 'Echéance'=>'money')
+		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine échéance'=>'date', 'Montant financé'=>'money', 'Echéance'=>'money')
 		,'liste'=>array(
 			'titre'=>"Liste des dossiers"
 			,'image'=>img_picto('','title.png', '', 0)
@@ -189,11 +189,14 @@ function _liste(&$PDOdb, &$dossier) {
 			)
 		,'title'=>array(
 			'reference'=>'N° contrat'
+			,'nom'=>'Société'
+			,'date_debut'=>'Début'
 		)
 		,'orderBy'=> array('ID'=>'DESC','f.reference'=>'ASC')
 		,'search'=>array(
 			'reference'=>array('recherche'=>true, 'table'=>'d')
-			
+			,'nom'=>array('recherche'=>true, 'table'=>'s')
+			,'date_debut'=>'calendar'
 		)
 	));
 	$form->end();

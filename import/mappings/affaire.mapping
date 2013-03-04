@@ -15,3 +15,18 @@ search_key_user=code_commercial
 
 [format]
 date_affaire=date
+
+[transco]
+contrat=1
+type_financement=1
+
+[contrat]
+LOCATION SIMPLE=LOCSIMPLE
+FORFAIT GLOBAL=FORFAITGLOBAL
+INTEGRAL=INTEGRAL
+
+[type_financement]
+LOCATION MANDATEE=MANDATEE
+LOCATION FINANCIERE=FINANCIERE
+LOCATION ADOSSEE=ADOSSEE
+LOCATION PURE=PURE
