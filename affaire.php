@@ -208,7 +208,7 @@ global $langs,$conf, $db;
 			,'contrat'=> 'Type de contrat'
 			,'date_affaire'=>'Date de l\'affaire'
 		)
-		,'orderBy'=>array('ID'=>'DESC','reference'=>'ASC')
+		,'orderBy'=>array('date_affaire'=>'DESC','reference'=>'ASC')
 		,'search'=>array(
 			'reference'=>true
 			,'nature_financement'=>$affaire->TNatureFinancement

@@ -18,7 +18,7 @@
 			
 			
 			
-			<tr><td>Montant du financement</td><td>[affaire.montant; strconv=no; frm=0 000,00] &euro;</td></tr>
+			<tr><td>Montant de l'affaire</td><td>[affaire.montant; strconv=no; frm=0 000,00] &euro;</td></tr>
 			<tr><td>Nature du financement</td><td>[affaire.nature_financement; strconv=no]</td></tr>
 			<tr><td>Type de financement</td><td>[affaire.type_financement; strconv=no]</td></tr>
 

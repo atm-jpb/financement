@@ -69,7 +69,7 @@ if(!empty($action)) {
 			
 			//$ATMdb->db->debug=true;
 			//print_r($_REQUEST);
-			
+			$ATMdb->db->debug = true;
 			$simulation->save($ATMdb);
 			
 			_fiche($ATMdb, $simulation,'view');
@@ -331,8 +331,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', a.contrat as 'Type contrat'";
 	$sql.= " , d.montant as 'Solde', d.rowid as 'IDDoss'";
 	$sql.= " , f.reference as 'N° contrat', f.date_debut as 'Début', f.date_fin as 'Fin'";
-	$sql.= " , ac.fk_user,";
-	$sql.= " u.login as 'Utilisateur'";
+	$sql.= " , ac.fk_user";
+	$sql.= " , u.login as 'Utilisateur'";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_affaire = a.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON d.rowid = da.fk_fin_dossier";

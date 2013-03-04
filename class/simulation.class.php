@@ -44,6 +44,7 @@ class TSimulation extends TObjetStd {
 	}
 	
 	function load_annexe(&$db, &$doliDB) {
+		global $conf;
 		if(!empty($this->fk_soc)) {
 			// Récupếration des infos du client
 			if(empty($this->societe)) {
@@ -64,7 +65,14 @@ class TSimulation extends TObjetStd {
 			
 			// Récupération des dossiers en cours du client et de l'encours CPRO
 			if(empty($this->societe->TDossiers)) {
-				$TDossiers = TRequeteCore::get_id_from_what_you_want($db, MAIN_DB_PREFIX.'fin_dossier', array('fk_soc' => $this->fk_soc));
+				$sql = "SELECT d.rowid";
+				$sql.= " FROM ".MAIN_DB_PREFIX."fin_affaire a ";
+				$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_affaire = a.rowid";
+				$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON d.rowid = da.fk_fin_dossier";
+				$sql.= " WHERE a.entity = ".$conf->entity;
+				$sql.= " AND a.fk_soc = ".$this->fk_soc;
+				$TDossiers = TRequeteCore::_get_id_by_sql($db, $sql);
+
 				$this->societe->encours_cpro = 0;
 				foreach ($TDossiers as $idDossier) {
 					$doss = new TFin_dossier;
