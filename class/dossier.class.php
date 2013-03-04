@@ -341,7 +341,9 @@ class TFin_dossier extends TObjetStd {
 		 * Loyers TTC
 		 */
 		 $this->somme_echeance = 0;
-		 $montant_finance = 0;
+		 $total_capital_amortit = 0;
+		 $total_part_interet = 0;
+		 $total_loyer = 0;
 		 $capital_restant_init=$f->montant;
 		 $capital_restant = $capital_restant_init;
 		 $TLigne=array();
@@ -354,7 +356,9 @@ class TFin_dossier extends TObjetStd {
 			$part_interet = $f->echeance -$capital_amortit; 			
 
 			$capital_restant-=$capital_amortit;
-			$montant_finance+=$capital_amortit;
+			$total_loyer+=$f->echeance;
+			$total_capital_amortit+=$capital_amortit;
+			$total_part_interet+=$part_interet;
 			
 			$TLigne[]=array(
 				'date'=>date('d/m/Y', $time)
@@ -382,6 +386,9 @@ class TFin_dossier extends TObjetStd {
 					'reste'=>$f->reste
 					,'resteTTC'=>($f->reste*FIN_TVA_DEFAUT)
 					,'capitalInit'=>$capital_restant_init
+					,'total_capital_amortit'=>$total_capital_amortit
+					,'total_part_interet'=>$total_part_interet
+					,'total_loyer'=>$total_loyer
 				)
 			)
 		);

@@ -4,6 +4,8 @@
 	require('./class/dossier.class.php');
 	require('./class/grille.class.php');
 	
+	dol_include_once('/equipement/class/asset.class.php');
+	
 	$langs->load('financement@financement');
 	
 	if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
