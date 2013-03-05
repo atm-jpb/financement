@@ -304,13 +304,14 @@ class TFin_grille_leaser extends TObjetStd {
 
 	private function _calculate_coeff(&$ATMdb, $coeff, $options) {
 		if(!empty($options)) {
+			$penaliteTotale = 0;
 			foreach($options as $name => $value) {
 				$penalite = $this->_get_penalite($ATMdb, $name, $value);
 				if($penalite < 0) continue;
-				$coeff += $coeff * $penalite / 100;
+				$penaliteTotale += $penalite;
 			}
 		}
-		
+		$coeff += $coeff * $penaliteTotale / 100;
 		return round($coeff, 2);
 	}
 	
