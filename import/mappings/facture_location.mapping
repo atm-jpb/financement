@@ -1,4 +1,5 @@
 search_key=facnumber
+search_key_fac_annulee=facture_annulee
 search_key_client=code_client
 
 [mapping]
@@ -15,6 +16,7 @@ search_key_client=code_client
 11=total_ttc
 12=ref_service
 13=reference_dossier_interne
+14=facture_annulee
 
 [more]
 

@@ -752,6 +752,29 @@ class Import // extends CommonObject
 			$facture_mat->{$key} = $value;
 		}
 		
+		// Gestion des avoirs
+		if(!empty($data['facture_annulee'])) {
+			// Recherche de la facture annulee par l'avoir
+			$fac_annulee_id = 0;
+			$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']]);
+			$resql = $this->db->query($sql);
+			if($resql) {
+				$num = $this->db->num_rows($resql);
+				if($num == 1) { // Enregistrement trouvé, mise à jour
+					$obj = $this->db->fetch_object($resql);
+					$fac_annulee_id = $obj->rowid;
+				} else if($num > 1) { // Plusieurs trouvés, erreur
+					$this->addError('ErrorMultipleFactureFound', $data[$this->mapping['search_key_fac_annulee']], $dataline, $sql);
+					return false;
+				}
+			} else {
+				$this->addError('ErrorWhileSearchingFacture', $data[$this->mapping['search_key_fac_annulee']], $dataline, $sql, 'ERROR', true);
+				return false;
+			}
+			$facture_mat->type = 2;
+			$facture_mat->source = $fac_annulee_id;
+		}
+		
 		
 		/*
 		 * Création du lien  affaire/facture + lien entre matériel et affaire
@@ -808,7 +831,7 @@ class Import // extends CommonObject
 		// Actions spécifiques
 		// On repasse en brouillon pour ajouter la ligne
 		$facture_mat->set_draft($user);
-		// On ajoute la ligne 
+		// On ajoute la ligne
 		$facture_mat->addline($facture_mat->id, 'Matricule '.$data['matricule'], $data['total_ht'], 1, 19.6);
 		// Force la validation avec numéro de facture
 		$facture_mat->validate($user, $data[$this->mapping['search_key']]); // Force la validation avec numéro de facture
@@ -878,7 +901,28 @@ class Import // extends CommonObject
 			$facture_loc->{$key} = $value;
 		}
 
-		
+		// Gestion des avoirs
+		if(!empty($data['facture_annulee'])) {
+			// Recherche de la facture annulee par l'avoir
+			$fac_annulee_id = 0;
+			$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']]);
+			$resql = $this->db->query($sql);
+			if($resql) {
+				$num = $this->db->num_rows($resql);
+				if($num == 1) { // Enregistrement trouvé, mise à jour
+					$obj = $this->db->fetch_object($resql);
+					$fac_annulee_id = $obj->rowid;
+				} else if($num > 1) { // Plusieurs trouvés, erreur
+					$this->addError('ErrorMultipleFactureFound', $data[$this->mapping['search_key_fac_annulee']], $dataline, $sql);
+					return false;
+				}
+			} else {
+				$this->addError('ErrorWhileSearchingFacture', $data[$this->mapping['search_key_fac_annulee']], $dataline, $sql, 'ERROR', true);
+				return false;
+			}
+			$facture_mat->type = 2;
+			$facture_mat->source = $fac_annulee_id;
+		}
 		
 		
 		// Mise à jour ou création
@@ -919,7 +963,6 @@ class Import // extends CommonObject
 			)
 		,1);	
 		// print "Création du service($fk_service)";
-			
 		
 		// On ajoute la ligne
 		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 19.6,0,0,$fk_service);
