@@ -776,23 +776,23 @@ class Import // extends CommonObject
 		}
 		
 		
-		/*
-		 * Création du lien  affaire/facture + lien entre matériel et affaire
-		 */
 		$ATMdb=new Tdb;
 		$affaire = new TFin_affaire;
 		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
+			// Mise à jour de l'affaire
 			$affaire->montant = $this->validateValue('total_ht',$data['total_ht']);	
 			$affaire->save($ATMdb);	
-				
-			$facture_mat->linked_objects['affaire'] = $affaire->getId();	
 			
+			// Création du lien entre affaire et facture
+			$facture_mat->linked_objects['affaire'] = $affaire->getId();
+			
+			// Création des liens entre affaire et matériel
 			$TSerial = explode(' - ',$data['matricule']);
 		
 			foreach($TSerial as $serial) {
 				
 				$asset=new TAsset;
-				if($asset->loadReference($ATMdb, $data['matricule'])) {
+				if($asset->loadReference($ATMdb, $serial)) {
 					$asset->fk_soc = $affaire->fk_soc;
 					
 					$asset->add_link($affaire->getId(),'affaire');	
@@ -800,8 +800,24 @@ class Import // extends CommonObject
 					$asset->save($ATMdb);	
 				}
 				else {
-					$this->addError('ErrorMaterielNotFound', $data['matricule'], $dataline);
-					return false;
+					$this->addError('ErrorMaterielNotFound', $serial, $dataline);
+				}
+			}
+			
+			// Création du dossier de financement si non existant
+			$financement=new TFin_financement;
+			if(!$financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
+				$dossier = new TFin_dossier;
+				if($dossier->addAffaire($ATMdb, $affaire->rowid)) {
+					$dossier->montant = $data['total_ht'];
+					$dossier->nature_financement = $affaire->nature_financement;
+					$dossier->financement->montant = $data['total_ht'];
+					if($affaire->nature_financement=='EXTERNE') {
+						unset($dossier->financement);
+					}
+					$dossier->save($ATMdb);
+				} else {
+					$this->addError('ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], $dataline, '', 'ERROR', true);
 				}
 			}
 		}
@@ -920,8 +936,8 @@ class Import // extends CommonObject
 				$this->addError('ErrorWhileSearchingFacture', $data[$this->mapping['search_key_fac_annulee']], $dataline, $sql, 'ERROR', true);
 				return false;
 			}
-			$facture_mat->type = 2;
-			$facture_mat->source = $fac_annulee_id;
+			$facture_loc->type = 2;
+			$facture_loc->source = $fac_annulee_id;
 		}
 		
 		
