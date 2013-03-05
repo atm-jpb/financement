@@ -222,9 +222,9 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'reference'=>$affaire->reference
 			,'date_affaire'=>$affaire->get_date('date_affaire')
 			,'montant'=>$affaire->montant
-			,'nature_financement'=>$affaire->TNatureFinancement [ $affaire->nature_financement ]
-			,'type_financement'=>$affaire->TTypeFinancement [ $affaire->type_financement ]
-			,'contrat'=>$affaire->TContrat [ $affaire->contrat ]
+			,'nature_financement'=>$affaire->TNatureFinancement[$affaire->nature_financement]
+			,'type_financement'=>$affaire->TTypeFinancement[$affaire->type_financement]
+			,'contrat'=>$affaire->TContrat[$affaire->contrat]
 		);
 		
 		if($affaire->nature_financement=='INTERNE' && !isset($dossier->financement) ) {
@@ -232,7 +232,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			$dossier->financementLeaser->fk_fin_dossier = $dossier->getId();
 			$dossier->financementLeaser->type='CLIENT';
 			$dossier->financementLeaser->save($PDOdb);
-		}  
+		}
 	}
 	
 	/*

@@ -806,12 +806,13 @@ class Import // extends CommonObject
 			
 			// Création du dossier de financement si non existant
 			$financement=new TFin_financement;
-			if(!$financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
+			if(!empty($data['reference_dossier_interne']) && !$financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
 				$dossier = new TFin_dossier;
 				if($dossier->addAffaire($ATMdb, $affaire->rowid)) {
 					$dossier->montant = $data['total_ht'];
 					$dossier->nature_financement = $affaire->nature_financement;
 					$dossier->financement->montant = $data['total_ht'];
+					$dossier->financement->reference = $data['reference_dossier_interne'];
 					if($affaire->nature_financement=='EXTERNE') {
 						unset($dossier->financement);
 					}

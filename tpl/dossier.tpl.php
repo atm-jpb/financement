@@ -107,17 +107,17 @@
 		</tr>
 		
 		
-		<tr><td width="20%">Rentabilité attendue</td><td>[dossier.rentabilite_attendue; frm='0,00 €']</td></tr>
-		<tr><td width="20%">Rentabilité réelle</td><td>[dossier.rentabilite_reelle; frm='0,00 €']</td></tr>
+		<tr><td width="20%">Rentabilité attendue</td><td>[dossier.rentabilite_attendue; frm=0 000,00] &euro;</td></tr>
+		<tr><td width="20%">Rentabilité réelle</td><td>[dossier.rentabilite_reelle; frm=0 000,00] &euro;</td></tr>
 		<tr><td width="20%">Date de mise en relocation</td><td>[dossier.date_relocation; strconv=no]</td></tr>
 		<tr>
 			<td colspan="2"><strong>Soldes</strong></td>
 		</tr>
 	
-		<tr><td>Renouvellant banque</td><td>[dossier.soldeRBANK;frm=0 000,00 €]</td></tr>
-		<tr><td>Non renouvellant banque</td><td>[dossier.soldeNRBANK;frm=0 000,00 €]</td></tr>
-		<tr><td>Renouvellant CPRO</td><td>[dossier.soldeRCPRO;frm=0 000,00 €]</td></tr>
-		<tr><td>Non renouvellant CPRO</td><td>[dossier.soldeNRCPRO;frm=0 000,00 €]</td></tr>				
+		<tr><td>Renouvellant banque</td><td>[dossier.soldeRBANK; frm=0 000,00] &euro;</td></tr>
+		<tr><td>Non renouvellant banque</td><td>[dossier.soldeNRBANK; frm=0 000,00] &euro;</td></tr>
+		<tr><td>Renouvellant CPRO</td><td>[dossier.soldeRCPRO; frm=0 000,00] &euro;</td></tr>
+		<tr><td>Non renouvellant CPRO</td><td>[dossier.soldeNRCPRO; frm=0 000,00] &euro;</td></tr>
 		
 		</table>
 
@@ -135,7 +135,7 @@
 			
 			<table width="100%" class="border" style="margin-top:20px;">
 			<tr><td width="20%">Affaire numéro <!-- [affaire.id; block=table;] --></td><td><a href="affaire.php?id=[affaire.id]">[affaire.reference]</a></td></tr>
-			<tr><td width="20%">Montant</td><td>[affaire.montant; strconv=no] &euro;</td></tr>
+			<tr><td width="20%">Montant de l'affaire</td><td>[affaire.montant; strconv=no; frm=0 000,00] &euro;</td></tr>
 			<tr><td width="20%">Nature du financement</td><td>[affaire.nature_financement; strconv=no]</td></tr>
 			<tr><td width="20%">Type de financement</td><td>[affaire.type_financement; strconv=no]</td></tr>
 			<tr><td width="20%">Type de contrat</td><td>[affaire.contrat; strconv=no]</td></tr>
@@ -148,8 +148,8 @@
 			</table>
 			
 			<table width="100%" class="border" style="margin-top:20px;">
-			<tr><td width="20%">Montant total financé</td><td>[dossier.montant_ok; strconv=no] &euro;</td></tr>
-			<tr><td width="20%">Montant restant à débloquer</td><td>[dossier.solde; strconv=no] &euro;</td></tr>
+			<tr><td width="20%">Montant total financé</td><td>[dossier.montant_ok; strconv=no; frm=0 000,00] &euro;</td></tr>
+			<tr><td width="20%">Montant restant à débloquer</td><td>[dossier.solde; strconv=no; frm=0 000,00] &euro;</td></tr>
 			</table>			
 			
 			
