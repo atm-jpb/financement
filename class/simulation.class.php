@@ -172,7 +172,7 @@ class TSimulation extends TObjetStd {
 
 		if(!empty($this->montant_total_finance)) { // Calcul à partir du montant
 					
-				if($typeCalcul=='cpro')$this->echeance = ($this->montant_total_finance - $this->vr) / $this->duree * (1 + $this->coeff / 100);
+				if($typeCalcul=='cpro')$this->echeance = ($this->montant_total_finance - $this->vr) * (1 + $this->coeff / 100);
 				else $this->echeance = $this->montant_total_finance * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$this->duree) );  
 				
 				//print "$this->echeance = $this->montant_total_finance, &$this->duree, &$this->echeance, $this->vr, &$this->coeff::$coeffTrimestriel";
@@ -181,7 +181,7 @@ class TSimulation extends TObjetStd {
 		} 
 		else if(!empty($this->echeance)) { // Calcul à partir de l'échéance
 		
-				if($typeCalcul=='cpro')$this->montant = $this->echeance * (1 - $this->coeff / 100) * $this->duree + $this->vr;
+				if($typeCalcul=='cpro')$this->montant = $this->echeance * (1 - $this->coeff / 100) + $this->vr;
 				else $this->montant =  $this->echeance * (1- pow(1+$coeffTrimestriel, -$this->duree) ) / $coeffTrimestriel ;
 				
 				$this->montant = round($this->montant, 2);
