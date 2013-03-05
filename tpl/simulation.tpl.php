@@ -99,6 +99,8 @@
 			<td colspan="2" rowspan="3" align="center">
 				[onshow;block=begin;when [view.calcul]==1]
 				<span style="font-size: 14px;">Montant total financé : [simulation.total_financement; frm=0 000,00] &euro;</span>
+				<br />
+				(= montant + montant rachat + montant rachat concurrence)
 				[onshow;block=begin;when [view.type]=='simul']
 				<br /><br />
 				<span style="font-size: 14px;">[simulation.accord; strconv=no]</span>
