@@ -280,7 +280,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'display_score'=>$user->rights->financement->score->read && $simulation->societe->score->rowid > 0 ? 1 : 0
 				,'score_date'=>empty($simulation->societe) ? '' : $simulation->societe->score->get_date('date_score')
 				,'score'=>empty($simulation->societe) ? '' : $simulation->societe->score->score
-				,'encours_cpro'=>empty($simulation->societe) ? '' : 0
+				,'encours_cpro'=>empty($simulation->societe) ? $simulation->societe->encours_cpro : 0
 				,'encours_conseille'=>empty($simulation->societe) ? '' : $simulation->societe->score->encours_conseille
 				
 				,'liste_dossier'=>_liste_dossier($ATMdb, $simulation, $mode)
