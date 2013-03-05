@@ -68,8 +68,6 @@ if(!empty($action)) {
 			if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
 			
 			//$ATMdb->db->debug=true;
-			//print_r($_REQUEST);
-			$ATMdb->db->debug = true;
 			$simulation->save($ATMdb);
 			
 			_fiche($ATMdb, $simulation,'view');

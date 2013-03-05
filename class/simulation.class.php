@@ -78,7 +78,13 @@ class TSimulation extends TObjetStd {
 					$doss = new TFin_dossier;
 					$doss->load($db, $idDossier);
 					$this->societe->TDossiers[] = $doss;
-					$this->societe->encours_cpro += $doss->financementLeaser->valeur_actuelle();
+					if($doss->date_solde == '') {
+						if($doss->nature_financement == 'EXTERNE') {
+							$this->societe->encours_cpro += $doss->financementLeaser->valeur_actuelle();
+						} else {
+							$this->societe->encours_cpro += $doss->financement->valeur_actuelle();
+						}
+					}
 				}
 			}
 		}
