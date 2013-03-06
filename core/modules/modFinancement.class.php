@@ -568,8 +568,6 @@ class modFinancement extends DolibarrModules
 	 */
 	function load_tables()
 	{
-		if(is_file(DOL_DOCUMENT_ROOT.'/financement/script/create-maj-base.php')) file_get_contents(DOL_URL_ROOT.'/financement/script/create-maj-base.php');
-		if(is_file(DOL_DOCUMENT_ROOT_ALT.'/financement/script/create-maj-base.php')) file_get_contents(DOL_URL_ROOT_ALT.'/financement/script/create-maj-base.php');
 		return $this->_load_tables('/financement/sql/');
 	}
 }

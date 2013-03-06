@@ -10,8 +10,8 @@
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 
 	$langs->load('financement@financement');
-	$import=new Import($db);
-	$ATMdb = new Tdb;
+	$import=new TImport();
+	$ATMdb = new TPDOdb;
 	$tbs = new TTemplateTBS;
 	
 	$mesg = '';
@@ -43,7 +43,7 @@
 				}
 		
 				if(!$error) {
-					$imp=new Import($db);
+					$imp=new TImport();
 					$imp->entity = $conf->entity;
 					$imp->fk_user_author = $user->id;
 					
@@ -54,13 +54,12 @@
 					$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
 					
 					$imp->init($fileName, $fileType);
-					$imp->create($user); // Création de l'import
+					$imp->save($ATMdb); // Création de l'import
 		
 					$f1 = fopen($importFolder.$fileName, 'r');
 					
 					if(isset($_REQUEST['ignore_first_line'])) {
 						fgetcsv($f1 ,1024, $_REQUEST['delimiter'], $_REQUEST['enclosure']);
-					//	print "Ignore l'entête";
 					} 
 					
 					while($dataline = fgetcsv($f1, 1024, $_REQUEST['delimiter'], $_REQUEST['enclosure'])) {
@@ -68,7 +67,7 @@
 						$imp->importLine($dataline, $fileType);
 					}
 					
-					$imp->update($user); // Mise à jour pour nombre de lignes et nombre d'erreurs
+					$imp->save($ATMdb); // Mise à jour pour nombre de lignes et nombre d'erreurs
 
 					rename($importFolder.$fileName, $importFolderOK.$fileName);
 					
@@ -84,7 +83,7 @@
 		
 	}
 	elseif(isset($_REQUEST['id'])) {
-		$import->fetch($_REQUEST['id']);
+		$import->load($ATMdb, $_REQUEST['id']);
 		
 		_fiche($ATMdb, $import, 'view');global $mesg, $error;
 	}
@@ -95,9 +94,7 @@
 		 _liste($ATMdb, $import);
 	}
 	
-	
-	
-	llxFooter();
+	$ATMdb->close();
 	
 function _liste(&$ATMdb, &$import) {
 	global $langs, $db, $conf;	
@@ -173,7 +170,7 @@ function _fiche(&$ATMdb, &$import, $mode) {
 				'titre_new'=>load_fiche_titre($langs->trans("NewImport"),'','import32.png@financement')
 				,'titre_view'=>img_picto('','object_import.png@financement', '', 0).' '.$langs->trans("Import")
 			
-				,'id'=>$import->id
+				,'id'=>$import->getId()
 				,'type_import'=>$form->combo('', 'type_import', ($mode == 'new') ? $import->TType_import : array_merge($import->TType_import, $import->TType_import_interne), $import->type_import) 
 				,'date'=>date('d/m/Y à H:i:s', $import->date ? $import->date : time())
 				,'filename'=>'<a href="./import/done/'.$import->filename.'" target="_blank">'.$import->filename.'</a>'
@@ -202,7 +199,6 @@ function _fiche(&$ATMdb, &$import, $mode) {
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 	llxFooter();
-	
 }
 
 function _liste_errors(&$ATMdb, $import) {
@@ -212,7 +208,7 @@ function _liste_errors(&$ATMdb, $import) {
 	$sql = "SELECT ie.num_line as 'Numéro ligne', ie.error_msg as 'Message', ie.content_line as 'Ligne', ie.sql_errno as 'Erreur SQL', ie.sql_error as 'Trace SQL'";
 	$sql.= " , ie.error_data as 'Donnée utilisée'";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_import_error ie ";
-	$sql.= " WHERE ie.fk_import = ".$import->id;
+	$sql.= " WHERE ie.fk_import = ".$import->getId();
 	
 	$THide = array('Ligne', 'Erreur SQL', 'Trace SQL');
 	
@@ -230,7 +226,7 @@ function _liste_errors(&$ATMdb, $import) {
 		,'hide'=>$THide
 		,'type'=>array()
 		,'liste'=>array(
-			'titre'=>'Liste des erreur d\'imports de l\'import n° '.$import->id
+			'titre'=>'Liste des erreur d\'imports de l\'import n° '.$import->getId()
 			,'image'=>img_picto('','import32.png@financement', '', 0)
 			,'picto_precedent'=>img_picto('','back.png', '', 0)
 			,'picto_suivant'=>img_picto('','next.png', '', 0)

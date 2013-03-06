@@ -212,7 +212,7 @@ function _fiche(&$ATMdb, &$score, $mode) {
 		)
 		,array(
 			'score'=>array(
-				'titre'=>load_fiche_titre($score->id > 0 ? $langs->trans("EditScore") : $langs->trans("NewScore"),'','')
+				'titre'=>load_fiche_titre($score->getId() > 0 ? $langs->trans("EditScore") : $langs->trans("NewScore"),'','')
 				,'id'=>$score->rowid
 				,'fk_soc'=>$score->fk_soc
 				,'score'=>$form->texte('', 'score', $score->score, 5)

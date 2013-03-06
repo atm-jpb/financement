@@ -118,7 +118,7 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$THide = array('fk_soc', 'fk_user_author');
 	
-	$sql = "SELECT s.rowid, soc.nom, s.fk_soc, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
+	$sql = "SELECT s.rowid, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'mois' WHEN s.opt_periodicite = 'ANNEE' THEN 'années' ELSE 'trimestres' END) as 'Durée',";
 	$sql.= " s.date_simul, u.login, s.accord";
 	$sql.= " FROM @table@ s ";
@@ -214,6 +214,8 @@ function _liste(&$ATMdb, &$simulation) {
 			,'accord'=>$simulation->TStatut
 		)
 	));
+	
+	$form->end();
 	
 	if(isset($_REQUEST['socid'])) {
 		?><div class="tabsAction"><a href="?action=new&fk_soc=<?=$_REQUEST['socid'] ?>" class="butAction">Nouvelle simulation</a></div><?

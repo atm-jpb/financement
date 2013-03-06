@@ -134,7 +134,7 @@ global $langs,$conf, $db;
 		FROM @table@ a LEFT JOIN llx_societe s ON (a.fk_soc=s.rowid)
 		WHERE a.entity=".$conf->entity;
 	
-	$THide = array('fk_soc');
+	$THide = array('fk_soc', 'ID');
 	
 	if(isset($_REQUEST['socid'])) {
 		$sql.= ' AND a.fk_soc='.$_REQUEST['socid'];

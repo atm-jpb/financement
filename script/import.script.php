@@ -73,10 +73,10 @@ dol_include_once("/equipement/class/asset.class.php");
 dol_include_once("/societe/class/societe.class.php");
 dol_include_once("/compta/facture/class/facture.class.php");
 dol_include_once("/product/class/product.class.php");
-dol_include_once("/core/class/html.form.class.php");	
+dol_include_once("/core/class/html.form.class.php");
 		
-
-$imp=new Import($db);
+$ATMdb = new TPDOdb();
+$imp=new TImport();
 $imp->entity = $conf->entity;
 $imp->fk_user_author = $user->id;
 
@@ -100,18 +100,15 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 
 	foreach($filesToImport as $fileName) { // Pour chaque fichier à importer
 		$imp->init($fileName, $fileType);		
-		$imp->create($user); // Création de l'import
+		$imp->save($ATMdb); // Création de l'import
 		
-		$db->commit();
-
 		$fileHandler = fopen($importFolder.$fileName, 'r');
 		while($dataline = fgetcsv($fileHandler, 1024, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
 			$imp->importLine($dataline, $fileType);
 		}
 		fclose($fileHandler);
 		
-		$imp->update($user); // Mise à jour pour nombre de lignes et nombre d'erreurs
-		$db->commit();
+		$imp->save($ATMdb); // Mise à jour pour nombre de lignes et nombre d'erreurs
 		
 		print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;
 		
@@ -119,21 +116,7 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 	}
 }
 
-
-// -------------------- END OF YOUR CODE --------------------
-
-if (! $error)
-{
-	$db->commit();
-	print '--- end ok'.$eol;
-}
-else
-{
-	print '--- end error code='.$error.$eol;
-	$db->rollback();
-}
-
-$db->close();	// Close database opened handler
+$ATMdb->close();
 
 return $error;
 ?>
