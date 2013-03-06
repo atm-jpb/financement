@@ -192,13 +192,11 @@ class TImport extends TObjetStd {
 		// Recherche si tiers existant dans la base
 		$rowid = 0;
 		$sql = sprintf($sqlSearchClient, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		//print $sql;
-		$resql = $this->db->query($sql);
-		if($resql) {
-			$num = $this->db->num_rows($resql);
+		$ATMdb->Execute($sql);
+		if($ATMdb->Get_line()) {
+			$num = $ATMdb->Get_Recordcount();
 			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$obj = $this->db->fetch_object($resql);
-				$rowid = $obj->rowid;
+				$rowid = $ATMdb->Get_field('rowid');
 			} else if($num > 1) { // Plusieurs trouvés, erreur
 				$this->addError($ATMdb, 'ErrorMultipleClientFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
@@ -224,8 +222,8 @@ class TImport extends TObjetStd {
 		
 		if($rowid > 0) {
 			$res = $societe->update($rowid, $user);
-			// Erreur : la mise à jour n'a pas marché
 			
+			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
 				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
 				return false;
@@ -234,14 +232,12 @@ class TImport extends TObjetStd {
 			}			
 		} else {
 			$res = $societe->create($user);
-			// Erreur : la création n'a pas marché
 			
+			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				//print 'NOK';
 				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
 				return false;
 			} else {
-				//print 'OK';
 				$this->nb_create++;
 			}
 		}
@@ -263,12 +259,11 @@ class TImport extends TObjetStd {
 		// Recherche si facture existante dans la base
 		$rowid = 0;
 		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		$resql = $this->db->query($sql);
-		if($resql) {
-			$num = $this->db->num_rows($resql);
+		$ATMdb->Execute($sql);
+		if($ATMdb->Get_line()) {
+			$num = $ATMdb->Get_Recordcount();
 			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$obj = $this->db->fetch_object($resql);
-				$rowid = $obj->rowid;
+				$rowid = $ATMdb->Get_field('rowid');
 			} else if($num > 1) { // Plusieurs trouvés, erreur
 				$this->addError($ATMdb, 'ErrorMultipleFactureFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
@@ -281,12 +276,11 @@ class TImport extends TObjetStd {
 		// Recherche tiers associé à la facture existant dans la base
 		$fk_soc = 0;
 		$sql = sprintf($sqlSearchClient, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']]);
-		$resql = $this->db->query($sql);
-		if($resql) {
-			$num = $this->db->num_rows($resql);
+		$ATMdb->Execute($sql);
+		if($ATMdb->Get_line()) {
+			$num = $ATMdb->Get_Recordcount();
 			if($num == 1) { // Enregistrement trouvé
-				$obj = $this->db->fetch_object($resql);
-				$fk_soc = $obj->rowid;
+				$fk_soc = $ATMdb->Get_field('rowid');
 			} else if($num > 1) { // Plusieurs trouvés, erreur
 				$this->addError($ATMdb, 'ErrorMultipleClientFound', $data[$this->mapping['search_key_client']], $dataline, $sql);
 				return false;
@@ -316,12 +310,11 @@ class TImport extends TObjetStd {
 			// Recherche de la facture annulee par l'avoir
 			$fac_annulee_id = 0;
 			$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']]);
-			$resql = $this->db->query($sql);
-			if($resql) {
-				$num = $this->db->num_rows($resql);
+			$ATMdb->Execute($sql);
+			if($ATMdb->Get_line()) {
+				$num = $ATMdb->Get_Recordcount();
 				if($num == 1) { // Enregistrement trouvé, mise à jour
-					$obj = $this->db->fetch_object($resql);
-					$fac_annulee_id = $obj->rowid;
+					$fac_annulee_id = $ATMdb->Get_field('rowid');
 				} else if($num > 1) { // Plusieurs trouvés, erreur
 					$this->addError($ATMdb, 'ErrorMultipleFactureFound', $data[$this->mapping['search_key_fac_annulee']], $dataline, $sql);
 					return false;
@@ -426,12 +419,11 @@ class TImport extends TObjetStd {
 		// Recherche si facture existante dans la base
 		$rowid = 0;
 		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		$resql = $this->db->query($sql);
-		if($resql) {
-			$num = $this->db->num_rows($resql);
+		$ATMdb->Execute($sql);
+		if($ATMdb->Get_line()) {
+			$num = $ATMdb->Get_Recordcount();
 			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$obj = $this->db->fetch_object($resql);
-				$rowid = $obj->rowid;
+				$rowid = $ATMdb->Get_field('rowid');
 			} else if($num > 1) { // Plusieurs trouvés, erreur
 				$this->addError($ATMdb, 'ErrorMultipleFactureFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
@@ -444,12 +436,11 @@ class TImport extends TObjetStd {
 		// Recherche tiers associé à la facture existant dans la base
 		$fk_soc = 0;
 		$sql = sprintf($sqlSearchClient, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']]);
-		$resql = $this->db->query($sql);
-		if($resql) {
-			$num = $this->db->num_rows($resql);
+		$ATMdb->Execute($sql);
+		if($ATMdb->Get_line()) {
+			$num = $ATMdb->Get_Recordcount();
 			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$obj = $this->db->fetch_object($resql);
-				$fk_soc = $obj->rowid;
+				$fk_soc = $ATMdb->Get_field('rowid');
 			} else if($num > 1) { // Plusieurs trouvés, erreur
 				$this->addError($ATMdb, 'ErrorMultipleClientFound', $data[$this->mapping['search_key_client']], $dataline, $sql);
 				return false;
@@ -479,12 +470,11 @@ class TImport extends TObjetStd {
 			// Recherche de la facture annulee par l'avoir
 			$fac_annulee_id = 0;
 			$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']]);
-			$resql = $this->db->query($sql);
-			if($resql) {
-				$num = $this->db->num_rows($resql);
+			$ATMdb->Execute($sql);
+			if($ATMdb->Get_line()) {
+				$num = $ATMdb->Get_Recordcount();
 				if($num == 1) { // Enregistrement trouvé, mise à jour
-					$obj = $this->db->fetch_object($resql);
-					$fac_annulee_id = $obj->rowid;
+					$fac_annulee_id = $ATMdb->Get_field('rowid');
 				} else if($num > 1) { // Plusieurs trouvés, erreur
 					$this->addError($ATMdb, 'ErrorMultipleFactureFound', $data[$this->mapping['search_key_fac_annulee']], $dataline, $sql);
 					return false;
@@ -586,12 +576,11 @@ class TImport extends TObjetStd {
 		// Recherche si facture existante dans la base
 		$rowid = 0;
 		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		$resql = $this->db->query($sql);
-		if($resql) {
-			$num = $this->db->num_rows($resql);
+		$ATMdb->Execute($sql);
+		if($ATMdb->Get_line()) {
+			$num = $ATMdb->Get_Recordcount();
 			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$obj = $this->db->fetch_object($resql);
-				$rowid = $obj->rowid;
+				$rowid = $ATMdb->Get_field('rowid');
 			} else if($num > 1) { // Plusieurs trouvés, erreur
 				$this->addError($ATMdb, 'ErrorMultipleFactureFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
@@ -847,12 +836,11 @@ class TImport extends TObjetStd {
 		// Recherche si tiers existant dans la base
 		$fk_soc = 0;
 		$sql = sprintf($sqlSearchClient, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		$resql = $this->db->query($sql);
-		if($resql) {
-			$num = $this->db->num_rows($resql);
+		$ATMdb->Execute($sql);
+		if($ATMdb->Get_line()) {
+			$num = $ATMdb->Get_Recordcount();
 			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$obj = $this->db->fetch_object($resql);
-				$fk_soc = $obj->rowid;
+				$fk_soc = $ATMdb->Get_field('rowid');
 			} else if($num > 1) { // Plusieurs trouvés, erreur
 				$this->addError($ATMdb, 'ErrorMultipleClientFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
