@@ -10,14 +10,13 @@
 			<td colspan="4">Informations client</td>
 		</tr>
 		<tr>
-			<td width="25%">Nom du tiers</td>
+			<td width="20%">Nom du tiers</td>
 			<td colspan="3">[client.societe; strconv=no] [client.autres_simul; strconv=no]</a></td>
 		</tr>
 		<tr>
-			<td width="25%">Adresse</td>
-			<td width="25%">[client.adresse]</td>
-			<td width="25%">SIRET</td>
-			<td width="25%">[client.siret]</td>
+			<td>Adresse</td>
+			<td colspan="3">[client.adresse]</td>
+			
 		</tr>
 		<tr>
 			<td>CP / Ville</td>
@@ -25,18 +24,27 @@
 			<td>Code Artis</td>
 			<td>[client.code_client]</td>
 		</tr>
+		<tr>
+			<td>SIRET</td>
+			<td>[client.siret]</td>
+			<td>Code NAF</td>
+			<td>[client.naf]</td>
+		</tr>
 		[onshow;block=begin;when [client.display_score]=1]
+		<tr class="liste_titre">
+			<td colspan="4">Scoring</td>
+		</tr>
 		<tr>
 			<td>Date du score</td>
-			<td align="right">[client.score_date]</td>
+			<td align="center">[client.score_date]</td>
 			<td>Score</td>
 			<td align="center">[client.score] / 20</td>
 		</tr>
 		<tr>
 			<td>Encours CPRO</td>
-			<td align="right">[client.encours_cpro]</td>
+			<td align="right">[client.encours_cpro; frm=0 000,00] &euro;</td>
 			<td>Encours Max</td>
-			<td align="right">[client.encours_conseille]</td>
+			<td align="right">[client.encours_conseille; frm=0 000,00] &euro;</td>
 		</tr>
 		[onshow;block=end]
 	</table>
@@ -78,25 +86,25 @@
 		<tr>
 			<td>Montant</td>
 			<td>[simulation.montant; strconv=no; frm=0 000,00] &euro;</td>
-			<td>Coefficient</td>
-			<td>[simulation.coeff; strconv=no; frm=0,00] %</td>
-		</tr>
-		<tr>
-			<td>Montant rachat</td>
-			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 			<td>Utilisateur</td>
 			<td>[simulation.user; strconv=no]</td>
 		</tr>
 		<tr>
-			<td>Montant rachat concurrence</td>
-			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
+			<td>Montant rachat</td>
+			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 			<td>Date</td>
 			<td>[simulation.date; frm=dd/mm/yyyy]</td>
 		</tr>
 		<tr>
+			<td>Montant rachat concurrence</td>
+			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
+			<td>Coefficient</td>
+			<td>[simulation.coeff; strconv=no; frm=0,00] %</td>
+		</tr>
+		<tr>
 			<td><span class="fieldrequired">Durée</span></td>
 			<td>[simulation.duree; strconv=no]</td>
-			<td colspan="2" rowspan="3" align="center">
+			<td colspan="2" rowspan="2" align="center">
 				[onshow;block=begin;when [view.calcul]==1]
 				<span style="font-size: 14px;">Montant total financé : [simulation.total_financement; frm=0 000,00] &euro;</span>
 				<br />
@@ -111,10 +119,6 @@
 		<tr>
 			<td>&Eacute;chéance</td>
 			<td>[simulation.echeance; strconv=no; frm=0 000,00] &euro;</td>
-		</tr>
-		<tr>
-			<td>Valeur Résiduelle</td>
-			<td>[simulation.vr; strconv=no; frm=0,00] &euro;</td>
 		</tr>
 		[onshow;block=begin;when [view.mode]=='edit']
 		<tr>
@@ -143,6 +147,10 @@
 			<td>[simulation.type_financement; strconv=no]</td>
 			<td>Leaser</td>
 			<td>[simulation.leaser; strconv=no]</td>
+		</tr>
+		<tr>
+			<td>Coefficient final</td>
+			<td>[simulation.coeff_final; strconv=no] %</td>
 		</tr>
 		[onshow;block=end]
 	</table>	

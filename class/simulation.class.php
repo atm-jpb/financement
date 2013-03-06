@@ -7,7 +7,7 @@ class TSimulation extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation');
 		parent::add_champs('entity,fk_soc,fk_user_author,fk_leaser,accord_confirme','type=entier;');
 		parent::add_champs('duree,opt_administration,opt_creditbail','type=entier;');
-		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_total_finance,echeance,vr,coeff,cout_financement','type=float;');
+		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final','type=float;');
 		parent::add_champs('date_simul','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement','type=chaine;');
 		parent::add_champs('dossiers_rachetes', 'type=tableau;');
@@ -29,7 +29,7 @@ class TSimulation extends TObjetStd {
 		$this->opt_periodicite = 'TRIMESTRE';
 		$this->opt_mode_reglement = 'PRE';
 		$this->opt_terme = '1';
-		$this->vr = 0;
+		$this->vr = 1;
 		$this->coeff = 0;
 		$this->fk_user_author = $user->id;
 		$this->user = $user;
@@ -78,7 +78,7 @@ class TSimulation extends TObjetStd {
 					$doss = new TFin_dossier;
 					$doss->load($db, $idDossier);
 					$this->societe->TDossiers[] = $doss;
-					if($doss->date_solde == '') {
+					if($doss->date_solde < 0) {
 						if($doss->nature_financement == 'EXTERNE') {
 							$this->societe->encours_cpro += $doss->financementLeaser->valeur_actuelle();
 						} else {
@@ -86,6 +86,7 @@ class TSimulation extends TObjetStd {
 						}
 					}
 				}
+				$this->societe->encours_cpro = round($this->societe->encours_cpro, 2);
 			}
 		}
 		
@@ -165,7 +166,7 @@ class TSimulation extends TObjetStd {
 			if((!empty($this->montant_total_finance) && $this->montant_total_finance <= $palier)
 			|| (!empty($this->echeance) && $this->echeance <= $infos['echeance']))
 			{
-					$this->coeff = $infos['coeff']; // coef annuel
+					$this->coeff = $infos['coeff']; // coef trimestriel
 					break;
 			}
 		}
@@ -173,13 +174,21 @@ class TSimulation extends TObjetStd {
 			$this->error = 'ErrorAmountOutOfGrille';
 			return false;
 		}
+		if(!empty($this->coeff_final) && $this->coeff_final != $this->coeff) {
+			// TODO : à revoir avec Damien
+		}
 		
 		$coeffTrimestriel = $this->coeff / 4 /100; // en %
 
 		if(!empty($this->montant_total_finance)) { // Calcul à partir du montant
 					
-				if($typeCalcul=='cpro')$this->echeance = ($this->montant_total_finance - $this->vr) * ($this->coeff / 100);
-				else $this->echeance = $this->montant_total_finance * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$this->duree) );  
+				if($typeCalcul=='cpro') { // Les coefficient sont trimestriel, à adapter en fonction de la périodicité de la simulation
+					$this->echeance = ($this->montant_total_finance - $this->vr) * ($this->coeff / 100);
+					if($this->opt_periodicite == 'ANNEE') $this->echeance *= 4;
+					else if($this->opt_periodicite == 'MOIS') $this->echeance /= 3;
+				} else {
+					$this->echeance = $this->montant_total_finance * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$this->duree) );
+				}
 				
 				//print "$this->echeance = $this->montant_total_finance, &$this->duree, &$this->echeance, $this->vr, &$this->coeff::$coeffTrimestriel";
 				
@@ -187,12 +196,17 @@ class TSimulation extends TObjetStd {
 		} 
 		else if(!empty($this->echeance)) { // Calcul à partir de l'échéance
 		
-				if($typeCalcul=='cpro')$this->montant = $this->echeance * ($this->coeff / 100) + $this->vr;
-				else $this->montant =  $this->echeance * (1- pow(1+$coeffTrimestriel, -$this->duree) ) / $coeffTrimestriel ;
+				if($typeCalcul=='cpro') {
+					$this->montant = $this->echeance / ($this->coeff / 100) + $this->vr;
+					if($this->opt_periodicite == 'ANNEE') $this->montant /= 4;
+					else if($this->opt_periodicite == 'MOIS') $this->montant *= 3;
+				} else {
+					$this->montant =  $this->echeance * (1- pow(1+$coeffTrimestriel, -$this->duree) ) / $coeffTrimestriel ;
+				}
 				
 				$this->montant = round($this->montant, 2);
 				$this->montant_total_finance = $this->montant;
-		} 
+		}
 		
 		return true;
 	}
@@ -215,8 +229,16 @@ class TSimulation extends TObjetStd {
 			{
 				$this->accord = 'WAIT';
 			} else { // Donnée suffisantes pour faire les vérifications pour l'accord
-				if($this->societe->score->score > $conf->global->FINANCEMENT_SCORE_MINI // Score minimum
-					&& ($this->societe->score->encours_conseille - $this->societe->encours_cpro) * ($conf->global->FINANCEMENT_PERCENT_VALID_AMOUNT / 100) > $this->montant_total_finance // % "d'endettement"
+				// Calcul du montant disponible pour le client
+				$montant_dispo = ($this->societe->score->encours_conseille - $this->societe->encours_cpro);
+				$montant_dispo *= ($conf->global->FINANCEMENT_PERCENT_VALID_AMOUNT / 100);
+				
+				// Calcul du % de rachat
+				$percent_rachat = (($this->montant_rachete + montant_rachete_concurrence) / $this->montant_total_finance) * 100;
+				
+				if($this->societe->score->score >= $conf->global->FINANCEMENT_SCORE_MINI // Score minimum
+					&& $montant_dispo > $this->montant_total_finance // % "d'endettement"
+					&& $percent_rachat <= $conf->global->FINANCEMENT_PERCENT_RACHAT_AUTORISE // % de rachat
 					&& !in_array($this->societe->idprof3, explode(FIN_IMPORT_FIELD_DELIMITER, $conf->global->FINANCEMENT_NAF_BLACKLIST)) // NAF non black-listé
 					&& !empty($this->societe->TDossiers)) // A déjà eu au moins un dossier chez CPRO
 				{

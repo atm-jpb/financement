@@ -240,7 +240,7 @@ class TFin_grille_leaser extends TObjetStd {
 		$sql.= " t.periode";		
 		$sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
 		$sql.= " WHERE t.fk_soc = ".$idLeaser. " AND t.type='".$this->type."'";
-		if(!empty($idTypeContrat)) $sql.= " AND t.fk_type_contrat = ".$idTypeContrat;
+		if(!empty($idTypeContrat)) $sql.= " AND t.fk_type_contrat = '".$idTypeContrat."'";
 		$sql.= " ORDER BY t.periode ASC";
 
 		$ATMdb->Execute($sql);

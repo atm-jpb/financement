@@ -104,6 +104,19 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 
+// % validation part de rachat
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_PERCENT_RACHAT_AUTORISE" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("RachatPartPercent").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_PERCENT_RACHAT_AUTORISE" value="'.$conf->global->FINANCEMENT_PERCENT_RACHAT_AUTORISE.'" /> %';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
 // % validation score pour simulateur
 $var=!$var;
 print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';

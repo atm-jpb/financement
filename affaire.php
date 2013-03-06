@@ -171,10 +171,6 @@ global $langs,$conf, $db;
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formAffaire', 'GET');
 	
-	//$TOrder = empty($_REQUEST['TOrder'][]) ? array('ID'=>'DESC','Numéro d\'affaire'=>'ASC') : $_REQUEST['TOrder'];
-	//$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
-	//print_r($_REQUEST);
-	//print $page;
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
 			'page'=>1
