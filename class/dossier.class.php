@@ -261,6 +261,15 @@ class TFin_dossier extends TObjetStd {
 	function getRentabiliteReelle() {
 		return $this->somme_facture_reglee - $this->somme_facture_fournisseur;
 	}
+	function getMargePrevisionnelle() {
+		return $this->getRentabilitePrevisionnelle() / $this->financement->montant * 100;
+	}
+	function getMargeAttendue(&$ATMdb) {
+		return $this->getRentabilite($ATMdb);
+	}
+	function getMargeReelle() {
+		return $this->getRentabiliteReelle() / $this->financement->montant * 100;
+	}
 	
 	function getRentabiliteReste(&$ATMdb) {
 		
@@ -340,18 +349,16 @@ class TFin_dossier extends TObjetStd {
 		 * Loyers HT 
 		 * Loyers TTC
 		 */
-		$this->somme_echeance = 0;
 		$total_capital_amortit = 0;
 		$total_part_interet = 0;
 		$total_assurance = 0;
 		$total_loyer = 0;
-		$capital_restant_init=$f->montant;
+		$capital_restant_init = $f->montant;
 		$capital_restant = $capital_restant_init;
 		$TLigne=array();
 		for($i=0; $i<$f->duree; $i++) {
 			
 			$time = strtotime('+'.($i*3).' month',  $f->date_debut);	
-			
 			
 			$capital_amortit = $f->amortissement_echeance( $i + 1 ) ;
 			$part_interet = $f->echeance -$capital_amortit; 			
@@ -372,10 +379,8 @@ class TFin_dossier extends TObjetStd {
 				,'loyerHT'=>$f->echeance+$f->assurance
 				,'loyer'=>($f->echeance+$f->assurance) * FIN_TVA_DEFAUT
 			);
-			
-			$this->somme_echeance +=$f->echeance;
-		 	
 		}
+		$f->somme_echeance = $total_loyer;
 		$total_loyer += $f->reste;
 		
 		// print $f->montant.' = '.$capital_restant_init;
@@ -396,9 +401,7 @@ class TFin_dossier extends TObjetStd {
 				)
 			)
 		);
-		
 	}
-	
 }
 
 /*

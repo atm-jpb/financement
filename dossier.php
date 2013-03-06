@@ -381,8 +381,12 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'solde'=>$dossier->solde
 				,'montant_ok'=>$dossier->somme_affaire
 				,'nature_financement'=>$dossier->nature_financement
-				,'rentabilite_attendue'=>$dossier->getRentabilitePrevisionnelle()
+				,'rentabilite_previsionnelle'=>$dossier->getRentabilitePrevisionnelle()
+				,'rentabilite_attendue'=>$dossier->getRentabiliteAttendue($PDOdb)
 				,'rentabilite_reelle'=>$dossier->getRentabiliteReelle()
+				,'marge_previsionnelle'=>$dossier->getMargePrevisionnelle()
+				,'marge_attendue'=>$dossier->getMargeAttendue($PDOdb)
+				,'marge_reelle'=>$dossier->getMargeReelle()
 				,'soldeRBANK'=>$dossier->getSolde($PDOdb, 'SRBANK')
 				,'soldeNRBANK'=>$dossier->getSolde($PDOdb, 'SNRBANK')
 				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO')
