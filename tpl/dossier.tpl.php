@@ -1,7 +1,4 @@
 [onshow;block=begin;when [view.mode]=='view']
-
-	
-		<div class="fiche"> <!-- begin div class="fiche" -->
 		
 		<div class="tabs">
 		<a class="tabTitle"><img border="0" title="" alt="" src="./img/object_reportico.png"> Dossier</a>
@@ -157,8 +154,6 @@
 			
 [onshow;block=begin;when [view.mode]=='view']
 	
-		</div>
-
 		</div>
 		
 		<div class="tabsAction">
