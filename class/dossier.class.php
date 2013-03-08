@@ -309,13 +309,17 @@ class TFin_dossier extends TObjetStd {
 		
 	}
 	
-	function getSolde($ATMdb, $type='SRBANK') {
-	
-		$CRD_Leaser = $this->financementLeaser->valeur_actuelle();
-		$LRD_Leaser = $this->financementLeaser->echeance * $this->financementLeaser->duree_restante;
+	function getSolde($ATMdb, $type='SRBANK', $iPeriode=0) {
 		
-		$CRD = $this->financement->valeur_actuelle();
-		$LRD = $this->financement->echeance * $this->financement->duree_restante;
+		$duree_restante = ($iPeriode == 0) ? $this->financementLeaser->duree_restante : $this->financementLeaser->duree - $iPeriode;
+	
+		$CRD_Leaser = $this->financementLeaser->valeur_actuelle($duree_restante);
+		$LRD_Leaser = $this->financementLeaser->echeance * $duree_restante;
+		
+		$duree_restante = ($iPeriode == 0) ? $this->financement->duree_restante : $this->financement->duree - $iPeriode;
+		
+		$CRD = $this->financement->valeur_actuelle($duree_restante);
+		$LRD = $this->financement->echeance * $duree_restante;
 		
 		
 		switch($type) {
@@ -418,7 +422,8 @@ class TFin_dossier extends TObjetStd {
 			if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[$i])) $fact = $this->TFactureFournisseur[$i];
 			if(is_object($fact)) {
 				$data['facture_total_ht'] = $fact->total_ht;
-				$data['facture_link'] = DOL_URL_ROOT.'/compta/facture.php?facid='.$fact->id;
+				$data['facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
+				$data['facture_link'] .= $fact->id;
 				$data['facture_bg'] = ($fact->statut == 1) ? '#FF0000' : '#00FF00';
 			} else {
 				$data['facture_total_ht'] = '';
@@ -426,6 +431,20 @@ class TFin_dossier extends TObjetStd {
 				$data['facture_bg'] = '';
 			}
 			$total_facture += $fact->total_ht;
+			
+			// Ajout des soldes par période
+			global $db;
+			$form = new Form($db);
+			$htmlSoldes = '<table>';
+			if($type_echeancier == 'CLIENT') {
+				$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRBANK', $i),2,',',' ').' &euro;</strong></td></tr>';
+				$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SNRBANK', $i),2,',',' ').' &euro;</strong></td></tr>';
+			} else {
+				$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRCPRO', $i),2,',',' ').' &euro;</strong></td></tr>';
+				$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SNRCPRO', $i),2,',',' ').' &euro;</strong></td></tr>';
+			}
+			$htmlSoldes.= '</table>';
+			$data['soldes'] = htmlentities($htmlSoldes);
 			
 			$TLigne[] = $data;
 		}
@@ -720,8 +739,9 @@ class TFin_financement extends TObjetStd {
 		
 		return -$vpm;
 	}
-	function valeur_actuelle() {
-		return $this->va($this->taux / (12 / $this->getiPeriode()) / 100, $this->duree, $this->echeance, $this->reste, $this->terme);
+	function valeur_actuelle($duree=0) {
+		if($duree==0) $duree = $this->duree_restante;
+		return $this->va($this->taux / (12 / $this->getiPeriode()) / 100, $duree, $this->echeance, $this->reste, $this->terme);
 	}
 	/**
 	 * VA : Calcule la valeur actuelle d'un investissement

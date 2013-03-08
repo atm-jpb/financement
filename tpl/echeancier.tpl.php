@@ -17,7 +17,7 @@
 		<td colspan="5">&nbsp;</td>
 	</tr>
 	
-	<tr class="impair">
+	<tr class="impair classfortooltip" title="[ligne.soldes; strconv=no]">
 		<td>[ligne.#; block=tr]</td>
 		<td>[ligne.date]</td>
 		<td align="right"><strong>[ligne.capital; frm=0 000,00] &euro;</strong></td>
@@ -32,7 +32,7 @@
 		<td align="center" style="background-color: [ligne.facture_bg];">-</td>
 		[onshow;block=end]
 	</tr>
-	<tr class="pair">
+	<tr class="pair classfortooltip" title="[ligne.soldes; strconv=no]">
 		<td>[ligne.#; block=tr]</td>
 		<td>[ligne.date]</td>
 		<td align="right"><strong>[ligne.capital; frm=0 000,00] &euro;</strong></td>
