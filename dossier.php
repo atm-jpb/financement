@@ -267,6 +267,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	else { $leaser->nom="Non défini"; }
 	
 	$dossier->load_facture($PDOdb);
+	$dossier->load_factureFournisseur($PDOdb);
 
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()
@@ -296,11 +297,11 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'date_prochaine_echeance'=>($financementLeaser->date_prochaine_echeance>0) ? $financementLeaser->get_date('date_prochaine_echeance') : ''
 			,'date_solde'=>$form->calendrier('', 'leaser[date_solde]', $financementLeaser->get_date('date_solde','d/m/Y',true),10)
 						
-			,'leaser'=>($mode=='edit') ? $html->select_company('','leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->nom
+			,'leaser'=>($mode=='edit') ? $html->select_company($leaser->id,'leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->nom
 			
 			,'okPourFacturation'=>$form->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
 			
-			,'echeancier'=>$dossier->echeancier($PDOdb,'EXTERNE')
+			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			
 			
 	);

@@ -22,7 +22,6 @@ class TFin_dossier extends TObjetStd {
 		
 		$this->TFacture=array();
 		$this->TFactureFournisseur=array();
-		
 	}
 	
 	function loadReference(&$db, $reference, $annexe=false) {
@@ -202,22 +201,48 @@ class TFin_dossier extends TObjetStd {
 	
 		
 	function load_facture(&$ATMdb) {
+		global $db;
 		$this->somme_facture = 0;
 		$this->somme_facture_reglee=0;
 		
-		$ATMdb->Execute("SELECT fk_target
-		FROM ll_element_element WHERE targettype='affaire' AND sourcetype='facture'");
+		$sql = "SELECT fk_target";
+		$sql.= " FROM ".MAIN_DB_PREFIX."element_element";
+		$sql.= " WHERE sourcetype='dossier'";
+		$sql.= " AND targettype='facture'";
+		$sql.= " AND fk_source=".$this->getId();
 		
-		while($db->Get_line()) {
-			
+		$ATMdb->Execute($sql);
+		
+		dol_include_once("/compta/facture/class/facture.class.php");
+		
+		while($ATMdb->Get_line()) {
+			$fact = new Facture($db);
+			$fact->fetch($ATMdb->Get_field('fk_target'));
+			$this->somme_facture += $fact->total_ht;
+			$this->somme_facture_reglee += $fact->total_ht;
+			if($f->type == 0) $this->TFacture[] = $fact;
 		}
-		
 	}
 	function load_factureFournisseur(&$ATMdb) {
+		global $db;
 		$this->somme_facture_fournisseur = 0;
 		
+		$sql = "SELECT fk_target";
+		$sql.= " FROM ".MAIN_DB_PREFIX."element_element";
+		$sql.= " WHERE sourcetype='dossier'";
+		$sql.= " AND targettype='invoice_supplier'";
+		$sql.= " AND fk_source=".$this->getId();
 		
+		$ATMdb->Execute($sql);
 		
+		dol_include_once("/fourn/class/fournisseur.facture.class.php");
+		
+		while($ATMdb->Get_line()) {
+			$fact = new FactureFournisseur($db);
+			$fact->fetch($ATMdb->Get_field('fk_target'));
+			$this->somme_facture_fournisseur += $fact->total_ht;
+			if($f->type == 0) $this->TFactureFournisseur[] = $fact;
+		}
 	}
 	
 	function getPenalite(&$ATMdb, $type, $nature_financement='INTERNE') {
@@ -242,15 +267,18 @@ class TFin_dossier extends TObjetStd {
 	}
 	function getRentabilite(&$ATMdb) {
 		
-		$g=new TFin_grille_leaser('RENTABILITE');
+		/*$g=new TFin_grille_leaser('RENTABILITE');
 		
 		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
 		else {	$f = &$this->financementLeaser; }
 		
 		$g->get_grille($ATMdb,$f->fk_soc,$this->contrat);	
 		$coeff = (double)$g->get_coeff($ATMdb, $f->fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree);
-		return $coeff > 0 ? $coeff : 0;
+		return $coeff > 0 ? $coeff : 0;*/
 		
+		$g=new TFin_grille_leaser('RENTABILITE');
+		$coeff = (double)$g->get_coeff($ATMdb, $this->financement->fk_soc, $this->contrat, 'TRIMESTRE', $this->financement->montant, 5);
+		return $coeff > 0 ? $coeff : 0;
 	}
 	function getRentabilitePrevisionnelle() {
 		return $this->financement->somme_echeance - $this->financementLeaser->somme_echeance;
@@ -262,12 +290,14 @@ class TFin_dossier extends TObjetStd {
 		return $this->somme_facture_reglee - $this->somme_facture_fournisseur;
 	}
 	function getMargePrevisionnelle() {
+		if(empty($this->financement->montant)) return 0;
 		return $this->getRentabilitePrevisionnelle() / $this->financement->montant * 100;
 	}
 	function getMargeAttendue(&$ATMdb) {
 		return $this->getRentabilite($ATMdb);
 	}
 	function getMargeReelle() {
+		if(empty($this->financement->montant)) return 0;
 		return $this->getRentabiliteReelle() / $this->financement->montant * 100;
 	}
 	
@@ -331,9 +361,9 @@ class TFin_dossier extends TObjetStd {
 		
 	}
 	
-	function echeancier(&$ATMdb,$nature_financement='INTERNE') {
-		if($nature_financement == 'INTERNE') { $f= &$this->financement; }
-		else {	$f = &$this->financementLeaser; }
+	function echeancier(&$ATMdb,$type_echeancier='CLIENT') {
+		if($type_echeancier == 'CLIENT') $f = &$this->financement;
+		else $f = &$this->financementLeaser;
 		
 		 /*
 		 * Affiche l'échéancier
@@ -353,15 +383,16 @@ class TFin_dossier extends TObjetStd {
 		$total_part_interet = 0;
 		$total_assurance = 0;
 		$total_loyer = 0;
+		$total_facture = 0;
 		$capital_restant_init = $f->montant;
 		$capital_restant = $capital_restant_init;
 		$TLigne=array();
 		for($i=0; $i<$f->duree; $i++) {
 			
-			$time = strtotime('+'.($i*3).' month',  $f->date_debut);	
+			$time = strtotime('+'.($i*3).' month',  $f->date_debut);
 			
-			$capital_amortit = $f->amortissement_echeance( $i + 1 ) ;
-			$part_interet = $f->echeance -$capital_amortit; 			
+			$capital_amortit = $f->amortissement_echeance( $i + 1 );
+			$part_interet = $f->echeance -$capital_amortit;
 
 			$capital_restant-=$capital_amortit;
 			$total_loyer+=$f->echeance;
@@ -369,7 +400,8 @@ class TFin_dossier extends TObjetStd {
 			$total_capital_amortit+=$capital_amortit;
 			$total_part_interet+=$part_interet;
 			
-			$TLigne[]=array(
+			// Construction donnée pour échéancier
+			$data=array(
 				'date'=>date('d/m/Y', $time)
 				/*,'valeur_rachat'=>$capital_restant*$this->getPenalite($ATMdb,'NR')*/
 				,'capital'=>$capital_restant
@@ -379,6 +411,23 @@ class TFin_dossier extends TObjetStd {
 				,'loyerHT'=>$f->echeance+$f->assurance
 				,'loyer'=>($f->echeance+$f->assurance) * FIN_TVA_DEFAUT
 			);
+			
+			// Ajout factures liées au dossier
+			$fact = false;
+			if($type_echeancier == 'CLIENT' && !empty($this->TFacture[$i])) $fact = $this->TFacture[$i];
+			if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[$i])) $fact = $this->TFactureFournisseur[$i];
+			if(is_object($fact)) {
+				$data['facture_total_ht'] = $fact->total_ht;
+				$data['facture_link'] = DOL_URL_ROOT.'/compta/facture.php?facid='.$fact->id;
+				$data['facture_bg'] = ($fact->statut == 1) ? '#FF0000' : '#00FF00';
+			} else {
+				$data['facture_total_ht'] = '';
+				$data['facture_link'] = '';
+				$data['facture_bg'] = '';
+			}
+			$total_facture += $fact->total_ht;
+			
+			$TLigne[] = $data;
 		}
 		$f->somme_echeance = $total_loyer;
 		$total_loyer += $f->reste;
@@ -398,6 +447,7 @@ class TFin_dossier extends TObjetStd {
 					,'total_part_interet'=>$total_part_interet
 					,'total_loyer'=>$total_loyer
 					,'total_assurance'=>$total_assurance
+					,'total_facture'=>$total_facture
 				)
 			)
 		);
@@ -509,9 +559,7 @@ class TFin_financement extends TObjetStd {
 	 * Définie la prochaine échéance
 	 */
 	function setNextEcheance() {
-		
-		$this->date_prochaine_echeance = time() + strotime( $this->getiPeriode().' month' );
-		
+		$this->date_prochaine_echeance = time() + strtotime( $this->getiPeriode().' month' );
 		$this->numero_prochaine_echeance++;
 	}
 

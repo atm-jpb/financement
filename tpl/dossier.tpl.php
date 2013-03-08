@@ -22,7 +22,7 @@
 						<tr class="liste_titre"><td colspan="2">Client<!-- [onshow;block=((td));when [dossier.nature_financement]=='INTERNE'] --></td></tr>
 						
 						<tr class="pair"><td width="50%">Numéro de contrat Client</td><td>[financement.reference; strconv=no]</td></tr>
-						<tr class="impair"><td>Montant financé HT</td><td>[financement.montant; strconv=no] &euro;</td></tr>
+						<tr class="impair"><td>Montant financé HT</td><td>[financement.montant; strconv=no; frm=0 000,00] &euro;</td></tr>
 						<tr class="pair"><td>Taux</td><td>[financement.taux; frm=0 000,0000] %</td></tr>
 						<tr class="impair"><td>Périodicité</td><td>[financement.periodicite; strconv=no]</td></tr>
 			
@@ -43,7 +43,7 @@
 						<!-- <tr><td>Montant de prestation</td><td>[financement.montant_prestation; strconv=no]</td></tr> -->
 						
 						<tr class="impair"><td>Pénalité de reprise de dossier</td><td>[financement.penalite_reprise; strconv=no; frm=0 000,00] &euro;</td></tr>
-						<tr class="pair"><td>Taux de commission</td><td>[financement.taux_commission; strconv=no; frm=0,00]%</td></tr>
+						<tr class="pair"><td>Taux de commission</td><td>[financement.taux_commission; strconv=no; frm=0,00] %</td></tr>
 					
 						<tr class="impair"><td>Incident de paiement</td><td>[financement.incident_paiement; strconv=no]</td></tr>
 					

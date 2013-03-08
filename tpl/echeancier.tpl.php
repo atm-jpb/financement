@@ -8,6 +8,7 @@
 		<td align="right">Part<br />Intérêts</td>
 		<td align="right">Assurance</td>
 		<td align="right">Loyers<br />HT</td>
+		<td align="right">Facture<br />HT</td>
 	</tr>
 
 	<tr class="pair">
@@ -24,6 +25,12 @@
 		<td align="right">[ligne.interet; frm=0 000,00] &euro;</td>
 		<td align="right">[ligne.assurance; frm=0 000,00] &euro;</td>
 		<td align="right">[ligne.loyerHT; frm=0 000,00] &euro;</td>
+		[onshow; block=begin; when [ligne.facture_total_ht]!='']
+		<td align="right" style="background-color: [ligne.facture_bg];"><a href="[ligne.facture_link]">[ligne.facture_total_ht; frm=0 000,00] &euro;</a></td>
+		[onshow;block=end]
+		[onshow; block=begin; when [ligne.facture_total_ht]=='']
+		<td align="center" style="background-color: [ligne.facture_bg];">-</td>
+		[onshow;block=end]
 	</tr>
 	<tr class="pair">
 		<td>[ligne.#; block=tr]</td>
@@ -33,11 +40,18 @@
 		<td align="right">[ligne.interet; frm=0 000,00] &euro;</td>
 		<td align="right">[ligne.assurance; frm=0 000,00] &euro;</td>
 		<td align="right">[ligne.loyerHT; frm=0 000,00] &euro;</td>
+		[onshow; block=begin; when [ligne.facture_total_ht]!='']
+		<td align="right" style="background-color: [ligne.facture_bg];"><a href="[ligne.facture_link]">[ligne.facture_total_ht; frm=0 000,00] &euro;</a></td>
+		[onshow;block=end]
+		[onshow; block=begin; when [ligne.facture_total_ht]=='']
+		<td align="center" style="background-color: [ligne.facture_bg];">-</td>
+		[onshow;block=end]
 	</tr>
 
 	<tr class="ligne">
 		<td align="right" colspan="6">Val. Résiduelle</td>
 		<td align="right">[autre.reste; frm=0 000,00] &euro;</td>
+		<td>&nbsp;</td>
 	</tr>
 
 	<tr class="liste_titre">
@@ -46,6 +60,7 @@
 		<td align="right">[autre.total_part_interet; frm=0 000,00] &euro;</td>
 		<td align="right">[autre.total_assurance; frm=0 000,00] &euro;</td>
 		<td align="right">[autre.total_loyer; frm=0 000,00] &euro;</td>
+		<td align="right">[autre.total_facture; frm=0 000,00] &euro;</td>
 	</tr>
 	
 </table>
