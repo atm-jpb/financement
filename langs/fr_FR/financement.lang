@@ -12,6 +12,7 @@ GlobalOptionsForFinancement=Options globale du module de financement
 GlobalOptionsForFinancementSimulation=Options globales pour les simulations
 GlobalAdmin=Options globales
 AmountValidationPercent=Pourcentage d'endettement maximum : montant finançable max = (encours conseillé - encours cpro) * X
+RachatPartPercent=Pourcentage maximum que peut représenter la partie rachat par rapport au montant total financé
 AmountValidationScore=Score minimum de validation de simulation
 NAFBlackList=Liste des codes NAF non acceptés (séparés par des point-virgules)
 coeff=Grille de coefficients

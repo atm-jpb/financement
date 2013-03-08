@@ -129,7 +129,7 @@ global $langs,$conf, $db;
 	getStandartJS();
 	
 	$r = new TSSRenderControler($affaire);
-	$sql="SELECT a.rowid as 'ID', a.reference, a.montant as 'Montant', a.fk_soc, s.nom as 'Société'
+	$sql="SELECT a.rowid as 'ID', a.reference, a.montant as 'Montant', a.fk_soc, s.nom
 	, a.nature_financement, a.type_financement, a.contrat, a.date_affaire
 		FROM @table@ a LEFT JOIN llx_societe s ON (a.fk_soc=s.rowid)
 		WHERE a.entity=".$conf->entity;
@@ -177,12 +177,13 @@ global $langs,$conf, $db;
 			,'nbLine'=>'30'
 		)
 		,'link'=>array(
-			'Société'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
+			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
 			,'reference'=>'<a href="?id=@ID@">@val@</a>'
 		)
 		,'translate'=>array(
 			'nature_financement'=>$affaire->TNatureFinancement
 			,'type_financement'=>$affaire->TTypeFinancement
+			,'contrat'=>$affaire->TContrat
 		)
 		,'hide'=>$THide
 		,'type'=>array('date_affaire'=>'date', 'Montant'=>'money')
@@ -199,6 +200,7 @@ global $langs,$conf, $db;
 		)
 		,'title'=>array(
 			'reference'=>'Numéro d\'affaire'
+			,'nom'=>'Société'
 			,'nature_financement'=>'Nature'
 			,'type_financement'=> 'Type'
 			,'contrat'=> 'Type de contrat'
@@ -207,6 +209,7 @@ global $langs,$conf, $db;
 		,'orderBy'=>array('date_affaire'=>'DESC','reference'=>'ASC')
 		,'search'=>array(
 			'reference'=>true
+			,'nom'=>array('recherche'=>true,'table'=>'s')
 			,'nature_financement'=>$affaire->TNatureFinancement
 			,'type_financement'=>$affaire->TTypeFinancement
 			,'contrat'=>$affaire->TContrat

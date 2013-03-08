@@ -62,8 +62,6 @@
 				
 				if(isset($_REQUEST['leaser'])){
 					$dossier->financementLeaser->set_values($_REQUEST['leaser']);
-					$dossier->financementLeaser->okPourFacturation = (int)isset($_REQUEST['leaser']['okPourFacturation']);
-					
 				}
 				
 				//print_r($dossier->financementLeaser);
@@ -148,7 +146,7 @@ function _liste(&$PDOdb, &$dossier) {
 	getStandartJS();
 	
 	$r = new TSSRenderControler($dossier);
-	$sql="SELECT d.rowid as 'ID', f.reference, a.rowid as 'ID affaire', a.reference as 'N° Affaire', a.fk_soc as 'fk_soc', s.nom, 
+	$sql="SELECT d.rowid as 'ID', f.reference, a.rowid as 'ID affaire', a.reference as 'N° Affaire', a.nature_financement, a.fk_soc as 'fk_soc', s.nom, 
 	f.duree as 'Durée', f.montant as 'Montant financé', f.echeance as 'Echéance', f.date_prochaine_echeance as 'Prochaine échéance', f.date_debut, f.date_fin as 'Fin'
 	FROM ((((@table@ d
 	LEFT OUTER JOIN  llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
@@ -160,7 +158,7 @@ function _liste(&$PDOdb, &$dossier) {
 				
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
-	
+	$aff = new TFin_affaire;
 	
 			
 	$r->liste($PDOdb, $sql, array(
@@ -175,6 +173,7 @@ function _liste(&$PDOdb, &$dossier) {
 		)
 		,'translate'=>array(
 			'Incident de paiment'=>$dossier->TIncidentPaiement
+			,'nature_financement'=>$aff->TNatureFinancement
 		)
 		,'hide'=>array('fk_soc','ID','ID affaire')
 		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine échéance'=>'date', 'Montant financé'=>'money', 'Echéance'=>'money')
@@ -192,12 +191,14 @@ function _liste(&$PDOdb, &$dossier) {
 		,'title'=>array(
 			'reference'=>'N° contrat'
 			,'nom'=>'Société'
+			,'nature_financement'=>'Nature'
 			,'date_debut'=>'Début'
 		)
 		,'orderBy'=> array('ID'=>'DESC','f.reference'=>'ASC')
 		,'search'=>array(
 			'reference'=>array('recherche'=>true, 'table'=>'d')
 			,'nom'=>array('recherche'=>true, 'table'=>'s')
+			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
 			,'date_debut'=>'calendar'
 		)
 	));
@@ -264,6 +265,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	$leaser=new Societe($db);
 	if($financementLeaser->fk_soc>0)$leaser->fetch($financementLeaser->fk_soc);
 	else { $leaser->nom="Non défini"; }
+	
+	$dossier->load_facture($PDOdb);
 
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()
@@ -277,7 +280,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'reste'=>$form->texte('', 'leaser[reste]', $financementLeaser->reste, 10,255,'','','à saisir')
 			,'montant_prestation'=>$form->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 10,255,'','','à saisir')
 			,'frais_dossier'=>$form->texte('', 'leaser[frais_dossier]', $financementLeaser->frais_dossier, 10,255,'','','à saisir')
-			,'montant_solde'=>$form->texte('', 'leaser[montant_solde]', $financementLeaser->frais_dossier, 10,255,'','','')
+			,'montant_solde'=>$form->texte('', 'leaser[montant_solde]', $financementLeaser->montant_solde, 10,255,'','','')
 							
 				
 			,'numero_prochaine_echeance'=>$financementLeaser->numero_prochaine_echeance 
