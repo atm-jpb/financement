@@ -99,12 +99,13 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 	print date('Y-m-d H:i:s').' : Récupération fichiers "'.$filePrefix.'", '.count($filesToImport).' fichier(s) trouvé(s)'.$eol;
 
 	foreach($filesToImport as $fileName) { // Pour chaque fichier à importer
-		$imp->init($fileName, $fileType);		
+		$imp->rowid = 0;
+		$imp->init($fileName, $fileType);
 		$imp->save($ATMdb); // Création de l'import
 		
 		$fileHandler = fopen($importFolder.$fileName, 'r');
 		while($dataline = fgetcsv($fileHandler, 1024, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
-			$imp->importLine($dataline, $fileType);
+			$imp->importLine($ATMdb, $dataline, $fileType);
 		}
 		fclose($fileHandler);
 		
@@ -117,6 +118,8 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 }
 
 $ATMdb->close();
+
+print '--- end'.$eol;
 
 return $error;
 ?>
