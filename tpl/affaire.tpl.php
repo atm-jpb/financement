@@ -1,7 +1,4 @@
 [onshow;block=begin;when [view.mode]=='view']
-
-	
-		<div class="fiche"> <!-- begin div class="fiche" -->
 		
 		<div class="tabs">
 		<a class="tabTitle"><img border="0" title="" alt="" src="./img/object_financementico.png"> Affaire</a>
@@ -10,7 +7,7 @@
 		
 			<div class="tabBar">
 				
-[onshow;block=end]				
+[onshow;block=end]
 				
 			<table width="100%" class="border">
 			<tr><td width="20%">Numéro d'affaire Artis</td><td>[affaire.reference; strconv=no]</td></tr>
@@ -37,11 +34,11 @@
 			[onshow;block=end]	
 			
 			<table width="100%" class="border" style="margin-top:20px;">
-			<tr><td width="20%">Dossier numéro <!-- [dossier.id] --></td><td><a href="dossier.php?id=[dossier.id]">[dossier.id; block=table; strconv=no]</a> <span>/ [dossier.reference; strconv=no;magnet=span]</span></td></tr>
-			<tr><td width="20%">Montant</td><td>[dossier.montant;strconv=no] &euro; à [dossier.taux;strconv=no]%</td></tr>
+			<tr><td width="20%">Dossier numéro <!-- [dossier.id] --></td><td><a href="dossier.php?id=[dossier.id]">[dossier.reference; block=table; strconv=no]</a></td></tr>
+			<tr><td width="20%">Montant</td><td>[dossier.montant;strconv=no; frm=0 000,00] &euro; à [dossier.taux;strconv=no] %</td></tr>
 			<tr><td width="20%">Date de début - fin</td><td>[dossier.date_debut; strconv=no] - [dossier.date_fin; strconv=no]</td></tr>
-			<tr><td width="20%">1ère échéance</td><td>[dossier.echeance1; strconv=no] &euro;</td></tr>
-			<tr><td width="20%">Echéance</td><td>[dossier.echeance; strconv=no] &euro;</td></tr>
+			<tr><td width="20%">1ère échéance</td><td>[dossier.echeance1; strconv=no; frm=0 000,00] &euro;</td></tr>
+			<tr><td width="20%">Echéance</td><td>[dossier.echeance; strconv=no; frm=0 000,00] &euro;</td></tr>
 			<tr><td width="20%">Incident de paiement</td><td>[dossier.incident_paiement; strconv=no]</td></tr>
 			[onshow;block=begin;when [view.mode]!='view']
 			<tr><td colspan="2" align="right">
@@ -64,8 +61,6 @@
 			
 [onshow;block=begin;when [view.mode]=='view']
 	
-		</div>
-
 		</div>
 		
 		<div class="tabsAction">

@@ -7,7 +7,7 @@
 		
 			<div class="tabBar">
 				
-[onshow;block=end]				
+[onshow;block=end]
 				
 		<table width="100%" class="border">
 		<tr>
@@ -16,7 +16,7 @@
 				<tr>
 					<td width="50%" valign="top">
 						<table width="100%"  class="border">	
-						<tr class="liste_titre"><td colspan="2">Client<!-- [onshow;block=((td));when [dossier.nature_financement]=='INTERNE'] --></td></tr>
+						<tr class="liste_titre"><td>Client<!-- [onshow;block=((td));when [dossier.nature_financement]=='INTERNE'] --></td><td>[financement.client; strconv=no]</td></tr>
 						
 						<tr class="pair"><td width="50%">Numéro de contrat Client</td><td>[financement.reference; strconv=no]</td></tr>
 						<tr class="impair"><td>Montant financé HT</td><td>[financement.montant; strconv=no; frm=0 000,00] &euro;</td></tr>
@@ -55,7 +55,7 @@
 					<td valign="top">
 						
 						<table width="100%" class="border">
-						<tr class="liste_titre"><td colspan="2">Leaser [financementLeaser.leaser; strconv=no]</td></tr>
+						<tr class="liste_titre"><td>Leaser</td><td>[financementLeaser.leaser; strconv=no]</td></tr>
 						<tr class="pair">
 							<td width="50%">Numéro de Dossier Leaser</td><td>[financementLeaser.reference; strconv=no]</td>
 							
@@ -133,6 +133,7 @@
 			
 			<table width="100%" class="border" style="margin-top:20px;">
 			<tr><td width="20%">Affaire numéro <!-- [affaire.id; block=table;] --></td><td><a href="affaire.php?id=[affaire.id]">[affaire.reference]</a></td></tr>
+			<tr><td width="20%">Client <!-- [affaire.id; block=table;] --></td><td>[affaire.client; strconv=no]</td></tr>
 			<tr><td width="20%">Montant de l'affaire</td><td>[affaire.montant; strconv=no; frm=0 000,00] &euro;</td></tr>
 			<tr><td width="20%">Nature du financement</td><td>[affaire.nature_financement; strconv=no]</td></tr>
 			<tr><td width="20%">Type de financement</td><td>[affaire.type_financement; strconv=no]</td></tr>

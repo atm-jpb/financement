@@ -311,32 +311,31 @@ class TFin_dossier extends TObjetStd {
 	
 	function getSolde($ATMdb, $type='SRBANK', $iPeriode=0) {
 		
-		$duree_restante = ($iPeriode == 0) ? $this->financementLeaser->duree_restante : $this->financementLeaser->duree - $iPeriode;
+		$duree_restante_leaser = ($iPeriode == 0) ? $this->financementLeaser->duree_restante : $this->financementLeaser->duree - $iPeriode;
 	
-		$CRD_Leaser = $this->financementLeaser->valeur_actuelle($duree_restante);
-		$LRD_Leaser = $this->financementLeaser->echeance * $duree_restante;
+		$CRD_Leaser = $this->financementLeaser->valeur_actuelle($duree_restante_leaser);
+		$LRD_Leaser = $this->financementLeaser->echeance * $duree_restante_leaser;
 		
-		$duree_restante = ($iPeriode == 0) ? $this->financement->duree_restante : $this->financement->duree - $iPeriode;
+		$duree_restante_client = ($iPeriode == 0) ? $this->financement->duree_restante : $this->financement->duree - $iPeriode;
 		
-		$CRD = $this->financement->valeur_actuelle($duree_restante);
-		$LRD = $this->financement->echeance * $duree_restante;
-		
+		$CRD = $this->financement->valeur_actuelle($duree_restante_client);
+		$LRD = $this->financement->echeance * $duree_restante_client;
 		
 		switch($type) {
 			case 'SRBANK':
-				if($this->financementLeaser->duree_passe <= 5) return $this->financementLeaser->montant;
+				if($this->financementLeaser->duree - $duree_restante_leaser <= 5) return $this->financementLeaser->montant;
 				
 				return $CRD_Leaser * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
 
 				break;
 			case 'SNRBANK':
-				if($this->financementLeaser->duree_passe <= 5) return $this->financementLeaser->montant;
+				if($this->financementLeaser->duree - $duree_restante_leaser <= 5) return $this->financementLeaser->montant;
 				
 				return $LRD_Leaser * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100);
 				break;
 				
 			case 'SNRCPRO':
-				if($this->financement->duree_passe <= 5) return $this->financement->montant;
+				if($this->financement->duree - $duree_restante_client <= 5) return $this->financement->montant;
 				
 				if($this->nature_financement == 'INTERNE') {
 					return ($CRD * (1 + $this->getPenalite($ATMdb,'R','INTERNE') / 100)) + $this->getRentabiliteReste($ATMdb) + $this->getMontantCommission();
@@ -347,7 +346,7 @@ class TFin_dossier extends TObjetStd {
 				break;
 					
 			case 'SRCPRO':
-				if($this->financement->duree_passe <= 5) return $this->financement->montant;
+				if($this->financement->duree - $duree_restante_client <= 5) return $this->financement->montant;
 
 				if($this->nature_financement == 'INTERNE') {
 					return $LRD;
@@ -433,12 +432,12 @@ class TFin_dossier extends TObjetStd {
 			$htmlSoldes = '<table>';
 			if($type_echeancier == 'CLIENT') {
 				$htmlSoldes.= '<tr><td colspan="2" align="center">Après l\'échéance n°'.($i+1).'</td></tr>';
-				$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRBANK', $i+1),2,',',' ').' &euro;</strong></td></tr>';
-				$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SNRBANK', $i+1),2,',',' ').' &euro;</strong></td></tr>';
-			} else {
-				$htmlSoldes.= '<tr><td colspan="2" align="center">Après l\'échéance n°'.($i+1).'</td></tr>';
 				$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRCPRO', $i+1),2,',',' ').' &euro;</strong></td></tr>';
 				$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SNRCPRO', $i+1),2,',',' ').' &euro;</strong></td></tr>';
+			} else {
+				$htmlSoldes.= '<tr><td colspan="2" align="center">Après l\'échéance n°'.($i+1).'</td></tr>';
+				$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRBANK', $i+1),2,',',' ').' &euro;</strong></td></tr>';
+				$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SNRBANK', $i+1),2,',',' ').' &euro;</strong></td></tr>';
 			}
 			$htmlSoldes.= '</table>';
 			$data['soldes'] = htmlentities($htmlSoldes);

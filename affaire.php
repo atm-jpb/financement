@@ -240,16 +240,22 @@ global $db,$user;
 	foreach($affaire->TLien as &$lien) {
 		$dossier = &$lien->dossier;
 		$dossier->load_financement($ATMdb);
+		$ref = '';
+		if($dossier->nature_financement == 'INTERNE') {
+			$ref.= empty($dossier->financement->reference) ? '(vide)' : $dossier->financement->reference;
+			$ref.= ' / ';
+		}
+		$ref.= empty($dossier->financementLeaser->reference) ? '(vide)' : $dossier->financementLeaser->reference;
 		$TDossier[]=array(
 			'id'=>$dossier->getId()
-			,'reference'=>$dossier->financementLeaser->reference
+			,'reference'=>$ref
 			,'date_debut'=>$dossier->get_date('date_debut')
 			,'date_fin'=>$dossier->get_date('date_fin')
 			,'montant'=>$dossier->montant
 			,'taux'=>$dossier->taux
-			,'incident_paiement'=>$dossier->TIncidentPaiement [ $dossier->incident_paiement ]
-			,'echeance1'=>$dossier->echeance1			
-			,'echeance'=>$dossier->echeance			
+			,'incident_paiement'=>$dossier->TIncidentPaiement[$dossier->incident_paiement]
+			,'echeance1'=>$dossier->echeance1
+			,'echeance'=>$dossier->echeance
 		);
 	}
 	

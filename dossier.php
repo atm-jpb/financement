@@ -212,11 +212,13 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	
 	$html=new Form($db);
 	/*
-	 * Liste des dossiers rattachés à cette affaire
+	 * Liste des affaires rattachés à ce dossier
 	 */ 
 	$TAffaire=array();
 	foreach($dossier->TLien as &$lien) {
 		$affaire = &$lien->affaire;
+		$client = new Societe($db);
+		$client->fetch($affaire->fk_soc);
 		
 		$TAffaire[]=array(
 			'id'=>$affaire->getId()
@@ -226,6 +228,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'nature_financement'=>$affaire->TNatureFinancement[$affaire->nature_financement]
 			,'type_financement'=>$affaire->TTypeFinancement[$affaire->type_financement]
 			,'contrat'=>$affaire->TContrat[$affaire->contrat]
+			,'client'=>$client->getNomUrl(1)
 		);
 		
 		if($affaire->nature_financement=='INTERNE' && !isset($dossier->financement) ) {
@@ -297,7 +300,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'date_prochaine_echeance'=>($financementLeaser->date_prochaine_echeance>0) ? $financementLeaser->get_date('date_prochaine_echeance') : ''
 			,'date_solde'=>$form->calendrier('', 'leaser[date_solde]', $financementLeaser->get_date('date_solde','d/m/Y',true),10)
 						
-			,'leaser'=>($mode=='edit') ? $html->select_company($leaser->id,'leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->nom
+			,'leaser'=>($mode=='edit') ? $html->select_company($leaser->id,'leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->getNomUrl(1)
 			
 			,'okPourFacturation'=>$form->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
 			
@@ -337,6 +340,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'taux_commission'=>$form->texte('', 'taux_commission', $financement->taux_commission, 5,255,'','') 
 	
 			,'echeancier'=>$dossier->echeancier($PDOdb)
+			
+			,'client'=>$TAffaire[0]['client']
 		);
 	}
 	else {
@@ -372,8 +377,6 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	print $TBS->render('./tpl/dossier.tpl.php'
 		,array(
 			'affaire'=>$TAffaire
-			,'facture'=>$dossier->TFacture
-			,'factureFournisseur'=>$dossier->TFactureFournisseur
 		)
 		,array(
 			'dossier'=>array(
