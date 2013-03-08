@@ -232,10 +232,10 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 		);
 		
 		if($affaire->nature_financement=='INTERNE' && !isset($dossier->financement) ) {
-			$dossier->financementLeaser = new TFin_financement;
-			$dossier->financementLeaser->fk_fin_dossier = $dossier->getId();
-			$dossier->financementLeaser->type='CLIENT';
-			$dossier->financementLeaser->save($PDOdb);
+			$dossier->financement = new TFin_financement;
+			$dossier->financement->fk_fin_dossier = $dossier->getId();
+			$dossier->financement->type='CLIENT';
+			$dossier->financement->save($PDOdb);
 		}
 	}
 	
