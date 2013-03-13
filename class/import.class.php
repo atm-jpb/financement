@@ -25,8 +25,17 @@ class TImport extends TObjetStd {
 	 */
 	function getFiles($targetFolder)
 	{
-		// TODO
-		// Fonction inutile car fichier déposés directement par CPRO dans le répertoire qui est partagé en samba
+		// Les fichiers provenant de CPRO sont directement déposé dans le répertoire cible
+		// Des sociétés externes peuvent être amenée à déposer des fichier, pour cela un répertoire par société sera créé, avec accès FTP
+		$external_folders = array('_infolegale/');
+		
+		foreach ($external_folders as $folderName) {
+			$dirHandle = opendir(FIN_IMPORT_FOLDER.$folderName);
+			while ($fname = readdir($dirHandle)) {
+				if(is_file($fname)) rename(FIN_IMPORT_FOLDER.$folderName.$fname, $targetFolder.$fname);
+			}
+			closedir($dirHandle);
+		}
 	}
 	
 	function getListOfFiles($folder, $filePrefix)
@@ -37,7 +46,7 @@ class TImport extends TObjetStd {
 		while ($fname = readdir($dirHandle)) {
 			if(substr($fname, 0, strlen($filePrefix)) == $filePrefix) $result[] = $fname;
 		}
-		
+		closedir($dirHandle);
 		sort($result);
 		
 		return $result;
