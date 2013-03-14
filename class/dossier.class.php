@@ -218,9 +218,13 @@ class TFin_dossier extends TObjetStd {
 		while($ATMdb->Get_line()) {
 			$fact = new Facture($db);
 			$fact->fetch($ATMdb->Get_field('fk_target'));
-			$this->somme_facture += $fact->total_ht;
-			$this->somme_facture_reglee += $fact->total_ht;
-			if($f->type == 0) $this->TFacture[] = $fact;
+			$facidavoir=$fact->getListIdAvoirFromInvoice();
+			
+			if($fact->type == 0 && empty($facidavoir)) { // Récupération uniquement des factures standard et sans avoir
+				$this->somme_facture += $fact->total_ht;
+				if($fact->statut == 2) $this->somme_facture_reglee += $fact->total_ht;
+				$this->TFacture[] = $fact;
+			}
 		}
 	}
 	function load_factureFournisseur(&$ATMdb) {
@@ -241,7 +245,7 @@ class TFin_dossier extends TObjetStd {
 			$fact = new FactureFournisseur($db);
 			$fact->fetch($ATMdb->Get_field('fk_target'));
 			$this->somme_facture_fournisseur += $fact->total_ht;
-			if($f->type == 0) $this->TFactureFournisseur[] = $fact;
+			$this->TFactureFournisseur[] = $fact;
 		}
 	}
 	
@@ -574,12 +578,12 @@ class TFin_financement extends TObjetStd {
 	 * Définie la prochaine échéance
 	 */
 	function setNextEcheance() {
-		$this->date_prochaine_echeance = time() + strtotime( $this->getiPeriode().' month' );
+		$this->date_prochaine_echeance = strtotime('+'.$this->getiPeriode().' month', $this->date_prochaine_echeance);
 		$this->numero_prochaine_echeance++;
 	}
 
 	function load_reglement() {
-	global $db;
+		global $db;
 	
 		if(!isset($db) ) return false;
 	
@@ -595,7 +599,6 @@ class TFin_financement extends TObjetStd {
 				}	
 			}
 		}
-		
 	}
 	function loadReference(&$db, $reference, $type='LEASER') {
 		$Tab = TRequeteCore::get_id_from_what_you_want($db,$this->get_table(),array('reference'=>$reference,'type'=>$type));

@@ -339,7 +339,7 @@ class TImport extends TObjetStd {
 		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
 			// Mise à jour de l'affaire
 			$affaire->montant = $this->validateValue('total_ht',$data['total_ht']);	
-			$affaire->save($ATMdb);	
+			$affaire->save($ATMdb);
 			
 			// Création du lien entre affaire et facture
 			$facture_mat->linked_objects['affaire'] = $affaire->getId();
