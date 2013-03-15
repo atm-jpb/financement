@@ -575,11 +575,12 @@ class TFin_financement extends TObjetStd {
 		
 	}
 	/*
-	 * Définie la prochaine échéance
+	 * Définie la date de prochaine échéance et le numéro d'échéance en fonction de nb
+	 * Augmente de nb periode la date de prochaine échéance et de nb le numéro de prochaine échéance
 	 */
-	function setNextEcheance() {
-		$this->date_prochaine_echeance = strtotime('+'.$this->getiPeriode().' month', $this->date_prochaine_echeance);
-		$this->numero_prochaine_echeance++;
+	function setEcheance($nb=1) {
+		$this->date_prochaine_echeance = strtotime(($nb * $this->getiPeriode()).' month', $this->date_prochaine_echeance);
+		$this->numero_prochaine_echeance += $nb;
 	}
 
 	function load_reglement() {

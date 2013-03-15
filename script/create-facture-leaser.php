@@ -34,7 +34,7 @@ foreach($Tab as $id) {
 	_createFacture($f);
 	
 	$f->okPourFacturation='NON';
-	$f->setNextEcheance();
+	$f->setEcheance();
 	
 	$f->save($ATMdb);
 }
@@ -53,7 +53,7 @@ if(isset($_REQUEST['with-auto-facture'])) {
 		
 		_createFacture($f);
 		
-		$f->setNextEcheance();
+		$f->setEcheance();
 		
 		$f->save($ATMdb);
 	}

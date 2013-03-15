@@ -104,8 +104,9 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		$imp->save($ATMdb); // Création de l'import
 		
 		$fileHandler = fopen($importFolder.$fileName, 'r');
+		$TInfosGlobale = array();
 		while($dataline = fgetcsv($fileHandler, 1024, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
-			$imp->importLine($ATMdb, $dataline, $fileType);
+			$imp->importLine($ATMdb, $dataline, $fileType, $TInfosGlobale);
 		}
 		fclose($fileHandler);
 		

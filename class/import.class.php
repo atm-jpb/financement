@@ -86,7 +86,7 @@ class TImport extends TObjetStd {
 		$this->nb_errors++;
 	}
 	
-	function importLine(&$ATMdb, $dataline, $type) {
+	function importLine(&$ATMdb, $dataline, $type, &$TInfosGlobale) {
 		global $db;
 		switch ($type) {
 			case 'client':
@@ -99,13 +99,13 @@ class TImport extends TObjetStd {
 				$this->importLineFactureMateriel($ATMdb, $dataline);
 				break;
 			case 'facture_location':
-				$this->importLineFactureLocation($ATMdb, $dataline);
+				$this->importLineFactureLocation($ATMdb, $dataline, $TInfosGlobale);
 				break;
 			case 'facture_lettree':
 				$this->importLineFactureLettree($ATMdb, $dataline);
 				break;
 			case 'commercial':
-				$this->importLineCommercial($ATMdb, $dataline);
+				$this->importLineCommercial($ATMdb, $dataline, $TInfosGlobale);
 				break;
 			case 'affaire':
 				$this->importLineAffaire($ATMdb, $dataline);
@@ -413,7 +413,7 @@ class TImport extends TObjetStd {
 		return true;
 	}
 
-	function importLineFactureLocation(&$ATMdb, $dataline) {
+	function importLineFactureLocation(&$ATMdb, $dataline, &$TInfosGlobale) {
 		global $user, $db;
 		$sqlSearchFacture = "SELECT rowid FROM ".MAIN_DB_PREFIX."facture WHERE %s = '%s'";
 		$sqlSearchClient = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE %s = '%s'";
@@ -495,19 +495,29 @@ class TImport extends TObjetStd {
 			$facture_loc->source = $fac_annulee_id;
 		}
 		
-		// Création des liens
-		$financement=new TFin_financement;
-		if($financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
-			/* OK */
-			$dossier=new TFin_dossier_affaire;
-			$dossier->load($ATMdb, $financement->fk_fin_dossier);
-
-			// Création du lien entre dossier et facture
-			$facture_loc->linked_objects['dossier'] = $dossier->getId();
-		}
-		else {
-			/* PAS OK */
-			$this->addError($ATMdb, 'ErrorWhereIsFinancement', $data['reference_dossier_interne'], $dataline, $sql);
+		// Création des liens (si première fois que l'on passe sur la facture dans le même fichier)
+		if(empty($TInfosGlobale[$data[$this->mapping['search_key']]])) {
+			$financement=new TFin_financement;
+			if($financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
+				/* OK */
+				$dossier=new TFin_dossier_affaire;
+				$dossier->load($ATMdb, $financement->fk_fin_dossier);
+				
+				$nb = ($facture_loc->type == 2) ? -1 : 1;
+				$financement->setEcheance($nb);
+				$financement->save($ATMdb);
+				
+				// Permet d'éviter de faire plusieurs fois les même actions sur une même facture
+				// Le fichier facture contient les lignes de factures
+				$TInfosGlobale[$data[$this->mapping['search_key']]] = true;
+	
+				// Création du lien entre dossier et facture
+				$facture_loc->linked_objects['dossier'] = $dossier->getId();
+			}
+			else {
+				/* PAS OK */
+				$this->addError($ATMdb, 'ErrorWhereIsFinancement', $data['reference_dossier_interne'], $dataline, $sql);
+			}
 		}
 		
 		// Mise à jour ou création
@@ -767,7 +777,7 @@ class TImport extends TObjetStd {
 		return true;
 	}
 
-	function importLineCommercial(&$ATMdb, $dataline) { 
+	function importLineCommercial(&$ATMdb, $dataline, &$TInfosGlobales) { 
 		global $user, $conf, $db;
 		/*
 		 *  code client; type_activité;login user
@@ -781,14 +791,19 @@ class TImport extends TObjetStd {
 		
 		$c=new TCommercialCpro;
 
-		$commercial = new User($db);
-		if(!$commercial->fetch('',$data[$this->mapping['search_key']])) {
-			// Pas d'erreur si l'utilisateur n'est pas trouvé, pas de lien créé
-			//$this->addError($ATMdb, 'ErrorUserNotFound', $data[$this->mapping['search_key']], $dataline);
-			return false;
-		}
-		else {
-			$fk_user = $commercial->id;
+		if(empty($TInfosGlobales[$data[$this->mapping['search_key']]])) {
+			$commercial = new User($db);
+			if(!$commercial->fetch('',$data[$this->mapping['search_key']])) {
+				// Pas d'erreur si l'utilisateur n'est pas trouvé, pas de lien créé
+				//$this->addError($ATMdb, 'ErrorUserNotFound', $data[$this->mapping['search_key']], $dataline);
+				return false;
+			}
+			else {
+				$fk_user = $commercial->id;
+			}
+			$TInfosGlobales[$data[$this->mapping['search_key']]] = $commercial;
+		} else {
+			$fk_user = $TInfosGlobales[$data[$this->mapping['search_key']]]->id;
 		}
 		
 		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$data[$this->mapping['search_key_client']], 'entity' => $conf->entity));
