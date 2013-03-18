@@ -100,7 +100,6 @@ function _liste(&$ATMdb, &$import) {
 	global $langs, $db, $conf;	
 	
 	llxHeader('','Imports');
-	getStandartJS();
 	
 	$r = new TListviewTBS('import_list');
 	$sql = "SELECT i.rowid as 'ID', i.date as 'Date import', i.type_import as 'Type import', i.filename as 'Nom du fichier', i.fk_user_author,";

@@ -143,7 +143,6 @@ function _liste(&$PDOdb, &$dossier) {
 	global $conf;
 	
 	llxHeader('','Dossiers');
-	getStandartJS();
 	
 	$r = new TSSRenderControler($dossier);
 	$sql="SELECT d.rowid as 'ID', f.reference, a.rowid as 'ID affaire', a.reference as 'N° Affaire', a.nature_financement, a.fk_soc as 'fk_soc', s.nom, 

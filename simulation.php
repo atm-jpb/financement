@@ -112,7 +112,6 @@ function _liste(&$ATMdb, &$simulation) {
 	$affaire = new TFin_affaire();
 	
 	llxHeader('','Simulations');
-	getStandartJS();
 	
 	$r = new TSSRenderControler($simulation);
 	

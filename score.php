@@ -111,7 +111,6 @@ function _liste(&$ATMdb, &$score) {
 	global $langs, $db, $conf, $user;
 	
 	llxHeader('','Scores');
-	getStandartJS();
 	
 	$societe = new Societe($db);
 	$societe->fetch($_REQUEST['socid']);
