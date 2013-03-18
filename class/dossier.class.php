@@ -218,7 +218,7 @@ class TFin_dossier extends TObjetStd {
 		while($ATMdb->Get_line()) {
 			$fact = new Facture($db);
 			$fact->fetch($ATMdb->Get_field('fk_target'));
-			if($fact->fk_soc == $this->financementLeaser->fk_soc) continue; // Facture matériel associée au leaser, ne pas prendre en compte comme une facture client au sens CPRO
+			if($fact->socid == $this->financementLeaser->fk_soc) continue; // Facture matériel associée au leaser, ne pas prendre en compte comme une facture client au sens CPRO
 			
 			$facidavoir=$fact->getListIdAvoirFromInvoice();
 			//$totalht = $fact->total_ht;
@@ -312,15 +312,16 @@ class TFin_dossier extends TObjetStd {
 		return $coeff > 0 ? $coeff : 0;
 	}
 	function getRentabilitePrevisionnelle() {
-		return $this->financement->somme_echeance + $this->financement->loyer_intercalaire + $this->financement->frais_dossier
-			 - $this->financementLeaser->somme_echeance - $this->financementLeaser->frais_dossier
-			 + $this->financement->reste + $this->financementLeaser->reste;
+		return $this->financement->somme_echeance - $this->financementLeaser->somme_echeance
+			 + $this->financement->reste - $this->financementLeaser->reste
+			 + $this->financement->frais_dossier - $this->financementLeaser->frais_dossier
+			 + $this->financement->loyer_intercalaire;
 	}
 	function getRentabiliteAttendue(&$ATMdb) {
 		return $this->financement->montant * $this->getRentabilite($ATMdb) / 100;
 	}
 	function getRentabiliteReelle() {
-		return $this->somme_facture_reglee + $this->financement->loyer_intercalaire - $this->somme_facture_fournisseur;
+		return $this->somme_facture_reglee - $this->somme_facture_fournisseur;
 	}
 	function getMargePrevisionnelle() {
 		if(empty($this->financement->montant)) return 0;
