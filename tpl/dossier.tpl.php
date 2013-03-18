@@ -109,6 +109,7 @@
 		<tr><td width="20%">Rentabilité attendue</td><td>[dossier.rentabilite_attendue; frm=0 000,00] &euro; / [dossier.marge_attendue; frm=0 000,00] %</td></tr>
 		<tr><td width="20%">Rentabilité réelle</td><td>[dossier.rentabilite_reelle; frm=0 000,00] &euro; / [dossier.marge_reelle; frm=0 000,00] %</td></tr>
 		<tr><td width="20%">Date de mise en relocation</td><td>[dossier.date_relocation; strconv=no]</td></tr>
+		<tr><td width="20%">Commentaire</td><td>[dossier.commentaire; strconv=no]</td></tr>
 		<tr>
 			<td colspan="2"><strong>Soldes</strong></td>
 		</tr>
