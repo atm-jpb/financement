@@ -126,7 +126,6 @@ function _liste(&$ATMdb, &$affaire) {
 global $langs,$conf, $db;	
 	
 	llxHeader('','Affaires');
-	getStandartJS();
 	
 	$r = new TSSRenderControler($affaire);
 	$sql="SELECT a.rowid as 'ID', a.reference, a.montant as 'Montant', a.fk_soc, s.nom
