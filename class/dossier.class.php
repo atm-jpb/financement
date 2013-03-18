@@ -644,8 +644,7 @@ class TFin_financement extends TObjetStd {
 		return $iPeriode;
 	} 
 	function calculDateFin() {
-		$this->date_fin = strtotime('+'.($this->getiPeriode()*($this->duree - 1)).' month', $this->date_debut);
-		
+		$this->date_fin = strtotime('+'.($this->getiPeriode()*($this->duree)).' month -1 day', $this->date_debut);
 	}
 	function calculTaux() {
 		$this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100,4);
