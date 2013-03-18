@@ -14,10 +14,10 @@ class TImport extends TObjetStd {
 			'client' => 'Fichier client'
 			,'commercial' => 'Fichier commercial'
 			,'affaire' => 'Fichier affaire'
-			//,'materiel' => 'Fichier matériel'
-			//,'facture_materiel' => 'Fichier facture matériel'
-			//,'facture_location' => 'Fichier facture location'
-			//,'facture_lettree' => 'Fichier facture lettrée'
+			,'materiel' => 'Fichier matériel'
+			,'facture_materiel' => 'Fichier facture matériel'
+			,'facture_location' => 'Fichier facture location'
+			,'facture_lettree' => 'Fichier facture lettrée'
 		);
 		$this->TType_import = array('fichier_leaser' => 'Fichier leaser', 'score' => 'Fichier score');
 	}
