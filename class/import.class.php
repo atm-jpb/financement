@@ -11,10 +11,13 @@ class TImport extends TObjetStd {
 		parent::_init_vars();
 		
 		$this->TType_import_interne = array(
-			'client' => 'Fichier client','commercial' => 'Fichier commercial'
-			,'affaire' => 'Fichier affaire','materiel' => 'Fichier matériel'
-			,'facture_materiel' => 'Fichier facture matériel','facture_location' => 'Fichier facture location'
-			,'facture_lettree' => 'Fichier facture lettrée'
+			'client' => 'Fichier client'
+			,'commercial' => 'Fichier commercial'
+			,'affaire' => 'Fichier affaire'
+			//,'materiel' => 'Fichier matériel'
+			//,'facture_materiel' => 'Fichier facture matériel'
+			//,'facture_location' => 'Fichier facture location'
+			//,'facture_lettree' => 'Fichier facture lettrée'
 		);
 		$this->TType_import = array('fichier_leaser' => 'Fichier leaser', 'score' => 'Fichier score');
 	}
