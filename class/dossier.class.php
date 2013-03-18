@@ -313,7 +313,8 @@ class TFin_dossier extends TObjetStd {
 	}
 	function getRentabilitePrevisionnelle() {
 		return $this->financement->somme_echeance + $this->financement->loyer_intercalaire + $this->financement->frais_dossier
-			 - $this->financementLeaser->somme_echeance - $this->financementLeaser->frais_dossier;
+			 - $this->financementLeaser->somme_echeance - $this->financementLeaser->frais_dossier
+			 + $this->financement->reste + $this->financementLeaser->reste;
 	}
 	function getRentabiliteAttendue(&$ATMdb) {
 		return $this->financement->montant * $this->getRentabilite($ATMdb) / 100;
