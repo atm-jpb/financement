@@ -398,6 +398,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'soldeNRBANK'=>$dossier->getSolde($PDOdb, 'SNRBANK')
 				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO')
 				,'soldeNRCPRO'=>$dossier->getSolde($PDOdb, 'SNRCPRO')
+				,'url_therefore'=>FIN_THEREFORE_DOSSIER_URL
 			)
 			,'financement'=>$TFinancement
 			,'financementLeaser'=>$TFinancementLeaser

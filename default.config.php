@@ -30,3 +30,10 @@
 	define('FIN_IMPORT_FOLDER', ROOT.'custom/financement/import/');
 	define('FIN_IMPORT_FIELD_DELIMITER', ';');
 	define('FIN_IMPORT_FIELD_ENCLOSURE', '"');
+	
+	define('FIN_PRODUCT_FRAIS_DOSSIER', '0');
+	define('FIN_PRODUCT_LOC_ADOSSEE', '0');
+	define('FIN_PRODUCT_LOC_MANDATEE', '0');
+	
+	define('FIN_THEREFORE_AFFAIRE_URL','http://srvtherefore/TWA/TheGetDoc.aspx?CtgryNo=4&N_Affaire=');
+	define('FIN_THEREFORE_DOSSIER_URL','http://srvtherefore/TWA/TheGetDoc.aspx?CtgryNo=4&N_Affaire=');

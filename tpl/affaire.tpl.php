@@ -3,7 +3,7 @@
 		<div class="tabs">
 		<a class="tabTitle"><img border="0" title="" alt="" src="./img/object_financementico.png"> Affaire</a>
 		<a href="?id=[affaire.id]" class="tab" id="active">Fiche</a>
-		<a href="http://srvtherefore/TWA/TheGetDoc.aspx?CtgryNo=4&N_Affaire=[affaire.reference]" class="tab" id="active">Therefore</a>
+		<a href="[affaire.url_therefore][affaire.reference]" class="tab" target="_blank">Therefore</a>
 		</div>
 		
 			<div class="tabBar">

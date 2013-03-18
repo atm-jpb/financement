@@ -321,7 +321,7 @@ global $db,$user;
 				,'nature_financement_val'=>$affaire->nature_financement
 				
 				,'addDossierButton'=>(($affaire->montant>0 && $affaire->nature_financement!='') ? 1 : 0)
-				
+				,'url_therefore'=>FIN_THEREFORE_AFFAIRE_URL
 			)
 			,'view'=>array(
 				'mode'=>$mode
