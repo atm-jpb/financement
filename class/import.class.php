@@ -341,9 +341,6 @@ class TImport extends TObjetStd {
 			$affaire->montant = $this->validateValue('total_ht',$data['total_ht']);	
 			$affaire->save($ATMdb);
 			
-			// Création du lien entre affaire et facture
-			$facture_mat->linked_objects['affaire'] = $affaire->getId();
-			
 			// Création des liens entre affaire et matériel
 			$TSerial = explode(' - ',$data['matricule']);
 		
@@ -375,6 +372,9 @@ class TImport extends TObjetStd {
 						unset($dossier->financement);
 					}
 					$dossier->save($ATMdb);
+					
+					// Création du lien entre dossier et facture
+					$facture_mat->linked_objects['dossier'] = $dossier->getId();
 				} else {
 					$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], $dataline, '', 'ERROR', true);
 				}

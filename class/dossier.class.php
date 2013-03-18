@@ -218,6 +218,8 @@ class TFin_dossier extends TObjetStd {
 		while($ATMdb->Get_line()) {
 			$fact = new Facture($db);
 			$fact->fetch($ATMdb->Get_field('fk_target'));
+			if($fact->fk_soc == $this->financementLeaser->fk_soc) continue; // Facture matériel associée au leaser, ne pas prendre en compte comme une facture client au sens CPRO
+			
 			$facidavoir=$fact->getListIdAvoirFromInvoice();
 			//$totalht = $fact->total_ht;
 			foreach ($facidavoir as $idAvoir) {
@@ -252,6 +254,25 @@ class TFin_dossier extends TObjetStd {
 			$fact->fetch($ATMdb->Get_field('fk_target'));
 			$this->somme_facture_fournisseur += $fact->total_ht;
 			$this->TFactureFournisseur[] = $fact;
+		}
+	}
+	function load_factureMateriel(&$ATMdb) {
+		global $db;
+		
+		$sql = "SELECT fk_target";
+		$sql.= " FROM ".MAIN_DB_PREFIX."element_element";
+		$sql.= " WHERE sourcetype='dossier'";
+		$sql.= " AND targettype='facture'";
+		$sql.= " AND fk_source=".$this->getId();
+		
+		$ATMdb->Execute($sql);
+		
+		dol_include_once("/fourn/class/fournisseur.facture.class.php");
+		
+		while($ATMdb->Get_line()) {
+			$fact = new FactureFournisseur($db);
+			$fact->fetch($ATMdb->Get_field('fk_target'));
+			if($fact->fk_soc == $this->financementLeaser->fk_soc) $this->facture_materiel = $fact;
 		}
 	}
 	
