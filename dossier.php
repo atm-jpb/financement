@@ -318,10 +318,12 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			
 			,'assurance'=>$form->texte('', 'assurance', $financement->assurance, 10,255,'','','à saisir')
 			,'echeance1'=>$form->texte('', 'echeance1', $financement->echeance1, 10,255,'','','à saisir')
+			,'loyer_intercalaire'=>$form->texte('', 'loyer_intercalaire', $financement->loyer_intercalaire, 10,255,'','','à saisir')
 			,'echeance'=>$form->texte('', 'echeance', $financement->echeance, 10,255,'','','à saisir')
 			,'reste'=>$form->texte('', 'reste', $financement->reste, 10,255,'','','à saisir')
 			,'montant_prestation'=>$form->texte('', 'montant_prestation', $financement->montant_prestation, 10,255,'','','à saisir')
 			,'montant_solde'=>$form->texte('', 'montant_solde', $financement->montant_solde, 10,255,'','','à saisir')
+			,'frais_dossier'=>$form->texte('', 'frais_dossier', $financement->frais_dossier, 10,255,'','','à saisir')
 				
 			,'numero_prochaine_echeance'=>$financement->numero_prochaine_echeance 
 			,'duree'=>$form->texte('', 'duree', $financement->duree, 5,255,'','','à saisir')

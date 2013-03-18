@@ -14,7 +14,21 @@
 	<tr class="pair">
 		<td colspan="2">&nbsp;</td>
 		<td align="right"><strong>[autre.capitalInit; frm=0 000,00] &euro;</strong></td>
+		[onshow; block=begin; when [autre.loyer_intercalaire]!=0]
+		
+		<td colspan="3" align="right">Loyer intercalaire</td>
+		<td align="right">[autre.loyer_intercalaire; frm=0 000,00] &euro;</td>
+		[onshow; block=begin; when [autre.loyer_intercalaire_facture_total_ht]!='']
+		<td align="right" style="background-color: [autre.loyer_intercalaire_facture_bg];"><a href="[autre.loyer_intercalaire_facture_link]">[autre.loyer_intercalaire_facture_total_ht; frm=0 000,00] &euro;</a></td>
+		[onshow;block=end]
+		[onshow; block=begin; when [autre.loyer_intercalaire_facture_total_ht]=='']
+		<td align="center" style="background-color: [autre.loyer_intercalaire_facture_bg];">-</td>
+		[onshow;block=end]
+		
+		[onshow;block=end]
+		[onshow; block=begin; when [autre.loyer_intercalaire]==0]
 		<td colspan="5">&nbsp;</td>
+		[onshow;block=end]
 	</tr>
 	
 	<tr class="impair classfortooltip" title="[ligne.soldes; strconv=no]">

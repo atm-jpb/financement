@@ -6,7 +6,7 @@ class TFin_dossier extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
 		parent::add_champs('solde,montant,montant_solde','type=float;');
-		parent::add_champs('reference,nature_financement','type=chaine;');
+		parent::add_champs('reference,nature_financement,commentaire','type=chaine;');
 		parent::add_champs('date_relocation,date_solde','type=date;');
 			
 		parent::start();
@@ -219,8 +219,14 @@ class TFin_dossier extends TObjetStd {
 			$fact = new Facture($db);
 			$fact->fetch($ATMdb->Get_field('fk_target'));
 			$facidavoir=$fact->getListIdAvoirFromInvoice();
+			//$totalht = $fact->total_ht;
+			foreach ($facidavoir as $idAvoir) {
+				$avoir = new Facture($db);
+				$avoir->fetch($idAvoir);
+				$fact->total_ht += $avoir->total_ht;
+			}
 			
-			if($fact->type == 0 && empty($facidavoir)) { // Récupération uniquement des factures standard et sans avoir
+			if($fact->type == 0 && $fact->total_ht > 0) { // Récupération uniquement des factures standard et sans avoir qui l'annule complètement
 				$this->somme_facture += $fact->total_ht;
 				if($fact->statut == 2) $this->somme_facture_reglee += $fact->total_ht;
 				$this->TFacture[] = $fact;
@@ -285,13 +291,14 @@ class TFin_dossier extends TObjetStd {
 		return $coeff > 0 ? $coeff : 0;
 	}
 	function getRentabilitePrevisionnelle() {
-		return $this->financement->somme_echeance - $this->financementLeaser->somme_echeance;
+		return $this->financement->somme_echeance + $this->financement->loyer_intercalaire + $this->financement->frais_dossier
+			 - $this->financementLeaser->somme_echeance - $this->financementLeaser->frais_dossier;
 	}
 	function getRentabiliteAttendue(&$ATMdb) {
 		return $this->financement->montant * $this->getRentabilite($ATMdb) / 100;
 	}
 	function getRentabiliteReelle() {
-		return $this->somme_facture_reglee - $this->somme_facture_fournisseur;
+		return $this->somme_facture_reglee + $this->financement->loyer_intercalaire - $this->somme_facture_fournisseur;
 	}
 	function getMargePrevisionnelle() {
 		if(empty($this->financement->montant)) return 0;
@@ -389,6 +396,7 @@ class TFin_dossier extends TObjetStd {
 		$capital_restant_init = $f->montant;
 		$capital_restant = $capital_restant_init;
 		$TLigne=array();
+		
 		for($i=0; $i<$f->duree; $i++) {
 			
 			$time = strtotime('+'.($i*3).' month',  $f->date_debut);
@@ -415,9 +423,13 @@ class TFin_dossier extends TObjetStd {
 			);
 			
 			// Ajout factures liées au dossier
+			$iFacture = $i;
+			if($f->loyer_intercalaire > 0) { // Décalage si loyer intercalaire car 1ère facture = loyer intercalaire, et non 1ère échéance
+				$iFacture++;
+			}
 			$fact = false;
-			if($type_echeancier == 'CLIENT' && !empty($this->TFacture[$i])) $fact = $this->TFacture[$i];
-			if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[$i])) $fact = $this->TFactureFournisseur[$i];
+			if($type_echeancier == 'CLIENT' && !empty($this->TFacture[$iFacture])) $fact = $this->TFacture[$iFacture];
+			if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[$iFacture])) $fact = $this->TFactureFournisseur[$iFacture];
 			if(is_object($fact)) {
 				$data['facture_total_ht'] = $fact->total_ht;
 				$data['facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
@@ -453,21 +465,47 @@ class TFin_dossier extends TObjetStd {
 		
 		// print $f->montant.' = '.$capital_restant_init;
 		$TBS=new TTemplateTBS;
+		
+		$autre = array(
+			'reste'=>$f->reste
+			,'resteTTC'=>($f->reste*FIN_TVA_DEFAUT)
+			,'capitalInit'=>$capital_restant_init
+			,'total_capital_amortit'=>$total_capital_amortit
+			,'total_part_interet'=>$total_part_interet
+			,'total_loyer'=>$total_loyer
+			,'total_assurance'=>$total_assurance
+			,'total_facture'=>$total_facture
+			,'loyer_intercalaire'=>$f->loyer_intercalaire
+		);
+		
+		if($f->loyer_intercalaire > 0) {
+			$fact = false;
+			if($type_echeancier == 'CLIENT' && !empty($this->TFacture[0])) $fact = $this->TFacture[0];
+			if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[0])) $fact = $this->TFactureFournisseur[0];
+			if(is_object($fact)) {
+				$autre['loyer_intercalaire_facture_total_ht'] = $fact->total_ht;
+				$autre['loyer_intercalaire_facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
+				$autre['loyer_intercalaire_facture_link'] .= $fact->id;
+				$autre['loyer_intercalaire_facture_bg'] = ($fact->statut == 1) ? '#FF0000' : '#00FF00';
+				$autre['total_facture'] += $fact->total_ht;
+				$autre['total_loyer'] += $f->loyer_intercalaire;
+			} else {
+				$autre['loyer_intercalaire_facture_total_ht'] = '';
+				$autre['loyer_intercalaire_facture_link'] = '';
+				$autre['loyer_intercalaire_facture_bg'] = '';
+			}
+		} else {
+			$autre['loyer_intercalaire_facture_total_ht'] = 0;
+			$autre['loyer_intercalaire_facture_link'] = '';
+			$autre['loyer_intercalaire_facture_bg'] = '';
+		}
+		
 		return $TBS->render('./tpl/echeancier.tpl.php'
 			,array(
 				'ligne'=>$TLigne
 			)
 			,array(
-				'autre'=>array(
-					'reste'=>$f->reste
-					,'resteTTC'=>($f->reste*FIN_TVA_DEFAUT)
-					,'capitalInit'=>$capital_restant_init
-					,'total_capital_amortit'=>$total_capital_amortit
-					,'total_part_interet'=>$total_part_interet
-					,'total_loyer'=>$total_loyer
-					,'total_assurance'=>$total_assurance
-					,'total_facture'=>$total_facture
-				)
+				'autre'=>$autre
 			)
 		);
 	}
@@ -515,7 +553,7 @@ class TFin_financement extends TObjetStd {
 	
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
 		parent::add_champs('duree,numero_prochaine_echeance,terme','type=entier;');
-		parent::add_champs('montant_prestation,montant,echeance1,echeance,reste,taux, capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier','type=float;');
+		parent::add_champs('montant_prestation,montant,echeance1,echeance,loyer_intercalaire,reste,taux,capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
 		parent::add_champs('fk_soc,fk_fin_dossier','type=entier;index;');
