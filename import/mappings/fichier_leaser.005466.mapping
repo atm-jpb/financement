@@ -2,21 +2,23 @@ search_key_dossier=code_dossier
 search_key_client=siren
 
 [mapping]
-3=siren
-7=reference_financement
+19=siren
+7=reference
 26=date_debut
 27=date_fin
 14=montant
-10=nb_echeance
+10=duree
 16=echeance
+15=reste
 11=periodicite
 13=terme
 
 [format]
-date_debut=date
-date_fin=date
+date_debut=dateYYYYMMDD
+date_fin=dateYYYYMMDD
 echeance=float
 montant=float
+reste=float
 
 [transco]
 periodicite=1
@@ -25,5 +27,7 @@ terme=1
 [periodicite]
 1=MOIS
 3=TRIMESTRE
+
+[terme]
 A=1
 E=0

@@ -153,20 +153,16 @@ class TFin_dossier extends TObjetStd {
 			$lien->save($db);
 		}
 		
-		
 		$this->financementLeaser->fk_fin_dossier = $this->getId();
 		$this->financementLeaser->type='LEASER';
 		$this->financementLeaser->save($db);
 		
 		if($this->nature_financement == 'INTERNE') {
-
 			$this->financement->fk_fin_dossier = $this->getId();
 			$this->financement->fk_soc = FIN_LEASER_DEFAULT;
 			$this->financement->type='CLIENT';
 			$this->financement->save($db);	
-			
 		}
-	
 	}
 	function calculSolde() {
 
@@ -667,35 +663,55 @@ class TFin_financement extends TObjetStd {
 		if(count($Tab)>0) return $this->load($db, $Tab[0]);
 
 		return false;
-	
 	}
-	function createWithfindClientBySiren(&$db, $siren, $reference) {
-		/*
-		 * Trouve le client via le siren, vérifie s'il existe une affaire avec financement sans référence pour association automatique
-		 */
-		$db->Execute("SELECT s.id as 'fk_soc',a.rowid as 'fk_fin_affaire', f.rowid as 'fk_financement' 
-			FROM ((".MAIN_DB_PREFIX."fin_affaire a LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid) 
-				LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire l ON (l.fk_fin_affaire=a.rowid))
-					LEFT JOIN OUTER ".$this->get_table()." f ON (f.fk_fin_dossier=a.fk_fin_dossier))
-					
-			WHERE s.siren='".$siren."' AND `fk_fin_affaire`>0 AND `fk_financement` IS NULL 
-		");
-		if($db->Get_line()) {
-			$idAffaire =  $db->Get_field('fk_fin_affaire');
+	function loadOrCreateSirenMontant(&$db, $siren, $montant) {
+		$sql = "SELECT a.rowid, a.nature_financement, a.montant, df.rowid as idDossierLeaser, df.reference as refDossierLeaser ";
+		$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
+		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
+		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) ";
+		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (da.fk_fin_dossier = d.rowid) ";
+		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid) ";
+		$sql.= "WHERE s.siren = '".$siren."' ";
+		$sql.= "AND df.type = 'LEASER' ";
+		//$sql.= "AND df.date_solde = '0000-00-00 00:00:00'";
+		$sql.= "AND df.reference = '' ";
+		$sql.= "AND a.montant = ".$montant;
+		
+		$db->Execute($sql); // Recherche d'un dossier leaser en cours sans référence et dont le montant de l'affaire correspond
+		if($db->Get_Recordcount() == 0) { // Aucun dossier trouvé, on essaye de le créer
+			$sql = "SELECT a.rowid, a.montant ";
+			$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
+			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
+			$sql.= "WHERE s.siren = '".$siren."' ";
+			$sql.= "AND a.solde = '".$montant."'";
 			
-			$a=new TFin_affaire;
-			$a->load($db, $idAffaire);
+			$db->Execute($sql); // Recherche d'une affaire sans dossier pour création du dossier
+			if($db->Get_Recordcount() == 1) { // Une seule affaire trouvée OK, on créé
+				$idAffaire = $db->Get_field('rowid');
+
+				$d=new TFin_dossier;
+				$d->financementLeaser = &$this;
+				$d->save($db);
+				
+				$a=new TFin_affaire();
+				$a->load($db, $idAffaire);
+				$a->addDossier($db, $d->getId());
+				return true;
+			} else { // Impossible de créer le dossier
+				return false;
+			}
 			
-			$d=new TFin_dossier;
-			$d->financementLeaser->reference = 
-			$d->savell_element_element($db);
-			
-			$a->addDossier();
-			
+		} else if($db->Get_Recordcount() == 1) { // Un seul dossier trouvé, load
+			$db->Get_line();
+			$idDossierFin = $db->Get_field('idDossierLeaser');
+			$this->load($db, $idDossierFin);
+			return true;
+		} else { // Plusieurs dossiers trouvé correspondant, impossible de savoir lequel il faut utiliser
+			return false;
 		}
-		
-		
+
 		return false;
+	
 	}
 	private function getiPeriode() {
 		if($this->periodicite=='TRIMESTRE')$iPeriode=3;
