@@ -198,7 +198,7 @@ function _liste(&$PDOdb, &$dossier) {
 			'reference'=>array('recherche'=>true, 'table'=>'d')
 			,'nom'=>array('recherche'=>true, 'table'=>'s')
 			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
-			,'date_debut'=>'calendar'
+			,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
 		)
 	));
 	$form->end();
