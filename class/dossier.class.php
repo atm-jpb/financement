@@ -536,24 +536,7 @@ class TFin_dossier extends TObjetStd {
 class TFin_dossier_affaire extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_affaire');
-		parent::add_champs('fk_fin_affaire,fk_fin_dossier','type=entier;');
-		parent::start();
-		parent::_init_vars();
-		
-		$this->dossier = new TFin_dossier;
-		$this->affaire=new TFin_affaire;
-	}
-}	
-
-/*
- * Lien dossier facture
- */
-class TFin_dossier_facture extends TObjetStd {
-	function __construct() { /* declaration */
-		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_facture');
-		parent::add_champs('fk_fin_dossier,fk_facture','type=entier;');
-		parent::add_champs('type','type=chaine;');
-		parent::add_champs('montant','type=float;');
+		parent::add_champs('fk_fin_affaire,fk_fin_dossier','type=entier;index');
 		parent::start();
 		parent::_init_vars();
 		
@@ -608,6 +591,7 @@ class TFin_financement extends TObjetStd {
 		$this->somme_affaire = 0;
 		$this->periodicite = 'TRIMESTRE';
 		$this->incident_paiement='NON';
+		$this->reglement = 'PRE';
 		
 		$this->numero_prochaine_echeance = 1;
 		$this->date_prochaine_echeance = 0;
