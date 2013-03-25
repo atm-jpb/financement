@@ -164,7 +164,7 @@ function _liste(&$ATMdb, &$score) {
 			,'Actions'=>'<a href="'.$_SERVER["PHP_SELF"].'?action=edit&socid='.$societe->id.'&id=@ID@">'.img_edit().'</a> <a href="'.$_SERVER["PHP_SELF"].'?action=delete&socid='.$societe->id.'&id=@ID@">'.img_delete().'</a>'
 		)
 		,'hide'=>$THide
-		,'type'=>array('Date du score'=>'date')
+		,'type'=>array('Date du score'=>'date', 'Encours conseillé'=>'money')
 		,'liste'=>array(
 			'titre'=>'Liste des scores'
 			,'image'=>img_picto('','simul32.png@financement', '', 0)

@@ -105,16 +105,17 @@ class TFin_dossier extends TObjetStd {
 			/*
 			 * Le dossier existe liaison
 			 */
-			 
+			
 			if($affaire->solde==0) {
-				return false; // cette affaire a déjà le financement nécessaire
-			} 
-			 
+				//return false; // cette affaire a déjà le financement nécessaire
+				// MKO : Désactivé car plusieurs dossiers sur une même affaire possible et la facture matériel comporte le prix total
+			}
+			
 			//print_r($this->TLien);
 			foreach($this->TLien as $k=>$lien) {
 				if($lien->fk_fin_affaire==$affaire->getId()) {return false;}
-			}		 
-			 
+			}
+			
 			$i = count($this->TLien); 
 			$this->TLien[$i]=new TFin_dossier_affaire;
 			$this->TLien[$i]->fk_fin_dossier = $this->getId();

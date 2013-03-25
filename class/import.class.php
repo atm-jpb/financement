@@ -393,8 +393,14 @@ class TImport extends TObjetStd {
 		// Actions spécifiques
 		// On repasse en brouillon pour ajouter la ligne
 		$facture_mat->set_draft($user);
+		
+		// On supprime les lignes (pour ne pas créer de ligne en double)
+		foreach ($facture_mat->lines as $line) {
+			$facture_mat->deleteline($line->id);
+		}
+		
 		// On ajoute la ligne
-		$facture_mat->addline($facture_mat->id, 'Matricule '.$data['matricule'], $data['total_ht'], 1, 19.6);
+		$facture_mat->addline($facture_mat->id, 'Matricule(s) '.$data['matricule'], $data['total_ht'], 1, 19.6);
 		// Force la validation avec numéro de facture
 		$facture_mat->validate($user, $data[$this->mapping['search_key']]); // Force la validation avec numéro de facture
 		
@@ -888,7 +894,7 @@ class TImport extends TObjetStd {
 		// Mise à jour de la fiche tiers
 		$societe = new Societe($db);
 		$societe->fetch($fk_soc);
-		$societe->capital = $this->validateValue('capital', $data['capital']);
+		//$societe->capital = $this->validateValue('capital', $data['capital']);
 		$societe->fk_forme_juridique = $this->validateValue('forme_juridique', $data['forme_juridique']);
 		$societe->idprof3 = $this->validateValue('naf', $data['naf']);
 		$societe->update($societe->id, $user);
