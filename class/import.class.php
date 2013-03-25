@@ -18,8 +18,9 @@ class TImport extends TObjetStd {
 			,'facture_materiel' => 'Fichier facture matériel'
 			,'facture_location' => 'Fichier facture location'
 			,'facture_lettree' => 'Fichier facture lettrée'
+			,'score' => 'Fichier score'
 		);
-		$this->TType_import = array('fichier_leaser' => 'Fichier leaser', 'score' => 'Fichier score');
+		$this->TType_import = array('fichier_leaser' => 'Fichier leaser');
 	}
 
 	/**
@@ -28,17 +29,7 @@ class TImport extends TObjetStd {
 	 */
 	function getFiles($targetFolder)
 	{
-		// Les fichiers provenant de CPRO sont directement déposé dans le répertoire cible
-		// Des sociétés externes peuvent être amenée à déposer des fichier, pour cela un répertoire par société sera créé, avec accès FTP
-		$external_folders = array('_infolegale/');
 		
-		foreach ($external_folders as $folderName) {
-			$dirHandle = opendir(FIN_IMPORT_FOLDER.$folderName);
-			while ($fname = readdir($dirHandle)) {
-				if(is_file($fname)) rename(FIN_IMPORT_FOLDER.$folderName.$fname, $targetFolder.$fname);
-			}
-			closedir($dirHandle);
-		}
 	}
 	
 	function getListOfFiles($folder, $filePrefix)
@@ -129,59 +120,53 @@ class TImport extends TObjetStd {
 		$db->commit();
 	}
 	function importFichierLeaser(&$ATMdb, $dataline) {
-		//	$ATMdb->db->debug=true;
+		$ATMdb->debug=true;
 		$data= $this->contructDataTab($dataline);
-	//	print_r($data);
+		echo '<hr><pre>'.$this->nb_lines;
+		print_r($data);
+		echo '</pre>';
 		$this->nb_lines++;
 	
 		if($data['echeance']==0) {
-			
 			return false;
 		}
 	
 		$f=new TFin_financement;
-		if($f->loadReference($ATMdb, $data['reference_financement'], 'LEASER')) {
-			/*
-			 * Youpi, on a retrouvé le financement et donc le client
-			 */
-			 
-		}
-		elseif($f->createWithfindClientBySiren($ATMdb, $data['siren'], $data['reference_financement'])) {
-			/*
-			 * On trouve le financement recherch d'une affaire sans financement dans un client sur siren
-			 */
-		}
-		else {	
-			$this->addError($ATMdb, 'cantFindOrCreateFinancement', $data['reference_financement'], $dataline, '', 'ERROR');
-			return false;		
+		if($f->loadReference($ATMdb, $data['reference'], 'LEASER')) { // Recherche du financement leaser par référence
+			// Le financement leaser a été trouvé avec la référence contrat leaser
+		} else if ($f->loadOrCreateSirenMontant($ATMdb, $data['siren'], $data['montant'])) { // Recherche du financement leaser par siren et montant
+			// Le financement leaser a été trouvé ou créé par le siren et le montant de l'affaire
+		} else {
+			$this->addError($ATMdb, 'cantFindOrCreateFinancement', $data['reference'], $dataline, '', 'ERROR');
+			return false;
 		}
 		
-		if($f->fk_soc!=$data['idLeaser']) {
+		if(!empty($f->fk_soc) && $f->fk_soc!=$data['idLeaser']) { // Si le dossier de financement récupéré n'est pas lié au bon leaser, erreur
 			$this->addError($ATMdb, 'leaserNotAllgood', $data['idLeaser'], $dataline, '', 'ERROR');
 			return false;
 		}
 		
-		$echeance = $data['echeance'];
-		$montant = $data['montant'];
-		$date_debut =$data['date_debut'];
-		$date_fin = $data['date_fin'];
-		
-		if($echeance!=$f->echeance || $montant!=$f->montant || $date_debut!=$f->date_debut || $date_fin!=$f->date_fin) {
-			$this->addError($ATMdb, 'cantMatchDataLine', $data['reference_financement'], $dataline, '', 'WARNING');	
+		$dossier = new TFin_dossier();
+		$dossier->load($ATMdb, $f->fk_fin_dossier); // Chargement du dossier correspondant
+		if($dossier->nature_financement == 'EXTERNE') { // Dossier externe => MAJ des informations
+			foreach ($data as $key => $value) {
+				$f->{$key} = $value;
+			}
+			$f->fk_soc = $data['idLeaser'];
+		} else { // Dossier interne => Vérification des informations
+			$echeance = $data['echeance'];
+			$montant = $data['montant'];
+			$date_debut =$data['date_debut'];
+			$date_fin = $data['date_fin'];
+			
+			if($echeance!=$f->echeance || $montant!=$f->montant || $date_debut!=$f->date_debut || $date_fin!=$f->date_fin) {
+				$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], $dataline, '', 'WARNING');
+				return false;
+			}
+			else {
+				$f->okPourFacturation=1;
+			}
 		}
-		else {
-			$f->okPourFacturation=1;
-		}
-		
-		$f->echeance = $echeance;
-		$f->montant = $montant;
-		$f->numero_prochaine_echeance = $data['nb_echeance'];
-		
-		if($f->duree<$f->numero_prochaine_echeance)$f->duree = $f->numero_prochaine_echeance;
-		
-		$f->periodicite = $data['periodicite'];
-		$f->date_debut = $date_debut;
-		$f->date_fin = $date_fin;
 		
 		$f->save($ATMdb);
 		$this->nb_update++;
@@ -334,7 +319,7 @@ class TImport extends TObjetStd {
 				return false;
 			}
 			$facture_mat->type = 2;
-			$facture_mat->source = $fac_annulee_id;
+			$facture_mat->fk_facture_source = $fac_annulee_id;
 		}
 		
 		// Création des liens
@@ -412,6 +397,10 @@ class TImport extends TObjetStd {
 		$facture_mat->addline($facture_mat->id, 'Matricule '.$data['matricule'], $data['total_ht'], 1, 19.6);
 		// Force la validation avec numéro de facture
 		$facture_mat->validate($user, $data[$this->mapping['search_key']]); // Force la validation avec numéro de facture
+		
+		// La validation entraine le recalcul de la date d'échéance de la facture, on remet celle fournie
+		$facture_mat->date_lim_reglement = $data['date_lim_reglement'];
+		$facture_mat->update($user, 0);
 		
 		return true;
 	}
@@ -495,7 +484,7 @@ class TImport extends TObjetStd {
 				return false;
 			}
 			$facture_loc->type = 2;
-			$facture_loc->source = $fac_annulee_id;
+			$facture_loc->fk_facture_source = $fac_annulee_id;
 		}
 		
 		// Création des liens (si première fois que l'on passe sur la facture dans le même fichier)
@@ -567,6 +556,10 @@ class TImport extends TObjetStd {
 		// Force la validation avec numéro de facture
 		$facture_loc->validate($user, $data[$this->mapping['search_key']]);
 		
+		// La validation entraine le recalcul de la date d'échéance de la facture, on remet celle fournie
+		$facture_loc->date_lim_reglement = $data['date_lim_reglement'];
+		$facture_loc->update($user, 0);
+		
 		return true;
 	}
 
@@ -597,7 +590,8 @@ class TImport extends TObjetStd {
 				$this->addError($ATMdb, 'ErrorMultipleFactureFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
 			} else {
-				$this->addError($ATMdb, 'ErrorFactureNotFound', $data[$this->mapping['search_key']], $dataline, $sql);
+				// Pas d'erreur car le fichier des factures lettrees vient de Sage et contient plein de factures qui ne concernent pas le financement
+				//$this->addError($ATMdb, 'ErrorFactureNotFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
 			}
 		} else {
@@ -841,12 +835,13 @@ class TImport extends TObjetStd {
 	}
 
 	function importLineScore(&$ATMdb, $dataline) {
-		global $user;
+		global $user, $db;
 		$sqlSearchClient = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE %s = '%s'";
 		
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
-
+		if($this->nb_lines == 1) return false; // Le fichier score contient une ligne d'en-tête
+		
 		if(!$this->checkData($dataline)) return false;
 		$data = $this->contructDataTab($dataline);
 		
@@ -891,10 +886,11 @@ class TImport extends TObjetStd {
 		}
 		
 		// Mise à jour de la fiche tiers
-		$societe = new Societe($this->db);
+		$societe = new Societe($db);
 		$societe->fetch($fk_soc);
 		$societe->capital = $this->validateValue('capital', $data['capital']);
 		$societe->fk_forme_juridique = $this->validateValue('forme_juridique', $data['forme_juridique']);
+		$societe->idprof3 = $this->validateValue('naf', $data['naf']);
 		$societe->update($societe->id, $user);
 		
 		return true;
@@ -919,7 +915,6 @@ class TImport extends TObjetStd {
 		foreach($this->mapping['mapping'] as $k=>$field) {
 			$data[$field] = $dataline[$k-1];
 			$data[$field] = $this->validateValue($field,$data[$field]);
-			
 		}
 		
 		if(isset($dataline[9999])) $data['idLeaser'] = $dataline[9999];
@@ -943,20 +938,25 @@ class TImport extends TObjetStd {
 		}
 		
 		// Si un format spécial existe, on l'applique
-		if(!empty($this->mapping['format'][$key])) {
+		if(!empty($value) && !empty($this->mapping['format'][$key])) {
 			switch($this->mapping['format'][$key]) {
 				case 'date':
 					list($day, $month, $year) = explode("/", $value);
+					$value = dol_mktime(0, 0, 0, $month, $day, $year);
+					break;
+				case 'dateYYYYMMDD':
+					$day = substr($value, 6, 2);
+					$month = substr($value, 4, 2);
+					$year = substr($value, 0, 4);
 					$value = dol_mktime(0, 0, 0, $month, $day, $year);
 					break;
 				case 'date_english':
 					$sep = (strpos($value,'-')===false) ? '/': '-';
 					list($year, $month, $day) = explode($sep, $value);
 					$value = mktime(0, 0, 0, $month, $day, $year);
-					
 					break;
 				case 'float':
-					$value = strtr($value, array(',' => '.', ' ' => ''));
+					$value = strtr($value, array(',' => '.', ' ' => '', ' '=>''));
 					break;
 				default:
 					break;

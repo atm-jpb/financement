@@ -94,3 +94,6 @@ NbCreate=Nb de création
 NbUpdate=Nb de mise à jour
 ErrorUserNotFound=Utilisateur non trouvé
 ErrorClientNotFound=Client non trouvé
+ErrorCreatingDossierOnThisAffaire=Création du dossier impossible sur l'affaire
+ErrorMaterielNotFound=Matériel non trouvé
+ErrorWhereIsFinancement=Dossier de financement non trouvé
