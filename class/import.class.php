@@ -18,8 +18,9 @@ class TImport extends TObjetStd {
 			,'facture_materiel' => 'Fichier facture matériel'
 			,'facture_location' => 'Fichier facture location'
 			,'facture_lettree' => 'Fichier facture lettrée'
+			,'score' => 'Fichier score'
 		);
-		$this->TType_import = array('fichier_leaser' => 'Fichier leaser', 'score' => 'Fichier score');
+		$this->TType_import = array('fichier_leaser' => 'Fichier leaser');
 	}
 
 	/**
@@ -28,17 +29,7 @@ class TImport extends TObjetStd {
 	 */
 	function getFiles($targetFolder)
 	{
-		// Les fichiers provenant de CPRO sont directement déposé dans le répertoire cible
-		// Des sociétés externes peuvent être amenée à déposer des fichier, pour cela un répertoire par société sera créé, avec accès FTP
-		$external_folders = array('_infolegale/');
 		
-		foreach ($external_folders as $folderName) {
-			$dirHandle = opendir(FIN_IMPORT_FOLDER.$folderName);
-			while ($fname = readdir($dirHandle)) {
-				if(is_file($fname)) rename(FIN_IMPORT_FOLDER.$folderName.$fname, $targetFolder.$fname);
-			}
-			closedir($dirHandle);
-		}
 	}
 	
 	function getListOfFiles($folder, $filePrefix)
@@ -129,11 +120,11 @@ class TImport extends TObjetStd {
 		$db->commit();
 	}
 	function importFichierLeaser(&$ATMdb, $dataline) {
-		//$ATMdb->debug=true;
+		$ATMdb->debug=true;
 		$data= $this->contructDataTab($dataline);
-		//echo '<pre>';
-		//print_r($data);
-		//echo '</pre>';
+		echo '<hr><pre>'.$this->nb_lines;
+		print_r($data);
+		echo '</pre>';
 		$this->nb_lines++;
 	
 		if($data['echeance']==0) {
@@ -844,12 +835,13 @@ class TImport extends TObjetStd {
 	}
 
 	function importLineScore(&$ATMdb, $dataline) {
-		global $user;
+		global $user, $db;
 		$sqlSearchClient = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE %s = '%s'";
 		
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
-
+		if($this->nb_lines == 1) return false; // Le fichier score contient une ligne d'en-tête
+		
 		if(!$this->checkData($dataline)) return false;
 		$data = $this->contructDataTab($dataline);
 		
@@ -894,10 +886,11 @@ class TImport extends TObjetStd {
 		}
 		
 		// Mise à jour de la fiche tiers
-		$societe = new Societe($this->db);
+		$societe = new Societe($db);
 		$societe->fetch($fk_soc);
 		$societe->capital = $this->validateValue('capital', $data['capital']);
 		$societe->fk_forme_juridique = $this->validateValue('forme_juridique', $data['forme_juridique']);
+		$societe->idprof3 = $this->validateValue('naf', $data['naf']);
 		$societe->update($societe->id, $user);
 		
 		return true;
@@ -922,7 +915,6 @@ class TImport extends TObjetStd {
 		foreach($this->mapping['mapping'] as $k=>$field) {
 			$data[$field] = $dataline[$k-1];
 			$data[$field] = $this->validateValue($field,$data[$field]);
-			
 		}
 		
 		if(isset($dataline[9999])) $data['idLeaser'] = $dataline[9999];
@@ -946,7 +938,7 @@ class TImport extends TObjetStd {
 		}
 		
 		// Si un format spécial existe, on l'applique
-		if(!empty($this->mapping['format'][$key])) {
+		if(!empty($value) && !empty($this->mapping['format'][$key])) {
 			switch($this->mapping['format'][$key]) {
 				case 'date':
 					list($day, $month, $year) = explode("/", $value);
@@ -962,7 +954,6 @@ class TImport extends TObjetStd {
 					$sep = (strpos($value,'-')===false) ? '/': '-';
 					list($year, $month, $day) = explode($sep, $value);
 					$value = mktime(0, 0, 0, $month, $day, $year);
-					
 					break;
 				case 'float':
 					$value = strtr($value, array(',' => '.', ' ' => '', ' '=>''));
