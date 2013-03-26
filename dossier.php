@@ -159,7 +159,6 @@ function _liste(&$PDOdb, &$dossier) {
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	$aff = new TFin_affaire;
 	
-			
 	$r->liste($PDOdb, $sql, array(
 		'limit'=>array(
 			'page'=>1
@@ -195,7 +194,7 @@ function _liste(&$PDOdb, &$dossier) {
 		)
 		,'orderBy'=> array('ID'=>'DESC','f.reference'=>'ASC')
 		,'search'=>array(
-			'reference'=>array('recherche'=>true, 'table'=>'d')
+			'reference'=>array('recherche'=>true, 'table'=>'f')
 			,'nom'=>array('recherche'=>true, 'table'=>'s')
 			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
 			,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
