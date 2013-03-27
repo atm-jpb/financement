@@ -354,9 +354,10 @@ class TImport extends TObjetStd {
 				if($dossier->addAffaire($ATMdb, $affaire->rowid)) {
 					$dossier->montant = $data['total_ht'];
 					$dossier->nature_financement = $affaire->nature_financement;
+					$dossier->reference_contrat_interne = $data['reference_dossier_interne'];
 					$dossier->financement->montant = $data['total_ht'];
 					$dossier->financement->reference = $data['reference_dossier_interne'];
-					if($affaire->nature_financement=='EXTERNE') {
+					if($dossier->nature_financement=='EXTERNE') {
 						unset($dossier->financement);
 					}
 					$dossier->save($ATMdb);
@@ -501,7 +502,7 @@ class TImport extends TObjetStd {
 			$financement=new TFin_financement;
 			if($financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
 				/* OK */
-				$dossier=new TFin_dossier_affaire;
+				$dossier=new TFin_dossier;
 				$dossier->load($ATMdb, $financement->fk_fin_dossier);
 				
 				$nb = ($facture_loc->type == 2) ? -1 : 1;
@@ -516,8 +517,18 @@ class TImport extends TObjetStd {
 				$facture_loc->linked_objects['dossier'] = $dossier->getId();
 			}
 			else {
-				/* PAS OK */
-				$this->addError($ATMdb, 'ErrorWhereIsFinancement', $data['reference_dossier_interne'], $dataline, $sql);
+				$dossier = new TFin_dossier;
+				if($dossier->loadReferenceContratDossier($db, $data['reference_dossier_interne'])) { // Dossier trouvé, financement non => erreur de qualification (EXTERNE) 
+					$dossier->nature_financement = 'INTERNE';
+					$dossier->financement->reference = $data['reference_dossier_interne'];
+					$nb = ($facture_loc->type == 2) ? -1 : 1;
+					$dossier->financement->setEcheance($nb);
+					$dossier->save($ATMdb);
+					$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['reference_dossier_interne'], $dataline, $sql, 'WARNING');
+				} else {
+					/* PAS OK */
+					$this->addError($ATMdb, 'ErrorWhereIsFinancement', $data['reference_dossier_interne'], $dataline, $sql);
+				}
 			}
 		}
 		
@@ -908,7 +919,6 @@ class TImport extends TObjetStd {
 		
 		return true;
 	}
-
 
 	function importDossierInit(&$ATMdb, $dataline) {
 		global $user, $db;

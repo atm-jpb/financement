@@ -6,7 +6,7 @@ class TFin_dossier extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
 		parent::add_champs('solde,montant,montant_solde','type=float;');
-		parent::add_champs('reference,nature_financement,commentaire','type=chaine;');
+		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne','type=chaine;');
 		parent::add_champs('date_relocation,date_solde','type=date;');
 			
 		parent::start();
@@ -27,6 +27,17 @@ class TFin_dossier extends TObjetStd {
 	function loadReference(&$db, $reference, $annexe=false) {
 		
 		$db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference='".$reference."'");
+		if($db->Get_line()) {
+			return $this->load($db, $db->Get_field('rowid'), $annexe);
+		}
+		else {
+			return false;
+		}
+		
+	}
+	function loadReferenceContratDossier(&$db, $reference, $annexe=false) {
+		
+		$db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference_contrat_interne='".$reference."'");
 		if($db->Get_line()) {
 			return $this->load($db, $db->Get_field('rowid'), $annexe);
 		}
