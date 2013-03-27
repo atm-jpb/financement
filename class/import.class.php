@@ -356,6 +356,7 @@ class TImport extends TObjetStd {
 					$dossier->nature_financement = $affaire->nature_financement;
 					$dossier->reference_contrat_interne = $data['reference_dossier_interne'];
 					$dossier->financement->montant = $data['total_ht'];
+					$dossier->financementLeaser->montant = $data['total_ht'];
 					$dossier->financement->reference = $data['reference_dossier_interne'];
 					if($dossier->nature_financement=='EXTERNE') {
 						unset($dossier->financement);
