@@ -855,16 +855,17 @@ class TImport extends TObjetStd {
 		$data = $this->contructDataTab($dataline);
 		
 		// Recherche si tiers existant dans la base
-		$fk_soc = 0;
+		$Tfk_soc = array();
 		$sql = sprintf($sqlSearchClient, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 		if($ATMdb->Execute($sql)) {
 			$num = $ATMdb->Get_Recordcount();
 			if($num == 1) { // Enregistrement trouvé, mise à jour
 				$ATMdb->Get_line();
-				$fk_soc = $ATMdb->Get_field('rowid');
+				$Tfk_soc[] = $ATMdb->Get_field('rowid');
 			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError($ATMdb, 'ErrorMultipleClientFound', $data[$this->mapping['search_key']], $dataline, $sql);
-				return false;
+				while($ATMdb->Get_line()) {
+					$Tfk_soc[] = $ATMdb->Get_field('rowid');
+				}
 			} else {
 				$this->addError($ATMdb, 'ErrorClientNotFound', $data[$this->mapping['search_key']], $dataline, $sql);
 				return false;
@@ -881,25 +882,29 @@ class TImport extends TObjetStd {
 			$score->{$key} = $value;
 		}
 		
-		$score->fk_soc = $fk_soc;
 		$score->fk_import = $this->getId();
 		$score->fk_user_author = $user->id;
-
-		$res = $score->save($ATMdb);
-		// Erreur : la création n'a pas marché
-		if($res < 0) {
-			$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
-			return false;
-		} else {
-			$this->nb_create++;
-		}
 		
-		// Mise à jour de la fiche tiers
-		$societe = new Societe($db);
-		$societe->fetch($fk_soc);
-		$societe->fk_forme_juridique = $this->validateValue('forme_juridique', $data['forme_juridique']);
-		$societe->idprof3 = $this->validateValue('naf', $data['naf']);
-		$societe->update($societe->id, $user);
+		foreach ($Tfk_soc as $fk_soc) {
+			$score->start();
+			$score->fk_soc = $fk_soc;
+	
+			$res = $score->save($ATMdb);
+			// Erreur : la création n'a pas marché
+			if($res < 0) {
+				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
+				return false;
+			} else {
+				$this->nb_create++;
+			}
+			
+			// Mise à jour de la fiche tiers
+			$societe = new Societe($db);
+			$societe->fetch($fk_soc);
+			$societe->fk_forme_juridique = $this->validateValue('forme_juridique', $data['forme_juridique']);
+			$societe->idprof3 = $this->validateValue('naf', $data['naf']);
+			$societe->update($societe->id, $user);
+		}
 		
 		return true;
 	}
