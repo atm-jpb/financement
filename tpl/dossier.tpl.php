@@ -46,8 +46,8 @@
 					
 						<tr class="pair"><td>Incident de paiement</td><td>[financement.incident_paiement; strconv=no]</td></tr>
 					
-						<tr class="impair"><td>Date du solde</td><td>[financement.date_solde; strconv=no;] </td></tr>
-						<tr class="pair"><td>Montant du solde</td><td>[financement.montant_solde; strconv=no; frm=0 000,00] &euro;</td></tr>
+						<tr class="impair"><td>Date du solde</td><td[financement.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financement.date_solde; strconv=no;]</td></tr>
+						<tr class="pair"><td>Montant du solde</td><td[financement.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financement.montant_solde; strconv=no; frm=0 000,00] &euro;</td></tr>
 					
 						
 						</table>
@@ -85,8 +85,8 @@
 						<tr class="impair"><td>Incident de paiement</td><td >[financementLeaser.incident_paiement; strconv=no]</td></tr>
 						<tr class="pair"><td>Bon pour facturation ?</td><td >[financementLeaser.okPourFacturation; strconv=no][onshow;block=tr;when [dossier.nature_financement]=='INTERNE']</td></tr>
 
-						<tr class="impair"><td>Date du solde</td><td>[financementLeaser.date_solde; strconv=no;protect=no] </td></tr>
-						<tr class="pair"><td>Montant du solde</td><td>[financementLeaser.montant_solde; strconv=no; frm=0 000,00] &euro;</td></tr>
+						<tr class="impair"><td>Date du solde</td><td[financementLeaser.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financementLeaser.date_solde; strconv=no;protect=no]</td></tr>
+						<tr class="pair"><td>Montant du solde</td><td[financementLeaser.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financementLeaser.montant_solde; strconv=no; frm=0 000,00] &euro;</td></tr>
 						
 						
 						</table>

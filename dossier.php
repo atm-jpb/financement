@@ -283,6 +283,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'montant_prestation'=>$form->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 10,255,'','','à saisir')
 			,'frais_dossier'=>$form->texte('', 'leaser[frais_dossier]', $financementLeaser->frais_dossier, 10,255,'','','à saisir')
 			,'montant_solde'=>$form->texte('', 'leaser[montant_solde]', $financementLeaser->montant_solde, 10,255,'','','')
+			,'dossier_termine'=>($financementLeaser->montant_solde > 0) ? 1 : 0
 							
 				
 			,'numero_prochaine_echeance'=>$financementLeaser->numero_prochaine_echeance 
@@ -322,6 +323,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'montant_prestation'=>$form->texte('', 'montant_prestation', $financement->montant_prestation, 10,255,'','','à saisir')
 			,'montant_solde'=>$form->texte('', 'montant_solde', $financement->montant_solde, 10,255,'','','à saisir')
 			,'frais_dossier'=>$form->texte('', 'frais_dossier', $financement->frais_dossier, 10,255,'','','à saisir')
+			,'dossier_termine'=>($financement->montant_solde > 0) ? 1 : 0
 				
 			,'numero_prochaine_echeance'=>$financement->numero_prochaine_echeance 
 			,'duree'=>$form->texte('', 'duree', $financement->duree, 5,255,'','','à saisir')
