@@ -367,6 +367,9 @@ class TImport extends TObjetStd {
 					$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], $dataline, '', 'ERROR', true);
 				}
 			}
+		} else {
+			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire'], $dataline, $sql, 'ERROR', true);
+			return false;
 		}
 		
 		// Mise à jour ou création
@@ -894,12 +897,122 @@ class TImport extends TObjetStd {
 		// Mise à jour de la fiche tiers
 		$societe = new Societe($db);
 		$societe->fetch($fk_soc);
-		//$societe->capital = $this->validateValue('capital', $data['capital']);
 		$societe->fk_forme_juridique = $this->validateValue('forme_juridique', $data['forme_juridique']);
 		$societe->idprof3 = $this->validateValue('naf', $data['naf']);
 		$societe->update($societe->id, $user);
 		
 		return true;
+	}
+
+
+	function importDossierInit(&$ATMdb, $dataline) {
+		global $user, $db;
+		
+		// Compteur du nombre de lignes
+		$this->nb_lines++;
+
+		if(!$this->checkData($dataline)) return false;
+		$data = $this->contructDataTab($dataline);
+		
+		// Chargement de l'affaire
+		$affaire = new TFin_affaire;
+		if($affaire->loadReference($ATMdb, $data['code_affaire'], true)) {
+			// Vérification client
+			if($affaire->societe->code_client != $data['code_client']) {
+				$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_affaire'].' - '.$data['code_client'], $dataline, $sql, 'ERROR', true);
+				return false;
+			}
+			
+			$found = false;
+			foreach ($affaire->TLien as $lien) {
+				$doss = &$lien->dossier;
+				if(!empty($doss->financement->reference) && $doss->financement->reference == $data['reference_dossier_interne']) { // On a trouvé le bon dossier
+					$found = true;
+					$doss->nature_financement == 'INTERNE';
+					
+					// Partie client
+					$doss->financement->periodicite = $data['periodicite'];
+					$doss->financement->duree = $data['duree'];
+					$doss->financement->montant = $data['montant'];
+					$doss->financement->echeance = $data['echeance'];
+					$doss->financement->reste = $data['reste'];
+					$doss->financement->terme = $data['terme'];
+					$doss->financement->date_debut = $data['date_debut'];
+					
+					// Partie leaser
+					$doss->financementLeaser->reference = $data['reference_dossier_leaser'];
+					$doss->financementLeaser->periodicite = $data['leaser_periodicite'];
+					$doss->financementLeaser->duree = $data['leaser_duree'];
+					$doss->financementLeaser->montant = $data['leaser_montant'];
+					$doss->financementLeaser->echeance = $data['leaser_echeance'];
+					$doss->financementLeaser->reste = $data['leaser_reste'];
+					$doss->financementLeaser->date_debut = $data['leaser_date_debut'];
+					$doss->financementLeaser->frais_dossier = $data['leaser_frais_dossier'];
+					
+					$doss->save($ATMdb);
+					
+					// Création des factures leaser
+					while($doss->financementLeaser->date_prochaine_echeance < time() && $doss->financementLeaser->numero_prochaine_echeance <= $doss->financementLeaser->duree) {
+						_createFacture($doss->financementLeaser, $doss);
+						$doss->financementLeaser->setEcheance();
+					}
+				}
+			}
+
+			if(!$found) {
+				$this->addError($ATMdb, 'ErrorDossierClientNotFound', $data['reference_dossier_interne'], $dataline, $sql, 'ERROR', true);
+				return false;
+			}
+
+			if($affaire->nature_financement == 'EXTERNE') {
+				$affaire->nature_financement == 'INTERNE';
+				$affaire->save($ATMdb);
+				$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['code_affaire'], $dataline, $sql, 'WARNING');
+			}
+		} else {
+			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire'], $dataline, $sql, 'ERROR', true);
+			return false;
+		}
+		
+		return true;
+	}
+
+	function _createFacture(&$f, &$d) {
+		global $user, $db, $conf;
+		
+		$tva = (FIN_TVA_DEFAUT-1)*100;
+		
+		$object =new FactureFournisseur($db);
+		
+		$object->ref           = $f->reference.'/'.($f->duree_passe+1); 
+	    $object->socid         = $f->fk_soc;
+	    $object->libelle       = "Facture échéance loyer banque (".($f->duree_passe+1).")";
+	    $object->date          = $f->date_prochaine_echeance;
+	    $object->date_echeance = $f->date_prochaine_echeance;
+	    $object->note_public   = '';
+		$object->origin = 'dossier';
+		$object->origin_id = $f->fk_fin_dossier;
+		$id = $object->create($user);
+		
+		if($f->duree_passe==0) {
+			/* Ajoute les frais de dossier uniquement sur la 1ère facture */
+			//print "Ajout des frais de dossier<br>";
+			$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
+		}
+		
+		/* Ajout la ligne de l'échéance	*/
+		$fk_product = 0;
+		if(!empty($d->TLien[0]->affaire)) {
+			if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
+			elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
+		}
+		$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
+	
+		$result=$object->validate($user,'',0);
+		
+		$result=$object->set_paid($user);
+		
+		//print "Création facture fournisseur ($id) : ".$object->ref."<br/>";
 	}
 
 	function checkData($dataline) {

@@ -162,7 +162,7 @@ class TFin_dossier extends TObjetStd {
 			$this->financement->fk_fin_dossier = $this->getId();
 			$this->financement->fk_soc = FIN_LEASER_DEFAULT;
 			$this->financement->type='CLIENT';
-			$this->financement->save($db);	
+			$this->financement->save($db);
 		}
 	}
 	function calculSolde() {

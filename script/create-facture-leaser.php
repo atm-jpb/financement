@@ -31,7 +31,10 @@ foreach($Tab as $id) {
 	$f=new TFin_financement;
 	$f->load($ATMdb, $id);
 	
-	_createFacture($f);
+	$d=new TFin_dossier;
+	$d->load($ATMdb, $f->fk_dossier);
+	
+	_createFacture($f, $d);
 	
 	$f->okPourFacturation='NON';
 	$f->setEcheance();
@@ -59,7 +62,7 @@ if(isset($_REQUEST['with-auto-facture'])) {
 	}
 }
 	
-function _createFacture(&$f) {
+function _createFacture(&$f, &$d) {
 	global $user, $db, $conf;
 	
 	$tva = (FIN_TVA_DEFAUT-1)*100;
@@ -68,7 +71,7 @@ function _createFacture(&$f) {
 	
 	$object->ref           = $f->reference.'/'.($f->duree_passe+1); 
     $object->socid         = $f->fk_soc;
-    $object->libelle       = "Facture échéance loyer";
+    $object->libelle       = "Facture échéance loyer banque (".($f->duree_passe+1).")";
     $object->date          = time();
     $object->date_echeance = time();
     $object->note_public   = '';
@@ -79,13 +82,18 @@ function _createFacture(&$f) {
 	if($f->duree_passe==0) {
 		/* Ajoute les frais de dossier uniquement sur la 1ère facture */
 		print "Ajout des frais de dossier<br>";
-		$result=$object->addline("Frais de dossier", $f->frais_dossier, $tva, 0, 0, 1);
+		$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
 	}
 	
 	/* Ajout la ligne de l'échéance	*/
-	$result=$object->addline("Echéance de loyer", $f->echeance, $tva, 0, 0, 1);
+	$fk_product = 0;
+	if(!empty($d->TLien[0]->affaire)) {
+		if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
+		elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
+	}
+	$result=$object->addline("Echéance de loyer", $f->echeance, $tva, 0, 0, 1, $fk_product);
 
-	$result = $object->validate($user,'',0);
+	$result=$object->validate($user,'',0);
 	
 	$result=$object->set_paid($user);
 	
