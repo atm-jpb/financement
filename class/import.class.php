@@ -352,15 +352,15 @@ class TImport extends TObjetStd {
 			}
 		}
 		
+		// Actions spécifiques
+		// On repasse en brouillon pour ajouter la ligne
+		$facture_mat->set_draft($user);
+		
 		// On supprime les lignes (pour ne pas créer de ligne en double)
 		// Sur les facture matériel, 1 ligne = 1 facture mais une même facture peut apparaître plusieurs fois => plusieurs dossiers de financement
 		foreach ($facture_mat->lines as $line) {
 			$facture_mat->deleteline($line->id);
 		}
-		
-		// Actions spécifiques
-		// On repasse en brouillon pour ajouter la ligne
-		$facture_mat->set_draft($user);
 		
 		// On ajoute la ligne
 		$facture_mat->addline($facture_mat->id, 'Matricule(s) '.$data['matricule'], $data['total_ht'], 1, 19.6);
@@ -665,8 +665,9 @@ class TImport extends TObjetStd {
 		global $user, $conf, $db;
 
 		if(empty($TInfosGlobales['user'][$data[$this->mapping['search_key']]])) {
-			$fk_user = $this->_recherche_user($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']], true);
+			$fk_user = $this->_recherche_user($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 			if($fk_user === false) return false;
+			if($fk_user === 0) $fk_user = $user->id;
 			
 			$TInfosGlobale['user'][$data[$this->mapping['search_key']]] = $fk_user;
 		} else {
