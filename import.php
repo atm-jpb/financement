@@ -62,9 +62,10 @@
 						fgetcsv($f1 ,1024, $_REQUEST['delimiter'], $_REQUEST['enclosure']);
 					} 
 					
+					$TInfosGlobale = array();
 					while($dataline = fgetcsv($f1, 1024, $_REQUEST['delimiter'], $_REQUEST['enclosure'])) {
 						$dataline[9999] = $societe->id;
-						$imp->importLine($dataline, $fileType);
+						$imp->importLine($ATMdb, $dataline, $fileType, $TInfosGlobale);
 					}
 					
 					$imp->save($ATMdb); // Mise à jour pour nombre de lignes et nombre d'erreurs

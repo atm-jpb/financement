@@ -38,14 +38,18 @@ class TFin_affaire extends TObjetStd {
 		$this->somme_dossiers=0;
 	}
 	
-	function load(&$db, $id, $annexe=true) {
+	function load(&$ATMdb, $id, $annexe=true) {
+		global $db;
+		$res = parent::load($ATMdb, $id);
 		
-		$res = parent::load($db, $id);
+		// Chargement du client
+		$this->societe = new Societe($db);
+		$this->societe->fetch($this->fk_soc);
 		
 		if($annexe) {
-			$this->loadDossier($db);
-			$this->loadCommerciaux($db);	
-			$this->loadEquipement($db);	
+			$this->loadDossier($ATMdb);
+			$this->loadCommerciaux($ATMdb);	
+			$this->loadEquipement($ATMdb);	
 		}
 		
 		$this->calculSolde();

@@ -123,7 +123,7 @@
 	llxFooter();
 	
 function _liste(&$ATMdb, &$affaire) {
-global $langs,$conf, $db;	
+	global $langs,$conf, $db;
 	
 	llxHeader('','Affaires');
 	
@@ -227,12 +227,8 @@ global $langs,$conf, $db;
 }	
 	
 function _fiche(&$ATMdb, &$affaire, $mode) {
-global $db,$user;
-	
-	$societe = new Societe($db);
-	$societe->fetch($affaire->fk_soc); 
-	 
-	 /*
+	global $db,$user;
+	/*
 	 * Liste des dossiers rattachés à cette affaire
 	 */ 
 	$TDossier=array();
@@ -315,7 +311,7 @@ global $db,$user;
 				,'date_maj'=>$affaire->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$affaire->get_date('date_cre','d/m/Y')
 				
-				,'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$affaire->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$societe->nom.'</a>'
+				,'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$affaire->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$affaire->societe->nom.'</a>'
 				,'montant_val'=>$affaire->montant
 				,'nature_financement_val'=>$affaire->nature_financement
 				

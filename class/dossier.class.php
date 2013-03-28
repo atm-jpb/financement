@@ -6,7 +6,7 @@ class TFin_dossier extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
 		parent::add_champs('solde,montant,montant_solde','type=float;');
-		parent::add_champs('reference,nature_financement,commentaire','type=chaine;');
+		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne','type=chaine;');
 		parent::add_champs('date_relocation,date_solde','type=date;');
 			
 		parent::start();
@@ -27,6 +27,17 @@ class TFin_dossier extends TObjetStd {
 	function loadReference(&$db, $reference, $annexe=false) {
 		
 		$db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference='".$reference."'");
+		if($db->Get_line()) {
+			return $this->load($db, $db->Get_field('rowid'), $annexe);
+		}
+		else {
+			return false;
+		}
+		
+	}
+	function loadReferenceContratDossier(&$db, $reference, $annexe=false) {
+		
+		$db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference_contrat_interne='".$reference."'");
 		if($db->Get_line()) {
 			return $this->load($db, $db->Get_field('rowid'), $annexe);
 		}
@@ -105,16 +116,17 @@ class TFin_dossier extends TObjetStd {
 			/*
 			 * Le dossier existe liaison
 			 */
-			 
+			
 			if($affaire->solde==0) {
-				return false; // cette affaire a déjà le financement nécessaire
-			} 
-			 
+				//return false; // cette affaire a déjà le financement nécessaire
+				// MKO : Désactivé car plusieurs dossiers sur une même affaire possible et la facture matériel comporte le prix total
+			}
+			
 			//print_r($this->TLien);
 			foreach($this->TLien as $k=>$lien) {
 				if($lien->fk_fin_affaire==$affaire->getId()) {return false;}
-			}		 
-			 
+			}
+			
 			$i = count($this->TLien); 
 			$this->TLien[$i]=new TFin_dossier_affaire;
 			$this->TLien[$i]->fk_fin_dossier = $this->getId();
@@ -161,7 +173,7 @@ class TFin_dossier extends TObjetStd {
 			$this->financement->fk_fin_dossier = $this->getId();
 			$this->financement->fk_soc = FIN_LEASER_DEFAULT;
 			$this->financement->type='CLIENT';
-			$this->financement->save($db);	
+			$this->financement->save($db);
 		}
 	}
 	function calculSolde() {
