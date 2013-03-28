@@ -665,8 +665,9 @@ class TImport extends TObjetStd {
 		global $user, $conf, $db;
 
 		if(empty($TInfosGlobales['user'][$data[$this->mapping['search_key']]])) {
-			$fk_user = $this->_recherche_user($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']], true);
+			$fk_user = $this->_recherche_user($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 			if($fk_user === false) return false;
+			if($fk_user === 0) $fk_user = $user->id;
 			
 			$TInfosGlobale['user'][$data[$this->mapping['search_key']]] = $fk_user;
 		} else {
