@@ -103,7 +103,7 @@ class TImport extends TObjetStd {
 				$this->importLineMateriel($ATMdb, $data);
 				break;
 			case 'facture_materiel':
-				$this->importLineFactureMateriel($ATMdb, $data);
+				$this->importLineFactureMateriel($ATMdb, $data, $TInfosGlobale);
 				break;
 			case 'facture_location':
 				$this->importLineFactureLocation($ATMdb, $data, $TInfosGlobale);
@@ -244,15 +244,15 @@ class TImport extends TObjetStd {
 			if($facid === false) return false;
 			
 			// Recherche tiers associé à la facture existant dans la base
-			$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']]);
+			$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
 			if(!$socid) return false;
 			
 			$data['socid'] = $socid;
 			
 			// Construction de l'objet final
 			$facture_mat = new Facture($db);
-			if($rowid > 0) {
-				$facture_mat->fetch($rowid);
+			if($facid > 0) {
+				$facture_mat->fetch($facid);
 			}
 	
 			foreach ($data as $key => $value) {
@@ -317,13 +317,13 @@ class TImport extends TObjetStd {
 					}
 				}
 			} else {
-				$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire'], $$sql, 'ERROR', true);
+				$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire']);
 				return false;
 			}
 			
 			// Mise à jour ou création
-			if($rowid > 0) {
-				$res = $facture_mat->update($rowid, $user);
+			if($facid > 0) {
+				$res = $facture_mat->update($facid, $user);
 				// Erreur : la mise à jour n'a pas marché
 				if($res < 0) {
 					$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
@@ -342,16 +342,17 @@ class TImport extends TObjetStd {
 				}
 			}
 			
-			// On supprime les lignes (pour ne pas créer de ligne en double)
-			foreach ($facture_mat->lines as $line) {
-				$facture_mat->deleteline($line->id);
-			}
-			
 			// Permet d'éviter de faire plusieurs fois les même actions sur une même facture
 			// Le fichier facture contient les lignes de factures
 			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facture_mat;
 		} else {
 			$facture_mat = &$TInfosGlobale[$data[$this->mapping['search_key']]];
+		}
+		
+		// On supprime les lignes (pour ne pas créer de ligne en double)
+		// Sur les facture matériel, 1 ligne = 1 facture mais une même facture peut apparaître plusieurs fois => plusieurs dossiers de financement
+		foreach ($facture_mat->lines as $line) {
+			$facture_mat->deleteline($line->id);
 		}
 		
 		// Actions spécifiques
@@ -379,15 +380,15 @@ class TImport extends TObjetStd {
 			if($facid === false) return false;
 			
 			// Recherche tiers associé à la facture existant dans la base
-			$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']]);
+			$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
 			if(!$socid) return false;
 			
 			$data['socid'] = $fk_soc;
 			
 			// Construction de l'objet final
 			$facture_loc = new Facture($db);
-			if($rowid > 0) {
-				$facture_loc->fetch($rowid);
+			if($facid > 0) {
+				$facture_loc->fetch($facid);
 			}
 	
 			foreach ($data as $key => $value) {
@@ -433,8 +434,8 @@ class TImport extends TObjetStd {
 			}
 		
 			// Mise à jour ou création
-			if($rowid > 0) {
-				$res = $facture_loc->update($rowid, $user);
+			if($facid > 0) {
+				$res = $facture_loc->update($facid, $user);
 				// Erreur : la mise à jour n'a pas marché
 				if($res < 0) {
 					$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
@@ -522,11 +523,12 @@ class TImport extends TObjetStd {
 	}
 
 	function importLineAffaire(&$ATMdb, $data, &$TInfosGlobale) {
-		global $user, $db;
+		global $user;
 		
 		if(empty($TInfosGlobale['user'][$data[$this->mapping['search_key_user']]])) {
-			$fk_user = $this->_recherche_client($ATMdb, $this->mapping['search_key_user'], $data[$this->mapping['search_key_user']], true);
+			$fk_user = $this->_recherche_user($ATMdb, $this->mapping['search_key_user'], $data[$this->mapping['search_key_user']]);
 			if($fk_user === false) return false;
+			if($fk_user === 0) $fk_user = $user->id;
 			
 			$TInfosGlobale['user'][$data[$this->mapping['search_key_user']]] = $fk_user;
 		} else {
@@ -919,7 +921,8 @@ class TImport extends TObjetStd {
 	}
 
 	function _recherche_facture(&$ATMdb, $key, $val, $errorNotFound = false) {
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'facture',array($key=>$val, 'entity' => getEntity('facture', true)));
+		global $conf;
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'facture',array($key=>$val, 'entity' => $conf->entity));
 		
 		$rowid = 0;
 		$num = count($TRes);
@@ -937,7 +940,8 @@ class TImport extends TObjetStd {
 	}
 
 	function _recherche_client(&$ATMdb, $key, $val, $errorNotFound = false, $errorMultipleFound = true) {
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array($key=>$val, 'entity' => getEntity('societe', true)));
+		global $conf;
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array($key=>$val, 'entity' => $conf->entity));
 		
 		$rowid = 0;
 		$num = count($TRes);
@@ -959,7 +963,8 @@ class TImport extends TObjetStd {
 	}
 	
 	function _recherche_user(&$ATMdb, $key, $val, $errorNotFound = false) {
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'user',array($key=>$val, 'entity' => getEntity('user', true)));
+		global $conf;
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'user',array($key=>$val, 'entity' => $conf->entity));
 		
 		$rowid = 0;
 		$num = count($TRes);

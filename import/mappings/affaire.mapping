@@ -1,12 +1,12 @@
 search_key=reference
 search_key_client=code_client
-search_key_user=code_commercial
+search_key_user=login
 
 [mapping]
 1=reference
 2=date_affaire
 3=code_client
-4=code_commercial
+4=login
 5=nature_financement
 6=contrat
 7=type_financement
