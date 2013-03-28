@@ -21,6 +21,7 @@ class TImport extends TObjetStd {
 			,'score' => 'Fichier score'
 		);
 		$this->TType_import = array('fichier_leaser' => 'Fichier leaser');
+		$this->current_line = array();
 	}
 
 	/**
@@ -60,12 +61,12 @@ class TImport extends TObjetStd {
 		$this->mapping = parse_ini_file($mappingFile, true);
 	}
 	
-	function addError(&$ATMdb, $errMsg, $errData, $dataLine, $sqlExecuted='', $type='ERROR', $is_sql=false) {
+	function addError(&$ATMdb, $errMsg, $errData, $sqlExecuted='', $type='ERROR', $is_sql=false) {
 		global $user;
 		$thisErr = new TImportError();
 		$thisErr->fk_import = $this->getId();
 		$thisErr->num_line = $this->nb_lines;
-		$thisErr->content_line = serialize($dataLine);
+		$thisErr->content_line = serialize($this->current_line);
 		$thisErr->error_msg = $errMsg;
 		$thisErr->error_data = $errData;
 		$thisErr->sql_executed = $sqlExecuted;
@@ -82,35 +83,37 @@ class TImport extends TObjetStd {
 	
 	function importLine(&$ATMdb, $dataline, $type, &$TInfosGlobale) {
 		global $db;
+		
+		$this->current_line = $dataline;
 		switch ($type) {
 			case 'client':
-				$this->importLineTiers($ATMdb, $dataline);
+				$this->importLineTiers($ATMdb);
 				break;
 			case 'materiel':
-				$this->importLineMateriel($ATMdb, $dataline);
+				$this->importLineMateriel($ATMdb);
 				break;
 			case 'facture_materiel':
-				$this->importLineFactureMateriel($ATMdb, $dataline);
+				$this->importLineFactureMateriel($ATMdb);
 				break;
 			case 'facture_location':
-				$this->importLineFactureLocation($ATMdb, $dataline, $TInfosGlobale);
+				$this->importLineFactureLocation($ATMdb, $TInfosGlobale);
 				break;
 			case 'facture_lettree':
-				$this->importLineFactureLettree($ATMdb, $dataline);
+				$this->importLineFactureLettree($ATMdb);
 				break;
 			case 'commercial':
-				$this->importLineCommercial($ATMdb, $dataline, $TInfosGlobale);
+				$this->importLineCommercial($ATMdb, $TInfosGlobale);
 				break;
 			case 'affaire':
-				$this->importLineAffaire($ATMdb, $dataline);
+				$this->importLineAffaire($ATMdb, $TInfosGlobale);
 				break;
 			case 'fichier_leaser':
-				/*print_r($dataline); 
+				/*print_r($this->current_line); 
 				print '<br>';*/
-				$this->importFichierLeaser($ATMdb, $dataline);
+				$this->importFichierLeaser($ATMdb);
 				break;
 			case 'score':
-				$this->importLineScore($ATMdb, $dataline);
+				$this->importLineScore($ATMdb);
 				break;
 			
 			default:
@@ -119,9 +122,9 @@ class TImport extends TObjetStd {
 		}
 		$db->commit();
 	}
-	function importFichierLeaser(&$ATMdb, $dataline) {
+	function importFichierLeaser(&$ATMdb) {
 		$ATMdb->debug=true;
-		$data= $this->contructDataTab($dataline);
+		$data= $this->contructDataTab($this->current_line);
 		echo '<hr><pre>'.$this->nb_lines;
 		print_r($data);
 		echo '</pre>';
@@ -137,12 +140,12 @@ class TImport extends TObjetStd {
 		} else if ($f->loadOrCreateSirenMontant($ATMdb, $data['siren'], $data['montant'])) { // Recherche du financement leaser par siren et montant
 			// Le financement leaser a été trouvé ou créé par le siren et le montant de l'affaire
 		} else {
-			$this->addError($ATMdb, 'cantFindOrCreateFinancement', $data['reference'], $dataline, '', 'ERROR');
+			$this->addError($ATMdb, 'cantFindOrCreateFinancement', $data['reference'], '', 'ERROR');
 			return false;
 		}
 		
 		if(!empty($f->fk_soc) && $f->fk_soc!=$data['idLeaser']) { // Si le dossier de financement récupéré n'est pas lié au bon leaser, erreur
-			$this->addError($ATMdb, 'leaserNotAllgood', $data['idLeaser'], $dataline, '', 'ERROR');
+			$this->addError($ATMdb, 'leaserNotAllgood', $data['idLeaser'], '', 'ERROR');
 			return false;
 		}
 		
@@ -160,7 +163,7 @@ class TImport extends TObjetStd {
 			$date_fin = $data['date_fin'];
 			
 			if($echeance!=$f->echeance || $montant!=$f->montant || $date_debut!=$f->date_debut || $date_fin!=$f->date_fin) {
-				$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], $dataline, '', 'WARNING');
+				$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], '', 'WARNING');
 				return false;
 			}
 			else {
@@ -175,37 +178,23 @@ class TImport extends TObjetStd {
 	}
 
 
-	function importLineTiers(&$ATMdb, $dataline) {
+	function importLineTiers(&$ATMdb) {
 		global $user, $db;
-		$sqlSearchClient = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE %s = '%s'";
 		
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
 
-		if(!$this->checkData($dataline)) return false;
-		$data = $this->contructDataTab($dataline);
+		if(!$this->checkData()) return false;
+		$data = $this->contructDataTab();
 		
 		// Recherche si tiers existant dans la base
-		$rowid = 0;
-		$sql = sprintf($sqlSearchClient, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		if($ATMdb->Execute($sql)) {
-			$num = $ATMdb->Get_Recordcount();
-			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$ATMdb->Get_line();
-				$rowid = $ATMdb->Get_field('rowid');
-			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError($ATMdb, 'ErrorMultipleClientFound', $data[$this->mapping['search_key']], $dataline, $sql);
-				return false;
-			}
-		} else {
-			$this->addError($ATMdb, 'ErrorWhileSearchingClient', $data[$this->mapping['search_key']], $dataline, $sql, 'ERROR', true);
-			return false;
-		}
+		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
+		if($socid === false) return false;
 		
 		// Construction de l'objet final
 		$societe = new Societe($db);
-		if($rowid > 0) {
-			$societe->fetch($rowid);
+		if($socid > 0) {
+			$societe->fetch($socid);
 		}
 
 		foreach ($data as $key => $value) {
@@ -215,12 +204,12 @@ class TImport extends TObjetStd {
 		$societe->idprof1 = substr($societe->idprof2,0,9);
 
 		// Mise à jour ou création
-		if($rowid > 0) {
-			$res = $societe->update($rowid, $user);
+		if($socid > 0) {
+			$res = $societe->update($socid, $user);
 			
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
+				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
 				return false;
 			} else {
 				$this->nb_update++;
@@ -230,7 +219,7 @@ class TImport extends TObjetStd {
 			
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
+				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
 				return false;
 			} else {
 				$this->nb_create++;
@@ -240,169 +229,134 @@ class TImport extends TObjetStd {
 		return true;
 	}
 
-	function importLineFactureMateriel(&$ATMdb, $dataline) {
+	function importLineFactureMateriel(&$ATMdb, &$TInfosGlobale) {
 		global $user, $db;
-		$sqlSearchFacture = "SELECT rowid FROM ".MAIN_DB_PREFIX."facture WHERE %s = '%s'";
-		$sqlSearchClient = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE %s = '%s'";
 		
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
 
-		if(!$this->checkData($dataline)) return false;
-		$data = $this->contructDataTab($dataline);
+		if(!$this->checkData($this->current_line)) return false;
+		$data = $this->contructDataTab($this->current_line);
 		
-		// Recherche si facture existante dans la base
-		$rowid = 0;
-		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		if($ATMdb->Execute($sql)) {
-			$num = $ATMdb->Get_Recordcount();
-			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$ATMdb->Get_line();
-				$rowid = $ATMdb->Get_field('rowid');
-			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError($ATMdb, 'ErrorMultipleFactureFound', $data[$this->mapping['search_key']], $dataline, $sql);
-				return false;
-			}
-		} else {
-			$this->addError($ATMdb, 'ErrorWhileSearchingFacture', $data[$this->mapping['search_key']], $dataline, $sql, 'ERROR', true);
-			return false;
-		}
-		
-		// Recherche tiers associé à la facture existant dans la base
-		$fk_soc = 0;
-		$sql = sprintf($sqlSearchClient, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']]);
-		if($ATMdb->Execute($sql)) {
-			$num = $ATMdb->Get_Recordcount();
-			if($num == 1) { // Enregistrement trouvé
-				$ATMdb->Get_line();
-				$fk_soc = $ATMdb->Get_field('rowid');
-			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError($ATMdb, 'ErrorMultipleClientFound', $data[$this->mapping['search_key_client']], $dataline, $sql);
-				return false;
-			} else {
-				$this->addError($ATMdb, 'ErrorClientNotFound', $data[$this->mapping['search_key_client']], $dataline, $sql);
-				return false;
-			}
-		} else {
-			$this->addError($ATMdb, 'ErrorWhileSearchingClient', $data[$this->mapping['search_key_client']], $dataline, $sql, 'ERROR', true);
-			return false;
-		}
-		
-		$data['socid'] = $fk_soc;
-		
-		// Construction de l'objet final
-		$facture_mat = new Facture($db);
-		if($rowid > 0) {
-			$facture_mat->fetch($rowid);
-		}
-
-		foreach ($data as $key => $value) {
-			$facture_mat->{$key} = $value;
-		}
-		
-		// Gestion des avoirs
-		if(!empty($data['facture_annulee'])) {
-			// Recherche de la facture annulee par l'avoir
-			$fac_annulee_id = 0;
-			$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']]);
-			if($ATMdb->Execute($sql)) {
-				$num = $ATMdb->Get_Recordcount();
-				if($num == 1) { // Enregistrement trouvé, mise à jour
-					$ATMdb->Get_line();
-					$fac_annulee_id = $ATMdb->Get_field('rowid');
-				} else if($num > 1) { // Plusieurs trouvés, erreur
-					$this->addError($ATMdb, 'ErrorMultipleFactureFound', $data[$this->mapping['search_key_fac_annulee']], $dataline, $sql);
-					return false;
-				}
-			} else {
-				$this->addError($ATMdb, 'ErrorWhileSearchingFacture', $data[$this->mapping['search_key_fac_annulee']], $dataline, $sql, 'ERROR', true);
-				return false;
-			}
-			$facture_mat->type = 2;
-			$facture_mat->fk_facture_source = $fac_annulee_id;
-		}
-		
-		// Création des liens
-		$affaire = new TFin_affaire;
-		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
-			// Mise à jour de l'affaire
-			$affaire->montant = $this->validateValue('total_ht',$data['total_ht']);	
-			$affaire->save($ATMdb);
+		if(empty($TInfosGlobale[$data[$this->mapping['search_key']]])) {
+			// Recherche si facture existante dans la base
+			$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
+			if($facid === false) return false;
 			
-			// Création des liens entre affaire et matériel
-			$TSerial = explode(' - ',$data['matricule']);
-		
-			foreach($TSerial as $serial) {
+			// Recherche tiers associé à la facture existant dans la base
+			$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']]);
+			if(!$socid) return false;
+			
+			$data['socid'] = $socid;
+			
+			// Construction de l'objet final
+			$facture_mat = new Facture($db);
+			if($rowid > 0) {
+				$facture_mat->fetch($rowid);
+			}
+	
+			foreach ($data as $key => $value) {
+				$facture_mat->{$key} = $value;
+			}
+			
+			// Gestion des avoirs
+			if(!empty($data['facture_annulee'])) {
+				// Recherche de la facture annulee par l'avoir
+				$avoirid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']]);
+				if($avoirid === false) return false;
 				
-				$asset=new TAsset;
-				if($asset->loadReference($ATMdb, $serial)) {
-					$asset->fk_soc = $affaire->fk_soc;
+				$facture_mat->type = 2;
+				$facture_mat->fk_facture_source = $avoirid;
+			}
+			
+			// Création des liens
+			$affaire = new TFin_affaire;
+			if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
+				// Mise à jour de l'affaire
+				$affaire->montant = $this->validateValue('total_ht',$data['total_ht']);	
+				$affaire->save($ATMdb);
+				
+				// Création des liens entre affaire et matériel
+				$TSerial = explode(' - ',$data['matricule']);
+			
+				foreach($TSerial as $serial) {
 					
-					$asset->add_link($affaire->getId(),'affaire');	
-					
-					$asset->save($ATMdb);	
+					$asset=new TAsset;
+					if($asset->loadReference($ATMdb, $serial)) {
+						$asset->fk_soc = $affaire->fk_soc;
+						
+						$asset->add_link($affaire->getId(),'affaire');	
+						
+						$asset->save($ATMdb);	
+					}
+					else {
+						$this->addError($ATMdb, 'ErrorMaterielNotFound', $serial);
+					}
 				}
-				else {
-					$this->addError($ATMdb, 'ErrorMaterielNotFound', $serial, $dataline);
+				
+				// Création du dossier de financement si non existant
+				$financement=new TFin_financement;
+				if(!empty($data['reference_dossier_interne']) && !$financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
+					$dossier = new TFin_dossier;
+					if($dossier->addAffaire($ATMdb, $affaire->rowid)) {
+						$dossier->montant = $data['total_ht'];
+						$dossier->nature_financement = $affaire->nature_financement;
+						$dossier->reference_contrat_interne = $data['reference_dossier_interne'];
+						$dossier->financement->montant = $data['total_ht'];
+						$dossier->financementLeaser->montant = $data['total_ht'];
+						$dossier->financement->reference = $data['reference_dossier_interne'];
+						if($dossier->nature_financement=='EXTERNE') {
+							unset($dossier->financement);
+						}
+						$dossier->save($ATMdb);
+						
+						// Création du lien entre dossier et facture
+						$facture_mat->linked_objects['dossier'] = $dossier->getId();
+					} else {
+						$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], '', 'ERROR', true);
+					}
+				}
+			} else {
+				$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire'], $$sql, 'ERROR', true);
+				return false;
+			}
+			
+			// Mise à jour ou création
+			if($rowid > 0) {
+				$res = $facture_mat->update($rowid, $user);
+				// Erreur : la mise à jour n'a pas marché
+				if($res < 0) {
+					$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
+					return false;
+				} else {
+					$this->nb_update++;
+				}			
+			} else {
+				$res = $facture_mat->create($user);
+				// Erreur : la création n'a pas marché
+				if($res < 0) {
+					$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
+					return false;
+				} else {
+					$this->nb_create++;
 				}
 			}
 			
-			// Création du dossier de financement si non existant
-			$financement=new TFin_financement;
-			if(!empty($data['reference_dossier_interne']) && !$financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
-				$dossier = new TFin_dossier;
-				if($dossier->addAffaire($ATMdb, $affaire->rowid)) {
-					$dossier->montant = $data['total_ht'];
-					$dossier->nature_financement = $affaire->nature_financement;
-					$dossier->reference_contrat_interne = $data['reference_dossier_interne'];
-					$dossier->financement->montant = $data['total_ht'];
-					$dossier->financementLeaser->montant = $data['total_ht'];
-					$dossier->financement->reference = $data['reference_dossier_interne'];
-					if($dossier->nature_financement=='EXTERNE') {
-						unset($dossier->financement);
-					}
-					$dossier->save($ATMdb);
-					
-					// Création du lien entre dossier et facture
-					$facture_mat->linked_objects['dossier'] = $dossier->getId();
-				} else {
-					$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], $dataline, '', 'ERROR', true);
-				}
+			// On supprime les lignes (pour ne pas créer de ligne en double)
+			foreach ($facture_mat->lines as $line) {
+				$facture_mat->deleteline($line->id);
 			}
+			
+			// Permet d'éviter de faire plusieurs fois les même actions sur une même facture
+			// Le fichier facture contient les lignes de factures
+			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facture_mat;
 		} else {
-			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire'], $dataline, $sql, 'ERROR', true);
-			return false;
-		}
-		
-		// Mise à jour ou création
-		if($rowid > 0) {
-			$res = $facture_mat->update($rowid, $user);
-			// Erreur : la mise à jour n'a pas marché
-			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
-				return false;
-			} else {
-				$this->nb_update++;
-			}			
-		} else {
-			$res = $facture_mat->create($user);
-			// Erreur : la création n'a pas marché
-			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
-				return false;
-			} else {
-				$this->nb_create++;
-			}
+			$facture_mat = &$TInfosGlobale[$data[$this->mapping['search_key']]];
 		}
 		
 		// Actions spécifiques
 		// On repasse en brouillon pour ajouter la ligne
 		$facture_mat->set_draft($user);
-		
-		// On supprime les lignes (pour ne pas créer de ligne en double)
-		foreach ($facture_mat->lines as $line) {
-			$facture_mat->deleteline($line->id);
-		}
 		
 		// On ajoute la ligne
 		$facture_mat->addline($facture_mat->id, 'Matricule(s) '.$data['matricule'], $data['total_ht'], 1, 19.6);
@@ -416,90 +370,47 @@ class TImport extends TObjetStd {
 		return true;
 	}
 
-	function importLineFactureLocation(&$ATMdb, $dataline, &$TInfosGlobale) {
+	function importLineFactureLocation(&$ATMdb, &$TInfosGlobale) {
 		global $user, $db;
-		$sqlSearchFacture = "SELECT rowid FROM ".MAIN_DB_PREFIX."facture WHERE %s = '%s'";
-		$sqlSearchClient = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE %s = '%s'";
 		
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
 
-		if(!$this->checkData($dataline)) return false;
-		$data = $this->contructDataTab($dataline);
+		if(!$this->checkData()) return false;
+		$data = $this->contructDataTab();
 		
-		// Recherche si facture existante dans la base
-		$rowid = 0;
-		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		if($ATMdb->Execute($sql)) {
-			$num = $ATMdb->Get_Recordcount();
-			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$ATMdb->Get_line();
-				$rowid = $ATMdb->Get_field('rowid');
-			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError($ATMdb, 'ErrorMultipleFactureFound', $data[$this->mapping['search_key']], $dataline, $sql);
-				return false;
-			}
-		} else {
-			$this->addError($ATMdb, 'ErrorWhileSearchingFacture', $data[$this->mapping['search_key']], $dataline, $sql, 'ERROR', true);
-			return false;
-		}
-		
-		// Recherche tiers associé à la facture existant dans la base
-		$fk_soc = 0;
-		$sql = sprintf($sqlSearchClient, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']]);
-		if($ATMdb->Execute($sql)) {
-			$num = $ATMdb->Get_Recordcount();
-			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$ATMdb->Get_line();
-				$fk_soc = $ATMdb->Get_field('rowid');
-			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError($ATMdb, 'ErrorMultipleClientFound', $data[$this->mapping['search_key_client']], $dataline, $sql);
-				return false;
-			} else {
-				$this->addError($ATMdb, 'ErrorClientNotFound', $data[$this->mapping['search_key_client']], $dataline, $sql);
-				return false;
-			}
-		} else {
-			$this->addError($ATMdb, 'ErrorWhileSearchingClient', $data[$this->mapping['search_key_client']], $dataline, $sql, 'ERROR', true);
-			return false;
-		}
-		
-		$data['socid'] = $fk_soc;
-		
-		// Construction de l'objet final
-		$facture_loc = new Facture($db);
-		if($rowid > 0) {
-			$facture_loc->fetch($rowid);
-		}
-
-		foreach ($data as $key => $value) {
-			$facture_loc->{$key} = $value;
-		}
-
-		// Gestion des avoirs
-		if(!empty($data['facture_annulee'])) {
-			// Recherche de la facture annulee par l'avoir
-			$fac_annulee_id = 0;
-			$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']]);
-			if($ATMdb->Execute($sql)) {
-				$num = $ATMdb->Get_Recordcount();
-				if($num == 1) { // Enregistrement trouvé, mise à jour
-					$ATMdb->Get_line();
-					$fac_annulee_id = $ATMdb->Get_field('rowid');
-				} else if($num > 1) { // Plusieurs trouvés, erreur
-					$this->addError($ATMdb, 'ErrorMultipleFactureFound', $data[$this->mapping['search_key_fac_annulee']], $dataline, $sql);
-					return false;
-				}
-			} else {
-				$this->addError($ATMdb, 'ErrorWhileSearchingFacture', $data[$this->mapping['search_key_fac_annulee']], $dataline, $sql, 'ERROR', true);
-				return false;
-			}
-			$facture_loc->type = 2;
-			$facture_loc->fk_facture_source = $fac_annulee_id;
-		}
-		
-		// Création des liens (si première fois que l'on passe sur la facture dans le même fichier)
 		if(empty($TInfosGlobale[$data[$this->mapping['search_key']]])) {
+			// Recherche si facture existante dans la base
+			$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
+			if($facid === false) return false;
+			
+			// Recherche tiers associé à la facture existant dans la base
+			$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']]);
+			if(!$socid) return false;
+			
+			$data['socid'] = $fk_soc;
+			
+			// Construction de l'objet final
+			$facture_loc = new Facture($db);
+			if($rowid > 0) {
+				$facture_loc->fetch($rowid);
+			}
+	
+			foreach ($data as $key => $value) {
+				$facture_loc->{$key} = $value;
+			}
+	
+			// Gestion des avoirs
+			if(!empty($data['facture_annulee'])) {
+				// Recherche de la facture annulee par l'avoir
+				$avoirid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']]);
+				if($avoirid === false) return false;
+				
+				$facture_loc->type = 2;
+				$facture_loc->fk_facture_source = $avoirid;
+			}
+		
+			// Création des liens
 			$financement=new TFin_financement;
 			if($financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
 				/* OK */
@@ -509,49 +420,55 @@ class TImport extends TObjetStd {
 				$nb = ($facture_loc->type == 2) ? -1 : 1;
 				$financement->setEcheance($nb);
 				$financement->save($ATMdb);
-				
-				// Permet d'éviter de faire plusieurs fois les même actions sur une même facture
-				// Le fichier facture contient les lignes de factures
-				$TInfosGlobale[$data[$this->mapping['search_key']]] = true;
 	
 				// Création du lien entre dossier et facture
 				$facture_loc->linked_objects['dossier'] = $dossier->getId();
-			}
-			else {
+			} else {
 				$dossier = new TFin_dossier;
-				if($dossier->loadReferenceContratDossier($db, $data['reference_dossier_interne'])) { // Dossier trouvé, financement non => erreur de qualification (EXTERNE) 
+				if($dossier->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'])) { // Dossier trouvé, financement non => erreur de qualification (EXTERNE) 
 					$dossier->nature_financement = 'INTERNE';
 					$dossier->financement->reference = $data['reference_dossier_interne'];
 					$nb = ($facture_loc->type == 2) ? -1 : 1;
 					$dossier->financement->setEcheance($nb);
 					$dossier->save($ATMdb);
-					$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['reference_dossier_interne'], $dataline, $sql, 'WARNING');
+					$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['reference_dossier_interne'], $sql, 'WARNING');
 				} else {
 					/* PAS OK */
-					$this->addError($ATMdb, 'ErrorWhereIsFinancement', $data['reference_dossier_interne'], $dataline, $sql);
+					$this->addError($ATMdb, 'ErrorWhereIsFinancement', $data['reference_dossier_interne'], $sql);
 				}
 			}
-		}
 		
-		// Mise à jour ou création
-		if($rowid > 0) {
-			$res = $facture_loc->update($rowid, $user);
-			// Erreur : la mise à jour n'a pas marché
-			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
-				return false;
+			// Mise à jour ou création
+			if($rowid > 0) {
+				$res = $facture_loc->update($rowid, $user);
+				// Erreur : la mise à jour n'a pas marché
+				if($res < 0) {
+					$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
+					return false;
+				} else {
+					$this->nb_update++;
+				}
 			} else {
-				$this->nb_update++;
+				$res = $facture_loc->create($user);
+				// Erreur : la création n'a pas marché
+				if($res < 0) {
+					$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
+					return false;
+				} else {
+					$this->nb_create++;
+				}
 			}
+			
+			// On supprime les lignes (pour ne pas créer de ligne en double)
+			foreach ($facture_loc->lines as $line) {
+				$facture_loc->deleteline($line->id);
+			}
+			
+			// Permet d'éviter de faire plusieurs fois les même actions sur une même facture
+			// Le fichier facture contient les lignes de factures
+			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facture_loc;
 		} else {
-			$res = $facture_loc->create($user);
-			// Erreur : la création n'a pas marché
-			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
-				return false;
-			} else {
-				$this->nb_create++;
-			}
+			$facture_loc = &$TInfosGlobale[$data[$this->mapping['search_key']]];
 		}
 		
 		// Actions spécifiques
@@ -584,15 +501,14 @@ class TImport extends TObjetStd {
 		return true;
 	}
 
-	function importLineFactureLettree(&$ATMdb, $dataline) {
+	function importLineFactureLettree(&$ATMdb) {
 		global $user, $db;
-		$sqlSearchFacture = "SELECT rowid FROM ".MAIN_DB_PREFIX."facture WHERE %s = '%s'";
 		
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
 
-		if(!$this->checkData($dataline)) return false;
-		$data = $this->contructDataTab($dataline);
+		if(!$this->checkData($this->current_line)) return false;
+		$data = $this->contructDataTab($this->current_line);
 		
 		if (!preg_match('/^[A-Z]+$/', $data['code_lettrage'])) {
 			// Code lettrage en minuscule = pré-lettrage = ne pas prendre en compte (ajout d'un addWarning ou addInfo ?)
@@ -600,32 +516,15 @@ class TImport extends TObjetStd {
 		}
 		
 		// Recherche si facture existante dans la base
-		$rowid = 0;
-		$sql = sprintf($sqlSearchFacture, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		if($ATMdb->Execute($sql)) {
-			$num = $ATMdb->Get_Recordcount();
-			if($num == 1) { // Enregistrement trouvé, mise à jour
-				$ATMdb->Get_line();
-				$rowid = $ATMdb->Get_field('rowid');
-			} else if($num > 1) { // Plusieurs trouvés, erreur
-				$this->addError($ATMdb, 'ErrorMultipleFactureFound', $data[$this->mapping['search_key']], $dataline, $sql);
-				return false;
-			} else {
-				// Pas d'erreur car le fichier des factures lettrees vient de Sage et contient plein de factures qui ne concernent pas le financement
-				//$this->addError($ATMdb, 'ErrorFactureNotFound', $data[$this->mapping['search_key']], $dataline, $sql);
-				return false;
-			}
-		} else {
-			$this->addError($ATMdb, 'ErrorWhileSearchingFacture', $data[$this->mapping['search_key']], $dataline, $sql, 'ERROR', true);
-			return false;
-		}
+		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
+		if(!$facid) return false;
 		
 		// Construction de l'objet final
-		$facture_loc = new Facture($db);
-		$facture_loc->fetch($rowid);
-		$res = $facture_loc->set_paid($user, '', $data['code_lettrage']);
+		$facture = new Facture($db);
+		$facture->fetch($facid);
+		$res = $facture->set_paid($user, '', $data['code_lettrage']);
 		if($res < 0) {
-			$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
+			$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
 			return false;
 		} else {
 			$this->nb_update++;
@@ -634,7 +533,7 @@ class TImport extends TObjetStd {
 		return true;
 	}
 
-	function importLineAffaire(&$ATMdb, $dataline) {
+	function importLineAffaire(&$ATMdb, &$TInfosGlobale) {
 		global $user, $db;
 		/*
 		 *	référence	date_affaire, code_client login_user
@@ -643,37 +542,32 @@ class TImport extends TObjetStd {
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
 		
-		if(!$this->checkData($dataline)) return false;
-		$data = $this->contructDataTab($dataline);
+		if(!$this->checkData()) return false;
+		$data = $this->contructDataTab();
 		
-		$commercial = new User($db);
-		if(!$commercial->fetch('',$data[$this->mapping['search_key_user']])) {
-			// Pas d'erreur si l'utilisateur n'est pas trouvé, lien avec l'utilisateur admin
-			$fk_user = $user->id;
-			//$this->addError($ATMdb, 'ErrorUserNotFound', $data[$this->mapping['search_key_user']], $dataline);
-			//return false;
-		}
-		else {
-			$fk_user = $commercial->id;
-		}
-		
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array($this->mapping['search_key_client']=>$data[$this->mapping['search_key_client']]));
-		if(count($TRes)==0) {
-			$this->addError($ATMdb, 'ErrorClientNotFound', $data[$this->mapping['search_key_client']], $dataline);
-			return false;
-		}
-		else if(count($TRes) > 1) { // Plusieurs trouvés, erreur
-			$this->addError($ATMdb, 'ErrorMultipleClientFound', $data[$this->mapping['search_key_client']], $dataline);
-			return false;
+		if(empty($TInfosGlobale['user'][$data[$this->mapping['search_key_user']]])) {
+			$fk_user = $this->_recherche_client($ATMdb, $this->mapping['search_key_user'], $data[$this->mapping['search_key_user']], true);
+			if($fk_user === false) return false;
+			
+			$TInfosGlobale['user'][$data[$this->mapping['search_key_user']]] = $fk_user;
 		} else {
-			$fk_soc = $TRes[0];
+			$fk_user = $TInfosGlobale['user'][$data[$this->mapping['search_key_user']]];
+		}
+		
+		if(empty($TInfosGlobales['societe'][$data[$this->mapping['search_key_client']]])) {
+			$fk_soc = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
+			if($fk_soc === false) return false;
+			
+			$TInfosGlobales['societe'][$data[$this->mapping['search_key_client']]] = $fk_soc;
+		} else {
+			$fk_soc = $TInfosGlobales['societe'][$data[$this->mapping['search_key_client']]];
 		}
 		
 		$a=new TFin_affaire;
 		$a->loadReference($ATMdb, $data[$this->mapping['search_key']]);
 		
 		if($a->fk_soc > 0 && $a->fk_soc != $fk_soc) { // client ne correspond pas
-			$this->addError($ATMdb, 'ErrorClientDifferent', $data[$this->mapping['search_key']], $dataline);
+			$this->addError($ATMdb, 'ErrorClientDifferent', $data[$this->mapping['search_key']]);
 			return false;
 		}
 		
@@ -750,7 +644,7 @@ class TImport extends TObjetStd {
 		return $fk_produit;
 	}
 
-	function importLineMateriel(&$ATMdb, $dataline) {
+	function importLineMateriel(&$ATMdb) {
 	/*
 	 * J'insére les produits sans les lier à l'affaire. C'est l'import facture matériel qui le fera
 	 */
@@ -762,8 +656,8 @@ class TImport extends TObjetStd {
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
 		
-		if(!$this->checkData($dataline)) return false;
-		$data = $this->contructDataTab($dataline);
+		if(!$this->checkData($this->current_line)) return false;
+		$data = $this->contructDataTab($this->current_line);
 	
 		$fk_produit = $this->createProduct($data,0);
 	
@@ -795,7 +689,7 @@ class TImport extends TObjetStd {
 		return true;
 	}
 
-	function importLineCommercial(&$ATMdb, $dataline, &$TInfosGlobales) { 
+	function importLineCommercial(&$ATMdb, &$TInfosGlobales) { 
 		global $user, $conf, $db;
 		/*
 		 *  code client; type_activité;login user
@@ -804,39 +698,28 @@ class TImport extends TObjetStd {
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
 
-		if(!$this->checkData($dataline)) return false;
-		$data = $this->contructDataTab($dataline);
+		if(!$this->checkData()) return false;
+		$data = $this->contructDataTab();
+
+		if(empty($TInfosGlobales['user'][$data[$this->mapping['search_key']]])) {
+			$fk_user = $this->_recherche_client($ATMdb, $this->mapping['search_key_user'], $data[$this->mapping['search_key_user']], true);
+			if($fk_user === false) return false;
+			
+			$TInfosGlobale['user'][$data[$this->mapping['search_key_user']]] = $fk_user;
+		} else {
+			$fk_user = $TInfosGlobales['user'][$data[$this->mapping['search_key']]];
+		}
+		
+		if(empty($TInfosGlobales['societe'][$data[$this->mapping['search_key_client']]])) {
+			$fk_soc = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
+			if($fk_soc === false) return false;
+			
+			$TInfosGlobales['societe'][$data[$this->mapping['search_key_client']]] = $fk_soc;
+		} else {
+			$fk_soc = $TInfosGlobales['societe'][$data[$this->mapping['search_key_client']]];
+		}
 		
 		$c=new TCommercialCpro;
-
-		if(empty($TInfosGlobales[$data[$this->mapping['search_key']]])) {
-			$commercial = new User($db);
-			if(!$commercial->fetch('',$data[$this->mapping['search_key']])) {
-				// Pas d'erreur si l'utilisateur n'est pas trouvé, pas de lien créé
-				//$this->addError($ATMdb, 'ErrorUserNotFound', $data[$this->mapping['search_key']], $dataline);
-				return false;
-			}
-			else {
-				$fk_user = $commercial->id;
-			}
-			$TInfosGlobales[$data[$this->mapping['search_key']]] = $commercial;
-		} else {
-			$fk_user = $TInfosGlobales[$data[$this->mapping['search_key']]]->id;
-		}
-		
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$data[$this->mapping['search_key_client']], 'entity' => $conf->entity));
-
-		if(count($TRes)==0) {
-			$this->addError($ATMdb, 'ErrorClientNotFound', $data[$this->mapping['search_key_client']], $dataline);
-			return false;
-		}
-		else if(count($TRes) > 1) { // Plusieurs trouvés, erreur
-			$this->addError($ATMdb, 'ErrorMultipleClientFound', $data[$this->mapping['search_key_client']], $dataline);
-			return false;
-		} else {
-			$fk_soc = $TRes[0];
-		}
-		
 		$c->loadUserClient($ATMdb, $fk_user, $fk_soc); // charge l'objet si existant
 		
 		$c->fk_soc = $fk_soc;
@@ -855,7 +738,7 @@ class TImport extends TObjetStd {
 		return true;
 	}
 
-	function importLineScore(&$ATMdb, $dataline) {
+	function importLineScore(&$ATMdb) {
 		global $user, $db;
 		$sqlSearchClient = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE %s = '%s'";
 		
@@ -863,8 +746,8 @@ class TImport extends TObjetStd {
 		$this->nb_lines++;
 		if($this->nb_lines == 1) return false; // Le fichier score contient une ligne d'en-tête
 		
-		if(!$this->checkData($dataline)) return false;
-		$data = $this->contructDataTab($dataline);
+		if(!$this->checkData($this->current_line)) return false;
+		$data = $this->contructDataTab($this->current_line);
 		
 		// Recherche si tiers existant dans la base
 		$Tfk_soc = array();
@@ -879,11 +762,11 @@ class TImport extends TObjetStd {
 					$Tfk_soc[] = $ATMdb->Get_field('rowid');
 				}
 			} else {
-				$this->addError($ATMdb, 'ErrorClientNotFound', $data[$this->mapping['search_key']], $dataline, $sql);
+				$this->addError($ATMdb, 'ErrorClientNotFound', $data[$this->mapping['search_key']], $this->current_line, $sql);
 				return false;
 			}
 		} else {
-			$this->addError($ATMdb, 'ErrorWhileSearchingClient', $data[$this->mapping['search_key']], $dataline, $sql, 'ERROR', true);
+			$this->addError($ATMdb, 'ErrorWhileSearchingClient', $data[$this->mapping['search_key']], $this->current_line, $sql, 'ERROR', true);
 			return false;
 		}
 		
@@ -904,7 +787,7 @@ class TImport extends TObjetStd {
 			$res = $score->save($ATMdb);
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $dataline, '', 'ERROR', true);
+				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $this->current_line, '', 'ERROR', true);
 				return false;
 			} else {
 				$this->nb_create++;
@@ -921,21 +804,21 @@ class TImport extends TObjetStd {
 		return true;
 	}
 
-	function importDossierInit(&$ATMdb, $dataline) {
+	function importDossierInit(&$ATMdb) {
 		global $user, $db;
 		
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
 
-		if(!$this->checkData($dataline)) return false;
-		$data = $this->contructDataTab($dataline);
+		if(!$this->checkData($this->current_line)) return false;
+		$data = $this->contructDataTab($this->current_line);
 		
 		// Chargement de l'affaire
 		$affaire = new TFin_affaire;
 		if($affaire->loadReference($ATMdb, $data['code_affaire'], true)) {
 			// Vérification client
 			if($affaire->societe->code_client != $data['code_client']) {
-				$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_affaire'].' - '.$data['code_client'], $dataline, $sql, 'ERROR', true);
+				$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_affaire'].' - '.$data['code_client'], $this->current_line, $sql, 'ERROR', true);
 				return false;
 			}
 			
@@ -976,17 +859,17 @@ class TImport extends TObjetStd {
 			}
 
 			if(!$found) {
-				$this->addError($ATMdb, 'ErrorDossierClientNotFound', $data['reference_dossier_interne'], $dataline, $sql, 'ERROR', true);
+				$this->addError($ATMdb, 'ErrorDossierClientNotFound', $data['reference_dossier_interne'], $this->current_line, $sql, 'ERROR', true);
 				return false;
 			}
 
 			if($affaire->nature_financement == 'EXTERNE') {
 				$affaire->nature_financement == 'INTERNE';
 				$affaire->save($ATMdb);
-				$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['code_affaire'], $dataline, $sql, 'WARNING');
+				$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['code_affaire'], $this->current_line, $sql, 'WARNING');
 			}
 		} else {
-			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire'], $dataline, $sql, 'ERROR', true);
+			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire'], $this->current_line, $sql, 'ERROR', true);
 			return false;
 		}
 		
@@ -1031,28 +914,28 @@ class TImport extends TObjetStd {
 		//print "Création facture fournisseur ($id) : ".$object->ref."<br/>";
 	}
 
-	function checkData($dataline) {
+	function checkData() {
 		// Vérification cohérence des données
 		
-		/*if(count($this->mapping['mapping']) != count($dataline)) {
-			$this->addError($ATMdb, 'ErrorNbColsNotMatchingMapping', $dataline);
+		/*if(count($this->mapping['mapping']) != count($this->current_line)) {
+			$this->addError($ATMdb, 'ErrorNbColsNotMatchingMapping', $this->current_line);
 			return false;
 		}
 		*/
 		return true;
 	}
 	
-	function contructDataTab($dataline) {
+	function contructDataTab() {
 		// Construction du tableau de données
 		$data = array();
-		array_walk($dataline, 'trim');
+		array_walk($this->current_line, 'trim');
 		
 		foreach($this->mapping['mapping'] as $k=>$field) {
-			$data[$field] = $dataline[$k-1];
+			$data[$field] = $this->current_line[$k-1];
 			$data[$field] = $this->validateValue($field,$data[$field]);
 		}
 		
-		if(isset($dataline[9999])) $data['idLeaser'] = $dataline[9999];
+		if(isset($this->current_line[9999])) $data['idLeaser'] = $this->current_line[9999];
 		
 		if(isset($this->mapping['more'])) $data = array_merge($data, $this->mapping['more']); // Ajout des valeurs autres
 		
@@ -1098,6 +981,60 @@ class TImport extends TObjetStd {
 			}
 		}
 		return $value;
+	}
+
+	function _recherche_facture(&$ATMdb, $key, $val, $errorNotFound = false) {
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'facture',array($key=>$val, 'entity' => getEntity('facture', true)));
+		
+		$rowid = 0;
+		$num = count($TRes);
+		if($num == 1) { // Enregistrement trouvé, mise à jour
+			$rowid = $TRes[0];
+		} else if($num > 1) { // Plusieurs trouvés, erreur
+			$this->addError($ATMdb, 'ErrorMultipleFactureFound', $val);
+			return false;
+		} else if($errorNotFound) {
+			$this->addError($ATMdb, 'ErrorFactureNotFound', $val);
+			return false;
+		}
+		
+		return $rowid;
+	}
+
+	function _recherche_client(&$ATMdb, $key, $val, $errorNotFound = false) {
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array($key=>$val, 'entity' => getEntity('societe', true)));
+		
+		$rowid = 0;
+		$num = count($TRes);
+		if($num == 1) { // Enregistrement trouvé
+			$rowid = $TRes[0];
+		} else if($num > 1) { // Plusieurs trouvés, erreur
+			$this->addError($ATMdb, 'ErrorMultipleClientFound', $val);
+			return false;
+		} else if($errorNotFound) { // Non trouvé, erreur seulement si précisé
+			$this->addError($ATMdb, 'ErrorClientNotFound', $val);
+			return false;
+		}
+		
+		return $rowid;
+	}
+	
+	function _recherche_user(&$ATMdb, $key, $val, $errorNotFound = false) {
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'user',array($key=>$val, 'entity' => getEntity('user', true)));
+		
+		$rowid = 0;
+		$num = count($TRes);
+		if($num == 1) { // Enregistrement trouvé
+			$rowid = $TRes[0];
+		} else if($num > 1) { // Plusieurs trouvés, erreur
+			$this->addError($ATMdb, 'ErrorMultipleUserFound', $val);
+			return false;
+		} else if($errorNotFound) { // Non trouvé, erreur seulement si précisé
+			$this->addError($ATMdb, 'ErrorUserNotFound', $val);
+			return false;
+		}
+		
+		return $rowid;
 	}
 }
 ?>
