@@ -72,7 +72,7 @@ class TImport extends TObjetStd {
 	 * @param $type : Type (ERROR, WARNING, ...)
 	 * @param $is_sql : Erreur SQL (0 = non, 1 = oui ATMdb, 2 = oui Doli db)
 	 */
-	function addError(&$ATMdb, $errMsg, $errData, $type='ERROR', $is_sql=0) {
+	function addError(&$ATMdb, $errMsg, $errData, $type='ERROR', $is_sql=0, $doliError) {
 		global $user;
 		$thisErr = new TImportError();
 		$thisErr->fk_import = $this->getId();
@@ -87,10 +87,9 @@ class TImport extends TObjetStd {
 			$thisErr->sql_errno = $infos[0];
 			$thisErr->sql_error = $infos[2];
 		} else if($is_sql == 2) {
-			global $db;
-			$thisErr->sql_executed = $db->lastqueryerror;
-			$thisErr->sql_errno = $db->lasterrno;
-			$thisErr->sql_error = $db->lasterror;
+			$thisErr->sql_executed = '';
+			$thisErr->sql_errno = 0;
+			$thisErr->sql_error = $doliError;
 		}
 		$thisErr->save($ATMdb);
 
@@ -228,7 +227,7 @@ class TImport extends TObjetStd {
 			
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
+				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $societe->error);
 				return false;
 			} else {
 				$this->nb_update++;
@@ -238,7 +237,7 @@ class TImport extends TObjetStd {
 			
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
+				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $societe->error);
 				return false;
 			} else {
 				$this->nb_create++;
@@ -349,7 +348,7 @@ class TImport extends TObjetStd {
 			$res = $facture_mat->update($facid, $user);
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
+				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_mat->error);
 				return false;
 			} else {
 				$this->nb_update++;
@@ -358,7 +357,7 @@ class TImport extends TObjetStd {
 			$res = $facture_mat->create($user);
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
+				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_mat->error);
 				return false;
 			} else {
 				$this->nb_create++;
@@ -399,7 +398,7 @@ class TImport extends TObjetStd {
 			$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
 			if(!$socid) return false;
 			
-			$data['socid'] = $fk_soc;
+			$data['socid'] = $socid;
 			
 			// Construction de l'objet final
 			$facture_loc = new Facture($db);
@@ -454,7 +453,7 @@ class TImport extends TObjetStd {
 				$res = $facture_loc->update($facid, $user);
 				// Erreur : la mise à jour n'a pas marché
 				if($res < 0) {
-					$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
+					$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_loc->error);
 					return false;
 				} else {
 					$this->nb_update++;
@@ -463,7 +462,7 @@ class TImport extends TObjetStd {
 				$res = $facture_loc->create($user);
 				// Erreur : la création n'a pas marché
 				if($res < 0) {
-					$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
+					$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_loc->error);
 					return false;
 				} else {
 					$this->nb_create++;
@@ -529,7 +528,7 @@ class TImport extends TObjetStd {
 		$facture->fetch($facid);
 		$res = $facture->set_paid($user, '', $data['code_lettrage']);
 		if($res < 0) {
-			$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
+			$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture->error);
 			return false;
 		} else {
 			$this->nb_update++;
