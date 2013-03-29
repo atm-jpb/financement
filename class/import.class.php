@@ -93,7 +93,7 @@ class TImport extends TObjetStd {
 		}
 		$thisErr->save($ATMdb);
 
-		$this->nb_errors++;
+		if($type == 'ERROR') $this->nb_errors++;
 	}
 	
 	function importLine(&$ATMdb, $dataline, $type, &$TInfosGlobale) {
@@ -103,6 +103,8 @@ class TImport extends TObjetStd {
 		
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
+		// On save l'import tout les X enregistrements traités pour voir l'avancement de l'import
+		if($this->nb_lines % 50 == 0) $this->save($ATMdb);
 
 		if(!$this->checkData()) return false;
 		$data = $this->contructDataTab();
