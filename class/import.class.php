@@ -72,7 +72,7 @@ class TImport extends TObjetStd {
 	 * @param $type : Type (ERROR, WARNING, ...)
 	 * @param $is_sql : Erreur SQL (0 = non, 1 = oui ATMdb, 2 = oui Doli db)
 	 */
-	function addError(&$ATMdb, $errMsg, $errData, $type='ERROR', $is_sql=0, $doliError) {
+	function addError(&$ATMdb, $errMsg, $errData, $type='ERROR', $is_sql=0, $doliError='') {
 		global $user;
 		$thisErr = new TImportError();
 		$thisErr->fk_import = $this->getId();
