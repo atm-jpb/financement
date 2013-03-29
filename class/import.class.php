@@ -64,7 +64,15 @@ class TImport extends TObjetStd {
 		$this->mapping = parse_ini_file($mappingFile, true);
 	}
 	
-	function addError(&$ATMdb, $errMsg, $errData, $sqlExecuted='', $type='ERROR', $is_sql=false) {
+	/**
+	 * Log une erreur concernant l'import
+	 * @param $ATMdb : objet BDD ATM
+	 * @param $errMsg : Message d'erreur
+	 * @param $errData : Donnée utilisée qui a déclenché l'erreur
+	 * @param $type : Type (ERROR, WARNING, ...)
+	 * @param $is_sql : Erreur SQL (0 = non, 1 = oui ATMdb, 2 = oui Doli db)
+	 */
+	function addError(&$ATMdb, $errMsg, $errData, $type='ERROR', $is_sql=0) {
 		global $user;
 		$thisErr = new TImportError();
 		$thisErr->fk_import = $this->getId();
@@ -72,12 +80,17 @@ class TImport extends TObjetStd {
 		$thisErr->content_line = serialize($this->current_line);
 		$thisErr->error_msg = $errMsg;
 		$thisErr->error_data = $errData;
-		$thisErr->sql_executed = $sqlExecuted;
 		$thisErr->type_erreur = $type;
-		if($is_sql) {
+		if($is_sql == 1) {
 			$infos = $ATMdb->db->errorInfo();
+			$thisErr->sql_executed = $ATMdb->query;
 			$thisErr->sql_errno = $infos[0];
 			$thisErr->sql_error = $infos[2];
+		} else if($is_sql == 2) {
+			global $db;
+			$thisErr->sql_executed = $db->lastqueryerror;
+			$thisErr->sql_errno = $db->lasterrno;
+			$thisErr->sql_error = $db->lasterror;
 		}
 		$thisErr->save($ATMdb);
 
@@ -153,12 +166,12 @@ class TImport extends TObjetStd {
 		} else if ($f->loadOrCreateSirenMontant($ATMdb, $data['siren'], $data['montant'])) { // Recherche du financement leaser par siren et montant
 			// Le financement leaser a été trouvé ou créé par le siren et le montant de l'affaire
 		} else {
-			$this->addError($ATMdb, 'cantFindOrCreateFinancement', $data['reference'], '', 'ERROR');
+			$this->addError($ATMdb, 'cantFindOrCreateFinancement', $data['reference']);
 			return false;
 		}
 		
 		if(!empty($f->fk_soc) && $f->fk_soc!=$data['idLeaser']) { // Si le dossier de financement récupéré n'est pas lié au bon leaser, erreur
-			$this->addError($ATMdb, 'leaserNotAllgood', $data['idLeaser'], '', 'ERROR');
+			$this->addError($ATMdb, 'leaserNotAllgood', $data['idLeaser']);
 			return false;
 		}
 		
@@ -215,7 +228,7 @@ class TImport extends TObjetStd {
 			
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
+				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
 				return false;
 			} else {
 				$this->nb_update++;
@@ -225,7 +238,7 @@ class TImport extends TObjetStd {
 			
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
+				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
 				return false;
 			} else {
 				$this->nb_create++;
@@ -323,7 +336,7 @@ class TImport extends TObjetStd {
 					// Création du lien entre dossier et facture
 					$facture_mat->linked_objects['dossier'] = $dossier->getId();
 				} else {
-					$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], '', 'ERROR', true);
+					$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], 'ERROR');
 				}
 			}
 		} else {
@@ -336,7 +349,7 @@ class TImport extends TObjetStd {
 			$res = $facture_mat->update($facid, $user);
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
+				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
 				return false;
 			} else {
 				$this->nb_update++;
@@ -345,7 +358,7 @@ class TImport extends TObjetStd {
 			$res = $facture_mat->create($user);
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
+				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
 				return false;
 			} else {
 				$this->nb_create++;
@@ -429,10 +442,10 @@ class TImport extends TObjetStd {
 					$nb = ($facture_loc->type == 2) ? -1 : 1;
 					$dossier->financement->setEcheance($nb);
 					$dossier->save($ATMdb);
-					$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['reference_dossier_interne'], $sql, 'WARNING');
+					$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['reference_dossier_interne'], 'WARNING');
 				} else {
 					/* PAS OK */
-					$this->addError($ATMdb, 'ErrorWhereIsFinancement', $data['reference_dossier_interne'], $sql);
+					$this->addError($ATMdb, 'ErrorWhereIsFinancement', $data['reference_dossier_interne']);
 				}
 			}
 		
@@ -441,7 +454,7 @@ class TImport extends TObjetStd {
 				$res = $facture_loc->update($facid, $user);
 				// Erreur : la mise à jour n'a pas marché
 				if($res < 0) {
-					$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
+					$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
 					return false;
 				} else {
 					$this->nb_update++;
@@ -450,7 +463,7 @@ class TImport extends TObjetStd {
 				$res = $facture_loc->create($user);
 				// Erreur : la création n'a pas marché
 				if($res < 0) {
-					$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
+					$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
 					return false;
 				} else {
 					$this->nb_create++;
@@ -516,7 +529,7 @@ class TImport extends TObjetStd {
 		$facture->fetch($facid);
 		$res = $facture->set_paid($user, '', $data['code_lettrage']);
 		if($res < 0) {
-			$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], '', 'ERROR', true);
+			$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2);
 			return false;
 		} else {
 			$this->nb_update++;
@@ -728,7 +741,7 @@ class TImport extends TObjetStd {
 			$res = $score->save($ATMdb);
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], $this->current_line, '', 'ERROR', true);
+				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 1);
 				return false;
 			} else {
 				$this->nb_create++;
@@ -759,7 +772,7 @@ class TImport extends TObjetStd {
 		if($affaire->loadReference($ATMdb, $data['code_affaire'], true)) {
 			// Vérification client
 			if($affaire->societe->code_client != $data['code_client']) {
-				$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_affaire'].' - '.$data['code_client'], $this->current_line, $sql, 'ERROR', true);
+				$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_affaire'].' - '.$data['code_client']);
 				return false;
 			}
 			
@@ -800,17 +813,17 @@ class TImport extends TObjetStd {
 			}
 
 			if(!$found) {
-				$this->addError($ATMdb, 'ErrorDossierClientNotFound', $data['reference_dossier_interne'], $this->current_line, $sql, 'ERROR', true);
+				$this->addError($ATMdb, 'ErrorDossierClientNotFound', $data['reference_dossier_interne']);
 				return false;
 			}
 
 			if($affaire->nature_financement == 'EXTERNE') {
 				$affaire->nature_financement == 'INTERNE';
 				$affaire->save($ATMdb);
-				$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['code_affaire'], $this->current_line, $sql, 'WARNING');
+				$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['code_affaire'], 'WARNING');
 			}
 		} else {
-			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire'], $this->current_line, $sql, 'ERROR', true);
+			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire']);
 			return false;
 		}
 		
@@ -858,11 +871,6 @@ class TImport extends TObjetStd {
 	function checkData() {
 		// Vérification cohérence des données
 		
-		/*if(count($this->mapping['mapping']) != count($this->current_line)) {
-			$this->addError($ATMdb, 'ErrorNbColsNotMatchingMapping', $this->current_line);
-			return false;
-		}
-		*/
 		return true;
 	}
 	
