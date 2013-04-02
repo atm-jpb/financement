@@ -59,11 +59,11 @@
 					$f1 = fopen($importFolder.$fileName, 'r');
 					
 					if(isset($_REQUEST['ignore_first_line'])) {
-						fgetcsv($f1 ,1024, $_REQUEST['delimiter'], $_REQUEST['enclosure']);
+						fgetcsv($f1 ,1024, $_REQUEST['delimiter'], empty($_REQUEST['enclosure']) ? FIN_IMPORT_FIELD_ENCLOSURE : $_REQUEST['enclosure']);
 					} 
 					
 					$TInfosGlobale = array();
-					while($dataline = fgetcsv($f1, 1024, $_REQUEST['delimiter'], $_REQUEST['enclosure'])) {
+					while($dataline = fgetcsv($f1, 1024, $_REQUEST['delimiter'], empty($_REQUEST['enclosure']) ? FIN_IMPORT_FIELD_ENCLOSURE : $_REQUEST['enclosure'])) {
 						$dataline[9999] = $societe->id;
 						$imp->importLine($ATMdb, $dataline, $fileType, $TInfosGlobale);
 					}
@@ -205,12 +205,12 @@ function _liste_errors(&$ATMdb, $import) {
 	global $langs;
 	$langs->load("financement@financement");
 	$r = new TListviewTBS('import_error_list');
-	$sql = "SELECT ie.num_line as 'Numéro ligne', ie.error_msg as 'Message', ie.content_line as 'Ligne', ie.sql_errno as 'Erreur SQL', ie.sql_error as 'Trace SQL'";
-	$sql.= " , ie.error_data as 'Donnée utilisée'";
+	$sql = "SELECT ie.num_line, ie.type_erreur, ie.error_msg, ie.content_line, ie.sql_errno, ie.sql_error";
+	$sql.= " , ie.error_data";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_import_error ie ";
 	$sql.= " WHERE ie.fk_import = ".$import->getId();
 	
-	$THide = array('Ligne', 'Erreur SQL', 'Trace SQL');
+	$THide = array('sql_errno', 'sql_error');
 	
 	return $r->render($ATMdb, $sql, array(
 		'limit'=>array(
@@ -218,11 +218,11 @@ function _liste_errors(&$ATMdb, $import) {
 			,'nbLine'=>'30'
 		)
 		,'orderBy'=>array(
-			'Numéro ligne' => 'ASC'
+			'num_line' => 'ASC'
 		)
 		,'link'=>array()
 		,'translate'=>array()
-		,'eval'=>array('Message'=>'_langs_trans("@val@")')
+		,'eval'=>array('error_msg'=>'_langs_trans("@val@")')
 		,'hide'=>$THide
 		,'type'=>array()
 		,'liste'=>array(
@@ -234,8 +234,22 @@ function _liste_errors(&$ATMdb, $import) {
 			,'messageNothing'=>"Il n'y a aucun import à afficher"
 			,'order_down'=>img_picto('','1downarrow.png', '', 0)
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
-			
+			,'picto_search'=>img_picto('','search.png', '', 0)
 		)
+		,'title'=>array(
+			'num_line'=>'Ligne'
+			,'type_erreur'=>'Type'
+			,'error_msg'=>'Message'
+			,'content_line'=> 'Données de la ligne'
+			,'sql_errno'=> 'Erreur SQL'
+			,'sql_error'=>'Trace SQL'
+			,'error_data'=>'Donnée utilisée'
+		)
+		/*,'search'=>array(
+			'num_line'=>true
+			,'type_erreur'=>array('ERROR','WARNING')
+			,'error_msg'=>true
+		)*/
 	));
 }
 

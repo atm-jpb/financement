@@ -24,9 +24,34 @@ if(!empty($_REQUEST['cancel'])) { // Annulation
 	if(!empty($_REQUEST['fk_soc'])) { header('Location: ?socid='.$_REQUEST['fk_soc']); exit; } // Retour sur client sinon
 	header('Location: '.$_SERVER['PHP_SELF']); exit;
 }
-if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase' && !empty($_REQUEST['code_artis'])) { // On arrive de Wonderbase, direction nouvelle simulation
-	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe', array('code_client'=>$_REQUEST['code_artis']));
-	header('Location: ?action=new&fk_soc='.$TId[0]); exit;
+if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive de Wonderbase, direction nouvelle simulation
+	if(!empty($_REQUEST['code_artis'])) { // Client
+		$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe', array('code_client'=>$_REQUEST['code_artis'],'client'=>1));
+		header('Location: ?action=new&fk_soc='.$TId[0]); exit;
+	} else if(!empty($_REQUEST['code_wb'])) { // Prospect
+		$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe', array('code_client'=>$_REQUEST['code_wb'],'client'=>2));
+		if(!empty($TId[0])) { header('Location: ?action=new&fk_soc='.$TId[0]); exit; }
+		pre($_REQUEST);
+		// Création du prospect s'il n'existe pas
+		$societe = new Societe($db);
+		$societe->code_client = $_REQUEST['code_wb'];
+		$societe->name = $_REQUEST['nom'];
+		$societe->address = $_REQUEST['adresse'];
+		$societe->zip = $_REQUEST['cp'];
+		$societe->town = $_REQUEST['ville'];
+		//$societe->country = $_REQUEST['pays'];
+		$societe->idprof1 = $_REQUEST['siren'];
+		$societe->idprof2 = $_REQUEST['siren'];
+		$societe->idprof3 = $_REQUEST['naf'];
+		$societe->client = 2;
+		if($societe->create($user) > 0) {
+			header('Location: ?action=new&fk_soc='.$societe->id); exit;
+		} else {
+			$action = 'new';
+			$error = 1;
+			$mesg = $langs->trans('UnableToCreateProspect');
+		}
+	}
 }
 
 if(!empty($action)) {
@@ -96,13 +121,11 @@ if(!empty($action)) {
 }
 elseif(isset($_REQUEST['id'])) {
 	$simulation->load($ATMdb, $db, $_REQUEST['id']);
-	_fiche($ATMdb, $simulation, 'view');global $mesg, $error;
+	_fiche($ATMdb, $simulation, 'view');
 }
 else {
 	 _liste($ATMdb, $simulation);
 }
-
-
 
 llxFooter();
 	

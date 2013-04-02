@@ -11,6 +11,7 @@ search_key=code_client
 8=code_client
 9=code_compta
 10=type_tiers
+11=code_wb
 
 [more]
 client=1

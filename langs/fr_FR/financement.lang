@@ -75,6 +75,7 @@ ErrorNoGrilleSelected=Pas de grille disponible pour le type de contrat sélectio
 ErrorMontantOrEcheanceRequired=Merci de renseigner un montant ou une échéance
 ErrorAmountOutOfGrille=Le montant total financé est hors grille
 ErrorInvalidVR=La valeur résiduelle ne peut pas être supérieure au montant
+UnableToCreateProspect=Impossible de créer la fiche prospect
 
 # SCORE
 ScoreList=Scores
@@ -97,3 +98,7 @@ ErrorClientNotFound=Client non trouvé
 ErrorCreatingDossierOnThisAffaire=Création du dossier impossible sur l'affaire
 ErrorMaterielNotFound=Matériel non trouvé
 ErrorWhereIsFinancement=Dossier de financement non trouvé
+ErrorAffaireNotFound=Affaire non trouvée
+ErrorWhileCreatingLine=Erreur lors de la création de la fiche
+ErrorWhileUpdatingLine=Erreur lors de la mise à jour de la fiche
+InfoWrongNatureAffaire=Affaire mal qualifiée

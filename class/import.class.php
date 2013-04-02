@@ -190,7 +190,7 @@ class TImport extends TObjetStd {
 			$date_fin = $data['date_fin'];
 			
 			if($echeance!=$f->echeance || $montant!=$f->montant || $date_debut!=$f->date_debut || $date_fin!=$f->date_fin) {
-				$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], '', 'WARNING');
+				$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], 'WARNING');
 				return false;
 			}
 			else {
@@ -207,9 +207,15 @@ class TImport extends TObjetStd {
 	function importLineTiers(&$ATMdb, $data) {
 		global $user, $db;
 		
-		// Recherche si tiers existant dans la base
+		// Recherche si tiers existant dans la base via code client Artis
 		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 		if($socid === false) return false;
+		
+		if(empty($socid)) {
+			// Recherche si tiers existant dans la base via code prospect WonderBase
+			$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key'], $data[$this->mapping['code_wb']]);
+			if($socid === false) return false;
+		}
 		
 		// Construction de l'objet final
 		$societe = new Societe($db);
