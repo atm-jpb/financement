@@ -266,9 +266,6 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	$leaser=new Societe($db);
 	if($financementLeaser->fk_soc>0)$leaser->fetch($financementLeaser->fk_soc);
 	else { $leaser->nom="Non défini"; }
-	
-	$dossier->load_facture($PDOdb);
-	$dossier->load_factureFournisseur($PDOdb);
 
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()

@@ -52,6 +52,8 @@ class TFin_dossier extends TObjetStd {
 		
 		if($annexe) {
 			$this->load_affaire($db);
+			$this->load_facture($db);
+			$this->load_factureFournisseur($db);
 		}
 		
 		$this->load_financement($db);
@@ -157,7 +159,7 @@ class TFin_dossier extends TObjetStd {
 		if(!$user->rights->financement->affaire->write) return false;
 		
 		$this->calculSolde();
-		$this->calculRenta();
+		$this->calculRenta($db);
 			
 		parent::save($db);
 		
@@ -206,6 +208,10 @@ class TFin_dossier extends TObjetStd {
 		}
 		
 		$this->solde = $this->montant - $this->somme_affaire;// attention en cas d'affaire ajouté à la création du dossier ce chiffre sera faux, car non encore répercuté sur l'affaire
+		
+		// Calcul des sommes totales
+		$this->financement->somme_echeance = $this->financement->duree * $this->financement->echeance;
+		$this->financementLeaser->somme_echeance = $this->financementLeaser->duree * $this->financementLeaser->echeance;
 	}
 	function calculRenta(&$ATMdb) {
 		$this->renta_previsionnelle = $this->getRentabilitePrevisionnelle();
