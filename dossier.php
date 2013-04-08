@@ -266,9 +266,6 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	$leaser=new Societe($db);
 	if($financementLeaser->fk_soc>0)$leaser->fetch($financementLeaser->fk_soc);
 	else { $leaser->nom="Non défini"; }
-	
-	$dossier->load_facture($PDOdb);
-	$dossier->load_factureFournisseur($PDOdb);
 
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()
@@ -391,12 +388,12 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'solde'=>$dossier->solde
 				,'montant_ok'=>$dossier->somme_affaire
 				,'nature_financement'=>$dossier->nature_financement
-				,'rentabilite_previsionnelle'=>$dossier->getRentabilitePrevisionnelle()
-				,'rentabilite_attendue'=>$dossier->getRentabiliteAttendue($PDOdb)
-				,'rentabilite_reelle'=>$dossier->getRentabiliteReelle()
-				,'marge_previsionnelle'=>$dossier->getMargePrevisionnelle()
-				,'marge_attendue'=>$dossier->getMargeAttendue($PDOdb)
-				,'marge_reelle'=>$dossier->getMargeReelle()
+				,'rentabilite_previsionnelle'=>$dossier->renta_previsionnelle
+				,'rentabilite_attendue'=>$dossier->renta_attendue
+				,'rentabilite_reelle'=>$dossier->renta_reelle
+				,'marge_previsionnelle'=>$dossier->marge_previsionnelle
+				,'marge_attendue'=>$dossier->marge_attendue
+				,'marge_reelle'=>$dossier->marge_reelle
 				,'soldeRBANK'=>$dossier->getSolde($PDOdb, 'SRBANK')
 				,'soldeNRBANK'=>$dossier->getSolde($PDOdb, 'SNRBANK')
 				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO')

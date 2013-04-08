@@ -6,6 +6,7 @@ class TFin_dossier extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
 		parent::add_champs('solde,montant,montant_solde','type=float;');
+		parent::add_champs('renta_previsionnelle,renta_attendue,renta_reelle,marge_previsionnelle,marge_attendue,marge_reelle','type=float;');
 		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne','type=chaine;');
 		parent::add_champs('date_relocation,date_solde','type=date;');
 			
@@ -33,7 +34,6 @@ class TFin_dossier extends TObjetStd {
 		else {
 			return false;
 		}
-		
 	}
 	function loadReferenceContratDossier(&$db, $reference, $annexe=false) {
 		
@@ -52,6 +52,8 @@ class TFin_dossier extends TObjetStd {
 		
 		if($annexe) {
 			$this->load_affaire($db);
+			$this->load_facture($db);
+			$this->load_factureFournisseur($db);
 		}
 		
 		$this->load_financement($db);
@@ -157,6 +159,7 @@ class TFin_dossier extends TObjetStd {
 		if(!$user->rights->financement->affaire->write) return false;
 		
 		$this->calculSolde();
+		$this->calculRenta($db);
 			
 		parent::save($db);
 		
@@ -205,8 +208,20 @@ class TFin_dossier extends TObjetStd {
 		}
 		
 		$this->solde = $this->montant - $this->somme_affaire;// attention en cas d'affaire ajouté à la création du dossier ce chiffre sera faux, car non encore répercuté sur l'affaire
+		
+		// Calcul des sommes totales
+		$this->financement->somme_echeance = $this->financement->duree * $this->financement->echeance;
+		$this->financementLeaser->somme_echeance = $this->financementLeaser->duree * $this->financementLeaser->echeance;
 	}
-	
+	function calculRenta(&$ATMdb) {
+		$this->renta_previsionnelle = $this->getRentabilitePrevisionnelle();
+		$this->renta_attendue = $this->getRentabiliteAttendue($ATMdb);
+		$this->renta_reelle = $this->getRentabiliteReelle();
+		
+		$this->marge_previsionnelle = $this->getMargePrevisionnelle();
+		$this->marge_attendue = $this->getMargeAttendue($ATMdb);
+		$this->marge_reelle = $this->getMargeReelle();
+	}
 		
 	function load_facture(&$ATMdb) {
 		global $db;
@@ -304,6 +319,7 @@ class TFin_dossier extends TObjetStd {
 		return ($f->taux_commission / 100) * $f->montant;
 		
 	}
+	// Récupère le coeff de renta attendue dans le tableau défini en admin
 	function getRentabilite(&$ATMdb) {
 		
 		/*$g=new TFin_grille_leaser('RENTABILITE');
