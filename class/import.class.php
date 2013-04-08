@@ -329,22 +329,24 @@ class TImport extends TObjetStd {
 			$financement=new TFin_financement;
 			if(!empty($data['reference_dossier_interne']) && !$financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
 				$dossier = new TFin_dossier;
-				if($dossier->addAffaire($ATMdb, $affaire->rowid)) {
-					$dossier->montant = $data['total_ht'];
-					$dossier->nature_financement = $affaire->nature_financement;
-					$dossier->reference_contrat_interne = $data['reference_dossier_interne'];
-					$dossier->financement->montant = $data['total_ht'];
-					$dossier->financementLeaser->montant = $data['total_ht'];
-					$dossier->financement->reference = $data['reference_dossier_interne'];
-					if($dossier->nature_financement=='EXTERNE') {
-						unset($dossier->financement);
+				if(!$dossier->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'])) {
+					if($dossier->addAffaire($ATMdb, $affaire->rowid)) {
+						$dossier->montant = $data['total_ht'];
+						$dossier->nature_financement = $affaire->nature_financement;
+						$dossier->reference_contrat_interne = $data['reference_dossier_interne'];
+						$dossier->financement->montant = $data['total_ht'];
+						$dossier->financementLeaser->montant = $data['total_ht'];
+						$dossier->financement->reference = $data['reference_dossier_interne'];
+						if($dossier->nature_financement=='EXTERNE') {
+							unset($dossier->financement);
+						}
+						$dossier->save($ATMdb);
+						
+						// Création du lien entre dossier et facture
+						$facture_mat->linked_objects['dossier'] = $dossier->getId();
+					} else {
+						$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], 'ERROR');
 					}
-					$dossier->save($ATMdb);
-					
-					// Création du lien entre dossier et facture
-					$facture_mat->linked_objects['dossier'] = $dossier->getId();
-				} else {
-					$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], 'ERROR');
 				}
 			}
 		} else {
