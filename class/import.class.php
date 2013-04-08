@@ -93,7 +93,7 @@ class TImport extends TObjetStd {
 		}
 		$thisErr->save($ATMdb);
 
-		$this->nb_errors++;
+		if($type == 'ERROR') $this->nb_errors++;
 	}
 	
 	function importLine(&$ATMdb, $dataline, $type, &$TInfosGlobale) {
@@ -103,6 +103,8 @@ class TImport extends TObjetStd {
 		
 		// Compteur du nombre de lignes
 		$this->nb_lines++;
+		// On save l'import tout les X enregistrements traités pour voir l'avancement de l'import
+		if($this->nb_lines % 50 == 0) $this->save($ATMdb);
 
 		if(!$this->checkData()) return false;
 		$data = $this->contructDataTab();
@@ -188,7 +190,7 @@ class TImport extends TObjetStd {
 			$date_fin = $data['date_fin'];
 			
 			if($echeance!=$f->echeance || $montant!=$f->montant || $date_debut!=$f->date_debut || $date_fin!=$f->date_fin) {
-				$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], '', 'WARNING');
+				$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], 'WARNING');
 				return false;
 			}
 			else {
@@ -205,9 +207,15 @@ class TImport extends TObjetStd {
 	function importLineTiers(&$ATMdb, $data) {
 		global $user, $db;
 		
-		// Recherche si tiers existant dans la base
+		// Recherche si tiers existant dans la base via code client Artis
 		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 		if($socid === false) return false;
+		
+		if(empty($socid)) {
+			// Recherche si tiers existant dans la base via code prospect WonderBase
+			$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key'], $data[$this->mapping['code_wb']]);
+			if($socid === false) return false;
+		}
 		
 		// Construction de l'objet final
 		$societe = new Societe($db);
@@ -302,6 +310,7 @@ class TImport extends TObjetStd {
 			$TSerial = explode(' - ',$data['matricule']);
 		
 			foreach($TSerial as $serial) {
+				$serial = trim($serial);
 				
 				$asset=new TAsset;
 				if($asset->loadReference($ATMdb, $serial)) {
@@ -320,22 +329,24 @@ class TImport extends TObjetStd {
 			$financement=new TFin_financement;
 			if(!empty($data['reference_dossier_interne']) && !$financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
 				$dossier = new TFin_dossier;
-				if($dossier->addAffaire($ATMdb, $affaire->rowid)) {
-					$dossier->montant = $data['total_ht'];
-					$dossier->nature_financement = $affaire->nature_financement;
-					$dossier->reference_contrat_interne = $data['reference_dossier_interne'];
-					$dossier->financement->montant = $data['total_ht'];
-					$dossier->financementLeaser->montant = $data['total_ht'];
-					$dossier->financement->reference = $data['reference_dossier_interne'];
-					if($dossier->nature_financement=='EXTERNE') {
-						unset($dossier->financement);
+				if(!$dossier->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'])) {
+					if($dossier->addAffaire($ATMdb, $affaire->rowid)) {
+						$dossier->montant = $data['total_ht'];
+						$dossier->nature_financement = $affaire->nature_financement;
+						$dossier->reference_contrat_interne = $data['reference_dossier_interne'];
+						$dossier->financement->montant = $data['total_ht'];
+						$dossier->financementLeaser->montant = $data['total_ht'];
+						$dossier->financement->reference = $data['reference_dossier_interne'];
+						if($dossier->nature_financement=='EXTERNE') {
+							unset($dossier->financement);
+						}
+						$dossier->save($ATMdb);
+						
+						// Création du lien entre dossier et facture
+						$facture_mat->linked_objects['dossier'] = $dossier->getId();
+					} else {
+						$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], 'ERROR');
 					}
-					$dossier->save($ATMdb);
-					
-					// Création du lien entre dossier et facture
-					$facture_mat->linked_objects['dossier'] = $dossier->getId();
-				} else {
-					$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], 'ERROR');
 				}
 			}
 		} else {

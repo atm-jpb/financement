@@ -24,9 +24,34 @@ if(!empty($_REQUEST['cancel'])) { // Annulation
 	if(!empty($_REQUEST['fk_soc'])) { header('Location: ?socid='.$_REQUEST['fk_soc']); exit; } // Retour sur client sinon
 	header('Location: '.$_SERVER['PHP_SELF']); exit;
 }
-if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase' && !empty($_REQUEST['code_artis'])) { // On arrive de Wonderbase, direction nouvelle simulation
-	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe', array('code_client'=>$_REQUEST['code_artis']));
-	header('Location: ?action=new&fk_soc='.$TId[0]); exit;
+if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive de Wonderbase, direction nouvelle simulation
+	if(!empty($_REQUEST['code_artis'])) { // Client
+		$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe', array('code_client'=>$_REQUEST['code_artis'],'client'=>1));
+		header('Location: ?action=new&fk_soc='.$TId[0]); exit;
+	} else if(!empty($_REQUEST['code_wb'])) { // Prospect
+		$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe', array('code_client'=>$_REQUEST['code_wb'],'client'=>2));
+		if(!empty($TId[0])) { header('Location: ?action=new&fk_soc='.$TId[0]); exit; }
+		pre($_REQUEST);
+		// Création du prospect s'il n'existe pas
+		$societe = new Societe($db);
+		$societe->code_client = $_REQUEST['code_wb'];
+		$societe->name = $_REQUEST['nom'];
+		$societe->address = $_REQUEST['adresse'];
+		$societe->zip = $_REQUEST['cp'];
+		$societe->town = $_REQUEST['ville'];
+		//$societe->country = $_REQUEST['pays'];
+		$societe->idprof1 = $_REQUEST['siren'];
+		$societe->idprof2 = $_REQUEST['siren'];
+		$societe->idprof3 = $_REQUEST['naf'];
+		$societe->client = 2;
+		if($societe->create($user) > 0) {
+			header('Location: ?action=new&fk_soc='.$societe->id); exit;
+		} else {
+			$action = 'new';
+			$error = 1;
+			$mesg = $langs->trans('UnableToCreateProspect');
+		}
+	}
 }
 
 if(!empty($action)) {
@@ -96,13 +121,11 @@ if(!empty($action)) {
 }
 elseif(isset($_REQUEST['id'])) {
 	$simulation->load($ATMdb, $db, $_REQUEST['id']);
-	_fiche($ATMdb, $simulation, 'view');global $mesg, $error;
+	_fiche($ATMdb, $simulation, 'view');
 }
 else {
 	 _liste($ATMdb, $simulation);
 }
-
-
 
 llxFooter();
 	
@@ -227,6 +250,37 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	global $db, $langs, $user, $conf;
 	
 	$simulation->load_annexe($ATMdb, $db);
+	
+	// Si l'utilisateur n'a pas le droit d'accès à tous les tiers
+	if($simulation->fk_soc > 0 && !$user->rights->societe->client->voir) {
+		// On vérifie s'il est associé au tiers dans Dolibarr
+		dol_include_once("/financement/class/commerciaux.class.php");
+		$c=new TCommercialCpro;
+		if(!$c->loadUserClient($ATMdb, $user->id, $simulation->fk_soc) > 0) {
+			// On vérifie si l'utilisateur est associé au tiers dans Wonderbase
+			$url = FIN_WONDERBASE_USER_RIGHT_URL.'?numArtis='.$simulation->societe->code_client.'&trigramme='.$user->login;
+			/*$droit = file_get_contents($url);
+			echo $droit;
+			// Association du user au tiers si droits ok
+			$c->fk_soc = $simulation->fk_soc;
+			$c->fk_user = $user->id;
+			$c->save($ATMdb);*/
+		}
+		
+		// Vérification par Dolibarr des droits d'accès du user à l'information relative au tiers
+		$simulation->societe->getCanvas($socid);
+		$canvas = $simulation->societe->canvas?$object->canvas:GETPOST("canvas");
+		$objcanvas='';
+		if (! empty($canvas))
+		{
+		    require_once DOL_DOCUMENT_ROOT.'/core/class/canvas.class.php';
+		    $objcanvas = new Canvas($db, $action);
+		    $objcanvas->getCanvas('thirdparty', 'card', $canvas);
+		}
+		
+		// Security check
+		$result = restrictedArea($user, 'societe', $simulation->societe->id, '&societe', '', 'fk_soc', 'rowid', $objcanvas);
+	}
 	
 	$extrajs = array('/financement/js/financement.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
