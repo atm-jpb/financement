@@ -299,6 +299,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		,array(
 			'affaire'=>array(
 				'id'=>$affaire->rowid
+				,'ref'=>$affaire->reference
 				,'reference'=>$form->texte('', 'reference', $affaire->reference, 100,255,'','','à saisir') 
 				,'nature_financement'=>$form->combo('', 'nature_financement', $affaire->TNatureFinancement , $affaire->nature_financement)
 				,'type_financement'=>$form->combo('', 'type_financement', $affaire->TTypeFinancement , $affaire->type_financement)
