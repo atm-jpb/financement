@@ -310,6 +310,7 @@ class TImport extends TObjetStd {
 			$TSerial = explode(' - ',$data['matricule']);
 		
 			foreach($TSerial as $serial) {
+				$serial = trim($serial);
 				
 				$asset=new TAsset;
 				if($asset->loadReference($ATMdb, $serial)) {
