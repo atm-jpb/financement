@@ -251,6 +251,37 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$simulation->load_annexe($ATMdb, $db);
 	
+	// Si l'utilisateur n'a pas le droit d'accès à tous les tiers
+	if($simulation->fk_soc > 0 && !$user->rights->societe->client->voir) {
+		// On vérifie s'il est associé au tiers dans Dolibarr
+		dol_include_once("/financement/class/commerciaux.class.php");
+		$c=new TCommercialCpro;
+		if(!$c->loadUserClient($ATMdb, $user->id, $simulation->fk_soc) > 0) {
+			// On vérifie si l'utilisateur est associé au tiers dans Wonderbase
+			$url = FIN_WONDERBASE_USER_RIGHT_URL.'?numArtis='.$simulation->societe->code_client.'&trigramme='.$user->login;
+			/*$droit = file_get_contents($url);
+			echo $droit;
+			// Association du user au tiers si droits ok
+			$c->fk_soc = $simulation->fk_soc;
+			$c->fk_user = $user->id;
+			$c->save($ATMdb);*/
+		}
+		
+		// Vérification par Dolibarr des droits d'accès du user à l'information relative au tiers
+		$simulation->societe->getCanvas($socid);
+		$canvas = $simulation->societe->canvas?$object->canvas:GETPOST("canvas");
+		$objcanvas='';
+		if (! empty($canvas))
+		{
+		    require_once DOL_DOCUMENT_ROOT.'/core/class/canvas.class.php';
+		    $objcanvas = new Canvas($db, $action);
+		    $objcanvas->getCanvas('thirdparty', 'card', $canvas);
+		}
+		
+		// Security check
+		$result = restrictedArea($user, 'societe', $simulation->societe->id, '&societe', '', 'fk_soc', 'rowid', $objcanvas);
+	}
+	
 	$extrajs = array('/financement/js/financement.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
 	

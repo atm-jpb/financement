@@ -205,8 +205,7 @@ function _liste_errors(&$ATMdb, $import) {
 	global $langs;
 	$langs->load("financement@financement");
 	$r = new TListviewTBS('import_error_list');
-	$sql = "SELECT ie.num_line, ie.type_erreur, ie.error_msg, ie.content_line, ie.sql_errno, ie.sql_error";
-	$sql.= " , ie.error_data";
+	$sql = "SELECT ie.num_line, ie.type_erreur, ie.error_msg, ie.error_data, ie.content_line, ie.sql_errno, ie.sql_error";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_import_error ie ";
 	$sql.= " WHERE ie.fk_import = ".$import->getId();
 	

@@ -104,7 +104,7 @@
 		<tr>
 			<td><span class="fieldrequired">Durée</span></td>
 			<td>[simulation.duree; strconv=no]</td>
-			<td colspan="2" rowspan="2" align="center">
+			<td colspan="2" rowspan="3" align="center">
 				[onshow;block=begin;when [view.calcul]==1]
 				<span style="font-size: 14px;">Montant total financé : [simulation.total_financement; frm=0 000,00] &euro;</span>
 				<br />

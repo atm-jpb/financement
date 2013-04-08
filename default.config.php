@@ -37,3 +37,4 @@
 	
 	define('FIN_THEREFORE_AFFAIRE_URL','http://srvtherefore/TWA/TheGetDoc.aspx?CtgryNo=4&N_Affaire=');
 	define('FIN_THEREFORE_DOSSIER_URL','http://srvtherefore/TWA/TheGetDoc.aspx?CtgryNo=4&N_Affaire=');
+	define('FIN_WONDERBASE_USER_RIGHT_URL', 'http://192.168.0.112/dolibarr/getDroitsAcces.php');
