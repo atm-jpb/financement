@@ -48,6 +48,7 @@ require_once($path."../config.php");
 //$langs->setDefaultLang('en_US'); 	// To change default language of $langs
 $langs->load("main");				// To load language file for default language
 @set_time_limit(0);					// No timeout for this script
+ini_set('display_errors', true);
 
 // Load user and its permissions
 $result=$user->fetch('',DOL_ADMIN_USER);	// Load user for login 'admin'. Comment line to run as anonymous user.
@@ -100,7 +101,7 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 	print date('Y-m-d H:i:s').' : Récupération fichiers "'.$filePrefix.'", '.count($filesToImport).' fichier(s) trouvé(s)'.$eol;
 
 	foreach($filesToImport as $fileName) { // Pour chaque fichier à importer
-		$imp->rowid = 0;
+		$imp->start();
 		$imp->init($fileName, $fileType);
 		$imp->save($ATMdb); // Création de l'import
 		
