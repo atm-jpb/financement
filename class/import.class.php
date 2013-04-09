@@ -487,9 +487,11 @@ class TImport extends TObjetStd {
 			
 			// Permet d'éviter de faire plusieurs fois les même actions sur une même facture
 			// Le fichier facture contient les lignes de factures
-			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facture_loc;
+			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facid;
 		} else {
-			$facture_loc = &$TInfosGlobale[$data[$this->mapping['search_key']]];
+			$facid = &$TInfosGlobale[$data[$this->mapping['search_key']]];
+			$facture_loc = new Facture($db);
+			$facture_loc->fetch($facid);
 		}
 		
 		// Actions spécifiques
