@@ -650,6 +650,9 @@ class TFin_financement extends TObjetStd {
 	function setEcheance($nb=1) {
 		$this->date_prochaine_echeance = strtotime(($nb * $this->getiPeriode()).' month', $this->date_prochaine_echeance);
 		$this->numero_prochaine_echeance += $nb;
+		
+		$this->duree_passe = $this->numero_prochaine_echeance-1;
+		$this->duree_restante = $this->duree - $this->duree_passe;
 	}
 
 	function load_reglement() {
@@ -734,6 +737,7 @@ class TFin_financement extends TObjetStd {
 	} 
 	function calculDateFin() {
 		$this->date_fin = strtotime('+'.($this->getiPeriode()*($this->duree)).' month -1 day', $this->date_debut);
+		$this->date_prochaine_echeance = strtotime('+'.($this->getiPeriode()*($this->duree_passe)).' month', $this->date_debut);
 	}
 	function calculTaux() {
 		$this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100,4);

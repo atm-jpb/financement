@@ -20,7 +20,7 @@ class TImport extends TObjetStd {
 			,'facture_lettree' => 'Fichier facture lettrée'
 			,'score' => 'Fichier score'
 		);
-		$this->TType_import = array('fichier_leaser' => 'Fichier leaser');
+		$this->TType_import = array('fichier_leaser' => 'Fichier leaser','dossier_init'=>'Import initial');
 		$this->current_line = array();
 	}
 
@@ -139,6 +139,9 @@ class TImport extends TObjetStd {
 			case 'score':
 				if($this->nb_lines == 1) return false; // Le fichier score contient une ligne d'en-tête
 				$this->importLineScore($ATMdb, $data);
+				break;
+			case 'dossier_init':
+				$this->importDossierInit($ATMdb, $data);
 				break;
 			
 			default:
@@ -770,14 +773,13 @@ class TImport extends TObjetStd {
 		return true;
 	}
 
-	function importDossierInit(&$ATMdb) {
+	function importDossierInit(&$ATMdb, $data) {
 		global $user, $db;
 		
-		// Compteur du nombre de lignes
-		$this->nb_lines++;
-
-		if(!$this->checkData($this->current_line)) return false;
-		$data = $this->contructDataTab($this->current_line);
+		$data['reference_dossier_interne'] = str_pad($data['reference_dossier_interne'], 8, '0', STR_PAD_LEFT);
+		$data['code_client'] = str_pad($data['code_client'], 6, '0', STR_PAD_LEFT);
+		if(empty($data['date_debut'])) $data['date_debut'] = 0;
+		if(empty($data['leaser_date_debut'])) $data['leaser_date_debut'] = 0;
 		
 		// Chargement de l'affaire
 		$affaire = new TFin_affaire;
@@ -794,8 +796,11 @@ class TImport extends TObjetStd {
 				if(!empty($doss->financement->reference) && $doss->financement->reference == $data['reference_dossier_interne']) { // On a trouvé le bon dossier
 					$found = true;
 					$doss->nature_financement == 'INTERNE';
+					$doss->load_facture($ATMdb);
+					$doss->load_factureFournisseur($ATMdb);
 					
 					// Partie client
+					$doss->financement->fk_soc = FIN_LEASER_DEFAULT;
 					$doss->financement->periodicite = $data['periodicite'];
 					$doss->financement->duree = $data['duree'];
 					$doss->financement->montant = $data['montant'];
@@ -803,8 +808,10 @@ class TImport extends TObjetStd {
 					$doss->financement->reste = $data['reste'];
 					$doss->financement->terme = $data['terme'];
 					$doss->financement->date_debut = $data['date_debut'];
+					$doss->financement->date_prochaine_echeance = $data['date_debut'];
 					
 					// Partie leaser
+					$doss->financementLeaser->fk_soc = $data['banque'];
 					$doss->financementLeaser->reference = $data['reference_dossier_leaser'];
 					$doss->financementLeaser->periodicite = $data['leaser_periodicite'];
 					$doss->financementLeaser->duree = $data['leaser_duree'];
@@ -812,15 +819,16 @@ class TImport extends TObjetStd {
 					$doss->financementLeaser->echeance = $data['leaser_echeance'];
 					$doss->financementLeaser->reste = $data['leaser_reste'];
 					$doss->financementLeaser->date_debut = $data['leaser_date_debut'];
+					$doss->financementLeaser->date_prochaine_echeance = $data['leaser_date_debut'];
 					$doss->financementLeaser->frais_dossier = $data['leaser_frais_dossier'];
-					
-					$doss->save($ATMdb);
 					
 					// Création des factures leaser
 					while($doss->financementLeaser->date_prochaine_echeance < time() && $doss->financementLeaser->numero_prochaine_echeance <= $doss->financementLeaser->duree) {
 						$this->_createFactureFournisseur($doss->financementLeaser, $doss);
 						$doss->financementLeaser->setEcheance();
 					}
+					
+					$doss->save($ATMdb);
 				}
 			}
 
@@ -834,6 +842,8 @@ class TImport extends TObjetStd {
 				$affaire->save($ATMdb);
 				$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['code_affaire'], 'WARNING');
 			}
+			
+			$this->nb_update++;
 		} else {
 			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire']);
 			return false;
@@ -849,7 +859,7 @@ class TImport extends TObjetStd {
 		
 		$object =new FactureFournisseur($db);
 		
-		$object->ref           = $f->reference.'/'.($f->duree_passe+1); 
+		$object->ref           = $f->reference.'/'.($f->duree_passe+1);
 	    $object->socid         = $f->fk_soc;
 	    $object->libelle       = "Facture échéance loyer banque (".($f->duree_passe+1).")";
 	    $object->date          = $f->date_prochaine_echeance;
@@ -859,25 +869,27 @@ class TImport extends TObjetStd {
 		$object->origin_id = $f->fk_fin_dossier;
 		$id = $object->create($user);
 		
-		if($f->duree_passe==0) {
-			/* Ajoute les frais de dossier uniquement sur la 1ère facture */
-			//print "Ajout des frais de dossier<br>";
-			$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
+		if($id > 0) {
+			if($f->duree_passe==0) {
+				/* Ajoute les frais de dossier uniquement sur la 1ère facture */
+				//print "Ajout des frais de dossier<br>";
+				$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
+			}
+			
+			/* Ajout la ligne de l'échéance	*/
+			$fk_product = 0;
+			if(!empty($d->TLien[0]->affaire)) {
+				if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
+				elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
+			}
+			$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
+		
+			$result=$object->validate($user,'',0);
+			
+			$result=$object->set_paid($user);
+			
+			//print "Création facture fournisseur ($id) : ".$object->ref."<br/>";
 		}
-		
-		/* Ajout la ligne de l'échéance	*/
-		$fk_product = 0;
-		if(!empty($d->TLien[0]->affaire)) {
-			if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
-			elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
-		}
-		$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
-	
-		$result=$object->validate($user,'',0);
-		
-		$result=$object->set_paid($user);
-		
-		//print "Création facture fournisseur ($id) : ".$object->ref."<br/>";
 	}
 
 	function checkData() {
@@ -935,7 +947,7 @@ class TImport extends TObjetStd {
 					$value = mktime(0, 0, 0, $month, $day, $year);
 					break;
 				case 'float':
-					$value = strtr($value, array(',' => '.', ' ' => '', ' '=>''));
+					$value = floatval(strtr($value, array(',' => '.', ' ' => '', ' '=>'')));
 					break;
 				default:
 					break;
