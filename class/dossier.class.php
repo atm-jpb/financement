@@ -49,6 +49,7 @@ class TFin_dossier extends TObjetStd {
 	function load(&$db, $id, $annexe=true) {
 		
 		$res = parent::load($db, $id);
+		$this->load_financement($db);
 		
 		if($annexe) {
 			$this->load_affaire($db);
@@ -56,7 +57,6 @@ class TFin_dossier extends TObjetStd {
 			$this->load_factureFournisseur($db);
 		}
 		
-		$this->load_financement($db);
 		$this->calculSolde();
 		
 		return $res;
