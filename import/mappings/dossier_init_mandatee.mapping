@@ -13,14 +13,13 @@
 21=reste
 
 22=banque
-28=leaser_montant
-30=leaser_echeance
-31=leaser_frais_dossier
-32=leaser_duree
-33=leaser_periodicite
-35=leaser_date_debut
-37=leaser_reste
-39=reference_dossier_leaser
+14=leaser_montant
+16=leaser_echeance
+15=leaser_duree
+19=leaser_periodicite
+12=leaser_date_debut
+21=leaser_reste
+5=reference_dossier_leaser
 
 [more]
 
