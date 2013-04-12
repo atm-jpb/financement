@@ -20,7 +20,7 @@ class TImport extends TObjetStd {
 			,'facture_lettree' => 'Fichier facture lettrée'
 			,'score' => 'Fichier score'
 		);
-		$this->TType_import = array('fichier_leaser' => 'Fichier leaser','dossier_init'=>'Import initial');
+		$this->TType_import = array('fichier_leaser' => 'Fichier leaser','dossier_init_adossee'=>'Import initial adosées','dossier_init_mandatee'=>'Import initial mandatées');
 		$this->current_line = array();
 	}
 
@@ -140,7 +140,8 @@ class TImport extends TObjetStd {
 				if($this->nb_lines == 1) return false; // Le fichier score contient une ligne d'en-tête
 				$this->importLineScore($ATMdb, $data);
 				break;
-			case 'dossier_init':
+			case 'dossier_init_adossee':
+			case 'dossier_init_mandatee':
 				$this->importDossierInit($ATMdb, $data);
 				break;
 			
