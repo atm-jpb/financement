@@ -595,6 +595,7 @@ class TFin_financement extends TObjetStd {
 		$this->TPeriodicite=array(
 			'MOIS'=>'Mensuel'
 			,'TRIMESTRE'=>'Trimestriel'
+			,'SEMESTRE'=>'Semestriel'
 			,'ANNEE'=>'Annuel'
 		);
 		
@@ -686,7 +687,8 @@ class TFin_financement extends TObjetStd {
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (da.fk_fin_dossier = d.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid) ";
-		$sql.= "WHERE s.siren = '".$siren."' ";
+		if(strlen($siren) == 14) $sql.= "WHERE s.siret = '".$siren."' ";
+		else $sql.= "WHERE s.siren = '".$siren."' ";
 		$sql.= "AND df.type = 'LEASER' ";
 		//$sql.= "AND df.date_solde = '0000-00-00 00:00:00'";
 		$sql.= "AND df.reference = '' ";

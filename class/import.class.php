@@ -154,16 +154,14 @@ class TImport extends TObjetStd {
 	}
 
 	function importFichierLeaser(&$ATMdb, $data) {
-		$ATMdb->debug=true;
-		$data= $this->contructDataTab($this->current_line);
+		/*$ATMdb->debug=true;
 		echo '<hr><pre>'.$this->nb_lines;
 		print_r($data);
-		echo '</pre>';
-		$this->nb_lines++;
+		echo '</pre>';*/
 	
-		if($data['echeance']==0) {
+		/*if($data['echeance']==0) {
 			return false;
-		}
+		}*/
 	
 		$f=new TFin_financement;
 		if($f->loadReference($ATMdb, $data['reference'], 'LEASER')) { // Recherche du financement leaser par référence
@@ -183,26 +181,33 @@ class TImport extends TObjetStd {
 		$dossier = new TFin_dossier();
 		$dossier->load($ATMdb, $f->fk_fin_dossier); // Chargement du dossier correspondant
 		if($dossier->nature_financement == 'EXTERNE') { // Dossier externe => MAJ des informations
-			foreach ($data as $key => $value) {
-				$f->{$key} = $value;
+			// Echéance à 0 dans le fichier, on classe le dossier a soldé
+			if($data['echeance'] == 0 && $dossier->financementLeaser->date_solde == 0) {
+				$dossier->financementLeaser->date_solde = time();
+				$data['echeance'] = $dossier->financementLeaser->echeance;
 			}
-			$f->fk_soc = $data['idLeaser'];
+			
+			foreach ($data as $key => $value) {
+				$dossier->financementLeaser->{$key} = $value;
+			}
+			$dossier->financementLeaser->fk_soc = $data['idLeaser'];
 		} else { // Dossier interne => Vérification des informations
 			$echeance = $data['echeance'];
 			$montant = $data['montant'];
 			$date_debut =$data['date_debut'];
 			$date_fin = $data['date_fin'];
 			
-			if($echeance!=$f->echeance || $montant!=$f->montant || $date_debut!=$f->date_debut || $date_fin!=$f->date_fin) {
+			if($echeance != $dossier->financementLeaser->echeance || $montant != $dossier->financementLeaser->montant
+				|| $date_debut != $dossier->financementLeaser->date_debut || $date_fin != $dossier->financementLeaser->date_fin) {
 				$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], 'WARNING');
 				return false;
 			}
 			else {
-				$f->okPourFacturation=1;
+				$dossier->financementLeaser->okPourFacturation=1;
 			}
 		}
 		
-		$f->save($ATMdb);
+		$dossier->save($ATMdb);
 		$this->nb_update++;
 		
 		return true;
