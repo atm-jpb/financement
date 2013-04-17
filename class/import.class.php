@@ -301,16 +301,40 @@ class TImport extends TObjetStd {
 			
 		// Gestion des avoirs
 		if(!empty($data['facture_annulee'])) {
-			$avoirid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']]);
+			$avoirid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']], true);
 			if($avoirid === false) return false;
 			
 			$facture_mat->type = 2;
 			$facture_mat->fk_facture_source = $avoirid;
 		}
+		
+		
 			
 		// Création des liens
 		$affaire = new TFin_affaire;
 		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
+			// Mise à jour ou création de la facture
+			if($facid > 0) {
+				$res = $facture_mat->update($facid, $user);
+				// Erreur : la mise à jour n'a pas marché
+				if($res < 0) {
+					$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_mat->error);
+					return false;
+				} else {
+					$this->nb_update++;
+				}			
+			} else {
+				$res = $facture_mat->create($user);
+				// Erreur : la création n'a pas marché
+				if($res < 0) {
+					$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_mat->error);
+					return false;
+				} else {
+					$this->nb_create++;
+				}
+			}
+			
+			
 			// Mise à jour de l'affaire
 			$affaire->montant = $this->validateValue('total_ht',$data['total_ht']);	
 			$affaire->save($ATMdb);
@@ -325,7 +349,8 @@ class TImport extends TObjetStd {
 				if($asset->loadReference($ATMdb, $serial)) {
 					$asset->fk_soc = $affaire->fk_soc;
 					
-					$asset->add_link($affaire->getId(),'affaire');	
+					$asset->add_link($affaire->getId(),'affaire');
+					$asset->add_link($facture_mat->id,'facture');
 					
 					$asset->save($ATMdb);	
 				}
@@ -350,39 +375,23 @@ class TImport extends TObjetStd {
 							unset($dossier->financement);
 						}
 						$dossier->save($ATMdb);
-						
-						// Création du lien entre dossier et facture
-						$facture_mat->linked_objects['dossier'] = $dossier->getId();
 					} else {
 						$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], 'ERROR');
 					}
 				}
+			} else if(!empty($data['reference_dossier_interne'])) { // Lien avec l'affaire sinon
+				$dossier = new TFin_dossier;
+				$dossier->load($ATMdb, $financement->fk_fin_dossier);
+				$dossier->addAffaire($ATMdb, $affaire->rowid);
 			}
 		} else {
 			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire']);
 			return false;
 		}
-			
-		// Mise à jour ou création
-		if($facid > 0) {
-			$res = $facture_mat->update($facid, $user);
-			// Erreur : la mise à jour n'a pas marché
-			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_mat->error);
-				return false;
-			} else {
-				$this->nb_update++;
-			}			
-		} else {
-			$res = $facture_mat->create($user);
-			// Erreur : la création n'a pas marché
-			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_mat->error);
-				return false;
-			} else {
-				$this->nb_create++;
-			}
-		}
+		
+		
+		// Création du lien facture matériel / affaire financement
+		$facture_mat->add_object_linked('affaire', $affaire->rowid);
 		
 		// Actions spécifiques
 		// On repasse en brouillon pour ajouter la ligne
@@ -391,7 +400,7 @@ class TImport extends TObjetStd {
 		// On supprime les lignes (pour ne pas créer de ligne en double)
 		// Sur les facture matériel, 1 ligne = 1 facture mais une même facture peut apparaître plusieurs fois => plusieurs dossiers de financement
 		foreach ($facture_mat->lines as $line) {
-			$facture_mat->deleteline($line->id);
+			$facture_mat->deleteline($line->rowid);
 		}
 		
 		// On ajoute la ligne
@@ -496,7 +505,7 @@ class TImport extends TObjetStd {
 			
 			// Permet d'éviter de faire plusieurs fois les même actions sur une même facture
 			// Le fichier facture contient les lignes de factures
-			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facid;
+			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facture_loc->id;
 		} else {
 			$facid = &$TInfosGlobale[$data[$this->mapping['search_key']]];
 			$facture_loc = new Facture($db);
@@ -522,7 +531,7 @@ class TImport extends TObjetStd {
 		// print "Création du service($fk_service)";
 		
 		// On ajoute la ligne
-		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 19.6,0,0,$fk_service);
+		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 19.6,0,0,$fk_service, 0, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, $data['libelle_ligne']);
 		// Force la validation avec numéro de facture
 		$facture_loc->validate($user, $data[$this->mapping['search_key']]);
 		
@@ -614,52 +623,47 @@ class TImport extends TObjetStd {
 		$res=$produit->fetch('', $data['ref_produit']);
 		$fk_produit = $produit->id;
 		
-		$produit->ref = $data['ref_produit'];
-		$produit->libelle = $data['libelle_produit'];
-		$produit->type=$type; //0 produit, 1 service
+		if($fk_produit > 0) {
+			return $fk_produit;
+		} else {
 		
-		$produit->price_base_type    = 'TTC';
-        $produit->price_ttc = isset($data['prix_ttc']) ? $data['prix_ttc'] : 0;
-		$produit->price_min_ttc = 0;
-
-        $produit->tva_tx             = 19.6;
-        $produit->tva_npr            = 0;
-
-        // local taxes.
-        $produit->localtax1_tx 			= get_localtax($produit->tva_tx,1);
-        $produit->localtax2_tx 			= get_localtax($produit->tva_tx,2);
-		
-	    $produit->status             	= 1;
-        $produit->status_buy           	= 1;
-        $produit->description        	= $data['marque'];
-        $produit->note               	= "Produit créé par import automatique";
-        $produit->customcode            = '';
-        $produit->country_id            = 1;
-        $produit->duration_value     	= 0;
-        $produit->duration_unit      	= 0;
-        $produit->seuil_stock_alerte 	= 0;
-        $produit->weight             	= 0;
-        $produit->weight_units       	= 0;
-        $produit->length             	= 0;
-        $produit->length_units       	= 0;
-        $produit->surface            	= 0;
-        $produit->surface_units      	= 0;
-        $produit->volume             	= 0;
-        $produit->volume_units       	= 0;
-        $produit->finished           	= 1;
-        $produit->hidden =0;       
-		
-		
-		if(!$res) {
-			$fk_produit = $produit->create($user);
-			//print "Création du produit (".$produit->error.")";	
-		}	
-		else {
-			//print "Mise à jour produit ($fk_produit)";
-			$produit->update($fk_produit, $user);
-		}
+			$produit->ref = $data['ref_produit'];
+			$produit->libelle = $data['libelle_produit'];
+			$produit->type=$type; //0 produit, 1 service
+			
+			$produit->price_base_type    = 'TTC';
+	        $produit->price_ttc = isset($data['prix_ttc']) ? $data['prix_ttc'] : 0;
+			$produit->price_min_ttc = 0;
 	
-		return $fk_produit;
+	        $produit->tva_tx             = 19.6;
+	        $produit->tva_npr            = 0;
+	
+	        // local taxes.
+	        $produit->localtax1_tx 			= get_localtax($produit->tva_tx,1);
+	        $produit->localtax2_tx 			= get_localtax($produit->tva_tx,2);
+			
+		    $produit->status             	= 1;
+	        $produit->status_buy           	= 1;
+	        $produit->description        	= $data['marque'];
+	        $produit->note               	= "Produit créé par import automatique";
+	        $produit->customcode            = '';
+	        $produit->country_id            = 1;
+	        $produit->duration_value     	= 0;
+	        $produit->duration_unit      	= 0;
+	        $produit->seuil_stock_alerte 	= 0;
+	        $produit->weight             	= 0;
+	        $produit->weight_units       	= 0;
+	        $produit->length             	= 0;
+	        $produit->length_units       	= 0;
+	        $produit->surface            	= 0;
+	        $produit->surface_units      	= 0;
+	        $produit->volume             	= 0;
+	        $produit->volume_units       	= 0;
+	        $produit->finished           	= 1;
+	        $produit->hidden =0;
+
+			return $produit->create($user);
+		}
 	}
 
 	function importLineMateriel(&$ATMdb, $data) {
@@ -791,9 +795,8 @@ class TImport extends TObjetStd {
 		$affaire = new TFin_affaire;
 		if($affaire->loadReference($ATMdb, $data['code_affaire'], true)) {
 			// Vérification client
-			if($affaire->societe->code_client != $data['code_client']) {
-				$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_affaire'].' - '.$data['code_client']);
-				return false;
+			if(!empty($data['code_client']) && $affaire->societe->code_client != $data['code_client']) {
+				$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_affaire'].' - '.$data['code_client'], 'WARNING');
 			}
 			
 			$found = false;

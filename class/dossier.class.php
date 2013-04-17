@@ -210,7 +210,7 @@ class TFin_dossier extends TObjetStd {
 		$this->solde = $this->montant - $this->somme_affaire;// attention en cas d'affaire ajouté à la création du dossier ce chiffre sera faux, car non encore répercuté sur l'affaire
 		
 		// Calcul des sommes totales
-		$this->financement->somme_echeance = $this->financement->duree * $this->financement->echeance;
+		if(!empty($this->financement)) $this->financement->somme_echeance = $this->financement->duree * $this->financement->echeance;
 		$this->financementLeaser->somme_echeance = $this->financementLeaser->duree * $this->financementLeaser->echeance;
 	}
 	function calculRenta(&$ATMdb) {
@@ -687,7 +687,7 @@ class TFin_financement extends TObjetStd {
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (da.fk_fin_dossier = d.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid) ";
-		if(strlen($siren) == 14) $sql.= "WHERE s.siret = '".$siren."' ";
+		if(strlen($siren) == 14) $sql.= "WHERE s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."'";
 		else $sql.= "WHERE s.siren = '".$siren."' ";
 		$sql.= "AND df.type = 'LEASER' ";
 		//$sql.= "AND df.date_solde = '0000-00-00 00:00:00'";

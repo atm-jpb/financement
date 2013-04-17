@@ -8,6 +8,7 @@
 
 	dol_include_once('/equipement/class/asset.class.php');
 	dol_include_once('/product/class/product.class.php');
+	dol_include_once('/compta/facture/class/facture.class.php');
 
 	$langs->load('financement@financement');
 	
@@ -259,10 +260,20 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		
 		$row = $link->asset->get_values();
 		
+		// Lien produit
 		$product = new Product($db);
 		$product->fetch($link->asset->fk_product);
 		
 		$row['produit'] = '<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$link->asset->fk_product.'">'.img_picto('','object_product.png', '', 0).' '.$product->label.'</a>';
+		$row['facture'] = '';
+		
+		$TIdFacture = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'asset_link',array('fk_asset'=>$link->asset->getId(), 'type_document'=>'facture'));
+		if(!empty($TIdFacture[0])) {
+			$facture = new Facture($db);
+			$facture->fetch($TIdFacture[0]);
+
+			$row['facture'] = $facture->getNomUrl(1);
+		}
 		
 		$TAsset[]=$row;
 		
