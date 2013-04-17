@@ -145,7 +145,7 @@ function _liste(&$PDOdb, &$dossier) {
 	llxHeader('','Dossiers');
 	
 	$r = new TSSRenderControler($dossier);
-	$sql="SELECT d.rowid as 'ID', f.reference, a.rowid as 'ID affaire', a.reference as 'N° Affaire', a.nature_financement, a.fk_soc as 'fk_soc', s.nom, 
+	$sql="SELECT d.rowid as 'ID', f.reference, a.rowid as 'ID affaire', a.reference as 'N° affaire', a.nature_financement, a.fk_soc as 'fk_soc', s.nom, 
 	f.duree as 'Durée', f.montant as 'Montant financé', f.echeance as 'Echéance', f.date_prochaine_echeance as 'Prochaine échéance', f.date_debut, f.date_fin as 'Fin'
 	FROM ((((@table@ d
 	LEFT OUTER JOIN  llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
@@ -167,7 +167,7 @@ function _liste(&$PDOdb, &$dossier) {
 		,'link'=>array(
 			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" title="Afficher société: test" alt="Afficher société: test" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
 			,'reference'=>'<a href="?id=@ID@">@val@</a>'
-			,'N° affaire'=>'<a href="?id=@ID affaire@">@val@</a>'
+			,'N° affaire'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/affaire.php?id=@ID affaire@">@val@</a>'
 		)
 		,'translate'=>array(
 			'Incident de paiment'=>$dossier->TIncidentPaiement

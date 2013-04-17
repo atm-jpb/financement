@@ -20,7 +20,7 @@ class TImport extends TObjetStd {
 			,'facture_lettree' => 'Fichier facture lettrée'
 			,'score' => 'Fichier score'
 		);
-		$this->TType_import = array('fichier_leaser' => 'Fichier leaser');
+		$this->TType_import = array('fichier_leaser' => 'Fichier leaser','dossier_init_adossee'=>'Import initial adosées','dossier_init_mandatee'=>'Import initial mandatées');
 		$this->current_line = array();
 	}
 
@@ -140,6 +140,10 @@ class TImport extends TObjetStd {
 				if($this->nb_lines == 1) return false; // Le fichier score contient une ligne d'en-tête
 				$this->importLineScore($ATMdb, $data);
 				break;
+			case 'dossier_init_adossee':
+			case 'dossier_init_mandatee':
+				$this->importDossierInit($ATMdb, $data);
+				break;
 			
 			default:
 				
@@ -150,16 +154,14 @@ class TImport extends TObjetStd {
 	}
 
 	function importFichierLeaser(&$ATMdb, $data) {
-		$ATMdb->debug=true;
-		$data= $this->contructDataTab($this->current_line);
+		/*$ATMdb->debug=true;
 		echo '<hr><pre>'.$this->nb_lines;
 		print_r($data);
-		echo '</pre>';
-		$this->nb_lines++;
+		echo '</pre>';*/
 	
-		if($data['echeance']==0) {
+		/*if($data['echeance']==0) {
 			return false;
-		}
+		}*/
 	
 		$f=new TFin_financement;
 		if($f->loadReference($ATMdb, $data['reference'], 'LEASER')) { // Recherche du financement leaser par référence
@@ -179,26 +181,33 @@ class TImport extends TObjetStd {
 		$dossier = new TFin_dossier();
 		$dossier->load($ATMdb, $f->fk_fin_dossier); // Chargement du dossier correspondant
 		if($dossier->nature_financement == 'EXTERNE') { // Dossier externe => MAJ des informations
-			foreach ($data as $key => $value) {
-				$f->{$key} = $value;
+			// Echéance à 0 dans le fichier, on classe le dossier a soldé
+			if($data['echeance'] == 0 && $dossier->financementLeaser->date_solde == 0) {
+				$dossier->financementLeaser->date_solde = time();
+				$data['echeance'] = $dossier->financementLeaser->echeance;
 			}
-			$f->fk_soc = $data['idLeaser'];
+			
+			foreach ($data as $key => $value) {
+				$dossier->financementLeaser->{$key} = $value;
+			}
+			$dossier->financementLeaser->fk_soc = $data['idLeaser'];
 		} else { // Dossier interne => Vérification des informations
 			$echeance = $data['echeance'];
 			$montant = $data['montant'];
 			$date_debut =$data['date_debut'];
 			$date_fin = $data['date_fin'];
 			
-			if($echeance!=$f->echeance || $montant!=$f->montant || $date_debut!=$f->date_debut || $date_fin!=$f->date_fin) {
+			if($echeance != $dossier->financementLeaser->echeance || $montant != $dossier->financementLeaser->montant
+				|| $date_debut != $dossier->financementLeaser->date_debut || $date_fin != $dossier->financementLeaser->date_fin) {
 				$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], 'WARNING');
 				return false;
 			}
 			else {
-				$f->okPourFacturation=1;
+				$dossier->financementLeaser->okPourFacturation=1;
 			}
 		}
 		
-		$f->save($ATMdb);
+		$dossier->save($ATMdb);
 		$this->nb_update++;
 		
 		return true;
@@ -292,16 +301,40 @@ class TImport extends TObjetStd {
 			
 		// Gestion des avoirs
 		if(!empty($data['facture_annulee'])) {
-			$avoirid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']]);
+			$avoirid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']], true);
 			if($avoirid === false) return false;
 			
 			$facture_mat->type = 2;
 			$facture_mat->fk_facture_source = $avoirid;
 		}
+		
+		
 			
 		// Création des liens
 		$affaire = new TFin_affaire;
 		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
+			// Mise à jour ou création de la facture
+			if($facid > 0) {
+				$res = $facture_mat->update($facid, $user);
+				// Erreur : la mise à jour n'a pas marché
+				if($res < 0) {
+					$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_mat->error);
+					return false;
+				} else {
+					$this->nb_update++;
+				}			
+			} else {
+				$res = $facture_mat->create($user);
+				// Erreur : la création n'a pas marché
+				if($res < 0) {
+					$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_mat->error);
+					return false;
+				} else {
+					$this->nb_create++;
+				}
+			}
+			
+			
 			// Mise à jour de l'affaire
 			$affaire->montant = $this->validateValue('total_ht',$data['total_ht']);	
 			$affaire->save($ATMdb);
@@ -316,7 +349,8 @@ class TImport extends TObjetStd {
 				if($asset->loadReference($ATMdb, $serial)) {
 					$asset->fk_soc = $affaire->fk_soc;
 					
-					$asset->add_link($affaire->getId(),'affaire');	
+					$asset->add_link($affaire->getId(),'affaire');
+					$asset->add_link($facture_mat->id,'facture');
 					
 					$asset->save($ATMdb);	
 				}
@@ -341,39 +375,23 @@ class TImport extends TObjetStd {
 							unset($dossier->financement);
 						}
 						$dossier->save($ATMdb);
-						
-						// Création du lien entre dossier et facture
-						$facture_mat->linked_objects['dossier'] = $dossier->getId();
 					} else {
 						$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], 'ERROR');
 					}
 				}
+			} else if(!empty($data['reference_dossier_interne'])) { // Lien avec l'affaire sinon
+				$dossier = new TFin_dossier;
+				$dossier->load($ATMdb, $financement->fk_fin_dossier);
+				$dossier->addAffaire($ATMdb, $affaire->rowid);
 			}
 		} else {
 			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire']);
 			return false;
 		}
-			
-		// Mise à jour ou création
-		if($facid > 0) {
-			$res = $facture_mat->update($facid, $user);
-			// Erreur : la mise à jour n'a pas marché
-			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_mat->error);
-				return false;
-			} else {
-				$this->nb_update++;
-			}			
-		} else {
-			$res = $facture_mat->create($user);
-			// Erreur : la création n'a pas marché
-			if($res < 0) {
-				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_mat->error);
-				return false;
-			} else {
-				$this->nb_create++;
-			}
-		}
+		
+		
+		// Création du lien facture matériel / affaire financement
+		$facture_mat->add_object_linked('affaire', $affaire->rowid);
 		
 		// Actions spécifiques
 		// On repasse en brouillon pour ajouter la ligne
@@ -382,7 +400,7 @@ class TImport extends TObjetStd {
 		// On supprime les lignes (pour ne pas créer de ligne en double)
 		// Sur les facture matériel, 1 ligne = 1 facture mais une même facture peut apparaître plusieurs fois => plusieurs dossiers de financement
 		foreach ($facture_mat->lines as $line) {
-			$facture_mat->deleteline($line->id);
+			$facture_mat->deleteline($line->rowid);
 		}
 		
 		// On ajoute la ligne
@@ -487,7 +505,7 @@ class TImport extends TObjetStd {
 			
 			// Permet d'éviter de faire plusieurs fois les même actions sur une même facture
 			// Le fichier facture contient les lignes de factures
-			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facid;
+			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facture_loc->id;
 		} else {
 			$facid = &$TInfosGlobale[$data[$this->mapping['search_key']]];
 			$facture_loc = new Facture($db);
@@ -513,7 +531,7 @@ class TImport extends TObjetStd {
 		// print "Création du service($fk_service)";
 		
 		// On ajoute la ligne
-		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 19.6,0,0,$fk_service);
+		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 19.6,0,0,$fk_service, 0, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, $data['libelle_ligne']);
 		// Force la validation avec numéro de facture
 		$facture_loc->validate($user, $data[$this->mapping['search_key']]);
 		
@@ -605,52 +623,47 @@ class TImport extends TObjetStd {
 		$res=$produit->fetch('', $data['ref_produit']);
 		$fk_produit = $produit->id;
 		
-		$produit->ref = $data['ref_produit'];
-		$produit->libelle = $data['libelle_produit'];
-		$produit->type=$type; //0 produit, 1 service
+		if($fk_produit > 0) {
+			return $fk_produit;
+		} else {
 		
-		$produit->price_base_type    = 'TTC';
-        $produit->price_ttc = isset($data['prix_ttc']) ? $data['prix_ttc'] : 0;
-		$produit->price_min_ttc = 0;
-
-        $produit->tva_tx             = 19.6;
-        $produit->tva_npr            = 0;
-
-        // local taxes.
-        $produit->localtax1_tx 			= get_localtax($produit->tva_tx,1);
-        $produit->localtax2_tx 			= get_localtax($produit->tva_tx,2);
-		
-	    $produit->status             	= 1;
-        $produit->status_buy           	= 1;
-        $produit->description        	= $data['marque'];
-        $produit->note               	= "Produit créé par import automatique";
-        $produit->customcode            = '';
-        $produit->country_id            = 1;
-        $produit->duration_value     	= 0;
-        $produit->duration_unit      	= 0;
-        $produit->seuil_stock_alerte 	= 0;
-        $produit->weight             	= 0;
-        $produit->weight_units       	= 0;
-        $produit->length             	= 0;
-        $produit->length_units       	= 0;
-        $produit->surface            	= 0;
-        $produit->surface_units      	= 0;
-        $produit->volume             	= 0;
-        $produit->volume_units       	= 0;
-        $produit->finished           	= 1;
-        $produit->hidden =0;       
-		
-		
-		if(!$res) {
-			$fk_produit = $produit->create($user);
-			//print "Création du produit (".$produit->error.")";	
-		}	
-		else {
-			//print "Mise à jour produit ($fk_produit)";
-			$produit->update($fk_produit, $user);
-		}
+			$produit->ref = $data['ref_produit'];
+			$produit->libelle = $data['libelle_produit'];
+			$produit->type=$type; //0 produit, 1 service
+			
+			$produit->price_base_type    = 'TTC';
+	        $produit->price_ttc = isset($data['prix_ttc']) ? $data['prix_ttc'] : 0;
+			$produit->price_min_ttc = 0;
 	
-		return $fk_produit;
+	        $produit->tva_tx             = 19.6;
+	        $produit->tva_npr            = 0;
+	
+	        // local taxes.
+	        $produit->localtax1_tx 			= get_localtax($produit->tva_tx,1);
+	        $produit->localtax2_tx 			= get_localtax($produit->tva_tx,2);
+			
+		    $produit->status             	= 1;
+	        $produit->status_buy           	= 1;
+	        $produit->description        	= $data['marque'];
+	        $produit->note               	= "Produit créé par import automatique";
+	        $produit->customcode            = '';
+	        $produit->country_id            = 1;
+	        $produit->duration_value     	= 0;
+	        $produit->duration_unit      	= 0;
+	        $produit->seuil_stock_alerte 	= 0;
+	        $produit->weight             	= 0;
+	        $produit->weight_units       	= 0;
+	        $produit->length             	= 0;
+	        $produit->length_units       	= 0;
+	        $produit->surface            	= 0;
+	        $produit->surface_units      	= 0;
+	        $produit->volume             	= 0;
+	        $produit->volume_units       	= 0;
+	        $produit->finished           	= 1;
+	        $produit->hidden =0;
+
+			return $produit->create($user);
+		}
 	}
 
 	function importLineMateriel(&$ATMdb, $data) {
@@ -770,22 +783,20 @@ class TImport extends TObjetStd {
 		return true;
 	}
 
-	function importDossierInit(&$ATMdb) {
+	function importDossierInit(&$ATMdb, $data) {
 		global $user, $db;
 		
-		// Compteur du nombre de lignes
-		$this->nb_lines++;
-
-		if(!$this->checkData($this->current_line)) return false;
-		$data = $this->contructDataTab($this->current_line);
+		$data['reference_dossier_interne'] = str_pad($data['reference_dossier_interne'], 8, '0', STR_PAD_LEFT);
+		$data['code_client'] = str_pad($data['code_client'], 6, '0', STR_PAD_LEFT);
+		if(empty($data['date_debut'])) $data['date_debut'] = 0;
+		if(empty($data['leaser_date_debut'])) $data['leaser_date_debut'] = 0;
 		
 		// Chargement de l'affaire
 		$affaire = new TFin_affaire;
 		if($affaire->loadReference($ATMdb, $data['code_affaire'], true)) {
 			// Vérification client
-			if($affaire->societe->code_client != $data['code_client']) {
-				$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_affaire'].' - '.$data['code_client']);
-				return false;
+			if(!empty($data['code_client']) && $affaire->societe->code_client != $data['code_client']) {
+				$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_affaire'].' - '.$data['code_client'], 'WARNING');
 			}
 			
 			$found = false;
@@ -794,8 +805,11 @@ class TImport extends TObjetStd {
 				if(!empty($doss->financement->reference) && $doss->financement->reference == $data['reference_dossier_interne']) { // On a trouvé le bon dossier
 					$found = true;
 					$doss->nature_financement == 'INTERNE';
+					$doss->load_facture($ATMdb);
+					$doss->load_factureFournisseur($ATMdb);
 					
 					// Partie client
+					$doss->financement->fk_soc = FIN_LEASER_DEFAULT;
 					$doss->financement->periodicite = $data['periodicite'];
 					$doss->financement->duree = $data['duree'];
 					$doss->financement->montant = $data['montant'];
@@ -803,8 +817,10 @@ class TImport extends TObjetStd {
 					$doss->financement->reste = $data['reste'];
 					$doss->financement->terme = $data['terme'];
 					$doss->financement->date_debut = $data['date_debut'];
+					$doss->financement->date_prochaine_echeance = $data['date_debut'];
 					
 					// Partie leaser
+					$doss->financementLeaser->fk_soc = $data['banque'];
 					$doss->financementLeaser->reference = $data['reference_dossier_leaser'];
 					$doss->financementLeaser->periodicite = $data['leaser_periodicite'];
 					$doss->financementLeaser->duree = $data['leaser_duree'];
@@ -812,15 +828,16 @@ class TImport extends TObjetStd {
 					$doss->financementLeaser->echeance = $data['leaser_echeance'];
 					$doss->financementLeaser->reste = $data['leaser_reste'];
 					$doss->financementLeaser->date_debut = $data['leaser_date_debut'];
+					$doss->financementLeaser->date_prochaine_echeance = $data['leaser_date_debut'];
 					$doss->financementLeaser->frais_dossier = $data['leaser_frais_dossier'];
-					
-					$doss->save($ATMdb);
 					
 					// Création des factures leaser
 					while($doss->financementLeaser->date_prochaine_echeance < time() && $doss->financementLeaser->numero_prochaine_echeance <= $doss->financementLeaser->duree) {
 						$this->_createFactureFournisseur($doss->financementLeaser, $doss);
 						$doss->financementLeaser->setEcheance();
 					}
+					
+					$doss->save($ATMdb);
 				}
 			}
 
@@ -834,6 +851,8 @@ class TImport extends TObjetStd {
 				$affaire->save($ATMdb);
 				$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['code_affaire'], 'WARNING');
 			}
+			
+			$this->nb_update++;
 		} else {
 			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire']);
 			return false;
@@ -849,7 +868,7 @@ class TImport extends TObjetStd {
 		
 		$object =new FactureFournisseur($db);
 		
-		$object->ref           = $f->reference.'/'.($f->duree_passe+1); 
+		$object->ref           = $f->reference.'/'.($f->duree_passe+1);
 	    $object->socid         = $f->fk_soc;
 	    $object->libelle       = "Facture échéance loyer banque (".($f->duree_passe+1).")";
 	    $object->date          = $f->date_prochaine_echeance;
@@ -859,25 +878,27 @@ class TImport extends TObjetStd {
 		$object->origin_id = $f->fk_fin_dossier;
 		$id = $object->create($user);
 		
-		if($f->duree_passe==0) {
-			/* Ajoute les frais de dossier uniquement sur la 1ère facture */
-			//print "Ajout des frais de dossier<br>";
-			$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
+		if($id > 0) {
+			if($f->duree_passe==0) {
+				/* Ajoute les frais de dossier uniquement sur la 1ère facture */
+				//print "Ajout des frais de dossier<br>";
+				$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
+			}
+			
+			/* Ajout la ligne de l'échéance	*/
+			$fk_product = 0;
+			if(!empty($d->TLien[0]->affaire)) {
+				if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
+				elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
+			}
+			$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
+		
+			$result=$object->validate($user,'',0);
+			
+			$result=$object->set_paid($user);
+			
+			//print "Création facture fournisseur ($id) : ".$object->ref."<br/>";
 		}
-		
-		/* Ajout la ligne de l'échéance	*/
-		$fk_product = 0;
-		if(!empty($d->TLien[0]->affaire)) {
-			if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
-			elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
-		}
-		$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
-	
-		$result=$object->validate($user,'',0);
-		
-		$result=$object->set_paid($user);
-		
-		//print "Création facture fournisseur ($id) : ".$object->ref."<br/>";
 	}
 
 	function checkData() {
@@ -935,7 +956,7 @@ class TImport extends TObjetStd {
 					$value = mktime(0, 0, 0, $month, $day, $year);
 					break;
 				case 'float':
-					$value = strtr($value, array(',' => '.', ' ' => '', ' '=>''));
+					$value = floatval(strtr($value, array(',' => '.', ' ' => '', ' '=>'')));
 					break;
 				default:
 					break;

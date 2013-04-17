@@ -1,11 +1,22 @@
 <?php
+	@set_time_limit(0);
+	ini_set('display_errors', true);
+
 	require('config.php');
-	require('./class/import.class.php');
-	require('./class/import_error.class.php');
-	require('./class/dossier.class.php');
-	require('./class/affaire.class.php');
-	require('./class/grille.class.php');
-	require('./class/score.class.php');
+
+	dol_include_once("/financement/class/import.class.php");
+	dol_include_once("/financement/class/import_error.class.php");
+	dol_include_once("/financement/class/commerciaux.class.php");
+	dol_include_once("/financement/class/affaire.class.php");
+	dol_include_once("/financement/class/dossier.class.php");
+	dol_include_once("/financement/class/grille.class.php");
+	dol_include_once("/financement/class/score.class.php");
+	dol_include_once("/equipement/class/asset.class.php");
+	dol_include_once("/societe/class/societe.class.php");
+	dol_include_once("/compta/facture/class/facture.class.php");
+	dol_include_once("/product/class/product.class.php");
+	dol_include_once("/core/class/html.form.class.php");
+	dol_include_once("/fourn/class/fournisseur.facture.class.php");
 	
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 
@@ -60,7 +71,7 @@
 					
 					if(isset($_REQUEST['ignore_first_line'])) {
 						fgetcsv($f1 ,1024, $_REQUEST['delimiter'], empty($_REQUEST['enclosure']) ? FIN_IMPORT_FIELD_ENCLOSURE : $_REQUEST['enclosure']);
-					} 
+					}
 					
 					$TInfosGlobale = array();
 					while($dataline = fgetcsv($f1, 1024, $_REQUEST['delimiter'], empty($_REQUEST['enclosure']) ? FIN_IMPORT_FIELD_ENCLOSURE : $_REQUEST['enclosure'])) {

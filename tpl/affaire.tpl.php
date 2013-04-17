@@ -25,6 +25,11 @@
 			
 			</table>
 			
+			<table width="100%" class="border" style="margin-top:20px;">
+			<tr><td width="20%">Montant total financé</td><td>[affaire.montant_ok; strconv=no; frm=0 000,00] &euro;</td></tr>
+			<tr><td width="20%">Montant restant à financer</td><td>[affaire.solde; strconv=no; frm=0 000,00] &euro;</td></tr>
+			</table>
+			
 			[onshow;block=begin;when [view.mode]!='view']
 			<p>Ajouter le dossier numéro : <input type="text" value="" name="dossier_to_add" size="20" id="dossier_to_add" /><input type="button" value="Ajouter" name="add_dossier" class="button" onclick="$('#action').val('add_dossier'); $('#formAff').submit();"></p> 
 			<script language="javascript">
@@ -48,18 +53,6 @@
 			[onshow;block=end]	
 			</table>
 			
-			<table width="100%" class="border" style="margin-top:20px;">
-			<tr><td width="20%">Equipement numéro</td><td><a href="../equipement/fiche.php?id=[asset.rowid]">[asset.serial_number; block=table; strconv=no]</a> </td></tr>
-			<tr><td width="20%">Produit</td><td>[asset.produit;strconv=no]</td></tr>
-			<tr><td width="20%">Coût copie Noire</td><td>[asset.copy_black; strconv=no; frm=0 000,00] &euro;</td></tr>
-			<tr><td width="20%">Coût copie Couleure</td><td>[asset.copy_color; strconv=no; frm=0 000,00] &euro;</td></tr>
-			</table>
-
-			<table width="100%" class="border" style="margin-top:20px;">
-			<tr><td width="20%">Montant total financé</td><td>[affaire.montant_ok; strconv=no; frm=0 000,00] &euro;</td></tr>
-			<tr><td width="20%">Montant restant à financer</td><td>[affaire.solde; strconv=no; frm=0 000,00] &euro;</td></tr>
-			</table>
-			
 [onshow;block=begin;when [view.mode]=='view']
 	
 		</div>
@@ -78,7 +71,14 @@
 			<input type="submit" value="Enregistrer" name="save" class="button"> 
 			&nbsp; &nbsp; <input type="button" value="Annuler" name="cancel" class="button" onclick="document.location.href='?id=[affaire.id]'">
 		</p>
-[onshow;block=end]	
+[onshow;block=end]
+			
+			<table width="100%" class="border" style="margin-top:20px;">
+			<tr class="liste_titre"><td>Equipement numéro</td><td>Matériel</td><td>Facture matériel</td></tr>
+			<tr><td><a href="../equipement/fiche.php?id=[asset.rowid]">[asset.serial_number; block=tr; strconv=no]</a> </td><td>[asset.produit;strconv=no]</td><td>[asset.facture;strconv=no]</td></tr>
+			<!--<tr><td width="20%">Coût copie Noire</td><td>[asset.copy_black; strconv=no; frm=0 000,00] &euro;</td></tr>
+			<tr><td width="20%">Coût copie Couleure</td><td>[asset.copy_color; strconv=no; frm=0 000,00] &euro;</td></tr>-->
+			</table>
 
 <p align="center" style="font-size: 9px;">
 	Crée le [affaire.date_cre] - Mis à jour le [affaire.date_maj]

@@ -1,16 +1,17 @@
 nom_du_leaser=bnp
 
 [mapping]
-3=siren
-10=reference
-25=date_debut
-28=date_fin
-24=montant
-23=duree
-30=echeance
-27=reste
+4=siren
+11=reference
+26=date_debut
+25=montant
+24=duree
+31=echeance
+27=echeance1
+28=reste
+30=montant_prestation
 34=periodicite
-0=terme
+37=incident_paiement
 
 [format]
 date_debut=date
@@ -19,9 +20,13 @@ echeance=float
 montant=float
 reste=float
 
+[more]
+terme=1
+
 [transco]
 periodicite=1
 terme=1
+incident_paiement=1
 
 [periodicite]
 Mensuelle=MOIS
@@ -30,3 +35,7 @@ Trimestrielle=TRIMESTRE
 [terme]
 A=1
 E=0
+
+[incident_paiement]
+N=NON
+O=OUI

@@ -49,6 +49,7 @@ class TFin_dossier extends TObjetStd {
 	function load(&$db, $id, $annexe=true) {
 		
 		$res = parent::load($db, $id);
+		$this->load_financement($db);
 		
 		if($annexe) {
 			$this->load_affaire($db);
@@ -56,7 +57,6 @@ class TFin_dossier extends TObjetStd {
 			$this->load_factureFournisseur($db);
 		}
 		
-		$this->load_financement($db);
 		$this->calculSolde();
 		
 		return $res;
@@ -210,7 +210,7 @@ class TFin_dossier extends TObjetStd {
 		$this->solde = $this->montant - $this->somme_affaire;// attention en cas d'affaire ajouté à la création du dossier ce chiffre sera faux, car non encore répercuté sur l'affaire
 		
 		// Calcul des sommes totales
-		$this->financement->somme_echeance = $this->financement->duree * $this->financement->echeance;
+		if(!empty($this->financement)) $this->financement->somme_echeance = $this->financement->duree * $this->financement->echeance;
 		$this->financementLeaser->somme_echeance = $this->financementLeaser->duree * $this->financementLeaser->echeance;
 	}
 	function calculRenta(&$ATMdb) {
@@ -595,6 +595,7 @@ class TFin_financement extends TObjetStd {
 		$this->TPeriodicite=array(
 			'MOIS'=>'Mensuel'
 			,'TRIMESTRE'=>'Trimestriel'
+			,'SEMESTRE'=>'Semestriel'
 			,'ANNEE'=>'Annuel'
 		);
 		
@@ -650,6 +651,9 @@ class TFin_financement extends TObjetStd {
 	function setEcheance($nb=1) {
 		$this->date_prochaine_echeance = strtotime(($nb * $this->getiPeriode()).' month', $this->date_prochaine_echeance);
 		$this->numero_prochaine_echeance += $nb;
+		
+		$this->duree_passe = $this->numero_prochaine_echeance-1;
+		$this->duree_restante = $this->duree - $this->duree_passe;
 	}
 
 	function load_reglement() {
@@ -683,7 +687,8 @@ class TFin_financement extends TObjetStd {
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (da.fk_fin_dossier = d.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid) ";
-		$sql.= "WHERE s.siren = '".$siren."' ";
+		if(strlen($siren) == 14) $sql.= "WHERE s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."'";
+		else $sql.= "WHERE s.siren = '".$siren."' ";
 		$sql.= "AND df.type = 'LEASER' ";
 		//$sql.= "AND df.date_solde = '0000-00-00 00:00:00'";
 		$sql.= "AND df.reference = '' ";
@@ -734,6 +739,7 @@ class TFin_financement extends TObjetStd {
 	} 
 	function calculDateFin() {
 		$this->date_fin = strtotime('+'.($this->getiPeriode()*($this->duree)).' month -1 day', $this->date_debut);
+		$this->date_prochaine_echeance = strtotime('+'.($this->getiPeriode()*($this->duree_passe)).' month', $this->date_debut);
 	}
 	function calculTaux() {
 		$this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100,4);
