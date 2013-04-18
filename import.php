@@ -76,7 +76,7 @@
 					$TInfosGlobale = array();
 					while($dataline = fgetcsv($f1, 1024, $_REQUEST['delimiter'], empty($_REQUEST['enclosure']) ? FIN_IMPORT_FIELD_ENCLOSURE : $_REQUEST['enclosure'])) {
 						$dataline[9999] = $societe->id;
-						$imp->importLine($ATMdb, $dataline, $fileType, $TInfosGlobale);
+						$imp->importLine($ATMdb, $dataline, $TInfosGlobale);
 					}
 					
 					$imp->save($ATMdb); // Mise à jour pour nombre de lignes et nombre d'erreurs
