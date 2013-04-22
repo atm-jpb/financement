@@ -225,7 +225,7 @@ class TSimulation extends TObjetStd {
 		if(!(empty($this->fk_soc))) {
 			$this->accord = 'WAIT';
 			if($this->societe->score->rowid == 0 // Pas de score => WAIT
-				|| empty($this->societe->idprof3) == '') // Pas de NAF => WAIT
+				|| empty($this->societe->idprof3)) // Pas de NAF => WAIT
 			{
 				$this->accord = 'WAIT';
 			} else { // Donnée suffisantes pour faire les vérifications pour l'accord

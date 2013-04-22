@@ -96,7 +96,7 @@ class TImport extends TObjetStd {
 		if($type == 'ERROR') $this->nb_errors++;
 	}
 	
-	function importLine(&$ATMdb, $dataline, $type, &$TInfosGlobale) {
+	function importLine(&$ATMdb, $dataline, &$TInfosGlobale) {
 		global $db;
 		
 		$this->current_line = $dataline;
@@ -109,7 +109,7 @@ class TImport extends TObjetStd {
 		if(!$this->checkData()) return false;
 		$data = $this->contructDataTab();
 		
-		switch ($type) {
+		switch ($this->type_import) {
 			case 'client':
 				$this->importLineTiers($ATMdb, $data);
 				break;
@@ -809,15 +809,17 @@ class TImport extends TObjetStd {
 					$doss->load_factureFournisseur($ATMdb);
 					
 					// Partie client
-					$doss->financement->fk_soc = FIN_LEASER_DEFAULT;
-					$doss->financement->periodicite = $data['periodicite'];
-					$doss->financement->duree = $data['duree'];
-					$doss->financement->montant = $data['montant'];
-					$doss->financement->echeance = $data['echeance'];
-					$doss->financement->reste = $data['reste'];
-					$doss->financement->terme = $data['terme'];
-					$doss->financement->date_debut = $data['date_debut'];
-					$doss->financement->date_prochaine_echeance = $data['date_debut'];
+					if($this->type_import == 'dossier_init_adossee') {
+						$doss->financement->fk_soc = FIN_LEASER_DEFAULT;
+						$doss->financement->periodicite = $data['periodicite'];
+						$doss->financement->duree = $data['duree'];
+						$doss->financement->montant = $data['montant'];
+						$doss->financement->echeance = $data['echeance'];
+						$doss->financement->reste = $data['reste'];
+						$doss->financement->terme = $data['terme'];
+						$doss->financement->date_debut = $data['date_debut'];
+						$doss->financement->date_prochaine_echeance = $data['date_debut'];
+					}
 					
 					// Partie leaser
 					$doss->financementLeaser->fk_soc = $data['banque'];
