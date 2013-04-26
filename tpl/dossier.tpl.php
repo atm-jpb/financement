@@ -104,11 +104,13 @@
 			</td>
 		</tr>
 		
-		
+		[onshow; block=begin; when [dossier.nature_financement]=='INTERNE']
 		<tr><td width="20%">Rentabilité prévisionnelle</td><td>[dossier.rentabilite_previsionnelle; frm=0 000,00] &euro; / [dossier.marge_previsionnelle; frm=0 000,00] %</td></tr>
 		<tr><td width="20%">Rentabilité attendue</td><td>[dossier.rentabilite_attendue; frm=0 000,00] &euro; / [dossier.marge_attendue; frm=0 000,00] %</td></tr>
 		<tr><td width="20%">Rentabilité réelle</td><td>[dossier.rentabilite_reelle; frm=0 000,00] &euro; / [dossier.marge_reelle; frm=0 000,00] %</td></tr>
 		<tr><td width="20%">Date de mise en relocation</td><td>[dossier.date_relocation; strconv=no]</td></tr>
+		[onshow;block=end]
+		
 		<tr><td width="20%">Commentaire</td><td>[dossier.commentaire; strconv=no]</td></tr>
 		<tr>
 			<td colspan="2"><strong>Soldes</strong></td>
@@ -116,8 +118,11 @@
 	
 		<tr><td>Renouvellant banque</td><td>[dossier.soldeRBANK; frm=0 000,00] &euro;</td></tr>
 		<tr><td>Non renouvellant banque</td><td>[dossier.soldeNRBANK; frm=0 000,00] &euro;</td></tr>
+		
+		[onshow; block=begin; when [dossier.nature_financement]=='INTERNE']
 		<tr><td>Renouvellant CPRO</td><td>[dossier.soldeRCPRO; frm=0 000,00] &euro;</td></tr>
 		<tr><td>Non renouvellant CPRO</td><td>[dossier.soldeNRCPRO; frm=0 000,00] &euro;</td></tr>
+		[onshow;block=end]
 		
 		</table>
 

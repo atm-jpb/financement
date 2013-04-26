@@ -136,6 +136,7 @@ if(!empty($action)) {
 			
 			//$ATMdb->db->debug=true;
 			$simulation->save($ATMdb);
+			$simulation->load_annexe($ATMdb, $db);
 			
 			_fiche($ATMdb, $simulation,'view');
 			
@@ -180,10 +181,11 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$sql = "SELECT s.rowid, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'mois' WHEN s.opt_periodicite = 'ANNEE' THEN 'années' ELSE 'trimestres' END) as 'Durée',";
-	$sql.= " s.date_simul, u.login, s.accord";
+	$sql.= " s.date_simul, u.login, s.accord, s.type_financement, lea.nom as leaser";
 	$sql.= " FROM @table@ s ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON s.fk_user_author = u.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc ON s.fk_soc = soc.rowid";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as lea ON s.fk_leaser = lea.rowid";
 	if (!$user->rights->societe->client->voir && !$_REQUEST['socid']) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc";
 	$sql.= " WHERE s.entity = ".$conf->entity;
 	
@@ -265,13 +267,17 @@ function _liste(&$ATMdb, &$simulation) {
 			,'fk_type_contrat'=> 'Type de contrat'
 			,'date_simul'=>'Date simulation'
 			,'accord'=>'Statut'
+			,'type_financement'=>'Type financement'
+			,'leaser'=>'Leaser'
 		)
 		,'search'=>array(
 			'nom'=>array('recherche'=>true, 'table'=>'soc')
 			,'login'=>array('recherche'=>true, 'table'=>'u')
 			,'fk_type_contrat'=>$affaire->TContrat
+			,'type_financement'=>$affaire->TTypeFinancement
 			,'date_simul'=>'calendar'
 			,'accord'=>$simulation->TStatut
+			,'leaser'=>array('recherche'=>true, 'table'=>'lea')
 		)
 	));
 	
@@ -315,8 +321,9 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		)
 		,array(
 			'simulation'=>array(
-				'titre_simul'=>load_fiche_titre($langs->trans("Simulator"),'','simul32.png@financement')
-				,'titre_calcul'=>load_fiche_titre($langs->trans("Calculator"),'','simul32.png@financement')
+				'titre_simul'=>load_fiche_titre($langs->trans("CustomerInfo"),'','object_company.png')
+				,'titre_calcul'=>load_fiche_titre($langs->trans("Simulator"),'','object_simul.png@financement')
+				,'titre_dossier'=>load_fiche_titre($langs->trans("DossierList"),'','object_financementico.png@financement')
 				
 				,'id'=>$simulation->rowid
 				,'fk_soc'=>$simulation->fk_soc
@@ -334,6 +341,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
 				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 5)
 				,'coeff_final'=>$form->texte('', 'coeff_final', $simulation->coeff_final, 5)
+				,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 5)
 				,'cout_financement'=>$simulation->cout_financement
 				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
 				,'accord_confirme'=>$simulation->accord_confirme
@@ -347,7 +355,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				
 				,'display_preco'=>$user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0 ? 1 : 0
 				,'type_financement'=>$form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement)
-				,'leaser'=>($mode=='edit') ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_leaser.'">'.$simulation->leaser->nom.'</a>'
+				,'leaser'=>($mode=='edit') ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->leaser->nom.'</a>'
 			)
 			,'client'=>array(
 				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->societe->nom.'</a>'
@@ -409,19 +417,19 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 
 	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', a.contrat as 'Type contrat'";
-	$sql.= " , d.montant as 'Solde', d.rowid as 'IDDoss'";
-	$sql.= " , f.reference as 'N° contrat', f.date_debut as 'Début', f.date_fin as 'Fin'";
+	$sql.= " , d.rowid as 'IDDoss'";
+	//$sql.= " , f.reference as 'N° contrat', f.date_debut as 'Début', f.date_fin as 'Fin'";
 	$sql.= " , ac.fk_user";
 	$sql.= " , u.login as 'Utilisateur'";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_affaire = a.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON d.rowid = da.fk_fin_dossier";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement f ON f.fk_fin_dossier = d.rowid";
+	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement f ON f.fk_fin_dossier = d.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire_commercial ac ON ac.fk_fin_affaire = a.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
 	$sql.= " WHERE a.entity = ".$conf->entity;
 	$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
-	$sql.= " AND f.type = 'CLIENT'";
+	//$sql.= " AND f.type = 'CLIENT'";
 	
 	//return $sql;
 	
@@ -434,11 +442,22 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$TDossierUsed = $simulation->get_list_dossier_used(true);
 	
 	while ($ATMdb->Get_line()) {
+		$affaire = new TFin_affaire;
 		$dossier=new TFin_Dossier;
 		$dossier->load($ATMdb2, $ATMdb->Get_field('IDDoss'));
+		$leaser = new Societe($db);
+		$leaser->fetch($dossier->financementLeaser->fk_soc);
+
 		
-		$soldeR = round($dossier->getSolde($ATMdb2, 'SRCPRO'),2);
-		$soldeNR = round($dossier->getSolde($ATMdb2, 'SNRCPRO'),2);
+		if($dossier->nature_financement == 'INTERNE') {
+			$fin = &$dossier->financement;
+			$soldeR = round($dossier->getSolde($ATMdb2, 'SRCPRO'),2);
+			$soldeNR = round($dossier->getSolde($ATMdb2, 'SNRCPRO'),2);
+		} else {
+			$fin = &$dossier->financementLeaser;
+			$soldeR = round($dossier->getSolde($ATMdb2, 'SRBANK'),2);
+			$soldeNR = round($dossier->getSolde($ATMdb2, 'SRBANK'),2);
+		}
 		
 		$checked = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes) ? true : false;
 		$checkbox_more = 'solde_r="'.$soldeR.'"';
@@ -449,14 +468,16 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		$TDossier[] = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
 			,'num_affaire' => $ATMdb->Get_field('N° affaire')
-			,'id_dossier' => $ATMdb->Get_field('IDDoss')
-			,'num_contrat' => $ATMdb->Get_field('N° contrat')
-			,'debut' => $ATMdb->Get_field('Début')
-			,'fin' => $ATMdb->Get_field('Fin')
+			,'id_dossier' => $dossier->getId()
+			,'num_contrat' => $fin->reference
+			,'type_contrat' => $affaire->TContrat[$ATMdb->Get_field('Type contrat')]
+			,'debut' => $fin->date_debut
+			,'fin' => $fin->date_fin
 			,'solde_r' => $soldeR
 			,'solde_nr' => $soldeNR
 			,'fk_user' => $ATMdb->Get_field('fk_user')
 			,'user' => $ATMdb->Get_field('Utilisateur')
+			,'leaser' => $leaser->getNomUrl(1)
 			,'choice_solde' => ($simulation->contrat == $ATMdb->Get_field('Type contrat')) ? 'solde_r' : 'solde_nr'
 			,'checkbox'=>$form->checkbox1('', 'dossiers_rachetes['.$ATMdb->Get_field('IDDoss').']', $ATMdb->Get_field('IDDoss'), $checked, $checkbox_more)
 		);
