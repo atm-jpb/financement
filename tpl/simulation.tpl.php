@@ -1,7 +1,7 @@
 <table width="100%"cellpadding="0" cellspacing="0">
 <tr>
 [onshow;block=begin;when [view.type]=='simul']
-<td valign="top" width="50%" style="padding-right: 5px;">
+<td valign="top">
 	<div id="simulateur" style="width: 100%;">
 	[simulation.titre_simul; strconv=no]
 	<br />
@@ -49,12 +49,15 @@
 		[onshow;block=end]
 	</table>
 	<br />
+	[simulation.titre_dossier; strconv=no]
+	<br />
 	[client.liste_dossier; strconv=no]
+	<br />
 		
 	</div>
-</td>
+</td></tr>
 [onshow;block=end]
-<td valign="top" style="padding-left: 5px;">
+<tr><td valign="top">
 	<div id="calculateur" style="width: 100%;">
 	[simulation.titre_calcul; strconv=no]
 	<br />
@@ -119,6 +122,10 @@
 		<tr>
 			<td>&Eacute;chéance</td>
 			<td>[simulation.echeance; strconv=no; frm=0 000,00] &euro;</td>
+		</tr>
+		<tr>
+			<td>Montant trimestriel prestation</td>
+			<td>[simulation.montant_presta_trim; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		[onshow;block=begin;when [view.mode]=='edit']
 		<tr>
