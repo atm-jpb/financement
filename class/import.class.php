@@ -834,9 +834,11 @@ class TImport extends TObjetStd {
 					$doss->financementLeaser->frais_dossier = $data['leaser_frais_dossier'];
 					
 					// Création des factures leaser
-					while($doss->financementLeaser->date_prochaine_echeance < time() && $doss->financementLeaser->numero_prochaine_echeance <= $doss->financementLeaser->duree) {
-						$this->_createFactureFournisseur($doss->financementLeaser, $doss);
-						$doss->financementLeaser->setEcheance();
+					if(!empty($doss->financementLeaser) && $doss->financementLeaser->date_prochaine_echeance > 0) {
+						while($doss->financementLeaser->date_prochaine_echeance < time() && $doss->financementLeaser->numero_prochaine_echeance <= $doss->financementLeaser->duree) {
+							$this->_createFactureFournisseur($doss->financementLeaser, $doss);
+							$doss->financementLeaser->setEcheance();
+						}
 					}
 					
 					$doss->save($ATMdb);
