@@ -523,6 +523,7 @@ class TFin_dossier extends TObjetStd {
 			,'total_assurance'=>$total_assurance
 			,'total_facture'=>$total_facture
 			,'loyer_intercalaire'=>$f->loyer_intercalaire
+			,'nature_financement'=>$this->nature_financement
 		);
 		
 		if($f->loyer_intercalaire > 0) {
