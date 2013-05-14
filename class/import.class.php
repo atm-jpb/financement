@@ -874,7 +874,7 @@ class TImport extends TObjetStd {
 		
 		$object->ref           = $f->reference.'/'.($f->duree_passe+1);
 	    $object->socid         = $f->fk_soc;
-	    $object->libelle       = "Facture échéance loyer banque (".($f->duree_passe+1).")";
+	    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".($f->duree_passe+1)."/".$f->duree;
 	    $object->date          = $f->date_prochaine_echeance;
 	    $object->date_echeance = $f->date_prochaine_echeance;
 	    $object->note_public   = '';
