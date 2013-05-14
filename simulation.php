@@ -309,8 +309,6 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	echo $form->hidden('fk_user_author', $user->id);
 	echo $form->hidden('entity', $conf->entity);
 	echo $form->hidden('idLeaser', FIN_LEASER_DEFAULT);
-	echo $form->hidden('cout_financement', $simulation->cout_financement);
-	echo $form->hidden('accord', $simulation->accord);
 
 	$TBS=new TTemplateTBS();
 	$ATMdb=new Tdb;
@@ -407,7 +405,7 @@ function _calcul(&$simulation) {
 		$simulation->montant_total_finance = 0;
 		$mesg = $langs->trans($simulation->error);
 		$error = true;
-	} else { // Sinon, vérification accord à partir du calcul
+	} else if($simulation->accord_confirme == 0) { // Sinon, vérification accord à partir du calcul
 		$simulation->demande_accord();
 	}
 }
