@@ -899,7 +899,10 @@ class TImport extends TObjetStd {
 		
 			$result=$object->validate($user,'',0);
 			
-			$result=$object->set_paid($user);
+			// La facture reste en impayée si antérieure à avril 2013, date de début de l'utilisation de l'export comptable
+			if($object->date_echeance < strtotime('first day of april 2013')) {
+				$result=$object->set_paid($user); 
+			}
 			
 			//print "Création facture fournisseur ($id) : ".$object->ref."<br/>";
 		}
