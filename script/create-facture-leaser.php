@@ -78,7 +78,7 @@ function _createFacture(&$f, &$d) {
 	
 	$object->ref           = $f->reference.'/'.($f->duree_passe+1); 
     $object->socid         = $f->fk_soc;
-    $object->libelle       = "Facture échéance loyer banque (".($f->duree_passe+1).")";
+    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".($f->duree_passe+1)."/".$f->duree;
     $object->date          = $f->date_prochaine_echeance;
     $object->date_echeance = $f->date_prochaine_echeance;
     $object->note_public   = '';
@@ -98,7 +98,7 @@ function _createFacture(&$f, &$d) {
 		if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
 		elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
 	}
-	$result=$object->addline("Echéance de loyer", $f->echeance, $tva, 0, 0, 1, $fk_product);
+	$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
 
 	$result=$object->validate($user,'',0);
 	

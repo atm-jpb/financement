@@ -874,7 +874,7 @@ class TImport extends TObjetStd {
 		
 		$object->ref           = $f->reference.'/'.($f->duree_passe+1);
 	    $object->socid         = $f->fk_soc;
-	    $object->libelle       = "Facture échéance loyer banque (".($f->duree_passe+1).")";
+	    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".($f->duree_passe+1)."/".$f->duree;
 	    $object->date          = $f->date_prochaine_echeance;
 	    $object->date_echeance = $f->date_prochaine_echeance;
 	    $object->note_public   = '';
@@ -899,7 +899,10 @@ class TImport extends TObjetStd {
 		
 			$result=$object->validate($user,'',0);
 			
-			$result=$object->set_paid($user);
+			// La facture reste en impayée si antérieure à avril 2013, date de début de l'utilisation de l'export comptable
+			if($object->date_echeance < strtotime('first day of april 2013')) {
+				$result=$object->set_paid($user); 
+			}
 			
 			//print "Création facture fournisseur ($id) : ".$object->ref."<br/>";
 		}
