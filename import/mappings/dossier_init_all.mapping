@@ -17,7 +17,7 @@
 
 19=banque
 21=reference_dossier_leaser
-28=leaser_montant
+30=leaser_montant
 22=leaser_echeance
 25=leaser_frais_dossier
 23=leaser_duree
@@ -31,6 +31,9 @@
 echeance=float
 montant=float
 reste=float
+loyer_intercalaire=float
+frais_dossier=float
+assurance=float
 date_debut=date
 leaser_echeance=float
 leaser_montant=float
@@ -47,6 +50,12 @@ banque=1
 [periodicite]
 TRIM=TRIMESTRE
 MOIS=MOIS
+AN=ANNEE
+trim=TRIMESTRE
+mois=MOIS
+mensuel=MOIS
+an=ANNEE
+annuel=ANNEE
 
 [leaser_periodicite]
 TRIM=TRIMESTRE
@@ -60,9 +69,6 @@ annuel=ANNEE
 
 [terme]
 à échoir=1
-A échoir=1
-ECHOIR=1
-ECHU=0
 échu=0
 
 [banque]

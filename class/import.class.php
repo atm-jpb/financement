@@ -142,6 +142,7 @@ class TImport extends TObjetStd {
 				break;
 			case 'dossier_init_adossee':
 			case 'dossier_init_mandatee':
+			case 'dossier_init_all':
 				$this->importDossierInit($ATMdb, $data);
 				break;
 			
@@ -792,7 +793,7 @@ class TImport extends TObjetStd {
 		global $user, $db;
 		
 		if(empty($data['code_affaire']) || empty($data['reference_dossier_interne']) || empty($data['reference_dossier_leaser'])
-			|| empty($data['montant']) || empty($data['leaser_montant'])
+			|| empty($data['montant']) //|| empty($data['leaser_montant'])
 			|| empty($data['periodicite']) || empty($data['duree']) || empty($data['date_debut'])
 			|| empty($data['echeance']) || ($data['terme'] == '') || ($data['reste'] == '')
 			|| empty($data['leaser_periodicite']) || empty($data['leaser_duree']) || empty($data['leaser_date_debut'])
@@ -807,6 +808,7 @@ class TImport extends TObjetStd {
 		
 		$data['reference_dossier_interne'] = str_pad($data['reference_dossier_interne'], 8, '0', STR_PAD_LEFT);
 		$data['code_client'] = str_pad($data['code_client'], 6, '0', STR_PAD_LEFT);
+		if(empty($data['leaser_montant'])) $data['leaser_montant'] = $data['montant'];
 		if(empty($data['date_debut'])) $data['date_debut'] = 0;
 		if(empty($data['leaser_date_debut'])) $data['leaser_date_debut'] = 0;
 		
@@ -828,22 +830,20 @@ class TImport extends TObjetStd {
 					$doss->load_factureFournisseur($ATMdb);
 					
 					// Partie client
-					if($this->type_import == 'dossier_init_adossee') {
-						$doss->financement->fk_soc = FIN_LEASER_DEFAULT;
-						$doss->financement->periodicite = $data['periodicite'];
-						$doss->financement->duree = $data['duree'];
-						$doss->financement->montant = $data['montant'];
-						$doss->financement->echeance = $data['echeance'];
-						$doss->financement->reste = $data['reste'];
-						$doss->financement->terme = $data['terme'];
-						$doss->financement->date_debut = $data['date_debut'];
-						$doss->financement->loyer_intercalaire = $data['loyer_intercalaire'];
-						$doss->financement->frais_dossier = $data['frais_dossier'];
-						$doss->financement->assurance = $data['assurance'];
-						
-						if($doss->financement->date_prochaine_echeance < $doss->financement->date_debut) {
-							$doss->financement->date_prochaine_echeance = $data['date_debut'];
-						}
+					$doss->financement->fk_soc = FIN_LEASER_DEFAULT;
+					$doss->financement->periodicite = $data['periodicite'];
+					$doss->financement->duree = $data['duree'];
+					$doss->financement->montant = $data['montant'];
+					$doss->financement->echeance = $data['echeance'];
+					$doss->financement->reste = $data['reste'];
+					$doss->financement->terme = $data['terme'];
+					$doss->financement->date_debut = $data['date_debut'];
+					$doss->financement->loyer_intercalaire = $data['loyer_intercalaire'];
+					$doss->financement->frais_dossier = $data['frais_dossier'];
+					$doss->financement->assurance = $data['assurance'];
+					
+					if($doss->financement->date_prochaine_echeance < $doss->financement->date_debut) {
+						$doss->financement->date_prochaine_echeance = $data['date_debut'];
 					}
 					
 					// Partie leaser
@@ -963,7 +963,7 @@ class TImport extends TObjetStd {
 		
 		// Si un tableau de transco existe, on l'utilise
 		if(!empty($this->mapping['transco'][$key])) {
-			if(!empty($this->mapping[$key][$value])) {
+			if(isset($this->mapping[$key][$value])) {
 				$value = $this->mapping[$key][$value];
 			} else {
 				$value = $this->mapping[$key]['default'];
