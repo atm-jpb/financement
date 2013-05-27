@@ -1,26 +1,29 @@
 
 
 [mapping]
-2=code_affaire
+1=code_affaire
+2=code_client
 3=reference_dossier_interne
-5=code_client
-14=montant
-18=periodicite
-19=duree
-20=date_debut
-22=echeance
-25=terme
-26=reste
+7=montant
+10=echeance
+11=duree
+12=date_debut
+13=loyer_intercalaire
+14=frais_dossier
+15=assurance
+16=reste
+17=periodicite
+18=terme
 
-27=banque
+19=banque
+21=reference_dossier_leaser
 28=leaser_montant
-30=leaser_echeance
-31=leaser_frais_dossier
-32=leaser_duree
-33=leaser_periodicite
-35=leaser_date_debut
-37=leaser_reste
-39=reference_dossier_leaser
+22=leaser_echeance
+25=leaser_frais_dossier
+23=leaser_duree
+28=leaser_periodicite
+24=leaser_date_debut
+27=leaser_reste
 
 [more]
 
@@ -51,16 +54,20 @@ MOIS=MOIS
 AN=ANNEE
 trim=TRIMESTRE
 mois=MOIS
+mensuel=MOIS
 an=ANNEE
+annuel=ANNEE
 
 [terme]
+à échoir=1
 A échoir=1
 ECHOIR=1
 ECHU=0
+échu=0
 
 [banque]
 CM CIC BAIL=3214
-BNP=19553
-BNP PARIBAS=19553
-LIXXBAIL=19068
-LOCAM=3306
+BNP Adossé=19553
+BNP Mandaté=20113
+LIXXBAIL Adossé=19068
+LIXXBAIL Mandaté=19483
