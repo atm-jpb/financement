@@ -39,5 +39,15 @@ class TScore extends TObjetStd {
 			return false;
 		}	
 	}
+
+	function get_nom_externe() {
+		$TInfos = array();
+		if(!empty($this->civilite_externe)) $TInfos[] = $this->civilite_externe;
+		if(!empty($this->prenom_externe)) $TInfos[] = $this->prenom_externe;
+		if(!empty($this->nom_externe)) $TInfos[] = $this->nom_externe;
+		if(!empty($this->fonction_externe)) $TInfos[] = '('.$this->fonction_externe.')'; 
+		
+		return implode(' ', $TInfos);
+	}
 }
 

@@ -342,6 +342,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 5)
 				,'cout_financement'=>$simulation->cout_financement
 				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
+				,'commentaire'=>$user->rights->financement->allsimul->simul_preco ? $form->zonetexte('', 'commentaire', $simulation->commentaire, 50) : $simulation->commentaire
 				,'accord_confirme'=>$simulation->accord_confirme
 				,'total_financement'=>$simulation->montant_total_finance
 				
@@ -349,7 +350,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'date'=>$simulation->date_simul
 				,'bt_calcul'=>$form->btsubmit('Calculer', 'calculate')
 				,'bt_cancel'=>$form->btsubmit('Annuler', 'cancel')
-				,'bt_save'=>$form->btsubmit('Valider simulation', 'validate_simul')
+				,'bt_save'=>$form->btsubmit('Enregistrer simulation', 'validate_simul')
 				
 				,'display_preco'=>$user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0 ? 1 : 0
 				,'type_financement'=>$form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement)
@@ -368,6 +369,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'score'=>empty($simulation->societe) ? '' : $simulation->societe->score->score
 				,'encours_cpro'=>empty($simulation->societe) ? 0 : $simulation->societe->encours_cpro
 				,'encours_conseille'=>empty($simulation->societe) ? '' : $simulation->societe->score->encours_conseille
+				
+				,'contact_externe'=>empty($simulation->societe) ? '' : $simulation->societe->score->get_nom_externe()
 				
 				,'liste_dossier'=>_liste_dossier($ATMdb, $simulation, $mode)
 			)

@@ -11,22 +11,25 @@
 		</tr>
 		<tr>
 			<td width="20%">Nom du tiers</td>
-			<td colspan="3">[client.societe; strconv=no] [client.autres_simul; strconv=no]</a></td>
+			<td width="30%">[client.societe; strconv=no] [client.autres_simul; strconv=no]</a></td>
+			<td width="20%">Contact</td>
+			<td>[client.contact_externe]</td>
 		</tr>
 		<tr>
 			<td>Adresse</td>
-			<td colspan="3">[client.adresse]</td>
-			
-		</tr>
-		<tr>
-			<td>CP / Ville</td>
-			<td>[client.cpville]</td>
+			<td>[client.adresse]</td>
 			<td>Code Artis</td>
 			<td>[client.code_client]</td>
 		</tr>
 		<tr>
+			<td>CP / Ville</td>
+			<td>[client.cpville]</td>
 			<td>SIRET</td>
 			<td>[client.siret]</td>
+		</tr>
+		<tr>
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
 			<td>Code NAF</td>
 			<td>[client.naf]</td>
 		</tr>
@@ -80,8 +83,14 @@
 		<tr>
 			<td>Mode de règlement</td>
 			<td>[simulation.opt_mode_reglement; strconv=no]</td>
+			<td>Utilisateur</td>
+			<td>[simulation.user; strconv=no]</td>
+		</tr>
+		<tr>
 			<td>Terme</td>
 			<td>[simulation.opt_terme; strconv=no]</td>
+			<td>Date</td>
+			<td>[simulation.date; frm=dd/mm/yyyy]</td>
 		</tr>
 		<tr class="liste_titre">
 			<td colspan="4">Paramètres financiers</td>
@@ -89,35 +98,43 @@
 		<tr>
 			<td>Montant</td>
 			<td>[simulation.montant; strconv=no; frm=0 000,00] &euro;</td>
-			<td>Utilisateur</td>
-			<td>[simulation.user; strconv=no]</td>
-		</tr>
-		<tr>
-			<td>Montant rachat</td>
-			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
-			<td>Date</td>
-			<td>[simulation.date; frm=dd/mm/yyyy]</td>
-		</tr>
-		<tr>
-			<td>Montant rachat concurrence</td>
-			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
-			<td>Coefficient</td>
-			<td>[simulation.coeff; strconv=no; frm=0,00] %</td>
-		</tr>
-		<tr>
-			<td><span class="fieldrequired">Durée</span></td>
-			<td>[simulation.duree; strconv=no]</td>
-			<td colspan="2" rowspan="3" align="center">
+			<td colspan="2" rowspan="2" align="center">
 				[onshow;block=begin;when [view.calcul]==1]
 				<span style="font-size: 14px;">Montant total financé : [simulation.total_financement; frm=0 000,00] &euro;</span>
 				<br />
 				(= montant + montant rachat + montant rachat concurrence)
-				[onshow;block=begin;when [view.type]=='simul']
-				<br /><br />
-				<span style="font-size: 14px;">[simulation.accord; strconv=no]</span>
-				[onshow;block=end]
 				[onshow;block=end]
 			</td>
+		</tr>
+		<tr>
+			<td>Montant rachat</td>
+			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
+		</tr>
+		<tr>
+			<td>Montant rachat concurrence</td>
+			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
+			<td colspan="2">
+				[onshow;block=begin;when [view.type]=='simul']
+				<center>
+				<span style="font-size: 14px;">[simulation.accord; strconv=no]</span>
+				[onshow;block=end]
+				</center>
+			</td>
+		</tr>
+		<tr>
+			<td><span class="fieldrequired">Durée</span></td>
+			<td>[simulation.duree; strconv=no]</td>
+			<td colspan="2" rowspan="4">
+				[onshow;block=begin;when [view.type]=='simul']
+				<center>
+				<span style="font-size: 14px;">[simulation.commentaire; strconv=no]</span>
+				[onshow;block=end]
+				</center>
+			</td>
+		</tr>
+		<tr>
+			<td>Coefficient</td>
+			<td>[simulation.coeff; strconv=no; frm=0,00] %</td>
 		</tr>
 		<tr>
 			<td>&Eacute;chéance</td>
@@ -167,7 +184,7 @@
 </table>
 
 [onshow;block=begin;when [view.mode]=='view']
-[onshow;block=begin;when [simulation.accord_confirme]==0; when [simulation.display_preco]==1]
+[onshow;block=begin;when [simulation.accord_confirme]==0]
 <div class="tabsAction">
 	<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[simulation.id]'">
 	<a href="?id=[simulation.id]&action=edit" class="butAction">Modifier</a>
