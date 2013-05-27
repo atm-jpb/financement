@@ -32,6 +32,7 @@ date_debut=date
 leaser_echeance=float
 leaser_montant=float
 leaser_reste=float
+leaser_frais_dossier=float
 leaser_date_debut=date
 
 [transco]
