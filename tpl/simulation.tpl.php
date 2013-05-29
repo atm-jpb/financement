@@ -77,7 +77,7 @@
 		<tr>
 			<td>Periodicite</td>
 			<td>[simulation.opt_periodicite; strconv=no]</td>
-			<td>Crédit-Bail</td>
+			<td>Crédit-Bail (avec accord CDA)</td>
 			<td>[simulation.opt_creditbail; strconv=no]</td>
 		</tr>
 		<tr>
@@ -117,8 +117,9 @@
 				[onshow;block=begin;when [view.type]=='simul']
 				<center>
 				<span style="font-size: 14px;">[simulation.accord; strconv=no]</span>
-				[onshow;block=end]
+				[simulation.date_validite; frm=dd/mm/yyyy]
 				</center>
+				[onshow;block=end]
 			</td>
 		</tr>
 		<tr>
@@ -128,8 +129,8 @@
 				[onshow;block=begin;when [view.type]=='simul']
 				<center>
 				<span style="font-size: 14px;">[simulation.commentaire; strconv=no]</span>
-				[onshow;block=end]
 				</center>
+				[onshow;block=end]
 			</td>
 		</tr>
 		<tr>
@@ -184,7 +185,7 @@
 </table>
 
 [onshow;block=begin;when [view.mode]=='view']
-[onshow;block=begin;when [simulation.accord_confirme]==0]
+[onshow;block=begin;when [simulation.accord_confirme]==0; when [simulation.display_preco]==1]
 <div class="tabsAction">
 	<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[simulation.id]'">
 	<a href="?id=[simulation.id]&action=edit" class="butAction">Modifier</a>

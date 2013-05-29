@@ -124,8 +124,9 @@ if(!empty($action)) {
 			$simulation->set_values($_REQUEST);
 			
 			// Si une donnée de préconisation a été remplie, on fige la simulation pour le commercial
-			if($simulation->fk_leaser > 0 || $simulation->type_financement != '') {
+			if($simulation->fk_leaser > 0 || $simulation->type_financement != '' || $simulation->accord == 'OK') {
 				$simulation->accord_confirme = 1;
+				$simulation->date_validite = strtotime('+ 2 months');
 			}
 			
 			// On vérifie que les dossiers sélectionnés n'ont pas été décochés
@@ -342,6 +343,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 5)
 				,'cout_financement'=>$simulation->cout_financement
 				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
+				,'date_validite'=>$simulation->accord == 'OK' ? $simulation->date_validite : ''
 				,'commentaire'=>$user->rights->financement->allsimul->simul_preco ? $form->zonetexte('', 'commentaire', $simulation->commentaire, 50) : $simulation->commentaire
 				,'accord_confirme'=>$simulation->accord_confirme
 				,'total_financement'=>$simulation->montant_total_finance
