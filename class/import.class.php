@@ -420,7 +420,8 @@ class TImport extends TObjetStd {
 		global $user, $db;
 		
 		if(!in_array($data['ref_service'], array('SSC101','SSC102','SSC106','037004','037003','033741'))) {
-			$this->addError($ATMdb, 'InfoRefServiceNotNeededNow', $data['ref_service'], 'WARNING');
+			//On importe uniquement certaine ref produit
+			//$this->addError($ATMdb, 'InfoRefServiceNotNeededNow', $data['ref_service'], 'WARNING');
 			return false;
 		}
 		
