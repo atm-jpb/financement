@@ -6,7 +6,7 @@
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 
-	dol_include_once('/equipement/class/asset.class.php');
+	dol_include_once('/asset/class/asset.class.php');
 	dol_include_once('/product/class/product.class.php');
 	dol_include_once('/compta/facture/class/facture.class.php');
 
