@@ -5,7 +5,7 @@
 	define('COREHTTP','http://127.0.0.1/ATM/atm-core/');
 	define('HTTP','http://127.0.0.1/ATM/dolibarr/');
 
-	if(defined('INC_FROM_CRON_SCRIPT')) {
+	if(!defined('INC_FROM_DOLIBARR') && defined('INC_FROM_CRON_SCRIPT')) {
 		include(ROOT."master.inc.php");
 	}
 	elseif(!defined('INC_FROM_DOLIBARR')) {
