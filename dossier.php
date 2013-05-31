@@ -4,7 +4,7 @@
 	require('./class/dossier.class.php');
 	require('./class/grille.class.php');
 	
-	dol_include_once('/equipement/class/asset.class.php');
+	dol_include_once('/asset/class/asset.class.php');
 	
 	$langs->load('financement@financement');
 	

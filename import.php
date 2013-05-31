@@ -11,7 +11,7 @@
 	dol_include_once("/financement/class/dossier.class.php");
 	dol_include_once("/financement/class/grille.class.php");
 	dol_include_once("/financement/class/score.class.php");
-	dol_include_once("/equipement/class/asset.class.php");
+	dol_include_once("/asset/class/asset.class.php");
 	dol_include_once("/societe/class/societe.class.php");
 	dol_include_once("/compta/facture/class/facture.class.php");
 	dol_include_once("/product/class/product.class.php");
