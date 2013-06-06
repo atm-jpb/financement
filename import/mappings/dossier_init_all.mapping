@@ -16,14 +16,13 @@
 18=terme
 
 19=banque
-21=reference_dossier_leaser
-30=leaser_montant
-22=leaser_echeance
-25=leaser_frais_dossier
-23=leaser_duree
-28=leaser_periodicite
-24=leaser_date_debut
-27=leaser_reste
+20=reference_dossier_leaser
+21=leaser_echeance
+22=leaser_duree
+23=leaser_date_debut
+24=leaser_frais_dossier
+25=leaser_reste
+26=leaser_periodicite
 
 [more]
 
