@@ -7,7 +7,7 @@ class TFin_affaire extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_affaire');
 		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel','type=chaine;');
 		parent::add_champs('date_affaire','type=date;');
-		parent::add_champs('fk_soc,entity','type=entier;index;');//fk_soc_leaser
+		parent::add_champs('fk_soc,entity','type=entier;index;');
 		parent::add_champs('montant,solde','type=float;');
 		
 		parent::_init_vars();
@@ -22,7 +22,7 @@ class TFin_affaire extends TObjetStd {
 			,'FORFAITGLOBAL'=>$langs->trans('ForfaitGlobal')
 			,'INTEGRAL'=>$langs->trans('Integral')
 		);
-		$this->TTypeFinancement=array(//TODO
+		$this->TTypeFinancement=array(
 			'PURE'=>'Location Pure'
 			,'ADOSSEE'=>'Location adossée'
 			,'MANDATEE'=>'Location mandatée'
