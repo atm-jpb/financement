@@ -384,6 +384,7 @@ class TImport extends TObjetStd {
 				$dossier = new TFin_dossier;
 				$dossier->load($ATMdb, $financement->fk_fin_dossier);
 				$dossier->addAffaire($ATMdb, $affaire->rowid);
+				$dossier->save($ATMdb);
 			}
 		} else {
 			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire']);
@@ -808,6 +809,7 @@ class TImport extends TObjetStd {
 		}
 		
 		$data['reference_dossier_interne'] = str_pad($data['reference_dossier_interne'], 8, '0', STR_PAD_LEFT);
+		$data['code_affaire'] = str_pad($data['code_affaire'], 5, '0', STR_PAD_LEFT);
 		$data['code_client'] = str_pad($data['code_client'], 6, '0', STR_PAD_LEFT);
 		if(empty($data['leaser_montant'])) $data['leaser_montant'] = $data['montant'];
 		if(empty($data['date_debut'])) $data['date_debut'] = 0;
@@ -824,7 +826,7 @@ class TImport extends TObjetStd {
 			$found = false;
 			foreach ($affaire->TLien as $lien) {
 				$doss = &$lien->dossier;
-				if(!empty($doss->financement->reference) && $doss->financement->reference == $data['reference_dossier_interne']) { // On a trouvé le bon dossier
+				if(!empty($doss->reference_contrat_interne) && $doss->reference_contrat_interne == $data['reference_dossier_interne']) { // On a trouvé le bon dossier
 					$found = true;
 					$doss->nature_financement == 'INTERNE';
 					$doss->load_facture($ATMdb);

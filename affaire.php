@@ -229,6 +229,12 @@ function _liste(&$ATMdb, &$affaire) {
 	
 function _fiche(&$ATMdb, &$affaire, $mode) {
 	global $db,$user;
+	
+	if(empty($affaire->societe) || empty($affaire->societe->id)) {
+		$affaire->societe = new Societe($db);
+		$affaire->societe->fetch($affaire->fk_soc);
+	}
+	
 	/*
 	 * Liste des dossiers rattachés à cette affaire
 	 */ 
@@ -316,14 +322,14 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 				,'type_financement'=>$form->combo('', 'type_financement', $affaire->TTypeFinancement , $affaire->type_financement)
 				,'contrat'=>$form->combo('', 'contrat', $affaire->TContrat , $affaire->contrat) 
 				,'type_materiel'=>$form->combo('', '', $affaire->TTypeMateriel , $affaire->type_materiel)
-				,'date_affaire'=>$form->calendrier('', 'date_affaire', $affaire->get_date('date_affaire'),10)
+				,'date_affaire'=>$form->calendrier('', 'date_affaire', $affaire->date_affaire,10)
 				,'montant'=>$form->texte('', 'montant', $affaire->montant, 20,255,'','','à saisir')
 				,'montant_ok'=>$affaire->somme_dossiers // somme des dossiers rattachés
 				,'solde'=>$affaire->solde // montant à financer - somme des dossiers	
 				,'date_maj'=>$affaire->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$affaire->get_date('date_cre','d/m/Y')
 				
-				,'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$affaire->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$affaire->societe->nom.'</a>'
+				,'societe'=>$affaire->societe->getNomUrl(1)
 				,'montant_val'=>$affaire->montant
 				,'nature_financement_val'=>$affaire->nature_financement
 				
