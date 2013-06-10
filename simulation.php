@@ -137,6 +137,7 @@ if(!empty($action)) {
 			
 			// On vérifie que les dossiers sélectionnés n'ont pas été décochés
 			if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
+			if(empty($_REQUEST['dossiers_rachetes_p1'])) $simulation->dossiers_rachetes = array();
 			
 			// On refait le calcul avant d'enregistrer
 			_calcul($simulation);
@@ -462,10 +463,14 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			$fin = &$dossier->financement;
 			$soldeR = round($dossier->getSolde($ATMdb2, 'SRCPRO'),2);
 			$soldeNR = round($dossier->getSolde($ATMdb2, 'SNRCPRO'),2);
+			$soldeR1 = round($dossier->getSolde($ATMdb2, 'SRCPRO'),2, $fin->duree_passe + 1);
+			$soldeNR1 = round($dossier->getSolde($ATMdb2, 'SNRCPRO'),2, $fin->duree_passe + 1);
 		} else {
 			$fin = &$dossier->financementLeaser;
 			$soldeR = round($dossier->getSolde($ATMdb2, 'SRBANK'),2);
 			$soldeNR = round($dossier->getSolde($ATMdb2, 'SRBANK'),2);
+			$soldeR1 = round($dossier->getSolde($ATMdb2, 'SRBANK'),2, $fin->duree_passe + 1);
+			$soldeNR1 = round($dossier->getSolde($ATMdb2, 'SRBANK'),2, $fin->duree_passe + 1);
 		}
 		
 		$checked = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes) ? true : false;
@@ -473,6 +478,12 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		$checkbox_more.= ' solde_nr="'.$soldeNR.'"';
 		$checkbox_more.= ' contrat="'.$ATMdb->Get_field('Type contrat').'"';
 		$checkbox_more.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
+		
+		$checked1 = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes_p1) ? true : false;
+		$checkbox_more1 = 'solde_r="'.$soldeR1.'"';
+		$checkbox_more1.= ' solde_nr="'.$soldeNR1.'"';
+		$checkbox_more1.= ' contrat="'.$ATMdb->Get_field('Type contrat').'"';
+		$checkbox_more1.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		
 		$TDossier[] = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
@@ -482,13 +493,17 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'type_contrat' => $affaire->TContrat[$ATMdb->Get_field('Type contrat')]
 			,'debut' => $fin->date_debut
 			,'fin' => $fin->date_fin
+			,'prochaine_echeance' => $fin->date_prochaine_echeance
 			,'solde_r' => $soldeR
 			,'solde_nr' => $soldeNR
+			,'solde_r1' => $soldeR1
+			,'solde_nr1' => $soldeNR1
 			,'fk_user' => $ATMdb->Get_field('fk_user')
 			,'user' => $ATMdb->Get_field('Utilisateur')
 			,'leaser' => $leaser->getNomUrl(1)
 			,'choice_solde' => ($simulation->contrat == $ATMdb->Get_field('Type contrat')) ? 'solde_r' : 'solde_nr'
 			,'checkbox'=>$form->checkbox1('', 'dossiers_rachetes['.$ATMdb->Get_field('IDDoss').']', $ATMdb->Get_field('IDDoss'), $checked, $checkbox_more)
+			,'checkbox1'=>$form->checkbox1('', 'dossiers_rachetes_p1['.$ATMdb->Get_field('IDDoss').']', $ATMdb->Get_field('IDDoss'), $checked1, $checkbox_more1)
 		);
 	}
 	
