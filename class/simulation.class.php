@@ -10,7 +10,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
 		parent::add_champs('date_simul,date_validite','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire','type=chaine;');
-		parent::add_champs('dossiers_rachetes', 'type=tableau;');
+		parent::add_champs('dossiers_rachetes,dossiers_rachetes_p1', 'type=tableau;');
 		parent::start();
 		parent::_init_vars();
 		
