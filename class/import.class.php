@@ -365,7 +365,7 @@ class TImport extends TObjetStd {
 			if(!empty($data['reference_dossier_interne']) && !$financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
 				$dossier = new TFin_dossier;
 				if(!$dossier->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'])) {
-					if($dossier->addAffaire($ATMdb, $affaire->rowid)) {
+					if($dossier->addAffaire($ATMdb, $affaire->getId())) {
 						$dossier->montant = $data['total_ht'];
 						$dossier->nature_financement = $affaire->nature_financement;
 						$dossier->reference_contrat_interne = $data['reference_dossier_interne'];
@@ -383,7 +383,7 @@ class TImport extends TObjetStd {
 			} else if(!empty($data['reference_dossier_interne'])) { // Lien avec l'affaire sinon
 				$dossier = new TFin_dossier;
 				$dossier->load($ATMdb, $financement->fk_fin_dossier);
-				$dossier->addAffaire($ATMdb, $affaire->rowid);
+				$dossier->addAffaire($ATMdb, $affaire->getId());
 				$dossier->save($ATMdb);
 			}
 		} else {
@@ -393,7 +393,7 @@ class TImport extends TObjetStd {
 		
 		
 		// Création du lien facture matériel / affaire financement
-		$facture_mat->add_object_linked('affaire', $affaire->rowid);
+		$facture_mat->add_object_linked('affaire', $affaire->getId());
 		
 		// Actions spécifiques
 		// On repasse en brouillon pour ajouter la ligne
@@ -817,68 +817,19 @@ class TImport extends TObjetStd {
 		
 		// Chargement de l'affaire
 		$affaire = new TFin_affaire;
+		$found = false;
 		if($affaire->loadReference($ATMdb, $data['code_affaire'], true)) {
 			// Vérification client
 			if(!empty($data['code_client']) && $affaire->societe->code_client != $data['code_client']) {
 				$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_affaire'].' - '.$data['code_client'], 'WARNING');
 			}
 			
-			$found = false;
 			foreach ($affaire->TLien as $lien) {
 				$doss = &$lien->dossier;
 				if(!empty($doss->reference_contrat_interne) && $doss->reference_contrat_interne == $data['reference_dossier_interne']) { // On a trouvé le bon dossier
 					$found = true;
-					$doss->nature_financement == 'INTERNE';
-					$doss->load_facture($ATMdb);
-					$doss->load_factureFournisseur($ATMdb);
-					
-					// Partie client
-					$doss->financement->fk_soc = FIN_LEASER_DEFAULT;
-					$doss->financement->periodicite = $data['periodicite'];
-					$doss->financement->duree = $data['duree'];
-					$doss->financement->montant = $data['montant'];
-					$doss->financement->echeance = $data['echeance'];
-					$doss->financement->reste = $data['reste'];
-					$doss->financement->terme = $data['terme'];
-					$doss->financement->date_debut = $data['date_debut'];
-					$doss->financement->loyer_intercalaire = $data['loyer_intercalaire'];
-					$doss->financement->frais_dossier = $data['frais_dossier'];
-					$doss->financement->assurance = $data['assurance'];
-					
-					if($doss->financement->date_prochaine_echeance < $doss->financement->date_debut) {
-						$doss->financement->date_prochaine_echeance = $data['date_debut'];
-					}
-					
-					// Partie leaser
-					$doss->financementLeaser->fk_soc = $data['banque'];
-					$doss->financementLeaser->reference = $data['reference_dossier_leaser'];
-					$doss->financementLeaser->periodicite = $data['leaser_periodicite'];
-					$doss->financementLeaser->duree = $data['leaser_duree'];
-					$doss->financementLeaser->montant = $data['leaser_montant'];
-					$doss->financementLeaser->echeance = $data['leaser_echeance'];
-					$doss->financementLeaser->reste = $data['leaser_reste'];
-					$doss->financementLeaser->date_debut = $data['leaser_date_debut'];
-					$doss->financementLeaser->frais_dossier = $data['leaser_frais_dossier'];
-					
-					if($doss->financementLeaser->date_prochaine_echeance < $doss->financementLeaser->date_debut) {
-						$doss->financementLeaser->date_prochaine_echeance = $data['leaser_date_debut'];
-					}
-					
-					// Création des factures leaser
-					if(!empty($doss->financementLeaser->reference) && $doss->financementLeaser->date_prochaine_echeance > 0) {
-						while($doss->financementLeaser->date_prochaine_echeance < time() && $doss->financementLeaser->numero_prochaine_echeance <= $doss->financementLeaser->duree) {
-							$this->_createFactureFournisseur($doss->financementLeaser, $doss, $affaire);
-							$doss->financementLeaser->setEcheance();
-						}
-					}
-					
-					$doss->save($ATMdb);
+					$this->_save_dossier_init($ATMdb, $doss, $affaire, $data);
 				}
-			}
-
-			if(!$found) {
-				$this->addError($ATMdb, 'ErrorDossierClientNotFound', $data['reference_dossier_interne']);
-				return false;
 			}
 
 			if($affaire->nature_financement == 'EXTERNE') {
@@ -889,11 +840,77 @@ class TImport extends TObjetStd {
 			
 			$this->nb_update++;
 		} else {
-			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire']);
+			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire'], 'WARNING');
+		}
+		
+		if(!$found) {
+			$doss = new TFin_dossier;
+			if($doss->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'], true)) { // Dossier existe, âs rattaché à l'affaire attendue
+				$this->addError($ATMdb, 'InfoWrongAffaireForDossier', $data['code_affaire'], 'WARNING');
+				if(!empty($doss->TLien[0])) {
+					$affaire = &$doss->TLien[0]->affaire;
+					$doss->addAffaire($ATMdb, $affaire->getId());
+					$this->_save_dossier_init($ATMdb, $doss, $affaire, $data);
+					$found = true;
+					$this->nb_update++;
+				}
+			}
+		}
+
+		if(!$found) {
+			$this->addError($ATMdb, 'ErrorDossierClientNotFound', $data['reference_dossier_interne']);
 			return false;
 		}
 		
 		return true;
+	}
+
+	function _save_dossier_init(&$ATMdb, &$doss, &$affaire, $data) {
+		$doss->nature_financement == 'INTERNE';
+		$doss->load_facture($ATMdb);
+		$doss->load_factureFournisseur($ATMdb);
+		
+		// Partie client
+		$doss->financement->fk_soc = FIN_LEASER_DEFAULT;
+		$doss->financement->periodicite = $data['periodicite'];
+		$doss->financement->duree = $data['duree'];
+		$doss->financement->montant = $data['montant'];
+		$doss->financement->echeance = $data['echeance'];
+		$doss->financement->reste = $data['reste'];
+		$doss->financement->terme = $data['terme'];
+		$doss->financement->date_debut = $data['date_debut'];
+		$doss->financement->loyer_intercalaire = $data['loyer_intercalaire'];
+		$doss->financement->frais_dossier = $data['frais_dossier'];
+		$doss->financement->assurance = $data['assurance'];
+		
+		if($doss->financement->date_prochaine_echeance < $doss->financement->date_debut) {
+			$doss->financement->date_prochaine_echeance = $data['date_debut'];
+		}
+		
+		// Partie leaser
+		$doss->financementLeaser->fk_soc = $data['banque'];
+		$doss->financementLeaser->reference = $data['reference_dossier_leaser'];
+		$doss->financementLeaser->periodicite = $data['leaser_periodicite'];
+		$doss->financementLeaser->duree = $data['leaser_duree'];
+		$doss->financementLeaser->montant = $data['leaser_montant'];
+		$doss->financementLeaser->echeance = $data['leaser_echeance'];
+		$doss->financementLeaser->reste = $data['leaser_reste'];
+		$doss->financementLeaser->date_debut = $data['leaser_date_debut'];
+		$doss->financementLeaser->frais_dossier = $data['leaser_frais_dossier'];
+		
+		if($doss->financementLeaser->date_prochaine_echeance < $doss->financementLeaser->date_debut) {
+			$doss->financementLeaser->date_prochaine_echeance = $data['leaser_date_debut'];
+		}
+		
+		// Création des factures leaser
+		if(!empty($doss->financementLeaser->reference) && $doss->financementLeaser->date_prochaine_echeance > 0) {
+			while($doss->financementLeaser->date_prochaine_echeance < time() && $doss->financementLeaser->numero_prochaine_echeance <= $doss->financementLeaser->duree) {
+				$this->_createFactureFournisseur($doss->financementLeaser, $doss, $affaire);
+				$doss->financementLeaser->setEcheance();
+			}
+		}
+		
+		$doss->save($ATMdb);
 	}
 
 	function _createFactureFournisseur(&$f, &$d, &$affaire) {

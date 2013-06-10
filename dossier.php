@@ -291,10 +291,10 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'reglement'=>$form->combo('', 'leaser[reglement]', $financementLeaser->TReglement , $financementLeaser->reglement)
 			,'incident_paiement'=>$form->combo('', 'leaser[incident_paiement]', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement)
 			
-			,'date_debut'=>$form->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
+			,'date_debut'=>$form->calendrier('', 'leaser[date_debut]', $financementLeaser->date_debut,10)
 			,'date_fin'=>$financementLeaser->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financementLeaser->date_prochaine_echeance>0) ? $financementLeaser->get_date('date_prochaine_echeance') : ''
-			,'date_solde'=>$form->calendrier('', 'leaser[date_solde]', $financementLeaser->get_date('date_solde'),10)
+			,'date_solde'=>$form->calendrier('', 'leaser[date_solde]', $financementLeaser->date_solde,10)
 						
 			,'leaser'=>($mode=='edit') ? $html->select_company($leaser->id,'leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->getNomUrl(1)
 			
@@ -330,10 +330,10 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'reglement'=>$form->combo('', 'reglement', $financement->TReglement , $financement->reglement)
 			,'incident_paiement'=>$form->combo('', 'incident_paiement', $financement->TIncidentPaiement , $financement->incident_paiement) 
 			
-			,'date_debut'=>$form->calendrier('', 'date_debut', $financement->get_date('date_debut'),10)
+			,'date_debut'=>$form->calendrier('', 'date_debut', $financement->date_debut,10)
 			,'date_fin'=>$financement->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financement->date_prochaine_echeance>0) ? $financement->get_date('date_prochaine_echeance') : ''
-			,'date_solde'=>$form->calendrier('', 'date_solde', $financement->get_date('date_solde'),10)
+			,'date_solde'=>$form->calendrier('', 'date_solde', $financement->date_solde,10)
 						
 			,'penalite_reprise'=>$form->texte('', 'penalite_reprise', $financement->penalite_reprise, 10,255,'','','à saisir') 
 			,'taux_commission'=>$form->texte('', 'taux_commission', $financement->taux_commission, 5,255,'','') 
@@ -381,7 +381,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			'dossier'=>array(
 				'id'=>$dossier->rowid
 				/*,'reference'=>$form->texte('', 'reference', $dossier->reference, 100,255,'','','à saisir')*/ 
-				,'date_relocation'=>$form->calendrier('', 'date_relocation', $dossier->get_date('date_relocation'),10)
+				,'date_relocation'=>$form->calendrier('', 'date_relocation', $dossier->date_relocation,10)
 				,'commentaire'=>$form->zonetexte('', 'commentaire', $dossier->commentaire,100,5,'')
 				,'date_maj'=>$dossier->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$dossier->get_date('date_cre','d/m/Y')
