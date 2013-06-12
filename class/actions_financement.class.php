@@ -81,6 +81,19 @@ class ActionsFinancement
 
         }
 		
-		
+		// Affichage du dossier de financement relatif à la facture de location ou de l'affaire relative à la facture de matériel
+		if (in_array('invoicecard',explode(':',$parameters['context']))) {
+			$sql = "SELECT sourcetype, fk_source FROM llx_element_element WHERE fk_target=".$object->id." AND targettype='facture'";
+			if($resql=$db->query($sql)) {
+				$obj = $db->fetch_object($resql);
+				if($obj->sourcetype == 'affaire') {
+					$link = '<a href="'.DOL_URL_ROOT_ALT.'/financement/affaire.php?id='.$obj->fk_source.'">Voir l\'affaire</a>';
+					echo '<tr><td >Facture de matériel</td><td'.$parameters['colspan'].'>'.$link.'</td></tr>';
+				} else if($obj->sourcetype == 'dossier') {
+					$link = '<a href="'.DOL_URL_ROOT_ALT.'/financement/dossier.php?id='.$obj->fk_source.'">Voir le dossier de financement</a>';
+					echo '<tr><td >Facture de location</td><td'.$parameters['colspan'].'>'.$link.'</td></tr>';
+				}
+			}
+		}
 	}
 }
