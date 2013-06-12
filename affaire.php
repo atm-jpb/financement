@@ -270,10 +270,10 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		$product = new Product($db);
 		$product->fetch($link->asset->fk_product);
 		
-		$row['produit'] = '<a href="'.DOL_URL_ROOT.'/product/fiche.php?id='.$link->asset->fk_product.'">'.img_picto('','object_product.png', '', 0).' '.$product->label.'</a>';
+		$row['produit'] = $product->getNomUrl(true).' '.$product->label;
 		$row['facture'] = '';
 		
-		$TIdFacture = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'asset_link',array('fk_asset'=>$link->asset->getId(), 'type_document'=>'facture'));
+		$TIdFacture = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'asset_link',array('fk_asset'=>$link->asset->getId(), 'type_document'=>'facture'),'fk_document');
 		if(!empty($TIdFacture[0])) {
 			$facture = new Facture($db);
 			$facture->fetch($TIdFacture[0]);
@@ -282,7 +282,6 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		}
 		
 		$TAsset[]=$row;
-		
 	}
 	
 	/*

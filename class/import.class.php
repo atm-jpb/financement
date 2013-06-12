@@ -882,6 +882,7 @@ class TImport extends TObjetStd {
 		$doss->financement->loyer_intercalaire = $data['loyer_intercalaire'];
 		$doss->financement->frais_dossier = $data['frais_dossier'];
 		$doss->financement->assurance = $data['assurance'];
+		$doss->financement->date_solde = $data['date_solde'];
 		
 		if($doss->financement->date_prochaine_echeance < $doss->financement->date_debut) {
 			$doss->financement->date_prochaine_echeance = $data['date_debut'];
