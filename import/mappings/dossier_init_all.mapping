@@ -24,6 +24,8 @@
 25=leaser_reste
 26=leaser_periodicite
 
+29=date_solde
+
 [more]
 
 [format]
@@ -39,6 +41,7 @@ leaser_montant=float
 leaser_reste=float
 leaser_frais_dossier=float
 leaser_date_debut=date
+date_solde=date
 
 [transco]
 periodicite=1
