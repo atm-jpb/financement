@@ -192,6 +192,13 @@ class TImport extends TObjetStd {
 				$dossier->financementLeaser->{$key} = $value;
 			}
 			$dossier->financementLeaser->fk_soc = $data['idLeaser'];
+			
+			// Spécifiques BNP
+			if(in_array($dossier->financementLeaser->fk_soc, array(3382,19553,20113))) {
+				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
+			}
+			
+			
 		} else { // Dossier interne => Vérification des informations
 			$echeance = $data['echeance'];
 			$montant = $data['montant'];
