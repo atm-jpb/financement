@@ -205,8 +205,12 @@ class TImport extends TObjetStd {
 			$date_debut =$data['date_debut'];
 			$date_fin = $data['date_fin'];
 			
-			if($echeance != $dossier->financementLeaser->echeance || $montant != $dossier->financementLeaser->montant
-				|| $date_debut != $dossier->financementLeaser->date_debut || $date_fin != $dossier->financementLeaser->date_fin) {
+			if(
+					$echeance != $dossier->financementLeaser->echeance
+					|| $montant != $dossier->financementLeaser->montant
+					|| $date_debut != $dossier->financementLeaser->date_debut
+					//|| $date_fin != $dossier->financementLeaser->date_fin
+				) {
 				$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], 'WARNING');
 				return false;
 			}
