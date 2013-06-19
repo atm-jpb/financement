@@ -215,7 +215,7 @@ class TImport extends TObjetStd {
 				return false;
 			}
 			else {
-				$dossier->financementLeaser->okPourFacturation=1;
+				$dossier->financementLeaser->okPourFacturation='OUI';
 			}
 		}
 		
