@@ -192,19 +192,30 @@ class TImport extends TObjetStd {
 				$dossier->financementLeaser->{$key} = $value;
 			}
 			$dossier->financementLeaser->fk_soc = $data['idLeaser'];
+			
+			// Spécifiques BNP
+			if(in_array($dossier->financementLeaser->fk_soc, array(3382,19553,20113))) {
+				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
+			}
+			
+			
 		} else { // Dossier interne => Vérification des informations
 			$echeance = $data['echeance'];
 			$montant = $data['montant'];
 			$date_debut =$data['date_debut'];
 			$date_fin = $data['date_fin'];
 			
-			if($echeance != $dossier->financementLeaser->echeance || $montant != $dossier->financementLeaser->montant
-				|| $date_debut != $dossier->financementLeaser->date_debut || $date_fin != $dossier->financementLeaser->date_fin) {
+			if(
+					$echeance != $dossier->financementLeaser->echeance
+					|| $montant != $dossier->financementLeaser->montant
+					|| $date_debut != $dossier->financementLeaser->date_debut
+					//|| $date_fin != $dossier->financementLeaser->date_fin
+				) {
 				$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], 'WARNING');
 				return false;
 			}
 			else {
-				$dossier->financementLeaser->okPourFacturation=1;
+				$dossier->financementLeaser->okPourFacturation='OUI';
 			}
 		}
 		

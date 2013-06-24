@@ -731,7 +731,7 @@ class TFin_financement extends TObjetStd {
 		return false;
 	
 	}
-	private function getiPeriode() {
+	function getiPeriode() {
 		if($this->periodicite=='TRIMESTRE')$iPeriode=3;
 		else if($this->periodicite=='ANNEE')$iPeriode=12;
 		else $iPeriode = 1;
