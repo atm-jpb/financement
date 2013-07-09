@@ -85,7 +85,7 @@ class modFinancement extends DolibarrModules
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@financement')) // Set here all workflow context managed by module
 		//                        );
 		$this->module_parts = array(
-			'hooks'=>array('thirdpartycard','salesrepresentativescard','invoicecard')
+			'hooks'=>array('thirdpartycard','salesrepresentativescard','invoicecard','invoicesuppliercard')
 		);
 
 		// Data directories to create when module is enabled.
@@ -481,6 +481,20 @@ class modFinancement extends DolibarrModules
 								'mainmenu'=>'financement',
 								'leftmenu'=>'dossier_list',
 								'url'=>'/financement/dossier.php',
+								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+								'position'=>415,
+								'enabled'=>'$conf->financement->enabled && $user->rights->financement->allsimul->calcul',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'perms'=>'$user->rights->financement->allsimul->calcul',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'target'=>'',
+								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+								'type'=>'left',			                // This is a Left menu entry
+								'titre'=>'Dossiers incomplet',
+								'mainmenu'=>'financement',
+								'leftmenu'=>'dossier_list',
+								'url'=>'/financement/dossier.php?liste_incomplet',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>415,
 								'enabled'=>'$conf->financement->enabled && $user->rights->financement->allsimul->calcul',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.

@@ -17,6 +17,7 @@ nom_du_leaser=ge
 date_debut=date
 echeance=float
 montant=float
+montant_prestation=float
 reste=float
 
 [more]
