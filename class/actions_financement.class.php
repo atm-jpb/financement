@@ -95,5 +95,17 @@ class ActionsFinancement
 				}
 			}
 		}
+		
+		// Affichage du dossier de financement relatif à la facture fournisseur
+		if (in_array('invoicesuppliercard',explode(':',$parameters['context']))) {
+			$sql = "SELECT sourcetype, fk_source FROM llx_element_element WHERE fk_target=".$object->id." AND targettype='invoice_supplier'";
+			if($resql=$db->query($sql)) {
+				$obj = $db->fetch_object($resql);
+				if($obj->sourcetype == 'dossier') {
+					$link = '<a href="'.DOL_URL_ROOT_ALT.'/financement/dossier.php?id='.$obj->fk_source.'">Voir le dossier de financement</a>';
+					echo '<tr><td >Facture de loyer leaser</td><td'.$parameters['colspan'].'>'.$link.'</td></tr>';
+				}
+			}
+		}
 	}
 }
