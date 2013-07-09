@@ -688,7 +688,7 @@ class TFin_financement extends TObjetStd {
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (da.fk_fin_dossier = d.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid) ";
-		if(strlen($siren) == 14) $sql.= "WHERE s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."'";
+		if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."')";
 		else $sql.= "WHERE s.siren = '".$siren."' ";
 		$sql.= "AND df.type = 'LEASER' ";
 		//$sql.= "AND df.date_solde = '0000-00-00 00:00:00'";
@@ -715,7 +715,26 @@ class TFin_financement extends TObjetStd {
 				$a->load($db, $idAffaire);
 				$a->addDossier($db, $d->getId());
 				return true;
-			} else { // Impossible de créer le dossier
+			} else if($db->Get_Recordcount() == 0) { // Création d'une affaire pour création dossier fin externe
+				$TIdClient = TRequeteCore::get_id_from_what_you_want($db, MAIN_DB_PREFIX."societe", array('siren'=>substr($siren, 0, 9)));
+				if(!empty($TIdClient[0])) {
+					$d=new TFin_dossier;
+					$d->financementLeaser = &$this;
+					$d->save($db);
+					
+					$idClient = $TIdClient[0];
+					$a=new TFin_affaire();
+					$a->reference = 'EXT-'.date('ymd');
+					$a->montant = $montant;
+					$a->fk_soc = $idClient;
+					$a->nature_financement = 'EXTERNE';
+					$a->addDossier($db, $d->getId());
+					$a->save($db);
+					return true;
+				} else {
+					return false;
+				}
+			} else {
 				return false;
 			}
 			
@@ -724,8 +743,11 @@ class TFin_financement extends TObjetStd {
 			$idDossierFin = $db->Get_field('idDossierLeaser');
 			$this->load($db, $idDossierFin);
 			return true;
-		} else { // Plusieurs dossiers trouvé correspondant, impossible de savoir lequel il faut utiliser
-			return false;
+		} else { // Plusieurs dossiers trouvé correspondant, utilisation du premier trouvé
+			$db->Get_line();
+			$idDossierFin = $db->Get_field('idDossierLeaser');
+			$this->load($db, $idDossierFin);
+			return true;
 		}
 
 		return false;
