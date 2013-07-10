@@ -326,7 +326,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'numero_prochaine_echeance'=>$financement->numero_prochaine_echeance 
 			,'duree'=>$form->texte('', 'duree', $financement->duree, 5,255,'','','à saisir')
 								
-			,'terme'=>$form->combo('', 'leaser[terme]', $financement->TTerme , $financement->terme)
+			,'terme'=>$form->combo('', 'terme', $financement->TTerme , $financement->terme)
 			,'periodicite'=>$form->combo('', 'periodicite', $financement->TPeriodicite , $financement->periodicite)
 			,'reglement'=>$form->combo('', 'reglement', $financement->TReglement , $financement->reglement)
 			,'incident_paiement'=>$form->combo('', 'incident_paiement', $financement->TIncidentPaiement , $financement->incident_paiement) 
