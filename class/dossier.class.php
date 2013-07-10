@@ -444,10 +444,9 @@ class TFin_dossier extends TObjetStd {
 		$capital_restant = $capital_restant_init;
 		$TLigne=array();
 		
+		$time = $f->date_debut;
+		
 		for($i=0; $i<$f->duree; $i++) {
-			
-			$time = strtotime('+'.($i*3).' month',  $f->date_debut);
-			
 			$capital_amortit = $f->amortissement_echeance( $i + 1 );
 			$part_interet = $f->echeance -$capital_amortit;
 
@@ -506,6 +505,8 @@ class TFin_dossier extends TObjetStd {
 			$data['soldes'] = htmlentities($htmlSoldes);
 			
 			$TLigne[] = $data;
+			
+			$time = strtotime('+'.($f->getiPeriode()).' month',  $time);
 		}
 		$f->somme_echeance = $total_loyer;
 		$total_loyer += $f->reste;
