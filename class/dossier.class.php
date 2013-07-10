@@ -446,7 +446,7 @@ class TFin_dossier extends TObjetStd {
 		
 		for($i=0; $i<$f->duree; $i++) {
 			
-			$time = strtotime('+'.($i*3).' month',  $f->date_debut);
+			$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut);
 			
 			$capital_amortit = $f->amortissement_echeance( $i + 1 );
 			$part_interet = $f->echeance -$capital_amortit;
