@@ -1,15 +1,15 @@
 nom_du_leaser=lixxbail
 
 [mapping]
-22=siren
-3=reference
-6=date_debut
-8=montant
-9=duree
-10=echeance
-14=reste
-11=periodicite
-12=terme
+23=siren
+4=reference
+7=date_debut
+9=montant
+10=duree
+11=echeance
+15=reste
+12=periodicite
+13=terme
 
 [format]
 date_debut=date
@@ -24,6 +24,8 @@ terme=1
 [periodicite]
 MENSUEL=MOIS
 TRIMESTRIEL=TRIMESTRE
+SEMESTRIEL=SEMESTRE
+ANNUEL=ANNEE
 
 [terme]
 A échoir=1
