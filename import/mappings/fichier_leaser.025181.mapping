@@ -13,8 +13,8 @@ nom_du_leaser=lixxbail
 12=terme
 
 [format]
-date_debut=dateYYYYMMDD
-date_fin=dateYYYYMMDD
+date_debut=date
+date_fin=date
 echeance=float
 montant=float
 reste=float

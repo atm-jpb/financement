@@ -700,7 +700,8 @@ class TFin_financement extends TObjetStd {
 		$sql.= "AND df.type = 'LEASER' ";
 		//$sql.= "AND df.date_solde = '0000-00-00 00:00:00'";
 		$sql.= "AND df.reference = '' ";
-		$sql.= "AND a.montant = ".$montant;
+		$sql.= "AND a.montant >= ".($montant - 0.01);
+		$sql.= "AND a.montant <= ".($montant + 0.01);
 		
 		$db->Execute($sql); // Recherche d'un dossier leaser en cours sans référence et dont le montant de l'affaire correspond
 		if($db->Get_Recordcount() == 0) { // Aucun dossier trouvé, on essaye de le créer
@@ -709,7 +710,8 @@ class TFin_financement extends TObjetStd {
 			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
 			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."')";
 			else $sql.= "WHERE s.siren = '".$siren."' ";
-			$sql.= "AND a.solde = '".$montant."'";
+			$sql.= "AND a.solde >= ".($montant - 0.01);
+			$sql.= "AND a.solde <= ".($montant + 0.01);
 			
 			$db->Execute($sql); // Recherche d'une affaire sans dossier pour création du dossier
 			if($db->Get_Recordcount() == 1) { // Une seule affaire trouvée OK, on créé
