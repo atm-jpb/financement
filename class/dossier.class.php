@@ -640,6 +640,7 @@ class TFin_financement extends TObjetStd {
 			'NON'=>'Non'
 			,'OUI'=>'Oui'
 			,'AUTO'=>'Toujours'
+			,'MANUEL'=>'Manuel'
 		);
 		
 		$this->date_solde=0;
