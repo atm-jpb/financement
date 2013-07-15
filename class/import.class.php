@@ -205,16 +205,22 @@ class TImport extends TObjetStd {
 				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
 			}
 			
-			
+			// Calcul de la date et du numéro de prochaine échéance
+			if(!empty($dossier->financementLeaser->reference) && $dossier->financementLeaser->date_prochaine_echeance > 0) {
+				while($dossier->financementLeaser->date_prochaine_echeance < time() && $dossier->financementLeaser->numero_prochaine_echeance <= $dossier->financementLeaser->duree) {
+					$dossier->financementLeaser->setEcheance();
+				}
+			}
 		} else { // Dossier interne => Vérification des informations
 			$echeance = $data['echeance'];
 			$montant = $data['montant'];
-			$date_debut =$data['date_debut'];
+			$date_debut = $data['date_debut'];
 			$date_fin = $data['date_fin'];
 			
 			if(
 					$echeance != $dossier->financementLeaser->echeance
-					|| $montant != $dossier->financementLeaser->montant
+					|| $montant > ($dossier->financementLeaser->montant + 0.01)
+					|| $montant < ($dossier->financementLeaser->montant - 0.01)
 					|| $date_debut != $dossier->financementLeaser->date_debut
 					//|| $date_fin != $dossier->financementLeaser->date_fin
 				) {
