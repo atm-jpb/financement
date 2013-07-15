@@ -200,6 +200,11 @@ class TImport extends TObjetStd {
 				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
 			}
 			
+			// Spécifique GE
+			if(in_array($dossier->financementLeaser->fk_soc, array(7411))) {
+				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
+			}
+			
 			
 		} else { // Dossier interne => Vérification des informations
 			$echeance = $data['echeance'];
