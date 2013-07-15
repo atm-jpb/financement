@@ -4,7 +4,6 @@ nom_du_leaser=lixxbail
 22=siren
 3=reference
 6=date_debut
-7=date_fin
 8=montant
 9=duree
 10=echeance
@@ -14,7 +13,6 @@ nom_du_leaser=lixxbail
 
 [format]
 date_debut=date
-date_fin=date
 echeance=float
 montant=float
 reste=float
