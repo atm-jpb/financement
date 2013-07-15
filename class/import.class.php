@@ -205,8 +205,13 @@ class TImport extends TObjetStd {
 				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
 			}
 			
+			// Spécifique LIXXBAIL
+			if(in_array($dossier->financementLeaser->fk_soc, array(6065,19068,19483))) {
+				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
+			}
+			
 			// Calcul de la date et du numéro de prochaine échéance
-			if(!empty($dossier->financementLeaser->reference) && $dossier->financementLeaser->date_prochaine_echeance > 0) {
+			if(!empty($dossier->financementLeaser->reference)) {
 				while($dossier->financementLeaser->date_prochaine_echeance < time() && $dossier->financementLeaser->numero_prochaine_echeance <= $dossier->financementLeaser->duree) {
 					$dossier->financementLeaser->setEcheance();
 				}
@@ -333,8 +338,6 @@ class TImport extends TObjetStd {
 			$facture_mat->fk_facture_source = $avoirid;
 		}
 		
-		
-			
 		// Création des liens
 		$affaire = new TFin_affaire;
 		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
@@ -484,16 +487,12 @@ class TImport extends TObjetStd {
 			// Création des liens
 			$financement=new TFin_financement;
 			if($financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
-				/* OK */
-				$dossier=new TFin_dossier;
-				$dossier->load($ATMdb, $financement->fk_fin_dossier);
-				
 				$nb = ($facture_loc->type == 2) ? -1 : 1;
 				$financement->setEcheance($nb);
 				$financement->save($ATMdb);
 	
 				// Création du lien entre dossier et facture
-				$facture_loc->linked_objects['dossier'] = $dossier->getId();
+				$facture_loc->linked_objects['dossier'] = $financement->fk_fin_dossier;
 			} else {
 				$dossier = new TFin_dossier;
 				if($dossier->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'])) { // Dossier trouvé, financement non => erreur de qualification (EXTERNE) 
@@ -530,9 +529,12 @@ class TImport extends TObjetStd {
 				}
 			}
 			
+			// On repasse en brouillon pour supprimer les lignes
+			$facture_loc->set_draft($user);
+			
 			// On supprime les lignes (pour ne pas créer de ligne en double)
 			foreach ($facture_loc->lines as $line) {
-				$facture_loc->deleteline($line->id);
+				$facture_loc->deleteline($line->rowid);
 			}
 			
 			// Permet d'éviter de faire plusieurs fois les même actions sur une même facture
