@@ -444,9 +444,10 @@ class TFin_dossier extends TObjetStd {
 		$capital_restant = $capital_restant_init;
 		$TLigne=array();
 		
-		$time = $f->date_debut;
-		
 		for($i=0; $i<$f->duree; $i++) {
+			
+			$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut);
+			
 			$capital_amortit = $f->amortissement_echeance( $i + 1 );
 			$part_interet = $f->echeance -$capital_amortit;
 
@@ -505,8 +506,6 @@ class TFin_dossier extends TObjetStd {
 			$data['soldes'] = htmlentities($htmlSoldes);
 			
 			$TLigne[] = $data;
-			
-			$time = strtotime('+'.($f->getiPeriode()).' month',  $time);
 		}
 		$f->somme_echeance = $total_loyer;
 		$total_loyer += $f->reste;
@@ -641,6 +640,7 @@ class TFin_financement extends TObjetStd {
 			'NON'=>'Non'
 			,'OUI'=>'Oui'
 			,'AUTO'=>'Toujours'
+			,'MANUEL'=>'Manuel'
 		);
 		
 		$this->date_solde=0;
@@ -651,11 +651,18 @@ class TFin_financement extends TObjetStd {
 	 * Augmente de nb periode la date de prochaine échéance et de nb le numéro de prochaine échéance
 	 */
 	function setEcheance($nb=1) {
-		$this->date_prochaine_echeance = strtotime(($nb * $this->getiPeriode()).' month', $this->date_prochaine_echeance);
+		$this->duree_passe = $this->numero_prochaine_echeance-1;
+		$this->duree_restante = $this->duree - $this->duree_passe;
+		$this->numero_prochaine_echeance += $nb;
+		
+		$this->date_prochaine_echeance = strtotime(($this->numero_prochaine_echeance * $this->getiPeriode()).' month', $this->date_debut);
+		
+		
+		/*$this->date_prochaine_echeance = strtotime(($nb * $this->getiPeriode()).' month', $this->date_prochaine_echeance);
 		$this->numero_prochaine_echeance += $nb;
 		
 		$this->duree_passe = $this->numero_prochaine_echeance-1;
-		$this->duree_restante = $this->duree - $this->duree_passe;
+		$this->duree_restante = $this->duree - $this->duree_passe;*/
 	}
 
 	function load_reglement() {
@@ -694,15 +701,18 @@ class TFin_financement extends TObjetStd {
 		$sql.= "AND df.type = 'LEASER' ";
 		//$sql.= "AND df.date_solde = '0000-00-00 00:00:00'";
 		$sql.= "AND df.reference = '' ";
-		$sql.= "AND a.montant = ".$montant;
+		$sql.= "AND a.montant >= ".($montant - 0.01);
+		$sql.= "AND a.montant <= ".($montant + 0.01);
 		
 		$db->Execute($sql); // Recherche d'un dossier leaser en cours sans référence et dont le montant de l'affaire correspond
 		if($db->Get_Recordcount() == 0) { // Aucun dossier trouvé, on essaye de le créer
 			$sql = "SELECT a.rowid, a.montant ";
 			$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
-			$sql.= "WHERE s.siren = '".$siren."' ";
-			$sql.= "AND a.solde = '".$montant."'";
+			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."')";
+			else $sql.= "WHERE s.siren = '".$siren."' ";
+			$sql.= "AND a.solde >= ".($montant - 0.01);
+			$sql.= "AND a.solde <= ".($montant + 0.01);
 			
 			$db->Execute($sql); // Recherche d'une affaire sans dossier pour création du dossier
 			if($db->Get_Recordcount() == 1) { // Une seule affaire trouvée OK, on créé
@@ -725,7 +735,7 @@ class TFin_financement extends TObjetStd {
 					
 					$idClient = $TIdClient[0];
 					$a=new TFin_affaire();
-					$a->reference = 'EXT-'.date('ymd');
+					$a->reference = 'EXT-'.date('ymd').'-'.$idClient;
 					$a->montant = $montant;
 					$a->fk_soc = $idClient;
 					$a->nature_financement = 'EXTERNE';
