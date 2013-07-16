@@ -444,9 +444,16 @@ class TFin_dossier extends TObjetStd {
 		$capital_restant = $capital_restant_init;
 		$TLigne=array();
 		
+		if($f->loyer_intercalaire > 0) {
+			$nextPeriod = strtotime('+'.($f->getiPeriode()).' month',  $f->date_debut);
+			$p = $f->getiPeriode();
+			$firstDayOfNextPeriod = strtotime( strftime( '%Y' , $nextPeriod) . '-' . ( ceil( strftime( '%m' , $nextPeriod)/$p )*$p-($p-1) ).'-1');
+			$calage = $firstDayOfNextPeriod - $f->date_debut;
+		}
+		
 		for($i=0; $i<$f->duree; $i++) {
 			
-			$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut);
+			$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut + $calage);
 			
 			$capital_amortit = $f->amortissement_echeance( $i + 1 );
 			$part_interet = $f->echeance -$capital_amortit;
@@ -524,6 +531,7 @@ class TFin_dossier extends TObjetStd {
 			,'total_facture'=>$total_facture
 			,'loyer_intercalaire'=>$f->loyer_intercalaire
 			,'nature_financement'=>$this->nature_financement
+			,'date_debut'=>date('d/m/Y', $f->date_debut)
 		);
 		
 		if($f->loyer_intercalaire > 0) {
@@ -651,11 +659,11 @@ class TFin_financement extends TObjetStd {
 	 * Augmente de nb periode la date de prochaine échéance et de nb le numéro de prochaine échéance
 	 */
 	function setEcheance($nb=1) {
+		$this->numero_prochaine_echeance += $nb;
 		$this->duree_passe = $this->numero_prochaine_echeance-1;
 		$this->duree_restante = $this->duree - $this->duree_passe;
-		$this->numero_prochaine_echeance += $nb;
 		
-		$this->date_prochaine_echeance = strtotime(($this->numero_prochaine_echeance * $this->getiPeriode()).' month', $this->date_debut);
+		$this->date_prochaine_echeance = strtotime(($this->duree_passe * $this->getiPeriode()).' month', $this->date_debut);
 		
 		
 		/*$this->date_prochaine_echeance = strtotime(($nb * $this->getiPeriode()).' month', $this->date_prochaine_echeance);
