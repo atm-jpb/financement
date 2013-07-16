@@ -14,7 +14,15 @@
 	</tr>
 
 	<tr class="pair">
+		[onshow; block=begin; when [autre.loyer_intercalaire]!=0]
+		<td>&nbsp;</td>
+		<td>[autre.date_debut]</td>
+		[onshow;block=end]
+		
+		[onshow; block=begin; when [autre.loyer_intercalaire]==0]
 		<td colspan="2">&nbsp;</td>
+		[onshow;block=end]
+		
 		<td align="right"><strong>[autre.capitalInit; frm=0 000,00] &euro;</strong></td>
 		[onshow; block=begin; when [autre.loyer_intercalaire]!=0]
 		
