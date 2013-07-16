@@ -193,7 +193,7 @@ $var=true;
 <tr>
 	<td>Génération des factures Leaser</td>
 	<td colspan="2">
-		<a href="../script/create-facture-leaser.php?with-auto-facture" target="_blank">Lancer le script</a>
+		<a href="../script/create-facture-leaser.php" target="_blank">Lancer le script</a>
 	</td>
 </tr>
 <?
