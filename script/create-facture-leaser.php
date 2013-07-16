@@ -24,52 +24,30 @@ $ATMdb=new Tdb;
 /*
  * Création des factures bon pour facturation
  */
-$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'fin_dossier_financement',array('okPourFacturation'=>'OUI', 'date_solde'=>'0000-00-00 00:00:00'));
+$TabOui = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'fin_dossier_financement',array('okPourFacturation'=>'OUI', 'date_solde'=>'0000-00-00 00:00:00'));
+$TabAuto = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'fin_dossier_financement',array('okPourFacturation'=>'AUTO', 'date_solde'=>'0000-00-00 00:00:00'));
+$TabManuel = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'fin_dossier_financement',array('okPourFacturation'=>'MANUEL', 'date_solde'=>'0000-00-00 00:00:00'));
+$Tab = array_merge($TabOui, $TabAuto, $TabManuel);
 
 foreach($Tab as $id) {
-	
 	$f=new TFin_financement;
 	$f->load($ATMdb, $id);
 	
-	if($f->date_prochaine_echeance < time() && $f->numero_prochaine_echeance <= $f->duree) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
-		$d=new TFin_dossier;
-		$d->load($ATMdb, $f->fk_dossier);
+	$d=new TFin_dossier;
+	$d->load($ATMdb, $f->fk_dossier);
+	
+	while($f->date_prochaine_echeance < time() && $f->numero_prochaine_echeance <= $f->duree) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
+		$paid = $f->okPourFacturation == 'MANUEL' ? true : false;
+		_createFacture($f, $d, $paid);
 		
-		_createFacture($f, $d);
-		
-		$f->okPourFacturation='NON';
+		if($f->okPourFacturation == 'OUI') $f->okPourFacturation='NON';
 		$f->setEcheance();
-		
-		$f->save($ATMdb);
 	}
+	
+	$f->save($ATMdb);
 }
 
-if(isset($_REQUEST['with-auto-facture'])) {
-/*
- * Création des factures non contrôlée par import Leaser le 1er de chaque mois
- */		
-
-	$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'fin_dossier_financement',array('okPourFacturation'=>'AUTO', 'date_solde'=>'0000-00-00 00:00:00'));
-	
-	foreach($Tab as $id) {
-		
-		$f=new TFin_financement;
-		$f->load($ATMdb, $id);
-		
-		if($f->date_prochaine_echeance < time() && $f->numero_prochaine_echeance <= $f->duree) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
-			$d=new TFin_dossier;
-			$d->load($ATMdb, $f->fk_dossier);
-			
-			_createFacture($f, $d);
-			
-			$f->setEcheance();
-			
-			$f->save($ATMdb);
-		}
-	}
-}
-	
-function _createFacture(&$f, &$d) {
+function _createFacture(&$f, &$d, $paid = false) {
 	global $user, $db, $conf;
 	
 	$tva = (FIN_TVA_DEFAUT-1)*100;
@@ -102,7 +80,9 @@ function _createFacture(&$f, &$d) {
 
 	$result=$object->validate($user,'',0);
 	
-	// $result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
+	if($paid) {
+		$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
+	}
 	
 	print "Création facture fournisseur ($id) : ".$object->ref."<br/>";
 }
