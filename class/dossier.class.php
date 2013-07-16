@@ -223,7 +223,7 @@ class TFin_dossier extends TObjetStd {
 		$this->marge_reelle = $this->getMargeReelle();
 	}
 		
-	function load_facture(&$ATMdb) {
+	function load_facture(&$ATMdb, $all=false) {
 		global $db;
 		$this->somme_facture = 0;
 		$this->somme_facture_reglee=0;
@@ -243,17 +243,21 @@ class TFin_dossier extends TObjetStd {
 			$fact->fetch($ATMdb->Get_field('fk_target'));
 			if($fact->socid == $this->financementLeaser->fk_soc) continue; // Facture matériel associée au leaser, ne pas prendre en compte comme une facture client au sens CPRO
 			
-			$facidavoir=$fact->getListIdAvoirFromInvoice();
-			//$totalht = $fact->total_ht;
-			foreach ($facidavoir as $idAvoir) {
-				$avoir = new Facture($db);
-				$avoir->fetch($idAvoir);
-				$fact->total_ht += $avoir->total_ht;
-			}
-			
-			if($fact->type == 0 && $fact->total_ht > 0) { // Récupération uniquement des factures standard et sans avoir qui l'annule complètement
-				$this->somme_facture += $fact->total_ht;
-				if($fact->statut == 2) $this->somme_facture_reglee += $fact->total_ht;
+			if(!$all) {
+				$facidavoir=$fact->getListIdAvoirFromInvoice();
+				//$totalht = $fact->total_ht;
+				foreach ($facidavoir as $idAvoir) {
+					$avoir = new Facture($db);
+					$avoir->fetch($idAvoir);
+					$fact->total_ht += $avoir->total_ht;
+				}
+				
+				if($fact->type == 0 && $fact->total_ht > 0) { // Récupération uniquement des factures standard et sans avoir qui l'annule complètement
+					$this->somme_facture += $fact->total_ht;
+					if($fact->statut == 2) $this->somme_facture_reglee += $fact->total_ht;
+					$this->TFacture[] = $fact;
+				}
+			} else {
 				$this->TFacture[] = $fact;
 			}
 		}
@@ -737,7 +741,7 @@ class TFin_financement extends TObjetStd {
 					$a->addDossier($db, $d->getId());
 					$a->save($db);
 				} else {
-					return false; // Affaire interne mais dossier non trouvé selon les conditions définies
+					return false; // Affaire interne mais dossier non trouvé selon les conditions définies, erreur à régler
 				}
 				return true;
 			} else if($db->Get_Recordcount() == 0) { // Création d'une affaire pour création dossier fin externe
