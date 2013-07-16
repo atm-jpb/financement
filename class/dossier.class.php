@@ -704,41 +704,47 @@ class TFin_financement extends TObjetStd {
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (da.fk_fin_dossier = d.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid) ";
-		if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."')";
+		if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."') ";
 		else $sql.= "WHERE s.siren = '".$siren."' ";
 		$sql.= "AND df.type = 'LEASER' ";
 		//$sql.= "AND df.date_solde = '0000-00-00 00:00:00'";
-		$sql.= "AND df.reference = '' ";
-		$sql.= "AND a.montant >= ".($montant - 0.01);
-		$sql.= "AND a.montant <= ".($montant + 0.01);
+		$sql.= "AND (df.reference = '' OR df.reference IS NULL) ";
+		$sql.= "AND a.montant >= ".($montant - 0.01)." ";
+		$sql.= "AND a.montant <= ".($montant + 0.01)." ";
 		
 		$db->Execute($sql); // Recherche d'un dossier leaser en cours sans référence et dont le montant de l'affaire correspond
 		if($db->Get_Recordcount() == 0) { // Aucun dossier trouvé, on essaye de le créer
 			$sql = "SELECT a.rowid, a.montant ";
 			$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
-			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."')";
+			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."') ";
 			else $sql.= "WHERE s.siren = '".$siren."' ";
-			$sql.= "AND a.solde >= ".($montant - 0.01);
-			$sql.= "AND a.solde <= ".($montant + 0.01);
+			$sql.= "AND a.solde >= ".($montant - 0.01)." ";
+			$sql.= "AND a.solde <= ".($montant + 0.01)." ";
 			
-			$db->Execute($sql); // Recherche d'une affaire sans dossier pour création du dossier
+			$db->Execute($sql); // Recherche d'une affaire sans dossier pour création du dossier EXTERNE
 			if($db->Get_Recordcount() == 1) { // Une seule affaire trouvée OK, on créé
 				$idAffaire = $db->Get_field('rowid');
-
-				$d=new TFin_dossier;
-				$d->financementLeaser = &$this;
-				$d->save($db);
 				
 				$a=new TFin_affaire();
 				$a->load($db, $idAffaire);
-				$a->addDossier($db, $d->getId());
+				
+				if($a->nature_financement == 'EXTERNE') { // Si affaire externe, OK on créé le dossier, le financement sera rempli par la suite.
+					$d=new TFin_dossier;
+					$d->financementLeaser = $this;
+					$d->save($db);
+					
+					$a->addDossier($db, $d->getId());
+					$a->save($db);
+				} else {
+					return false; // Affaire interne mais dossier non trouvé selon les conditions définies
+				}
 				return true;
 			} else if($db->Get_Recordcount() == 0) { // Création d'une affaire pour création dossier fin externe
 				$TIdClient = TRequeteCore::get_id_from_what_you_want($db, MAIN_DB_PREFIX."societe", array('siren'=>substr($siren, 0, 9)));
 				if(!empty($TIdClient[0])) {
 					$d=new TFin_dossier;
-					$d->financementLeaser = &$this;
+					$d->financementLeaser = $this;
 					$d->save($db);
 					
 					$idClient = $TIdClient[0];
