@@ -196,7 +196,7 @@ class TFin_grille_leaser extends TObjetStd {
 			
 			if($idCoeff==0) {
 				$this->TGrille[$periode][$montant]=array(
-					'rowid'=>$grilleLigne->id
+					'rowid'=>$grilleLigne->getId()
 					,'coeff'=>$coeff
 					,'echeance'=>0
 					,'periode'=>$periode
