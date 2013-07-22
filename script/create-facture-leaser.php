@@ -34,7 +34,7 @@ foreach($Tab as $id) {
 	$f->load($ATMdb, $id);
 	
 	$d=new TFin_dossier;
-	$d->load($ATMdb, $f->fk_dossier);
+	$d->load($ATMdb, $f->fk_fin_dossier);
 	
 	while($f->date_prochaine_echeance < time() && $f->numero_prochaine_echeance <= $f->duree) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
 		$paid = $f->okPourFacturation == 'MANUEL' ? true : false;
