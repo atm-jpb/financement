@@ -36,6 +36,8 @@ foreach($Tab as $id) {
 	$d=new TFin_dossier;
 	$d->load($ATMdb, $f->fk_fin_dossier);
 	
+	echo 'Contrat client : '.$d->reference_contrat_interne.' - Contrat leaser : '.$f->reference.'<br />';
+	
 	while($f->date_prochaine_echeance < time() && $f->numero_prochaine_echeance <= $f->duree) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
 		$paid = $f->okPourFacturation == 'MANUEL' ? true : false;
 		_createFacture($f, $d, $paid);
@@ -43,6 +45,8 @@ foreach($Tab as $id) {
 		if($f->okPourFacturation == 'OUI') $f->okPourFacturation='NON';
 		$f->setEcheance();
 	}
+
+	echo '<hr>';
 	
 	$f->save($ATMdb);
 }
@@ -66,7 +70,7 @@ function _createFacture(&$f, &$d, $paid = false) {
 	
 	if($f->duree_passe==0) {
 		/* Ajoute les frais de dossier uniquement sur la 1ère facture */
-		print "Ajout des frais de dossier<br>";
+		print "Ajout des frais de dossier<br />";
 		$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
 	}
 	
@@ -84,5 +88,5 @@ function _createFacture(&$f, &$d, $paid = false) {
 		$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
 	}
 	
-	print "Création facture fournisseur ($id) : ".$object->ref."<br/>";
+	print "Création facture fournisseur ($id) : ".$object->ref."<br />";
 }
