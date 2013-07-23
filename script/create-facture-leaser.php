@@ -68,25 +68,29 @@ function _createFacture(&$f, &$d, $paid = false) {
 	$object->origin_id = $f->fk_fin_dossier;
 	$id = $object->create($user);
 	
-	if($f->duree_passe==0) {
-		/* Ajoute les frais de dossier uniquement sur la 1ère facture */
-		print "Ajout des frais de dossier<br />";
-		$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
-	}
+	if($id > 0) {
+		if($f->duree_passe==0) {
+			/* Ajoute les frais de dossier uniquement sur la 1ère facture */
+			print "Ajout des frais de dossier<br />";
+			$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
+		}
+		
+		/* Ajout la ligne de l'échéance	*/
+		$fk_product = 0;
+		if(!empty($d->TLien[0]->affaire)) {
+			if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
+			elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
+		}
+		$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
 	
-	/* Ajout la ligne de l'échéance	*/
-	$fk_product = 0;
-	if(!empty($d->TLien[0]->affaire)) {
-		if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
-		elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
+		$result=$object->validate($user,'',0);
+		
+		if($paid) {
+			$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
+		}
+		
+		print "Création facture fournisseur ($id) : ".$object->ref."<br />";
+	} else {
+		print "Erreur création facture fournisseur : ".$object->ref."<br />";
 	}
-	$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
-
-	$result=$object->validate($user,'',0);
-	
-	if($paid) {
-		$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
-	}
-	
-	print "Création facture fournisseur ($id) : ".$object->ref."<br />";
 }
