@@ -227,6 +227,7 @@ class TFin_dossier extends TObjetStd {
 		global $db;
 		$this->somme_facture = 0;
 		$this->somme_facture_reglee=0;
+		$this->TFacture = array();
 		
 		$sql = "SELECT fk_target";
 		$sql.= " FROM ".MAIN_DB_PREFIX."element_element";
@@ -265,6 +266,7 @@ class TFin_dossier extends TObjetStd {
 	function load_factureFournisseur(&$ATMdb) {
 		global $db;
 		$this->somme_facture_fournisseur = 0;
+		$this->TFactureFournisseur = array();
 		
 		$sql = "SELECT fk_target";
 		$sql.= " FROM ".MAIN_DB_PREFIX."element_element";
@@ -569,6 +571,74 @@ class TFin_dossier extends TObjetStd {
 			)
 		);
 	}
+
+	function generate_factures_leaser($paid = false, $delete_all = false) {
+		
+		if($delete_all) {
+			foreach ($this->TFactureFournisseur as $fact) {
+				$fact->delete($fact->rowid);
+				$fact->deleteObjectLinked();
+			}
+			
+			$this->financementLeaser->initEcheance();
+		}
+		
+		$res = '';
+		$f = & $this->financementLeaser;
+		while($f->date_prochaine_echeance < time() && $f->numero_prochaine_echeance <= $f->duree) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
+			$res.= $this->create_facture_leaser($paid);
+			$f->setEcheance();
+		}
+	}
+
+
+	function create_facture_leaser($paid = false) {
+		global $user, $db, $conf;
+
+		$d = & $this;
+		$f = & $this->financementLeaser;
+		$tva = (FIN_TVA_DEFAUT-1)*100;
+		$res = '';
+		$object = new FactureFournisseur($db);
+		
+		$object->ref           = $f->reference.'/'.($f->duree_passe+1); 
+	    $object->socid         = $f->fk_soc;
+	    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".($f->duree_passe+1)."/".$f->duree;
+	    $object->date          = $f->date_prochaine_echeance;
+	    $object->date_echeance = $f->date_prochaine_echeance;
+	    $object->note_public   = '';
+		$object->origin = 'dossier';
+		$object->origin_id = $d->getId();
+		$id = $object->create($user);
+		
+		if($id > 0) {
+			if($f->duree_passe==0) {
+				/* Ajoute les frais de dossier uniquement sur la 1ère facture */
+				$res.= "Ajout des frais de dossier<br />";
+				$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
+			}
+			
+			/* Ajout la ligne de l'échéance	*/
+			$fk_product = 0;
+			if(!empty($d->TLien[0]->affaire)) {
+				if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
+				elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
+			}
+			$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
+		
+			$result=$object->validate($user,'',0);
+			
+			if($paid) {
+				$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
+			}
+			
+			$res.= "Création facture fournisseur ($id) : ".$object->ref."<br />";
+		} else {
+			$res.= "Erreur création facture fournisseur : ".$object->ref."<br />";
+		}
+		
+		return $res;
+	}
 }
 
 /*
@@ -675,6 +745,11 @@ class TFin_financement extends TObjetStd {
 		
 		$this->duree_passe = $this->numero_prochaine_echeance-1;
 		$this->duree_restante = $this->duree - $this->duree_passe;*/
+	}
+	
+	function initEcheance() {
+		$this->numero_prochaine_echeance = 0;
+		$this->setEcheance();
 	}
 
 	function load_reglement() {
