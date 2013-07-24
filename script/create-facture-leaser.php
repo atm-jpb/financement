@@ -38,59 +38,12 @@ foreach($Tab as $id) {
 	
 	echo 'Contrat client : '.$d->reference_contrat_interne.' - Contrat leaser : '.$f->reference.'<br />';
 	
-	while($f->date_prochaine_echeance < time() && $f->numero_prochaine_echeance <= $f->duree) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
-		$paid = $f->okPourFacturation == 'MANUEL' ? true : false;
-		_createFacture($f, $d, $paid);
-		
-		if($f->okPourFacturation == 'OUI') $f->okPourFacturation='NON';
-		$f->setEcheance();
-	}
+	$paid = $f->okPourFacturation == 'MANUEL' ? true : false;
+	
+	echo $d->generate_factures_leaser($paid);
+	
+	if($f->okPourFacturation == 'OUI') $f->okPourFacturation='NON';
+	$f->save($ATMdb);
 
 	echo '<hr>';
-	
-	$f->save($ATMdb);
-}
-
-function _createFacture(&$f, &$d, $paid = false) {
-	global $user, $db, $conf;
-	
-	$tva = (FIN_TVA_DEFAUT-1)*100;
-	//print $tva;
-	$object =new FactureFournisseur($db);
-	
-	$object->ref           = $f->reference.'/'.($f->duree_passe+1); 
-    $object->socid         = $f->fk_soc;
-    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".($f->duree_passe+1)."/".$f->duree;
-    $object->date          = $f->date_prochaine_echeance;
-    $object->date_echeance = $f->date_prochaine_echeance;
-    $object->note_public   = '';
-	$object->origin = 'dossier';
-	$object->origin_id = $f->fk_fin_dossier;
-	$id = $object->create($user);
-	
-	if($id > 0) {
-		if($f->duree_passe==0) {
-			/* Ajoute les frais de dossier uniquement sur la 1ère facture */
-			print "Ajout des frais de dossier<br />";
-			$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
-		}
-		
-		/* Ajout la ligne de l'échéance	*/
-		$fk_product = 0;
-		if(!empty($d->TLien[0]->affaire)) {
-			if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
-			elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
-		}
-		$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
-	
-		$result=$object->validate($user,'',0);
-		
-		if($paid) {
-			$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
-		}
-		
-		print "Création facture fournisseur ($id) : ".$object->ref."<br />";
-	} else {
-		print "Erreur création facture fournisseur : ".$object->ref."<br />";
-	}
 }
