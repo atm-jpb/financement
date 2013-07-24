@@ -71,6 +71,17 @@
 				
 				break;
 			
+			case 'regenerate-facture-leaser':
+				//$PDOdb->db->debug=true;
+				
+				$dossier->load($PDOdb, $_REQUEST['id']);
+				$dossier->generate_factures_leaser(true, true);
+				$dossier->save($PDOdb);
+				
+				$dossier->load_factureFournisseur($PDOdb);
+				_fiche($PDOdb,$dossier,'view');
+				
+				break;
 				
 			case 'delete':
 				//$PDOdb->db->debug=true;
@@ -300,6 +311,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'leaser'=>($mode=='edit') ? $html->select_company($leaser->id,'leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->getNomUrl(1)
 			
 			,'okPourFacturation'=>$form->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
+			
+			,'reinit'=>'<a href="'.$_SERVER['PHP_SELF'].'?action=regenerate-facture-leaser&id='.$dossier->getId().'">Lancer</a>'
 			
 			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			

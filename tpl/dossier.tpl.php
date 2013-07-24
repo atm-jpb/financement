@@ -88,6 +88,7 @@
 						<tr class="pair"><td>Date du solde</td><td[financementLeaser.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financementLeaser.date_solde; strconv=no;protect=no]</td></tr>
 						<tr class="impair"><td>Montant du solde</td><td[financementLeaser.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financementLeaser.montant_solde; strconv=no; frm=0 000,00] &euro;</td></tr>
 						
+						<tr class="pair"><td>Réinitialisation des factures leaser</td><td >[financementLeaser.reinit; strconv=no]</td></tr>
 						
 						</table>
 						
