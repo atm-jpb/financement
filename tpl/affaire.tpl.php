@@ -43,7 +43,7 @@
 			<tr><td width="20%">Dossier numéro <!-- [dossier.id] --></td><td><a href="dossier.php?id=[dossier.id]">[dossier.reference; block=table; strconv=no]</a></td></tr>
 			<tr><td width="20%">Montant</td><td>[dossier.montant;strconv=no; frm=0 000,00] &euro; à [dossier.taux;strconv=no] %</td></tr>
 			<tr><td width="20%">Date de début - fin</td><td>[dossier.date_debut; strconv=no] - [dossier.date_fin; strconv=no]</td></tr>
-			<tr><td width="20%">1ère échéance</td><td>[dossier.echeance1; strconv=no; frm=0 000,00] &euro;</td></tr>
+			<tr><td width="20%">Durée / Périodicité</td><td>[dossier.duree; strconv=no;]</td></tr>
 			<tr><td width="20%">Echéance</td><td>[dossier.echeance; strconv=no; frm=0 000,00] &euro;</td></tr>
 			<tr><td width="20%">Incident de paiement</td><td>[dossier.incident_paiement; strconv=no]</td></tr>
 			[onshow;block=begin;when [view.mode]!='view']
