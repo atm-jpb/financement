@@ -70,7 +70,7 @@
 						<tr class="impair"><td>Date de début</td><td >[financementLeaser.date_debut; strconv=no;protect=no]</td></tr>
 						<tr class="pair"><td>Date de fin</td><td >[financementLeaser.date_fin; strconv=no;protect=no]</td></tr>
 						
-						<tr class="impair"><td>1ère échéance</td><td>[financement.echeance1; strconv=no; frm=0 000,00] &euro;</td></tr>
+						<tr class="impair"><td>Loyer intercalaire</td><td>[financementLeaser.loyer_intercalaire; strconv=no; frm=0 000,00] &euro;</td></tr>
 						<tr class="pair"><td>Frais de dossier</td><td >[financementLeaser.frais_dossier; strconv=no; frm=0 000,00] &euro;</td></tr>
 						<tr class="impair"><td>Echéance</td><td >[financementLeaser.echeance; strconv=no; frm=0 000,00] &euro;</td></tr>
 						<tr class="pair"><td>N° prochaine échéance</td><td >[financementLeaser.numero_prochaine_echeance; strconv=no]</td></tr>
