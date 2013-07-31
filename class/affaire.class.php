@@ -224,7 +224,7 @@ class TFin_affaire extends TObjetStd {
 	}
 	function addCommercial(&$db, $id) {
 		foreach($this->TCommercial as $k=>$lien) {
-			if($lien->fk_fin_affaire==$id) {return false;}
+			if($lien->fk_user==$id) {return false;}
 		}		 
 		 
 		$i = count($this->TCommercial); 

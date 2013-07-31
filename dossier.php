@@ -397,6 +397,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				/*,'reference'=>$form->texte('', 'reference', $dossier->reference, 100,255,'','','à saisir')*/ 
 				,'date_relocation'=>$form->calendrier('', 'date_relocation', $dossier->date_relocation,10)
 				,'commentaire'=>$form->zonetexte('', 'commentaire', $dossier->commentaire,100,5,'')
+				,'display_solde'=>$form->combo('', 'display_solde', array('1' => 'Oui', '0' => 'Non'), $dossier->display_solde)
 				,'date_maj'=>$dossier->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$dossier->get_date('date_cre','d/m/Y')
 				,'solde'=>$dossier->solde

@@ -114,7 +114,8 @@
 		
 		<tr><td width="20%">Commentaire</td><td>[dossier.commentaire; strconv=no]</td></tr>
 		<tr>
-			<td colspan="2"><strong>Soldes</strong></td>
+			<td><strong>Soldes</strong></td>
+			<td>Afficher les soldes dans le simulateur ? [dossier.display_solde; strconv=no]</td>
 		</tr>
 	
 		<tr><td>Renouvellant banque</td><td>[dossier.soldeRBANK; frm=0 000,00] &euro;</td></tr>
