@@ -463,14 +463,21 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			$fin = &$dossier->financement;
 			$soldeR = round($dossier->getSolde($ATMdb2, 'SRCPRO'),2);
 			$soldeNR = round($dossier->getSolde($ATMdb2, 'SNRCPRO'),2);
-			$soldeR1 = round($dossier->getSolde($ATMdb2, 'SRCPRO'),2, $fin->duree_passe + 1);
-			$soldeNR1 = round($dossier->getSolde($ATMdb2, 'SNRCPRO'),2, $fin->duree_passe + 1);
+			$soldeR1 = round($dossier->getSolde($ATMdb2, 'SRCPRO', $fin->duree_passe + 1),2);
+			$soldeNR1 = round($dossier->getSolde($ATMdb2, 'SNRCPRO', $fin->duree_passe + 1),2);
 		} else {
 			$fin = &$dossier->financementLeaser;
 			$soldeR = round($dossier->getSolde($ATMdb2, 'SRBANK'),2);
 			$soldeNR = round($dossier->getSolde($ATMdb2, 'SRBANK'),2);
-			$soldeR1 = round($dossier->getSolde($ATMdb2, 'SRBANK'),2, $fin->duree_passe + 1);
-			$soldeNR1 = round($dossier->getSolde($ATMdb2, 'SRBANK'),2, $fin->duree_passe + 1);
+			$soldeR1 = round($dossier->getSolde($ATMdb2, 'SRBANK', $fin->duree_passe + 1),2);
+			$soldeNR1 = round($dossier->getSolde($ATMdb2, 'SRBANK', $fin->duree_passe + 1),2);
+		}
+		
+		if(empty($dossier->display_solde)) {
+			$soldeR = 0;
+			$soldeNR = 0;
+			$soldeR1 = 0;
+			$soldeNR1 = 0;
 		}
 		
 		$checked = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes) ? true : false;
@@ -498,6 +505,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'solde_nr' => $soldeNR
 			,'solde_r1' => $soldeR1
 			,'solde_nr1' => $soldeNR1
+			,'display_solde' => $dossier->display_solde
 			,'fk_user' => $ATMdb->Get_field('fk_user')
 			,'user' => $ATMdb->Get_field('Utilisateur')
 			,'leaser' => $leaser->getNomUrl(1)

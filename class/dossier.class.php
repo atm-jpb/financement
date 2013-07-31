@@ -7,13 +7,14 @@ class TFin_dossier extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
 		parent::add_champs('solde,montant,montant_solde','type=float;');
 		parent::add_champs('renta_previsionnelle,renta_attendue,renta_reelle,marge_previsionnelle,marge_attendue,marge_reelle','type=float;');
-		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne','type=chaine;');
+		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne,display_solde','type=chaine;');
 		parent::add_champs('date_relocation,date_solde','type=date;');
 			
 		parent::start();
 		parent::_init_vars();
 		
 		$this->somme_affaire = 0;
+		$this->display_solde = 1;
 		
 		$this->TLien=array();
 		$this->financement=new TFin_financement;
@@ -402,7 +403,7 @@ class TFin_dossier extends TObjetStd {
 				if($this->financement->duree - $duree_restante_client <= 5) return $this->financement->montant;
 				
 				if($this->nature_financement == 'INTERNE') {
-					return ($CRD * (1 + $this->getPenalite($ATMdb,'R','INTERNE') / 100)) + $this->getRentabiliteReste($ATMdb) + $this->getMontantCommission();
+					return ($CRD * (1 + $this->getPenalite($ATMdb,'NR','INTERNE') / 100)) + $this->getRentabiliteReste($ATMdb) + $this->getMontantCommission();
 				}
 				else {
 					return $LRD_Leaser * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'NR', 'INTERNE') / 100);

@@ -1,21 +1,20 @@
-nom_du_leaser=grenke (a faire)
+nom_du_leaser=grenke
 
 [mapping]
-4=siren
-11=reference
-26=date_debut
-25=montant
-24=duree
-31=echeance
-27=echeance1
-28=reste
-30=montant_prestation
-34=periodicite
-37=incident_paiement
+14=siren
+?=reference
+7=date_debut
+4=montant
+?=duree
+3=echeance
+?=echeance1
+?=reste
+6=montant_prestation
+?=periodicite
+?=incident_paiement
 
 [format]
 date_debut=date
-date_fin=date
 echeance=float
 montant=float
 reste=float
