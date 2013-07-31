@@ -256,7 +256,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 			,'montant'=>$dossier->montant
 			,'taux'=>$dossier->taux
 			,'incident_paiement'=>$dossier->TIncidentPaiement[$dossier->incident_paiement]
-			,'echeance1'=>$dossier->echeance1
+			,'duree'=>$dossier->duree
 			,'echeance'=>$dossier->echeance
 		);
 	}

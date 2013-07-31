@@ -193,8 +193,8 @@ class TFin_dossier extends TObjetStd {
 		$this->taux = $f->taux;
 		$this->date_debut = $f->date_debut;
 		$this->date_fin = $f->date_fin;
-		$this->echeance1 = $f->echeance1;
 		$this->echeance = $f->echeance;
+		$this->duree = $f->duree.' / '.$f->TPeriodicite[$f->periodicite];
 		$this->incident_paiement = $f->incident_paiement;
 		
 		$this->somme_affaire=0;
@@ -451,16 +451,9 @@ class TFin_dossier extends TObjetStd {
 		$capital_restant = $capital_restant_init;
 		$TLigne=array();
 		
-		if($f->loyer_intercalaire > 0) {
-			$nextPeriod = strtotime('+'.($f->getiPeriode()).' month',  $f->date_debut);
-			$p = $f->getiPeriode();
-			$firstDayOfNextPeriod = strtotime( strftime( '%Y' , $nextPeriod) . '-' . ( ceil( strftime( '%m' , $nextPeriod)/$p )*$p-($p-1) ).'-1');
-			$calage = $firstDayOfNextPeriod - $f->date_debut;
-		}
-		
 		for($i=0; $i<$f->duree; $i++) {
 			
-			$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut + $calage);
+			$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut + $f->calage);
 			
 			$capital_amortit = $f->amortissement_echeance( $i + 1 );
 			$part_interet = $f->echeance -$capital_amortit;
@@ -613,7 +606,7 @@ class TFin_dossier extends TObjetStd {
 		$id = $object->create($user);
 		
 		if($id > 0) {
-			if($f->duree_passe==0) {
+			if(($f->duree_passe==0 && $f->loyer_intercalaire == 0) || ($f->duree_passe == -1 && $f->loyer_intercalaire > 0)) {
 				/* Ajoute les frais de dossier uniquement sur la 1ère facture */
 				$res.= "Ajout des frais de dossier<br />";
 				$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
@@ -625,7 +618,12 @@ class TFin_dossier extends TObjetStd {
 				if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
 				elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
 			}
-			$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
+			
+			if($f->duree_passe == -1 && $f->loyer_intercalaire > 0) {
+				$result=$object->addline("Echéance de loyer intercalaire banque", $f->loyer_intercalaire, $tva, 0, 0, 1, $fk_product);
+			} else {
+				$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
+			}
 		
 			$result=$object->validate($user,'',0);
 			
@@ -667,7 +665,7 @@ class TFin_financement extends TObjetStd {
 	
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
 		parent::add_champs('duree,numero_prochaine_echeance,terme','type=entier;');
-		parent::add_champs('montant_prestation,montant,echeance1,echeance,loyer_intercalaire,reste,taux,capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier','type=float;');
+		parent::add_champs('montant_prestation,montant,echeance,loyer_intercalaire,reste,taux,capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
 		parent::add_champs('fk_soc,fk_fin_dossier','type=entier;index;');
@@ -738,7 +736,7 @@ class TFin_financement extends TObjetStd {
 		$this->duree_passe = $this->numero_prochaine_echeance-1;
 		$this->duree_restante = $this->duree - $this->duree_passe;
 		
-		$this->date_prochaine_echeance = strtotime(($this->duree_passe * $this->getiPeriode()).' month', $this->date_debut);
+		$this->date_prochaine_echeance = strtotime(($this->duree_passe * $this->getiPeriode()).' month', $this->date_debut + $this->calage);
 		
 		
 		/*$this->date_prochaine_echeance = strtotime(($nb * $this->getiPeriode()).' month', $this->date_prochaine_echeance);
@@ -750,6 +748,7 @@ class TFin_financement extends TObjetStd {
 	
 	function initEcheance() {
 		$this->numero_prochaine_echeance = 0;
+		if($this->loyer_intercalaire > 0) $this->numero_prochaine_echeance--;
 		$this->setEcheance();
 	}
 
@@ -866,8 +865,9 @@ class TFin_financement extends TObjetStd {
 		return $iPeriode;
 	} 
 	function calculDateFin() {
-		$this->date_fin = strtotime('+'.($this->getiPeriode()*($this->duree)).' month -1 day', $this->date_debut);
-		$this->date_prochaine_echeance = strtotime('+'.($this->getiPeriode()*($this->duree_passe)).' month', $this->date_debut);
+		$this->calculCalage();
+		$this->date_fin = strtotime('+'.($this->getiPeriode()*($this->duree)).' month -1 day', $this->date_debut + $this->calage);
+		$this->date_prochaine_echeance = strtotime('+'.($this->getiPeriode()*($this->duree_passe)).' month', $this->date_debut + $this->calage);
 	}
 	function calculTaux() {
 		$this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100,4);
@@ -878,6 +878,7 @@ class TFin_financement extends TObjetStd {
 		$res = parent::load($ATMdb, $id);
 		$this->duree_passe = $this->numero_prochaine_echeance-1;
 		$this->duree_restante = $this->duree - $this->duree_passe;
+		$this->calculCalage();
 		if($annexe) {
 			$this->load_facture($ATMdb);
 			$this->load_factureFournisseur($ATMdb);
@@ -885,12 +886,19 @@ class TFin_financement extends TObjetStd {
 		
 		return $res;
 	}
+	
+	function calculCalage() {
+		if($this->loyer_intercalaire > 0) {
+			$p = $this->getiPeriode();
+			$nextPeriod = strtotime('+'.($p).' month',  $this->date_debut);
+			$firstDayOfNextPeriod = strtotime( strftime( '%Y' , $nextPeriod) . '-' . ( ceil( strftime( '%m' , $nextPeriod)/$p )*$p-($p-1) ).'-1');
+			$this->calage = $firstDayOfNextPeriod - $this->date_debut;
+		}
+	}
 	function save(&$ATMdb) {
 		global $db, $user;
 		
 		if(!$user->rights->financement->affaire->write) return false;
-		
-		if($this->date_prochaine_echeance<$this->date_debut) $this->date_prochaine_echeance = $this->date_debut;
 		
 		$this->calculDateFin();
 		

@@ -286,7 +286,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'taux'=> $financementLeaser->taux
 			
 			,'assurance'=>$form->texte('', 'leaser[assurance]', $financementLeaser->assurance, 10,255,'','','à saisir')
-			,'echeance1'=>$form->texte('', 'leaser[echeance1]', $financementLeaser->echeance1, 10,255,'','','à saisir')
+			,'loyer_intercalaire'=>$form->texte('', 'leaser[loyer_intercalaire]', $financementLeaser->loyer_intercalaire, 10,255,'','','à saisir')
 			,'echeance'=>$form->texte('', 'leaser[echeance]', $financementLeaser->echeance, 10,255,'','','à saisir')
 			,'reste'=>$form->texte('', 'leaser[reste]', $financementLeaser->reste, 10,255,'','','à saisir')
 			,'montant_prestation'=>$form->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 10,255,'','','à saisir')
@@ -327,7 +327,6 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'taux'=> $financement->taux //$form->texte('', 'taux', $financement->taux, 5,255,'','','à saisir')
 			
 			,'assurance'=>$form->texte('', 'assurance', $financement->assurance, 10,255,'','','à saisir')
-			,'echeance1'=>$form->texte('', 'echeance1', $financement->echeance1, 10,255,'','','à saisir')
 			,'loyer_intercalaire'=>$form->texte('', 'loyer_intercalaire', $financement->loyer_intercalaire, 10,255,'','','à saisir')
 			,'echeance'=>$form->texte('', 'echeance', $financement->echeance, 10,255,'','','à saisir')
 			,'reste'=>$form->texte('', 'reste', $financement->reste, 10,255,'','','à saisir')
@@ -362,7 +361,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				'reference'=>''
 				,'montant'=>0
 				,'taux'=> 0
-				,'echeance1'=> 0
+				,'loyer_intercalaire'=> 0
 				,'echeance'=> 0
 				,'reste'=> 0
 				,'montant_prestation'=>0
