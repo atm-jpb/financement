@@ -494,7 +494,7 @@ class TFin_dossier extends TObjetStd {
 				$data['facture_total_ht'] = $fact->total_ht;
 				$data['facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
 				$data['facture_link'] .= $fact->id;
-				$data['facture_bg'] = ($fact->statut == 1) ? '#FF0000' : '#00FF00';
+				$data['facture_bg'] = ($fact->paye == 1) ? '#00FF00' : '#FF0000';
 			} else {
 				$data['facture_total_ht'] = '';
 				$data['facture_link'] = '';
@@ -548,7 +548,7 @@ class TFin_dossier extends TObjetStd {
 				$autre['loyer_intercalaire_facture_total_ht'] = $fact->total_ht;
 				$autre['loyer_intercalaire_facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
 				$autre['loyer_intercalaire_facture_link'] .= $fact->id;
-				$autre['loyer_intercalaire_facture_bg'] = ($fact->statut == 1) ? '#FF0000' : '#00FF00';
+				$autre['loyer_intercalaire_facture_bg'] = ($fact->paye == 1) ? '#00FF00' : '#FF0000';
 				$autre['total_facture'] += $fact->total_ht;
 				$autre['total_loyer'] += $f->loyer_intercalaire;
 			} else {
