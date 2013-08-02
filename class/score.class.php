@@ -3,7 +3,7 @@
 class TScore extends TObjetStd {
 	function __construct() {
 		parent::set_table(MAIN_DB_PREFIX.'fin_score');
-		parent::add_champs('fk_soc,fk_user_author,fk_import','type=entier;');
+		parent::add_champs('fk_soc,fk_user_author,fk_import','type=entier;index');
 		
 		parent::add_champs('effectif,score,rotation_bfr,delai_client,delai_fourn,vetustes_actifs_immo','type=entier;');
 		

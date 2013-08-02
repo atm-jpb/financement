@@ -210,12 +210,6 @@ class TImport extends TObjetStd {
 				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
 			}
 			
-			// Calcul de la date et du numéro de prochaine échéance
-			if(!empty($dossier->financementLeaser->reference)) {
-				while($dossier->financementLeaser->date_prochaine_echeance < time() && $dossier->financementLeaser->numero_prochaine_echeance <= $dossier->financementLeaser->duree) {
-					$dossier->financementLeaser->setEcheance();
-				}
-			}
 		} else { // Dossier interne => Vérification des informations
 			$echeance = $data['echeance'];
 			$montant = $data['montant'];
