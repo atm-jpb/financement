@@ -83,12 +83,12 @@
 						<tr class="impair"><td>Montant de prestation</td><td >[financementLeaser.montant_prestation; strconv=no; frm=0 000,00] &euro;</td></tr>
 
 						<tr class="pair"><td>Incident de paiement</td><td >[financementLeaser.incident_paiement; strconv=no]</td></tr>
-						<tr class="impair"><td>Bon pour facturation ?</td><td >[financementLeaser.okPourFacturation; strconv=no][onshow;block=tr;when [dossier.nature_financement]=='INTERNE']</td></tr>
 
-						<tr class="pair"><td>Date du solde</td><td[financementLeaser.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financementLeaser.date_solde; strconv=no;protect=no]</td></tr>
-						<tr class="impair"><td>Montant du solde</td><td[financementLeaser.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financementLeaser.montant_solde; strconv=no; frm=0 000,00] &euro;</td></tr>
+						<tr class="impair"><td>Date du solde</td><td[financementLeaser.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financementLeaser.date_solde; strconv=no;protect=no]</td></tr>
+						<tr class="pair"><td>Montant du solde</td><td[financementLeaser.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financementLeaser.montant_solde; strconv=no; frm=0 000,00] &euro;</td></tr>
 						
-						<tr class="pair"><td>Réinitialisation des factures leaser</td><td >[financementLeaser.reinit; strconv=no]</td></tr>
+						<tr class="impair"><td>Bon pour facturation ?</td><td >[financementLeaser.okPourFacturation; strconv=no][onshow;block=tr;when [dossier.nature_financement]=='INTERNE']</td></tr>
+						<tr class="pair"><td>Réinitialisation des factures leaser</td><td >[financementLeaser.reinit; strconv=no][onshow;block=tr;when [dossier.nature_financement]=='INTERNE']</td></tr>
 						
 						</table>
 						
