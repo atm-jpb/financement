@@ -51,6 +51,7 @@ class TFin_dossier extends TObjetStd {
 		
 		$res = parent::load($db, $id);
 		$this->load_financement($db);
+		$this->reference_contrat_interne = (!empty($this->financement)) ? $this->financement->reference : '';
 		
 		if($annexe) {
 			$this->load_affaire($db);
@@ -161,7 +162,7 @@ class TFin_dossier extends TObjetStd {
 		
 		$this->calculSolde();
 		$this->calculRenta($db);
-			
+		
 		parent::save($db);
 		
 		foreach($this->TLien as &$lien) {
