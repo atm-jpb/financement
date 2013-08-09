@@ -625,6 +625,8 @@ class TImport extends TObjetStd {
 			$this->addError($ATMdb, 'ErrorClientDifferent', $data[$this->mapping['search_key']]);
 			return false;
 		}
+
+		$a->loadCommerciaux($ATMdb);
 		
 		foreach ($data as $key => $value) {
 			$a->{$key} = $value;

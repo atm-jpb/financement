@@ -48,8 +48,8 @@ class TFin_affaire extends TObjetStd {
 		
 		if($annexe) {
 			$this->loadDossier($ATMdb);
-			$this->loadCommerciaux($ATMdb);	
-			$this->loadEquipement($ATMdb);	
+			$this->loadCommerciaux($ATMdb);
+			$this->loadEquipement($ATMdb);
 		}
 		
 		$this->calculSolde();
@@ -225,13 +225,12 @@ class TFin_affaire extends TObjetStd {
 	function addCommercial(&$db, $id) {
 		foreach($this->TCommercial as $k=>$lien) {
 			if($lien->fk_user==$id) {return false;}
-		}		 
-		 
+		}
+		
 		$i = count($this->TCommercial); 
 		$this->TCommercial[$i]=new TFin_affaire_commercial;
 		$this->TCommercial[$i]->fk_fin_affaire = $this->getId();
-		$this->TCommercial[$i]->fk_user = $id;  
-			 
+		$this->TCommercial[$i]->fk_user = $id;
 		
 		return true;
 		
