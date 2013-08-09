@@ -71,8 +71,14 @@
 		<tr>
 			<td width="30%"><span class="fieldrequired">Type de contrat</span></td>
 			<td width="25%">[simulation.fk_type_contrat; strconv=no]</td>
-			<td width="20%">Administration</td>
-			<td width="25%">[simulation.opt_administration; strconv=no]</td>
+			[onshow;block=begin;when [view.type]=='simul']
+			<td width="20%">Référence</td>
+			<td width="25%">[simulation.ref; strconv=no]</td>
+			[onshow;block=end]
+			[onshow;block=begin;when [view.type]!='simul']
+			<td width="20%">&nbsp;</td>
+			<td width="25%">&nbsp;</td>
+			[onshow;block=end]
 		</tr>
 		<tr>
 			<td>Periodicite</td>
@@ -83,13 +89,13 @@
 		<tr>
 			<td>Mode de règlement</td>
 			<td>[simulation.opt_mode_reglement; strconv=no]</td>
-			<td>Utilisateur</td>
-			<td>[simulation.user; strconv=no]</td>
+			<td width="20%">Administration</td>
+			<td width="25%">[simulation.opt_administration; strconv=no]</td>
 		</tr>
 		<tr>
 			<td>Terme</td>
 			<td>[simulation.opt_terme; strconv=no]</td>
-			<td>Date</td>
+			<td>[simulation.user; strconv=no]</td>
 			<td>[simulation.date; frm=dd/mm/yyyy]</td>
 		</tr>
 		<tr class="liste_titre">
@@ -121,7 +127,7 @@
 				[onshow;block=begin;when [view.type]=='simul']
 				<center>
 				<span style="font-size: 14px;">[simulation.accord; strconv=no]</span>
-				[simulation.date_validite]
+				([simulation.date_validite])
 				</center>
 				[onshow;block=end]
 			</td>

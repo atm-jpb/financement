@@ -127,6 +127,7 @@ if(!empty($action)) {
 			// Si l'accord vient d'être donné (par un admin)
 			if($simulation->accord == 'OK' && $simulation->accord != $oldAccord) {
 				$simulation->date_validite = strtotime('+ 3 months');
+				$simulation->date_accord = time();
 				$simulation->accord_confirme = 1;
 				$simulation->send_mail_vendeur();
 			}
@@ -144,10 +145,12 @@ if(!empty($action)) {
 			_calcul($simulation, 'save');
 			
 			//$ATMdb->db->debug=true;
-			$simulation->save($ATMdb);
+			$simulation->save($ATMdb, $db);
 			$simulation->load_annexe($ATMdb, $db);
 			
 			_fiche($ATMdb, $simulation,'view');
+			
+			setEventMessage('Simulation enregistrée : '.$simulation->getRef(),'mesgs');
 			
 			break;
 		
@@ -476,9 +479,9 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		} else {
 			$fin = &$dossier->financementLeaser;
 			$soldeR = round($dossier->getSolde($ATMdb2, 'SRBANK'),2);
-			$soldeNR = round($dossier->getSolde($ATMdb2, 'SRBANK'),2);
+			$soldeNR = round($dossier->getSolde($ATMdb2, 'SNRBANK'),2);
 			$soldeR1 = round($dossier->getSolde($ATMdb2, 'SRBANK', $fin->duree_passe + 1),2);
-			$soldeNR1 = round($dossier->getSolde($ATMdb2, 'SRBANK', $fin->duree_passe + 1),2);
+			$soldeNR1 = round($dossier->getSolde($ATMdb2, 'SNRBANK', $fin->duree_passe + 1),2);
 		}
 		
 		if(empty($dossier->display_solde)) {
