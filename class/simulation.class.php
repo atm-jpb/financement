@@ -9,7 +9,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('duree,opt_administration,opt_creditbail','type=entier;');
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
 		parent::add_champs('date_simul,date_validite','type=date;');
-		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire','type=chaine;');
+		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,numero_accord','type=chaine;');
 		parent::add_champs('dossiers_rachetes,dossiers_rachetes_p1', 'type=tableau;');
 		parent::start();
 		parent::_init_vars();
@@ -34,6 +34,11 @@ class TSimulation extends TObjetStd {
 		$this->fk_user_author = $user->id;
 		$this->user = $user;
 	}
+
+	function getRef() {
+		if($this->getId() > 0) return 'S'.str_pad($this->getId(), 6, '0', STR_PAD_LEFT);
+		else return 'DRAFT';
+	}
 	
 	function load(&$db, &$doliDB, $id, $annexe=true) {
 		parent::load($db, $id);
@@ -41,6 +46,11 @@ class TSimulation extends TObjetStd {
 		if($annexe) {
 			$this->load_annexe($db, $doliDB);
 		}
+	}
+	
+	function save($db) {
+		parent::save($db);
+		$this->gen_simulation_pdf();
 	}
 	
 	function load_annexe(&$db, &$doliDB) {
@@ -135,7 +145,7 @@ class TSimulation extends TObjetStd {
 			$this->error = 'ErrorMontantOrEcheanceRequired';
 			return false;
 		}
-		else if($this->vr > $this->montant_total_finance) { // Erreur VR ne peut être supérieur au mopntant
+		else if($this->vr > $this->montant_total_finance && empty($this->echeance)) { // Erreur VR ne peut être supérieur au montant sauf si calcul via échéance
 			$this->error = 'ErrorInvalidVR';
 			return false;
 		}
@@ -234,7 +244,7 @@ class TSimulation extends TObjetStd {
 				$montant_dispo *= ($conf->global->FINANCEMENT_PERCENT_VALID_AMOUNT / 100);
 				
 				// Calcul du % de rachat
-				$percent_rachat = (($this->montant_rachete + montant_rachete_concurrence) / $this->montant_total_finance) * 100;
+				$percent_rachat = (($this->montant_rachete + $this->montant_rachete_concurrence) / $this->montant_total_finance) * 100;
 				
 				if($this->societe->score->score >= $conf->global->FINANCEMENT_SCORE_MINI // Score minimum
 					&& $montant_dispo > $this->montant_total_finance // % "d'endettement"
@@ -243,7 +253,8 @@ class TSimulation extends TObjetStd {
 					&& !empty($this->societe->TDossiers)) // A déjà eu au moins un dossier chez CPRO
 				{
 					$this->accord = 'OK';
-					$this->date_validite = strtotime('+ 2 months');
+					$this->date_validite = strtotime('+ 3 months');
+					$this->send_mail_vendeur(true);
 				} 
 			}
 		}
@@ -274,6 +285,45 @@ class TSimulation extends TObjetStd {
 			}
 		}
 		return $TDossier;
+	}
+	
+	function send_mail_vendeur($auto=false) {
+		global $langs, $conf;
+		
+		dol_include_once('/core/class/html.formmail.class.php');
+		dol_include_once('/core/class/CMailFile.class.php');
+		
+		$formmail = new FormMail($db);
+
+		$attachedfiles=$formmail->get_attached_files();
+		$filepath = $attachedfiles['paths'];
+		$filename = $attachedfiles['names'];
+		$mimetype = $attachedfiles['mimes'];
+		
+		$accord = ($auto) ? 'Accord automatique' : 'Accord de la cellule financement';
+		$subject = 'Simulation '.$this->getRef().' - '.$this->societe->getFullName($langs).' - '.$this->montant_total_finance.' € - '.$accord;
+		
+		$mesg = 'TEst email';
+		
+		$mailfile = new CMailFile(
+			$subject,
+			$this->user->email,
+			$conf->notification->email_from,
+			$mesg,
+			$filepath,
+			$mimetype,
+			$filename,
+			'',
+			'',
+			0,
+			0
+		);
+		
+		$mailfile->sendfile();
+	}
+	
+	function gen_simulation_pdf() {
+		
 	}
 }
 

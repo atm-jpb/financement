@@ -77,8 +77,8 @@
 		<tr>
 			<td>Periodicite</td>
 			<td>[simulation.opt_periodicite; strconv=no]</td>
-			<td>Crédit-Bail (avec accord CDA)</td>
-			<td>[simulation.opt_creditbail; strconv=no]</td>
+			<td>Type de matériel financé</td>
+			<td>[simulation.type_materiel; strconv=no]</td>
 		</tr>
 		<tr>
 			<td>Mode de règlement</td>
@@ -138,7 +138,7 @@
 			</td>
 		</tr>
 		<tr>
-			<td>&Eacute;chéance</td>
+			<td>&Eacute;chéance (Hors prestations)</td>
 			<td>[simulation.echeance; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
@@ -176,6 +176,8 @@
 		<tr>
 			<td>Coefficient final</td>
 			<td>[simulation.coeff_final; strconv=no] %</td>
+			<td>Numéro accord</td>
+			<td>[simulation.numero_accord; strconv=no]</td>
 		</tr>
 		[onshow;block=end]
 	</table>	
