@@ -9,6 +9,7 @@ $(document).ready(function() {
 	}
 	
 	$('input[name^="dossiers_rachetes"]').bind('click', calcul_montant_rachat);
+	$('input[name^="dossiers_rachetes"]').bind('click', prevent_dbl_select);
 	$('select[name="fk_type_contrat"]').bind('change', calcul_montant_rachat);
 });
 
@@ -17,8 +18,9 @@ var get_grille = function() {
 		'opt_periodicite' : $('select[name="opt_periodicite"]').val()
 		,'opt_mode_reglement' : $('select[name="opt_mode_reglement"]').val()
 		,'opt_terme' : $('select[name="opt_terme"]').val()
-		,'opt_administration' : $('input[name="opt_administration"]:checked').length > 0 ? $('input[name^="opt_"]:checked').val() : 0
-		,'opt_creditbail' : $('input[name="opt_creditbail"]:checked').length > 0 ? $('input[name^="opt_"]:checked').val() : 0
+		,'opt_administration' : $('input[name="opt_administration"]:checked').length > 0 ? $('input[name="opt_administration"]:checked').val() : 0
+		,'opt_creditbail' : $('input[name="opt_creditbail"]:checked').length > 0 ? $('input[name="opt_creditbail"]:checked').val() : 0
+		,'opt_calage' : $('select[name="opt_calage"]').val()
 	};
 	
 	var data = {
@@ -72,4 +74,18 @@ var calcul_montant_rachat = function() {
 	});
 	
 	$('input[name="montant_rachete"]').val(montant_rachat);
-}
+};
+
+var prevent_dbl_select = function() {
+	var val = $(this).val();
+	if($('#dossiers_rachetes\\['+val+'\\]:checked').length > 0) {
+		$('#dossiers_rachetes_p1\\['+val+'\\]').attr('disabled', true);
+	} else {
+		$('#dossiers_rachetes_p1\\['+val+'\\]').attr('disabled', false);
+	}
+	if($('#dossiers_rachetes_p1\\['+val+'\\]:checked').length > 0) {
+		$('#dossiers_rachetes\\['+val+'\\]').attr('disabled', true);
+	} else {
+		$('#dossiers_rachetes\\['+val+'\\]').attr('disabled', false);
+	}
+};

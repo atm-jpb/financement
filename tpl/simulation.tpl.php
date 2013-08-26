@@ -71,24 +71,36 @@
 		<tr>
 			<td width="30%"><span class="fieldrequired">Type de contrat</span></td>
 			<td width="25%">[simulation.fk_type_contrat; strconv=no]</td>
-			<td width="20%">Administration</td>
-			<td width="25%">[simulation.opt_administration; strconv=no]</td>
+			[onshow;block=begin;when [view.type]=='simul']
+			<td width="20%">Référence</td>
+			<td width="25%">[simulation.ref; strconv=no]</td>
+			[onshow;block=end]
+			[onshow;block=begin;when [view.type]!='simul']
+			<td width="20%">&nbsp;</td>
+			<td width="25%">&nbsp;</td>
+			[onshow;block=end]
 		</tr>
 		<tr>
 			<td>Periodicite</td>
 			<td>[simulation.opt_periodicite; strconv=no]</td>
-			<td>Crédit-Bail (avec accord CDA)</td>
-			<td>[simulation.opt_creditbail; strconv=no]</td>
+			<td>Type de matériel financé</td>
+			<td>[simulation.type_materiel; strconv=no]</td>
 		</tr>
 		<tr>
 			<td>Mode de règlement</td>
 			<td>[simulation.opt_mode_reglement; strconv=no]</td>
-			<td>Utilisateur</td>
-			<td>[simulation.user; strconv=no]</td>
+			<td width="20%">Administration</td>
+			<td width="25%">[simulation.opt_administration; strconv=no]</td>
 		</tr>
 		<tr>
 			<td>Terme</td>
 			<td>[simulation.opt_terme; strconv=no]</td>
+			<td>Demandeur</td>
+			<td>[simulation.user; strconv=no]</td>
+		</tr>
+		<tr>
+			<td>Calage</td>
+			<td>[simulation.opt_calage; strconv=no]</td>
 			<td>Date</td>
 			<td>[simulation.date; frm=dd/mm/yyyy]</td>
 		</tr>
@@ -121,7 +133,7 @@
 				[onshow;block=begin;when [view.type]=='simul']
 				<center>
 				<span style="font-size: 14px;">[simulation.accord; strconv=no]</span>
-				[simulation.date_validite]
+				([simulation.date_validite])
 				</center>
 				[onshow;block=end]
 			</td>
@@ -138,7 +150,7 @@
 			</td>
 		</tr>
 		<tr>
-			<td>&Eacute;chéance</td>
+			<td>&Eacute;chéance (Hors prestations)</td>
 			<td>[simulation.echeance; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
@@ -175,7 +187,9 @@
 		</tr>
 		<tr>
 			<td>Coefficient final</td>
-			<td>[simulation.coeff_final; strconv=no] %</td>
+			<td>[simulation.coeff_final; strconv=no; frm=0,00] %</td>
+			<td>Numéro accord</td>
+			<td>[simulation.numero_accord; strconv=no]</td>
 		</tr>
 		[onshow;block=end]
 	</table>	

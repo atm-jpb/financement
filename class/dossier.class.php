@@ -689,6 +689,13 @@ class TFin_financement extends TObjetStd {
 			,'ANNEE'=>'Annuel'
 		);
 		
+		$this->TCalage=array(
+			''=>''
+			,'1M'=>'1 mois'
+			,'2M'=>'2 mois'
+			,'3M'=>'3 mois'
+		);
+		
 		$this->TReglement=array();
 		$this->load_reglement();  
 		 

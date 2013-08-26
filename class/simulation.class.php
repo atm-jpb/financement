@@ -8,8 +8,8 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('entity,fk_soc,fk_user_author,fk_leaser,accord_confirme','type=entier;');
 		parent::add_champs('duree,opt_administration,opt_creditbail','type=entier;');
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
-		parent::add_champs('date_simul,date_validite','type=date;');
-		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire','type=chaine;');
+		parent::add_champs('date_simul,date_validite,date_accord','type=date;');
+		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,numero_accord,reference,opt_calage','type=chaine;');
 		parent::add_champs('dossiers_rachetes,dossiers_rachetes_p1', 'type=tableau;');
 		parent::start();
 		parent::_init_vars();
@@ -26,13 +26,20 @@ class TSimulation extends TObjetStd {
 	
 	function init() {
 		global $user;
+		$this->reference = $this->getRef();
 		$this->opt_periodicite = 'TRIMESTRE';
 		$this->opt_mode_reglement = 'PRE';
 		$this->opt_terme = '1';
+		$this->opt_calage = '';
 		$this->vr = 1;
 		$this->coeff = 0;
 		$this->fk_user_author = $user->id;
 		$this->user = $user;
+	}
+
+	function getRef() {
+		if($this->getId() > 0) return 'S'.str_pad($this->getId(), 6, '0', STR_PAD_LEFT);
+		else return 'DRAFT';
 	}
 	
 	function load(&$db, &$doliDB, $id, $annexe=true) {
@@ -41,6 +48,22 @@ class TSimulation extends TObjetStd {
 		if($annexe) {
 			$this->load_annexe($db, $doliDB);
 		}
+	}
+	
+	function save(&$db, &$doliDB) {
+		parent::save($db);
+		$this->gen_simulation_pdf($db, $doliDB);
+		$this->reference = $this->getRef();
+		parent::save($db);
+	}
+	
+	function getStatut() {
+		return $this->TStatut[$this->accord];
+	}
+	
+	function getAuthorFullName() {
+		global $langs;
+		return $this->user->getFullName($langs);
 	}
 	
 	function load_annexe(&$db, &$doliDB) {
@@ -135,7 +158,7 @@ class TSimulation extends TObjetStd {
 			$this->error = 'ErrorMontantOrEcheanceRequired';
 			return false;
 		}
-		else if($this->vr > $this->montant_total_finance) { // Erreur VR ne peut être supérieur au mopntant
+		else if($this->vr > $this->montant_total_finance && empty($this->echeance)) { // Erreur VR ne peut être supérieur au montant sauf si calcul via échéance
 			$this->error = 'ErrorInvalidVR';
 			return false;
 		}
@@ -175,7 +198,7 @@ class TSimulation extends TObjetStd {
 			return false;
 		}
 		if(!empty($this->coeff_final) && $this->coeff_final != $this->coeff) {
-			// TODO : à revoir avec Damien
+			$this->coeff = $this->coeff_final;
 		}
 		
 		$coeffTrimestriel = $this->coeff / 4 /100; // en %
@@ -234,7 +257,7 @@ class TSimulation extends TObjetStd {
 				$montant_dispo *= ($conf->global->FINANCEMENT_PERCENT_VALID_AMOUNT / 100);
 				
 				// Calcul du % de rachat
-				$percent_rachat = (($this->montant_rachete + montant_rachete_concurrence) / $this->montant_total_finance) * 100;
+				$percent_rachat = (($this->montant_rachete + $this->montant_rachete_concurrence) / $this->montant_total_finance) * 100;
 				
 				if($this->societe->score->score >= $conf->global->FINANCEMENT_SCORE_MINI // Score minimum
 					&& $montant_dispo > $this->montant_total_finance // % "d'endettement"
@@ -243,7 +266,9 @@ class TSimulation extends TObjetStd {
 					&& !empty($this->societe->TDossiers)) // A déjà eu au moins un dossier chez CPRO
 				{
 					$this->accord = 'OK';
-					$this->date_validite = strtotime('+ 2 months');
+					$this->date_accord = time();
+					$this->date_validite = strtotime('+ 3 months');
+					$this->send_mail_vendeur(true);
 				} 
 			}
 		}
@@ -270,10 +295,135 @@ class TSimulation extends TObjetStd {
 		if(!empty($this->societe->TSimulations)) {
 			foreach ($this->societe->TSimulations as $simu) {
 				if($except_current && $simu->{OBJETSTD_MASTERKEY} == $this->{OBJETSTD_MASTERKEY}) continue;
-				$TDossier = array_merge($TDossier, $simu->dossiers_rachetes);
+				$TDossier = array_merge($TDossier, $simu->dossiers_rachetes, $simu->dossiers_rachetes_p1);
 			}
 		}
 		return $TDossier;
+	}
+	
+	function send_mail_vendeur($auto=false) {
+		global $langs, $conf;
+		
+		dol_include_once('/core/class/html.formmail.class.php');
+		dol_include_once('/core/lib/files.lib.php');
+		dol_include_once('/core/class/CMailFile.class.php');
+		
+		$PDFName = dol_sanitizeFileName($this->getRef()).'.pdf';
+		$PDFPath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef());
+		
+		$formmail = new FormMail($db);
+		$formmail->clear_attached_files();
+		$formmail->add_attached_files($PDFPath.'/'.$PDFName,$PDFName,dol_mimetype($PDFName));
+		
+		$attachedfiles=$formmail->get_attached_files();
+		$filepath = $attachedfiles['paths'];
+		$filename = $attachedfiles['names'];
+		$mimetype = $attachedfiles['mimes'];
+		
+		$accord = ($auto) ? 'Accord automatique' : 'Accord de la cellule financement';
+		$subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance,2,',',' ').' € - '.$accord;
+		
+		$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
+		$mesg.= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n° '.$this->reference."\n\n";
+		$mesg.= 'Cordialement,'."\n\n";
+		$mesg.= 'La cellule financement'."\n\n";
+		
+		$mailfile = new CMailFile(
+			$subject,
+			$this->user->email,
+			$conf->notification->email_from,
+			$mesg,
+			$filepath,
+			$mimetype,
+			$filename,
+			'',
+			'',
+			0,
+			-1
+		);
+		if ($mailfile->error) {
+			echo 'ERR : '.$mailfile->error;
+		}
+			$mailfile->sendfile();
+	}
+	
+	function gen_simulation_pdf(&$ATMdb, &$doliDB) {
+		global $conf;
+		// Dossiers rachetés dans la simulation
+		$TDossier = array();
+		
+		$TSimuDossier = array_merge($this->dossiers_rachetes, $this->dossiers_rachetes_p1);
+		foreach($TSimuDossier as $idDossier) {
+			$d = new TFin_dossier();
+			$d->load($ATMdb, $idDossier, false);
+			if($d->nature_financement == 'INTERNE') {
+				$f = &$d->financement;
+				if($d->type_contrat == $this->fk_type_contrat) {
+					if(in_array($idDossier, $this->dossiers_rachetes)) {
+						$solde = $d->getSolde($ATMdb2, 'SRCPRO');
+					} else {
+						$solde = $d->getSolde($ATMdb2, 'SNRCPRO');
+					}
+				} else {
+					if(in_array($idDossier, $this->dossiers_rachetes)) {
+						$solde = $d->getSolde($ATMdb2, 'SRCPRO', $fin->duree_passe + 1);
+					} else {
+						$solde = $d->getSolde($ATMdb2, 'SNRCPRO', $fin->duree_passe + 1);
+					}
+				}
+			} else {
+				$f = &$d->financementLeaser;
+				if($d->type_contrat == $this->fk_type_contrat) {
+					if(in_array($idDossier, $this->dossiers_rachetes)) {
+						$solde = $d->getSolde($ATMdb2, 'SRBANK');
+					} else {
+						$solde = $d->getSolde($ATMdb2, 'SNRBANK');
+					}
+				} else {
+					if(in_array($idDossier, $this->dossiers_rachetes)) {
+						$solde = $d->getSolde($ATMdb2, 'SRBANK', $fin->duree_passe + 1);
+					} else {
+						$solde = $d->getSolde($ATMdb2, 'SNRBANK', $fin->duree_passe + 1);
+					}
+				}
+			}
+			
+			$leaser = new Societe($doliDB);
+			$leaser->fetch($d->financementLeaser->fk_soc);
+			
+			$TDossier[] = array(
+				'reference' => $f->reference
+				,'leaser' => $leaser->name
+				,'type_contrat' => $d->type_contrat
+				,'solde' => $solde
+			);
+		}
+
+		$this->hasdossier = count($TDossier);
+		
+		// Création du répertoire
+		$fileName = dol_sanitizeFileName($this->getRef()).'.odt';
+		$filePath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef());
+		dol_mkdir($filePath);
+		
+		// Génération en ODT
+		$TBS = new TTemplateTBS;
+		$file = $TBS->render('./tpl/doc/simulation.odt'
+			,array(
+				'dossier'=>$TDossier
+			)
+			,array(
+				'simulation'=>$this
+				,'client'=>$this->societe
+			)
+			,array()
+			,array('outFile' => $filePath.'/'.$fileName)
+		);
+		
+		// Transformation en PDF
+		ob_start();
+		system('libreoffice --convert-to pdf --outdir '.$filePath.' --headless '.$filePath.'/'.$fileName);
+		$res = ob_get_clean();
 	}
 }
 
