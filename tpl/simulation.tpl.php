@@ -187,7 +187,7 @@
 		</tr>
 		<tr>
 			<td>Coefficient final</td>
-			<td>[simulation.coeff_final; strconv=no] %</td>
+			<td>[simulation.coeff_final; strconv=no; frm=0,00] %</td>
 			<td>Numéro accord</td>
 			<td>[simulation.numero_accord; strconv=no]</td>
 		</tr>

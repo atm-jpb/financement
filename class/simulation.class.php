@@ -198,7 +198,7 @@ class TSimulation extends TObjetStd {
 			return false;
 		}
 		if(!empty($this->coeff_final) && $this->coeff_final != $this->coeff) {
-			// TODO : à revoir avec Damien
+			$this->coeff = $this->coeff_final;
 		}
 		
 		$coeffTrimestriel = $this->coeff / 4 /100; // en %
