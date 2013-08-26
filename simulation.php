@@ -129,7 +129,6 @@ if(!empty($action)) {
 				$simulation->date_validite = strtotime('+ 3 months');
 				$simulation->date_accord = time();
 				$simulation->accord_confirme = 1;
-				$simulation->send_mail_vendeur();
 			}
 			
 			// Si une donnée de préconisation a été remplie, on fige la simulation pour le commercial
@@ -146,6 +145,12 @@ if(!empty($action)) {
 			
 			//$ATMdb->db->debug=true;
 			$simulation->save($ATMdb, $db);
+			
+			// Si l'accord vient d'être donné (par un admin)
+			if($simulation->accord == 'OK' && $simulation->accord != $oldAccord) {
+				$simulation->send_mail_vendeur();
+			}
+			
 			$simulation->load_annexe($ATMdb, $db);
 			
 			_fiche($ATMdb, $simulation,'view');
@@ -189,9 +194,9 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$r = new TSSRenderControler($simulation);
 	
-	$THide = array('fk_soc', 'fk_user_author');
+	$THide = array('fk_soc', 'fk_user_author', 'rowid');
 	
-	$sql = "SELECT s.rowid, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
+	$sql = "SELECT s.rowid, s.reference, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'mois' WHEN s.opt_periodicite = 'ANNEE' THEN 'années' ELSE 'trimestres' END) as 'Durée',";
 	$sql.= " s.date_simul, u.login, s.accord, s.type_financement, lea.nom as leaser";
 	$sql.= " FROM @table@ s ";
@@ -250,7 +255,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'nbLine'=>'30'
 		)
 		,'link'=>array(
-			'rowid'=>'<a href="?id=@rowid@">@val@</a>'
+			'reference'=>'<a href="?id=@rowid@">@val@</a>'
 			,'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
 			,'login'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user_author@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
 		)
@@ -336,13 +341,14 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'titre_dossier'=>load_fiche_titre($langs->trans("DossierList"),'','object_financementico.png@financement')
 				
 				,'id'=>$simulation->rowid
-				,'ref'=>$simulation->getRef()
+				,'ref'=>$simulation->reference
 				,'fk_soc'=>$simulation->fk_soc
 				,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat)
 				,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
 				,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $financement->TPeriodicite, $simulation->opt_periodicite) 
 				//,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 1, $simulation->opt_creditbail)
 				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement)
+				,'opt_calage'=>$form->combo('', 'opt_calage', $financement->TCalage, $simulation->opt_calage)
 				,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme)
 				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)
 				,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)
@@ -370,7 +376,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				
 				,'display_preco'=>$user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0 ? 1 : 0
 				,'type_financement'=>$form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement)
-				,'leaser'=>($mode=='edit') ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->leaser->nom.'</a>'
+				,'leaser'=>($mode=='edit') ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : (($simulation->fk_leaser > 0) ? $simulation->leaser->getNomUrl(1) : '')
 			)
 			,'client'=>array(
 				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->societe->nom.'</a>'

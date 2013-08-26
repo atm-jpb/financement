@@ -9,7 +9,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('duree,opt_administration,opt_creditbail','type=entier;');
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
 		parent::add_champs('date_simul,date_validite,date_accord','type=date;');
-		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,numero_accord','type=chaine;');
+		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,numero_accord,reference,opt_calage','type=chaine;');
 		parent::add_champs('dossiers_rachetes,dossiers_rachetes_p1', 'type=tableau;');
 		parent::start();
 		parent::_init_vars();
@@ -26,9 +26,11 @@ class TSimulation extends TObjetStd {
 	
 	function init() {
 		global $user;
+		$this->reference = $this->getRef();
 		$this->opt_periodicite = 'TRIMESTRE';
 		$this->opt_mode_reglement = 'PRE';
 		$this->opt_terme = '1';
+		$this->opt_calage = '';
 		$this->vr = 1;
 		$this->coeff = 0;
 		$this->fk_user_author = $user->id;
@@ -51,6 +53,8 @@ class TSimulation extends TObjetStd {
 	function save(&$db, &$doliDB) {
 		parent::save($db);
 		$this->gen_simulation_pdf($db, $doliDB);
+		$this->reference = $this->getRef();
+		parent::save($db);
 	}
 	
 	function getStatut() {
@@ -301,19 +305,28 @@ class TSimulation extends TObjetStd {
 		global $langs, $conf;
 		
 		dol_include_once('/core/class/html.formmail.class.php');
+		dol_include_once('/core/lib/files.lib.php');
 		dol_include_once('/core/class/CMailFile.class.php');
 		
+		$PDFName = dol_sanitizeFileName($this->getRef()).'.pdf';
+		$PDFPath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef());
+		
 		$formmail = new FormMail($db);
-
+		$formmail->clear_attached_files();
+		$formmail->add_attached_files($PDFPath.'/'.$PDFName,$PDFName,dol_mimetype($PDFName));
+		
 		$attachedfiles=$formmail->get_attached_files();
 		$filepath = $attachedfiles['paths'];
 		$filename = $attachedfiles['names'];
 		$mimetype = $attachedfiles['mimes'];
 		
 		$accord = ($auto) ? 'Accord automatique' : 'Accord de la cellule financement';
-		$subject = 'Simulation '.$this->getRef().' - '.$this->societe->getFullName($langs).' - '.$this->montant_total_finance.' € - '.$accord;
+		$subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance,2,',',' ').' € - '.$accord;
 		
-		$mesg = 'TEst email';
+		$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
+		$mesg.= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n° '.$this->reference."\n\n";
+		$mesg.= 'Cordialement,'."\n\n";
+		$mesg.= 'La cellule financement'."\n\n";
 		
 		$mailfile = new CMailFile(
 			$subject,
@@ -326,13 +339,16 @@ class TSimulation extends TObjetStd {
 			'',
 			'',
 			0,
-			0
+			-1
 		);
-		
-		//$mailfile->sendfile();
+		if ($mailfile->error) {
+			echo 'ERR : '.$mailfile->error;
+		}
+			$mailfile->sendfile();
 	}
 	
 	function gen_simulation_pdf(&$ATMdb, &$doliDB) {
+		global $conf;
 		// Dossiers rachetés dans la simulation
 		$TDossier = array();
 		
@@ -385,9 +401,14 @@ class TSimulation extends TObjetStd {
 
 		$this->hasdossier = count($TDossier);
 		
+		// Création du répertoire
+		$fileName = dol_sanitizeFileName($this->getRef()).'.odt';
+		$filePath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef());
+		dol_mkdir($filePath);
+		
 		// Génération en ODT
 		$TBS = new TTemplateTBS;
-		print $TBS->render('./tpl/doc/simulation.tpl.odt'
+		$file = $TBS->render('./tpl/doc/simulation.odt'
 			,array(
 				'dossier'=>$TDossier
 			)
@@ -395,9 +416,14 @@ class TSimulation extends TObjetStd {
 				'simulation'=>$this
 				,'client'=>$this->societe
 			)
+			,array()
+			,array('outFile' => $filePath.'/'.$fileName)
 		);
 		
 		// Transformation en PDF
+		ob_start();
+		system('libreoffice --convert-to pdf --outdir '.$filePath.' --headless '.$filePath.'/'.$fileName);
+		$res = ob_get_clean();
 	}
 }
 

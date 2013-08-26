@@ -26,6 +26,7 @@ opt_mode_reglement=Mode de règlement
 opt_terme=Terme
 opt_administration=Administration
 opt_creditbail=Crédit-bail
+opt_calage=Calage
 
 # SIMULATIONS
 Simulations=Simulations

@@ -95,7 +95,13 @@
 		<tr>
 			<td>Terme</td>
 			<td>[simulation.opt_terme; strconv=no]</td>
+			<td>Demandeur</td>
 			<td>[simulation.user; strconv=no]</td>
+		</tr>
+		<tr>
+			<td>Calage</td>
+			<td>[simulation.opt_calage; strconv=no]</td>
+			<td>Date</td>
 			<td>[simulation.date; frm=dd/mm/yyyy]</td>
 		</tr>
 		<tr class="liste_titre">
