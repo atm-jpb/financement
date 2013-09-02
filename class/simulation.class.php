@@ -31,7 +31,7 @@ class TSimulation extends TObjetStd {
 		$this->opt_mode_reglement = 'PRE';
 		$this->opt_terme = '1';
 		$this->opt_calage = '';
-		$this->vr = 1;
+		$this->vr = 0;
 		$this->coeff = 0;
 		$this->fk_user_author = $user->id;
 		$this->user = $user;
