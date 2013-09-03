@@ -73,7 +73,7 @@
 			<td width="25%">[simulation.fk_type_contrat; strconv=no]</td>
 			[onshow;block=begin;when [view.type]=='simul']
 			<td width="20%">Référence</td>
-			<td width="25%">[simulation.ref; strconv=no]</td>
+			<td width="25%">[simulation.ref; strconv=no] [simulation.doc; strconv=no]</td>
 			[onshow;block=end]
 			[onshow;block=begin;when [view.type]!='simul']
 			<td width="20%">&nbsp;</td>

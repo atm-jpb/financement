@@ -30,10 +30,10 @@
 		<td colspan="6" align="center">Soldes non disponibles. Contactez le service financement</td>
 		[onshow;block=end]
 		[onshow;block=begin;when [champs.display_solde]=='1']
-		<td class="solde" [champs.checkedr;if [val]=1; then 'style="background-color: #00FF00;"'; else '']>[champs.checkboxr; strconv=no] [champs.solde_r; strconv=no; frm=0 000,00] &euro;</td>
-		<td class="solde">[champs.checkboxnr; strconv=no] [champs.solde_nr; strconv=no; frm=0 000,00] &euro;</td>
-		<td class="solde">[champs.checkboxr1; strconv=no] [champs.solde_r1; strconv=no; frm=0 000,00] &euro;</td>
-		<td class="solde">[champs.checkboxnr1; strconv=no] [champs.solde_nr1; strconv=no; frm=0 000,00] &euro;</td>
+		<td class="solde"[champs.checkedr;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxr; strconv=no] [champs.solde_r; strconv=no; frm=0 000,00] &euro;</td>
+		<td class="solde"[champs.checkednr;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxnr; strconv=no] [champs.solde_nr; strconv=no; frm=0 000,00] &euro;</td>
+		<td class="solde"[champs.checkedr1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxr1; strconv=no] [champs.solde_r1; strconv=no; frm=0 000,00] &euro;</td>
+		<td class="solde"[champs.checkednr1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxnr1; strconv=no] [champs.solde_nr1; strconv=no; frm=0 000,00] &euro;</td>
 		[onshow;block=end]
 	</tr>
 </table>
