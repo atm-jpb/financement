@@ -8,14 +8,12 @@
 		<td>Début</td>
 		<td>Fin</td>
 		<td>Prochaine</td>
-		<td>Assurance</td>
-		<td>Maintenance</td>
+		<td>Ass.</td>
+		<td>Maint.</td>
 		<td>Solde R.</td>
 		<td>Solde NR.</td>
-		<td align="center" class="liste_titre">Rachat</td>
 		<td>Solde R. P+1</td>
 		<td>Solde NR. P+1</td>
-		<td align="center" class="liste_titre">Rachat P+1</td>
 	</tr>
 	<tr [champs.class; strconv=no]>
 		<td>[champs.num_contrat;block=tr; strconv=no]</td>
@@ -32,12 +30,10 @@
 		<td colspan="6" align="center">Soldes non disponibles. Contactez le service financement</td>
 		[onshow;block=end]
 		[onshow;block=begin;when [champs.display_solde]=='1']
-		<td>[champs.solde_r; strconv=no; frm=0 000,00] &euro;</td>
-		<td>[champs.solde_nr; strconv=no; frm=0 000,00] &euro;</td>
-		<td align="center">[champs.checkbox; strconv=no]</td>
-		<td>[champs.solde_r1; strconv=no; frm=0 000,00] &euro;</td>
-		<td>[champs.solde_nr1; strconv=no; frm=0 000,00] &euro;</td>
-		<td align="center">[champs.checkbox1; strconv=no]</td>
+		<td class="solde" [champs.checkedr;if [val]=1; then 'style="background-color: #00FF00;"'; else '']>[champs.checkboxr; strconv=no] [champs.solde_r; strconv=no; frm=0 000,00] &euro;</td>
+		<td class="solde">[champs.checkboxnr; strconv=no] [champs.solde_nr; strconv=no; frm=0 000,00] &euro;</td>
+		<td class="solde">[champs.checkboxr1; strconv=no] [champs.solde_r1; strconv=no; frm=0 000,00] &euro;</td>
+		<td class="solde">[champs.checkboxnr1; strconv=no] [champs.solde_nr1; strconv=no; frm=0 000,00] &euro;</td>
 		[onshow;block=end]
 	</tr>
 </table>

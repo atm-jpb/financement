@@ -8,9 +8,11 @@ $(document).ready(function() {
 		get_grille();
 	}
 	
-	$('input[name^="dossiers_rachetes"]').bind('click', calcul_montant_rachat);
-	$('input[name^="dossiers_rachetes"]').bind('click', prevent_dbl_select);
-	$('select[name="fk_type_contrat"]').bind('change', calcul_montant_rachat);
+	//$('input[name^="dossiers_rachetes"]').bind('click', calcul_montant_rachat);
+	//$('input[name^="dossiers_rachetes"]').bind('click', prevent_dbl_select);
+	//$('select[name="fk_type_contrat"]').bind('change', calcul_montant_rachat);
+	$('input[type="checkbox"]').parent('td.solde').bind('click', select_solde).css('cursor', 'pointer');;
+	init_selected_dossier();
 });
 
 var get_grille = function() {
@@ -69,16 +71,24 @@ var calcul_montant_rachat = function() {
 	var type_contrat = $('select[name="fk_type_contrat"]').val();
 	var type_solde = 'solde_nr';
 	$('input[name^="dossiers_rachetes"]:checked').each(function() {
-		type_solde = ($(this).attr('contrat') == type_contrat) ? 'solde_r' : 'solde_nr';
-		montant_rachat += parseFloat($(this).attr(type_solde));
+		//type_solde = ($(this).attr('contrat') == type_contrat) ? 'solde_r' : 'solde_nr';
+		//montant_rachat += parseFloat($(this).attr(type_solde));
+		montant_rachat += parseFloat($(this).attr('solde'));
 	});
 	
+	montant_rachat = Math.round(montant_rachat*100)/100;
 	$('input[name="montant_rachete"]').val(montant_rachat);
 };
 
 var prevent_dbl_select = function() {
 	var val = $(this).val();
-	if($('#dossiers_rachetes\\['+val+'\\]:checked').length > 0) {
+	if($(this).attr('checked') == 'checked') {
+		$('input[name^="dossiers_rachetes"][name$="\\['+val+'\\]"]').attr('disabled', true);
+		$(this).attr('disabled', false);
+	} else {
+		$('input[name^="dossiers_rachetes"][name$="\\['+val+'\\]"]').attr('disabled', false);
+	}
+	/*if($('#dossiers_rachetes\\['+val+'\\]:checked').length > 0) {
 		$('#dossiers_rachetes_p1\\['+val+'\\]').attr('disabled', true);
 	} else {
 		$('#dossiers_rachetes_p1\\['+val+'\\]').attr('disabled', false);
@@ -87,5 +97,24 @@ var prevent_dbl_select = function() {
 		$('#dossiers_rachetes\\['+val+'\\]').attr('disabled', true);
 	} else {
 		$('#dossiers_rachetes\\['+val+'\\]').attr('disabled', false);
+	}*/
+};
+
+var select_solde = function() {
+	var cb = $(this).find('input[type="checkbox"]');
+	if(cb.attr('checked') == 'checked') {
+		cb.attr('checked', false);
+		$(this).css('background-color', '');
+	} else {
+		$(this).parent('tr').find('input[type="checkbox"]').attr('checked', false);
+		$(this).parent('tr').find('td.solde').css('background-color', '');
+		cb.attr('checked', true);
+		$(this).css('background-color', '#00FF00');
 	}
+	
+	calcul_montant_rachat();
+};
+
+var init_selected_dossier = function() {
+	$('input[type="checkbox"]:checked').parent('td').css('background-color', '#00FF00');
 };

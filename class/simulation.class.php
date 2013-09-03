@@ -8,9 +8,9 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('entity,fk_soc,fk_user_author,fk_leaser,accord_confirme','type=entier;');
 		parent::add_champs('duree,opt_administration,opt_creditbail','type=entier;');
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
-		parent::add_champs('date_simul,date_validite,date_accord','type=date;');
+		parent::add_champs('date_simul,date_validite,date_accord,date_demarrage','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,numero_accord,reference,opt_calage','type=chaine;');
-		parent::add_champs('dossiers_rachetes,dossiers_rachetes_p1', 'type=tableau;');
+		parent::add_champs('dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1', 'type=tableau;');
 		parent::start();
 		parent::_init_vars();
 		
@@ -149,6 +149,8 @@ class TSimulation extends TObjetStd {
 		
 		// Calcul du montant total financé
 		$this->montant_total_finance = $this->montant + $this->montant_rachete + $this->montant_rachete_concurrence;
+		// Changement du 13.09.02 : le montant renseigné comportera déjà le montant des rachats
+		$this->montant_total_finance = $this->montant;
 
 		if(empty($this->fk_type_contrat)) { // Type de contrat obligatoire
 			$this->error = 'ErrorNoTypeContratSelected';
@@ -185,50 +187,62 @@ class TSimulation extends TObjetStd {
 		}
 		
 		$this->coeff=0;
-		foreach($grille->TGrille[$this->duree] as $palier => $infos) {
-			if((!empty($this->montant_total_finance) && $this->montant_total_finance <= $palier)
-			|| (!empty($this->echeance) && $this->echeance <= $infos['echeance']))
-			{
+		// Calcul à partir du montant
+		if(!empty($this->montant_total_finance)) {
+			foreach($grille->TGrille[$this->duree] as $palier => $infos) {
+				if($this->montant_total_finance <= $palier)
+				{
 					$this->coeff = $infos['coeff']; // coef trimestriel
 					break;
+				}
+			}
+		} else if(!empty($this->echeance)) { // Calcul à partir de l'échéance
+			$montant = 0;
+			foreach($grille->TGrille[$this->duree] as $palier => $infos) {
+				$montantMax = $this->echeance / ($infos['coeff'] / 100);
+				if($montantMax > $montant && $montantMax <= $palier) {
+					$montant = $montantMax;
+					$this->coeff = $infos['coeff']; // coef trimestriel
+				}
 			}
 		}
+		
 		if($this->coeff==0){
 			$this->error = 'ErrorAmountOutOfGrille';
 			return false;
 		}
+		
+		// Le coeff final renseigné par un admin prend le pas sur le coeff grille
 		if(!empty($this->coeff_final) && $this->coeff_final != $this->coeff) {
 			$this->coeff = $this->coeff_final;
 		}
 		
-		$coeffTrimestriel = $this->coeff / 4 /100; // en %
+		$coeffTrimestriel = $this->coeff / 4 / 100; // en %
 
 		if(!empty($this->montant_total_finance)) { // Calcul à partir du montant
-					
-				if($typeCalcul=='cpro') { // Les coefficient sont trimestriel, à adapter en fonction de la périodicité de la simulation
-					$this->echeance = ($this->montant_total_finance - $this->vr) * ($this->coeff / 100);
-					if($this->opt_periodicite == 'ANNEE') $this->echeance *= 4;
-					else if($this->opt_periodicite == 'MOIS') $this->echeance /= 3;
-				} else {
-					$this->echeance = $this->montant_total_finance * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$this->duree) );
-				}
-				
-				//print "$this->echeance = $this->montant_total_finance, &$this->duree, &$this->echeance, $this->vr, &$this->coeff::$coeffTrimestriel";
-				
-				$this->echeance = round($this->echeance, 2);
+			if($typeCalcul=='cpro') { // Les coefficient sont trimestriel, à adapter en fonction de la périodicité de la simulation
+				$this->echeance = ($this->montant_total_finance - $this->vr) * ($this->coeff / 100);
+				if($this->opt_periodicite == 'ANNEE') $this->echeance *= 4;
+				else if($this->opt_periodicite == 'MOIS') $this->echeance /= 3;
+			} else {
+				$this->echeance = $this->montant_total_finance * $coeffTrimestriel / (1- pow(1+$coeffTrimestriel, -$this->duree) );
+			}
+			
+			//print "$this->echeance = $this->montant_total_finance, &$this->duree, &$this->echeance, $this->vr, &$this->coeff::$coeffTrimestriel";
+			
+			$this->echeance = round($this->echeance, 2);
 		} 
 		else if(!empty($this->echeance)) { // Calcul à partir de l'échéance
-		
-				if($typeCalcul=='cpro') {
-					$this->montant = $this->echeance / ($this->coeff / 100) + $this->vr;
-					if($this->opt_periodicite == 'ANNEE') $this->montant /= 4;
-					else if($this->opt_periodicite == 'MOIS') $this->montant *= 3;
-				} else {
-					$this->montant =  $this->echeance * (1- pow(1+$coeffTrimestriel, -$this->duree) ) / $coeffTrimestriel ;
-				}
-				
-				$this->montant = round($this->montant, 2);
-				$this->montant_total_finance = $this->montant;
+			if($typeCalcul=='cpro') {
+				$this->montant = $this->echeance / ($this->coeff / 100) + $this->vr;
+				if($this->opt_periodicite == 'ANNEE') $this->montant /= 4;
+				else if($this->opt_periodicite == 'MOIS') $this->montant *= 3;
+			} else {
+				$this->montant =  $this->echeance * (1- pow(1+$coeffTrimestriel, -$this->duree) ) / $coeffTrimestriel ;
+			}
+			
+			$this->montant = round($this->montant, 2);
+			$this->montant_total_finance = $this->montant;
 		}
 		
 		return true;
