@@ -449,4 +449,3 @@ class TSimulation extends TObjetStd {
 		$res = ob_get_clean();
 	}
 }
-

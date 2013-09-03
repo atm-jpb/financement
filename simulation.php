@@ -332,6 +332,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	$TBS=new TTemplateTBS();
 	$ATMdb=new Tdb;
 	
+	dol_include_once('/core/class/html.formfile.class.php');
+	$formfile = new FormFile($db);
+	$filename = dol_sanitizeFileName($simulation->getRef());
+	$filedir = $conf->financement->dir_output . '/' . dol_sanitizeFileName($simulation->getRef());
+	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
@@ -344,6 +349,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				
 				,'id'=>$simulation->rowid
 				,'ref'=>$simulation->reference
+				,'doc'=>$formfile->getDocumentsLink('financement', $filename, $filedir)
 				,'fk_soc'=>$simulation->fk_soc
 				,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat)
 				,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
