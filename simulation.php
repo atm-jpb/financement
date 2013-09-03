@@ -556,7 +556,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'checkedr'=>$checkedr
 			,'checkednr'=>$checkednr
 			,'checkedr1'=>$checkedr1
-			,'checkednr1'=>$checkednr1r
+			,'checkednr1'=>$checkednr1
 			
 			,'maintenance' => $fin->montant_prestation
 			,'assurance' => $fin->assurance
