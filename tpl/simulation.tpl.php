@@ -83,26 +83,27 @@
 		<tr>
 			<td>Periodicite</td>
 			<td>[simulation.opt_periodicite; strconv=no]</td>
-			<td>Type de matériel financé</td>
-			<td>[simulation.type_materiel; strconv=no]</td>
+			<td>[simulation.user; strconv=no]</td>
+			<td>[simulation.date; frm=dd/mm/yyyy]</td>
 		</tr>
 		<tr>
 			<td>Mode de règlement</td>
 			<td>[simulation.opt_mode_reglement; strconv=no]</td>
-			<td width="20%">Administration</td>
-			<td width="25%">[simulation.opt_administration; strconv=no]</td>
+			<td>Type de matériel financé</td>
+			<td>[simulation.type_materiel; strconv=no]</td>
+			
 		</tr>
 		<tr>
 			<td>Terme</td>
 			<td>[simulation.opt_terme; strconv=no]</td>
-			<td>Demandeur</td>
-			<td>[simulation.user; strconv=no]</td>
+			<td width="20%">Administration</td>
+			<td width="25%">[simulation.opt_administration; strconv=no]</td>
 		</tr>
 		<tr>
 			<td>Calage</td>
 			<td>[simulation.opt_calage; strconv=no]</td>
-			<td>Date</td>
-			<td>[simulation.date; frm=dd/mm/yyyy]</td>
+			<td>Date démarrage</td>
+			<td>[simulation.date_demarrage; strconv=no]</td>
 		</tr>
 		<tr class="liste_titre">
 			<td colspan="4">Paramètres financiers</td>
@@ -113,17 +114,15 @@
 			<td colspan="2" rowspan="3" align="center">
 				[onshow;block=begin;when [view.calcul]==1]
 				<span style="font-size: 14px;">Montant total financé : [simulation.total_financement; frm=0 000,00] &euro;</span>
-				<br />
-				(= montant + montant rachat + montant rachat concurrence)
 				[onshow;block=end]
 			</td>
 		</tr>
 		<tr>
-			<td>Montant rachat</td>
+			<td>dont montant rachat</td>
 			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
-			<td>Montant rachat concurrence</td>
+			<td>dont montant rachat concurrence</td>
 			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
@@ -132,8 +131,8 @@
 			<td colspan="2">
 				[onshow;block=begin;when [view.type]=='simul']
 				<center>
-				<span style="font-size: 14px;">[simulation.accord; strconv=no]</span>
-				([simulation.date_validite])
+				<span style="font-size: 14px;">[simulation.accord; strconv=no]</span><br />
+				[simulation.date_validite]
 				</center>
 				[onshow;block=end]
 			</td>
