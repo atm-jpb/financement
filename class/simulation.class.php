@@ -363,6 +363,15 @@ class TSimulation extends TObjetStd {
 	
 	function gen_simulation_pdf(&$ATMdb, &$doliDB) {
 		global $conf;
+		$a = new TFin_affaire;
+		$f = new TFin_financement;
+		
+		// Infos de la simulation
+		$simu = $this;
+		$simu->type_contrat = $a->TContrat[$this->fk_type_contrat];
+		$simu->periodicite = $f->TPeriodicite[$this->opt_periodicite];
+		$simu->statut = utf8_decode(html_entity_decode($this->getStatut()));
+		
 		// Dossiers rachetés dans la simulation
 		$TDossier = array();
 		
@@ -427,7 +436,7 @@ class TSimulation extends TObjetStd {
 				'dossier'=>$TDossier
 			)
 			,array(
-				'simulation'=>$this
+				'simulation'=>$simu
 				,'client'=>$this->societe
 			)
 			,array()

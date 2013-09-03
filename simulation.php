@@ -149,7 +149,7 @@ if(!empty($action)) {
 			$simulation->save($ATMdb, $db);
 			
 			// Si l'accord vient d'être donné (par un admin)
-			if($simulation->accord == 'OK' && $simulation->accord != $oldAccord) {
+			if(($simulation->accord == 'OK' || $simulation->accord == 'KO') && $simulation->accord != $oldAccord) {
 				$simulation->send_mail_vendeur();
 			}
 			
