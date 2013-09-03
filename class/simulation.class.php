@@ -444,8 +444,9 @@ class TSimulation extends TObjetStd {
 		);
 		
 		// Transformation en PDF
+		$cmd = 'libreoffice --convert-to pdf --outdir '.$filePath.' --headless '.$filePath.'/'.$fileName;
 		ob_start();
-		system('libreoffice --convert-to pdf --outdir '.$filePath.' --headless '.$filePath.'/'.$fileName);
+		system($cmd);
 		$res = ob_get_clean();
 	}
 }
