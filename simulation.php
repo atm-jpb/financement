@@ -124,6 +124,10 @@ if(!empty($action)) {
 			$oldAccord = $simulation->accord;
 			$simulation->set_values($_REQUEST);
 			
+			if($simulation->opt_calage != '') {
+				$simulation->date_demarrage = '';
+			}
+			
 			// Si l'accord vient d'être donné (par un admin)
 			if($simulation->accord == 'OK' && $simulation->accord != $oldAccord) {
 				$simulation->date_validite = strtotime('+ 3 months');
