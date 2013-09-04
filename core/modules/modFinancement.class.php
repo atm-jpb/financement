@@ -300,6 +300,7 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][1] = 'Accès aux PDF simulation';
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'read';
+		//$this->rights[$r][5] = 'read';
 		$r++;
 
 
