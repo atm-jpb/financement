@@ -71,74 +71,78 @@
 		<tr>
 			<td width="30%"><span class="fieldrequired">Type de contrat</span></td>
 			<td width="25%">[simulation.fk_type_contrat; strconv=no]</td>
-			<td width="20%">Administration</td>
-			<td width="25%">[simulation.opt_administration; strconv=no]</td>
+			[onshow;block=begin;when [view.type]=='simul']
+			<td width="20%">Référence</td>
+			<td width="25%">[simulation.ref; strconv=no] [simulation.doc; strconv=no]</td>
+			[onshow;block=end]
+			[onshow;block=begin;when [view.type]!='simul']
+			<td width="20%">&nbsp;</td>
+			<td width="25%">&nbsp;</td>
+			[onshow;block=end]
 		</tr>
 		<tr>
 			<td>Periodicite</td>
 			<td>[simulation.opt_periodicite; strconv=no]</td>
-			<td>Crédit-Bail (avec accord CDA)</td>
-			<td>[simulation.opt_creditbail; strconv=no]</td>
+			<td>[simulation.user; strconv=no]</td>
+			<td>[simulation.date; frm=dd/mm/yyyy]</td>
 		</tr>
 		<tr>
 			<td>Mode de règlement</td>
 			<td>[simulation.opt_mode_reglement; strconv=no]</td>
-			<td>Utilisateur</td>
-			<td>[simulation.user; strconv=no]</td>
+			<td>Type de matériel financé</td>
+			<td>[simulation.type_materiel; strconv=no]</td>
+			
 		</tr>
 		<tr>
 			<td>Terme</td>
 			<td>[simulation.opt_terme; strconv=no]</td>
-			<td>Date</td>
-			<td>[simulation.date; frm=dd/mm/yyyy]</td>
+			<td width="20%">Administration</td>
+			<td width="25%">[simulation.opt_administration; strconv=no]</td>
+		</tr>
+		<tr>
+			<td>Calage</td>
+			<td>[simulation.opt_calage; strconv=no]</td>
+			<td>Date démarrage</td>
+			<td>[simulation.date_demarrage; strconv=no]</td>
 		</tr>
 		<tr class="liste_titre">
 			<td colspan="4">Paramètres financiers</td>
 		</tr>
 		<tr>
-			<td>Montant</td>
+			<td>Montant total financ&eacute;</td>
 			<td>[simulation.montant; strconv=no; frm=0 000,00] &euro;</td>
-			<td colspan="2" rowspan="3" align="center">
-				[onshow;block=begin;when [view.calcul]==1]
-				<span style="font-size: 14px;">Montant total financé : [simulation.total_financement; frm=0 000,00] &euro;</span>
-				<br />
-				(= montant + montant rachat + montant rachat concurrence)
+			<td colspan="2" rowspan="2" align="center">
+				[onshow;block=begin;when [view.type]=='simul']
+				<span style="font-size: 16px;">[simulation.accord; strconv=no]</span><br />
 				[onshow;block=end]
 			</td>
 		</tr>
 		<tr>
-			<td>Montant rachat</td>
+			<td>dont montant rachat</td>
 			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
-			<td>Montant rachat concurrence</td>
+			<td>dont montant rachat concurrence</td>
 			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
+			<td colspan="2" align="center">
+				[simulation.date_validite]
+			</td>
 		</tr>
 		<tr>
 			<td><span class="fieldrequired">Durée</span></td>
 			<td>[simulation.duree; strconv=no]</td>
-			<td colspan="2">
+			<td colspan="2" rowspan="4" align="center">
 				[onshow;block=begin;when [view.type]=='simul']
-				<center>
-				<span style="font-size: 14px;">[simulation.accord; strconv=no]</span>
-				[simulation.date_validite]
-				</center>
+				<span style="font-size: 14px;">[simulation.commentaire; strconv=no]</span>
 				[onshow;block=end]
 			</td>
 		</tr>
 		<tr>
 			<td>Coefficient</td>
 			<td>[simulation.coeff; strconv=no; frm=0,00] %</td>
-			<td colspan="2" rowspan="3">
-				[onshow;block=begin;when [view.type]=='simul']
-				<center>
-				<span style="font-size: 14px;">[simulation.commentaire; strconv=no]</span>
-				</center>
-				[onshow;block=end]
-			</td>
 		</tr>
 		<tr>
-			<td>&Eacute;chéance</td>
+			<td>&Eacute;chéance (Hors prestations)</td>
 			<td>[simulation.echeance; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
@@ -175,7 +179,9 @@
 		</tr>
 		<tr>
 			<td>Coefficient final</td>
-			<td>[simulation.coeff_final; strconv=no] %</td>
+			<td>[simulation.coeff_final; strconv=no; frm=0,00] %</td>
+			<td>Numéro accord</td>
+			<td>[simulation.numero_accord; strconv=no]</td>
 		</tr>
 		[onshow;block=end]
 	</table>	

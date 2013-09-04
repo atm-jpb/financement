@@ -157,16 +157,23 @@ function _liste(&$PDOdb, &$dossier) {
 	llxHeader('','Dossiers');
 	
 	$r = new TSSRenderControler($dossier);
-	$sql="SELECT d.rowid as 'ID', f.reference, a.rowid as 'ID affaire', a.reference as 'N° affaire', a.nature_financement, a.fk_soc as 'fk_soc', s.nom, 
-	f.duree as 'Durée', f.montant as 'Montant financé', f.echeance as 'Echéance', f.date_prochaine_echeance as 'Prochaine échéance', f.date_debut, f.date_fin as 'Fin'
-	FROM ((((@table@ d
-	LEFT OUTER JOIN  llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
-		LEFT OUTER JOIN llx_fin_affaire a ON (l.fk_fin_affaire=a.rowid))
-			LEFT OUTER JOIN llx_fin_dossier_financement f ON (d.rowid=f.fk_fin_dossier AND ((a.nature_financement='INTERNE' AND f.type='CLIENT') OR (a.nature_financement='EXTERNE' AND f.type='LEASER')) ))
-						LEFT OUTER JOIN llx_societe s ON (a.fk_soc=s.rowid))
+	$sql ="SELECT d.rowid as 'ID', fc.reference as refDosCli, fl.reference as refDosLea, a.rowid as 'ID affaire', a.reference as 'Affaire', ";
+	$sql.="a.nature_financement, a.fk_soc, c.nom as nomCli, l.nom as nomLea, ";
+	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.duree ELSE fl.duree END as 'Durée', ";
+	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.montant ELSE fl.montant END as 'Montant', ";
+	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.echeance ELSE fl.echeance END as 'Echéance', ";
+	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END as 'Prochaine', ";
+	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END as 'date_debut', ";
+	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END as 'Fin' ";
+	$sql.="FROM ((((((@table@ d ";
+	$sql.="LEFT OUTER JOIN llx_fin_dossier_affaire da ON (d.rowid=da.fk_fin_dossier)) ";
+	$sql.="LEFT OUTER JOIN llx_fin_affaire a ON (da.fk_fin_affaire=a.rowid)) ";
+	$sql.="LEFT OUTER JOIN llx_fin_dossier_financement fc ON (d.rowid=fc.fk_fin_dossier AND fc.type='CLIENT')) ";
+	$sql.="LEFT OUTER JOIN llx_fin_dossier_financement fl ON (d.rowid=fl.fk_fin_dossier AND fl.type='LEASER')) ";
+	$sql.="LEFT OUTER JOIN llx_societe c ON (a.fk_soc=c.rowid)) ";
+	$sql.="LEFT OUTER JOIN llx_societe l ON (fl.fk_soc=l.rowid)) ";
 		
-		WHERE a.entity=".$conf->entity;
-				
+	$sql.="WHERE a.entity=".$conf->entity;
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	$aff = new TFin_affaire;
@@ -177,16 +184,17 @@ function _liste(&$PDOdb, &$dossier) {
 			,'nbLine'=>'30'
 		)
 		,'link'=>array(
-			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" title="Afficher société: test" alt="Afficher société: test" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
-			,'reference'=>'<a href="?id=@ID@">@val@</a>'
-			,'N° affaire'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/affaire.php?id=@ID affaire@">@val@</a>'
+			'nomCli'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
+			,'nomLea'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
+			,'refDosCli'=>'<a href="?id=@ID@">@val@</a>'
+			,'refDosLea'=>'<a href="?id=@ID@">@val@</a>'
+			,'Affaire'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/affaire.php?id=@ID affaire@">@val@</a>'
 		)
 		,'translate'=>array(
-			'Incident de paiment'=>$dossier->TIncidentPaiement
-			,'nature_financement'=>$aff->TNatureFinancement
+			'nature_financement'=>$aff->TNatureFinancement
 		)
 		,'hide'=>array('fk_soc','ID','ID affaire')
-		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine échéance'=>'date', 'Montant financé'=>'money', 'Echéance'=>'money')
+		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'Echéance'=>'money')
 		,'liste'=>array(
 			'titre'=>"Liste des dossiers"
 			,'image'=>img_picto('','title.png', '', 0)
@@ -199,24 +207,28 @@ function _liste(&$PDOdb, &$dossier) {
 			,'picto_search'=>img_picto('','search.png', '', 0)
 			)
 		,'title'=>array(
-			'reference'=>'N° contrat'
-			,'nom'=>'Société'
+			'refDosCli'=>'Contrat'
+			,'refDosLea'=>'Contrat Leaser'
+			,'nomCli'=>'Client'
+			,'nomLea'=>'Leaser'
 			,'nature_financement'=>'Nature'
 			,'date_debut'=>'Début'
 		)
-		,'orderBy'=> array('ID'=>'DESC','f.reference'=>'ASC')
+		,'orderBy'=> array('ID'=>'DESC','fc.reference'=>'ASC')
 		,'search'=>array(
-			'reference'=>array('recherche'=>true, 'table'=>'f')
-			,'nom'=>array('recherche'=>true, 'table'=>'s')
+			'refDosCli'=>array('recherche'=>true, 'table'=>'fc', 'field'=>'reference')
+			,'refDosLea'=>array('recherche'=>true, 'table'=>'fl', 'field'=>'reference')
+			,'nomCli'=>array('recherche'=>true, 'table'=>'c', 'field'=>'nom')
+			,'nomLea'=>array('recherche'=>true, 'table'=>'l', 'field'=>'nom')
 			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
-			,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
+			//,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
 		)
 	));
 	$form->end();
 	
 	llxFooter();
-}	
-	
+}
+
 function _fiche(&$PDOdb, &$dossier, $mode) {
 	global $user,$db;
 	
