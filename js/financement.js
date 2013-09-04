@@ -16,7 +16,7 @@ $(document).ready(function() {
 	
 	// Calage
 	$('select[name="opt_calage"]').bind('change', select_calage);
-	if($('select[name="opt_calage"]').val() != '') {
+	if($('select[name="opt_calage"]').val() == '') {
 		$('input[name="date_demarrage"]').attr('disabled', true);
 		$('input[name="date_demarrage"]').val('');
 	} else {
