@@ -447,7 +447,11 @@ function _calcul(&$simulation, $mode='calcul') {
 		$error = true;
 	} else if($simulation->accord_confirme == 0) { // Sinon, vérification accord à partir du calcul
 		$simulation->demande_accord();
-		if($mode == 'save' && $simulation->accord == 'OK') { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
+		if($simulation->accord == 'OK') {
+			$simulation->date_accord = time();
+			$simulation->date_validite = strtotime('+ 3 months');
+		}
+		if($mode == 'save' && ($simulation->accord == 'OK' || $simulation->accord == 'KO')) { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
 			$simulation->send_mail_vendeur(true);
 		}
 	}
