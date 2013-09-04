@@ -357,7 +357,7 @@ class TSimulation extends TObjetStd {
 			'',
 			'',
 			0,
-			1
+			0
 		);
 		if ($mailfile->error) {
 			echo 'ERR : '.$mailfile->error;
