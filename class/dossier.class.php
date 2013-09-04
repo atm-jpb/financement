@@ -404,7 +404,7 @@ class TFin_dossier extends TObjetStd {
 			case 'SNRBANK':
 				if($this->financementLeaser->duree - $duree_restante_leaser <= 5) return $this->financementLeaser->montant;
 				
-				return $LRD_Leaser * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100);
+				return $CRD_Leaser * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100);
 				break;
 				
 			case 'SNRCPRO':

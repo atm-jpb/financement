@@ -280,9 +280,6 @@ class TSimulation extends TObjetStd {
 					&& !empty($this->societe->TDossiers)) // A déjà eu au moins un dossier chez CPRO
 				{
 					$this->accord = 'OK';
-					$this->date_accord = time();
-					$this->date_validite = strtotime('+ 3 months');
-					$this->send_mail_vendeur(true);
 				} 
 			}
 		}
@@ -337,13 +334,13 @@ class TSimulation extends TObjetStd {
 		if($this->accord == 'OK') {
 			$accord = ($auto) ? 'Accord automatique' : 'Accord de la cellule financement';
 			$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-			$mesg.= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n° '.$this->reference."\n\n";
+			$mesg.= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n° '.$this->reference.'.'."\n\n";
 			$mesg.= 'Cordialement,'."\n\n";
 			$mesg.= 'La cellule financement'."\n\n";
 		} else {
 			$accord = 'Demande de financement refusée';
 			$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-			$mesg.= 'Votre demande de financement via la simulation n° '.$this->reference.' n\'a pas été acceptée'."\n\n";
+			$mesg.= 'Votre demande de financement via la simulation n° '.$this->reference.' n\'a pas été acceptée.'."\n\n";
 			$mesg.= 'Cordialement,'."\n\n";
 			$mesg.= 'La cellule financement'."\n\n";
 		}
@@ -360,7 +357,7 @@ class TSimulation extends TObjetStd {
 			'',
 			'',
 			0,
-			-1
+			1
 		);
 		if ($mailfile->error) {
 			echo 'ERR : '.$mailfile->error;

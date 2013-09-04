@@ -16,7 +16,7 @@ $(document).ready(function() {
 	
 	// Calage
 	$('select[name="opt_calage"]').bind('change', select_calage);
-	if($('select[name="opt_calage"]').val() != '') {
+	if($('select[name="opt_calage"]').val() == '') {
 		$('input[name="date_demarrage"]').attr('disabled', true);
 		$('input[name="date_demarrage"]').val('');
 	} else {
@@ -129,7 +129,7 @@ var init_selected_dossier = function() {
 };
 
 var select_calage = function() {
-	if($(this).val() != '') {
+	if($(this).val() == '') {
 		$('input[name="date_demarrage"]').attr('disabled', true);
 		$('input[name="date_demarrage"]').val('');
 	} else {
