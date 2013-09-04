@@ -334,13 +334,20 @@ class TSimulation extends TObjetStd {
 		$filename = $attachedfiles['names'];
 		$mimetype = $attachedfiles['mimes'];
 		
-		$accord = ($auto) ? 'Accord automatique' : 'Accord de la cellule financement';
+		if($this->accord == 'OK') {
+			$accord = ($auto) ? 'Accord automatique' : 'Accord de la cellule financement';
+			$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
+			$mesg.= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n° '.$this->reference."\n\n";
+			$mesg.= 'Cordialement,'."\n\n";
+			$mesg.= 'La cellule financement'."\n\n";
+		} else {
+			$accord = 'Demande de financement refusée';
+			$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
+			$mesg.= 'Votre demande de financement via la simulation n° '.$this->reference.' n\'a pas été acceptée'."\n\n";
+			$mesg.= 'Cordialement,'."\n\n";
+			$mesg.= 'La cellule financement'."\n\n";
+		}
 		$subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance,2,',',' ').' € - '.$accord;
-		
-		$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-		$mesg.= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n° '.$this->reference."\n\n";
-		$mesg.= 'Cordialement,'."\n\n";
-		$mesg.= 'La cellule financement'."\n\n";
 		
 		$mailfile = new CMailFile(
 			$subject,
