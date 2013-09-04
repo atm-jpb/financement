@@ -129,7 +129,7 @@ var init_selected_dossier = function() {
 };
 
 var select_calage = function() {
-	if($(this).val() != '') {
+	if($(this).val() == '') {
 		$('input[name="date_demarrage"]').attr('disabled', true);
 		$('input[name="date_demarrage"]').val('');
 	} else {
