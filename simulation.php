@@ -133,6 +133,8 @@ if(!empty($action)) {
 				$simulation->date_validite = strtotime('+ 3 months');
 				$simulation->date_accord = time();
 				$simulation->accord_confirme = 1;
+			} else if($simulation->accord == 'OK' && $simulation->accord != $oldAccord) {
+				$simulation->accord_confirme = 1;
 			}
 			
 			// Si une donnée de préconisation a été remplie, on fige la simulation pour le commercial
