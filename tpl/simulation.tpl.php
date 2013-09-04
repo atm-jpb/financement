@@ -109,11 +109,11 @@
 			<td colspan="4">Paramètres financiers</td>
 		</tr>
 		<tr>
-			<td>Montant</td>
+			<td>Montant total financ&eacute;</td>
 			<td>[simulation.montant; strconv=no; frm=0 000,00] &euro;</td>
-			<td colspan="2" rowspan="3" align="center">
-				[onshow;block=begin;when [view.calcul]==1]
-				<span style="font-size: 14px;">Montant total financé : [simulation.total_financement; frm=0 000,00] &euro;</span>
+			<td colspan="2" rowspan="2" align="center">
+				[onshow;block=begin;when [view.type]=='simul']
+				<span style="font-size: 16px;">[simulation.accord; strconv=no]</span><br />
 				[onshow;block=end]
 			</td>
 		</tr>
@@ -124,29 +124,22 @@
 		<tr>
 			<td>dont montant rachat concurrence</td>
 			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
+			<td colspan="2" align="center">
+				[simulation.date_validite]
+			</td>
 		</tr>
 		<tr>
 			<td><span class="fieldrequired">Durée</span></td>
 			<td>[simulation.duree; strconv=no]</td>
-			<td colspan="2">
+			<td colspan="2" rowspan="4" align="center">
 				[onshow;block=begin;when [view.type]=='simul']
-				<center>
-				<span style="font-size: 14px;">[simulation.accord; strconv=no]</span><br />
-				[simulation.date_validite]
-				</center>
+				<span style="font-size: 14px;">[simulation.commentaire; strconv=no]</span>
 				[onshow;block=end]
 			</td>
 		</tr>
 		<tr>
 			<td>Coefficient</td>
 			<td>[simulation.coeff; strconv=no; frm=0,00] %</td>
-			<td colspan="2" rowspan="3">
-				[onshow;block=begin;when [view.type]=='simul']
-				<center>
-				<span style="font-size: 14px;">[simulation.commentaire; strconv=no]</span>
-				</center>
-				[onshow;block=end]
-			</td>
 		</tr>
 		<tr>
 			<td>&Eacute;chéance (Hors prestations)</td>

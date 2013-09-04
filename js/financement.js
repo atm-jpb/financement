@@ -13,6 +13,7 @@ $(document).ready(function() {
 	//$('select[name="fk_type_contrat"]').bind('change', calcul_montant_rachat);
 	$('input[type="checkbox"]').parent('td.solde').bind('click', select_solde).css('cursor', 'pointer');;
 	init_selected_dossier();
+	select_calage();
 });
 
 var get_grille = function() {
@@ -117,4 +118,15 @@ var select_solde = function() {
 
 var init_selected_dossier = function() {
 	$('input[type="checkbox"]:checked').parent('td').css('background-color', '#00FF00');
+};
+
+var select_calage = function() {
+	$('select[name="opt_calage"]').change(function() {
+		if($(this).val() != '') {
+			$('input[name="date_demarrage"]').attr('disabled', true);
+			$('input[name="date_demarrage"]').val('');
+		} else {
+			$('input[name="date_demarrage"]').attr('disabled', false);
+		}
+	});
 };
