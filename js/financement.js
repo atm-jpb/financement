@@ -11,9 +11,17 @@ $(document).ready(function() {
 	//$('input[name^="dossiers_rachetes"]').bind('click', calcul_montant_rachat);
 	//$('input[name^="dossiers_rachetes"]').bind('click', prevent_dbl_select);
 	//$('select[name="fk_type_contrat"]').bind('change', calcul_montant_rachat);
-	$('input[type="checkbox"]').parent('td.solde').bind('click', select_solde).css('cursor', 'pointer');;
+	$('input[type="checkbox"]').parent('td.solde').bind('click', select_solde).css('cursor', 'pointer');
 	init_selected_dossier();
-	select_calage();
+	
+	// Calage
+	$('select[name="opt_calage"]').bind('change', select_calage);
+	if($('select[name="opt_calage"]').val() != '') {
+		$('input[name="date_demarrage"]').attr('disabled', true);
+		$('input[name="date_demarrage"]').val('');
+	} else {
+		$('input[name="date_demarrage"]').attr('disabled', false);
+	}
 });
 
 var get_grille = function() {
@@ -121,12 +129,10 @@ var init_selected_dossier = function() {
 };
 
 var select_calage = function() {
-	$('select[name="opt_calage"]').change(function() {
-		if($(this).val() != '') {
-			$('input[name="date_demarrage"]').attr('disabled', true);
-			$('input[name="date_demarrage"]').val('');
-		} else {
-			$('input[name="date_demarrage"]').attr('disabled', false);
-		}
-	});
+	if($(this).val() != '') {
+		$('input[name="date_demarrage"]').attr('disabled', true);
+		$('input[name="date_demarrage"]').val('');
+	} else {
+		$('input[name="date_demarrage"]').attr('disabled', false);
+	}
 };

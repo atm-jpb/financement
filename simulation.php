@@ -125,7 +125,7 @@ if(!empty($action)) {
 			$simulation->set_values($_REQUEST);
 			
 			if($simulation->opt_calage != '') {
-				$simulation->date_demarrage = '';
+				$simulation->set_date('date_demarrage','');
 			}
 			
 			// Si l'accord vient d'être donné (par un admin)
@@ -364,7 +364,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement)
 				,'opt_calage'=>$form->combo('', 'opt_calage', $financement->TCalage, $simulation->opt_calage)
 				,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme)
-				,'date_demarrage'=>$form->calendrier('', 'date_demarrage', $simulation->date_demarrage, 12)
+				,'date_demarrage'=>$form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12)
 				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)
 				,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)
 				,'montant_rachete_concurrence'=>$form->texte('', 'montant_rachete_concurrence', $simulation->montant_rachete_concurrence, 10)
