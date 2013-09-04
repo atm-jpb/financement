@@ -370,7 +370,7 @@ class TSimulation extends TObjetStd {
 		$simu = $this;
 		$simu->type_contrat = $a->TContrat[$this->fk_type_contrat];
 		$simu->periodicite = $f->TPeriodicite[$this->opt_periodicite];
-		$simu->statut = utf8_decode(html_entity_decode($this->getStatut()));
+		$simu->statut = html_entity_decode($this->getStatut());
 		
 		// Dossiers rachetés dans la simulation
 		$TDossier = array();
