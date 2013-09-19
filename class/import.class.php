@@ -407,11 +407,19 @@ class TImport extends TObjetStd {
 				$dossier->addAffaire($ATMdb, $affaire->getId());
 				$dossier->save($ATMdb);
 			}
+
+			// On repasse en brouillon pour supprimer les ligne
+			$facture_mat->set_draft($user);
+			
+			// On supprime les lignes (pour ne pas créer de ligne en double)
+			// Sur les facture matériel, 1 ligne = 1 facture mais une même facture peut apparaître plusieurs fois => plusieurs dossiers de financement
+			foreach ($facture_mat->lines as $line) {
+				$facture_mat->deleteline($line->rowid);
+			}
 		} else {
 			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire']);
 			return false;
 		}
-		
 		
 		// Création du lien facture matériel / affaire financement
 		$facture_mat->add_object_linked('affaire', $affaire->getId());
@@ -419,12 +427,6 @@ class TImport extends TObjetStd {
 		// Actions spécifiques
 		// On repasse en brouillon pour ajouter la ligne
 		$facture_mat->set_draft($user);
-		
-		// On supprime les lignes (pour ne pas créer de ligne en double)
-		// Sur les facture matériel, 1 ligne = 1 facture mais une même facture peut apparaître plusieurs fois => plusieurs dossiers de financement
-		foreach ($facture_mat->lines as $line) {
-			$facture_mat->deleteline($line->rowid);
-		}
 		
 		// On ajoute la ligne
 		$facture_mat->addline($facture_mat->id, 'Matricule(s) '.$data['matricule'], $data['total_ht'], 1, 19.6);
