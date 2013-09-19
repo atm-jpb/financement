@@ -101,12 +101,10 @@ class TSimulation extends TObjetStd {
 					$doss = new TFin_dossier;
 					$doss->load($db, $idDossier);
 					$this->societe->TDossiers[] = $doss;
-					if($doss->date_solde < 0) {
-						if($doss->nature_financement == 'EXTERNE') {
-							$this->societe->encours_cpro += $doss->financementLeaser->valeur_actuelle();
-						} else {
-							$this->societe->encours_cpro += $doss->financement->valeur_actuelle();
-						}
+					if($doss->nature_financement == 'EXTERNE' && $doss->financementLeaser->date_solde < 0) {
+						$this->societe->encours_cpro += $doss->financementLeaser->valeur_actuelle();
+					} else if($doss->financement->date_solde < 0) {
+						$this->societe->encours_cpro += $doss->financement->valeur_actuelle();
 					}
 				}
 				$this->societe->encours_cpro = round($this->societe->encours_cpro, 2);
@@ -198,12 +196,14 @@ class TSimulation extends TObjetStd {
 			}
 		} else if(!empty($this->echeance)) { // Calcul à partir de l'échéance
 			$montant = 0;
+			$palierMin = 0;
 			foreach($grille->TGrille[$this->duree] as $palier => $infos) {
 				$montantMax = $this->echeance / ($infos['coeff'] / 100);
-				if($montantMax > $montant && $montantMax <= $palier) {
+				if($montantMax > $montant && $montantMax <= $palier && $montantMax >= $palierMin) {
 					$montant = $montantMax;
 					$this->coeff = $infos['coeff']; // coef trimestriel
 				}
+				$palierMin = $palier;
 			}
 		}
 		
