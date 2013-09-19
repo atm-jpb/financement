@@ -389,6 +389,14 @@ class TFin_dossier extends TObjetStd {
 		$CRD_Leaser = $this->financementLeaser->valeur_actuelle($duree_restante_leaser);
 		$LRD_Leaser = $this->financementLeaser->echeance * $duree_restante_leaser;
 		
+		// MKO 13.09.19 : base de calcul différente en fonction du leaser : voir fichier config
+		global $TLeaserTypeSolde;
+		$baseCalcul = $CRD_Leaser;
+		if(!empty($TLeaserTypeSolde[$this->financementLeaser->fk_soc]) && $TLeaserTypeSolde[$this->financementLeaser->fk_soc] == 'LRD') {
+			echo 'yes';
+			$baseCalcul = $LRD_Leaser;
+		}
+		
 		$duree_restante_client = ($iPeriode == 0) ? $this->financement->duree_restante : $this->financement->duree - $iPeriode;
 		
 		$CRD = $this->financement->valeur_actuelle($duree_restante_client);
@@ -398,13 +406,13 @@ class TFin_dossier extends TObjetStd {
 			case 'SRBANK':
 				if($this->financementLeaser->duree - $duree_restante_leaser <= 5) return $this->financementLeaser->montant;
 				
-				return $CRD_Leaser * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
+				return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
 
 				break;
 			case 'SNRBANK':
 				if($this->financementLeaser->duree - $duree_restante_leaser <= 5) return $this->financementLeaser->montant;
 				
-				return $CRD_Leaser * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100);
+				return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100);
 				break;
 				
 			case 'SNRCPRO':
@@ -414,7 +422,7 @@ class TFin_dossier extends TObjetStd {
 					return ($CRD * (1 + $this->getPenalite($ATMdb,'NR','INTERNE') / 100)) + $this->getRentabiliteReste($ATMdb) + $this->getMontantCommission();
 				}
 				else {
-					return $LRD_Leaser * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'NR', 'INTERNE') / 100);
+					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'NR', 'INTERNE') / 100);
 				}
 				break;
 					
@@ -425,7 +433,7 @@ class TFin_dossier extends TObjetStd {
 					return $LRD;
 				}
 				else {
-					return $CRD_Leaser * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
+					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
 				}
 				
 				break;

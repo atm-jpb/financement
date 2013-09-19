@@ -196,12 +196,14 @@ class TSimulation extends TObjetStd {
 			}
 		} else if(!empty($this->echeance)) { // Calcul à partir de l'échéance
 			$montant = 0;
+			$palierMin = 0;
 			foreach($grille->TGrille[$this->duree] as $palier => $infos) {
 				$montantMax = $this->echeance / ($infos['coeff'] / 100);
-				if($montantMax > $montant && $montantMax <= $palier) {
+				if($montantMax > $montant && $montantMax <= $palier && $montantMax >= $palierMin) {
 					$montant = $montantMax;
 					$this->coeff = $infos['coeff']; // coef trimestriel
 				}
+				$palierMin = $palier;
 			}
 		}
 		
