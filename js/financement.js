@@ -11,7 +11,7 @@ $(document).ready(function() {
 	//$('input[name^="dossiers_rachetes"]').bind('click', calcul_montant_rachat);
 	//$('input[name^="dossiers_rachetes"]').bind('click', prevent_dbl_select);
 	//$('select[name="fk_type_contrat"]').bind('change', calcul_montant_rachat);
-	$('input[type="checkbox"]').parent('td.solde').bind('click', select_solde).css('cursor', 'pointer');
+	
 	init_selected_dossier();
 	
 	// Calage
@@ -125,7 +125,16 @@ var select_solde = function() {
 };
 
 var init_selected_dossier = function() {
+	// Mise en couleur des dossiers rachetés dans la simulation
 	$('input[type="checkbox"]:checked').parent('td').css('background-color', '#00FF00');
+	
+	// Possibilité de sélectionner un solde
+	$('input[type="checkbox"]').not(':disabled').parent('td.solde').bind('click', select_solde).css('cursor', 'pointer');
+	
+	// Dossier déjà sélectionné dans une autre simu
+	$('input[type="checkbox"]:disabled').parent('td.solde').each(function() {
+		$(this).attr('title', $(this).find('input[type="checkbox"]').attr('title'));
+	});
 };
 
 var select_calage = function() {

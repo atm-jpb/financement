@@ -37,3 +37,19 @@
 	define('FIN_THEREFORE_AFFAIRE_URL','http://srvtherefore/TWA/TheGetDoc.aspx?CtgryNo=4&N_Affaire=');
 	define('FIN_THEREFORE_DOSSIER_URL','http://srvtherefore/TWA/TheGetDoc.aspx?CtgryNo=4&N_Affaire=');
 	define('FIN_WONDERBASE_USER_RIGHT_URL', 'http://192.168.0.112/dolibarr/getDroitsAcces.php');
+	
+	$TLeaserTypeSolde = array(
+		18305	=> 'CRD' // ACECOM
+		,3382	=> 'CRD' // BNP
+		,19553	=> 'CRD' // BNP A
+		,20113	=> 'CRD' // BNP M
+		,3214	=> 'CRD' // CM-CIC A
+		,7411	=> 'CRD' // GE
+		,4440	=> 'CRD' // GRENKE
+		,1210	=> 'CRD' // KBC
+		,6065	=> 'CRD' // LIXXBAIL
+		,19068	=> 'CRD' // LIXXBAIL A
+		,19483	=> 'CRD' // LIXXBAIL M
+		,18495	=> 'CRD' // LOC PURE
+		,3306	=> 'CRD' // LOCAM
+	);

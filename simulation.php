@@ -66,14 +66,15 @@ if(!empty($_REQUEST['fk_soc'])) {
 		if(!$c->loadUserClient($ATMdb, $user->id, $simulation->fk_soc) > 0) {
 			// On vérifie si l'utilisateur est associé au tiers dans Wonderbase
 			$url = FIN_WONDERBASE_USER_RIGHT_URL.'?numArtis='.$simulation->societe->code_client.'&trigramme='.$user->login;
-			/*$droit = file_get_contents($url);
-			echo $droit;
+			$droit = file_get_contents($url);
+			$TInfo = json_decode($droit);
+			
 			// Association du user au tiers si droits ok
-			if($droit == 'OK') {
+			if($droit == 1) {
 				$c->fk_soc = $simulation->fk_soc;
 				$c->fk_user = $user->id;
 				$c->save($ATMdb);
-			}*/
+			}
 		}
 	}
 	
@@ -401,7 +402,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'siret'=>$simulation->societe->idprof2
 				,'naf'=>$simulation->societe->idprof3
 				,'code_client'=>$simulation->societe->code_client
-				,'display_score'=>$user->rights->financement->score->read && $simulation->societe->score->rowid > 0 ? 1 : 0
+				,'display_score'=>$user->rights->financement->score->read ? 1 : 0
 				,'score_date'=>empty($simulation->societe) ? '' : $simulation->societe->score->get_date('date_score')
 				,'score'=>empty($simulation->societe) ? '' : $simulation->societe->score->score
 				,'encours_cpro'=>empty($simulation->societe) ? 0 : $simulation->societe->encours_cpro
@@ -464,14 +465,14 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', a.contrat as 'Type contrat'";
 	$sql.= " , d.rowid as 'IDDoss'";
 	//$sql.= " , f.reference as 'N° contrat', f.date_debut as 'Début', f.date_fin as 'Fin'";
-	$sql.= " , ac.fk_user";
-	$sql.= " , u.login as 'Utilisateur'";
+	//$sql.= " , ac.fk_user";
+	//$sql.= " , u.login as 'Utilisateur'";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_affaire = a.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON d.rowid = da.fk_fin_dossier";
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement f ON f.fk_fin_dossier = d.rowid";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire_commercial ac ON ac.fk_fin_affaire = a.rowid";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
+	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire_commercial ac ON ac.fk_fin_affaire = a.rowid";
+	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
 	$sql.= " WHERE a.entity = ".$conf->entity;
 	$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
 	//$sql.= " AND f.type = 'CLIENT'";
@@ -515,6 +516,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			$soldeR1 = 0;
 			$soldeNR1 = 0;
 		}
+		
+		if($fin->date_solde > 0) continue;
 		
 		/*
 		$checked = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes) ? true : false;
