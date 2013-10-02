@@ -101,11 +101,17 @@ class TSimulation extends TObjetStd {
 					$doss = new TFin_dossier;
 					$doss->load($db, $idDossier);
 					$this->societe->TDossiers[] = $doss;
-					if($doss->nature_financement == 'EXTERNE' && $doss->financementLeaser->date_solde < 0) {
+					/*if($doss->nature_financement == 'EXTERNE' && (empty($doss->financement->date_solde) || $doss->financementLeaser->date_solde < 0)) {
 						$this->societe->encours_cpro += $doss->financementLeaser->valeur_actuelle();
-					} else if($doss->financement->date_solde < 0) {
+					} else if(empty($doss->financement->date_solde) || $doss->financement->date_solde < 0) {
 						$this->societe->encours_cpro += $doss->financement->valeur_actuelle();
-					}
+					}*/
+
+					// 2013.10.02 MKO : Modification demandée par Damien de ne comptabiliser que les dossier internes
+					if(!empty($doss->financement) && (empty($doss->financement->date_solde) || $doss->financement->date_solde < 0)) {
+						//echo $doss->financement->reference." : ".$doss->financement->valeur_actuelle()."<br>";
+                                                $this->societe->encours_cpro += $doss->financement->valeur_actuelle();
+                                        }
 				}
 				$this->societe->encours_cpro = round($this->societe->encours_cpro, 2);
 			}
