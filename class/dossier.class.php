@@ -393,7 +393,6 @@ class TFin_dossier extends TObjetStd {
 		global $TLeaserTypeSolde;
 		$baseCalcul = $CRD_Leaser;
 		if(!empty($TLeaserTypeSolde[$this->financementLeaser->fk_soc]) && $TLeaserTypeSolde[$this->financementLeaser->fk_soc] == 'LRD') {
-			echo 'yes';
 			$baseCalcul = $LRD_Leaser;
 		}
 		
