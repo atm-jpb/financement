@@ -418,7 +418,7 @@ class TFin_dossier extends TObjetStd {
 				if($this->financement->duree - $duree_restante_client <= 5) return $this->financement->montant;
 				
 				if($this->nature_financement == 'INTERNE') {
-					return ($CRD * (1 + $this->getPenalite($ATMdb,'NR','INTERNE') / 100)) + $this->getRentabiliteReste($ATMdb) + $this->getMontantCommission();
+					return $LRD;
 				}
 				else {
 					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'NR', 'INTERNE') / 100);
@@ -429,7 +429,7 @@ class TFin_dossier extends TObjetStd {
 				if($this->financement->duree - $duree_restante_client <= 5) return $this->financement->montant;
 
 				if($this->nature_financement == 'INTERNE') {
-					return $LRD;
+					return ($CRD * (1 + $this->getPenalite($ATMdb,'R','INTERNE') / 100)) + $this->getRentabiliteReste($ATMdb) + $this->getMontantCommission();
 				}
 				else {
 					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
