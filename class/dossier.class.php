@@ -60,6 +60,7 @@ class TFin_dossier extends TObjetStd {
 		}
 		
 		$this->calculSolde();
+		$this->calculRenta($db);
 		
 		return $res;
 	}
@@ -264,7 +265,7 @@ class TFin_dossier extends TObjetStd {
 				
 				if($fact->type == 0 && $fact->total_ht > 0) { // Récupération uniquement des factures standard et sans avoir qui l'annule complètement
 					$this->somme_facture += $fact->total_ht;
-					if($fact->statut == 2) $this->somme_facture_reglee += $fact->total_ht;
+					if($fact->paye == 1) $this->somme_facture_reglee += $fact->total_ht;
 					$this->TFacture[] = $fact;
 				}
 			} else {
@@ -393,7 +394,6 @@ class TFin_dossier extends TObjetStd {
 		global $TLeaserTypeSolde;
 		$baseCalcul = $CRD_Leaser;
 		if(!empty($TLeaserTypeSolde[$this->financementLeaser->fk_soc]) && $TLeaserTypeSolde[$this->financementLeaser->fk_soc] == 'LRD') {
-			echo 'yes';
 			$baseCalcul = $LRD_Leaser;
 		}
 		
@@ -419,7 +419,7 @@ class TFin_dossier extends TObjetStd {
 				if($this->financement->duree - $duree_restante_client <= 5) return $this->financement->montant;
 				
 				if($this->nature_financement == 'INTERNE') {
-					return ($CRD * (1 + $this->getPenalite($ATMdb,'NR','INTERNE') / 100)) + $this->getRentabiliteReste($ATMdb) + $this->getMontantCommission();
+					return $LRD;
 				}
 				else {
 					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'NR', 'INTERNE') / 100);
@@ -430,7 +430,7 @@ class TFin_dossier extends TObjetStd {
 				if($this->financement->duree - $duree_restante_client <= 5) return $this->financement->montant;
 
 				if($this->nature_financement == 'INTERNE') {
-					return $LRD;
+					return ($CRD * (1 + $this->getPenalite($ATMdb,'R','INTERNE') / 100)) + $this->getRentabiliteReste($ATMdb) + $this->getMontantCommission();
 				}
 				else {
 					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
