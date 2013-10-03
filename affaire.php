@@ -13,8 +13,6 @@
 
 	$langs->load('financement@financement');
 	
-	
-	
 	if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
 	
 	$affaire=new TFin_Affaire;
