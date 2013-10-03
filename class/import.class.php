@@ -484,7 +484,10 @@ class TImport extends TObjetStd {
 			$financement=new TFin_financement;
 			if($financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
 				$nb = ($facture_loc->type == 2) ? -1 : 1;
-				$financement->setEcheance($nb);
+				// On ne va changer l'échéance que si c'est la première fois que cette facture est intégrée dans Dolibarr
+				if(empty($facid)) {
+					$financement->setEcheance($nb);
+				}
 				$financement->save($ATMdb);
 	
 				// Création du lien entre dossier et facture

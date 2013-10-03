@@ -60,6 +60,7 @@ class TFin_dossier extends TObjetStd {
 		}
 		
 		$this->calculSolde();
+		$this->calculRenta($db);
 		
 		return $res;
 	}
@@ -264,7 +265,7 @@ class TFin_dossier extends TObjetStd {
 				
 				if($fact->type == 0 && $fact->total_ht > 0) { // Récupération uniquement des factures standard et sans avoir qui l'annule complètement
 					$this->somme_facture += $fact->total_ht;
-					if($fact->statut == 2) $this->somme_facture_reglee += $fact->total_ht;
+					if($fact->paye == 1) $this->somme_facture_reglee += $fact->total_ht;
 					$this->TFacture[] = $fact;
 				}
 			} else {
