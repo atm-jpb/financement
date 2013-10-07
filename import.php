@@ -81,7 +81,7 @@
 					
 					$imp->save($ATMdb); // Mise à jour pour nombre de lignes et nombre d'erreurs
 
-					//rename($importFolder.$fileName, $importFolderOK.$fileName);
+					rename($importFolder.$fileName, $importFolderOK.$fileName);
 					
 					fclose($f1);
 					

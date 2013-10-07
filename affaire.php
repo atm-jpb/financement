@@ -2,6 +2,7 @@
 	require('config.php');
 	require('./class/affaire.class.php');
 	require('./class/dossier.class.php');
+	require('./class/grille.class.php');
 	
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
@@ -11,8 +12,6 @@
 	dol_include_once('/compta/facture/class/facture.class.php');
 
 	$langs->load('financement@financement');
-	
-	
 	
 	if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
 	

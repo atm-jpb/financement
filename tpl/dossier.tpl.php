@@ -121,10 +121,8 @@
 		<tr><td>Renouvellant banque</td><td>[dossier.soldeRBANK; frm=0 000,00] &euro;</td></tr>
 		<tr><td>Non renouvellant banque</td><td>[dossier.soldeNRBANK; frm=0 000,00] &euro;</td></tr>
 		
-		[onshow; block=begin; when [dossier.nature_financement]=='INTERNE']
 		<tr><td>Renouvellant CPRO</td><td>[dossier.soldeRCPRO; frm=0 000,00] &euro;</td></tr>
 		<tr><td>Non renouvellant CPRO</td><td>[dossier.soldeNRCPRO; frm=0 000,00] &euro;</td></tr>
-		[onshow;block=end]
 		
 		</table>
 
