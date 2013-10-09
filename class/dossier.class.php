@@ -882,11 +882,12 @@ class TFin_financement extends TObjetStd {
 	}
 	function getiPeriode() {
 		if($this->periodicite=='TRIMESTRE')$iPeriode=3;
+		else if($this->periodicite=='SEMESTRE')$iPeriode=6;
 		else if($this->periodicite=='ANNEE')$iPeriode=12;
 		else $iPeriode = 1;
 		
 		return $iPeriode;
-	} 
+	}
 	function calculDateFin() {
 		$this->calculCalage();
 		$this->date_fin = strtotime('+'.($this->getiPeriode()*($this->duree)).' month -1 day', $this->date_debut + $this->calage);

@@ -72,7 +72,7 @@ function get_duree(&$ATMdb) {
 
 	$grille = new TFin_grille_leaser();
 	$form = new TFormCore();
-	$idTypeContrat = GETPOST('idTypeContrat');
+	$idTypeContrat = GETPOST('fk_type_contrat');
 	$opt_periodicite = GETPOST('opt_periodicite');
 
 	$htmlresult = $form->combo('','duree', $grille->get_duree($ATMdb, FIN_LEASER_DEFAULT, $idTypeContrat, $opt_periodicite), '');
@@ -114,7 +114,7 @@ function get_grille(&$ATMdb) {
 		)
 		,array(
 			'view'=>array('mode'=>'view')
-			,'label_periode' => strtr($opt_periodicite, array('MOIS'=>'mois','TRIMESTRE'=>'trimestres','ANNEE'=>'années'))
+			,'label_periode' => strtr($opt_periodicite, array('MOIS'=>'mois','TRIMESTRE'=>'trimestres','SEMESTRE'=>'semestres','ANNEE'=>'années'))
 		)
 	);
 	

@@ -1,11 +1,11 @@
 $(document).ready(function() {
 	$('select[name="opt_periodicite"]').bind('change', get_periode);
-	$('select[name="fk_type_contrat"]').bind('change', get_grille);
+	$('select[name="fk_type_contrat"]').bind('change', get_periode);
 	$('input[name^="opt_"]').bind('click', get_grille);
 	$('select[name^="opt_"]').bind('change', get_grille);
 
 	if($('select[name="fk_type_contrat"]').length > 0) {
-		get_grille();
+		get_periode();
 	}
 	
 	//$('input[name^="dossiers_rachetes"]').bind('click', calcul_montant_rachat);
@@ -62,7 +62,8 @@ var get_periode = function() {
 	var data = {
 		mode : 'duree',
 		outjson : 1,
-		opt_periodicite : $('select[name="opt_periodicite"]').val()
+		opt_periodicite : $('select[name="opt_periodicite"]').val(),
+		fk_type_contrat : $('select[name="fk_type_contrat"]').val(),
 	};
 	$.post(
 		'ajaxsimulateur.php',
