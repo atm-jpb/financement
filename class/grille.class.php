@@ -59,13 +59,14 @@ class TFin_grille_leaser extends TObjetStd {
 		
 		foreach($TResult as $ligne_grille) {
 			
-			$periode = (int)$ligne_grille['periode'];
-			if($periodicite == 'MOIS') $periode *= 3;
+			$periode = floatval($ligne_grille['periode']);
+			//if($periodicite == 'MOIS') $periode *= 3;
+			$periode *= 3 / $this->getiPeriode($periodicite);
 			
-			$montant = (int)$ligne_grille['montant'];
+			$montant = floatval($ligne_grille['montant']);
 			$coeff = $this->_calculate_coeff($ATMdb, $ligne_grille['coeff'], $options);
 			
-			$result[$periode][$montant]=array(
+			$result[strval($periode)][$montant]=array(
 				'rowid' => $ligne_grille['rowid']
 				,'coeff' => $coeff
 				,'echeance' => $montant / $periode * (1 + $coeff / 100)
@@ -242,7 +243,7 @@ class TFin_grille_leaser extends TObjetStd {
 		$sql.= " WHERE t.fk_soc = ".$idLeaser. " AND t.type='".$this->type."'";
 		if(!empty($idTypeContrat)) $sql.= " AND t.fk_type_contrat = '".$idTypeContrat."'";
 		$sql.= " ORDER BY t.periode ASC";
-
+//$ATMdb->db->debug = true;
 		$ATMdb->Execute($sql);
 
     	dol_syslog(get_class($this)."::get_coeff sql=".$sql, LOG_DEBUG);
@@ -252,12 +253,16 @@ class TFin_grille_leaser extends TObjetStd {
         	
 			$TDuree = array();
 			while($ATMdb->Get_line()) {
-				$duree = $ATMdb->Get_field('periode');
-				if($periodicite == 'MOIS') $duree *= 3;
+				$duree = floatval($ATMdb->Get_field('periode'));
+				//if($periodicite == 'MOIS') $duree *= 3;
+				$duree *= 3 / $this->getiPeriode($periodicite);
+				
 				$label = $duree;
 				$label.= ($periodicite == 'TRIMESTRE') ? ' '.$langs->trans('Trimestres') : '';
 				$label.= ($periodicite == 'MOIS') ? ' '.$langs->trans('Mois') : '';
-				$TDuree[$duree] = $label;
+				$label.= ($periodicite == 'SEMESTRE') ? ' '.$langs->trans('Semestres') : '';
+				$label.= ($periodicite == 'ANNEE') ? ' '.$langs->trans('Années') : '';
+				$TDuree[strval($duree)] = $label;
 				
 				$i++;
 			}
@@ -273,7 +278,8 @@ class TFin_grille_leaser extends TObjetStd {
 		
     	if(empty($idLeaser) || empty($idTypeContrat)) return -1;
 		
-		if($periodicite == 'MOIS') $duree /= 3;
+		//if($periodicite == 'MOIS') $duree /= 3 * $this->getiPeriode($periodicite);
+		$duree /= 3 * $this->getiPeriode($periodicite);
 
     	global $langs;
         $sql = "SELECT";
@@ -327,5 +333,14 @@ class TFin_grille_leaser extends TObjetStd {
 		else {
 			return -1;
 		}
+	}
+	
+	private function getiPeriode($periodicite='TRIMESTRE') {
+		if($periodicite=='TRIMESTRE')$iPeriode=3;
+		else if($periodicite=='SEMESTRE')$iPeriode=6;
+		else if($periodicite=='ANNEE')$iPeriode=12;
+		else $iPeriode = 1;
+		
+		return $iPeriode;
 	}
 }
