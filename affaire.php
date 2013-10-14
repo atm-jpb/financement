@@ -289,7 +289,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 	$otherDossier='';
 	if($mode=='edit') {
 		$ATMdb=new Tdb;
-		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,'llx_fin_dossier', "solde>0" ,'reference');
+		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,'llx_fin_dossier', " solde>0 AND reference!='' " ,'reference');
 		$otherDossier = '["'. implode('","', $Tab). '"]';
 		$ATMdb->close(); 
 	}
