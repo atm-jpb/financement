@@ -16,6 +16,8 @@ class TFin_dossier extends TObjetStd {
 		$this->somme_affaire = 0;
 		$this->display_solde = 1;
 		
+		$this->date_relocation=0;
+		
 		$this->TLien=array();
 		$this->financement=new TFin_financement;
 		$this->financementLeaser=new TFin_financement;
