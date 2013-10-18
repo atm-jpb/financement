@@ -67,10 +67,10 @@ if(!empty($_REQUEST['fk_soc'])) {
 			// On vérifie si l'utilisateur est associé au tiers dans Wonderbase
 			$url = FIN_WONDERBASE_USER_RIGHT_URL.'?numArtis='.$simulation->societe->code_client.'&trigramme='.$user->login;
 			$droit = file_get_contents($url);
-			$TInfo = json_decode($droit);
-			
+			//$TInfo = json_decode(utf8_decode($droit));
+
 			// Association du user au tiers si droits ok
-			if($droit == 1) {
+			if(strpos($droit, '1') !== false) {
 				$c->fk_soc = $simulation->fk_soc;
 				$c->fk_user = $user->id;
 				$c->save($ATMdb);
