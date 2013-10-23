@@ -289,7 +289,14 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 	$otherDossier='';
 	if($mode=='edit') {
 		$ATMdb=new Tdb;
-		$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,'llx_fin_dossier', " solde>0 AND reference!='' " ,'reference');
+		//$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,'llx_fin_dossier', " solde>0 AND reference!='' " ,'reference');
+		
+		$sql = "SELECT DISTINCT(f.reference) as reference 
+		FROM ".MAIN_DB_PREFIX."fin_dossier_financement f INNER JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (f.fk_fin_dossier=d.rowid)
+		WHERE d.solde>0 AND f.reference!=''";
+	//	print $sql;
+		$Tab = TRequeteCore::_get_id_by_sql($ATMdb, $sql,'reference');
+		
 		$otherDossier = '["'. implode('","', $Tab). '"]';
 		$ATMdb->close(); 
 	}

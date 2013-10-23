@@ -35,7 +35,14 @@ class TFin_dossier extends TObjetStd {
 			return $this->load($db, $db->Get_field('rowid'), $annexe);
 		}
 		else {
-			return false;
+			
+			$db->Execute("SELECT fk_fin_dossier FROM ".$this->get_table()."_financement WHERE reference='".$reference."'");
+			if($db->Get_line()) {
+				return $this->load($db, $db->Get_field('fk_fin_dossier'), $annexe);
+			}
+			else {
+				return false;
+			}
 		}
 	}
 	function loadReferenceContratDossier(&$db, $reference, $annexe=false) {
