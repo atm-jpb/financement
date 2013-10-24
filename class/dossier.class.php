@@ -771,6 +771,7 @@ class TFin_financement extends TObjetStd {
 		$this->date_prochaine_echeance = strtotime(($this->duree_passe * $this->getiPeriode()).' month', $this->date_debut + $this->calage);
 		
 		if($this->date_prochaine_echeance<$this->date_debut) $this->date_prochaine_echeance = $this->date_debut ; 
+		if($this->date_prochaine_echeance>$this->date_fin) $this->setEcheance(-1);
 		
 		/*$this->date_prochaine_echeance = strtotime(($nb * $this->getiPeriode()).' month', $this->date_prochaine_echeance);
 		$this->numero_prochaine_echeance += $nb;
@@ -792,20 +793,28 @@ class TFin_financement extends TObjetStd {
 		
 		$iPeriode = $this->getiPeriode();
 		
-		$nb_echeance = 0;
-		$t_current = $this->date_debut;
+		$echeance_courante = 0; // 1ere échéance
+		$t_current = $this->date_debut + $this->calage;
 		$t_fin = $this->date_fin;
 		if($t_jour<$t_fin)$t_fin = $t_jour;
 		
+		/*if($this->loyer_intercalaire > 0) { // Décalage si loyer intercalaire car 1ère facture = loyer intercalaire, et non 1ère échéance
+			print "date début : ".date('d/m/Y', $t_current).'<br />';
+			$t_current = strtotime('+'.$iPeriode.' month',  $t_current);
+		}
+		*/
+		//print "date début : ".date('d/m/Y', $t_current).'<br />';
 		
 		while($t_current<$t_fin ) {
-			$nb_echeance++;
+			$echeance_courante++;
+								
+			//print date('d/m/Y', $t_current)." < ".date('d/m/Y', $t_fin)." ".$echeance_courante.'<br />';
 								
 			$t_current=strtotime('+'.$iPeriode.' month', $t_current);
 			
 		}
 		
-		$this->numero_prochaine_echeance = $nb_echeance;
+		$this->numero_prochaine_echeance = $echeance_courante;
 		
 		$this->setEcheance();
 		
