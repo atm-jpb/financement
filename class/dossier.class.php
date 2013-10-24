@@ -795,7 +795,7 @@ class TFin_financement extends TObjetStd {
 		$nb_echeance = 0;
 		$t_current = $this->date_debut;
 		$t_fin = $this->date_fin;
-		if($t_jour<=$t_fin)$t_fin = $t_jour;
+		if($t_jour<$t_fin)$t_fin = $t_jour;
 		
 		
 		while($t_current<$t_fin ) {

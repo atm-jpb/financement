@@ -4,6 +4,7 @@
 	require('../config.php');
 	require('../class/dossier.class.php');
 
+	set_time_limit(0);
 
 	$ATMdb=new TPDOdb;
 
