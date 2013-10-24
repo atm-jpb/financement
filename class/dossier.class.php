@@ -779,6 +779,38 @@ class TFin_financement extends TObjetStd {
 		$this->duree_restante = $this->duree - $this->duree_passe;*/
 	}
 	
+	/*
+	 * Pour les affaire de financement externe
+	 * recalcule numéro d'échéance sur la base de la date puis appel de setEcheance()
+	 */
+	function setEcheanceExterne($date=null) {
+		
+		if($this->duree==0 || $this->date_debut==$this->date_fin) return false;
+		
+		if(empty($date)) $t_jour = time();
+		else $t_jour = strtotime($t_jour);
+		
+		$iPeriode = $this->getiPeriode();
+		
+		$nb_echeance = 0;
+		$t_current = $this->date_debut;
+		$t_fin = $this->date_fin;
+		if($t_jour<=$t_fin)$t_fin = $t_jour;
+		
+		
+		while($t_current<$t_fin ) {
+			$nb_echeance++;
+						
+			$t_current=strtotime('+'.$iPeriode.' month', $t_current);
+		}
+		
+		$this->numero_prochaine_echeance = $nb_echeance;
+		
+		$this->setEcheance(0);
+		
+		return true;
+	}
+	
 	function initEcheance() {
 		$this->numero_prochaine_echeance = 0;
 		if($this->loyer_intercalaire > 0) $this->numero_prochaine_echeance--;
