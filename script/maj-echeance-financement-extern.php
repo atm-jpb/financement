@@ -26,13 +26,14 @@
 		print "Recalcule financement (".$f->fk_fin_dossier.' : '.$f->reference.") ".$f->get_date('date_prochaine_echeance')." ".$f->numero_prochaine_echeance."...";
 	
 		if(!$f->setEcheanceExterne()) {
-			print "Erreur dates financement...";
+			print "Erreur dates financement <br />";
 		}
+		else {
 		
-		print $f->get_date('date_prochaine_echeance')." ".$f->numero_prochaine_echeance."<br />";
-		
-		//$f->save($ATMdb);
-		
+			print $f->get_date('date_prochaine_echeance')." ".$f->numero_prochaine_echeance."<br />";
+			if(!empty($_REQUEST['reel'])&& $_REQUEST['reel']=='OUI')$f->save($ATMdb);
+
+		}		
 	}
 
 	
