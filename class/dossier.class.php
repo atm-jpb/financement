@@ -799,15 +799,15 @@ class TFin_financement extends TObjetStd {
 		
 		
 		while($t_current<$t_fin ) {
+			$nb_echeance++;
 								
 			$t_current=strtotime('+'.$iPeriode.' month', $t_current);
 			
-			$nb_echeance_courante++;
 		}
 		
 		$this->numero_prochaine_echeance = $nb_echeance;
 		
-		$this->setEcheance(0);
+		$this->setEcheance();
 		
 		return true;
 	}
