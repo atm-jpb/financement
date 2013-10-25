@@ -6,6 +6,11 @@
 
 	set_time_limit(0);
 
+	$user=new User($db);
+	$user->fetch('', DOL_ADMIN_USER);
+	$user->getrights();
+	print $user->lastname.'<br />';
+
 	$ATMdb=new TPDOdb;
 
 	$sql="SELECT f.rowid as 'rowid'
@@ -32,8 +37,12 @@
 		else {
 		
 			print $f->get_date('date_prochaine_echeance')." ".$f->numero_prochaine_echeance."<br />";
-			if(!empty($_REQUEST['reel'])&& $_REQUEST['reel']=='OUI')$f->save($ATMdb);
-
+			
+	//		$ATMdb->debug=true;
+			if(!empty($_REQUEST['reel'])&& $_REQUEST['reel']=='OUI') {
+				if(!$f->save($ATMdb)) print "user sans droit !<br/>";
+			}
+//$ATMdb->debug=false;
 		}		
 	}
 

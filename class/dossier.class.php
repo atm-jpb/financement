@@ -989,6 +989,7 @@ class TFin_financement extends TObjetStd {
 		*/
 		parent::save($ATMdb);
 		
+		return true;
 	}
 	private function getTypeContrat(&$ATMdb) {
 		if(!isset($this->idTypeContrat)) {
