@@ -1113,6 +1113,6 @@ class TFin_financement extends TObjetStd {
 			++$i;
 		}
 		
-		return $rate;
+		return (float)$rate;
 	}
 }
