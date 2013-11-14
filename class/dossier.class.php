@@ -768,7 +768,15 @@ class TFin_financement extends TObjetStd {
 		$this->duree_passe = $this->numero_prochaine_echeance-1;
 		$this->duree_restante = $this->duree - $this->duree_passe;
 		
-		$this->date_prochaine_echeance = strtotime(($this->duree_passe * $this->getiPeriode()).' month', $this->date_debut + $this->calage);
+		
+		$nb_month = ($this->duree_passe * $this->getiPeriode());
+		if($nb_month==0) {
+			$this->date_prochaine_echeance =$this->date_debut + $this->calage;
+		}
+		else {
+			$this->date_prochaine_echeance = strtotime('+'.$nb_month.' month', $this->date_debut + $this->calage);	
+		}
+		
 		
 		if($this->date_prochaine_echeance<$this->date_debut) $this->date_prochaine_echeance = $this->date_debut ; 
 		if($this->date_prochaine_echeance>$this->date_fin) $this->setEcheance(-1);
@@ -1084,6 +1092,9 @@ class TFin_financement extends TObjetStd {
 	 */
 	private function taux($nper, $pmt, $pv, $fv = 0.0, $type = 0, $guess = 0.1) {
 		$rate = $guess;
+		$ecartErreurOK = 0.0000001;
+		
+		
 		if (abs($rate) < 20) {
 			$y = $pv * (1 + $nper * $rate) + $pmt * (1 + $rate * $type) * $nper + $fv;
 		} else {
@@ -1096,12 +1107,12 @@ class TFin_financement extends TObjetStd {
 		
 		$i = $x0 = 0.0;
 		$x1 = $rate;
-		while ((abs($y0 - $y1) > 0.0000001) && ($i < 20)) {
+		while ((abs($y0 - $y1) > $ecartErreurOK) && ($i < 50)) {
 			$rate = ($y1 * $x0 - $y0 * $x1) / ($y1 - $y0);
 			$x0 = $x1;
 			$x1 = $rate;
 			
-			if(abs($rate) < 0.0000001) {
+			if(abs($rate) < $ecartErreurOK) {
 				$y = $pv * (1 + $nper * $rate) + $pmt * (1 + $rate * $type) * $nper + $fv;
 			} else {
 				$f = exp($nper * log(1 + $rate));
@@ -1113,6 +1124,6 @@ class TFin_financement extends TObjetStd {
 			++$i;
 		}
 		
-		return (float)$rate;
+		return $rate;
 	}
 }
