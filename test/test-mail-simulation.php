@@ -15,7 +15,7 @@ $simulation=new TSimulation;
 
 
 	$ATMdb=new TPDOdb;
-	$simulation->load($ATMdb, 12); // chargement test
+	$simulation->load($ATMdb, $db, 12); // chargement test
 	
 	$simulation->send_mail_vendeur(false, 'd.cottier@cpro.fr');
 	
@@ -25,11 +25,11 @@ $simulation=new TSimulation;
 	$mesg.= 'La cellule financement'."\n\n";
 	
 	dol_include_once('/core/class/html.formmail.class.php');
-		dol_include_once('/core/lib/files.lib.php');
-		dol_include_once('/core/class/CMailFile.class.php');
-		
-		$PDFName = dol_sanitizeFileName($simulation->getRef()).'.pdf';
-		$PDFPath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($simulation->getRef());
+	dol_include_once('/core/lib/files.lib.php');
+	dol_include_once('/core/class/CMailFile.class.php');
+	
+	$PDFName = dol_sanitizeFileName($simulation->getRef()).'.pdf';
+	$PDFPath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($simulation->getRef());
 		
 	$formmail = new FormMail($db);
 	$formmail->clear_attached_files();
@@ -41,6 +41,8 @@ $simulation=new TSimulation;
 	$mimetype = $attachedfiles['mimes'];
 	
 	
-	$r=new TReponseMail('test@financement.com', 'd.cottier@cpro.fr', 'Ceci est un test pour module financement', $mesg);
+	$r=new TReponseMail('financement@cpro.fr', 'd.cottier@cpro.fr', 'Ceci est un test pour module financement', $mesg);
 	
 	$r->add_piece_jointe($filename, $filepath);
+	
+	$r->send();
