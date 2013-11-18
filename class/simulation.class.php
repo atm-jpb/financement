@@ -318,7 +318,7 @@ class TSimulation extends TObjetStd {
 		return $TDossier;
 	}
 	
-	function send_mail_vendeur($auto=false) {
+	function send_mail_vendeur($auto=false, $mailto='') {
 		global $langs, $conf;
 		
 		dol_include_once('/core/class/html.formmail.class.php');
@@ -352,9 +352,11 @@ class TSimulation extends TObjetStd {
 		}
 		$subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance,2,',',' ').' € - '.$accord;
 		
+		if(empty($mailto))$mailto = $this->user->email;
+		
 		$mailfile = new CMailFile(
 			$subject,
-			$this->user->email,
+			$mailto,
 			$conf->notification->email_from,
 			$mesg,
 			$filepath,
