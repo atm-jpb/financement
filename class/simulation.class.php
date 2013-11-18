@@ -354,7 +354,7 @@ class TSimulation extends TObjetStd {
 		
 		if(empty($mailto))$mailto = $this->user->email;
 		
-		$mailfile = new CMailFile(
+		/*$mailfile = new CMailFile(
 			$subject,
 			$mailto,
 			$conf->notification->email_from,
@@ -366,11 +366,21 @@ class TSimulation extends TObjetStd {
 			'',
 			0,
 			0
-		);
+		);*/
+		$r=new TReponseMail($conf->notification->email_from, $mailto, $subject, $mesg);
+
+        foreach($filename as $k=>$file) {
+                $r->add_piece_jointe($filename[$k], $filepath[$k]);
+
+        }
+
+        $r->send(false);
+		
+		/*
 		if ($mailfile->error) {
 			echo 'ERR : '.$mailfile->error;
 		}
-			$mailfile->sendfile();
+			$mailfile->sendfile();*/
 	}
 	
 	function gen_simulation_pdf(&$ATMdb, &$doliDB) {
