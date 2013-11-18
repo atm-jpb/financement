@@ -604,10 +604,15 @@ class TFin_dossier extends TObjetStd {
 		
 		$res = '';
 		$f = & $this->financementLeaser;
-		while($f->date_prochaine_echeance < time() && $f->numero_prochaine_echeance <= $f->duree) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
+		$cpt = 0;
+		while($f->date_prochaine_echeance < time() && $f->numero_prochaine_echeance <= $f->duree && $cpt<50) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
 			$res.= $this->create_facture_leaser($paid);
 			$f->setEcheance();
+			
+			$cpt++;
 		}
+		
+		if($cpt==50) print "Erreur cycle infini dans generate_factures_leaser()<br />";
 	}
 
 
@@ -763,7 +768,7 @@ class TFin_financement extends TObjetStd {
 	 * Définie la date de prochaine échéance et le numéro d'échéance en fonction de nb
 	 * Augmente de nb periode la date de prochaine échéance et de nb le numéro de prochaine échéance
 	 */
-	function setEcheance($nb=1) {
+	function setEcheance($nb=1, $try_to_correct_last_echeance=true) {
 		$this->numero_prochaine_echeance += $nb;
 		$this->duree_passe = $this->numero_prochaine_echeance-1;
 		$this->duree_restante = $this->duree - $this->duree_passe;
@@ -779,7 +784,7 @@ class TFin_financement extends TObjetStd {
 		
 		
 		if($this->date_prochaine_echeance<$this->date_debut) $this->date_prochaine_echeance = $this->date_debut ; 
-		if($this->date_prochaine_echeance>$this->date_fin) $this->setEcheance(-1);
+		if($try_to_correct_last_echeance && $this->date_prochaine_echeance>$this->date_fin) $this->setEcheance(-1, false);
 		
 		/*$this->date_prochaine_echeance = strtotime(($nb * $this->getiPeriode()).' month', $this->date_prochaine_echeance);
 		$this->numero_prochaine_echeance += $nb;
