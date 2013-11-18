@@ -46,4 +46,6 @@ foreach($Tab as $id) {
 	$f->save($ATMdb);
 
 	echo '<hr>';
+	
+	flush();
 }
