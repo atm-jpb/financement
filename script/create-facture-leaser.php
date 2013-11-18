@@ -36,7 +36,7 @@ foreach($Tab as $id) {
 	$d=new TFin_dossier;
 	$d->load($ATMdb, $f->fk_fin_dossier);
 	
-	echo 'Contrat client : '.$d->reference_contrat_interne.' - Contrat leaser : '.$f->reference.'<br />';
+	echo 'Contrat client : '.$d->reference_contrat_interne.' - Contrat leaser : '.$f->reference.' ('.date('d/m/Y',$f->date_prochaine_echeance).' - '.$f->numero_prochaine_echeance.')<br />';
 	
 	$paid = $f->okPourFacturation == 'MANUEL' ? true : false;
 	
