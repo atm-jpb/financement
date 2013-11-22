@@ -412,37 +412,58 @@ class TFin_dossier extends TObjetStd {
 		$LRD = $this->financement->echeance * $duree_restante_client;
 		
 		switch($type) {
-			case 'SRBANK':
-				if($this->financementLeaser->duree - $duree_restante_leaser <= 5) return $this->financementLeaser->montant;
+			case 'SRBANK':/* réel renouvellant */
+				if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH ) return $this->financementLeaser->montant;
 				
-				return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
+				if($this->nature_financement == 'INTERNE') {
+					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
+				
+				}
+				else {
+					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
+					
+				}
 
 				break;
-			case 'SNRBANK':
-				if($this->financementLeaser->duree - $duree_restante_leaser <= 5) return $this->financementLeaser->montant;
+			case 'SNRBANK': /* réel non renouvellant */
+				if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
 				
-				return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100);
+				if($this->nature_financement == 'INTERNE') {
+					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100);
+				}
+				else {
+					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100);
+				}
 				break;
 				
-			case 'SNRCPRO':
-				if($this->financement->duree - $duree_restante_client <= 5) return $this->financement->montant;
+			case 'SNRCPRO': /* Vendeur non renouvellant */
+				if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
 				
 				if($this->nature_financement == 'INTERNE') {
 					return $LRD;
 				}
 				else {
-					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'NR', 'INTERNE') / 100);
+					//return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'NR', 'INTERNE') / 100);
+					return $LRD_Leaser;
 				}
 				break;
 					
-			case 'SRCPRO':
-				if($this->financement->duree - $duree_restante_client <= 5) return $this->financement->montant;
+			case 'SRCPRO': /* Vendeur renouvellant */
+				if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
 
 				if($this->nature_financement == 'INTERNE') {
-					return ($CRD * (1 + $this->getPenalite($ATMdb,'R','INTERNE') / 100)) + $this->getRentabiliteReste($ATMdb) + $this->getMontantCommission();
+					
+					$rentabiliteReste = $this->getRentabiliteReste($ATMdb);
+					//(1 + $this->getPenalite($ATMdb,'R','INTERNE') / 100)
+					$solde = $CRD + ($rentabiliteReste>0 ? $rentabiliteReste : $CRD * CRD_COEF_RENTA_ATTEINTE  )  + $this->getMontantCommission();
+					
+					return ($solde>$LRD)?$LRD:$solde;
 				}
 				else {
-					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
+					
+					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
+					
+					return ($solde>$LRD)?$LRD:$solde;
 				}
 				
 				break;
