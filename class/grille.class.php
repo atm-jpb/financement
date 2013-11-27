@@ -318,7 +318,7 @@ class TFin_grille_leaser extends TObjetStd {
 			}
 		}
 		$coeff += $coeff * $penaliteTotale / 100;
-		return round($coeff, 2);
+		return round($coeff, 3);
 	}
 	
 	private function _get_penalite(&$ATMdb, $name, $value) {
