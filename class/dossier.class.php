@@ -778,7 +778,7 @@ class TFin_financement extends TObjetStd {
 		$this->TOkPourFacturation =array(
 			'NON'=>'Non'
 			,'OUI'=>'Oui'
-			,'AUTO'=>'Toujours'
+			,'AUTO'=>'Toujours (verrouillé)'
 			,'MANUEL'=>'Manuel'
 		);
 		
