@@ -158,6 +158,12 @@ function _listeNbAffaireParTypeContratParMois(&$ATMdb) {
 		$TRes[$ATMdb->Get_field('contrat')][$ATMdb->Get_field('m')] = $ATMdb->Get_field('nb');
 	}
 	
+	foreach($TRes as $cle=>$Tnb){
+		foreach($Tnb as $month=>$nb){
+			$TCle[$month] = "on";
+		}
+	}
+	
 	?>
 		<!-- Deuxième tableau -->
 		<td>
@@ -170,7 +176,7 @@ function _listeNbAffaireParTypeContratParMois(&$ATMdb) {
 					<?php
 					$TNb = key($TRes);
 					setlocale(LC_TIME, "fr_FR");
-					foreach($TRes[$TNb] as $cle=>$nb){
+					foreach($TCle as $cle=>$val){
 					?>
 					<td class="titre_colonne"><?=ucfirst($langs->trans(strftime('%B',strtotime("2013-".$cle."-01")))); ?></td>
 					<?php
@@ -212,9 +218,9 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 			 AND f.datef >= '".((date('Y')-1)."-0".$conf->global->SOCIETE_FISCAL_MONTH_START)."%'
 		   	 AND f.datef < '".date('Y-0'.$conf->global->SOCIETE_FISCAL_MONTH_START)."%' ";
 	if($type=="fournisseur")
-		$sql .= "AND c.label IN ('Mandatee','Adossee','Cession') ";
+		$sql .= "AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Type de financement') ";
 	elseif($type=="leaser")
-		$sql .= "AND c.label != 'Mandatee' AND c.label != 'Adossee' AND c.label != 'Cession' ";
+		$sql .= "AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Leaser') ";
 	$sql .= "GROUP BY c.rowid, s.rowid";
 	
 	$ATMdb->Execute($sql);
@@ -233,9 +239,9 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 			WHERE s.fournisseur = 1 AND s.client = 1
 			 AND f.datef >= '".((date('Y'))."-0".$conf->global->SOCIETE_FISCAL_MONTH_START)."%'";
 	if($type=="fournisseur")
-		$sql .= "AND c.label IN ('Mandatee','Adossee','Cession')";
+		$sql .= "AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Type de financement') ";
 	elseif($type=="leaser")
-		$sql .= "AND c.label != 'Mandatee' AND c.label != 'Adossee' AND c.label != 'Cession'";
+		$sql .= "AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Leaser') ";
 	$sql .= "GROUP BY c.rowid, s.rowid";
 	
 	//Merging des deux tableaux de résultat
@@ -332,21 +338,56 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb) {
 	global $langs, $db, $conf, $user;
 	
-	$sql = "SELECT fdf.rowid as rowid, s.nom
+	$sql = "SELECT fdf.rowid as rowid, s.nom, c.label
 			FROM ".MAIN_DB_PREFIX."fin_dossier as fd
 				LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as fdf ON (fdf.fk_fin_dossier = fd.rowid)
 				LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON (s.rowid = fdf.fk_soc)
+				LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf ON (cf.fk_societe = s.rowid)
+				LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (c.rowid = cf.fk_categorie)
 			WHERE fdf.type = 'LEASER'
 				AND fd.nature_financement = 'INTERNE'
-				AND fd.date_solde = '0000-00-00 00:00:00'";
+				AND fd.date_solde = '0000-00-00 00:00:00'
+				AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Leaser')
+			ORDER BY c.rowid";
 	
-	$TIdDossierFinancement = TRequeteCore::_get_id_by_sql($ATMdb,$sql,'rowid');
-	$TRes = array();
-	foreach($TIdDossierFinancement as $idDossierFin){
-		$dossierFin = new TFin_financement;
-		$dossierFin->load($ATMdb, $idDossierFin);
+	$ATMdb->Execute($sql);
+	$TRestemp = array();
+	while($ATMdb->Get_line()){
+		$TRestemp[$ATMdb->Get_field('label')][$ATMdb->Get_field('rowid')] = $ATMdb->Get_field('nom');
+	}
+	
+	$TRes = $TTotal = array();
+	foreach($TRestemp as $categorie=>$TidDossier){
 		
-		//$TRes
+		foreach($TidDossier as $iddossier=>$societe){
+			$dossierFin = new TFin_financement;
+			$dossierFin->load($ATMdb, $iddossier);
+			
+			$sql = "SELECT c.label 
+					FROM ".MAIN_DB_PREFIX."categorie as c
+						LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf ON (cf.fk_categorie = c.rowid)
+						LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON (s.rowid = cf.fk_societe)
+					WHERE s.nom = '".$societe."'
+						AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Type de financement')";
+			
+			$ATMdb->Execute($sql);
+			$ATMdb->Get_line();
+			$categorieLeaser = $ATMdb->Get_field('label');
+			
+			$TRes[$categorie][$categorieLeaser] += $dossierFin->valeur_actuelle();
+		}
+	}
+	
+	$TTotaux = array();
+	foreach($TRes as $leaser=>$TCategories){
+		$totalLeaser = 0;
+		foreach($TCategories as $categorie=>$montant){
+			$TTotaux[$categorie] += $montant;
+			$totalLeaser += $montant;
+		}
+		
+		$TTotaux[$leaser] += $totalLeaser;
+		$TTotaux['total'] += $totalLeaser;
 	}
 	
 	?>
@@ -362,36 +403,37 @@ function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb) {
 					<td class="titre_colonne">Mandatée</td>
 					<td class="titre_colonne">Adossée</td>
 					<td class="titre_colonne">Total</td>
-					<td></td>
+					<td class="titre_colonne">%</td>
+				</tr>
+				<?php
+				foreach($TRes as $categorie=>$TCategorieLeaser){
+					$sommeCession += $TCategorieLeaser['Cession'];
+					$sommeMandatee += $TCategorieLeaser['Mandatee'];
+					$sommeAdossee += $TCategorieLeaser['Adossee'];
+					?>
+					<tr>
+						<td><?=$categorie?></td>
+						<td><?=number_format($TCategorieLeaser['Cession'],2,',',' ');?> €</td>
+						<td><?=number_format($TCategorieLeaser['Mandatee'],2,',',' ');?> €</td>
+						<td><?=number_format($TCategorieLeaser['Adossee'],2,',',' ');?> €</td>
+						<td><?=number_format($TCategorieLeaser['Adossee'] + $TCategorieLeaser['Mandatee'] + $TCategorieLeaser['Cession'],2,',',' ');?> €</td>
+						<td><?=number_format(($TCategorieLeaser['Adossee'] + $TCategorieLeaser['Mandatee'] + $TCategorieLeaser['Cession']) * 100 / $TTotaux['total'],2,',','');?> %</td>
+					</tr>
+					<?php
+				}
+				?>
+				<tr style="font-weight: bold;">
+					<td>TOTAL</td>
+					<td><?=number_format($sommeCession,2,',',' ') ?></td>
+					<td><?=number_format($sommeMandatee,2,',',' ') ?></td>
+					<td><?=number_format($sommeAdossee,2,',',' ') ?></td>
+					<td><?=number_format($sommeCession + $sommeMandatee + $sommeAdossee,2,',',' ')?></td>
 				</tr>
 				<tr>
-					<td>Acecom</td>
-					<td></td>
-					<td></td>
-					<td>10 000 000 €</td>
-					<td>10 000 000 €</td>
-					<td>20 %</td>
-				</tr>
-				<tr>
-					<td>BNP</td>
-					<td>450 000 €</td>
-					<td>2 000 000 €</td>
-					<td>10 350 000 €</td>
-					<td>12 800 000 €</td>
-					<td>26 %</td>
-				</tr>
-				<tr>
-					<td>Total</td>
-					<td>18 750 000 €</td>
-					<td>9 000 000</td>
-					<td>21 350 000 €</td>
-					<td>49 100 000 €</td>
-				</tr>
-				<tr>
-					<td></td>
-					<td>38 %</td>
-					<td>18 %</td>
-					<td>43 %</td>
+					<td>%</td>
+					<td><?=number_format(($sommeCession * 100) / $TTotaux['total'],2,',',' ') ?> %</td>
+					<td><?=number_format(($sommeMandatee * 100) / $TTotaux['total'],2,',',' ') ?> %</td>
+					<td><?=number_format(($sommeAdossee * 100) / $TTotaux['total'],2,',',' ') ?> %</td>
 					<td></td>
 				</tr>
 			</table>
@@ -475,9 +517,20 @@ function _listeRelationCommerciales(&$ATMdb) {
 function _listeAdministrationDolibarr(&$ATMdb) {
 	global $langs, $db, $conf, $user;
 	
-	$sql ="SELECT a.contrat, (SELECT COUNT(rowid) FROM ".MAIN_DB_PREFIX."fin_affaire WHERE date_affaire LIKE '".date('Y')."%' AND contrat = a.contrat)
-		   FROM ".MAIN_DB_PREFIX."fin_affaire as a";
-		   
+	$sql = "SELECT COUNT(d.rowid) as 'nb'
+			FROM ((((llx_fin_dossier d LEFT OUTER JOIN llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier)) 
+				LEFT OUTER JOIN llx_fin_affaire a ON (l.fk_fin_affaire=a.rowid)) 
+				LEFT OUTER JOIN llx_fin_dossier_financement f ON (d.rowid=f.fk_fin_dossier )) 
+				LEFT OUTER JOIN llx_societe s ON (a.fk_soc=s.rowid)) 
+			WHERE a.entity=1 
+				AND a.nature_financement = 'INTERNE' 
+				AND (f.type = 'LEASER' 
+				AND (f.reference IS NULL OR f.reference = '' OR f.duree = 0 OR f.echeance = 0)) 
+				AND DATEDIFF(a.date_affaire,CURDATE()) > 30";
+				
+	$ATMdb->Execute($sql);	   
+	$ATMdb->Get_line();
+	$NbDossier = $ATMdb->Get_field('nb');
 	?>
 		<!-- 7ème tableau -->
 		<td>
@@ -493,9 +546,9 @@ function _listeAdministrationDolibarr(&$ATMdb) {
 				<tr>
 					<td>Nb dossier internes > 1 mois incomplets</td>
 					<td>0</td>
-					<td>10</td>
+					<td><?=$NbDossier;?></td>
 				</tr>
-				<tr>
+				<!-- <tr>
 					<td>NB dossiers externes non rattachés</td>
 					<td>50</td>
 					<td>10%</td>
@@ -504,7 +557,7 @@ function _listeAdministrationDolibarr(&$ATMdb) {
 					<td>Stat  appels?</td>
 					<td>à mesurer puis à définir</td>
 					<td></td>
-				</tr>
+				</tr> -->
 			</table>
 		</td>
 	<?php
@@ -513,9 +566,52 @@ function _listeAdministrationDolibarr(&$ATMdb) {
 function _listeRentabilite(&$ATMdb) {
 	global $langs, $db, $conf, $user;
 	
-	$sql ="SELECT a.contrat, (SELECT COUNT(rowid) FROM ".MAIN_DB_PREFIX."fin_affaire WHERE date_affaire LIKE '".date('Y')."%' AND contrat = a.contrat)
-		   FROM ".MAIN_DB_PREFIX."fin_affaire as a";
-		   
+	$sql = "SELECT SUM(fd.renta_previsionnelle) as renta_previsionnelle, 
+				   SUM(fd.renta_attendue) as renta_attendue, 
+				   SUM(renta_reelle) as renta_relle_nc,
+				   c.label
+			FROM ".MAIN_DB_PREFIX."fin_dossier as fd
+				LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as fdf ON (fd.rowid = fdf.fk_fin_dossier)
+				LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf ON (cf.fk_societe = fdf.fk_soc)
+				LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (c.rowid = cf.fk_categorie)
+			WHERE fd.nature_financement = 'INTERNE'
+				AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Type de financement')
+				AND fd.date_solde = '0000-00-00 00:00:00'
+			GROUP BY c.rowid";
+	
+	$ATMdb->Execute($sql);
+	
+	$TRes = array();
+	while($ATMdb->Get_line()){
+		$TRes[$ATMdb->Get_field('label')] = array(
+						"Rentabilité Prévisionnelle"=>$ATMdb->Get_field('renta_previsionnelle')
+						,"Rentabilité Attendue"=>$ATMdb->Get_field('renta_attendue')
+						,"Rentabilité encaissée (non clôturés)"=>$ATMdb->Get_field('renta_relle_nc')
+						);
+	}
+	
+	$sql = "SELECT SUM(renta_reelle) as renta_relle,
+				   c.label
+			FROM ".MAIN_DB_PREFIX."fin_dossier as fd
+				LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as fdf ON (fd.rowid = fdf.fk_fin_dossier)
+				LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf ON (cf.fk_societe = fdf.fk_soc)
+				LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (c.rowid = cf.fk_categorie)
+			WHERE fd.nature_financement = 'INTERNE'
+				AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Type de financement')
+				AND fd.date_solde != '0000-00-00 00:00:00'
+			GROUP BY c.rowid";
+	
+	$ATMdb->Execute($sql);
+	while($ATMdb->Get_line()){
+		$TRestemp[$ATMdb->Get_field('label')] = array_merge((array)$TRes[$ATMdb->Get_field('label')],array("Rentabilité réelle (dossiers clôturés)"=>$ATMdb->Get_field('renta_relle')));
+	}
+	$TRes = array();
+	foreach($TRestemp as $categorie=>$TRenta){
+		foreach($TRenta as $cle=>$renta){
+			$TRes[$cle][$categorie] = $renta;
+		}	
+	}
+	
 	?>
 		<!-- 8ème tableau -->
 		<td>
@@ -525,25 +621,26 @@ function _listeRentabilite(&$ATMdb) {
 			<table class="border" width="100%">
 				<tr class="liste_titre">
 					<td></td>
-					<td class="titre_colonne">Adossée</td>
 					<td class="titre_colonne">Mandatée</td>
+					<td class="titre_colonne">Adossée</td>
 					<td class="titre_colonne">Cession</td>
 				</tr>
-				<tr>
-					<td>Rentabilité attendue (écart de taux)</td>
-					<td></td>
-					<td></td>
-				</tr>
-				<tr>
-					<td>Rentabilité encaissée (non clôturés)</td>
-					<td></td>
-					<td></td>
-				</tr>
-				<tr>
-					<td>Rentabilité des dossiers clôturés</td>
-					<td></td>
-					<td></td>
-				</tr>
+				<?php
+				foreach($TRes as $renta=>$TCategorie){
+					?>
+					<tr>
+						<td><?=$renta?></td>
+						<?php
+						foreach($TCategorie as $montant){
+							?>
+							<td><?=number_format($montant,2,',',' ');?></td>
+							<?php
+						}
+						?>
+					</tr>
+					<?php
+				}
+				?>
 				<!-- <tr>
 					<td colspan="3">Alerte sur les dossiers clôturés en rentavilité négative (ou < à K %)</td>
 				</tr> -->
