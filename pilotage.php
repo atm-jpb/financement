@@ -280,7 +280,7 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 		$sql .= "AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Leaser') ";
 	$sql .= "GROUP BY c.rowid, s.rowid";
 	
-	echo $sql.'<br>';
+	//echo $sql.'<br>';
 	
 	//Merging des deux tableaux de résultat
 	$ATMdb->Execute($sql);
@@ -288,7 +288,7 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 		$TRes[$ATMdb->Get_field('categorie')][$ATMdb->Get_field('societe')] = array_merge(
 							(array)$TRes[$ATMdb->Get_field('categorie')][$ATMdb->Get_field('societe')]
 							,array($ATMdb->Get_field('nb'),$ATMdb->Get_field('montant'))
-							);
+						);
 	}
 	
 	?>
