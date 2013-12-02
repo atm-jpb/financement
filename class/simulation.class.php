@@ -88,6 +88,14 @@ class TSimulation extends TObjetStd {
 			
 			// Récupération des dossiers en cours du client et de l'encours CPRO
 			if(empty($this->societe->TDossiers)) {
+				$sql = "SELECT s.rowid
+						FROM ".MAIN_DB_PREFIX."societe as s
+							LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf ON (cf.fk_societe = s.rowid)
+							LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (cf.fk_categorie = c.rowid)
+						WHERE c.label = 'Encours CPRO'";
+				
+				$TEncours = TRequeteCore::_get_id_by_sql($db, $sql);
+			
 				$sql = "SELECT d.rowid";
 				$sql.= " FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 				$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_affaire = a.rowid";
@@ -106,12 +114,15 @@ class TSimulation extends TObjetStd {
 					} else if(empty($doss->financement->date_solde) || $doss->financement->date_solde < 0) {
 						$this->societe->encours_cpro += $doss->financement->valeur_actuelle();
 					}*/
-
+				
+					// 2013.12.02 Modification : ne prendre en compte que les leaser faisant partie de la catégorie "Encours CPRO"
 					// 2013.10.02 MKO : Modification demandée par Damien de ne comptabiliser que les dossier internes
-					if(!empty($doss->financement) && (empty($doss->financement->date_solde) || $doss->financement->date_solde < 0)) {
+					if(!empty($doss->financement) 
+						&& (empty($doss->financement->date_solde) || $doss->financement->date_solde < 0) 
+						&& in_array($doss->financementLeaser->fk_soc,$TEncours)  ) {
 						//echo $doss->financement->reference." : ".$doss->financement->valeur_actuelle()."<br>";
-                                                $this->societe->encours_cpro += $doss->financement->valeur_actuelle();
-                                        }
+                        $this->societe->encours_cpro += $doss->financement->valeur_actuelle();
+                    }
 				}
 				$this->societe->encours_cpro = round($this->societe->encours_cpro, 2);
 			}
