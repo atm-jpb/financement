@@ -8,6 +8,7 @@ require('./class/score.class.php');
 
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
+require_once(DOL_DOCUMENT_ROOT."/custom/report/class/dashboard.class.php");
 
 $langs->load('financement@financement');
 $ATMdb = new TPDOdb;
@@ -34,7 +35,34 @@ llxHeader('','Pilotage');
 	}
 </style>
 
-<table width="50%"cellpadding="0" cellspacing="0">
+<script type="text/javascript">
+	$(document).ready(function(){
+
+	<?php
+	
+	$PDOdb=new TPDOdb;
+	$dash=new TReport_dashboard;
+	$dash->initByCode($PDOdb, 'PRODUCTIONFOURNISSEUR');
+	
+	?>$('#chart_prod_fournisseur').html('<div id="chart_prod_fournisseur" style="height:<?=$dash->hauteur?>px; margin-bottom:20px;"></div>');<?
+	
+	$dash->get('chart_prod_fournisseur', true);
+	
+	$dash=new TReport_dashboard;
+	$dash->initByCode($PDOdb, 'PRODUCTIONLEASER');
+	
+	?>$('#chart_prod_leaser').html('<div id="chart_prod_leaser" style="height:<?=$dash->hauteur?>px; margin-bottom:20px;"></div>');<?
+	
+	$dash->get('chart_prod_leaser', true);
+
+
+	$PDOdb->close();
+	
+	?>
+});
+</script>
+
+<table width="100%"cellpadding="0" cellspacing="0">
 	<tr>
 		<td><div class="titre" style="text-align: center;font-size: 22px;">Pilotage de la cellule Financement</div></td>
 	</tr>
@@ -49,10 +77,18 @@ llxHeader('','Pilotage');
 	<tr><td height="15"></td></tr>
 	<tr>
 		<?php _listeCAFactureMaterielParCategorie($ATMdb,"fournisseur"); ?>
+		<td width="50%">
+			<!--- eChart -->
+			<div id="chart_prod_fournisseur"></div>
+		</td>
 	</tr>
 	<tr><td height="15"></td></tr>
 	<tr>
 		<?php _listeCAFactureMaterielParCategorie($ATMdb,"leaser"); ?>
+		<td width="50%">
+			<!--- eChart -->
+			<div id="chart_prod_leaser"></div>
+		</td>
 	</tr>
 	<tr><td height="15"></td></tr>
 	<tr>
@@ -243,6 +279,8 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 	elseif($type=="leaser")
 		$sql .= "AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Leaser') ";
 	$sql .= "GROUP BY c.rowid, s.rowid";
+	
+	echo $sql.'<br>';
 	
 	//Merging des deux tableaux de résultat
 	$ATMdb->Execute($sql);
