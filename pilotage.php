@@ -168,8 +168,8 @@ function _listeNbAffaireParTypeContrat(&$ATMdb) {
 						<td><?=$contrat;?></td>
 						<td><?=$TNb[0];?></td>
 						<td><?=$TNb[1];?></td>
-						<td><?=round(($TNb[0]*100)/$Total1);?></td>
-						<td><?=round(($TNb[1]*100)/$Total2);?></td>
+						<td><?=round(($TNb[0]*100)/$Total1);?> %</td>
+						<td><?=round(($TNb[1]*100)/$Total2);?> %</td>
 					</tr>
 					<?php	
 				}
@@ -671,7 +671,7 @@ function _listeRentabilite(&$ATMdb) {
 						<?php
 						foreach($TCategorie as $montant){
 							?>
-							<td><?=number_format($montant,2,',',' ');?></td>
+							<td><?=number_format($montant,2,',',' ');?> €</td>
 							<?php
 						}
 						?>
