@@ -118,7 +118,7 @@
 									);
 				}
 				
-				header("Content-disposition: attachment; filename=export_erreurs_".$imp->type_import.$imp->getId().".xlsx");
+				header("Content-disposition: attachment; filename=export_erreurs_".$imp->type_import.$imp->getId().".csv");
 				header("Content-Type: application/force-download");
 				header("Content-Transfer-Encoding: application/octet-stream");
 				header("Pragma: no-cache");
