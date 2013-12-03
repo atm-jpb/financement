@@ -59,7 +59,7 @@
 					$imp->fk_user_author = $user->id;
 					
 					$societe =new Societe($db);
-					$societe->fetch($_REQUEST['socid']);
+					$societe->fetch(__get('socid',0,'integer'));
 					
 					$mappingFile = ($fileType == 'fichier_leaser' ? $fileType.'.'.$societe->code_client.'.mapping' : $fileType.'.mapping');
 					$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
@@ -90,6 +90,47 @@
 					_fiche($ATMdb, $import, 'new');
 				}
 				
+				break;
+			
+			//Export des erreurs d'un import
+			case 'export' :
+				
+				$importFolderMapping = FIN_IMPORT_FOLDER.'mappings/';
+				
+				$imp = new TImport();
+				$imp->load($ATMdb,__get('id',0,'integer'));
+				$imp->getMapping($importFolderMapping.$imp->type_import.".mapping"); // Récupération du mapping
+
+				$TidImportError = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX."fin_import_error"
+																			,array('fk_import'=>$imp->getId()));
+				
+				$TTabToExport = array();
+				
+				$TTabToExport[0] = array_merge(array("Ligne fichier source","Type","Message"),$imp->mapping['mapping']);
+				
+				foreach($TidImportError as $idImportError){
+					$TImportError = new TImportError;
+					$TImportError->load($ATMdb,$idImportError);
+					
+					$TTabToExport[] = array_merge(
+									array($TImportError->num_line,$TImportError->type_erreur,html_entity_decode(_langs_trans($TImportError->error_msg),ENT_QUOTES,'UTF-8'))
+									,unserialize($TImportError->content_line)
+									);
+				}
+				
+				header("Content-disposition: attachment; filename=export_erreurs_".$imp->type_import.$imp->getId().".xlsx");
+				header("Content-Type: application/force-download");
+				header("Content-Transfer-Encoding: application/octet-stream");
+				header("Pragma: no-cache");
+				header("Cache-Control: must-revalidate, post-check=0, pre-check=0, public");
+				header("Expires: 0");
+				
+				foreach($TTabToExport as $TLigne){
+					foreach($TLigne as $colonne){
+						print '"'.$colonne.'";';
+					}
+					print "\r\n";
+				}
 				break;
 		}
 		
@@ -205,6 +246,8 @@ function _fiche(&$ATMdb, &$import, $mode) {
 		)
 	);
 	
+	?><div class="tabsAction" style="text-align: left;"><a href="?action=export&id=<?=$import->getId()?>" class="butAction">Exporter les erreurs</a></div><br><br><?
+	
 	echo $form->end_form();
 	
 	global $mesg, $error;
@@ -261,6 +304,7 @@ function _liste_errors(&$ATMdb, $import) {
 			,'error_msg'=>true
 		)*/
 	));
+
 }
 
 function _langs_trans($str) {
