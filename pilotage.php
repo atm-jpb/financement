@@ -33,6 +33,9 @@ llxHeader('','Pilotage');
 		margin-left: 5px;
 		margin-bottom: 5px;
 	}
+	.justifie{
+		text-align: right;
+	}
 </style>
 
 <script type="text/javascript">
@@ -62,7 +65,7 @@ llxHeader('','Pilotage');
 });
 </script>
 
-<table width="100%"cellpadding="0" cellspacing="0">
+<table cellpadding="0" cellspacing="0">
 	<tr>
 		<td><div class="titre" style="text-align: center;font-size: 22px;">Pilotage de la cellule Financement</div></td>
 	</tr>
@@ -166,8 +169,8 @@ function _listeNbAffaireParTypeContrat(&$ATMdb) {
 					?>
 					<tr>
 						<td><?=$contrat;?></td>
-						<td><?=$TNb[0];?></td>
-						<td><?=$TNb[1];?></td>
+						<td class="justifie"><?=$TNb[0];?></td>
+						<td class="justifie"><?=$TNb[1];?></td>
 						<td><?=round(($TNb[0]*100)/$Total1);?> %</td>
 						<td><?=round(($TNb[1]*100)/$Total2);?> %</td>
 					</tr>
@@ -227,7 +230,7 @@ function _listeNbAffaireParTypeContratParMois(&$ATMdb) {
 					<?php
 					foreach($TNb as $cle=>$nb){
 						?>
-						<td><?=$nb;?></td>
+						<td class="justifie"><?=$nb;?></td>
 						<?php
 					}
 					?>
@@ -319,10 +322,10 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 							?>
 							<tr>
 								<td><?=$societe?></td>
-								<td><?=number_format($TNb[1],2,',',' ')?> €</td>
-								<td><?=$TNb[0]?></td>
-								<td><?=number_format($TNb[3],2,',',' ')?> €</td>
-								<td><?=$TNb[2]?></td>
+								<td class="justifie"><?=number_format($TNb[1],2,',',' ')?> €</td>
+								<td class="justifie"><?=$TNb[0]?></td>
+								<td class="justifie"><?=number_format($TNb[3],2,',',' ')?> €</td>
+								<td class="justifie"><?=$TNb[2]?></td>
 							</tr>
 							<?php
 						}
@@ -341,10 +344,10 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 						?>
 						<tr>
 							<td style="font-weight: bold;">Sous Total <?=$categorie;?></td>
-							<td style="font-weight: bold;"><?=number_format($totalCA1,2,',',' ')?> €</td>
-							<td style="font-weight: bold;"><?=$totalNb1?></td>
-							<td style="font-weight: bold;"><?=number_format($totalCA2,2,',',' ')?> €</td>
-							<td style="font-weight: bold;"><?=$totalNb2?></td>
+							<td style="font-weight: bold;" class="justifie"><?=number_format($totalCA1,2,',',' ')?> €</td>
+							<td style="font-weight: bold;" class="justifie"><?=$totalNb1?></td>
+							<td style="font-weight: bold;" class="justifie"><?=number_format($totalCA2,2,',',' ')?> €</td>
+							<td style="font-weight: bold;" class="justifie"><?=$totalNb2?></td>
 						</tr>
 						<?php
 					}
@@ -352,10 +355,10 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 						?>
 						<tr>
 							<td><?=$categorie;?></td>
-							<td><?=number_format($totalCA1,2,',',' ')?> €</td>
-							<td><?=$totalNb1?></td>
-							<td><?=number_format($totalCA2,2,',',' ')?> €</td>
-							<td><?=$totalNb2?></td>
+							<td class="justifie"><?=number_format($totalCA1,2,',',' ')?> €</td>
+							<td class="justifie"><?=$totalNb1?></td>
+							<td class="justifie"><?=number_format($totalCA2,2,',',' ')?> €</td>
+							<td class="justifie"><?=$totalNb2?></td>
 						</tr>
 						<?php
 					}
@@ -363,10 +366,10 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 				?>
 				<tr>
 					<td style="font-weight: bold;">TOTAL</td>
-					<td style="font-weight: bold;"><?=number_format($TotalCA1,2,',',' ')?> €</td>
-					<td style="font-weight: bold;"><?=$TotalNb1?></td>
-					<td style="font-weight: bold;"><?=number_format($TotalCA2,2,',',' ')?> €</td>
-					<td style="font-weight: bold;"><?=$TotalNb2?></td>
+					<td style="font-weight: bold;" class="justifie"><?=number_format($TotalCA1,2,',',' ')?> €</td>
+					<td style="font-weight: bold;" class="justifie"><?=$TotalNb1?></td>
+					<td style="font-weight: bold;" class="justifie"><?=number_format($TotalCA2,2,',',' ')?> €</td>
+					<td style="font-weight: bold;" class="justifie"><?=$TotalNb2?></td>
 				</tr>
 			</table>
 		</td>
@@ -451,10 +454,10 @@ function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb) {
 					?>
 					<tr>
 						<td><?=$categorie?></td>
-						<td><?=number_format($TCategorieLeaser['Cession'],2,',',' ');?> €</td>
-						<td><?=number_format($TCategorieLeaser['Mandatee'],2,',',' ');?> €</td>
-						<td><?=number_format($TCategorieLeaser['Adossee'],2,',',' ');?> €</td>
-						<td><?=number_format($TCategorieLeaser['Adossee'] + $TCategorieLeaser['Mandatee'] + $TCategorieLeaser['Cession'],2,',',' ');?> €</td>
+						<td class="justifie"><?=number_format($TCategorieLeaser['Cession'],2,',',' ');?> €</td>
+						<td class="justifie"><?=number_format($TCategorieLeaser['Mandatee'],2,',',' ');?> €</td>
+						<td class="justifie"><?=number_format($TCategorieLeaser['Adossee'],2,',',' ');?> €</td>
+						<td class="justifie"><?=number_format($TCategorieLeaser['Adossee'] + $TCategorieLeaser['Mandatee'] + $TCategorieLeaser['Cession'],2,',',' ');?> €</td>
 						<td><?=number_format(($TCategorieLeaser['Adossee'] + $TCategorieLeaser['Mandatee'] + $TCategorieLeaser['Cession']) * 100 / $TTotaux['total'],2,',','');?> %</td>
 					</tr>
 					<?php
@@ -462,10 +465,10 @@ function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb) {
 				?>
 				<tr style="font-weight: bold;">
 					<td>TOTAL</td>
-					<td><?=number_format($sommeCession,2,',',' ') ?></td>
-					<td><?=number_format($sommeMandatee,2,',',' ') ?></td>
-					<td><?=number_format($sommeAdossee,2,',',' ') ?></td>
-					<td><?=number_format($sommeCession + $sommeMandatee + $sommeAdossee,2,',',' ')?></td>
+					<td class="justifie"><?=number_format($sommeCession,2,',',' ') ?></td>
+					<td class="justifie"><?=number_format($sommeMandatee,2,',',' ') ?></td>
+					<td class="justifie"><?=number_format($sommeAdossee,2,',',' ') ?></td>
+					<td class="justifie"><?=number_format($sommeCession + $sommeMandatee + $sommeAdossee,2,',',' ')?></td>
 				</tr>
 				<tr>
 					<td>%</td>
@@ -583,8 +586,8 @@ function _listeAdministrationDolibarr(&$ATMdb) {
 				</tr>
 				<tr>
 					<td>Nb dossier internes > 1 mois incomplets</td>
-					<td>0</td>
-					<td><?=$NbDossier;?></td>
+					<td class="justifie">0</td>
+					<td class="justifie"><?=$NbDossier;?></td>
 				</tr>
 				<!-- <tr>
 					<td>NB dossiers externes non rattachés</td>
@@ -671,7 +674,7 @@ function _listeRentabilite(&$ATMdb) {
 						<?php
 						foreach($TCategorie as $montant){
 							?>
-							<td><?=number_format($montant,2,',',' ');?> €</td>
+							<td class="justifie"><?=number_format($montant,2,',',' ');?> €</td>
 							<?php
 						}
 						?>
