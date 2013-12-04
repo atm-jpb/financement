@@ -35,6 +35,7 @@ llxHeader('','Pilotage');
 	}
 	.justifie{
 		text-align: right;
+		min-width: 50px;
 	}
 </style>
 
