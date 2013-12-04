@@ -258,7 +258,7 @@ class TSimulation extends TObjetStd {
 				$this->montant =  $this->echeance * (1- pow(1+$coeffTrimestriel, -$this->duree) ) / $coeffTrimestriel ;
 			}
 			
-			$this->montant = round($this->montant, 2);
+			$this->montant = round($this->montant, 3);
 			$this->montant_total_finance = $this->montant;
 		}
 		
