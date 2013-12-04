@@ -139,7 +139,7 @@
 		</tr>
 		<tr>
 			<td>Coefficient</td>
-			<td>[simulation.coeff; strconv=no; frm=0,00] %</td>
+			<td>[simulation.coeff; strconv=no; frm=0,000] %</td>
 		</tr>
 		<tr>
 			<td>&Eacute;chéance (Hors prestations)</td>
@@ -179,7 +179,7 @@
 		</tr>
 		<tr>
 			<td>Coefficient final</td>
-			<td>[simulation.coeff_final; strconv=no; frm=0,00] %</td>
+			<td>[simulation.coeff_final; strconv=no; frm=0,000] %</td>
 			<td>Numéro accord</td>
 			<td>[simulation.numero_accord; strconv=no]</td>
 		</tr>
