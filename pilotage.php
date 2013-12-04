@@ -50,14 +50,14 @@ llxHeader('','Pilotage');
 	
 	?>$('#chart_prod_fournisseur').html('<div id="chart_prod_fournisseur" style="height:<?=$dash->hauteur?>px; margin-bottom:20px;"></div>');<?
 	
-	$dash->get('chart_prod_fournisseur', true);
+	$dash->get('chart_prod_fournisseur', true," €");
 	
 	$dash=new TReport_dashboard;
 	$dash->initByCode($PDOdb, 'PRODUCTIONLEASER');
 	
 	?>$('#chart_prod_leaser').html('<div id="chart_prod_leaser" style="height:<?=$dash->hauteur?>px; margin-bottom:20px;"></div>');<?
 	
-	$dash->get('chart_prod_leaser', true);
+	$dash->get('chart_prod_leaser', true," €");
 
 
 	$PDOdb->close();
