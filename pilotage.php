@@ -82,7 +82,7 @@ llxHeader('','Pilotage');
 		<?php _listeCAFactureMaterielParCategorie($ATMdb,"fournisseur"); ?>
 		<td width="50%">
 			<!--- eChart -->
-			<div id="chart_prod_fournisseur"></div>
+			<div id="chart_prod_fournisseur" style="position:relative;margin-left: 50px;width: 800px;"></div>
 		</td>
 	</tr>
 	<tr><td height="15"></td></tr>
@@ -90,7 +90,7 @@ llxHeader('','Pilotage');
 		<?php _listeCAFactureMaterielParCategorie($ATMdb,"leaser"); ?>
 		<td width="50%">
 			<!--- eChart -->
-			<div id="chart_prod_leaser"></div>
+			<div id="chart_prod_leaser" style="position:relative;margin-left: 50px;width: 800px;"></div>
 		</td>
 	</tr>
 	<tr><td height="15"></td></tr>
