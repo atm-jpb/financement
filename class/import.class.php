@@ -132,9 +132,9 @@ class TImport extends TObjetStd {
 				$this->importLineAffaire($ATMdb, $data, $TInfosGlobale);
 				break;
 			case 'fichier_leaser':
-				/*print_r($this->current_line); 
-				print '<br>';*/
+				
 				$this->importFichierLeaser($ATMdb, $data);
+				
 				break;
 			case 'score':
 				if($this->nb_lines == 1) return false; // Le fichier score contient une ligne d'en-tête
@@ -182,59 +182,64 @@ class TImport extends TObjetStd {
 		}
 		
 		$dossier = new TFin_dossier();
-		$dossier->load($ATMdb, $f->fk_fin_dossier); // Chargement du dossier correspondant
-		if($dossier->nature_financement == 'EXTERNE') { // Dossier externe => MAJ des informations
-			// Echéance à 0 dans le fichier, on classe le dossier a soldé
-			if($data['echeance'] == 0 && $dossier->financementLeaser->date_solde == 0) {
-				$dossier->financementLeaser->date_solde = time();
-				$data['echeance'] = $dossier->financementLeaser->echeance;
+		if($dossier->load($ATMdb, $f->fk_fin_dossier)) { // Chargement du dossier correspondant
+			
+			if($dossier->nature_financement == 'EXTERNE') { // Dossier externe => MAJ des informations
+				// Echéance à 0 dans le fichier, on classe le dossier a soldé
+				if($data['echeance'] == 0 && $dossier->financementLeaser->date_solde == 0) {
+					$dossier->financementLeaser->date_solde = time();
+					$data['echeance'] = $dossier->financementLeaser->echeance;
+				}
+				
+				foreach ($data as $key => $value) {
+					$dossier->financementLeaser->{$key} = $value;
+				}
+				$dossier->financementLeaser->fk_soc = $data['idLeaser'];
+				
+				// Spécifiques BNP
+				if(in_array($dossier->financementLeaser->fk_soc, array(3382,19553,20113))) {
+					$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
+				}
+				
+				// Spécifique GE
+				if(in_array($dossier->financementLeaser->fk_soc, array(7411))) {
+					$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
+				}
+				
+				// Spécifique LIXXBAIL
+				if(in_array($dossier->financementLeaser->fk_soc, array(6065,19068,19483))) {
+					$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
+				}
+				
+			} else { // Dossier interne => Vérification des informations
+				$echeance = $data['echeance'];
+				$montant = $data['montant'];
+				$date_debut = $data['date_debut'];
+				$date_fin = $data['date_fin'];
+				
+				if(
+						$echeance != $dossier->financementLeaser->echeance
+						|| $montant > ($dossier->financementLeaser->montant + 0.01)
+						|| $montant < ($dossier->financementLeaser->montant - 0.01)
+						|| $date_debut != $dossier->financementLeaser->date_debut
+						//|| $date_fin != $dossier->financementLeaser->date_fin
+					) {
+					$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], 'WARNING');
+					return false;
+				}
+				else {
+					$dossier->financementLeaser->okPourFacturation='OUI';
+				}
 			}
 			
-			foreach ($data as $key => $value) {
-				$dossier->financementLeaser->{$key} = $value;
-			}
-			$dossier->financementLeaser->fk_soc = $data['idLeaser'];
-			
-			// Spécifiques BNP
-			if(in_array($dossier->financementLeaser->fk_soc, array(3382,19553,20113))) {
-				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
-			}
-			
-			// Spécifique GE
-			if(in_array($dossier->financementLeaser->fk_soc, array(7411))) {
-				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
-			}
-			
-			// Spécifique LIXXBAIL
-			if(in_array($dossier->financementLeaser->fk_soc, array(6065,19068,19483))) {
-				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
-			}
-			
-		} else { // Dossier interne => Vérification des informations
-			$echeance = $data['echeance'];
-			$montant = $data['montant'];
-			$date_debut = $data['date_debut'];
-			$date_fin = $data['date_fin'];
-			
-			if(
-					$echeance != $dossier->financementLeaser->echeance
-					|| $montant > ($dossier->financementLeaser->montant + 0.01)
-					|| $montant < ($dossier->financementLeaser->montant - 0.01)
-					|| $date_debut != $dossier->financementLeaser->date_debut
-					//|| $date_fin != $dossier->financementLeaser->date_fin
-				) {
-				$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], 'WARNING');
-				return false;
-			}
-			else {
-				$dossier->financementLeaser->okPourFacturation='OUI';
-			}
+			$dossier->save($ATMdb);
+			$this->nb_update++;
+		
+			return true;
+		
 		}
 		
-		$dossier->save($ATMdb);
-		$this->nb_update++;
-		
-		return true;
+		return false;
 	}
 
 	function importLineTiers(&$ATMdb, $data) {
