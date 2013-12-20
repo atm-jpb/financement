@@ -5,7 +5,7 @@
 	</tr>
 	<tr>
 		<td align="center">[coefficient.$; block=tr;strconv=no;sub1] [label_periode]</td>
-		<td align="center">[coefficient_sub1.coeff; block=td; frm=0,00] %</td>
+		<td align="center">[coefficient_sub1.coeff; block=td; frm=0,000] %</td>
 	</tr>
 </table>
 <br />
