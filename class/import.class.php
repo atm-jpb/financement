@@ -429,7 +429,7 @@ class TImport extends TObjetStd {
 		$facture_mat->set_draft($user);
 		
 		// On ajoute la ligne
-		$facture_mat->addline($facture_mat->id, 'Matricule(s) '.$data['matricule'], $data['total_ht'], 1, 19.6);
+		$facture_mat->addline($facture_mat->id, 'Matricule(s) '.$data['matricule'], $data['total_ht'], 1, 20);
 		// Force la validation avec numéro de facture
 		$facture_mat->validate($user, $data[$this->mapping['search_key']]); // Force la validation avec numéro de facture
 		
@@ -564,7 +564,7 @@ class TImport extends TObjetStd {
 		// print "Création du service($fk_service)";
 		
 		// On ajoute la ligne
-		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 19.6,0,0,$fk_service, 0, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, $data['libelle_ligne']);
+		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 20,0,0,$fk_service, 0, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, $data['libelle_ligne']);
 		// Force la validation avec numéro de facture
 		$facture_loc->validate($user, $data[$this->mapping['search_key']]);
 		
@@ -670,7 +670,7 @@ class TImport extends TObjetStd {
 	        $produit->price_ttc = isset($data['prix_ttc']) ? $data['prix_ttc'] : 0;
 			$produit->price_min_ttc = 0;
 	
-	        $produit->tva_tx             = 19.6;
+	        $produit->tva_tx             = 20;
 	        $produit->tva_npr            = 0;
 	
 	        // local taxes.
