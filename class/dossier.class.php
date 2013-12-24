@@ -182,9 +182,16 @@ class TFin_dossier extends TObjetStd {
 		
 		// Calcul de la date et du numéro de prochaine échéance
 		if($this->nature_financement == 'EXTERNE') {
-			while($this->financementLeaser->date_prochaine_echeance < time() && $this->financementLeaser->numero_prochaine_echeance <= $this->financementLeaser->duree) {
+			$cpt=0;
+			$time = time();
+			while($this->financementLeaser->date_prochaine_echeance < $time && $this->financementLeaser->numero_prochaine_echeance <= $this->financementLeaser->duree && $cpt<50) {
 				$this->financementLeaser->setEcheance();
+				$cpt++;
 			}
+			/*if($cpt==50) {
+				print "Erreur de récurssion infinie dans dossier ".$this->getId()."<br />";
+			}*/
+			
 		}
 		
 		$this->financementLeaser->fk_fin_dossier = $this->getId();

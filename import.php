@@ -60,6 +60,8 @@
 					
 					$societe =new Societe($db);
 					$societe->fetch(__get('socid',0,'integer'));
+					if($societe->id<=0)exit('société inconnue');
+					
 					
 					$mappingFile = ($fileType == 'fichier_leaser' ? $fileType.'.'.$societe->code_client.'.mapping' : $fileType.'.mapping');
 					$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
