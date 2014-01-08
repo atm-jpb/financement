@@ -54,16 +54,18 @@ else{
 
 	<?php
 	
+	$TParam = array('@date_debut@'=>$date_debut,'@date_fin@'=>$date_fin);
+	
 	$PDOdb=new TPDOdb;
 	$dash=new TReport_dashboard;
-	$dash->initByCode($PDOdb, 'PRODUCTIONFOURNISSEUR');
+	$dash->initByCode($PDOdb, 'PRODUCTIONFOURNISSEUR',$TParam);
 	
 	?>$('#chart_prod_fournisseur').html('<div id="chart_prod_fournisseur" style="height:<?=$dash->hauteur?>px; margin-bottom:20px;"></div>');<?
 	
 	$dash->get('chart_prod_fournisseur', true," €");
 	
 	$dash=new TReport_dashboard;
-	$dash->initByCode($PDOdb, 'PRODUCTIONLEASER');
+	$dash->initByCode($PDOdb, 'PRODUCTIONLEASER',$TParam);
 	
 	?>$('#chart_prod_leaser').html('<div id="chart_prod_leaser" style="height:<?=$dash->hauteur?>px; margin-bottom:20px;"></div>');<?
 	
