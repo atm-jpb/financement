@@ -69,7 +69,12 @@ var get_periode = function() {
 		'ajaxsimulateur.php',
 		data,
 		function(resHTML) {
+			var valeur = $('select[name="duree"]').val();
+			//alert(valeur);
 			$('select[name="duree"]').replaceWith(resHTML);
+			
+			 $('select[name="duree"]').val(valeur);
+			
 			get_grille();
 		},
 		'json'
