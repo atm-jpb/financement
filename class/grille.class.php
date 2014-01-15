@@ -69,7 +69,7 @@ class TFin_grille_leaser extends TObjetStd {
 			$result[strval($periode)][$montant]=array(
 				'rowid' => $ligne_grille['rowid']
 				,'coeff' => $coeff
-				,'echeance' => $montant / $periode * (1 + $coeff / 100)
+				,'echeance' => ( ($periode==0) ? 0 : $montant / $periode * (1 + $coeff / 100) )
 				,'montant' => $montant
 				,'periode' => $periode
 			);
