@@ -3,6 +3,7 @@
 		<td>N° contrat</td>
 		<td>Leaser</td>
 		<td>Type contrat</td>
+		<td>Montant</td>
 		<td>Durée</td>
 		<td>Loyer</td>
 		<td>Début</td>
@@ -19,6 +20,7 @@
 		<td>[champs.num_contrat;block=tr; strconv=no]</td>
 		<td>[champs.leaser; strconv=no]</td>
 		<td>[champs.type_contrat; strconv=no]</td>
+		<td>[champs.montant; strconv=no; frm=0 000,00] &euro;</td>
 		<td>[champs.duree; strconv=no]</td>
 		<td>[champs.echeance; strconv=no; frm=0 000,00] &euro;</td>
 		<td>[champs.debut; strconv=no; frm=dd/mm/yy]</td>

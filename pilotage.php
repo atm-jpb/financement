@@ -18,6 +18,16 @@ $error=false;
 
 llxHeader('','Pilotage');
 
+//Calcule de l'année fiscale
+if(date('m') < $conf->global->SOCIETE_FISCAL_MONTH_START){
+	$date_debut = (date('Y')-1)."-0".$conf->global->SOCIETE_FISCAL_MONTH_START."-01";
+	$date_fin = date('Y-m-t',strtotime("+11 month",strtotime($date_debut)));
+}
+else{
+	$date_debut = date('Y')."-0".$conf->global->SOCIETE_FISCAL_MONTH_START."-01";
+	$date_fin = date('Y-m-t',strtotime("+11 month",strtotime($date_debut)));
+}
+
 ?>
 
 <style type="text/css">
@@ -44,16 +54,18 @@ llxHeader('','Pilotage');
 
 	<?php
 	
+	$TParam = array('@date_debut@'=>$date_debut,'@date_fin@'=>$date_fin);
+	
 	$PDOdb=new TPDOdb;
 	$dash=new TReport_dashboard;
-	$dash->initByCode($PDOdb, 'PRODUCTIONFOURNISSEUR');
+	$dash->initByCode($PDOdb, 'PRODUCTIONFOURNISSEUR',$TParam);
 	
 	?>$('#chart_prod_fournisseur').html('<div id="chart_prod_fournisseur" style="height:<?=$dash->hauteur?>px; margin-bottom:20px;"></div>');<?
 	
 	$dash->get('chart_prod_fournisseur', true," €");
 	
 	$dash=new TReport_dashboard;
-	$dash->initByCode($PDOdb, 'PRODUCTIONLEASER');
+	$dash->initByCode($PDOdb, 'PRODUCTIONLEASER',$TParam);
 	
 	?>$('#chart_prod_leaser').html('<div id="chart_prod_leaser" style="height:<?=$dash->hauteur?>px; margin-bottom:20px;"></div>');<?
 	
@@ -72,15 +84,15 @@ llxHeader('','Pilotage');
 	</tr>
 	<tr><td height="15"></td></tr>
 	<tr>
-		<?php _listeNbAffaireParTypeContrat($ATMdb); ?>
+		<?php _listeNbAffaireParTypeContrat($ATMdb,$date_debut,$date_fin); ?>
 	</tr>
 	<tr><td height="15"></td></tr>
 	<tr>
-		<?php _listeNbAffaireParTypeContratParMois($ATMdb); ?>
+		<?php _listeNbAffaireParTypeContratParMois($ATMdb,$date_debut,$date_fin); ?>
 	</tr>
 	<tr><td height="15"></td></tr>
 	<tr>
-		<?php _listeCAFactureMaterielParCategorie($ATMdb,"fournisseur"); ?>
+		<?php _listeCAFactureMaterielParCategorie($ATMdb,"fournisseur",$date_debut,$date_fin); ?>
 		<td width="50%">
 			<!--- eChart -->
 			<div id="chart_prod_fournisseur" style="position:relative;margin-left: 50px;width: 800px;"></div>
@@ -88,7 +100,7 @@ llxHeader('','Pilotage');
 	</tr>
 	<tr><td height="15"></td></tr>
 	<tr>
-		<?php _listeCAFactureMaterielParCategorie($ATMdb,"leaser"); ?>
+		<?php _listeCAFactureMaterielParCategorie($ATMdb,"leaser",$date_debut,$date_fin); ?>
 		<td width="50%">
 			<!--- eChart -->
 			<div id="chart_prod_leaser" style="position:relative;margin-left: 50px;width: 800px;"></div>
@@ -96,19 +108,19 @@ llxHeader('','Pilotage');
 	</tr>
 	<tr><td height="15"></td></tr>
 	<tr>
-		<?php _listeSommeCRDLeaserParCategoriesFournisseur($ATMdb); ?>
+		<?php _listeSommeCRDLeaserParCategoriesFournisseur($ATMdb,$date_debut,$date_fin); ?>
 	</tr>
 	<tr><td height="15"></td></tr>
 	<tr>
-		<?php _listeRelationCommerciales($ATMdb); ?>
+		<?php _listeRelationCommerciales($ATMdb,$date_debut,$date_fin); ?>
 	</tr>
 	<tr><td height="15"></td></tr>
 	<tr>
-		<?php _listeAdministrationDolibarr($ATMdb); ?>
+		<?php _listeAdministrationDolibarr($ATMdb,$date_debut,$date_fin); ?>
 	</tr>
 	<tr><td height="15"></td></tr>
 	<tr>
-		<?php _listeRentabilite($ATMdb); ?>
+		<?php _listeRentabilite($ATMdb,$date_debut,$date_fin); ?>
 	</tr>
 	<tr><td height="15"></td></tr>
 </table>
@@ -116,16 +128,17 @@ llxHeader('','Pilotage');
 
 llxFooter();
 	
-function _listeNbAffaireParTypeContrat(&$ATMdb) {
+function _listeNbAffaireParTypeContrat(&$ATMdb,$date_debut,$date_fin) {
 	global $langs, $db, $conf, $user;
 	
+	//Année N-1
 	$sql ="SELECT contrat, count(*) as 'nb', MONTH(date_affaire) as 'm', YEAR(date_affaire) as 'y'
 		   FROM ".MAIN_DB_PREFIX."fin_affaire
-		   WHERE date_affaire >= '".((date('Y')-1)."-0".$conf->global->SOCIETE_FISCAL_MONTH_START)."%'
-		   	 AND date_affaire <= '".date('Y-0'.$conf->global->SOCIETE_FISCAL_MONTH_START)."%'
+		   WHERE date_affaire >= '".date("Y-m", strtotime("-1 year", strtotime($date_debut)))."-01'
+		   	 AND date_affaire <= '".date("Y-m-t", strtotime("-1 year",strtotime($date_fin)))."'
 		   AND contrat IS NOT NULL AND contrat != ''
 		   GROUP BY contrat, `y`, `m`";
-	
+
 	$ATMdb->Execute($sql);
 	$TRes = array();
 	$Total1 = 0;
@@ -134,9 +147,10 @@ function _listeNbAffaireParTypeContrat(&$ATMdb) {
 		$Total1 += $ATMdb->Get_field('nb');
 	}
 	
+	//Année N
 	$sql ="SELECT contrat, count(*) as 'nb', MONTH(date_affaire) as 'm', YEAR(date_affaire) as 'y'
 		   FROM ".MAIN_DB_PREFIX."fin_affaire
-		   WHERE date_affaire >= '".(date('Y-0'.$conf->global->SOCIETE_FISCAL_MONTH_START))."%'
+		   WHERE date_affaire >= '".$date_debut."'
 		   AND contrat IS NOT NULL AND contrat != ''
 		   GROUP BY contrat, `y`, `m`";
 	$ATMdb->Execute($sql);
@@ -160,10 +174,10 @@ function _listeNbAffaireParTypeContrat(&$ATMdb) {
 				</tr>
 				<tr class="liste_titre">
 					<td></td>
-					<td class="titre_colonne"><?=date('Y')-1;?>/<?=date('Y');?></td>
-					<td class="titre_colonne"><?=date('Y');?>/<?=date('Y')+1;?></td>
-					<td class="titre_colonne"><?=date('Y')-1;?>/<?=date('Y');?></td>
-					<td class="titre_colonne"><?=date('Y');?>/<?=date('Y')+1;?></td>
+					<td class="titre_colonne"><?=date("Y", strtotime("-1 year", strtotime($date_debut)));?>/<?=date("Y",strtotime($date_debut));?></td>
+					<td class="titre_colonne"><?=date("Y", strtotime($date_debut));?>/<?=date("Y",strtotime($date_fin));?></td>
+					<td class="titre_colonne"><?=date("Y", strtotime("-1 year", strtotime($date_debut)));?>/<?=date("Y",strtotime($date_debut));?></td>
+					<td class="titre_colonne"><?=date("Y", strtotime($date_debut));?>/<?=date("Y",strtotime($date_fin));?></td>
 				</tr>
 				<?php
 				foreach($TRes as $contrat=>$TNb){
@@ -183,12 +197,13 @@ function _listeNbAffaireParTypeContrat(&$ATMdb) {
 	<?php
 }
 
-function _listeNbAffaireParTypeContratParMois(&$ATMdb) {
+function _listeNbAffaireParTypeContratParMois(&$ATMdb,$date_debut,$date_fin) {
 	global $langs, $db, $conf, $user;
 	
 	$sql ="SELECT contrat, count(*) as 'nb', MONTH(date_affaire) as 'm'
 		   FROM ".MAIN_DB_PREFIX."fin_affaire
-		   WHERE date_affaire >= '".(date('Y-0'.$conf->global->SOCIETE_FISCAL_MONTH_START))."%'
+		   WHERE date_affaire >= '".$date_debut."'
+		   AND date_affaire <= '".$date_fin."'
 		   AND contrat IS NOT NULL AND contrat != ''
 		   GROUP BY contrat, `m`";
 	
@@ -244,7 +259,7 @@ function _listeNbAffaireParTypeContratParMois(&$ATMdb) {
 	<?php
 }
 
-function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
+function _listeCAFactureMaterielParCategorie(&$ATMdb,$type,$date_debut,$date_fin) {
 	global $langs, $db, $conf, $user;
 	
 	//Requête pour facture année N-1
@@ -255,8 +270,8 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 				LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf ON (cf.fk_societe = s.rowid)
 				LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (c.rowid = cf.fk_categorie)	
 			WHERE s.fournisseur = 1 AND s.client = 1
-			 AND f.datef >= '".((date('Y')-1)."-0".$conf->global->SOCIETE_FISCAL_MONTH_START)."%'
-		   	 AND f.datef < '".date('Y-0'.$conf->global->SOCIETE_FISCAL_MONTH_START)."%' ";
+			 AND f.datef >= '".date("Y-m", strtotime("-1 year", strtotime($date_debut)))."-01'
+		   	 AND f.datef <= '".date("Y-m-t", strtotime("-1 year",strtotime($date_fin)))."' ";
 	if($type=="fournisseur")
 		$sql .= "AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Type de financement') ";
 	elseif($type=="leaser")
@@ -277,7 +292,7 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 				LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf ON (cf.fk_societe = s.rowid)
 				LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (c.rowid = cf.fk_categorie)	
 			WHERE s.fournisseur = 1 AND s.client = 1
-			 AND f.datef >= '".((date('Y'))."-0".$conf->global->SOCIETE_FISCAL_MONTH_START)."%'";
+			 AND f.datef >= '".$date_debut."'";
 	if($type=="fournisseur")
 		$sql .= "AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Type de financement') ";
 	elseif($type=="leaser")
@@ -304,8 +319,8 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 			<table class="border" width="100%">
 				<tr class="liste_titre">
 					<td></td>
-					<td colspan="2" class="titre_colonne"><?=date('Y')-1;?>/<?=date('Y');?></td>
-					<td colspan="2" class="titre_colonne"><?=date('Y');?>/<?=date('Y')+1;?></td>
+					<td colspan="2" class="titre_colonne"><?=date("Y", strtotime("-1 year", strtotime($date_debut)));?>/<?=date("Y",strtotime($date_debut));?></td>
+					<td colspan="2" class="titre_colonne"><?=date("Y", strtotime($date_debut));?>/<?=date("Y",strtotime($date_fin));?></td>
 				</tr>
 				<tr class="liste_titre">
 					<td class="titre_colonne">au <?=date('d/m/Y');?></td>
@@ -377,7 +392,7 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type) {
 	<?php
 }
 
-function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb) {
+function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb,$date_debut,$date_fin) {
 	global $langs, $db, $conf, $user;
 	
 	$sql = "SELECT fdf.rowid as rowid, s.nom, c.label
@@ -483,13 +498,13 @@ function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb) {
 	<?php
 }
 
-function _listeRelationCommerciales(&$ATMdb) {
+function _listeRelationCommerciales(&$ATMdb,$date_debut,$date_fin) {
 	global $langs, $db, $conf, $user;
 	
 	$sql = "SELECT count(*) as 'nbAuto', MONTH(date_simul) as 'm', (SELECT COUNT(*) FROM ".MAIN_DB_PREFIX."fin_simulation WHERE MONTH(date_simul) = `m`)  as 'nbTotal'
 			FROM ".MAIN_DB_PREFIX."fin_simulation 
 			WHERE date_simul = date_accord
-				AND date_simul >= '".((date('Y'))."-0".$conf->global->SOCIETE_FISCAL_MONTH_START)."%'
+				AND date_simul >= '".$date_debut."'
 			GROUP BY `m`";
 	
 	$ATMdb->Execute($sql);
@@ -504,7 +519,6 @@ function _listeRelationCommerciales(&$ATMdb) {
 	$sql = "SELECT AVG(DATEDIFF(date_accord,date_cre)) as 'delais', MONTH(date_simul) as 'm'
 			FROM ".MAIN_DB_PREFIX."fin_simulation 
 			WHERE date_simul != date_accord GROUP BY `m`";
-	
 	
 	$ATMdb->Execute($sql);
 	while($ATMdb->Get_line()){
@@ -556,7 +570,7 @@ function _listeRelationCommerciales(&$ATMdb) {
 	<?php
 }
 
-function _listeAdministrationDolibarr(&$ATMdb) {
+function _listeAdministrationDolibarr(&$ATMdb,$date_debut,$date_fin) {
 	global $langs, $db, $conf, $user;
 	
 	$sql = "SELECT COUNT(d.rowid) as 'nb'
@@ -605,7 +619,7 @@ function _listeAdministrationDolibarr(&$ATMdb) {
 	<?php
 }
 
-function _listeRentabilite(&$ATMdb) {
+function _listeRentabilite(&$ATMdb,$date_debut,$date_fin) {
 	global $langs, $db, $conf, $user;
 	
 	$sql = "SELECT SUM(fd.renta_previsionnelle) as renta_previsionnelle, 
@@ -691,7 +705,7 @@ function _listeRentabilite(&$ATMdb) {
 	<?php
 }
 
-function _listeBalance(&$ATMdb) {
+function _listeBalance(&$ATMdb,$date_debut,$date_fin) {
 	global $langs, $db, $conf, $user;
 	
 	$sql ="SELECT a.contrat, (SELECT COUNT(rowid) FROM ".MAIN_DB_PREFIX."fin_affaire WHERE date_affaire LIKE '".date('Y')."%' AND contrat = a.contrat)
@@ -716,7 +730,7 @@ function _listeBalance(&$ATMdb) {
 	<?php
 }
 
-function _listeDossiersIncomplets(&$ATMdb) {
+function _listeDossiersIncomplets(&$ATMdb,$date_debut,$date_fin) {
 	global $langs, $db, $conf, $user;
 	
 	$sql ="SELECT a.contrat, (SELECT COUNT(rowid) FROM ".MAIN_DB_PREFIX."fin_affaire WHERE date_affaire LIKE '".date('Y')."%' AND contrat = a.contrat)

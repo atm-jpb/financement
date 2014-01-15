@@ -462,7 +462,7 @@ class TFin_dossier extends TObjetStd {
 					
 					$rentabiliteReste = $this->getRentabiliteReste($ATMdb);
 					//(1 + $this->getPenalite($ATMdb,'R','INTERNE') / 100)
-					$solde = $CRD + ($rentabiliteReste>0 ? $rentabiliteReste : $CRD * CRD_COEF_RENTA_ATTEINTE  )  + $this->getMontantCommission();
+					$solde = $CRD + ($rentabiliteReste>($CRD * CRD_COEF_RENTA_ATTEINTE) ? $rentabiliteReste : $CRD * CRD_COEF_RENTA_ATTEINTE  )  + $this->getMontantCommission();
 					
 					return ($solde>$LRD)?$LRD:$solde;
 				}
@@ -1108,9 +1108,9 @@ class TFin_financement extends TObjetStd {
 		
 		if((1 - $tauxAct) == 0) return 0;
 		
-		$va = $vpm * (1 + $taux * $type) * (1 - $tauxAct) / $taux - $vc * $tauxAct;
+		$va = -$vpm * (1 + $taux * $type) * (1 - $tauxAct) / $taux - $vc * $tauxAct;
 		
-		return $va;
+		return -$va;
 	}
 
 	/**
