@@ -530,8 +530,8 @@ class modFinancement extends DolibarrModules
 			            'fk_menu'=>'fk_mainmenu=report,fk_leftmenu=pilotage',			// Put 0 if this is a top menu
 			        	'type'=> 'left',			// This is a Top menu entry
 			        	'titre'=>'Pilotage financement',
-			        	'mainmenu'=> 'pilotage',
-			        	'leftmenu'=> 'pilotage',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+			        	'mainmenu'=> '',
+			        	'leftmenu'=> '',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 						'url'=> '/financement/pilotage.php',
 						'langs'=> 'report@report',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 						'position'=> 102,
@@ -541,17 +541,17 @@ class modFinancement extends DolibarrModules
 						'user'=> 2	// 0=Menu for internal users, 1=external users, 2=both
         );
 		
-		
+		$r++;
 		
 		$this->menu[$r]=array(
 			            'fk_menu'=>'fk_mainmenu=report,fk_leftmenu=pilotage',			// Put 0 if this is a top menu
 			        	'type'=> 'left',			// This is a Top menu entry
 			        	'titre'=>'Echéances restantes',
-			        	'mainmenu'=> 'pilotage',
-			        	'leftmenu'=> 'pilotage',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
+			        	'mainmenu'=> '',
+			        	'leftmenu'=> '',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 						'url'=> '/financement/report-echeance-restante.php',
 						'langs'=> 'report@report',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-						'position'=> 102,
+						'position'=> 103,
 						'enabled'=> '$conf->report->enabled && $conf->financement->enabled',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 						'perms'=> '$user->rights->financement->alldossier->read',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 						'target'=> '',
