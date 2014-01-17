@@ -109,6 +109,39 @@ Les colonnes sont :
 			}
 		
 	} 
+
+
+	if(isset($_REQUEST['download'])) {
+		
+		          $first = true;
+                                        
+                  foreach($TResult as &$ligne) {
+                                                
+                              if( $first ) {
+                                                        foreach($ligne as $key=>$value) $TEntete[]=$key;
+                                                        $first=false;
+                              }       
+             
+		              foreach($ligne as $key=>&$value) { $value = strip_tags($value); }
+
+                   }
+
+		header("Content-disposition: attachment; filename=".$_REQUEST['rapport'].'.csv');
+		header("Content-Type: application/force-download");
+		header("Content-Transfer-Encoding: application/octet-stream");
+		header("Pragma: no-cache");
+		header("Cache-Control: must-revalidate, post-check=0, pre-check=0, public");
+		header("Expires: 0");
+
+		print implode(';', $TEntete)."\n";
+		foreach($TResult as $ligne) {
+			print implode(';', $ligne)."\n";
+		}
+		exit;
+		
+		
+	}
+
 	
 	$aff=new TFin_affaire;
 	
@@ -116,11 +149,9 @@ Les colonnes sont :
 	
 	$r=new TListviewTBS('lreport');
 	
+	$form=new TFormCore('auto', 'formReport','post');
 	
-	$form=new TFormCore('../report/report.php', 'formReport','post');
-	
-	echo $form->hidden('serialData', base64_encode( serialize( $TResult ) ) );
-	echo $form->hidden('format', 'largeCSV' );
+	echo $form->hidden('download', '1' );
 	echo $form->hidden('rapport', 'echeance-restante' );
 	
 	
