@@ -319,6 +319,13 @@ function _liste(&$ATMdb, &$simulation) {
 function _fiche(&$ATMdb, &$simulation, $mode) {
 	global $db, $langs, $user, $conf;
 	
+	if( $simulation->getId() == 0) {
+			
+		$simulation->duree = __get('duree', $simulation->duree, 'integer');
+	//	$simulation->echeance = __get('echeance', $simulation->echeance, 'float');
+		
+	}
+	
 	$extrajs = array('/financement/js/financement.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
 	
@@ -343,7 +350,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	$formfile = new FormFile($db);
 	$filename = dol_sanitizeFileName($simulation->getRef());
 	$filedir = $conf->financement->dir_output . '/' . dol_sanitizeFileName($simulation->getRef());
-	
+	print $simulation->duree;
+
+	$TDuree = $grille->get_duree($ATMdb,FIN_LEASER_DEFAULT,$simulation->fk_type_contrat,$simulation->opt_periodicite);
+	//var_dump($TDuree);
+
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
@@ -369,7 +380,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)
 				,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)
 				,'montant_rachete_concurrence'=>$form->texte('', 'montant_rachete_concurrence', $simulation->montant_rachete_concurrence, 10)
-				,'duree'=>$form->combo('', 'duree', $grille->get_duree($ATMdb,FIN_LEASER_DEFAULT,$simulation->fk_type_contrat,$simulation->opt_periodicite), $simulation->duree)
+				,'duree'=>$form->combo('', 'duree', $TDuree, $simulation->duree)
 				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
 				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
 				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 5)
@@ -463,14 +474,14 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 
 	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', a.contrat as 'Type contrat'";
-	$sql.= " , d.rowid as 'IDDoss'";
+	$sql.= " , d.rowid as 'IDDoss', f.incident_paiement";
 	//$sql.= " , f.reference as 'N° contrat', f.date_debut as 'Début', f.date_fin as 'Fin'";
 	//$sql.= " , ac.fk_user";
 	//$sql.= " , u.login as 'Utilisateur'";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_affaire = a.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON d.rowid = da.fk_fin_dossier";
-	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement f ON f.fk_fin_dossier = d.rowid";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement f ON (f.fk_fin_dossier = d.rowid AND type='LEASER')";
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire_commercial ac ON ac.fk_fin_affaire = a.rowid";
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
 	$sql.= " WHERE a.entity = ".$conf->entity;
@@ -548,7 +559,9 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		$checkbox_moreNR1 = ' solde="'.$soldeNR1.'" style="display: none;"';
 		$checkbox_moreNR1.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		
-		$TDossier[] = array(
+		if($ATMdb->Get_field('incident_paiement')=='OUI') $dossier->display_solde = 0;
+		
+		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
 			,'num_affaire' => $ATMdb->Get_field('N° affaire')
 			,'id_dossier' => $dossier->getId()
@@ -582,7 +595,13 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'montant' => $fin->montant
 			
 			,'class' => $bc[$var]
+			
+			,'incident_paiement'=>$incident_paiement
 		);
+		
+		
+		
+		$TDossier[] = $row;
 		
 		$var = !$var;
 	}

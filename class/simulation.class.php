@@ -408,11 +408,30 @@ class TSimulation extends TObjetStd {
 		// Dossiers rachetés dans la simulation
 		$TDossier = array();
 		
-		$TSimuDossier = array_merge($this->dossiers_rachetes, $this->dossiers_rachetes_p1);
+		$TSimuDossier = array_merge($this->dossiers_rachetes, $this->dossiers_rachetes_p1,$this->dossiers_rachetes_nr,$this->dossiers_rachetes_nr_p1);
 		foreach($TSimuDossier as $idDossier) {
 			$d = new TFin_dossier();
 			$d->load($ATMdb, $idDossier, false);
+			
 			if($d->nature_financement == 'INTERNE') {
+				$f = &$d->financement;
+			} else { 
+				$f = &$d->financementLeaser;
+			}
+			
+			if(in_array($idDossier, $this->dossiers_rachetes)) {
+				$solde = $d->getSolde($ATMdb2, 'SRCPRO');
+			} elseif(in_array($idDossier, $this->dossiers_rachetes_nr)) {
+				$solde = $d->getSolde($ATMdb2, 'SNRCPRO');
+			} elseif(in_array($idDossier, $this->dossiers_rachetes_p1)) {
+				$solde = $d->getSolde($ATMdb2, 'SRCPRO',$fin->duree_passe + 1);
+			} elseif(in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
+				$solde = $d->getSolde($ATMdb2, 'SNRCPRO',$fin->duree_passe + 1);
+			} else {
+				$solde = 0;
+			}
+			
+			/*if($d->nature_financement == 'INTERNE') {
 				$f = &$d->financement;
 				if($d->type_contrat == $this->fk_type_contrat) {
 					if(in_array($idDossier, $this->dossiers_rachetes)) {
@@ -442,7 +461,7 @@ class TSimulation extends TObjetStd {
 						$solde = $d->getSolde($ATMdb2, 'SNRBANK', $fin->duree_passe + 1);
 					}
 				}
-			}
+			}*/
 			
 			$leaser = new Societe($doliDB);
 			$leaser->fetch($d->financementLeaser->fk_soc);
