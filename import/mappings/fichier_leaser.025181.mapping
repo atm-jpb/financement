@@ -1,32 +1,25 @@
 nom_du_leaser=lixxbail
 
 [mapping]
-23=siren
-4=reference
-7=date_debut
-9=montant
-10=duree
-11=echeance
-15=reste
-12=periodicite
-13=terme
+1=siren
+2=reference
+3=date_debut
+4=montant
+5=duree
+6=terme
+7=echeance
+8=loyer_intercalaire
+9=reste
+10=montant_prestation
+11=periodicite
+12=incident_paiement
+13=reloc
 
 [format]
 date_debut=date
+date_fin=date
 echeance=float
 montant=float
 reste=float
 
 [transco]
-periodicite=1
-terme=1
-
-[periodicite]
-MENSUEL=MOIS
-TRIMESTRIEL=TRIMESTRE
-SEMESTRIEL=SEMESTRE
-ANNUEL=ANNEE
-
-[terme]
-A échoir=1
-Echu=0
