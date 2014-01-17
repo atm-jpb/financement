@@ -96,7 +96,7 @@ Les colonnes sont :
 						, 'Leaser'=>$row->Leaser
 						, 'CodeLeaser'=>$row->CodeLeaser
 						, 'dateEcheance'=>$echeance['date']
-						, 'LibelleEcheance'=>'Echéance n°'.$n_echeance
+						, 'LibelleEcheance'=>'Echeance n '.$n_echeance
 						, 'MontantEcheance'=>$echeance['loyerHT']
 						, 'Periodicite'=>$row->Periodicite
 						, 'dateEcheanceDeb'=>$echeance['date']
