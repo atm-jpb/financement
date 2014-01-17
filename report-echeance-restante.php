@@ -121,7 +121,7 @@ Les colonnes sont :
 	
 	echo $form->hidden('serialData', base64_encode( serialize( $TResult ) ) );
 	echo $form->hidden('format', 'largeCSV' );
-	echo $form->hidden('rapport', 'echeance-future' );
+	echo $form->hidden('rapport', 'echeance-restante' );
 	
 	
 	echo $form->btsubmit('Télécharger au format CSV', 'btsub');
