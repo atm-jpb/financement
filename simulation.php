@@ -534,6 +534,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		}
 		
 		if($fin->date_solde > 0) continue;
+		if(empty($dossier->financementLeaser->reference)) continue;
 		
 		/*
 		$checked = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes) ? true : false;
