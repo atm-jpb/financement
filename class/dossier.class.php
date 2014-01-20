@@ -477,7 +477,7 @@ class TFin_dossier extends TObjetStd {
 		}
 	}
 	
-	function echeancier(&$ATMdb,$type_echeancier='CLIENT') {
+	function echeancier(&$ATMdb,$type_echeancier='CLIENT', $echeanceInit = 1 ,$return = false, $withSolde = true) {
 		if($type_echeancier == 'CLIENT') $f = &$this->financement;
 		else $f = &$this->financementLeaser;
 		
@@ -504,7 +504,7 @@ class TFin_dossier extends TObjetStd {
 		$capital_restant = $capital_restant_init;
 		$TLigne=array();
 		
-		for($i=0; $i<$f->duree; $i++) {
+		for($i=($echeanceInit-1); $i<$f->duree; $i++) {
 			
 			$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut + $f->calage);
 			
@@ -549,21 +549,26 @@ class TFin_dossier extends TObjetStd {
 			}
 			$total_facture += $fact->total_ht;
 			
-			// Ajout des soldes par période
-			global $db;
-			$form = new Form($db);
-			$htmlSoldes = '<table>';
-			if($type_echeancier == 'CLIENT') {
-				$htmlSoldes.= '<tr><td colspan="2" align="center">Après l\'échéance n°'.($i+1).'</td></tr>';
-				$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRCPRO', $i+1),2,',',' ').' &euro;</strong></td></tr>';
-				$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SNRCPRO', $i+1),2,',',' ').' &euro;</strong></td></tr>';
-			} else {
-				$htmlSoldes.= '<tr><td colspan="2" align="center">Après l\'échéance n°'.($i+1).'</td></tr>';
-				$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRBANK', $i+1),2,',',' ').' &euro;</strong></td></tr>';
-				$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SNRBANK', $i+1),2,',',' ').' &euro;</strong></td></tr>';
+			if($withSolde) {
+				
+				// Ajout des soldes par période
+				global $db;
+				$form = new Form($db);
+				$htmlSoldes = '<table>';
+				if($type_echeancier == 'CLIENT') {
+					$htmlSoldes.= '<tr><td colspan="2" align="center">Après l\'échéance n°'.($i+1).'</td></tr>';
+					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRCPRO', $i+1),2,',',' ').' &euro;</strong></td></tr>';
+					$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SNRCPRO', $i+1),2,',',' ').' &euro;</strong></td></tr>';
+				} else {
+					$htmlSoldes.= '<tr><td colspan="2" align="center">Après l\'échéance n°'.($i+1).'</td></tr>';
+					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRBANK', $i+1),2,',',' ').' &euro;</strong></td></tr>';
+					$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SNRBANK', $i+1),2,',',' ').' &euro;</strong></td></tr>';
+				}
+				$htmlSoldes.= '</table>';
+				$data['soldes'] = htmlentities($htmlSoldes);
+				
 			}
-			$htmlSoldes.= '</table>';
-			$data['soldes'] = htmlentities($htmlSoldes);
+			
 			
 			$TLigne[] = $data;
 		}
@@ -609,14 +614,27 @@ class TFin_dossier extends TObjetStd {
 			$autre['loyer_intercalaire_facture_bg'] = '';
 		}
 		
-		return $TBS->render('./tpl/echeancier.tpl.php'
-			,array(
+		if($return) {
+			
+			return array(
 				'ligne'=>$TLigne
-			)
-			,array(
-				'autre'=>$autre
-			)
-		);
+				,'autre'=>$autre
+			);
+			
+		}
+		else {
+			return $TBS->render('./tpl/echeancier.tpl.php'
+				,array(
+					'ligne'=>$TLigne
+				)
+				,array(
+					'autre'=>$autre
+				)
+			);
+			
+		}
+		
+		
 	}
 
 	function generate_factures_leaser($paid = false, $delete_all = false) {
@@ -1062,8 +1080,11 @@ class TFin_financement extends TObjetStd {
 	
 	private function PRINCPER($taux, $p, $NPM, $VA, $valeur_residuelle, $type)
 	{
-		$valeur_residuelle=0;$type=0;
-		return $taux / (1 + $taux * $type) * $VA * (pow(1 + $taux,-$NPM+$p - 1)) / (pow(1 + $taux,-$NPM) - 1) - $valeur_residuelle * (pow(1 + $taux,$p - 1)) / (pow(1 + $taux,$NPM) - 1);
+		$valeur_residuelle=0;
+		$type=0;
+@		$res = $taux / (1 + $taux * $type) * $VA * (pow(1 + $taux,-$NPM+$p - 1)) / (pow(1 + $taux,-$NPM) - 1) - $valeur_residuelle * (pow(1 + $taux,$p - 1)) / (pow(1 + $taux,$NPM) - 1);
+		
+		return $res;
 	}
 	
 	/**
