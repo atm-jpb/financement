@@ -486,7 +486,7 @@ class TFin_dossier extends TObjetStd {
 					
 					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
 					
-					return ($solde>$LRD)?$LRD:$solde;
+					return ($solde>$LRD_Leaser)?$LRD_Leaser:$solde;
 				}
 				
 				break;
