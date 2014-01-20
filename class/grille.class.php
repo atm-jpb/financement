@@ -164,6 +164,7 @@ class TFin_grille_leaser extends TObjetStd {
 		
 		$grilleLigne = new TFin_grille_leaser;
 		if($idCoeff>0) $grilleLigne->load($ATMdb, $idCoeff);
+		
 		if(empty($coeff)) {
 			if($idCoeff>0) $grilleLigne->delete($ATMdb);
 			
@@ -195,7 +196,7 @@ class TFin_grille_leaser extends TObjetStd {
 			
 			$grilleLigne->save($ATMdb);
 			
-			if($idCoeff==0) {
+			//if($idCoeff==0) {
 				$this->TGrille[$periode][$montant]=array(
 					'rowid'=>$grilleLigne->getId()
 					,'coeff'=>$coeff
@@ -203,7 +204,7 @@ class TFin_grille_leaser extends TObjetStd {
 					,'periode'=>$periode
 					,'montant'=>$montant
 				);
-			}
+			//}
 		}
 		
 		
