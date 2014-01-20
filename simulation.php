@@ -350,8 +350,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	$formfile = new FormFile($db);
 	$filename = dol_sanitizeFileName($simulation->getRef());
 	$filedir = $conf->financement->dir_output . '/' . dol_sanitizeFileName($simulation->getRef());
-	print $simulation->duree;
-
+	
 	$TDuree = $grille->get_duree($ATMdb,FIN_LEASER_DEFAULT,$simulation->fk_type_contrat,$simulation->opt_periodicite);
 	//var_dump($TDuree);
 
