@@ -280,7 +280,8 @@ class TFin_grille_leaser extends TObjetStd {
     	if(empty($idLeaser) || empty($idTypeContrat)) return -1;
 		
 		//if($periodicite == 'MOIS') $duree /= 3 * $this->getiPeriode($periodicite);
-		$duree /= 3 * $this->getiPeriode($periodicite);
+		
+		$duree *= $this->getiPeriode($periodicite) / 3;
 
     	global $langs;
         $sql = "SELECT";
