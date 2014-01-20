@@ -561,6 +561,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		
 		if($ATMdb->Get_field('incident_paiement')=='OUI') $dossier->display_solde = 0;
 		if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
+		if($leaser->code_client == '024242') $dossier->display_solde = 0; // Ticket 447, suite
 		
 		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
