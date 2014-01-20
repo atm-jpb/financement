@@ -452,7 +452,11 @@ class TFin_dossier extends TObjetStd {
 				break;
 				
 			case 'SNRCPRO': /* Vendeur non renouvellant */
-				if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+				if($this->nature_financement == 'INTERNE') {
+					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+				} else {
+					if((($this->financementLeaser->duree - $duree_restante_client) * $this->financementLeaser->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+				}
 				
 				if($this->nature_financement == 'INTERNE') {
 					return $LRD;
@@ -464,7 +468,11 @@ class TFin_dossier extends TObjetStd {
 				break;
 					
 			case 'SRCPRO': /* Vendeur renouvellant */
-				if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+				if($this->nature_financement == 'INTERNE') {
+					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+				} else {
+					if((($this->financementLeaser->duree - $duree_restante_client) * $this->financementLeaser->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+				}
 
 				if($this->nature_financement == 'INTERNE') {
 					
