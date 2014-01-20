@@ -343,7 +343,7 @@ class TFin_dossier extends TObjetStd {
 		 */
 		$g=new TFin_grille_leaser('PENALITE_'.$type);
 		
-		if($nature_financement == 'INTERNE' && !empty($this->financement)) { $f= &$this->financement; }
+		if($nature_financement == 'INTERNE' && $this->financement->id>0) { $f= &$this->financement; }
 		else {	$f = &$this->financementLeaser; }
 		
 		
@@ -485,7 +485,6 @@ class TFin_dossier extends TObjetStd {
 				else {
 					
 					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
-					
 					return ($solde>$LRD_Leaser)?$LRD_Leaser:$solde;
 				}
 				
