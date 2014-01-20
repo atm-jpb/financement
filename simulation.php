@@ -560,7 +560,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		$checkbox_moreNR1.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		
 		if($ATMdb->Get_field('incident_paiement')=='OUI') $dossier->display_solde = 0;
-		if($affaire->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
+		if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
 		
 		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
