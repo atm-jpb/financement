@@ -331,6 +331,11 @@ class TFin_dossier extends TObjetStd {
 		}
 	}
 	
+	/*
+	 * Attention, paramètre nature_financement prête à confusion :
+	 * Si INTERNE => utilisation de la penalité configurée sur la fiche tiers CPRO
+	 * Si EXTERNE => utilisation de la penalite configurée sur la fiche leaser
+	 */
 	function getPenalite(&$ATMdb, $type, $nature_financement='INTERNE') {
 		/*
 		 * TODO
@@ -338,11 +343,14 @@ class TFin_dossier extends TObjetStd {
 		 */
 		$g=new TFin_grille_leaser('PENALITE_'.$type);
 		
-		if($nature_financement == 'INTERNE') { $f= &$this->financement; }
+		if($nature_financement == 'INTERNE' && !empty($this->financement)) { $f= &$this->financement; }
 		else {	$f = &$this->financementLeaser; }
+		
+		
+		$fk_soc = ($nature_financement == 'INTERNE') ? FIN_LEASER_DEFAULT : $f->fk_soc;
 
 		$g->get_grille($ATMdb,$f->fk_soc,$this->contrat);	
-		$coeff = (double)$g->get_coeff($ATMdb, $f->fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree);
+		$coeff = (double)$g->get_coeff($ATMdb, $fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree);
 		return $coeff > 0 ? $coeff : 0;
 	}
 	function getMontantCommission() {
