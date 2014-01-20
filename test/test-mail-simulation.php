@@ -18,7 +18,7 @@ $simulation=new TSimulation;
 	$simulation->load($ATMdb, $db, 12); // chargement test
 	
 	$simulation->send_mail_vendeur(false, 'd.cottier@cpro.fr');
-	
+exit;	
 	$mesg = "Bonjour test \n\n";
 	$mesg.= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n° '.$simulation->reference.'.'."\n\n";
 	$mesg.= 'Cordialement,'."\n\n";
@@ -40,9 +40,12 @@ $simulation=new TSimulation;
 	$filename = $attachedfiles['names'];
 	$mimetype = $attachedfiles['mimes'];
 	
-	
+var_dump($attachedfiles);	
 	$r=new TReponseMail('financement@cpro.fr', 'd.cottier@cpro.fr', 'Ceci est un test pour module financement', $mesg);
 	
-	$r->add_piece_jointe($filename, $filepath);
+	foreach($filename as $k=>$file) {
+		$r->add_piece_jointe($filename[$k], $filepath[$k]);
+
+	}
 	
 	$r->send();

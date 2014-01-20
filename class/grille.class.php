@@ -283,6 +283,7 @@ class TFin_grille_leaser extends TObjetStd {
 		
 		$duree *= $this->getiPeriode($periodicite) / 3;
 
+		
     	global $langs;
         $sql = "SELECT";
 		$sql.= " t.montant, t.coeff";
@@ -290,7 +291,7 @@ class TFin_grille_leaser extends TObjetStd {
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
         $sql.= " WHERE t.fk_soc = ".$idLeaser;
 		$sql.= " AND t.fk_type_contrat = '".$idTypeContrat."'
-		 AND t.periode <= ".$duree. " AND t.type='".$this->type."' AND t.montant>=".$montant;
+		 AND t.periode <= ".$duree." AND t.type='".$this->type."' AND t.montant>=".$montant;
 		$sql.= " ORDER BY t.periode DESC, t.montant ASC LIMIT 1";
 
 		$ATMdb->Execute($sql);
@@ -298,7 +299,8 @@ class TFin_grille_leaser extends TObjetStd {
 		/*	while($db->Get_line()) {
 				if($montant <= $db->Get_field('montant')) {*/
 					$ATMdb->Get_line();
-					$coeff = $this->_calculate_coeff($ATMdb, $ATMdb->Get_field('coeff'), $options);
+					$coeff = $ATMdb->Get_field('coeff');
+					$coeff = $this->_calculate_coeff($ATMdb, $coeff, $options);
 					return $coeff;
 				//}	
 		//	}	
