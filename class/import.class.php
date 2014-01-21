@@ -196,20 +196,7 @@ class TImport extends TObjetStd {
 				}
 				$dossier->financementLeaser->fk_soc = $data['idLeaser'];
 				
-				// Spécifiques BNP
-				if(in_array($dossier->financementLeaser->fk_soc, array(3382,19553,20113))) {
-					$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
-				}
-				
-				// Spécifique GE
-				if(in_array($dossier->financementLeaser->fk_soc, array(7411))) {
-					$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
-				}
-				
-				// Spécifique LIXXBAIL
-				if(in_array($dossier->financementLeaser->fk_soc, array(6065,19068,19483))) {
-					$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
-				}
+				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
 				
 			} else { // Dossier interne => Vérification des informations
 				$echeance = $data['echeance'];
