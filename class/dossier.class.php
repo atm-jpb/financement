@@ -165,10 +165,29 @@ class TFin_dossier extends TObjetStd {
 		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_affaire', $this->getId(), 'fk_fin_dossier');
 		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_financement', $this->getId(), 'fk_fin_dossier');
 	}
+	
+	private function setNatureFinancementOnSimpleLink() {
+		/*
+		 * Modifie la nature d'un dossier pour suivre l'affaire s'il n'y a qu'une affaire
+		 */
+		if(count($this->TLien)==1) {
+			
+			$lien = & $this->TLien[0];
+			
+			if(!empty($lien->affaire->nature_financement)) {
+				$this->nature_financement = $lien->affaire->nature_financement;
+			}	
+			
+		}
+		
+	}
+		
 	function save(&$db) {
 		global $user;
 		
 		if(!$user->rights->financement->affaire->write) return false;
+		
+		$this->setNatureFinancementOnSimpleLink();
 		
 		$this->calculSolde();
 		$this->calculRenta($db);

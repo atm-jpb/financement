@@ -1,9 +1,9 @@
 <?php
 
-require('../config.php');
-require('../class/affaire.class.php');
-require('../class/dossier.class.php');
-require('../class/grille.class.php');
+require('../../config.php');
+require('../../class/affaire.class.php');
+require('../../class/dossier.class.php');
+require('../../class/grille.class.php');
 dol_include_once('/asset/class/asset.class.php');
 
 @set_time_limit(0);					// No timeout for this script
@@ -26,6 +26,9 @@ $nbAffaire = 0;
 
 $ATMdb->Execute($sql);
 
+$force = __get('force',0,'integer');
+
+
 while($ATMdb->Get_line()){
 	
 	$affaire = new TFin_affaire;
@@ -40,18 +43,18 @@ while($ATMdb->Get_line()){
 		
 		$dossier->load($ATMdb2,$ATMdb->Get_field('idDossier'),false);
 		echo "Dossier : ".$dossier->rowid.'<br>';
-		$dossier->delete($ATMdb2);
+		if($force)	$dossier->delete($ATMdb2);
 		
 		$dossierAffaire->load($ATMdb2, $ATMdb->Get_field('idDossierAffaire'),false);
 		echo "DossierAffaire : ".$dossierAffaire->rowid.'<br>';
-		$dossierAffaire->delete($ATMdb2);
+		if($force)$dossierAffaire->delete($ATMdb2);
 		
 		$dossierFinancement->load($ATMdb2, $ATMdb->Get_field('idDossierFinancement'));
 		echo "DossierFinancement : ".$dossierFinancement->rowid.'<br>';
-		$dossierFinancement->delete($ATMdb2);
+		if($force)$dossierFinancement->delete($ATMdb2);
 		
 		if((int)strpos($affaire->reference,"EXT-") === 0){
-			$affaire->delete($ATMdb2);
+			if($force)$affaire->delete($ATMdb2);
 			
 			$nbAffaire ++;
 			
