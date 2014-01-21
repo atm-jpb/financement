@@ -16,6 +16,7 @@ class TFin_affaire extends TObjetStd {
 		$this->TLien=array();
 		$this->TCommercial=array();
 		$this->TAsset=array();
+		$this->contrat = 'LOCSIMPLE';
 		
 		$this->TContrat=array(
 			'LOCSIMPLE'=>$langs->trans('LocSimple')

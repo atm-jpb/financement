@@ -1,17 +1,19 @@
 nom_du_leaser=bnp
 
 [mapping]
-4=siren
-11=reference
-26=date_debut
-25=montant
-24=duree
-31=echeance
-27=loyer_intercalaire
-28=reste
-30=montant_prestation
-34=periodicite
-37=incident_paiement
+1=siren
+2=reference
+3=date_debut
+4=montant
+5=duree
+6=terme
+7=echeance
+8=loyer_intercalaire
+9=reste
+10=montant_prestation
+11=periodicite
+12=incident_paiement
+13=reloc
 
 [format]
 date_debut=date
@@ -20,22 +22,4 @@ echeance=float
 montant=float
 reste=float
 
-[more]
-terme=1
-
 [transco]
-periodicite=1
-terme=1
-incident_paiement=1
-
-[periodicite]
-Mensuelle=MOIS
-Trimestrielle=TRIMESTRE
-
-[terme]
-A=1
-E=0
-
-[incident_paiement]
-N=NON
-O=OUI

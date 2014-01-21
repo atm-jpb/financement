@@ -69,7 +69,7 @@ class TFin_grille_leaser extends TObjetStd {
 			$result[strval($periode)][$montant]=array(
 				'rowid' => $ligne_grille['rowid']
 				,'coeff' => $coeff
-				,'echeance' => $montant / $periode * (1 + $coeff / 100)
+				,'echeance' => ( ($periode==0) ? 0 : $montant / $periode * (1 + $coeff / 100) )
 				,'montant' => $montant
 				,'periode' => $periode
 			);
@@ -164,6 +164,7 @@ class TFin_grille_leaser extends TObjetStd {
 		
 		$grilleLigne = new TFin_grille_leaser;
 		if($idCoeff>0) $grilleLigne->load($ATMdb, $idCoeff);
+		
 		if(empty($coeff)) {
 			if($idCoeff>0) $grilleLigne->delete($ATMdb);
 			
@@ -195,7 +196,7 @@ class TFin_grille_leaser extends TObjetStd {
 			
 			$grilleLigne->save($ATMdb);
 			
-			if($idCoeff==0) {
+			//if($idCoeff==0) {
 				$this->TGrille[$periode][$montant]=array(
 					'rowid'=>$grilleLigne->getId()
 					,'coeff'=>$coeff
@@ -203,7 +204,7 @@ class TFin_grille_leaser extends TObjetStd {
 					,'periode'=>$periode
 					,'montant'=>$montant
 				);
-			}
+			//}
 		}
 		
 		
@@ -279,8 +280,10 @@ class TFin_grille_leaser extends TObjetStd {
     	if(empty($idLeaser) || empty($idTypeContrat)) return -1;
 		
 		//if($periodicite == 'MOIS') $duree /= 3 * $this->getiPeriode($periodicite);
-		$duree /= 3 * $this->getiPeriode($periodicite);
+		
+		$duree *= $this->getiPeriode($periodicite) / 3;
 
+		
     	global $langs;
         $sql = "SELECT";
 		$sql.= " t.montant, t.coeff";
@@ -288,7 +291,7 @@ class TFin_grille_leaser extends TObjetStd {
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
         $sql.= " WHERE t.fk_soc = ".$idLeaser;
 		$sql.= " AND t.fk_type_contrat = '".$idTypeContrat."'
-		 AND t.periode <= ".$duree. " AND t.type='".$this->type."' AND t.montant>=".$montant;
+		 AND t.periode <= ".$duree." AND t.type='".$this->type."' AND t.montant>=".$montant;
 		$sql.= " ORDER BY t.periode DESC, t.montant ASC LIMIT 1";
 
 		$ATMdb->Execute($sql);
@@ -296,7 +299,8 @@ class TFin_grille_leaser extends TObjetStd {
 		/*	while($db->Get_line()) {
 				if($montant <= $db->Get_field('montant')) {*/
 					$ATMdb->Get_line();
-					$coeff = $this->_calculate_coeff($ATMdb, $ATMdb->Get_field('coeff'), $options);
+					$coeff = $ATMdb->Get_field('coeff');
+					$coeff = $this->_calculate_coeff($ATMdb, $coeff, $options);
 					return $coeff;
 				//}	
 		//	}	
