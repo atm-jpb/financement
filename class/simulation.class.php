@@ -408,6 +408,8 @@ class TSimulation extends TObjetStd {
 		// Dossiers rachetés dans la simulation
 		$TDossier = array();
 		
+		$ATMdb2 = new TPDOdb; // #478 par contre je ne vois pas pourquoi il faut une connexion distincte :/
+		
 		$TSimuDossier = array_merge($this->dossiers_rachetes, $this->dossiers_rachetes_p1,$this->dossiers_rachetes_nr,$this->dossiers_rachetes_nr_p1);
 		foreach($TSimuDossier as $idDossier) {
 			$d = new TFin_dossier();
