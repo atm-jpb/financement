@@ -11,7 +11,7 @@ require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 
 $langs->load('financement@financement');
 $simulation=new TSimulation;
-$ATMdb = new Tdb;
+$ATMdb = new TPDOdb;
 $tbs = new TTemplateTBS;
 
 $mesg = '';
@@ -134,8 +134,12 @@ if(!empty($action)) {
 				$simulation->date_validite = strtotime('+ 3 months');
 				$simulation->date_accord = time();
 				$simulation->accord_confirme = 1;
-			} else if($simulation->accord == 'KO' && $simulation->accord != $oldAccord) {
+			} 
+			else if($simulation->accord == 'KO' && $simulation->accord != $oldAccord) {
 				$simulation->accord_confirme = 1;
+			}
+			else if($simulation->accord == 'SS') {
+				$simulation->accord_confirme = 1; // #478 un gros WTF? sur cette fonction
 			}
 			
 			// Si une donnée de préconisation a été remplie, on fige la simulation pour le commercial
@@ -449,7 +453,7 @@ function _calcul(&$simulation, $mode='calcul') {
 		}
 	}
 	
-	$ATMdb=new Tdb;
+	$ATMdb=new TPDOdb;
 	$calcul = $simulation->calcul_financement($ATMdb, FIN_LEASER_DEFAULT, $options); // Calcul du financement
 		
 	if(!$calcul) { // Si calcul non correct
