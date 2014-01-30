@@ -504,10 +504,10 @@ class TFin_dossier extends TObjetStd {
 				else {
 					
 					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
-					/*$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
+					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
 					if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382) {
-						$solde *= 1.03;
-					}*/
+						$solde *= (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
+					}
 					
 					return ($solde>$LRD_Leaser)?$LRD_Leaser:$solde;
 				}
