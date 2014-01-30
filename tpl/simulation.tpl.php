@@ -167,7 +167,6 @@
 		</tr>
 		[onshow;block=end]
 		
-		[onshow;block=begin;when [simulation.display_preco]==1]
 		<tr class="liste_titre">
 			<td colspan="4">Préconisation</td>
 		</tr>
@@ -183,7 +182,6 @@
 			<td>Numéro accord</td>
 			<td>[simulation.numero_accord; strconv=no]</td>
 		</tr>
-		[onshow;block=end]
 	</table>	
 	</div>
 </td>

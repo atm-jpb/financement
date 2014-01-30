@@ -357,6 +357,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$TDuree = $grille->get_duree($ATMdb,FIN_LEASER_DEFAULT,$simulation->fk_type_contrat,$simulation->opt_periodicite);
 	//var_dump($TDuree);
+	$can_preco = $user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0 ? 1 : 0;
 
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
@@ -387,7 +388,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
 				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
 				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 5)
-				,'coeff_final'=>$form->texte('', 'coeff_final', $simulation->coeff_final, 5)
+				,'coeff_final'=>$can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 5) : $simulation->coeff_final
 				,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10)
 				,'cout_financement'=>$simulation->cout_financement
 				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
@@ -396,7 +397,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'accord_confirme'=>$simulation->accord_confirme
 				,'total_financement'=>$simulation->montant_total_finance
 				,'type_materiel'=>$form->texte('','type_materiel',$simulation->type_materiel, 50)
-				,'numero_accord'=>$form->texte('','numero_accord',$simulation->numero_accord, 20)
+				,'numero_accord'=>$can_preco ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $simulation->numero_accord
 				
 				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>'
 				,'date'=>$simulation->date_simul
@@ -404,9 +405,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'bt_cancel'=>$form->btsubmit('Annuler', 'cancel')
 				,'bt_save'=>$form->btsubmit('Enregistrer simulation', 'validate_simul')
 				
-				,'display_preco'=>$user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0 ? 1 : 0
-				,'type_financement'=>$form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement)
-				,'leaser'=>($mode=='edit') ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : (($simulation->fk_leaser > 0) ? $simulation->leaser->getNomUrl(1) : '')
+				,'type_financement'=>$can_preco ? $form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement) : $simulation->type_financement
+				,'leaser'=>($mode=='edit' && $can_preco) ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : (($simulation->fk_leaser > 0) ? $simulation->leaser->getNomUrl(1) : '')
 			)
 			,'client'=>array(
 				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->societe->nom.'</a>'
