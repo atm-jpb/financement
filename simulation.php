@@ -405,6 +405,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'bt_cancel'=>$form->btsubmit('Annuler', 'cancel')
 				,'bt_save'=>$form->btsubmit('Enregistrer simulation', 'validate_simul')
 				
+				,'display_preco'=>$can_preco
 				,'type_financement'=>$can_preco ? $form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement) : $simulation->type_financement
 				,'leaser'=>($mode=='edit' && $can_preco) ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : (($simulation->fk_leaser > 0) ? $simulation->leaser->getNomUrl(1) : '')
 			)
