@@ -471,6 +471,7 @@ function _liste_dossiers_incomplets(&$PDOdb, &$dossier) {
 				
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
+	$form->hidden('liste_incomplet', '1');
 	$aff = new TFin_affaire;
 	
 	$r->liste($PDOdb, $sql, array(
