@@ -216,7 +216,7 @@ function _liste(&$ATMdb, &$simulation) {
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON s.fk_user_author = u.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc ON s.fk_soc = soc.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as lea ON s.fk_leaser = lea.rowid";
-	if (!$user->rights->societe->client->voir && !$_REQUEST['socid']) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc";
+	if (!$user->rights->societe->client->voir && !$_REQUEST['socid']) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON sc.fk_user = u.rowid";
 	$sql.= " WHERE s.entity = ".$conf->entity;
 	
 	if (!$user->rights->societe->client->voir && !$_REQUEST['socid']) //restriction
