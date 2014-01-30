@@ -21,6 +21,9 @@ date_debut=date
 date_fin=date
 echeance=float
 montant=float
+loyer_intercalaire=float
 reste=float
+montant_prestation=float
+assurance=float
 
 [transco]
