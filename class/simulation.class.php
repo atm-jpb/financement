@@ -352,12 +352,14 @@ class TSimulation extends TObjetStd {
 			$accord = ($auto) ? 'Accord automatique' : 'Accord de la cellule financement';
 			$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
 			$mesg.= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n° '.$this->reference.'.'."\n\n";
+			if(!empty($this->commentaire)) $mesg.= 'Commentaire : '."\n".$this->commentaire."\n\n";
 			$mesg.= 'Cordialement,'."\n\n";
 			$mesg.= 'La cellule financement'."\n\n";
 		} else {
 			$accord = 'Demande de financement refusée';
 			$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
 			$mesg.= 'Votre demande de financement via la simulation n° '.$this->reference.' n\'a pas été acceptée.'."\n\n";
+			if(!empty($this->commentaire)) $mesg.= 'Commentaire : '."\n".$this->commentaire."\n\n";
 			$mesg.= 'Cordialement,'."\n\n";
 			$mesg.= 'La cellule financement'."\n\n";
 		}
