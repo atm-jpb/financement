@@ -14,6 +14,7 @@ nom_du_leaser=bnp
 11=periodicite
 12=incident_paiement
 13=reloc
+14=assurance
 
 [format]
 date_debut=date
