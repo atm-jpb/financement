@@ -264,7 +264,7 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
-			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
+			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
 			,'nbLine'=>'30'
 		)
 		,'link'=>array(
