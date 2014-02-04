@@ -37,7 +37,7 @@
 		
 		foreach($facture->lines as $line) {
 			print "Mise à jour de ligne de facture(".$line->rowid.") pour facture ".$facture->id." (".$facture->ref.")<br />";		
-			print (int)$facture->updateline($line->rowid, $line->desc, $line->pu_ht, $line->qty, $line->remise_percent, $line->date_start, $line->date_end, 19.6);
+			print (int)$facture->updateline($line->rowid, $line->desc, $line->subprice, $line->qty, $line->remise_percent, $line->date_start, $line->date_end, 19.6);
 		}
 		
 		switch ($last_statut) {
