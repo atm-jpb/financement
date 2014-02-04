@@ -53,7 +53,7 @@
 		}
 
 		//$facture->set_unpaid($user);
-		exit;
+		//exit;
 	}
 	
 	
