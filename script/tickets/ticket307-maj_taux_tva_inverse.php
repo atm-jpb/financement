@@ -4,7 +4,7 @@
 	
 	include_once(DOL_DOCUMENT_ROOT."/compta/facture/class/facture.class.php");
 	include_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
-	global $db;
+	global $db,$user;
 	
 	$ATMdb = new Tdb;
 	
@@ -31,14 +31,29 @@
 		$facture->fetch($ATMdb->Get_field('idCmd'));
 		
 		print "Facture ".$facture->id.'<br />';
-
+		
+		$last_statut = $facture->statut;
+		$facture->set_draft($user);
+		
 		foreach($facture->lines as $line) {
 			print "Mise à jour de ligne de facture(".$line->rowid.") pour facture ".$facture->id." (".$facture->ref.")<br />";		
-			//$facture->updateline($line->rowid, $line->desc, $line->pu_ht, $line->qty, $line->remise_percent, $line->date_start, $line->date_end, 19.6);
+			print (int)$facture->updateline($line->rowid, $line->desc, $line->pu_ht, $line->qty, $line->remise_percent, $line->date_start, $line->date_end, 19.6);
+		}
+		
+		switch ($last_statut) {
+			case 1:
+				$facture->set_paid($user);
+				break;
+			case 2:
+				$facture->set_paid($user);
+				break;
+			case 3:
+				$facture->set_canceled($user);
+				break;
 		}
 
 		//$facture->set_unpaid($user);
-	//	exit;
+		exit;
 	}
 	
 	
