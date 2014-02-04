@@ -359,7 +359,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$TDuree = $grille->get_duree($ATMdb,FIN_LEASER_DEFAULT,$simulation->fk_type_contrat,$simulation->opt_periodicite);
 	//var_dump($TDuree);
-	$can_preco = $user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0 ? 1 : 0;
+	$can_preco = ($user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0) ? 1 : 0;
 
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
@@ -400,6 +400,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'total_financement'=>$simulation->montant_total_finance
 				,'type_materiel'=>$form->texte('','type_materiel',$simulation->type_materiel, 50)
 				,'numero_accord'=>$can_preco ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $simulation->numero_accord
+				
+				,'accord_val'=>$simulation->accord
 				
 				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>'
 				,'date'=>$simulation->date_simul

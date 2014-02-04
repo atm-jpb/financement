@@ -189,7 +189,7 @@
 </table>
 
 [onshow;block=begin;when [view.mode]=='view']
-[onshow;block=begin;when [simulation.accord_confirme]==0; when [simulation.display_preco]==1]
+[onshow;block=begin;when [simulation.accord_confirme]==0; when [simulation.display_preco]==1; when [simulation.accord_val]=='WAIT']
 <div class="tabsAction">
 	<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[simulation.id]'">
 	<a href="?id=[simulation.id]&action=edit" class="butAction">Modifier</a>
