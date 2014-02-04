@@ -420,8 +420,14 @@ class TImport extends TObjetStd {
 		// On repasse en brouillon pour ajouter la ligne
 		$facture_mat->set_draft($user);
 		
+		//On choisis le taux de tva en fonction de la date limite de règlement : 19.6% avant 2014, 20% après 2014
+		if($data['date_lim_reglement'] < strtotime("2014-01-01"))
+			$taux_tva = 19.6;
+		else
+			$taux_tva = 20;
+		
 		// On ajoute la ligne
-		$facture_mat->addline($facture_mat->id, 'Matricule(s) '.$data['matricule'], $data['total_ht'], 1, 20);
+		$facture_mat->addline($facture_mat->id, 'Matricule(s) '.$data['matricule'], $data['total_ht'], 1, $taux_tva);
 		// Force la validation avec numéro de facture
 		$facture_mat->validate($user, $data[$this->mapping['search_key']]); // Force la validation avec numéro de facture
 		
@@ -555,8 +561,14 @@ class TImport extends TObjetStd {
 		,1);
 		// print "Création du service($fk_service)";
 		
+		//On choisis le taux de tva en fonction de la date limite de règlement : 19.6% avant 2014, 20% après 2014
+		if($data['date_lim_reglement'] < strtotime("2014-01-01"))
+			$taux_tva = 19.6;
+		else
+			$taux_tva = 20;
+		
 		// On ajoute la ligne
-		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], 20,0,0,$fk_service, 0, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, $data['libelle_ligne']);
+		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], $taux_tva,0,0,$fk_service, 0, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, $data['libelle_ligne']);
 		// Force la validation avec numéro de facture
 		$facture_loc->validate($user, $data[$this->mapping['search_key']]);
 		
