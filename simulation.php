@@ -209,14 +209,16 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$THide = array('fk_soc', 'fk_user_author', 'rowid');
 	
-	$sql = "SELECT s.rowid, s.reference, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
+	$sql = "SELECT DISTINCT s.rowid, s.reference, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'mois' WHEN s.opt_periodicite = 'ANNEE' THEN 'années' ELSE 'trimestres' END) as 'Durée',";
 	$sql.= " s.date_simul, u.login, s.accord, s.type_financement, lea.nom as leaser";
 	$sql.= " FROM @table@ s ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON s.fk_user_author = u.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc ON s.fk_soc = soc.rowid";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as lea ON s.fk_leaser = lea.rowid";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as lea ON s.fk_leaser = lea.rowid ";
+	
 	if (!$user->rights->societe->client->voir && !$_REQUEST['socid']) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON sc.fk_user = s.fk_user_author";
+
 	$sql.= " WHERE s.entity = ".$conf->entity;
 	
 	if (!$user->rights->societe->client->voir && !$_REQUEST['socid']) //restriction
