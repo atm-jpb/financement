@@ -406,6 +406,10 @@ class TSimulation extends TObjetStd {
 		$simu->type_contrat = $a->TContrat[$this->fk_type_contrat];
 		$simu->periodicite = $f->TPeriodicite[$this->opt_periodicite];
 		$simu->statut = html_entity_decode($this->getStatut());
+		$simu->opt_calage = $f->TCalage[$simu->opt_calage];
+		/*echo '<pre>';
+		print_r($simu);
+		echo '</pre>';exit;*/
 		
 		// Dossiers rachetés dans la simulation
 		$TDossier = array();
@@ -423,16 +427,29 @@ class TSimulation extends TObjetStd {
 				$f = &$d->financementLeaser;
 			}
 			
+			if(in_array($idDossier, $this->dossiers_rachetes) || in_array($idDossier, $this->dossiers_rachetes_nr)) {
+				$solde_r = $d->getSolde($ATMdb2, 'SRCPRO');
+				$solde_nr = $d->getSolde($ATMdb2, 'SNRCPRO');
+			}
+			elseif(in_array($idDossier, $this->dossiers_rachetes_p1) || in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
+				$solde_r = $d->getSolde($ATMdb2, 'SRCPRO',$fin->duree_passe + 1);
+				$solde_nr = $d->getSolde($ATMdb2, 'SNRCPRO',$fin->duree_passe + 1);
+			}
+			else{
+				$solde_r = '';
+				$solde_nr = '';
+			}
+			
 			if(in_array($idDossier, $this->dossiers_rachetes)) {
-				$solde = $d->getSolde($ATMdb2, 'SRCPRO');
+				$solde = 'N';
 			} elseif(in_array($idDossier, $this->dossiers_rachetes_nr)) {
-				$solde = $d->getSolde($ATMdb2, 'SNRCPRO');
+				$solde = 'NR';
 			} elseif(in_array($idDossier, $this->dossiers_rachetes_p1)) {
-				$solde = $d->getSolde($ATMdb2, 'SRCPRO',$fin->duree_passe + 1);
+				$solde = 'N';
 			} elseif(in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
-				$solde = $d->getSolde($ATMdb2, 'SNRCPRO',$fin->duree_passe + 1);
+				$solde = 'NR';
 			} else {
-				$solde = 0;
+				$solde = '';
 			}
 			
 			/*if($d->nature_financement == 'INTERNE') {
@@ -475,7 +492,13 @@ class TSimulation extends TObjetStd {
 				,'leaser' => $leaser->name
 				,'type_contrat' => $d->type_contrat
 				,'solde' => $solde
+				,'solde_r' => $solde_r
+				,'solde_nr' => $solde_nr
 			);
+			
+			echo '<pre>';
+			print_r($TDossier);
+			echo '</pre>';exit;
 		}
 
 		$this->hasdossier = count($TDossier);
