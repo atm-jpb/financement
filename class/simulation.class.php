@@ -496,9 +496,9 @@ class TSimulation extends TObjetStd {
 				,'solde_nr' => $solde_nr
 			);
 			
-			echo '<pre>';
+			/*echo '<pre>';
 			print_r($TDossier);
-			echo '</pre>';exit;
+			echo '</pre>';exit;*/
 		}
 
 		$this->hasdossier = count($TDossier);
