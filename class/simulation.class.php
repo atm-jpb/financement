@@ -496,11 +496,8 @@ class TSimulation extends TObjetStd {
 				,'solde_nr' => $solde_nr
 			);
 			
-			/*echo '<pre>';
-			print_r($TDossier);
-			echo '</pre>';exit;*/
 		}
-
+		
 		$this->hasdossier = count($TDossier);
 		
 		// Création du répertoire
@@ -517,10 +514,15 @@ class TSimulation extends TObjetStd {
 			,array(
 				'simulation'=>$simu
 				,'client'=>$this->societe
+				,'leaser'=>$this->leaser
 			)
 			,array()
 			,array('outFile' => $filePath.'/'.$fileName)
 		);
+		
+		/*echo '<pre>';
+		print_r($this->leaser);
+		echo '</pre>';exit;*/
 		
 		// Transformation en PDF
 		$cmd = 'export HOME=/tmp'."\n";
