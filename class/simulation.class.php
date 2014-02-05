@@ -441,11 +441,11 @@ class TSimulation extends TObjetStd {
 			}
 			
 			if(in_array($idDossier, $this->dossiers_rachetes)) {
-				$solde = 'N';
+				$solde = 'R';
 			} elseif(in_array($idDossier, $this->dossiers_rachetes_nr)) {
 				$solde = 'NR';
 			} elseif(in_array($idDossier, $this->dossiers_rachetes_p1)) {
-				$solde = 'N';
+				$solde = 'R';
 			} elseif(in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
 				$solde = 'NR';
 			} else {
