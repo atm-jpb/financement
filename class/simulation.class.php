@@ -514,7 +514,7 @@ class TSimulation extends TObjetStd {
 			,array(
 				'simulation'=>$simu
 				,'client'=>$this->societe
-				,'leaser'=>$this->leaser
+				,'leaser'=>array('nom'=>($this->leaser->nom) ? $this->leaser->nom : '' )
 			)
 			,array()
 			,array('outFile' => $filePath.'/'.$fileName)
