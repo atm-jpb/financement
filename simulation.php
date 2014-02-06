@@ -532,6 +532,10 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			$soldeNR1 = round($dossier->getSolde($ATMdb2, 'SNRBANK', $fin->duree_passe + 1),2);*/
 		}
 		
+		if($fin->date_solde > 0) continue;
+		if($fin->duree <= $fin->numero_prochaine_echeance) continue;
+		if(empty($dossier->financementLeaser->reference)) continue;
+		
 		$soldeR = round($dossier->getSolde($ATMdb2, 'SRCPRO'),2);
 		$soldeNR = round($dossier->getSolde($ATMdb2, 'SNRCPRO'),2);
 		$soldeR1 = round($dossier->getSolde($ATMdb2, 'SRCPRO', $fin->duree_passe + 1),2);
@@ -543,9 +547,6 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			$soldeR1 = 0;
 			$soldeNR1 = 0;
 		}
-		
-		if($fin->date_solde > 0) continue;
-		if(empty($dossier->financementLeaser->reference)) continue;
 		
 		/*
 		$checked = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes) ? true : false;
