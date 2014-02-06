@@ -1183,7 +1183,7 @@ class TFin_financement extends TObjetStd {
 				$capital_amorti = $this->amortissement_echeance($i+1,$catpital_restant);
 				$catpital_restant -= $capital_amorti;
 			}
-			print $catpital_restant.' '.$duree.'<br>';
+			//print $catpital_restant.' '.$duree.'<br>';
 			
 			return $catpital_restant;
 		}
