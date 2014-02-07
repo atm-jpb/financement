@@ -541,16 +541,18 @@ class TFin_dossier extends TObjetStd {
 		$total_facture = 0;
 		$capital_restant_init = $f->montant;
 		$capital_restant = $capital_restant_init;
+		$f->capital_restant = $capital_restant; 
 		$TLigne=array();
 		
 		for($i=($echeanceInit-1); $i<$f->duree; $i++) {
 			
 			$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut + $f->calage);
 			
-			$capital_amortit = $f->amortissement_echeance( $i + 1 );
+			$capital_amortit = $f->amortissement_echeance( $i + 1 ,$capital_restant);
 			$part_interet = $f->echeance -$capital_amortit;
 
 			$capital_restant-=$capital_amortit;
+			$f->capital_restant = $capital_restant;
 			$total_loyer+=$f->echeance;
 			$total_assurance+=$f->assurance;
 			$total_capital_amortit+=$capital_amortit;
@@ -1105,12 +1107,32 @@ class TFin_financement extends TObjetStd {
 	 * Source : http://www.tiloweb.com/php/php-formules-financieres-excel-en-php
 	 */
 	
-	function amortissement_echeance($periode) {
-		
+	function amortissement_echeance($periode,$capital_restant_du=0){
 		$duree = $this->duree;
-		$r = $this->PRINCPER(($this->taux / (12 / $this->getiPeriode())) / 100, $periode, $this->duree, $this->montant - $this->reste, $this->reste, $this->terme);
-
-		$r = -$r;
+		
+		
+		
+		//Cas spécifique Leaser = LOCAM
+		if($this->type == "LEASER" && $this->fk_soc == FK_SOC_LOCAM && !empty($capital_restant_du)){
+			
+			/*echo '<pre>';
+			print_r($capital_restant);
+			echo '</pre>';*/
+			
+			if($periode == 1){
+				$r = $this->echeance;
+			}
+			/*elseif ($periode == $duree) {
+				$r = $this->echeance - $this->reste;
+			}*/
+			else{
+				$r = $this->echeance - ($capital_restant_du * $this->taux / 100 / (12 / $this->getiPeriode()));
+			}
+		}
+		else{
+			$r = $this->PRINCPER(($this->taux / (12 / $this->getiPeriode())) / 100, $periode, $this->duree, $this->montant - $this->reste, $this->reste, $this->terme);
+			$r = -$r;
+		}
 		
 	//	print "amortissement_echeance ".$this->montant."($periode) |$duree| $r <br>";
 		
@@ -1147,10 +1169,29 @@ class TFin_financement extends TObjetStd {
 		
 		return -$vpm;
 	}
+	
 	function valeur_actuelle($duree=0) {
 		if($duree==0) $duree = $this->duree_restante;
-		return $this->va($this->taux / (12 / $this->getiPeriode()) / 100, $duree, $this->echeance, $this->reste, $this->terme);
+		
+		//Cas spécifique Leaser = LOCAM
+		if($this->type == "LEASER" && $this->fk_soc == FK_SOC_LOCAM){
+			
+			$capital_amorti = 0;
+			$catpital_restant = $this->montant;
+			
+			for($i=0;$i<$this->duree-$duree;$i++){
+				$capital_amorti = $this->amortissement_echeance($i+1,$catpital_restant);
+				$catpital_restant -= $capital_amorti;
+			}
+			//print $catpital_restant.' '.$duree.'<br>';
+			
+			return $catpital_restant;
+		}
+		else{
+			return $this->va($this->taux / (12 / $this->getiPeriode()) / 100, $duree, $this->echeance, $this->reste, $this->terme);
+		}
 	}
+	
 	/**
 	 * VA : Calcule la valeur actuelle d'un investissement
 	 * @param $taux Float : Le taux d'intérêt par période (à diviser par 4 si remboursement trimestriel, par 12 si mensuel, ...)
