@@ -531,6 +531,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			$soldeR1 = round($dossier->getSolde($ATMdb2, 'SRBANK', $fin->duree_passe + 1),2);
 			$soldeNR1 = round($dossier->getSolde($ATMdb2, 'SNRBANK', $fin->duree_passe + 1),2);*/
 		}
+
+		if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		
 		$soldeR = round($dossier->getSolde($ATMdb2, 'SRCPRO'),2);
 		$soldeNR = round($dossier->getSolde($ATMdb2, 'SNRCPRO'),2);
