@@ -406,6 +406,7 @@ class TSimulation extends TObjetStd {
 		$simu->type_contrat = $a->TContrat[$this->fk_type_contrat];
 		$simu->periodicite = $f->TPeriodicite[$this->opt_periodicite];
 		$simu->statut = html_entity_decode($this->getStatut());
+		$back_opt_calage = $simu->opt_calage;
 		$simu->opt_calage = $f->TCalage[$simu->opt_calage];
 		/*echo '<pre>';
 		print_r($simu);
@@ -523,6 +524,8 @@ class TSimulation extends TObjetStd {
 		/*echo '<pre>';
 		print_r($simu);
 		echo '</pre>';exit;*/
+		
+		$simu->opt_calage = $back_opt_calage;
 		
 		// Transformation en PDF
 		$cmd = 'export HOME=/tmp'."\n";
