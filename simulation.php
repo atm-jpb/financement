@@ -16,7 +16,6 @@ $tbs = new TTemplateTBS;
 
 $mesg = '';
 $error=false;
-
 $action = GETPOST('action');
 if(!empty($_REQUEST['calculate'])) $action = 'calcul';
 if(!empty($_REQUEST['cancel'])) { // Annulation
@@ -111,12 +110,12 @@ if(!empty($action)) {
 
 			_calcul($simulation);
 			_fiche($ATMdb, $simulation,'edit');
-		
+
 			break;	
 		case 'edit'	:
 		
 			$simulation->load($ATMdb, $db, $_REQUEST['id']);
-			
+
 			_fiche($ATMdb, $simulation,'edit');
 			break;
 			
@@ -126,12 +125,15 @@ if(!empty($action)) {
 			$simulation->set_values($_REQUEST);
 			
 			if($simulation->opt_calage != '') {
+				$simulation->set_date('date_demarrage',$_REQUEST['date_demarrage']);
+			}
+			else{
 				$simulation->set_date('date_demarrage','');
 			}
 			
 			// Si l'accord vient d'être donné (par un admin)
 			if($simulation->accord == 'OK' && $simulation->accord != $oldAccord) {
-				$simulation->date_validite = strtotime('+ 3 months');
+				$simulation->date_validite = strtotime('+ 2 months');
 				$simulation->date_accord = time();
 				$simulation->accord_confirme = 1;
 			} 
@@ -158,7 +160,7 @@ if(!empty($action)) {
 			
 			//$ATMdb->db->debug=true;
 			$simulation->save($ATMdb, $db);
-			
+			//echo $simulation->opt_calage; exit;
 			// Si l'accord vient d'être donné (par un admin)
 			if(($simulation->accord == 'OK' || $simulation->accord == 'KO') && $simulation->accord != $oldAccord) {
 				$simulation->send_mail_vendeur();
