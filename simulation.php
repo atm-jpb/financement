@@ -110,12 +110,12 @@ if(!empty($action)) {
 
 			_calcul($simulation);
 			_fiche($ATMdb, $simulation,'edit');
-		
+
 			break;	
 		case 'edit'	:
 		
 			$simulation->load($ATMdb, $db, $_REQUEST['id']);
-			
+
 			_fiche($ATMdb, $simulation,'edit');
 			break;
 			
@@ -126,6 +126,9 @@ if(!empty($action)) {
 			
 			if($simulation->opt_calage != '') {
 				$simulation->set_date('date_demarrage',$_REQUEST['date_demarrage']);
+			}
+			else{
+				$simulation->set_date('date_demarrage','');
 			}
 			
 			// Si l'accord vient d'être donné (par un admin)
