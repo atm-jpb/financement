@@ -506,6 +506,12 @@ class TSimulation extends TObjetStd {
 		$filePath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef());
 		dol_mkdir($filePath);
 		
+		if($this->fk_leaser){
+			$leaser = new Societe($doliDB);
+			$leaser->fetch($this->fk_leaser);
+			$this->leaser = $leaser;
+		}
+		
 		// Génération en ODT
 		$TBS = new TTemplateTBS;
 		$file = $TBS->render('./tpl/doc/simulation.odt'
