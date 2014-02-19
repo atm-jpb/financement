@@ -180,7 +180,7 @@ function _liste(&$PDOdb, &$dossier) {
 	
 	$r->liste($PDOdb, $sql, array(
 		'limit'=>array(
-			'page'=>1
+			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
 			,'nbLine'=>'30'
 		)
 		,'link'=>array(
