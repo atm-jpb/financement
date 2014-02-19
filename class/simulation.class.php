@@ -406,6 +406,7 @@ class TSimulation extends TObjetStd {
 		$simu->type_contrat = $a->TContrat[$this->fk_type_contrat];
 		$simu->periodicite = $f->TPeriodicite[$this->opt_periodicite];
 		$simu->statut = html_entity_decode($this->getStatut());
+		$back_opt_calage = $simu->opt_calage;
 		$simu->opt_calage = $f->TCalage[$simu->opt_calage];
 		/*echo '<pre>';
 		print_r($simu);
@@ -505,6 +506,12 @@ class TSimulation extends TObjetStd {
 		$filePath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef());
 		dol_mkdir($filePath);
 		
+		if($this->fk_leaser){
+			$leaser = new Societe($doliDB);
+			$leaser->fetch($this->fk_leaser);
+			$this->leaser = $leaser;
+		}
+		
 		// Génération en ODT
 		$TBS = new TTemplateTBS;
 		$file = $TBS->render('./tpl/doc/simulation.odt'
@@ -514,7 +521,7 @@ class TSimulation extends TObjetStd {
 			,array(
 				'simulation'=>$simu
 				,'client'=>$this->societe
-				,'leaser'=>array('nom'=>($this->leaser->nom) ? $this->leaser->nom : '' )
+				,'leaser'=>array('nom'=>(($this->leaser->nom != '') ? $this->leaser->nom : ''))
 			)
 			,array()
 			,array('outFile' => $filePath.'/'.$fileName)
@@ -523,6 +530,8 @@ class TSimulation extends TObjetStd {
 		/*echo '<pre>';
 		print_r($simu);
 		echo '</pre>';exit;*/
+		
+		$simu->opt_calage = $back_opt_calage;
 		
 		// Transformation en PDF
 		$cmd = 'export HOME=/tmp'."\n";

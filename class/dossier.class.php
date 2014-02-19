@@ -164,6 +164,15 @@ class TFin_dossier extends TObjetStd {
 		parent::delete($db);
 		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_affaire', $this->getId(), 'fk_fin_dossier');
 		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_financement', $this->getId(), 'fk_fin_dossier');
+		$db->dbdelete(MAIN_DB_PREFIX.'element_element', array('fk_source'=>$this->getId(),'sourcetype'=>'dossier'), array('fk_source','sourcetype'));
+		foreach ($this->TFactureFournisseur as $fact) {
+			$fact->delete($fact->rowid);
+			$fact->deleteObjectLinked();
+		}
+		foreach ($this->TFacture as $fact) {
+			$fact->delete($fact->rowid);
+			$fact->deleteObjectLinked();
+		}
 	}
 	
 	private function setNatureFinancementOnSimpleLink() {
