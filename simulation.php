@@ -399,7 +399,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'cout_financement'=>$simulation->cout_financement
 				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
 				,'date_validite'=>$simulation->accord == 'OK' ? 'Validité : '.$simulation->get_date('date_validite') : ''
-				,'commentaire'=>$user->rights->financement->allsimul->simul_preco ? $form->zonetexte('', 'commentaire', $simulation->commentaire, 50,3) : $simulation->commentaire
+				,'commentaire'=>$form->zonetexte('', 'commentaire', $simulation->commentaire, 50,3)
 				,'accord_confirme'=>$simulation->accord_confirme
 				,'total_financement'=>$simulation->montant_total_finance
 				,'type_materiel'=>$form->texte('','type_materiel',$simulation->type_materiel, 50)
