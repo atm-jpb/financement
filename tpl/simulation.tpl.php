@@ -33,7 +33,6 @@
 			<td>Code NAF</td>
 			<td>[client.naf]</td>
 		</tr>
-		[onshow;block=begin;when [client.display_score]=1]
 		<tr class="liste_titre">
 			<td colspan="4">Scoring</td>
 		</tr>
@@ -43,6 +42,7 @@
 			<td>Score</td>
 			<td align="center">[client.score] / 20</td>
 		</tr>
+		[onshow;block=begin;when [client.display_score]=1]
 		<tr>
 			<td>Encours CPRO</td>
 			<td align="right">[client.encours_cpro; frm=0 000,00] &euro;</td>
