@@ -438,7 +438,7 @@ class TFin_dossier extends TObjetStd {
 	function getSolde($ATMdb, $type='SRBANK', $iPeriode=0) {
 		
 		$duree_restante_leaser = ($iPeriode == 0) ? $this->financementLeaser->duree_restante : $this->financementLeaser->duree - $iPeriode;
-	
+		//exit("$iPeriode");
 		$CRD_Leaser = $this->financementLeaser->valeur_actuelle($duree_restante_leaser);
 		$LRD_Leaser = $this->financementLeaser->echeance * $duree_restante_leaser;
 		
@@ -480,6 +480,7 @@ class TFin_dossier extends TObjetStd {
 				break;
 				
 			case 'SNRCPRO': /* Vendeur non renouvellant */
+			
 				if($this->nature_financement == 'INTERNE') {
 					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
 				} else {
@@ -496,12 +497,14 @@ class TFin_dossier extends TObjetStd {
 				break;
 					
 			case 'SRCPRO': /* Vendeur renouvellant */
+			
 				if($this->nature_financement == 'INTERNE') {
 					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
 				} else {
+					//echo ($this->financementLeaser->duree." - ".$duree_restante_leaser)." * ".$this->financementLeaser->getiPeriode()." <= ".SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH;exit;
 					if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
 				}
-
+					
 				if($this->nature_financement == 'INTERNE') {
 					
 					$rentabiliteReste = $this->getRentabiliteReste($ATMdb);
@@ -512,12 +515,13 @@ class TFin_dossier extends TObjetStd {
 				}
 				else {
 					
+				
 					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
 					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
 					if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382) {
 						$solde *= (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
 					}
-					
+					//exit($LRD_Leaser);
 					return ($solde>$LRD_Leaser)?$LRD_Leaser:$solde;
 				}
 				

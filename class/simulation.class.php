@@ -438,13 +438,15 @@ class TSimulation extends TObjetStd {
 				$solde_nr = $d->getSolde($ATMdb2, 'SNRCPRO');
 			}
 			elseif(in_array($idDossier, $this->dossiers_rachetes_p1) || in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
-				$solde_r = $d->getSolde($ATMdb2, 'SRCPRO',$fin->duree_passe + 1);
-				$solde_nr = $d->getSolde($ATMdb2, 'SNRCPRO',$fin->duree_passe + 1);
+				$solde_r = $d->getSolde($ATMdb2, 'SRCPRO',$f->duree_passe + 1);
+				$solde_nr = $d->getSolde($ATMdb2, 'SNRCPRO',$f->duree_passe + 1);
 			}
 			else{
 				$solde_r = '';
 				$solde_nr = '';
 			}
+			
+			//echo $solde_r." ".$solde_nr;
 			
 			if(in_array($idDossier, $this->dossiers_rachetes)) {
 				$solde = 'R';
@@ -523,7 +525,7 @@ class TSimulation extends TObjetStd {
 		$simu2->commentaire = utf8_decode($simu2->commentaire);
 		$simu2->numero_accord = utf8_decode($simu2->numero_accord);
 		/*echo '<pre>';
-		print_r($simu);
+		print_r($TDossier);
 		echo '</pre>';exit;*/
 		// Génération en ODT
 		$TBS = new TTemplateTBS;
