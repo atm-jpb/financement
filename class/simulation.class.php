@@ -22,6 +22,11 @@ class TSimulation extends TObjetStd {
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
+		
+		$this->TTerme = array(
+			0=>'Echu'
+			,1=>'A Echoir'
+		);
 	}
 	
 	function init() {
@@ -517,7 +522,9 @@ class TSimulation extends TObjetStd {
 		$simu2->type_contrat = html_entity_decode($simu2->type_contrat,ENT_QUOTES,'ISO-8859-1');
 		$simu2->commentaire = utf8_decode($simu2->commentaire);
 		$simu2->numero_accord = utf8_decode($simu2->numero_accord);
-		
+		/*echo '<pre>';
+		print_r($simu);
+		echo '</pre>';exit;*/
 		// Génération en ODT
 		$TBS = new TTemplateTBS;
 		$file = $TBS->render('./tpl/doc/simulation.odt'
@@ -528,14 +535,13 @@ class TSimulation extends TObjetStd {
 				'simulation'=>$simu2
 				,'client'=>$this->societe
 				,'leaser'=>array('nom'=>(($this->leaser->nom != '') ? $this->leaser->nom : ''))
+				,'autre'=>array('terme'=>($this->TTerme[$simu2->opt_terme]) ? $this->TTerme[$simu2->opt_terme] : '')
 			)
 			,array()
 			,array('outFile' => $filePath.'/'.$fileName)
 		);
 		
-		/*echo '<pre>';
-		print_r($simu);
-		echo '</pre>';exit;*/
+		
 		
 		$simu->opt_calage = $back_opt_calage;
 		
