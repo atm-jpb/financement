@@ -133,7 +133,7 @@
 			<td>[simulation.duree; strconv=no]</td>
 			<td colspan="2" rowspan="4" align="center">
 				[onshow;block=begin;when [view.type]=='simul']
-				<span style="font-size: 14px;">[simulation.commentaire; strconv=no]</span>
+				<span style="font-size: 14px;">[simulation.commentaire; strconv=utf8]</span>
 				[onshow;block=end]
 			</td>
 		</tr>
@@ -180,7 +180,7 @@
 			<td>Coefficient final</td>
 			<td>[simulation.coeff_final; strconv=no; frm=0,000] %</td>
 			<td>Numéro accord</td>
-			<td>[simulation.numero_accord; strconv=no]</td>
+			<td>[simulation.numero_accord; strconv=utf8]</td>
 		</tr>
 	</table>	
 	</div>

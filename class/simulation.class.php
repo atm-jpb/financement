@@ -63,7 +63,7 @@ class TSimulation extends TObjetStd {
 	
 	function getAuthorFullName() {
 		global $langs;
-		return $this->user->getFullName($langs);
+		return utf8_decode($this->user->getFullName($langs));
 	}
 	
 	function load_annexe(&$db, &$doliDB) {
@@ -512,6 +512,12 @@ class TSimulation extends TObjetStd {
 			$this->leaser = $leaser;
 		}
 		
+		$simu2 = $simu;
+		//exit(htmlentities($simu->type_contrat));
+		$simu2->type_contrat = html_entity_decode($simu2->type_contrat,ENT_QUOTES,'ISO-8859-1');
+		$simu2->commentaire = utf8_decode($simu2->commentaire);
+		$simu2->numero_accord = utf8_decode($simu2->numero_accord);
+		
 		// Génération en ODT
 		$TBS = new TTemplateTBS;
 		$file = $TBS->render('./tpl/doc/simulation.odt'
@@ -519,7 +525,7 @@ class TSimulation extends TObjetStd {
 				'dossier'=>$TDossier
 			)
 			,array(
-				'simulation'=>$simu
+				'simulation'=>$simu2
 				,'client'=>$this->societe
 				,'leaser'=>array('nom'=>(($this->leaser->nom != '') ? $this->leaser->nom : ''))
 			)
