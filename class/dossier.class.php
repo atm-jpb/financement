@@ -708,7 +708,8 @@ class TFin_dossier extends TObjetStd {
 		$cpt = 0;
 		while($f->date_prochaine_echeance < time() && $f->numero_prochaine_echeance <= $f->duree && $cpt<50) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
 			// Demande du 28/02/14, mettre en impayé dorénavant, sauf ce qui est avant 2014
-			$paid = $paid || date('Y', $f->date_prochaine_echeance) < 2014;
+			// @TODO : à finir
+			//$paid = $paid || date('Y', $f->date_prochaine_echeance) < 2014;
 			
 			$res.= $this->create_facture_leaser($paid);
 			$f->setEcheance();
