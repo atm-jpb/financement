@@ -75,7 +75,7 @@
 				//$PDOdb->db->debug=true;
 				
 				$dossier->load($PDOdb, $_REQUEST['id']);
-				$dossier->generate_factures_leaser(true, true);
+				$dossier->generate_factures_leaser(false, true);
 				$dossier->save($PDOdb);
 				
 				$dossier->load_factureFournisseur($PDOdb);
