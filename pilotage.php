@@ -132,12 +132,14 @@ function _listeNbAffaireParTypeContrat(&$ATMdb,$date_debut,$date_fin) {
 	global $langs, $db, $conf, $user;
 	
 	//Année N-1
-	$sql ="SELECT contrat, count(*) as 'nb', MONTH(date_affaire) as 'm', YEAR(date_affaire) as 'y'
+	$sql ="SELECT CONCAT(CONCAT(contrat,' - '), nature_financement) as contrat, count(*) as 'nb', MONTH(date_affaire) as 'm', YEAR(date_affaire) as 'y'
 		   FROM ".MAIN_DB_PREFIX."fin_affaire
 		   WHERE date_affaire >= '".date("Y-m", strtotime("-1 year", strtotime($date_debut)))."-01'
 		   	 AND date_affaire <= '".date("Y-m-t", strtotime("-1 year",strtotime($date_fin)))."'
 		   AND contrat IS NOT NULL AND contrat != ''
-		   GROUP BY contrat, `y`, `m`";
+		   AND reference NOT LIKE 'EXT%'
+		   GROUP BY contrat, `y`, `m`
+		   ORDER BY 1";
 
 	$ATMdb->Execute($sql);
 	$TRes = array();
@@ -148,11 +150,13 @@ function _listeNbAffaireParTypeContrat(&$ATMdb,$date_debut,$date_fin) {
 	}
 	
 	//Année N
-	$sql ="SELECT contrat, count(*) as 'nb', MONTH(date_affaire) as 'm', YEAR(date_affaire) as 'y'
+	$sql ="SELECT CONCAT(CONCAT(contrat,' - '), nature_financement) as contrat, count(*) as 'nb', MONTH(date_affaire) as 'm', YEAR(date_affaire) as 'y'
 		   FROM ".MAIN_DB_PREFIX."fin_affaire
 		   WHERE date_affaire >= '".$date_debut."'
 		   AND contrat IS NOT NULL AND contrat != ''
-		   GROUP BY contrat, `y`, `m`";
+		   AND reference NOT LIKE 'EXT%'
+		   GROUP BY contrat, `y`, `m`
+		   ORDER BY 1";
 	$ATMdb->Execute($sql);
 	$Total2 = 0;
 	while($ATMdb->Get_line()){
@@ -205,7 +209,9 @@ function _listeNbAffaireParTypeContratParMois(&$ATMdb,$date_debut,$date_fin) {
 		   WHERE date_affaire >= '".$date_debut."'
 		   AND date_affaire <= '".$date_fin."'
 		   AND contrat IS NOT NULL AND contrat != ''
-		   GROUP BY contrat, `m`";
+		   AND reference NOT LIKE 'EXT%'
+		   GROUP BY contrat, `m`
+		   ORDER BY 1, YEAR(date_affaire), MONTH(date_affaire)";
 	
 	$ATMdb->Execute($sql);
 	$TRes = array();
