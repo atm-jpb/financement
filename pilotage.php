@@ -590,9 +590,9 @@ function _listeAdministrationDolibarr(&$ATMdb,$date_debut,$date_fin) {
 				AND a.nature_financement = 'INTERNE' 
 				AND (f.type = 'LEASER' 
 				AND (f.reference IS NULL OR f.reference = '' OR f.duree = 0 OR f.echeance = 0)) 
-				AND DATEDIFF(a.date_affaire,CURDATE()) > 30";
-				
-	$ATMdb->Execute($sql);	   
+				AND DATEDIFF(CURDATE(),f.date_cre) > 30";
+	//echo $sql.'<br>';
+	$ATMdb->Execute($sql);
 	$ATMdb->Get_line();
 	$NbDossier = $ATMdb->Get_field('nb');
 	?>
@@ -604,12 +604,12 @@ function _listeAdministrationDolibarr(&$ATMdb,$date_debut,$date_fin) {
 			<table class="border" width="100%">
 				<tr class="liste_titre">
 					<td></td>
-					<td class="titre_colonne">Attentes</td>
-					<td class="titre_colonne">Constats</td>
+					<td class="titre_colonne">Objectif</td>
+					<td class="titre_colonne">Constat</td>
 				</tr>
 				<tr>
 					<td>Nb dossier internes > 1 mois incomplets</td>
-					<td class="justifie">0</td>
+					<td class="justifie">30</td>
 					<td class="justifie"><?=$NbDossier;?></td>
 				</tr>
 				<!-- <tr>
