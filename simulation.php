@@ -313,7 +313,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'type_financement'=>$affaire->TTypeFinancement
 			,'date_simul'=>'calendar'
 			,'accord'=>$simulation->TStatut
-			,'leaser'=>array('recherche'=>true, 'table'=>'lea')
+			,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
 		)
 	));
 	
