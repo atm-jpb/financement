@@ -269,7 +269,7 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type,$date_debut,$date_fin
 	global $langs, $db, $conf, $user;
 	
 	//Requête pour facture année N-1
-	$sql = "SELECT c.label as 'categorie',s.nom as 'societe', COUNT(f.rowid) as 'nb', SUM(f.total_ttc) as 'montant'
+	$sql = "SELECT c.label as 'categorie',s.nom as 'societe', COUNT(f.rowid) as 'nb', SUM(f.total) as 'montant'
 			FROM ".MAIN_DB_PREFIX."facture as f
 				LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON (f.fk_soc = s.rowid)
 				LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire as fa ON (fa.fk_soc = s.rowid)
@@ -291,7 +291,7 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type,$date_debut,$date_fin
 	}
 	
 	//Requête pour facture année N
-	$sql = "SELECT c.label as 'categorie',s.nom as 'societe', COUNT(f.rowid) as 'nb', SUM(f.total_ttc) as 'montant'
+	$sql = "SELECT c.label as 'categorie',s.nom as 'societe', COUNT(f.rowid) as 'nb', SUM(f.total) as 'montant'
 			FROM ".MAIN_DB_PREFIX."facture as f
 				LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON (f.fk_soc = s.rowid)
 				LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire as fa ON (fa.fk_soc = s.rowid)
@@ -310,6 +310,9 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type,$date_debut,$date_fin
 	//Merging des deux tableaux de résultat
 	$ATMdb->Execute($sql);
 	while($ATMdb->Get_line()){
+		if(empty($TRes[$ATMdb->Get_field('categorie')][$ATMdb->Get_field('societe')])) {
+			$TRes[$ATMdb->Get_field('categorie')][$ATMdb->Get_field('societe')] = array(0,0);
+		}
 		$TRes[$ATMdb->Get_field('categorie')][$ATMdb->Get_field('societe')] = array_merge(
 							(array)$TRes[$ATMdb->Get_field('categorie')][$ATMdb->Get_field('societe')]
 							,array($ATMdb->Get_field('nb'),$ATMdb->Get_field('montant'))
@@ -408,8 +411,7 @@ function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb,$date_debut,$date_
 				LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf ON (cf.fk_societe = s.rowid)
 				LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (c.rowid = cf.fk_categorie)
 			WHERE fdf.type = 'LEASER'
-				AND fd.nature_financement = 'INTERNE'
-				AND fd.date_solde = '0000-00-00 00:00:00'
+				AND fdf.date_solde = '0000-00-00 00:00:00'
 				AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Leaser')
 			ORDER BY c.rowid";
 	
