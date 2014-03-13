@@ -730,7 +730,9 @@ class TFin_dossier extends TObjetStd {
 		$res = '';
 		$object = new FactureFournisseur($db);
 		
-		$object->ref           = $f->reference.'/'.($f->duree_passe+1); 
+		$reference = $f->reference.'/'.($f->duree_passe+1);
+		
+		$object->ref           = $reference; 
 	    $object->socid         = $f->fk_soc;
 	    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".($f->duree_passe+1)."/".$f->duree;
 	    $object->date          = $f->date_prochaine_echeance;
@@ -769,7 +771,12 @@ class TFin_dossier extends TObjetStd {
 			$res.= "Création facture fournisseur ($id) : ".$object->ref."<br />";
 		} else {
 			
-			$object->add_object_linked(); // Ajout de la liaison éventuelle vers ce dossier
+			$object->fetch('', $reference);
+			if($object->id>0) {
+				$object->origin = 'dossier';
+				$object->origin_id = $d->getId();
+				$object->add_object_linked(); // Ajout de la liaison éventuelle vers ce dossier
+			}
 			
 			$res.= "Erreur création facture fournisseur : ".$object->ref."<br />";
 		}
