@@ -770,8 +770,8 @@ class TFin_dossier extends TObjetStd {
 			
 			$res.= "Création facture fournisseur ($id) : ".$object->ref."<br />";
 		} else {
-			
-			$object->fetch('', $reference);
+			$object = new FactureFournisseur($db);
+			$object->fetch(null, $reference);
 			if($object->id>0) {
 				$object->origin = 'dossier';
 				$object->origin_id = $d->getId();
