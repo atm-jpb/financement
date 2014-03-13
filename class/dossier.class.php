@@ -775,6 +775,7 @@ class TFin_dossier extends TObjetStd {
 			if($object->id>0) {
 				$object->origin = 'dossier';
 				$object->origin_id = $d->getId();
+				$object->deleteObjectLinked();
 				$object->add_object_linked(); // Ajout de la liaison éventuelle vers ce dossier
 			}
 			
