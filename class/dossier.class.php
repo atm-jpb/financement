@@ -768,6 +768,9 @@ class TFin_dossier extends TObjetStd {
 			
 			$res.= "Création facture fournisseur ($id) : ".$object->ref."<br />";
 		} else {
+			
+			$object->add_object_linked(); // Ajout de la liaison éventuelle vers ce dossier
+			
 			$res.= "Erreur création facture fournisseur : ".$object->ref."<br />";
 		}
 		
