@@ -17,6 +17,9 @@ search_key_client=code_client
 12=ref_service
 13=reference_dossier_interne
 14=facture_annulee
+15=label_integrale
+16=quantite_integrale
+17=cout_integrale
 
 [more]
 
@@ -27,3 +30,5 @@ montant_ht=float
 pu=float
 total_ht=float
 total_ttc=float
+quantite_integrale=float
+cout_integrale=float
