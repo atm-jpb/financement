@@ -70,6 +70,7 @@ dol_include_once("/financement/class/import_error.class.php");
 dol_include_once("/financement/class/commerciaux.class.php");
 dol_include_once("/financement/class/affaire.class.php");
 dol_include_once("/financement/class/dossier.class.php");
+dol_include_once("/financement/class/dossier_integrale.class.php");
 dol_include_once("/financement/class/grille.class.php");
 dol_include_once("/financement/class/score.class.php");
 dol_include_once("/asset/class/asset.class.php");
