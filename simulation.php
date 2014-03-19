@@ -338,14 +338,14 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$extrajs = array('/financement/js/financement.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
-	
+
 	$affaire = new TFin_affaire;
 	$financement = new TFin_financement;
 	$grille = new TFin_grille_leaser();
 	$html=new Form($db);
 	$form=new TFormCore($_SERVER['PHP_SELF'].'#calculateur','formSimulation','POST');
 	$form->Set_typeaff($mode);
-	
+
 	echo $form->hidden('id', $simulation->getId());
 	echo $form->hidden('action', 'save');
 	echo $form->hidden('fk_soc', $simulation->fk_soc);
@@ -495,10 +495,13 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_affaire = a.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON d.rowid = da.fk_fin_dossier";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement f ON (f.fk_fin_dossier = d.rowid AND type='LEASER')";
+	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON (s.rowid = a.fk_soc)";
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire_commercial ac ON ac.fk_fin_affaire = a.rowid";
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
 	$sql.= " WHERE a.entity = ".$conf->entity;
-	$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
+	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
+	$sql.= " AND a.fk_soc IN (SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE siren = '".$this->societe->siren."')";
+	//$sql.= " AND s.rowid = ".$simulation->fk_soc;
 	//$sql.= " AND f.type = 'CLIENT'";
 	
 	//return $sql;
