@@ -365,6 +365,14 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	//var_dump($TDuree);
 	$can_preco = ($user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0) ? 1 : 0;
 	
+	if($user->rights->financement->admin->write && ($mode == "add" || $mode == "new" || $mode == "edit")){
+		$formdolibarr = new Form($db);
+		$link_user = $formdolibarr->select_dolusers($simulation->fk_user_author,'fk_user_author',1,'',0,'','',$conf->entity);
+	}
+	else{
+		$link_user = '<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>';
+	}
+	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
@@ -408,7 +416,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'accord_val'=>$simulation->accord
 				,'can_preco'=>$can_preco
 				
-				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>'
+				,'user'=>$link_user
 				,'date'=>$simulation->date_simul
 				,'bt_calcul'=>$form->btsubmit('Calculer', 'calculate')
 				,'bt_cancel'=>$form->btsubmit('Annuler', 'cancel')
@@ -500,7 +508,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
 	$sql.= " WHERE a.entity = ".$conf->entity;
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
-	$sql.= " AND a.fk_soc IN (SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE siren = '".$simulation->societe->siren."')";
+	$sql.= " AND a.fk_soc IN (SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE siren = '".$simulation->societe->siren."' AND siren != '')";
 	//$sql.= " AND s.rowid = ".$simulation->fk_soc;
 	//$sql.= " AND f.type = 'CLIENT'";
 	
