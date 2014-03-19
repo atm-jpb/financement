@@ -415,6 +415,8 @@ class TSimulation extends TObjetStd {
 		$simu->statut = html_entity_decode($this->getStatut());
 		$back_opt_calage = $simu->opt_calage;
 		$simu->opt_calage = $f->TCalage[$simu->opt_calage];
+		$back_opt_adjonction = $simu->opt_adjonction;
+		$simu->opt_adjonction = ($simu->opt_adjonction) ? "Oui" : "Non" ;
 		/*echo '<pre>';
 		print_r($simu);
 		echo '</pre>';exit;*/
@@ -546,7 +548,7 @@ class TSimulation extends TObjetStd {
 		);
 		
 		
-		
+		$simu->opt_adjonction = $back_opt_adjonction;
 		$simu->opt_calage = $back_opt_calage;
 		
 		// Transformation en PDF
