@@ -122,7 +122,11 @@ if(!empty($action)) {
 		case 'save':
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			$oldAccord = $simulation->accord;
+			//pre($_REQUEST,true);
 			$simulation->set_values($_REQUEST);
+			
+			$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
+			$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
 			
 			if($simulation->opt_calage != '') {
 				$simulation->set_date('date_demarrage',$_REQUEST['date_demarrage']);
@@ -389,6 +393,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'fk_soc'=>$simulation->fk_soc
 				,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat)
 				,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
+				,'opt_adjonction'=>$form->checkbox1('', 'opt_adjonction', 1, $simulation->opt_adjonction) 
 				,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $financement->TPeriodicite, $simulation->opt_periodicite) 
 				//,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 1, $simulation->opt_creditbail)
 				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement)

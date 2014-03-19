@@ -1,5 +1,7 @@
+
 <table width="100%"cellpadding="0" cellspacing="0">
 <tr>
+	
 [onshow;block=begin;when [view.type]=='simul']
 <td valign="top">
 	<div id="simulateur" style="width: 100%;">
@@ -104,6 +106,10 @@
 			<td>[simulation.opt_calage; strconv=no]</td>
 			<td>Date démarrage</td>
 			<td>[simulation.date_demarrage; strconv=no]</td>
+		</tr>
+		<tr>
+			<td>Adjonction</td>
+			<td colspan="3">[simulation.opt_adjonction; strconv=no]</td>
 		</tr>
 		<tr class="liste_titre">
 			<td colspan="4">Paramètres financiers</td>
