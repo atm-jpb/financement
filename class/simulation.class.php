@@ -57,6 +57,7 @@ class TSimulation extends TObjetStd {
 	
 	function save(&$db, &$doliDB) {
 		parent::save($db);
+		//pre($this,true);exit;
 		$this->gen_simulation_pdf($db, $doliDB);
 		$this->reference = $this->getRef();
 		parent::save($db);
@@ -68,6 +69,7 @@ class TSimulation extends TObjetStd {
 	
 	function getAuthorFullName() {
 		global $langs;
+		$this->user->fetch($this->fk_user_author);
 		return utf8_decode($this->user->getFullName($langs));
 	}
 	
