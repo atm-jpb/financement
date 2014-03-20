@@ -607,7 +607,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		$checkedperso = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes_perso) ? true : false;
 		$checkbox_moreperso = 'solde="'.$soldeperso.'" style="display: none;"';
 		$checkbox_moreperso.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
-		
+
 		if($ATMdb->Get_field('incident_paiement')=='OUI') $dossier->display_solde = 0;
 		if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
 		if($leaser->code_client == '024242') $dossier->display_solde = 0; // Ticket 447, suite
