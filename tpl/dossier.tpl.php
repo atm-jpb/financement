@@ -12,7 +12,7 @@
 				
 		<table width="100%" class="border">
 		<tr>
-			<td colspan="2">
+			<td colspan="4">
 				<table width="100%">
 				<tr>
 					<td width="50%" valign="top">
@@ -112,17 +112,21 @@
 		<tr><td width="20%">Date de mise en relocation</td><td>[dossier.date_relocation; strconv=no]</td></tr>
 		[onshow;block=end]
 		
-		<tr><td width="20%">Commentaire</td><td>[dossier.commentaire; strconv=no]</td></tr>
+		<tr><td width="20%">Commentaire</td><td colspan="3">[dossier.commentaire; strconv=no]</td></tr>
 		<tr>
 			<td><strong>Soldes</strong></td>
-			<td>Afficher les soldes dans le simulateur ? [dossier.display_solde; strconv=no]</td>
+			<td colspan="3">Afficher les soldes dans le simulateur ? [dossier.display_solde; strconv=no]</td>
 		</tr>
 	
-		<tr><td>Renouvellant banque</td><td>[dossier.soldeRBANK; frm=0 000,00] &euro;</td></tr>
-		<tr><td>Non renouvellant banque</td><td>[dossier.soldeNRBANK; frm=0 000,00] &euro;</td></tr>
+		<tr><td>Renouvellant banque</td><td colspan="3">[dossier.soldeRBANK; frm=0 000,00] &euro;</td></tr>
+		<tr><td>Non renouvellant banque</td><td colspan="3">[dossier.soldeNRBANK; frm=0 000,00] &euro;</td></tr>
 		
-		<tr><td>Renouvellant CPRO</td><td>[dossier.soldeRCPRO; frm=0 000,00] &euro;</td></tr>
-		<tr><td>Non renouvellant CPRO</td><td>[dossier.soldeNRCPRO; frm=0 000,00] &euro;</td></tr>
+		<tr><td>Renouvellant CPRO</td><td colspan="3">[dossier.soldeRCPRO; frm=0 000,00] &euro;</td></tr>
+		<tr><td>Non renouvellant CPRO</td><td colspan="3">[dossier.soldeNRCPRO; frm=0 000,00] &euro;</td></tr>
+		<tr>
+			<td>Solde personnalisé</td><td>[dossier.soldeperso; frm=0 000,00] &euro;</td>
+			<td>Date de validité</td><td>[dossier.dateperso; strconv=no]</td>
+		</tr>
 		
 		</table>
 

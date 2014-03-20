@@ -7,10 +7,10 @@ class TSimulation extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation');
 		parent::add_champs('entity,fk_soc,fk_user_author,fk_leaser,accord_confirme','type=entier;');
 		parent::add_champs('duree,opt_administration,opt_creditbail,opt_adjonction','type=entier;');
-		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
+		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_rachete_autres_dossiers,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
 		parent::add_champs('date_simul,date_validite,date_accord,date_demarrage','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,numero_accord,reference,opt_calage','type=chaine;');
-		parent::add_champs('dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1', 'type=tableau;');
+		parent::add_champs('dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
 		parent::start();
 		parent::_init_vars();
 		
@@ -423,10 +423,11 @@ class TSimulation extends TObjetStd {
 		
 		// Dossiers rachetés dans la simulation
 		$TDossier = array();
+		$TDossierperso = array();
 		
 		$ATMdb2 = new TPDOdb; // #478 par contre je ne vois pas pourquoi il faut une connexion distincte :/
 		
-		$TSimuDossier = array_merge($this->dossiers_rachetes, $this->dossiers_rachetes_p1,$this->dossiers_rachetes_nr,$this->dossiers_rachetes_nr_p1);
+		$TSimuDossier = array_merge($this->dossiers_rachetes, $this->dossiers_rachetes_p1,$this->dossiers_rachetes_nr,$this->dossiers_rachetes_nr_p1,$this->dossiers_rachetes_perso);
 		foreach($TSimuDossier as $idDossier) {
 			$d = new TFin_dossier();
 			$d->load($ATMdb, $idDossier, false);
@@ -440,14 +441,22 @@ class TSimulation extends TObjetStd {
 			if(in_array($idDossier, $this->dossiers_rachetes) || in_array($idDossier, $this->dossiers_rachetes_nr)) {
 				$solde_r = $d->getSolde($ATMdb2, 'SRCPRO');
 				$solde_nr = $d->getSolde($ATMdb2, 'SNRCPRO');
+				$soldeperso = '' ;
 			}
 			elseif(in_array($idDossier, $this->dossiers_rachetes_p1) || in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
 				$solde_r = $d->getSolde($ATMdb2, 'SRCPRO',$f->duree_passe + 1);
 				$solde_nr = $d->getSolde($ATMdb2, 'SNRCPRO',$f->duree_passe + 1);
+				$soldeperso = '' ;
+			}
+			elseif(in_array($idDossier, $this->dossiers_rachetes_perso)) {
+				$solde_r = '';
+				$solde_nr = '';
+				$soldeperso = $d->getSolde($ATMdb2, 'perso');
 			}
 			else{
 				$solde_r = '';
 				$solde_nr = '';
+				$soldeperso = '' ;
 			}
 			
 			//echo $solde_r." ".$solde_nr;
@@ -460,6 +469,8 @@ class TSimulation extends TObjetStd {
 				$solde = 'R';
 			} elseif(in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
 				$solde = 'NR';
+			} elseif(in_array($idDossier, $this->dossiers_rachetes_perso)) {
+				$solde = 'personnalisé';
 			} else {
 				$solde = '';
 			}
@@ -499,19 +510,30 @@ class TSimulation extends TObjetStd {
 			$leaser = new Societe($doliDB);
 			$leaser->fetch($d->financementLeaser->fk_soc);
 			
-			$TDossier[] = array(
-				'reference' => $f->reference
-				,'leaser' => $leaser->name
-				,'type_contrat' => $d->type_contrat
-				,'solde' => $solde
-				,'solde_r' => $solde_r
-				,'solde_nr' => $solde_nr
-			);
-			
+			if($solde == 'R' || $solde == 'NR'){
+				$TDossier[] = array(
+					'reference' => $f->reference
+					,'leaser' => $leaser->name
+					,'type_contrat' => $d->type_contrat
+					,'solde' => $solde
+					,'solde_r' => $solde_r
+					,'solde_nr' => $solde_nr
+				);
+			}
+			else{
+				$TDossierperso[] = array(
+					'referenceperso' => $f->reference
+					,'leaser' => $leaser->name
+					,'type_contrat' => $d->type_contrat
+					,'solde' => $solde
+					,'soldeperso' => $soldeperso
+				);
+			}
 		}
 		
-		$this->hasdossier = count($TDossier);
+		$this->hasdossier = count($TDossier) + count($TDossierperso);
 		
+		//pre($TDossier,true); exit;
 		// Création du répertoire
 		$fileName = dol_sanitizeFileName($this->getRef()).'.odt';
 		$filePath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef());
@@ -536,12 +558,14 @@ class TSimulation extends TObjetStd {
 		$file = $TBS->render('./tpl/doc/simulation.odt'
 			,array(
 				'dossier'=>$TDossier
+				,'dossierperso'=>$TDossierperso
 			)
 			,array(
 				'simulation'=>$simu2
 				,'client'=>$this->societe
 				,'leaser'=>array('nom'=>(($this->leaser->nom != '') ? $this->leaser->nom : ''))
-				,'autre'=>array('terme'=>($this->TTerme[$simu2->opt_terme]) ? $this->TTerme[$simu2->opt_terme] : '')
+				,'autre'=>array('terme'=>($this->TTerme[$simu2->opt_terme]) ? $this->TTerme[$simu2->opt_terme] : ''
+								,'type'=>($solde == 'R' || $solde == 'NR') ? 1 : 0)
 			)
 			,array()
 			,array('outFile' => $filePath.'/'.$fileName)

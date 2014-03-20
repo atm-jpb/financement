@@ -128,6 +128,10 @@
 			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
+			<td>dont montant rachat autres dossiers</td>
+			<td>[simulation.montant_rachete_autres_dossiers; strconv=no; frm=0 000,00] &euro;</td>
+		</tr>
+		<tr>
 			<td>dont montant rachat concurrence</td>
 			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
 			<td colspan="2" align="center">
