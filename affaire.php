@@ -136,7 +136,12 @@ function _liste(&$ATMdb, &$affaire) {
 	$THide = array('fk_soc', 'ID');
 	
 	if(isset($_REQUEST['socid'])) {
-		$sql.= ' AND a.fk_soc IN (SELECT ss.rowid FROM llx_societe as ss WHERE ss.siren = (SELECT siren from llx_societe WHERE rowid = '.$_REQUEST['socid'].'))';
+		$sql.= ' AND (a.fk_soc='.$_REQUEST['socid'].' OR  a.fk_soc IN (
+				SELECT ss.rowid FROM llx_societe as ss WHERE ss.siren = (
+					SELECT siren from llx_societe WHERE rowid = '.$_REQUEST['socid'].'
+				) 
+				AND siren != "")
+			)';
 		$societe = new Societe($db);
 		$societe->fetch($_REQUEST['socid']);
 		$head = societe_prepare_head($societe);
