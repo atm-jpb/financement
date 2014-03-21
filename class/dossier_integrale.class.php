@@ -38,8 +38,10 @@ class TIntegrale extends TObjetStd {
 		$this->total_ht_realise+= $this->vol_coul_realise * $this->cout_unit_coul;
 		$this->total_ht_realise+= $this->total_frais;
 		
-		$this->ecart = ($this->total_ht_realise - $this->total_ht_engage) * 100 / $this->total_ht_realise;
-		$this->ecart = round($this->ecart, 2);
+		if($this->total_ht_realise > 0) {
+			$this->ecart = ($this->total_ht_realise - $this->total_ht_engage) * 100 / $this->total_ht_realise;
+			$this->ecart = round($this->ecart, 2);
+		}
 	}
 }
 
