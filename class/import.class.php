@@ -590,28 +590,42 @@ class TImport extends TObjetStd {
 		
 		$integrale = &$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]];
 		$integrale->facnumber = $data[$this->mapping['search_key']];
+		$save = false;
 		
 		if(empty($data['label_integrale'])) {
-			if($data['ref_service'] == '037003')			$integrale->frais_dossier		= $data['total_ht'];
-			if($data['ref_service'] == '037004')			$integrale->frais_bris_machine	= $data['total_ht'];
-			if($data['libelle_ligne'] == 'FRAIS DE FACTURATION')	$integrale->frais_facturation	= $data['total_ht'];
+			if($data['ref_service'] == '037003') {
+				$integrale->frais_dossier = $data['total_ht'];
+				$save = true;
+			}
+			if($data['ref_service'] == '037004') {
+				$integrale->frais_bris_machine	= $data['total_ht'];
+				$save = true;
+			}
+			if($data['libelle_ligne'] == 'FRAIS DE FACTURATION') {
+				$integrale->frais_facturation	= $data['total_ht'];
+				$save = true;
+			}
 		} else {
-			if($data['label_integrale'] == 'ENGAGEMENT COPIES NB') {
+			if($data['label_integrale'] == 'ENGAGEMENT COPIES NB' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
 				$integrale->vol_noir_engage = $data['quantite'];
 				$integrale->vol_noir_realise = $data['quantite_integrale'];
 				$integrale->cout_unit_noir = $data['cout_integrale'];
+				$save = true;
 			}
-			if($data['label_integrale'] == 'ENGAGEMENT COPIES COULEUR') {
+			if($data['label_integrale'] == 'ENGAGEMENT COPIES COULEUR' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
 				$integrale->vol_coul_engage = $data['quantite'];
 				$integrale->vol_coul_realise = $data['quantite_integrale'];
 				$integrale->cout_unit_coul = $data['cout_integrale'];
+				$save = true;
 			}
 			if($data['ref_service'] == 'SSC054') {
 				$integrale->fass = $data['cout_integrale'];
+				$save = true;
 			}
 		}
-		
-		$integrale->save($ATMdb);
+		if($save = true) {
+			$integrale->save($ATMdb);
+		}
 	}
 
 	function importLineFactureLettree(&$ATMdb, $data) {
