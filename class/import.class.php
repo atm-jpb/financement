@@ -620,7 +620,7 @@ class TImport extends TObjetStd {
 				$save = true;
 			}
 		}
-		if($save = true) {
+		if($save == true) {
 			$integrale->save($ATMdb);
 		}
 	}
