@@ -398,6 +398,16 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	}
 	$TBS->TBS->protect=false;
 	$TBS->TBS->noerr=true;
+	
+	if($user->rights->financement->admin->write && ($mode == "add" || $mode == "new" || $mode == "edit")){
+		$dateperso = $form->calendrier('', 'dateperso', $dossier->get_date('dateperso'),10);
+		$soldeperso = $form->texte('', 'soldeperso', $dossier->soldeperso, 10);
+	}
+	else{
+		$dateperso = $dossier->get_date('dateperso','d/m/Y');
+		$soldeperso = $dossier->soldeperso;
+	}
+	
 	print $TBS->render('./tpl/dossier.tpl.php'
 		,array(
 			'affaire'=>$TAffaire
@@ -424,6 +434,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'soldeNRBANK'=>$dossier->getSolde($PDOdb, 'SNRBANK')
 				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO')
 				,'soldeNRCPRO'=>$dossier->getSolde($PDOdb, 'SNRCPRO')
+				,'soldeperso'=>$soldeperso
+				,'dateperso'=>$dateperso
 				,'url_therefore'=>FIN_THEREFORE_DOSSIER_URL
 			)
 			,'financement'=>$TFinancement

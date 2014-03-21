@@ -5,10 +5,10 @@
 class TFin_dossier extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
-		parent::add_champs('solde,montant,montant_solde','type=float;');
+		parent::add_champs('solde,soldeperso,montant,montant_solde','type=float;');
 		parent::add_champs('renta_previsionnelle,renta_attendue,renta_reelle,marge_previsionnelle,marge_attendue,marge_reelle','type=float;');
 		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne,display_solde','type=chaine;');
-		parent::add_champs('date_relocation,date_solde','type=date;');
+		parent::add_champs('date_relocation,date_solde,dateperso','type=date;');
 			
 		parent::start();
 		parent::_init_vars();
@@ -525,6 +525,10 @@ class TFin_dossier extends TObjetStd {
 					return ($solde>$LRD_Leaser)?$LRD_Leaser:$solde;
 				}
 				
+				break;
+			case 'perso': /* solde personnalisé */
+				
+					return $this->soldeperso;
 				break;
 		}
 	}

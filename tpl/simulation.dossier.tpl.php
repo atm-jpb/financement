@@ -15,6 +15,7 @@
 		<td>Solde NR.</td>
 		<td>Solde R. P+1</td>
 		<td>Solde NR. P+1</td>
+		<td>Solde Perso</td>
 	</tr>
 	<tr [champs.class; strconv=no]>
 		<td>[champs.num_contrat;block=tr; strconv=no]</td>
@@ -36,6 +37,7 @@
 		<td class="solde"[champs.checkednr;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxnr; strconv=no] [champs.solde_nr; strconv=no; frm=0 000,00] &euro;</td>
 		<td class="solde"[champs.checkedr1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxr1; strconv=no] [champs.solde_r1; strconv=no; frm=0 000,00] &euro;</td>
 		<td class="solde"[champs.checkednr1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxnr1; strconv=no] [champs.solde_nr1; strconv=no; frm=0 000,00] &euro;</td>
+		<td class="solde"[champs.checkedperso;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxperso; strconv=no] [champs.soldeperso; strconv=no; frm=0 000,00] &euro;</td>
 		[onshow;block=end]
 	</tr>
 </table>
