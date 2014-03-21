@@ -595,15 +595,12 @@ class TImport extends TObjetStd {
 		if(empty($data['label_integrale'])) {
 			if($data['ref_service'] == '037003') {
 				$integrale->frais_dossier = $data['total_ht'];
-				$save = true;
 			}
 			if($data['ref_service'] == '037004') {
 				$integrale->frais_bris_machine	= $data['total_ht'];
-				$save = true;
 			}
 			if($data['libelle_ligne'] == 'FRAIS DE FACTURATION') {
 				$integrale->frais_facturation	= $data['total_ht'];
-				$save = true;
 			}
 		} else {
 			if($data['label_integrale'] == 'ENGAGEMENT COPIES NB' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
