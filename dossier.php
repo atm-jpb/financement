@@ -67,6 +67,8 @@
 				if ((!isset($dossier->type_financement_affaire['ADOSSEE'] ) && !isset($dossier->type_financement_affaire['MANDATEE'] ) )
 					&& ($dossier->financementLeaser->okPourFacturation=='OUI' || $dossier->financementLeaser->okPourFacturation=='AUTO')){
 					
+					$dossier->financementLeaser->okPourFacturation='NON';
+					
 					setEventMessage("Ce dossier ne peut pas être à bon pour facturation 'Oui' ou 'Toujours' car son affaire n'est ni mandatée, ni adossée.", 'errors');
 						
 					_fiche($PDOdb,$dossier,'edit');	
@@ -303,38 +305,45 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	if($financementLeaser->fk_soc>0)$leaser->fetch($financementLeaser->fk_soc);
 	else { $leaser->nom="Non défini"; }
 
+	$formFinLeaser=new TFormCore;
+	
+	if($mode=='edit' && ( $financementLeaser->okPourFacturation!='AUTO' || count($dossier->TFactureFournisseur)==0 || $user->rights->financement->alldossier->write )  ) $mode_aff_fLeaser = 'edit';
+	else $mode_aff_fLeaser='view';
+	
+	$formFinLeaser->Set_typeaff( $mode_aff_fLeaser );
+
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()
-			,'reference'=>$form->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir')
-			,'montant'=>$form->texte('', 'leaser[montant]', $financementLeaser->montant, 10,255,'','','à saisir')
+			,'reference'=>$formFinLeaser->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir')
+			,'montant'=>$formFinLeaser->texte('', 'leaser[montant]', $financementLeaser->montant, 10,255,'','','à saisir')
 			,'taux'=> $financementLeaser->taux
 			
-			,'assurance'=>$form->texte('', 'leaser[assurance]', $financementLeaser->assurance, 10,255,'','','à saisir')
-			,'loyer_intercalaire'=>$form->texte('', 'leaser[loyer_intercalaire]', $financementLeaser->loyer_intercalaire, 10,255,'','','à saisir')
-			,'echeance'=>$form->texte('', 'leaser[echeance]', $financementLeaser->echeance, 10,255,'','','à saisir')
-			,'reste'=>$form->texte('', 'leaser[reste]', $financementLeaser->reste, 10,255,'','','à saisir')
-			,'montant_prestation'=>$form->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 10,255,'','','à saisir')
-			,'frais_dossier'=>$form->texte('', 'leaser[frais_dossier]', $financementLeaser->frais_dossier, 10,255,'','','à saisir')
+			,'assurance'=>$formFinLeaser->texte('', 'leaser[assurance]', $financementLeaser->assurance, 10,255,'','','à saisir')
+			,'loyer_intercalaire'=>$formFinLeaser->texte('', 'leaser[loyer_intercalaire]', $financementLeaser->loyer_intercalaire, 10,255,'','','à saisir')
+			,'echeance'=>$formFinLeaser->texte('', 'leaser[echeance]', $financementLeaser->echeance, 10,255,'','','à saisir')
+			,'reste'=>$formFinLeaser->texte('', 'leaser[reste]', $financementLeaser->reste, 10,255,'','','à saisir')
+			,'montant_prestation'=>$formFinLeaser->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 10,255,'','','à saisir')
+			,'frais_dossier'=>$formFinLeaser->texte('', 'leaser[frais_dossier]', $financementLeaser->frais_dossier, 10,255,'','','à saisir')
 			,'montant_solde'=>$form->texte('', 'leaser[montant_solde]', $financementLeaser->montant_solde, 10,255,'','','0')
 			,'dossier_termine'=>($financementLeaser->montant_solde > 0) ? 1 : 0
 							
 				
 			,'numero_prochaine_echeance'=>$financementLeaser->numero_prochaine_echeance 
-			,'duree'=>$form->texte('', 'leaser[duree]', $financementLeaser->duree, 5,255,'','','à saisir')
+			,'duree'=>$formFinLeaser->texte('', 'leaser[duree]', $financementLeaser->duree, 5,255,'','','à saisir')
 								
-			,'periodicite'=>$form->combo('', 'leaser[periodicite]', $financementLeaser->TPeriodicite , $financementLeaser->periodicite)
-			,'terme'=>$form->combo('', 'leaser[terme]', $financementLeaser->TTerme , $financementLeaser->terme)
-			,'reglement'=>$form->combo('', 'leaser[reglement]', $financementLeaser->TReglement , $financementLeaser->reglement)
-			,'incident_paiement'=>$form->combo('', 'leaser[incident_paiement]', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement)
+			,'periodicite'=>$formFinLeaser->combo('', 'leaser[periodicite]', $financementLeaser->TPeriodicite , $financementLeaser->periodicite)
+			,'terme'=>$formFinLeaser->combo('', 'leaser[terme]', $financementLeaser->TTerme , $financementLeaser->terme)
+			,'reglement'=>$formFinLeaser->combo('', 'leaser[reglement]', $financementLeaser->TReglement , $financementLeaser->reglement)
+			,'incident_paiement'=>$formFinLeaser->combo('', 'leaser[incident_paiement]', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement)
 			
-			,'date_debut'=>$form->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
+			,'date_debut'=>$formFinLeaser->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
 			,'date_fin'=>$financementLeaser->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financementLeaser->date_prochaine_echeance>0) ? $financementLeaser->get_date('date_prochaine_echeance') : ''
 			,'date_solde'=>$form->calendrier('', 'leaser[date_solde]', $financementLeaser->get_date('date_solde'),10)
 						
-			,'leaser'=>($mode=='edit') ? $html->select_company($leaser->id,'leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->getNomUrl(1)
+			,'leaser'=>($mode_aff_fLeaser=='edit') ? $html->select_company($leaser->id,'leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->getNomUrl(1)
 			
-			,'okPourFacturation'=>$form->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
+			,'okPourFacturation'=>$formFinLeaser->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
 			
 			,'reinit'=>'<a href="'.$_SERVER['PHP_SELF'].'?action=regenerate-facture-leaser&id='.$dossier->getId().'">Lancer</a>'
 			
