@@ -164,19 +164,32 @@ if(!empty($action)) {
 			// On refait le calcul avant d'enregistrer
 			_calcul($simulation, 'save');
 			
-			//$ATMdb->db->debug=true;
-			$simulation->save($ATMdb, $db);
-			//echo $simulation->opt_calage; exit;
-			// Si l'accord vient d'être donné (par un admin)
-			if(($simulation->accord == 'OK' || $simulation->accord == 'KO') && $simulation->accord != $oldAccord) {
-				$simulation->send_mail_vendeur();
+			if(empty($simulation->type_materiel)) {
+				
+				_fiche($ATMdb, $simulation,'edit');
+			
+				setEventMessage('Le type de matériel est obligatoire','errors');
+			
+			}
+			else {
+	
+				//$ATMdb->db->debug=true;
+				$simulation->save($ATMdb, $db);
+				//echo $simulation->opt_calage; exit;
+				// Si l'accord vient d'être donné (par un admin)
+				if(($simulation->accord == 'OK' || $simulation->accord == 'KO') && $simulation->accord != $oldAccord) {
+					$simulation->send_mail_vendeur();
+				}
+				
+				$simulation->load_annexe($ATMdb, $db);
+
+
+				_fiche($ATMdb, $simulation,'view');
+				
+				setEventMessage('Simulation enregistrée : '.$simulation->getRef(),'mesgs');
+					
 			}
 			
-			$simulation->load_annexe($ATMdb, $db);
-			
-			_fiche($ATMdb, $simulation,'view');
-			
-			setEventMessage('Simulation enregistrée : '.$simulation->getRef(),'mesgs');
 			
 			break;
 		
