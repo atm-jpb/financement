@@ -1,11 +1,11 @@
-
 <table width="100%"cellpadding="0" cellspacing="0">
 <tr>
 	
 [onshow;block=begin;when [view.type]=='simul']
 <td valign="top">
 	<div id="simulateur" style="width: 100%;">
-	[simulation.titre_simul; strconv=no]
+	<div style="float:right;"><a href="mailto:financement@cpro.fr?subject=Demande d'infos : [user.firstname] [user.lastname] - [client.siren] - [client.nom]">[view.pictoMail;strconv=no] Demande d'infos</a></div>
+		[simulation.titre_simul; strconv=no]
 	<br />
 	<table class="border" width="100%">
 		<tr class="liste_titre">
@@ -64,7 +64,7 @@
 [onshow;block=end]
 <tr><td valign="top">
 	<div id="calculateur" style="width: 100%;">
-	[simulation.titre_calcul; strconv=no]
+		[simulation.titre_calcul; strconv=no]
 	<br />
 	<table class="border" width="100%">
 		<tr class="liste_titre">

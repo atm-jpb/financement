@@ -453,12 +453,19 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'contact_externe'=>empty($simulation->societe) ? '' : $simulation->societe->score->get_nom_externe()
 				
 				,'liste_dossier'=>_liste_dossier($ATMdb, $simulation, $mode)
+				
+				,'nom'=>$simulation->societe->nom
+				,'siren'=>(($simulation->societe->idprof1) ? $simulation->societe->idprof1 : $simulation->societe->idprof2)
+				
 			)
 			,'view'=>array(
 				'mode'=>$mode
 				,'type'=>($simulation->fk_soc > 0) ? 'simul' : 'calcul'
 				,'calcul'=>empty($simulation->montant_total_finance) ? 0 : 1
+				,'pictoMail'=>img_picto('','stcomm0.png', '', 0)
 			)
+			
+			,'user'=>$user
 			
 		)
 	);
@@ -604,7 +611,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		$checkbox_moreNR1 = ' solde="'.$soldeNR1.'" style="display: none;"';
 		$checkbox_moreNR1.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		
-		$checkedperso = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes_perso) ? true : false;
+		$checkedperso = (is_array($simulation->dossiers_rachetes_perso) && in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes_perso)) ? true : false;
 		$checkbox_moreperso = 'solde="'.$soldeperso.'" style="display: none;"';
 		$checkbox_moreperso.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 
