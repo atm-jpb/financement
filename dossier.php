@@ -64,10 +64,22 @@
 					$dossier->financementLeaser->set_values($_REQUEST['leaser']);
 				}
 				
-				//print_r($dossier->financementLeaser);
-				$dossier->save($PDOdb);
-				//print 'nature_financement:'.$dossier->nature_financement;exit;
-				_fiche($PDOdb,$dossier,'view');
+				if ((!isset($dossier->type_financement_affaire['ADOSSEE'] ) && !isset($dossier->type_financement_affaire['MANDATEE'] ) )
+					&& ($dossier->financementLeaser->okPourFacturation=='OUI' || $dossier->financementLeaser->okPourFacturation=='AUTO')){
+					
+					setEventMessage("Ce dossier ne peut pas être à bon pour facturation 'Oui' ou 'Toujours' car son affaire n'est ni mandatée, ni adossée.", 'errors');
+						
+					_fiche($PDOdb,$dossier,'edit');	
+				}
+				else {
+					
+					$dossier->save($PDOdb);
+					//print 'nature_financement:'.$dossier->nature_financement;exit;
+					_fiche($PDOdb,$dossier,'view');
+						
+					
+				}
+				
 				
 				break;
 			

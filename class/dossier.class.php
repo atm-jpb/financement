@@ -92,6 +92,8 @@ class TFin_dossier extends TObjetStd {
 		
 		$Tab = TRequeteCore::get_id_from_what_you_want($db,MAIN_DB_PREFIX.'fin_dossier_affaire',array('fk_fin_dossier'=>$this->getId()));
 		
+		$this->type_financement_affaire=array();
+		
 		$somme_affaire = 0;
 		foreach($Tab as $i=>$id) {
 			$this->TLien[$i]=new TFin_dossier_affaire;
@@ -104,6 +106,9 @@ class TFin_dossier extends TObjetStd {
 			if($this->TLien[$i]->affaire->nature_financement=='INTERNE') {
 				$this->nature_financement = 'INTERNE';
 			}
+			
+			$this->type_financement_affaire[ $this->TLien[$i]->affaire->type_financement ] = true;
+			
 		}
 		
 		if(count($Tab)==0)$this->nature_financement = 'INTERNE';
@@ -874,6 +879,7 @@ class TFin_financement extends TObjetStd {
 		);
 		
 		$this->okPourFacturation='NON';
+		
 		$this->TOkPourFacturation =array(
 			'NON'=>'Non'
 			,'OUI'=>'Oui'
