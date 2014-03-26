@@ -387,7 +387,16 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	if($user->rights->financement->admin->write && ($mode == "add" || $mode == "new" || $mode == "edit")){
 		$formdolibarr = new Form($db);
 		$rachat_autres = "texte";
-		$link_user = $formdolibarr->select_dolusers($simulation->fk_user_author,'fk_user_author',1,'',0,'','',$conf->entity);
+		$TUserExculde = array();
+		$TUserExculde = TRequeteCore::_get_id_by_sql($ATMdb, "SELECT u.rowid 
+															FROM ".MAIN_DB_PREFIX."user as u 
+																LEFT JOIN ".MAIN_DB_PREFIX."usergroup_user as ugu ON (ugu.fk_user = u.rowid)
+																LEFT JOIN ".MAIN_DB_PREFIX."usergroup as ug ON (ug.rowid = ugu.fk_usergroup)
+															WHERE ug.nom != 'GSL_DOLIBARR_FINANCEMENT_ADMIN' AND 
+																  ug.nom != 'GSL_DOLIBARR_FINANCEMENT_ADV' AND
+																  ug.nom != 'GSL_DOLIBARR_FINANCEMENT_COMMERCIAL'");
+		//pre($TUserExculde,true); exit;
+		$link_user = $formdolibarr->select_dolusers($simulation->fk_user_author,'fk_user_author',1,$TUserExculde,0,'','',$conf->entity);
 	}
 	else{
 		$rachat_autres = "texteRO";
