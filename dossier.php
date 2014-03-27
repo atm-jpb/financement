@@ -489,7 +489,7 @@ function _liste_dossiers_incomplets(&$PDOdb, &$dossier) {
 	$r->liste($PDOdb, $sql, array(
 		'limit'=>array(
 			'page'=>1
-			,'nbLine'=>'30'
+			,'nbLine'=>1000
 		)
 		,'link'=>array(
 			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" title="Afficher société: test" alt="Afficher société: test" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
