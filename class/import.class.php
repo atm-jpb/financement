@@ -618,6 +618,9 @@ class TImport extends TObjetStd {
 			if($data['ref_service'] == 'SSC054') {
 				$integrale->fass = $data['cout_integrale'];
 			}
+			if($data['ref_service'] == 'SSC106') {
+				$integrale->fas = $data['cout_integrale'];
+			}
 		}
 		if($save == true) {
 			$integrale->save($ATMdb);
