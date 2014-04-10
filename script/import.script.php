@@ -70,6 +70,7 @@ dol_include_once("/financement/class/import_error.class.php");
 dol_include_once("/financement/class/commerciaux.class.php");
 dol_include_once("/financement/class/affaire.class.php");
 dol_include_once("/financement/class/dossier.class.php");
+dol_include_once("/financement/class/dossier_integrale.class.php");
 dol_include_once("/financement/class/grille.class.php");
 dol_include_once("/financement/class/score.class.php");
 dol_include_once("/asset/class/asset.class.php");
@@ -117,7 +118,7 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		
 		print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;
 		
-		rename($importFolder.$fileName, $importFolderOK.$fileName);
+		//rename($importFolder.$fileName, $importFolderOK.$fileName);
 	}
 }
 

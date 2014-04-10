@@ -9,6 +9,7 @@
 	require('../class/commerciaux.class.php');
 	require('../class/affaire.class.php');
 	require('../class/dossier.class.php');
+	require('../class/dossier_integrale.class.php');
 	require('../class/simulation.class.php');
 	require('../class/score.class.php');
 	require('../class/import.class.php');
@@ -53,4 +54,8 @@
 	$o->init_db_by_vars($ATMdb);
 	
 	$o=new TImportError;
+	$o->init_db_by_vars($ATMdb);
+	
+	// Intégrale
+	$o=new TIntegrale();
 	$o->init_db_by_vars($ATMdb);

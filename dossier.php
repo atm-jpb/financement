@@ -500,7 +500,8 @@ function _liste_dossiers_incomplets(&$PDOdb, &$dossier) {
 		
 	WHERE a.entity=".$conf->entity."
 	AND a.nature_financement = 'INTERNE'
-	AND (f.type = 'LEASER' AND (f.reference IS NULL OR f.reference = '' OR f.duree = 0 OR f.echeance = 0))";
+	AND (f.type = 'LEASER' AND (f.reference IS NULL OR f.reference = '' OR f.duree = 0 OR f.echeance = 0))
+	AND d.date_maj > '2013-06-13 00:00:00'";
 				
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
@@ -510,7 +511,7 @@ function _liste_dossiers_incomplets(&$PDOdb, &$dossier) {
 	$r->liste($PDOdb, $sql, array(
 		'limit'=>array(
 			'page'=>1
-			,'nbLine'=>'30'
+			,'nbLine'=>1000
 		)
 		,'link'=>array(
 			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" title="Afficher société: test" alt="Afficher société: test" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'

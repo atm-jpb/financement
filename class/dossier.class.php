@@ -579,7 +579,7 @@ class TFin_dossier extends TObjetStd {
 			$total_assurance+=$f->assurance;
 			$total_capital_amortit+=$capital_amortit;
 			$total_part_interet+=$part_interet;
-			
+			//echo date('d/m/Y', $time),' ', date('d/m/Y', $f->date_debut + $f->calage),'+'.($i*$f->getiPeriode()).' month',  $f->date_debut,' + ' , $f->calage/86400,'<br>';
 			// Construction donnée pour échéancier
 			$data=array(
 				'date'=>date('d/m/Y', $time)
@@ -1105,9 +1105,15 @@ class TFin_financement extends TObjetStd {
 	function calculCalage() {
 		if($this->loyer_intercalaire > 0) {
 			$p = $this->getiPeriode();
-			$nextPeriod = strtotime('+'.($p).' month',  $this->date_debut);
+			$nextPeriod = strtotime(date('Y-m-01', $this->date_debut));
+			$nextPeriod = strtotime('+'.($p).' month',  $nextPeriod);
 			$firstDayOfNextPeriod = strtotime( strftime( '%Y' , $nextPeriod) . '-' . ( ceil( strftime( '%m' , $nextPeriod)/$p )*$p-($p-1) ).'-1');
 			$this->calage = $firstDayOfNextPeriod - $this->date_debut;
+			
+			//echo $this->loyer_intercalaire, ' ', $this->calage,'+'.($p).' month',  date('d/m/Y',$this->date_debut),date('d/m/Y', $nextPeriod), date('d/m/Y', $firstDayOfNextPeriod) ,'<br>';
+		}
+		else {
+			$this->calage = 0;
 		}
 	}
 	function save(&$ATMdb) {
