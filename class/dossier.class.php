@@ -113,7 +113,7 @@ class TFin_dossier extends TObjetStd {
 	function deleteAffaire(&$db, $id) {
 		foreach($this->TLien as $k=>&$lien) {
 			if($lien->fk_fin_affaire==$id) {
-				$db->dbdelete('llx_fin_dossier_affaire', $lien->getId(), 'rowid' );
+				$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_affaire', $lien->getId(), 'rowid' );
 				unset($this->TLien[$k]);
 				return true;
 				
