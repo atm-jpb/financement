@@ -33,7 +33,7 @@ class ActionsFinancement
 		   
 			
 		  foreach($listsalesrepresentatives as $commercial) {
-			  $sql = "SELECT type_activite_cpro FROM llx_societe_commerciaux WHERE fk_soc=".$object->id." AND fk_user=".$commercial['id'];
+			  $sql = "SELECT type_activite_cpro FROM ".MAIN_DB_PREFIX."societe_commerciaux WHERE fk_soc=".$object->id." AND fk_user=".$commercial['id'];
 			  if($resql=$db->query($sql)) {
 			      $obj = $db->fetch_object($resql);
 				  if($obj->type_activite_cpro!='') {
@@ -68,7 +68,7 @@ class ActionsFinancement
 		  
 		  $id = isset($object->rowid) ? $object->rowid : $object->id;
 		  
-		  $sql = "SELECT type_activite_cpro FROM llx_societe_commerciaux WHERE fk_soc=".$parameters['socid']." AND fk_user=".$id;
+		  $sql = "SELECT type_activite_cpro FROM ".MAIN_DB_PREFIX."societe_commerciaux WHERE fk_soc=".$parameters['socid']." AND fk_user=".$id;
 		  
 		  if( $resql=$db->query($sql)) {
 			  $obj = $db->fetch_object($resql);
@@ -83,7 +83,7 @@ class ActionsFinancement
 		
 		// Affichage du dossier de financement relatif à la facture de location ou de l'affaire relative à la facture de matériel
 		if (in_array('invoicecard',explode(':',$parameters['context']))) {
-			$sql = "SELECT sourcetype, fk_source FROM llx_element_element WHERE fk_target=".$object->id." AND targettype='facture'";
+			$sql = "SELECT sourcetype, fk_source FROM ".MAIN_DB_PREFIX."element_element WHERE fk_target=".$object->id." AND targettype='facture'";
 			if($resql=$db->query($sql)) {
 				$obj = $db->fetch_object($resql);
 				if($obj->sourcetype == 'affaire') {
@@ -98,7 +98,7 @@ class ActionsFinancement
 		
 		// Affichage du dossier de financement relatif à la facture fournisseur
 		if (in_array('invoicesuppliercard',explode(':',$parameters['context']))) {
-			$sql = "SELECT sourcetype, fk_source FROM llx_element_element WHERE fk_target=".$object->id." AND targettype='invoice_supplier'";
+			$sql = "SELECT sourcetype, fk_source FROM ".MAIN_DB_PREFIX."element_element WHERE fk_target=".$object->id." AND targettype='invoice_supplier'";
 			if($resql=$db->query($sql)) {
 				$obj = $db->fetch_object($resql);
 				if($obj->sourcetype == 'dossier') {

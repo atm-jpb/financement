@@ -23,7 +23,7 @@ $ATMdb=new Tdb;
 $tva = (FIN_TVA_DEFAUT-1)*100;
 
 $sql = "SELECT rowid
-		FROM llx_facture_fourn
+		FROM ".MAIN_DB_PREFIX."facture_fourn
 		WHERE datec > '2013-07-01'";
 $Tab = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 

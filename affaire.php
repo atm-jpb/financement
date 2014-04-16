@@ -130,15 +130,15 @@ function _liste(&$ATMdb, &$affaire) {
 	$r = new TSSRenderControler($affaire);
 	$sql="SELECT a.rowid as 'ID', a.reference, a.montant as 'Montant', a.fk_soc, s.nom
 	, a.nature_financement, a.type_financement, a.contrat, a.date_affaire
-		FROM @table@ a LEFT JOIN llx_societe s ON (a.fk_soc=s.rowid)
+		FROM @table@ a LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid)
 		WHERE a.entity=".$conf->entity;
 	//echo $sql; exit;
 	$THide = array('fk_soc', 'ID');
 	
 	if(isset($_REQUEST['socid'])) {
 		$sql.= ' AND (a.fk_soc='.$_REQUEST['socid'].' OR  a.fk_soc IN (
-				SELECT ss.rowid FROM llx_societe as ss WHERE ss.siren = (
-					SELECT siren from llx_societe WHERE rowid = '.$_REQUEST['socid'].'
+				SELECT ss.rowid FROM '.MAIN_DB_PREFIX.'societe as ss WHERE ss.siren = (
+					SELECT siren from '.MAIN_DB_PREFIX.'societe WHERE rowid = '.$_REQUEST['socid'].'
 				) 
 				AND siren != "")
 			)';
