@@ -514,6 +514,11 @@ class TImport extends TObjetStd {
 					return false;
 				} else {
 					$this->nb_update++;
+					
+					// Ajout objet lié
+					if(!empty($facture_loc->linked_objects['dossier'])) {
+						$facture_loc->add_object_linked('dossier', $facture_loc->linked_objects['dossier']);
+					}
 				}
 			} else {
 				$res = $facture_loc->create($user);
