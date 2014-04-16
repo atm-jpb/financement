@@ -18,9 +18,9 @@ $user->getrights();
 
 $PDOdb=new TPDOdb;
 $sql = "SELECT f.reference, COUNT(i.rowid) as nbFact, SUM(CASE WHEN i.type = 0 THEN 1 ELSE -1 END) as echeance_passee
-FROM llx_fin_dossier_financement f
-LEFT JOIN llx_element_element ee ON ee.fk_source = f.fk_fin_dossier AND ee.sourcetype = 'dossier' AND ee.targettype = 'facture'
-LEFT JOIN llx_facture i ON i.rowid = ee.fk_target
+FROM ".MAIN_DB_PREFIX."fin_dossier_financement f
+LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON ee.fk_source = f.fk_fin_dossier AND ee.sourcetype = 'dossier' AND ee.targettype = 'facture'
+LEFT JOIN ".MAIN_DB_PREFIX."facture i ON i.rowid = ee.fk_target
 WHERE i.rowid IS NOT NULL
 GROUP BY f.reference";
 

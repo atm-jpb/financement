@@ -40,12 +40,12 @@ Les colonnes sont :
  	$date_fin = __get('date_fin','');
  
  	$sql =  "SELECT a.reference NumAffaire, d.rowid as 'idDossier',f.duree,f.numero_prochaine_echeance as 'numero_prochaine_echeance', a.type_financement TypeFin, client.nom Client, client.code_compta CodeClient, f.reference RefContratLeaser, leaser.nom Leaser, leaser.code_compta_fournisseur CodeLeaser, f.periodicite Periodicite
-		FROM llx_fin_dossier_financement f
-		LEFT JOIN llx_fin_dossier d ON d.rowid = f.fk_fin_dossier
-		LEFT JOIN llx_fin_dossier_affaire da ON da.fk_fin_dossier = d.rowid
-		LEFT JOIN llx_fin_affaire a ON a.rowid = da.fk_fin_affaire
-		LEFT JOIN llx_societe leaser ON leaser.rowid = f.fk_soc
-		LEFT JOIN llx_societe client ON client.rowid = a.fk_soc
+		FROM ".MAIN_DB_PREFIX."fin_dossier_financement f
+		LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON d.rowid = f.fk_fin_dossier
+		LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_dossier = d.rowid
+		LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire a ON a.rowid = da.fk_fin_affaire
+		LEFT JOIN ".MAIN_DB_PREFIX."societe leaser ON leaser.rowid = f.fk_soc
+		LEFT JOIN ".MAIN_DB_PREFIX."societe client ON client.rowid = a.fk_soc
 		WHERE f.type = 'LEASER'
 		AND a.type_financement IN ('ADOSSEE', 'MANDATEE') AND f.date_solde='0000-00-00'";
 		

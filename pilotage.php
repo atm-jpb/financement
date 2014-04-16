@@ -582,10 +582,10 @@ function _listeAdministrationDolibarr(&$ATMdb,$date_debut,$date_fin) {
 	global $langs, $db, $conf, $user;
 	
 	$sql = "SELECT COUNT(d.rowid) as 'nb'
-			FROM ((((llx_fin_dossier d LEFT OUTER JOIN llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier)) 
-				LEFT OUTER JOIN llx_fin_affaire a ON (l.fk_fin_affaire=a.rowid)) 
-				LEFT OUTER JOIN llx_fin_dossier_financement f ON (d.rowid=f.fk_fin_dossier )) 
-				LEFT OUTER JOIN llx_societe s ON (a.fk_soc=s.rowid)) 
+			FROM ((((".MAIN_DB_PREFIX."fin_dossier d LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier)) 
+				LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (l.fk_fin_affaire=a.rowid)) 
+				LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_financement f ON (d.rowid=f.fk_fin_dossier )) 
+				LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid)) 
 			WHERE a.entity=1 
 				AND a.nature_financement = 'INTERNE' 
 				AND (f.type = 'LEASER' 

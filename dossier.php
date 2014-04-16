@@ -180,12 +180,12 @@ function _liste(&$PDOdb, &$dossier) {
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END as 'date_debut', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END as 'Fin' ";
 	$sql.="FROM ((((((@table@ d ";
-	$sql.="LEFT OUTER JOIN llx_fin_dossier_affaire da ON (d.rowid=da.fk_fin_dossier)) ";
-	$sql.="LEFT OUTER JOIN llx_fin_affaire a ON (da.fk_fin_affaire=a.rowid)) ";
-	$sql.="LEFT OUTER JOIN llx_fin_dossier_financement fc ON (d.rowid=fc.fk_fin_dossier AND fc.type='CLIENT')) ";
-	$sql.="LEFT OUTER JOIN llx_fin_dossier_financement fl ON (d.rowid=fl.fk_fin_dossier AND fl.type='LEASER')) ";
-	$sql.="LEFT OUTER JOIN llx_societe c ON (a.fk_soc=c.rowid)) ";
-	$sql.="LEFT OUTER JOIN llx_societe l ON (fl.fk_soc=l.rowid)) ";
+	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (d.rowid=da.fk_fin_dossier)) ";
+	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (da.fk_fin_affaire=a.rowid)) ";
+	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_financement fc ON (d.rowid=fc.fk_fin_dossier AND fc.type='CLIENT')) ";
+	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_financement fl ON (d.rowid=fl.fk_fin_dossier AND fl.type='LEASER')) ";
+	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe c ON (a.fk_soc=c.rowid)) ";
+	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe l ON (fl.fk_soc=l.rowid)) ";
 		
 	$sql.="WHERE a.entity=".$conf->entity;
 	
@@ -281,7 +281,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	$otherAffaire='';
 	if($mode=='edit') {
 		
-		$Tab = TRequeteCore::get_id_from_what_you_want($PDOdb,'llx_fin_affaire', "solde>0" ,'reference');
+		$Tab = TRequeteCore::get_id_from_what_you_want($PDOdb, MAIN_DB_PREFIX."fin_affaire", "solde>0" ,'reference');
 		$otherAffaire = '["'. implode('","', $Tab). '"]';
 		
 	}
@@ -493,10 +493,10 @@ function _liste_dossiers_incomplets(&$PDOdb, &$dossier) {
 	$sql="SELECT d.rowid as 'ID', f.reference, a.rowid as 'ID affaire', a.reference as 'N° affaire', a.contrat, a.fk_soc as 'fk_soc', s.nom, 
 	f.montant as 'Montant', f.duree as 'Durée', f.echeance as 'Echéance', f.date_prochaine_echeance as 'Prochaine', f.date_debut
 	FROM ((((@table@ d
-		LEFT OUTER JOIN llx_fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
-		LEFT OUTER JOIN llx_fin_affaire a ON (l.fk_fin_affaire=a.rowid))
-		LEFT OUTER JOIN llx_fin_dossier_financement f ON (d.rowid=f.fk_fin_dossier ))
-		LEFT OUTER JOIN llx_societe s ON (a.fk_soc=s.rowid))
+		LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
+		LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (l.fk_fin_affaire=a.rowid))
+		LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_financement f ON (d.rowid=f.fk_fin_dossier ))
+		LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid))
 		
 	WHERE a.entity=".$conf->entity."
 	AND a.nature_financement = 'INTERNE'
