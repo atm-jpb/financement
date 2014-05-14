@@ -261,9 +261,9 @@ class TFin_affaire extends TObjetStd {
 		
 		//Chargement des noeuds correspondant aux affaires
 		$affaires = $this->_getAffairesXML($xml);
-		
+
 		$affairelist->appendChild($affaires);
-		
+
 		$xml->saveXML();
 	}
 	
@@ -274,11 +274,11 @@ class TFin_affaire extends TObjetStd {
 		$affaire->appendChild($xml->createElement("dateSignature"));
 		$affaire->appendChild($xml->createElement("numDossierDe"));
 		$affaire->appendChild($xml->createElement("siretClient"));
-		
+
 		$elements = $this->_getElementsXML($xml);
-		
+
 		$affaire->appenChild($elements);
-		
+
 		return $affaire;
 
 	}
@@ -339,9 +339,9 @@ class TFin_affaire extends TObjetStd {
 
 		$commande->appendChild($xml->createElement("noCommande"));
 		$commande->appendChild($xml->createElement("fournisseur"));
-		
+
 		$commandeLig = $this->_getCommandeLigXML($xml);
-		
+
 		$commande->appendChild($commandeLig);
 
 		return $commande;
@@ -367,7 +367,7 @@ class TFin_affaire_commercial extends TObjetStd {
 
 		parent::set_table(MAIN_DB_PREFIX.'fin_affaire_commercial');
 		parent::add_champs('fk_user,fk_fin_affaire','type=entier;index;');
-		
+
 		parent::_init_vars();
 		parent::start();
 		

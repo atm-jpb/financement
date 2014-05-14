@@ -172,8 +172,15 @@ function _liste(&$PDOdb, &$dossier) {
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_financement fl ON (d.rowid=fl.fk_fin_dossier AND fl.type='LEASER')) ";
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe c ON (a.fk_soc=c.rowid)) ";
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe l ON (fl.fk_soc=l.rowid)) ";
-		
+
 	$sql.="WHERE a.entity=".$conf->entity;
+	
+	//Filtrage sur leaser et uniquement dossier avec "Bon pour transfert" = 1 (Oui)
+	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
+		$fk_leaser = __val($_REQUEST['fk_leaser'],'','integer');
+
+		$sql .= " AND l.rowid = ".$fk_leaser." AND d.transfert = 1";
+	}
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	$aff = new TFin_affaire;

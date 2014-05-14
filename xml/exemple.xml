@@ -1,34 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <affaireList>
-	<nomFich>CPRO010000000001</nomFich>
-	<refExtPartenaire>CPROA01</refExtPartenaire>
-	<numLot>0000000001</numLot>
+	<nomFich>CPRO010000000001</nomFich> //Nom du fichier généré (?)
+	<refExtPartenaire>CPROA01</refExtPartenaire> //Numéro d'affaire Artis (?)
+	<numLot>0000000001</numLot> (?)
 	<affaire>
-		<dateSignature>2011-06-01</dateSignature>
-		<numDossierDe>231140-B0</numDossierDe>
-		<siretClient>34943215300030</siretClient>
+		<dateSignature>2011-06-01</dateSignature> //Date de l'affaire (?)
+		<numDossierDe>231140-B0</numDossierDe> //Numéro Dossier Leaser
+		<siretClient>34943215300030</siretClient> //idProf2 sur fiche tiers
 		<element>
-			<noElement>1</noElement>
-			<periodicite>1</periodicite>
-			<codeTaxe>10</codeTaxe>
-			<terme>A</terme>
-			<datePremEch>2011-06-01</datePremEch>
+			<noElement>1</noElement> //Entier incrémentale (?)
+			<periodicite>1</periodicite> //Périodicité
+			<codeTaxe>10</codeTaxe> //Taux de TVA
+			<terme>A</terme> //Terme du dossier
+			<datePremEch>2011-06-01</datePremEch> //Date de première échéance
 			<bien>
-				<immobilisation>20087101</immobilisation>
-				<designation1>COPIEUR</designation1>
-				<noSerie>23BDA5114</noSerie>
-				<immatriculable>NON</immatriculable>
-				<codeAssietteTheorique>TR</codeAssietteTheorique>
-				<montant>70000.00</montant>
+				<immobilisation>20087101</immobilisation> //Entier incrémentale (?)
+				<designation1>COPIEUR</designation1> //Libellé produit
+				<noSerie>23BDA5114</noSerie> //Numéro de série équipement
+				<immatriculable>NON</immatriculable> (?)
+				<codeAssietteTheorique>TR</codeAssietteTheorique> (?)
+				<montant>70000.00</montant> //Montant HT de la facture client
 			</bien>
-			<palier>
-				<no>1</no>
-				<nbre>1</nbre>
-				<montant>2000.00</montant>
-				<terme>A</terme>
-				<periodicite>1</periodicite>
-				<mtVnf>68283.33</mtVnf>
-				<pourcVnf>97.547614</pourcVnf>
+			<palier> //Echéancier
+				<no>1</no> //Entier incrémentale (?)
+				<nbre>1</nbre> //Durée = nombre d'échéances OU numéro prochaine échéance (?)
+				<montant>2000.00</montant> //Montant du loyers HT de l'échéance
+				<terme>A</terme> //Terme du Dossier
+				<periodicite>1</periodicite> //Périodicité du Dossier
+				<mtVnf>68283.33</mtVnf> //Solde renouvelant après échéance (?)
+				<pourcVnf>97.547614</pourcVnf> //Solde renouvelant après échéance (?)
 			</palier>
 			<palier>
 				<no>2</no>
