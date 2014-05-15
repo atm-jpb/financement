@@ -93,8 +93,7 @@ class TFin_affaire extends TObjetStd {
 			$this->TLien[$i]=new TFin_dossier_affaire;
 			$this->TLien[$i]->load($db, $id);
 			$this->TLien[$i]->dossier->load($db, $this->TLien[$i]->fk_fin_dossier, false);
-			
-			
+
 		}
 		
 		$this->calculSolde();
@@ -169,7 +168,7 @@ class TFin_affaire extends TObjetStd {
 			$this->TLien[$i]=new TFin_dossier_affaire;
 			$this->TLien[$i]->fk_fin_affaire = $this->rowid;
 			$this->TLien[$i]->fk_fin_dossier = $dossier->rowid;  
-			 
+
 			$this->TLien[$i]->dossier= $dossier;
 			
 		//	print_r($this->TLien[$i]);
@@ -188,7 +187,7 @@ class TFin_affaire extends TObjetStd {
 				$lien->delete($db);
 				unset($this->TAsset[$k]);
 				return true;
-				
+
 			}
 		}		 
 		
@@ -203,12 +202,11 @@ class TFin_affaire extends TObjetStd {
 		$asset->load($db, $id); 
 		$i = $asset->add_link($this->getId(), 'affaire'); 
 		$asset->save($db);
-		 
+
 		$asset->TLink[$i]->asset = $asset ;
-		 
+
 		$this->TAsset[]=$asset->TLink[$i];
-		
-		
+
 		return true;		
 	}
 	
@@ -232,9 +230,9 @@ class TFin_affaire extends TObjetStd {
 		$this->TCommercial[$i]=new TFin_affaire_commercial;
 		$this->TCommercial[$i]->fk_fin_affaire = $this->getId();
 		$this->TCommercial[$i]->fk_user = $id;
-		
+
 		return true;
-		
+
 	}
 	
 	function loadReference(&$db, $reference,$annexe=false) {
@@ -249,32 +247,57 @@ class TFin_affaire extends TObjetStd {
 		
 	}
 	
-	function genLixbailXML(&$ATMdb,$resetall = false){
+	function getAffairesForXML(&$ATMdb,$leasername = 'LIXXBAIL (MANDATE)'){
 		
+		$TAffaires = array();
+		
+		$sql = 'SELECT fa.rowid 
+				FROM '.MAIN_DB_PREFIX.'fin_affaire as fa
+					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire as da ON (da.fk_fin_affaire = fa.rowid)
+					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement as df ON (df.fk_fin_dossier = da.fk_fin_dossier)
+					LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = df.fk_soc)
+				WHERE fa.type_financement = "MANDATEE"
+					AND df.type = "LEASER"
+					AND s.nom = "'.$leasername.'"';
+					//AND df.transfert = 1';
+		
+		$TIdAffaire = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
+		
+		foreach($TIdAffaire as $idAffaire){
+			
+			$affaire = new  TFin_affaire;
+			$affaire->load($ATMdb, $idAffaire);
+			
+			$TAffaires[] = $affaire;
+		}
+	
+		return $TAffaires;
+	}	
+	
+	function genLixxbailXML(&$TAffaires){
+		
+		$name = "FP_207_MA01_CPRO_".date('Ymd');
+
 		$xml = new DOMDocument('1.0','UTF-8');
 		$xml->formatOutput = true;
-		
+
 		$affairelist = $xml->createElement("affaireList");
 		$affairelist = $xml->appendChild($affairelist);
-		
-		$affairelist->appendChild($xml->createElement("nomFich"," "));
+
+		$affairelist->appendChild($xml->createElement("nomFich",$name));
 		$affairelist->appendChild($xml->createElement("refExtPartenaire"," "));
 		$affairelist->appendChild($xml->createElement("numLot"," "));
 		
 		//Chargement des noeuds correspondant aux affaires
-		$affaires = $this->_getAffairesXML($xml);
+		foreach($TAffaires as $Affaire){
+			$affaires = $this->_getAffairesXML($xml,$Affaire);
 
-		$affairelist->appendChild($affaires);
-		
-		$chaine = $xml->saveXML();
-		
-		file_put_contents('xml/test.xml', $chaine);
-		
-		//TODO peupler TDossiers avec les dossiers ressortient dans le XML
-		
-		if($resetall){
-			$this->resetAllDossiersInXML($ATMdb,$TDossiers);
+			$affairelist->appendChild($affaires);
 		}
+
+		$chaine = $xml->saveXML();
+
+		file_put_contents('xml/Lixbail/'.$name.'.xml', $chaine);
 	}
 	
 	function resetAllDossiersInXML(&$ATMdb,&$TDossiers){
@@ -285,23 +308,26 @@ class TFin_affaire extends TObjetStd {
 		}
 	}
 	
-	function _getAffairesXML(&$xml){
+	function _getAffairesXML(&$xml,&$Affaire){
 		
 		$affaire = $xml->createElement("affaire");
 
-		$affaire->appendChild($xml->createElement("dateSignature"," "));
-		$affaire->appendChild($xml->createElement("numDossierDe"," "));
-		$affaire->appendChild($xml->createElement("siretClient"," "));
-
-		$elements = $this->_getElementsXML($xml);
-
-		$affaire->appendChild($elements);
+		$affaire->appendChild($xml->createElement("dateSignature",$Affaire->date_affaire));
+		$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[0]->dossier->reference));
+		$affaire->appendChild($xml->createElement("siretClient",(!empty($Affaire->societe->siret)) ? $Affaire->societe->siret : $Affaire->societe->siren ));
+		
+		//print_r($Affaire); exit;
+		
+		foreach($Affaire->Tlien as $i => $Tdata){
+			$elements = $this->_getElementsXML($xml,$Affaire);
+			$affaire->appendChild($elements);
+		}
 
 		return $affaire;
 
 	}
 	
-	function _getElementsXML(&$xml){
+	function _getElementsXML(&$xml,&$Affaire){
 		
 		$element = $xml->createElement("element");
 
@@ -310,15 +336,15 @@ class TFin_affaire extends TObjetStd {
 		$element->appendChild($xml->createElement("codeTaxe"," "));
 		$element->appendChild($xml->createElement("terme"," "));
 		$element->appendChild($xml->createElement("datePremEch"," "));
-		
+
 		$bien = $this->_getBiensXML($xml);
 		$paliers = $this->_getPaliersXML($xml);
 		$commande = $this->_getCommandeXML($xml);
-		
+
 		$element->appendChild($bien);
 		$element->appendChild($paliers);
 		$element->appendChild($commande);
-		
+
 		return $element;
 	}
 	

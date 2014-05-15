@@ -137,7 +137,10 @@
 			case 'generateXML':
 				
 				$affaire = new TFin_affaire;
-				$affaire->genLixbailXML($PDOdb);
+				
+				$TAffaires = $affaire->getAffairesForXML($PDOdb);
+				
+				$affaire->genLixxbailXML($TAffaires);
 				
 				break;
 		}
