@@ -319,7 +319,7 @@ class TFin_affaire extends TObjetStd {
 		//print_r($Affaire); exit;
 		
 		foreach($Affaire->Tlien as $i => $Tdata){
-			$elements = $this->_getElementsXML($xml,$Affaire);
+			$elements = $this->_getElementsXML($xml,$Tdata,$i);
 			$affaire->appendChild($elements);
 		}
 
@@ -327,15 +327,15 @@ class TFin_affaire extends TObjetStd {
 
 	}
 	
-	function _getElementsXML(&$xml,&$Affaire){
+	function _getElementsXML(&$xml,&$Tdata,$i){
 		
 		$element = $xml->createElement("element");
 
-		$element->appendChild($xml->createElement("noElement"," "));
-		$element->appendChild($xml->createElement("periodicite"," "));
-		$element->appendChild($xml->createElement("codeTaxe"," "));
-		$element->appendChild($xml->createElement("terme"," "));
-		$element->appendChild($xml->createElement("datePremEch"," "));
+		$element->appendChild($xml->createElement("noElement",$i+1));
+		$element->appendChild($xml->createElement("periodicite",$Tdata->dossier->financementLeaser->periodicite));
+		$element->appendChild($xml->createElement("codeTaxe","20"));
+		$element->appendChild($xml->createElement("terme",substr($Tdata->dossier->financementLeaser->TTerme[$Tdata->dossier->financementLeaser->terme],0,1)));
+		$element->appendChild($xml->createElement("datePremEch",$Tdata->dossier->financementLeaser->date_debut));
 
 		$bien = $this->_getBiensXML($xml);
 		$paliers = $this->_getPaliersXML($xml);
