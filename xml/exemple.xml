@@ -2,7 +2,7 @@
 <affaireList>
 	<nomFich>CPRO010000000001</nomFich> //Nom du fichier généré (?)
 	<refExtPartenaire>CPROA01</refExtPartenaire> //Numéro d'affaire Artis (?)
-	<numLot>0000000001</numLot> (?)
+	<numLot>0000000001</numLot> //Entier incrémentale (?)
 	<affaire>
 		<dateSignature>2011-06-01</dateSignature> //Date de l'affaire (?)
 		<numDossierDe>231140-B0</numDossierDe> //Numéro Dossier Leaser
@@ -30,16 +30,16 @@
 				<mtVnf>68283.33</mtVnf> //Solde renouvelant après échéance (?)
 				<pourcVnf>97.547614</pourcVnf> //Solde renouvelant après échéance (?)
 			</palier>
-			<palier>
-				<no>2</no>
-				<nbre>47</nbre>
-				<montant>1394.23</montant>
-				<terme>A</terme>
-				<periodicite>1</periodicite>
-				<mtVnf>10500</mtVnf>
-				<pourcVnf>15</pourcVnf>
+			<palier> //Echéancier
+				<no>2</no> //Entier incrémentale (?)
+				<nbre>47</nbre> //Durée = nombre d'échéances OU numéro prochaine échéance (?)
+				<montant>1394.23</montant> //Montant du loyers HT de l'échéance
+				<terme>A</terme> //Terme du Dossier
+				<periodicite>1</periodicite> //Périodicité du Dossier
+				<mtVnf>10500</mtVnf> //Solde renouvelant après échéance (?)
+				<pourcVnf>15</pourcVnf> //Solde renouvelant après échéance (?)
 			</palier>
-			<commande>
+			<commande> ???
 				<noCommande>20087150</noCommande>
 				<fournisseur>M000346277</fournisseur>
 				<commandeLig>
@@ -49,47 +49,6 @@
 					<codeTaxe>10</codeTaxe>
 					<mtTaxe>13720.00</mtTaxe>
 					<mtTTC>83720.00</mtTTC>
-				</commandeLig>
-			</commande>
-		</element>
-	</affaire>
-	<affaire>
-		<dateSignature>2011-06-01</dateSignature>
-		<numDossierDe>231141-B0</numDossierDe>
-		<siretClient>35278474800035</siretClient>
-		<element>
-			<noElement>1</noElement>
-			<periodicite>1</periodicite>
-			<codeTaxe>10</codeTaxe>
-			<terme>A</terme>
-			<datePremEch>2011-06-01</datePremEch>
-			<bien>
-				<immobilisation>20097194</immobilisation>
-				<designation1>CANON</designation1>
-				<noSerie>23BDA5115</noSerie>
-				<immatriculable>NON</immatriculable>
-				<codeAssietteTheorique>VS</codeAssietteTheorique>
-				<montant>45000</montant>
-			</bien>
-			<palier>
-				<no>1</no>
-				<nbre>36</nbre>
-				<montant>985.5</montant>
-				<terme>A</terme>
-				<periodicite>1</periodicite>
-				<mtVnf>4500</mtVnf>
-				<pourcVnf>10</pourcVnf>
-			</palier>
-			<commande>
-				<noCommande>20097194</noCommande>
-				<fournisseur>M000346277</fournisseur>
-				<commandeLig>
-					<immobilisation>20097194</immobilisation>
-					<codeTypeLigne>ABIE</codeTypeLigne>
-					<mtHt>45000</mtHt>
-					<codeTaxe>10</codeTaxe>
-					<mtTaxe>8820</mtTaxe>
-					<mtTTC>53820</mtTTC>
 				</commandeLig>
 			</commande>
 		</element>

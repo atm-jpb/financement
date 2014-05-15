@@ -257,9 +257,9 @@ class TFin_affaire extends TObjetStd {
 		$affairelist = $xml->createElement("affaireList");
 		$affairelist = $xml->appendChild($affairelist);
 		
-		$affairelist->appendChild($xml->createElement("nomFich"));
-		$affairelist->appendChild($xml->createElement("refExtPartenaire"));
-		$affairelist->appendChild($xml->createElement("numLot"));
+		$affairelist->appendChild($xml->createElement("nomFich"," "));
+		$affairelist->appendChild($xml->createElement("refExtPartenaire"," "));
+		$affairelist->appendChild($xml->createElement("numLot"," "));
 		
 		//Chargement des noeuds correspondant aux affaires
 		$affaires = $this->_getAffairesXML($xml);
@@ -289,9 +289,9 @@ class TFin_affaire extends TObjetStd {
 		
 		$affaire = $xml->createElement("affaire");
 
-		$affaire->appendChild($xml->createElement("dateSignature"));
-		$affaire->appendChild($xml->createElement("numDossierDe"));
-		$affaire->appendChild($xml->createElement("siretClient"));
+		$affaire->appendChild($xml->createElement("dateSignature"," "));
+		$affaire->appendChild($xml->createElement("numDossierDe"," "));
+		$affaire->appendChild($xml->createElement("siretClient"," "));
 
 		$elements = $this->_getElementsXML($xml);
 
@@ -305,11 +305,11 @@ class TFin_affaire extends TObjetStd {
 		
 		$element = $xml->createElement("element");
 
-		$element->appendChild($xml->createElement("noElement"));
-		$element->appendChild($xml->createElement("periodicite"));
-		$element->appendChild($xml->createElement("codeTaxe"));
-		$element->appendChild($xml->createElement("terme"));
-		$element->appendChild($xml->createElement("datePremEch"));
+		$element->appendChild($xml->createElement("noElement"," "));
+		$element->appendChild($xml->createElement("periodicite"," "));
+		$element->appendChild($xml->createElement("codeTaxe"," "));
+		$element->appendChild($xml->createElement("terme"," "));
+		$element->appendChild($xml->createElement("datePremEch"," "));
 		
 		$bien = $this->_getBiensXML($xml);
 		$paliers = $this->_getPaliersXML($xml);
@@ -326,12 +326,12 @@ class TFin_affaire extends TObjetStd {
 		
 		$bien = $xml->createElement("bien");
 
-		$bien->appendChild($xml->createElement("immobilisation"));
-		$bien->appendChild($xml->createElement("designation"));
-		$bien->appendChild($xml->createElement("noSerie"));
-		$bien->appendChild($xml->createElement("immatriculable"));
-		$bien->appendChild($xml->createElement("codeAssietteTheorique"));
-		$bien->appendChild($xml->createElement("montant"));
+		$bien->appendChild($xml->createElement("immobilisation"," "));
+		$bien->appendChild($xml->createElement("designation"," "));
+		$bien->appendChild($xml->createElement("noSerie"," "));
+		$bien->appendChild($xml->createElement("immatriculable"," "));
+		$bien->appendChild($xml->createElement("codeAssietteTheorique"," "));
+		$bien->appendChild($xml->createElement("montant"," "));
 
 		return $bien;
 	}
@@ -340,13 +340,13 @@ class TFin_affaire extends TObjetStd {
 		
 		$palier = $xml->createElement("bien");
 
-		$palier->appendChild($xml->createElement("no"));
-		$palier->appendChild($xml->createElement("nbre"));
-		$palier->appendChild($xml->createElement("montant"));
-		$palier->appendChild($xml->createElement("terme"));
-		$palier->appendChild($xml->createElement("periodicite"));
-		$palier->appendChild($xml->createElement("mtVnf"));
-		$palier->appendChild($xml->createElement("pourcVnf"));
+		$palier->appendChild($xml->createElement("no"," "));
+		$palier->appendChild($xml->createElement("nbre"," "));
+		$palier->appendChild($xml->createElement("montant"," "));
+		$palier->appendChild($xml->createElement("terme"," "));
+		$palier->appendChild($xml->createElement("periodicite"," "));
+		$palier->appendChild($xml->createElement("mtVnf"," "));
+		$palier->appendChild($xml->createElement("pourcVnf"," "));
 
 		return $palier;
 	}
@@ -355,8 +355,8 @@ class TFin_affaire extends TObjetStd {
 		
 		$commande = $xml->createElement("commande");
 
-		$commande->appendChild($xml->createElement("noCommande"));
-		$commande->appendChild($xml->createElement("fournisseur"));
+		$commande->appendChild($xml->createElement("noCommande"," "));
+		$commande->appendChild($xml->createElement("fournisseur"," "));
 
 		$commandeLig = $this->_getCommandeLigXML($xml);
 
@@ -369,12 +369,12 @@ class TFin_affaire extends TObjetStd {
 		
 		$commandeLig = $xml->createElement("commandeLig");
 
-		$commandeLig->appendChild($xml->createElement("immobilisation"));
-		$commandeLig->appendChild($xml->createElement("codeTypeLigne"));
-		$commandeLig->appendChild($xml->createElement("mtHt"));
-		$commandeLig->appendChild($xml->createElement("codeTaxe"));
-		$commandeLig->appendChild($xml->createElement("mtTaxe"));
-		$commandeLig->appendChild($xml->createElement("mtTTC"));
+		$commandeLig->appendChild($xml->createElement("immobilisation"," "));
+		$commandeLig->appendChild($xml->createElement("codeTypeLigne"," "));
+		$commandeLig->appendChild($xml->createElement("mtHt"," "));
+		$commandeLig->appendChild($xml->createElement("codeTaxe"," "));
+		$commandeLig->appendChild($xml->createElement("mtTaxe"," "));
+		$commandeLig->appendChild($xml->createElement("mtTTC"," "));
 
 		return $commandeLig;
 	}

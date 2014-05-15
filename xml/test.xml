@@ -1,45 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <affaireList>
-  <nomFich/>
-  <refExtPartenaire/>
-  <numLot/>
+  <nomFich> </nomFich>
+  <refExtPartenaire> </refExtPartenaire>
+  <numLot> </numLot>
   <affaire>
-    <dateSignature/>
-    <numDossierDe/>
-    <siretClient/>
+    <dateSignature> </dateSignature>
+    <numDossierDe> </numDossierDe>
+    <siretClient> </siretClient>
     <element>
-      <noElement/>
-      <periodicite/>
-      <codeTaxe/>
-      <terme/>
-      <datePremEch/>
+      <noElement> </noElement>
+      <periodicite> </periodicite>
+      <codeTaxe> </codeTaxe>
+      <terme> </terme>
+      <datePremEch> </datePremEch>
       <bien>
-        <immobilisation/>
-        <designation1/>
-        <noSerie/>
-        <immatriculable/>
-        <codeAssietteTheorique/>
-        <montant/>
+        <immobilisation> </immobilisation>
+        <designation> </designation>
+        <noSerie> </noSerie>
+        <immatriculable> </immatriculable>
+        <codeAssietteTheorique> </codeAssietteTheorique>
+        <montant> </montant>
       </bien>
       <bien>
-        <no/>
-        <nbre/>
-        <montant/>
-        <terme/>
-        <periodicite/>
-        <mtVnf/>
-        <pourcVnf/>
+        <no> </no>
+        <nbre> </nbre>
+        <montant> </montant>
+        <terme> </terme>
+        <periodicite> </periodicite>
+        <mtVnf> </mtVnf>
+        <pourcVnf> </pourcVnf>
       </bien>
       <commande>
-        <noCommande/>
-        <fournisseur/>
+        <noCommande> </noCommande>
+        <fournisseur> </fournisseur>
         <commandeLig>
-          <immobilisation/>
-          <codeTypeLigne/>
-          <mtHt/>
-          <codeTaxe/>
-          <mtTaxe/>
-          <mtTTC/>
+          <immobilisation> </immobilisation>
+          <codeTypeLigne> </codeTypeLigne>
+          <mtHt> </mtHt>
+          <codeTaxe> </codeTaxe>
+          <mtTaxe> </mtTaxe>
+          <mtTTC> </mtTTC>
         </commandeLig>
       </commande>
     </element>
