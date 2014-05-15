@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<affaireList>
+  <nomFich/>
+  <refExtPartenaire/>
+  <numLot/>
+  <affaire>
+    <dateSignature/>
+    <numDossierDe/>
+    <siretClient/>
+    <element>
+      <noElement/>
+      <periodicite/>
+      <codeTaxe/>
+      <terme/>
+      <datePremEch/>
+      <bien>
+        <immobilisation/>
+        <designation1/>
+        <noSerie/>
+        <immatriculable/>
+        <codeAssietteTheorique/>
+        <montant/>
+      </bien>
+      <bien>
+        <no/>
+        <nbre/>
+        <montant/>
+        <terme/>
+        <periodicite/>
+        <mtVnf/>
+        <pourcVnf/>
+      </bien>
+      <commande>
+        <noCommande/>
+        <fournisseur/>
+        <commandeLig>
+          <immobilisation/>
+          <codeTypeLigne/>
+          <mtHt/>
+          <codeTaxe/>
+          <mtTaxe/>
+          <mtTTC/>
+        </commandeLig>
+      </commande>
+    </element>
+  </affaire>
+</affaireList>

@@ -1,4 +1,5 @@
 <?php
+	ini_set("display_errors", true);
 	require('config.php');
 	require('./class/affaire.class.php');
 	require('./class/dossier.class.php');
@@ -132,7 +133,13 @@
 				
 				_fiche($PDOdb,$dossier,'edit');
 				
-				break;	
+				break;
+			case 'generateXML':
+				
+				$affaire = new TFin_affaire;
+				$affaire->genLixbailXML($PDOdb);
+				
+				break;
 		}
 		
 	}
@@ -245,6 +252,12 @@ function _liste(&$PDOdb, &$dossier) {
 		
 	));
 	$form->end();
+	
+	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
+		?>
+		<div class="tabsAction"><a href="?action=generateXML" class="butAction">Générer la XML Lixbail</a></div>
+		<?php
+	}
 	
 	llxFooter();
 }

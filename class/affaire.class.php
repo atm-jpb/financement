@@ -249,11 +249,13 @@ class TFin_affaire extends TObjetStd {
 		
 	}
 	
-	function genLixbailXML(){
+	function genLixbailXML(&$ATMdb,$resetall = false){
 		
-		$xml = new DOMDocument("1.0","UTF-8");
-
+		$xml = new DOMDocument('1.0','UTF-8');
+		$xml->formatOutput = true;
+		
 		$affairelist = $xml->createElement("affaireList");
+		$affairelist = $xml->appendChild($affairelist);
 		
 		$affairelist->appendChild($xml->createElement("nomFich"));
 		$affairelist->appendChild($xml->createElement("refExtPartenaire"));
@@ -263,8 +265,24 @@ class TFin_affaire extends TObjetStd {
 		$affaires = $this->_getAffairesXML($xml);
 
 		$affairelist->appendChild($affaires);
-
-		$xml->saveXML();
+		
+		$chaine = $xml->saveXML();
+		
+		file_put_contents('xml/test.xml', $chaine);
+		
+		//TODO peupler TDossiers avec les dossiers ressortient dans le XML
+		
+		if($resetall){
+			$this->resetAllDossiersInXML($ATMdb,$TDossiers);
+		}
+	}
+	
+	function resetAllDossiersInXML(&$ATMdb,&$TDossiers){
+		
+		foreach($TDossiers as $dossier){
+			$dossier->financementLeaser->transfert = 0;
+			$dossier->save($ATMdb);
+		}
 	}
 	
 	function _getAffairesXML(&$xml){
@@ -277,7 +295,7 @@ class TFin_affaire extends TObjetStd {
 
 		$elements = $this->_getElementsXML($xml);
 
-		$affaire->appenChild($elements);
+		$affaire->appendChild($elements);
 
 		return $affaire;
 
@@ -309,7 +327,7 @@ class TFin_affaire extends TObjetStd {
 		$bien = $xml->createElement("bien");
 
 		$bien->appendChild($xml->createElement("immobilisation"));
-		$bien->appendChild($xml->createElement("designation1"));
+		$bien->appendChild($xml->createElement("designation"));
 		$bien->appendChild($xml->createElement("noSerie"));
 		$bien->appendChild($xml->createElement("immatriculable"));
 		$bien->appendChild($xml->createElement("codeAssietteTheorique"));
