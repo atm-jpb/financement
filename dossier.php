@@ -4,6 +4,7 @@
 	require('./class/dossier.class.php');
 	require('./class/grille.class.php');
 	
+	dol_include_once("/core/lib/company.lib.php");
 	dol_include_once('/asset/class/asset.class.php');
 	
 	$langs->load('financement@financement');
@@ -152,9 +153,20 @@
 	llxFooter();
 	
 function _liste(&$PDOdb, &$dossier) {
-	global $conf;
+	global $conf, $db, $langs;
 	
 	llxHeader('','Dossiers');
+	
+	//Affichage de l'en-tête société si fk_leaser
+	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
+		$fk_leaser = __val($_REQUEST['fk_leaser'],'','integer');
+
+		$societe = new Societe($db);
+		$societe->fetch($fk_leaser);
+		$head = societe_prepare_head($societe);
+		
+		print dol_get_fiche_head($head, 'transfert', $langs->trans("ThirdParty"),0,'company');
+	}
 	
 	$r = new TSSRenderControler($dossier);
 	$sql ="SELECT d.rowid as 'ID', fc.reference as refDosCli, fl.reference as refDosLea, a.rowid as 'ID affaire', a.reference as 'Affaire', ";
@@ -179,7 +191,7 @@ function _liste(&$PDOdb, &$dossier) {
 	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
 		$fk_leaser = __val($_REQUEST['fk_leaser'],'','integer');
 
-		$sql .= " AND l.rowid = ".$fk_leaser." AND d.transfert = 1";
+		$sql .= " AND l.rowid = ".$fk_leaser." AND fl.transfert = 1";
 	}
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
@@ -230,6 +242,7 @@ function _liste(&$PDOdb, &$dossier) {
 			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
 			//,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
 		)
+		
 	));
 	$form->end();
 	
@@ -297,7 +310,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	$leaser=new Societe($db);
 	if($financementLeaser->fk_soc>0)$leaser->fetch($financementLeaser->fk_soc);
 	else { $leaser->nom="Non défini"; }
-
+	
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()
 			,'reference'=>$form->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir')
@@ -330,6 +343,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'leaser'=>($mode=='edit') ? $html->select_company($leaser->id,'leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->getNomUrl(1)
 			
 			,'okPourFacturation'=>$form->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
+			,'transfert'=>$form->combo('', 'leaser[transfert]', $financementLeaser->TTransfert , $financementLeaser->transfert)
 			
 			,'reinit'=>'<a href="'.$_SERVER['PHP_SELF'].'?action=regenerate-facture-leaser&id='.$dossier->getId().'">Lancer</a>'
 			
@@ -415,6 +429,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 		$soldeperso = $dossier->soldeperso;
 	}
 	
+	//pre($TAffaire,true);exit;
+	
 	print $TBS->render('./tpl/dossier.tpl.php'
 		,array(
 			'affaire'=>$TAffaire
@@ -444,6 +460,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'soldeperso'=>$soldeperso
 				,'dateperso'=>$dateperso
 				,'url_therefore'=>FIN_THEREFORE_DOSSIER_URL
+				,'affaire1'=>$TAffaire[0]
 			)
 			,'financement'=>$TFinancement
 			,'financementLeaser'=>$TFinancementLeaser

@@ -7,7 +7,7 @@ class TFin_dossier extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
 		parent::add_champs('solde,soldeperso,montant,montant_solde','type=float;');
 		parent::add_champs('renta_previsionnelle,renta_attendue,renta_reelle,marge_previsionnelle,marge_attendue,marge_reelle','type=float;');
-		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne,display_solde,transfert','type=chaine;');
+		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne,display_solde','type=chaine;');
 		parent::add_champs('date_relocation,date_solde,dateperso','type=date;');
 			
 		parent::start();
@@ -819,7 +819,7 @@ class TFin_financement extends TObjetStd {
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
 		parent::add_champs('fk_soc,fk_fin_dossier','type=entier;index;');
-		parent::add_champs('okPourFacturation','type=chaine;index;');
+		parent::add_champs('okPourFacturation,transfert','type=chaine;index;');
 				
 		parent::start();
 		parent::_init_vars();
@@ -879,6 +879,11 @@ class TFin_financement extends TObjetStd {
 			,'OUI'=>'Oui'
 			,'AUTO'=>'Toujours (verrouillé)'
 			,'MANUEL'=>'Manuel'
+		);
+		
+		$this->TTransfert=array(
+			'0'=>'Non'
+			,'1'=>'Oui'
 		);
 		
 		$this->date_solde=0;
