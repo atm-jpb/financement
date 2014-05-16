@@ -139,7 +139,20 @@
 				$affaire = new TFin_affaire;
 				
 				$TAffaires = $affaire->getAffairesForXML($PDOdb);
+				$dirName = $affaire->genLixxbailXML($TAffaires);
+				
+				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=1&file=XML/Lixxbail/".$dirName.".xml",2));
+				
+				break;
+			
+			case 'generateXMLandupload':
+			
+				$affaire = new TFin_affaire;
+				
+				$TAffaires = $affaire->getAffairesForXML($PDOdb);
 				$affaire->genLixxbailXML($TAffaires);
+				
+				$affaire->uploadXMLOnLeaserServer();
 				
 				break;
 				

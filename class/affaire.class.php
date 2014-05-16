@@ -296,8 +296,10 @@ class TFin_affaire extends TObjetStd {
 		}
 
 		$chaine = $xml->saveXML();
-
-		file_put_contents('xml/Lixbail/'.$name.'.xml', $chaine);
+		dol_mkdir(DOL_DATA_ROOT.'/financement/XML/Lixxbail/');
+		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name.'.xml', $chaine);
+		
+		return $name;
 	}
 	
 	function resetAllDossiersInXML(&$ATMdb,&$TAffaires){
@@ -309,6 +311,10 @@ class TFin_affaire extends TObjetStd {
 				$TData->dossier->save($ATMdb);
 			}
 		}
+	}
+	
+	function uploadXMLOnLeaserServer(){
+		
 	}
 	
 	function _getAffairesXML(&$xml,&$Affaire){
