@@ -19,6 +19,8 @@
 	$mesg = '';
 	$error=false;
 	
+	$fk_leaser = __val($_REQUEST['fk_leaser'],'','integer');
+	
 	if(isset($_REQUEST['action'])) {
 		switch($_REQUEST['action']) {
 			case 'add':
@@ -150,9 +152,15 @@
 				$affaire = new TFin_affaire;
 				
 				$TAffaires = $affaire->getAffairesForXML($PDOdb);
-				$affaire->genLixxbailXML($TAffaires);
+				$dirname = $affaire->genLixxbailXML($TAffaires);
 				
-				$affaire->uploadXMLOnLeaserServer();
+				$affaire->uploadXMLOnLeaserServer($dirname);
+				
+				?>
+				<script language="javascript">
+					document.location.href="?fk_leaser=<?php echo $fk_leaser; ?>";					
+				</script>
+				<?
 				
 				break;
 				
@@ -278,7 +286,11 @@ function _liste(&$PDOdb, &$dossier) {
 	
 	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
 		?>
-		<div class="tabsAction"><a href="?action=generateXML" class="butAction">Générer le XML Lixxbail</a><a href="?action=setnottransfer" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a></div>
+		<div class="tabsAction">
+				<a href="?action=generateXML" class="butAction">Générer le XML Lixxbail</a>
+				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Générer le XML Lixxbail et envoyer au Leaser</a>
+				<a href="?action=setnottransfer" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
+		</div>
 		<?php
 	}
 	
