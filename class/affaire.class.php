@@ -258,8 +258,8 @@ class TFin_affaire extends TObjetStd {
 					LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = df.fk_soc)
 				WHERE fa.type_financement = "MANDATEE"
 					AND df.type = "LEASER"
-					AND s.nom = "'.$leasername.'"';
-					//AND df.transfert = 1';
+					AND s.nom = "'.$leasername.'"
+					AND df.transfert = 1';
 		
 		$TIdAffaire = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 		
@@ -300,11 +300,14 @@ class TFin_affaire extends TObjetStd {
 		file_put_contents('xml/Lixbail/'.$name.'.xml', $chaine);
 	}
 	
-	function resetAllDossiersInXML(&$ATMdb,&$TDossiers){
+	function resetAllDossiersInXML(&$ATMdb,&$TAffaires){
 		
-		foreach($TDossiers as $dossier){
-			$dossier->financementLeaser->transfert = 0;
-			$dossier->save($ATMdb);
+		foreach($TAffaires as $affaire){
+
+			foreach($affaire->TLien as $i => $TData ){
+				$TData->dossier->financementLeaser->transfert = 0;
+				$TData->dossier->save($ATMdb);
+			}
 		}
 	}
 	
@@ -316,10 +319,10 @@ class TFin_affaire extends TObjetStd {
 		$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[0]->dossier->reference));
 		$affaire->appendChild($xml->createElement("siretClient",(!empty($Affaire->societe->siret)) ? $Affaire->societe->siret : $Affaire->societe->siren ));
 		
-		//print_r($Affaire); exit;
-		
-		foreach($Affaire->Tlien as $i => $Tdata){
-			$elements = $this->_getElementsXML($xml,$Tdata,$i);
+		//pre($Affaire,true);
+
+		foreach($Affaire->TLien as $i => $Tdata){
+			$elements = $this->_getElementsXML($xml,$Tdata,$i,$Affaire->TAsset);
 			$affaire->appendChild($elements);
 		}
 
@@ -327,50 +330,73 @@ class TFin_affaire extends TObjetStd {
 
 	}
 	
-	function _getElementsXML(&$xml,&$Tdata,$i){
+	function _getElementsXML(&$xml,&$Tdata,$i,&$TAsset){
 		
 		$element = $xml->createElement("element");
-
+		//$element = $xml->appendChild($element);
+		
 		$element->appendChild($xml->createElement("noElement",$i+1));
 		$element->appendChild($xml->createElement("periodicite",$Tdata->dossier->financementLeaser->periodicite));
 		$element->appendChild($xml->createElement("codeTaxe","20"));
 		$element->appendChild($xml->createElement("terme",substr($Tdata->dossier->financementLeaser->TTerme[$Tdata->dossier->financementLeaser->terme],0,1)));
 		$element->appendChild($xml->createElement("datePremEch",$Tdata->dossier->financementLeaser->date_debut));
 
-		$bien = $this->_getBiensXML($xml);
-		$paliers = $this->_getPaliersXML($xml);
+		foreach($TAsset as $a => $assetLink){
+			$bien = $this->_getBiensXML($xml,$assetLink,$a);
+			$element->appendChild($bien);
+		}
+		$paliers = $this->_getPaliersXML($xml,$Tdata->dossier->financementLeaser,0);
 		$commande = $this->_getCommandeXML($xml);
-
-		$element->appendChild($bien);
+		
 		$element->appendChild($paliers);
 		$element->appendChild($commande);
 
 		return $element;
 	}
 	
-	function _getBiensXML(&$xml){
+	function _getBiensXML(&$xml,&$assetLink,$a){
+		global $db;
+		
+		dol_include_once('/product/class/product.class.php');
+		dol_include_once('/compta/facture/class/facture.class.php');
+
+		$product = new Product($db);
+		$product->fetch($assetLink->asset->fk_product);
+		
+		$ATMdb = new TPDOdb;
+		
+		//Récupération de la facture client de l'équipement associé à l'affaire
+		$TIdFacture = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'asset_link',array('fk_asset'=>$assetLink->asset->getId(), 'type_document'=>'facture'),'fk_document');
+		if(!empty($TIdFacture[0])) {
+			$facture = new Facture($db);
+			$facture->fetch($TIdFacture[0]);
+		}
+		
+		$ATMdb->close();
 		
 		$bien = $xml->createElement("bien");
-
-		$bien->appendChild($xml->createElement("immobilisation"," "));
-		$bien->appendChild($xml->createElement("designation"," "));
-		$bien->appendChild($xml->createElement("noSerie"," "));
+		//$bien = $xml->appendChild($bien);
+		
+		$bien->appendChild($xml->createElement("immobilisation",$a+1));
+		$bien->appendChild($xml->createElement("designation",htmlentities($product->label)));
+		$bien->appendChild($xml->createElement("noSerie",$assetLink->asset->serial_number));
 		$bien->appendChild($xml->createElement("immatriculable"," "));
 		$bien->appendChild($xml->createElement("codeAssietteTheorique"," "));
-		$bien->appendChild($xml->createElement("montant"," "));
+		$bien->appendChild($xml->createElement("montant",$facture->total_ht));
 
 		return $bien;
 	}
 	
-	function _getPaliersXML(&$xml){
+	function _getPaliersXML(&$xml,&$financementLeaser,$j){
 		
-		$palier = $xml->createElement("bien");
+		$palier = $xml->createElement("palier");
+		//$palier = $xml->appendChild($palier);
 
-		$palier->appendChild($xml->createElement("no"," "));
-		$palier->appendChild($xml->createElement("nbre"," "));
-		$palier->appendChild($xml->createElement("montant"," "));
-		$palier->appendChild($xml->createElement("terme"," "));
-		$palier->appendChild($xml->createElement("periodicite"," "));
+		$palier->appendChild($xml->createElement("no",$j+1));
+		$palier->appendChild($xml->createElement("nbre",$financementLeaser->duree));
+		$palier->appendChild($xml->createElement("montant",$financementLeaser->echeance));
+		$palier->appendChild($xml->createElement("terme",$financementLeaser->terme));
+		$palier->appendChild($xml->createElement("periodicite",$financementLeaser->periodicite));
 		$palier->appendChild($xml->createElement("mtVnf"," "));
 		$palier->appendChild($xml->createElement("pourcVnf"," "));
 

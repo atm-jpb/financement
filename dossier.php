@@ -135,12 +135,19 @@
 				
 				break;
 			case 'generateXML':
-				
+			
 				$affaire = new TFin_affaire;
 				
 				$TAffaires = $affaire->getAffairesForXML($PDOdb);
-				
 				$affaire->genLixxbailXML($TAffaires);
+				
+				break;
+				
+			case 'setnottransfer':
+				
+				$affaire = new TFin_affaire;
+				$TAffaires = $affaire->getAffairesForXML($PDOdb);
+				$affaire->resetAllDossiersInXML($PDOdb,$TAffaires);
 				
 				break;
 		}
@@ -258,7 +265,7 @@ function _liste(&$PDOdb, &$dossier) {
 	
 	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
 		?>
-		<div class="tabsAction"><a href="?action=generateXML" class="butAction">Générer la XML Lixbail</a></div>
+		<div class="tabsAction"><a href="?action=generateXML" class="butAction">Générer le XML Lixxbail</a><a href="?action=setnottransfer" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a></div>
 		<?php
 	}
 	
