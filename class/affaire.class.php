@@ -93,8 +93,7 @@ class TFin_affaire extends TObjetStd {
 			$this->TLien[$i]=new TFin_dossier_affaire;
 			$this->TLien[$i]->load($db, $id);
 			$this->TLien[$i]->dossier->load($db, $this->TLien[$i]->fk_fin_dossier, false);
-			
-			
+
 		}
 		
 		$this->calculSolde();
@@ -169,7 +168,7 @@ class TFin_affaire extends TObjetStd {
 			$this->TLien[$i]=new TFin_dossier_affaire;
 			$this->TLien[$i]->fk_fin_affaire = $this->rowid;
 			$this->TLien[$i]->fk_fin_dossier = $dossier->rowid;  
-			 
+
 			$this->TLien[$i]->dossier= $dossier;
 			
 		//	print_r($this->TLien[$i]);
@@ -188,7 +187,7 @@ class TFin_affaire extends TObjetStd {
 				$lien->delete($db);
 				unset($this->TAsset[$k]);
 				return true;
-				
+
 			}
 		}		 
 		
@@ -203,12 +202,11 @@ class TFin_affaire extends TObjetStd {
 		$asset->load($db, $id); 
 		$i = $asset->add_link($this->getId(), 'affaire'); 
 		$asset->save($db);
-		 
+
 		$asset->TLink[$i]->asset = $asset ;
-		 
+
 		$this->TAsset[]=$asset->TLink[$i];
-		
-		
+
 		return true;		
 	}
 	
@@ -232,9 +230,9 @@ class TFin_affaire extends TObjetStd {
 		$this->TCommercial[$i]=new TFin_affaire_commercial;
 		$this->TCommercial[$i]->fk_fin_affaire = $this->getId();
 		$this->TCommercial[$i]->fk_user = $id;
-		
+
 		return true;
-		
+
 	}
 	
 	function loadReference(&$db, $reference,$annexe=false) {
@@ -249,6 +247,207 @@ class TFin_affaire extends TObjetStd {
 		
 	}
 	
+	function getAffairesForXML(&$ATMdb,$leasername = 'LIXXBAIL (MANDATE)'){
+		
+		$TAffaires = array();
+		
+		$sql = 'SELECT fa.rowid 
+				FROM '.MAIN_DB_PREFIX.'fin_affaire as fa
+					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire as da ON (da.fk_fin_affaire = fa.rowid)
+					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement as df ON (df.fk_fin_dossier = da.fk_fin_dossier)
+					LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = df.fk_soc)
+				WHERE fa.type_financement = "MANDATEE"
+					AND df.type = "LEASER"
+					AND s.nom = "'.$leasername.'"
+					AND df.transfert = 1';
+		
+		$TIdAffaire = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
+		
+		foreach($TIdAffaire as $idAffaire){
+			
+			$affaire = new  TFin_affaire;
+			$affaire->load($ATMdb, $idAffaire);
+			
+			$TAffaires[] = $affaire;
+		}
+	
+		return $TAffaires;
+	}	
+	
+	function genLixxbailXML(&$TAffaires){
+		
+		$name = "FP_207_MA01_CPRO_".date('Ymd');
+
+		$xml = new DOMDocument('1.0','UTF-8');
+		$xml->formatOutput = true;
+
+		$affairelist = $xml->createElement("affaireList");
+		$affairelist = $xml->appendChild($affairelist);
+
+		$affairelist->appendChild($xml->createElement("nomFich",$name));
+		$affairelist->appendChild($xml->createElement("refExtPartenaire"," "));
+		$affairelist->appendChild($xml->createElement("numLot"," "));
+		
+		//Chargement des noeuds correspondant aux affaires
+		foreach($TAffaires as $Affaire){
+			$affaires = $this->_getAffairesXML($xml,$Affaire);
+
+			$affairelist->appendChild($affaires);
+		}
+
+		$chaine = $xml->saveXML();
+		dol_mkdir(DOL_DATA_ROOT.'/financement/XML/Lixxbail/');
+		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name.'.xml', $chaine);
+		
+		return $name;
+	}
+	
+	function resetAllDossiersInXML(&$ATMdb,&$TAffaires){
+		
+		foreach($TAffaires as $affaire){
+
+			foreach($affaire->TLien as $i => $TData ){
+				$TData->dossier->financementLeaser->transfert = 0;
+				$TData->dossier->save($ATMdb);
+			}
+		}
+	}
+	
+	function uploadXMLOnLeaserServer(&$dirname){
+		
+		$destination = "/var/www/";
+		
+		try
+		{
+		    $sftp = new SFTPConnection("localhost", 22);
+		    $sftp->login("user", "password");
+		    $sftp->uploadFile($dirname,$destination);
+		}
+		catch (Exception $e)
+		{
+		    echo $e->getMessage() . "\n";
+		}
+	}
+	
+	function _getAffairesXML(&$xml,&$Affaire){
+		
+		$affaire = $xml->createElement("affaire");
+
+		$affaire->appendChild($xml->createElement("dateSignature",$Affaire->date_affaire));
+		$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[0]->dossier->reference));
+		$affaire->appendChild($xml->createElement("siretClient",(!empty($Affaire->societe->siret)) ? $Affaire->societe->siret : $Affaire->societe->siren ));
+		
+		//pre($Affaire,true);
+
+		foreach($Affaire->TLien as $i => $Tdata){
+			$elements = $this->_getElementsXML($xml,$Tdata,$i,$Affaire->TAsset);
+			$affaire->appendChild($elements);
+		}
+
+		return $affaire;
+
+	}
+	
+	function _getElementsXML(&$xml,&$Tdata,$i,&$TAsset){
+		
+		$element = $xml->createElement("element");
+		//$element = $xml->appendChild($element);
+		
+		$element->appendChild($xml->createElement("noElement",$i+1));
+		$element->appendChild($xml->createElement("periodicite",$Tdata->dossier->financementLeaser->periodicite));
+		$element->appendChild($xml->createElement("codeTaxe","20"));
+		$element->appendChild($xml->createElement("terme",substr($Tdata->dossier->financementLeaser->TTerme[$Tdata->dossier->financementLeaser->terme],0,1)));
+		$element->appendChild($xml->createElement("datePremEch",$Tdata->dossier->financementLeaser->date_debut));
+
+		foreach($TAsset as $a => $assetLink){
+			$bien = $this->_getBiensXML($xml,$assetLink,$a);
+			$element->appendChild($bien);
+		}
+		$paliers = $this->_getPaliersXML($xml,$Tdata->dossier->financementLeaser,0);
+		$commande = $this->_getCommandeXML($xml);
+		
+		$element->appendChild($paliers);
+		$element->appendChild($commande);
+
+		return $element;
+	}
+	
+	function _getBiensXML(&$xml,&$assetLink,$a){
+		global $db;
+		
+		dol_include_once('/product/class/product.class.php');
+		dol_include_once('/compta/facture/class/facture.class.php');
+
+		$product = new Product($db);
+		$product->fetch($assetLink->asset->fk_product);
+		
+		$ATMdb = new TPDOdb;
+		
+		//Récupération de la facture client de l'équipement associé à l'affaire
+		$TIdFacture = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'asset_link',array('fk_asset'=>$assetLink->asset->getId(), 'type_document'=>'facture'),'fk_document');
+		if(!empty($TIdFacture[0])) {
+			$facture = new Facture($db);
+			$facture->fetch($TIdFacture[0]);
+		}
+		
+		$ATMdb->close();
+		
+		$bien = $xml->createElement("bien");
+		//$bien = $xml->appendChild($bien);
+		
+		$bien->appendChild($xml->createElement("immobilisation",$a+1));
+		$bien->appendChild($xml->createElement("designation",htmlentities($product->label)));
+		$bien->appendChild($xml->createElement("noSerie",$assetLink->asset->serial_number));
+		$bien->appendChild($xml->createElement("immatriculable"," "));
+		$bien->appendChild($xml->createElement("codeAssietteTheorique"," "));
+		$bien->appendChild($xml->createElement("montant",$facture->total_ht));
+
+		return $bien;
+	}
+	
+	function _getPaliersXML(&$xml,&$financementLeaser,$j){
+		
+		$palier = $xml->createElement("palier");
+		//$palier = $xml->appendChild($palier);
+
+		$palier->appendChild($xml->createElement("no",$j+1));
+		$palier->appendChild($xml->createElement("nbre",$financementLeaser->duree));
+		$palier->appendChild($xml->createElement("montant",$financementLeaser->echeance));
+		$palier->appendChild($xml->createElement("terme",$financementLeaser->terme));
+		$palier->appendChild($xml->createElement("periodicite",$financementLeaser->periodicite));
+		$palier->appendChild($xml->createElement("mtVnf"," "));
+		$palier->appendChild($xml->createElement("pourcVnf"," "));
+
+		return $palier;
+	}
+	
+	function _getCommandeXML(&$xml){
+		
+		$commande = $xml->createElement("commande");
+
+		$commande->appendChild($xml->createElement("noCommande"," "));
+		$commande->appendChild($xml->createElement("fournisseur"," "));
+
+		$commandeLig = $this->_getCommandeLigXML($xml);
+
+		$commande->appendChild($commandeLig);
+
+		return $commande;
+	}
+	
+	function _getCommandeLigXML(&$xml){
+		
+		$commandeLig = $xml->createElement("commandeLig");
+
+		$commandeLig->appendChild($xml->createElement("immobilisation"," "));
+		$commandeLig->appendChild($xml->createElement("codeTypeLigne"," "));
+		$commandeLig->appendChild($xml->createElement("mtHt"," "));
+		$commandeLig->appendChild($xml->createElement("codeTaxe"," "));
+		$commandeLig->appendChild($xml->createElement("mtTaxe"," "));
+		$commandeLig->appendChild($xml->createElement("mtTTC"," "));
+
+		return $commandeLig;
+	}
 }
 
 class TFin_affaire_commercial extends TObjetStd {
@@ -256,10 +455,52 @@ class TFin_affaire_commercial extends TObjetStd {
 
 		parent::set_table(MAIN_DB_PREFIX.'fin_affaire_commercial');
 		parent::add_champs('fk_user,fk_fin_affaire','type=entier;index;');
-		
+
 		parent::_init_vars();
 		parent::start();
 		
 	}
 }
-	
+
+class SFTPConnection
+{
+    private $connection;
+    private $sftp;
+
+    public function __construct($host, $port=22)
+    {
+        $this->connection = @ssh2_connect($host, $port);
+        if (! $this->connection)
+            throw new Exception("Could not connect to $host on port $port.");
+    }
+
+    public function login($username, $password)
+    {
+        if (! @ssh2_auth_password($this->connection, $username, $password))
+            throw new Exception("Could not authenticate with username $username " .
+                                "and password $password.");
+
+        $this->sftp = @ssh2_sftp($this->connection);
+        if (! $this->sftp)
+            throw new Exception("Could not initialize SFTP subsystem.");
+    }
+
+    public function uploadFile($local_file, $remote_file)
+    {
+        $sftp = $this->sftp;
+        $stream = @fopen("ssh2.sftp://$sftp$remote_file", 'w');
+
+        if (! $stream)
+            throw new Exception("Could not open file: $remote_file");
+
+        $data_to_send = @file_get_contents($local_file);
+        if ($data_to_send === false)
+            throw new Exception("Could not open local file: $local_file.");
+
+        if (@fwrite($stream, $data_to_send) === false)
+            throw new Exception("Could not send data from file: $local_file.");
+
+        @fclose($stream);
+    }
+}
+
