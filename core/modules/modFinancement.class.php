@@ -210,6 +210,12 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'alldossier';
 		$this->rights[$r][5] = 'delete';
 		$r++;
+		$this->rights[$r][0] = 210014;
+		$this->rights[$r][1] = 'Consulter les dossiers intégrale';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'integrale';
+		$this->rights[$r][5] = 'read';
+		$r++;
 		
 		$this->rights[$r][0] = 210021;
 		$this->rights[$r][1] = 'Accéder au calculateur';
@@ -436,10 +442,10 @@ class modFinancement extends DolibarrModules
 								'url'=>'/financement/affaire.php',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>410,
-								'enabled'=>'$conf->financement->enabled && ($user->rights->financement->allsimul->calcul || $user->rights->financement->allsimul->simul ||
-											$user->rights->financement->allsimul->simul_list || $user->rights->financement->mysimul->simul_list)',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-								'perms'=>'$user->rights->financement->allsimul->calcul || $user->rights->financement->allsimul->simul ||
-											$user->rights->financement->allsimul->simul_list || $user->rights->financement->mysimul->simul_list',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'enabled'=>'$conf->financement->enabled && ($user->rights->financement->mydossier->read || $user->rights->financement->alldossier->read ||
+											$user->rights->financement->integrale->read)',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'perms'=>'$user->rights->financement->mydossier->read || $user->rights->financement->alldossier->read ||
+											$user->rights->financement->integrale->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
@@ -464,8 +470,8 @@ class modFinancement extends DolibarrModules
 								'url'=>'/financement/affaire.php',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>413,
-								'enabled'=>'$conf->financement->enabled && $user->rights->financement->allsimul->calcul',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-								'perms'=>'$user->rights->financement->allsimul->calcul',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
@@ -491,8 +497,8 @@ class modFinancement extends DolibarrModules
 								'url'=>'/financement/dossier.php',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>415,
-								'enabled'=>'$conf->financement->enabled && $user->rights->financement->allsimul->calcul',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-								'perms'=>'$user->rights->financement->allsimul->calcul',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
@@ -505,8 +511,22 @@ class modFinancement extends DolibarrModules
 								'url'=>'/financement/dossier.php?liste_incomplet',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>415,
-								'enabled'=>'$conf->financement->enabled && $user->rights->financement->allsimul->calcul',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-								'perms'=>'$user->rights->financement->allsimul->calcul',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'target'=>'',
+								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+								'type'=>'left',			                // This is a Left menu entry
+								'titre'=>'Dossiers intégrale',
+								'mainmenu'=>'financement',
+								'leftmenu'=>'dossier_list',
+								'url'=>'/financement/dossier_integrale.php',
+								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+								'position'=>415,
+								'enabled'=>'$conf->financement->enabled && $user->rights->financement->integrale->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'perms'=>'$user->rights->financement->integrale->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;

@@ -1,8 +1,9 @@
 [onshow;block=begin;when [view.mode]=='view']
 		
 		<div class="tabs">
-		<a class="tabTitle"><img border="0" title="" alt="" src="./img/object_reportico.png"> Dossier</a>
-		<a href="?id=[dossier.id]" class="tab" id="active">Fiche</a>
+		<a class="tabTitle"><img border="0" title="" alt="" src="./img/object_financeico.png"> Dossier</a>
+		<a href="dossier.php?id=[dossier.id]" class="tab" id="active">Fiche</a>
+		<a href="dossier_integrale.php?id=[dossier.id]" class="tab">Suivi int&eacute;grale</a>
 		<a href="[dossier.url_therefore][financement.reference]" class="tab" target="_blank">Therefore</a>
 		</div>
 		

@@ -121,6 +121,7 @@ class TImport extends TObjetStd {
 				break;
 			case 'facture_location':
 				$this->importLineFactureLocation($ATMdb, $data, $TInfosGlobale);
+				$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
 				break;
 			case 'facture_lettree':
 				$this->importLineFactureLettree($ATMdb, $data);
@@ -582,6 +583,53 @@ class TImport extends TObjetStd {
 		$facture_loc->update($user, 0);
 		
 		return true;
+	}
+
+	function importLineFactureIntegrale(&$ATMdb, $data, &$TInfosGlobale) {
+		global $user, $db;
+		
+		if(empty($TInfosGlobale['integrale'][$data[$this->mapping['search_key']]])) {
+			$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]] = new TIntegrale();
+			$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]]->loadBy($ATMdb, $data[$this->mapping['search_key']], $this->mapping['search_key']);
+		}
+		
+		$integrale = &$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]];
+		$integrale->facnumber = $data[$this->mapping['search_key']];
+		$save = false;
+		
+		if(empty($data['label_integrale'])) {
+			if($data['ref_service'] == '037003') {
+				$integrale->frais_dossier = $data['total_ht'];
+			}
+			if($data['ref_service'] == '037004') {
+				$integrale->frais_bris_machine	= $data['total_ht'];
+			}
+			if($data['libelle_ligne'] == 'FRAIS DE FACTURATION') {
+				$integrale->frais_facturation	= $data['total_ht'];
+			}
+		} else {
+			if($data['label_integrale'] == 'ENGAGEMENT COPIES NB' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
+				$integrale->vol_noir_engage = $data['quantite'];
+				$integrale->vol_noir_realise = $data['quantite_integrale'];
+				$integrale->cout_unit_noir = $data['cout_integrale'];
+				$save = true;
+			}
+			if($data['label_integrale'] == 'ENGAGEMENT COPIES COULEUR' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
+				$integrale->vol_coul_engage = $data['quantite'];
+				$integrale->vol_coul_realise = $data['quantite_integrale'];
+				$integrale->cout_unit_coul = $data['cout_integrale'];
+				$save = true;
+			}
+			if($data['ref_service'] == 'SSC054') {
+				$integrale->fass = $data['cout_integrale'];
+			}
+			if($data['ref_service'] == 'SSC106') {
+				$integrale->fas = $data['cout_integrale'];
+			}
+		}
+		if($save == true) {
+			$integrale->save($ATMdb);
+		}
 	}
 
 	function importLineFactureLettree(&$ATMdb, $data) {
