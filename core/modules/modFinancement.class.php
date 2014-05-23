@@ -423,7 +423,7 @@ class modFinancement extends DolibarrModules
 								'leftmenu'=>'admin',
 								'url'=>'/financement/admin/config.php',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-								'position'=>124,
+								'position'=>125,
 								'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 								'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
@@ -510,7 +510,7 @@ class modFinancement extends DolibarrModules
 								'leftmenu'=>'dossier_list',
 								'url'=>'/financement/dossier.php?liste_incomplet',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-								'position'=>415,
+								'position'=>416,
 								'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 								'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
@@ -524,7 +524,7 @@ class modFinancement extends DolibarrModules
 								'leftmenu'=>'dossier_list',
 								'url'=>'/financement/dossier_integrale.php',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-								'position'=>415,
+								'position'=>417,
 								'enabled'=>'$conf->financement->enabled && $user->rights->financement->integrale->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 								'perms'=>'$user->rights->financement->integrale->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
@@ -539,7 +539,7 @@ class modFinancement extends DolibarrModules
 			        	'leftmenu'=> 'pilotage',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 						'url'=> '/financement/pilotage.php',
 						'langs'=> 'report@report',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-						'position'=> 111,
+						'position'=> 181,
 						'enabled'=> '$conf->report->enabled && $conf->financement->enabled',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 						'perms'=> '$user->rights->financement->alldossier->read',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 						'target'=> '',
@@ -555,7 +555,7 @@ class modFinancement extends DolibarrModules
 			        	'leftmenu'=> '',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 						'url'=> '/financement/pilotage.php',
 						'langs'=> 'report@report',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-						'position'=> 112,
+						'position'=> 182,
 						'enabled'=> '$conf->report->enabled && $conf->financement->enabled',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 						'perms'=> '$user->rights->financement->alldossier->read',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 						'target'=> '',
@@ -572,7 +572,7 @@ class modFinancement extends DolibarrModules
 			        	'leftmenu'=> '',		// Use 1 if you also want to add left menu entries using this descriptor. Use 0 if left menu entries are defined in a file pre.inc.php (old school).
 						'url'=> '/financement/report-echeance-restante.php',
 						'langs'=> 'report@report',	// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-						'position'=> 113,
+						'position'=> 183,
 						'enabled'=> '$conf->report->enabled && $conf->financement->enabled',			// Define condition to show or hide menu entry. Use '$conf->mymodule->enabled' if entry must be visible if module is enabled.
 						'perms'=> '$user->rights->financement->alldossier->read',			// Use 'perms'=>'$user->rights->mymodule->level1->level2' if you want your menu with a permission rules
 						'target'=> '',
