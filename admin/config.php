@@ -130,7 +130,7 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 
-// % validation naf pour simulateur
+// naf blacklistés pour simulateur
 $var=! $var;
 print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
@@ -138,6 +138,19 @@ print '<input type="hidden" name="action" value="set_FINANCEMENT_NAF_BLACKLIST" 
 print '<tr '.$bc[$var].'><td>';
 print $langs->trans("NAFBlackList").'</td>';
 print '<td><textarea name="FINANCEMENT_NAF_BLACKLIST" class="flat" cols="80">'.$conf->global->FINANCEMENT_NAF_BLACKLIST.'</textarea>';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+// % écart mini pour alerte commercial sur facturation intégrale
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("EcartAlerteEmailIntegrale").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL" value="'.$conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL.'" /> %';
 print '</td><td align="right">';
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
 print "</td></tr>\n";

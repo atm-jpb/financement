@@ -52,6 +52,8 @@ function _liste(&$PDOdb, &$dossier) {
 		
 	$sql.=" WHERE a.entity=".$conf->entity;
 	$sql.=" AND a.contrat='INTEGRAL' ";
+	$sql.=" AND fc.duree > 0 ";
+	$sql.=" AND fc.echeance > 0 ";
 	
 	if (!$user->rights->societe->client->voir) //restriction
 	{
@@ -78,7 +80,7 @@ function _liste(&$PDOdb, &$dossier) {
 		,'translate'=>array(
 			'nature_financement'=>$aff->TNatureFinancement
 		)
-		,'hide'=>array('fk_soc','ID','ID affaire')
+		,'hide'=>array('fk_soc','ID','ID affaire','refDosLea','Affaire','nomLea','Prochaine')
 		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'Echéance'=>'money')
 		,'liste'=>array(
 			'titre'=>"Liste des dossiers"
@@ -132,16 +134,11 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 		$integrale = new TIntegrale();
 		$integrale->loadBy($PDOdb, $fac->ref, 'facnumber');
 		
-		$integrale->vol_noir_facture = ($integrale->vol_noir_engage > $integrale->vol_noir_realise) ? $integrale->vol_noir_engage : $integrale->vol_noir_realise;
-		$integrale->vol_coul_facture = ($integrale->vol_coul_engage > $integrale->vol_coul_realise) ? $integrale->vol_coul_engage : $integrale->vol_coul_realise;
-		
 		$integrale->periode = substr($fin->periodicite,0,1);
 		$integrale->periode.= ceil(date('n', $fac->date) / $fin->getiPeriode()) . ' ' . date('Y', $fac->date);
 		
 		$TIntegrale[] = $integrale;
 	}
-	
-	
 	
 	echo $TBS->render('./tpl/dossier_integrale.tpl.php'
 		,array(
