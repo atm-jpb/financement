@@ -426,6 +426,7 @@ function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb,$date_debut,$date_
 	$sql.= " AND c1.rowid IS NOT NULL";
 	$sql.= " AND c2.rowid IS NOT NULL";
 	$sql.= " AND fdf.date_solde = '0000-00-00 00:00:00'";
+	$sql.= " ORDER BY c1.label, c2.label";
 	
 	$ATMdb->Execute($sql);
 	$TRestemp = array();
