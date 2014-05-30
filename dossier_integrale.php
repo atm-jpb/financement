@@ -52,6 +52,8 @@ function _liste(&$PDOdb, &$dossier) {
 		
 	$sql.=" WHERE a.entity=".$conf->entity;
 	$sql.=" AND a.contrat='INTEGRAL' ";
+	$sql.=" AND fc.duree > 0 ";
+	$sql.=" AND fc.echeance > 0 ";
 	
 	if (!$user->rights->societe->client->voir) //restriction
 	{
@@ -78,7 +80,7 @@ function _liste(&$PDOdb, &$dossier) {
 		,'translate'=>array(
 			'nature_financement'=>$aff->TNatureFinancement
 		)
-		,'hide'=>array('fk_soc','ID','ID affaire')
+		,'hide'=>array('fk_soc','ID','ID affaire','refDosLea','Affaire','nomLea','Prochaine')
 		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'Echéance'=>'money')
 		,'liste'=>array(
 			'titre'=>"Liste des dossiers"
