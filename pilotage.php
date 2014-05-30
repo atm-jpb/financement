@@ -414,32 +414,43 @@ function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb,$date_debut,$date_
 				AND fdf.date_solde = '0000-00-00 00:00:00'
 				AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Leaser')
 			ORDER BY c.rowid";
+			
+	$sql = "SELECT fdf.rowid as id_dossier, c1.label as cat1, c2.label as cat2";
+	$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier as fd";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as fdf ON (fdf.fk_fin_dossier = fd.rowid)";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf1 ON (cf1.fk_societe = fdf.fk_soc)";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf2 ON (cf2.fk_societe = fdf.fk_soc)";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."categorie as c1 ON (c1.rowid = cf1.fk_categorie AND c1.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Leaser'))";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."categorie as c2 ON (c2.rowid = cf2.fk_categorie AND c2.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Type de financement'))";
+	$sql.= " WHERE fdf.type = 'LEASER'";
+	$sql.= " AND c1.rowid IS NOT NULL";
+	$sql.= " AND c2.rowid IS NOT NULL";
+	$sql.= " AND fdf.date_solde = '0000-00-00 00:00:00'";
 	
 	$ATMdb->Execute($sql);
 	$TRestemp = array();
 	while($ATMdb->Get_line()){
-		$TRestemp[$ATMdb->Get_field('label')][$ATMdb->Get_field('rowid')] = $ATMdb->Get_field('nom');
+		$TRestemp[$ATMdb->Get_field('cat1')][$ATMdb->Get_field('cat2')][] = $ATMdb->Get_field('id_dossier');
 	}
 	
 	$TRes = $TTotal = array();
-	foreach($TRestemp as $categorie=>$TidDossier){
+	foreach($TRestemp as $cat1=>$subArray){
 		
-		foreach($TidDossier as $iddossier=>$societe){
-			$dossierFin = new TFin_financement;
-			$dossierFin->load($ATMdb, $iddossier);
+		foreach($subArray as $cat2=>$TIdDossier){
+			if(empty($TRes[$cat1][$cat2])) $TRes[$cat1][$cat2] = 0;
 			
-			$sql = "SELECT c.label 
-					FROM ".MAIN_DB_PREFIX."categorie as c
-						LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf ON (cf.fk_categorie = c.rowid)
-						LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON (s.rowid = cf.fk_societe)
-					WHERE s.nom = '".$societe."'
-						AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Type de financement')";
+			foreach($TIdDossier as $iddossier){
 			
-			$ATMdb->Execute($sql);
-			$ATMdb->Get_line();
-			$categorieLeaser = $ATMdb->Get_field('label');
-			
-			$TRes[$categorie][$categorieLeaser] += $dossierFin->valeur_actuelle();
+				$dossierFin = new TFin_financement;
+				$dossierFin->load($ATMdb, $iddossier);
+				
+				$va = $dossierFin->valeur_actuelle();
+				if(is_nan($va)) {
+					echo '<br>DOSSIER A CORRIGER : '.$dossierFin->reference. ' - CALCUL VA FAUX : '.$va;
+				} else {
+					$TRes[$cat1][$cat2] += $va;
+				}
+			}
 		}
 	}
 	
