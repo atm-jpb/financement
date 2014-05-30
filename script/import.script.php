@@ -45,8 +45,9 @@ require_once($path."../config.php");
 
 // After this $db, $mysoc, $langs and $conf->entity are defined. Opened handler to database will be closed at end of file.
 
-//$langs->setDefaultLang('en_US'); 	// To change default language of $langs
+$langs->setDefaultLang('fr_FR'); 	// To change default language of $langs
 $langs->load("main");				// To load language file for default language
+$langs->load("financement@financement");
 @set_time_limit(0);					// No timeout for this script
 ini_set('display_errors', true);
 
@@ -115,6 +116,11 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		fclose($fileHandler);
 		
 		$imp->save($ATMdb); // Mise à jour pour nombre de lignes et nombre d'erreurs
+		
+		// Traitement spécifique sur les factures location : envoi e-mail à la fin de l'intégration du fichier pour alertes dépassement (ticket 551)
+		if($fileType == 'facture_location') {
+			$imp->sendAlertEmailIntegrale($ATMdb, $TInfosGlobale);
+		}
 		
 		print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;
 		

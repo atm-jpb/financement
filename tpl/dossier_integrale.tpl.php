@@ -55,26 +55,28 @@
 			<td align="center">FTC</td>
 			<td align="center">Total HT engag&eacute;</td>
 			<td align="center">Total HT r&eacute;alis&eacute;</td>
+			<td align="center">Total HT factur&eacute;</td>
 			<td align="center">%</td>
 		</tr>
 		<tr>
-			<td align="center">[integrale.periode;block=tr]</td>
-			<td align="center">[integrale.vol_noir_engage]</td>
-			<td align="center">[integrale.vol_noir_realise]</td>
-			<td align="center">[integrale.vol_noir_facture]</td>
-			<td align="right">[integrale.cout_unit_noir;frm=0 000,00000] &euro;</td>
-			<td align="center">[integrale.vol_coul_engage]</td>
-			<td align="center">[integrale.vol_coul_realise]</td>
-			<td align="center">[integrale.vol_coul_facture]</td>
-			<td align="right">[integrale.cout_unit_coul;frm=0 000,00000] &euro;</td>
-			<td align="right">[integrale.fas;frm=0 000,00] &euro;</td>
-			<td align="right">[integrale.fass;frm=0 000,00] &euro;</td>
-			<td align="right">[integrale.frais_dossier;frm=0 000,00] &euro;</td>
-			<td align="right">[integrale.frais_bris_machine;frm=0 000,00] &euro;</td>
-			<td align="right">[integrale.frais_facturation;frm=0 000,00] &euro;</td>
-			<td align="right">[integrale.total_ht_engage;frm=0 000,00] &euro;</td>
-			<td align="right">[integrale.total_ht_realise;frm=0 000,00] &euro;</td>
-			<td align="center">[integrale.ecart;frm=0 000,00] %</td>
+			<td align="center">[integrale.periode;block=tr;noerr]</td>
+			<td align="center">[integrale.vol_noir_engage;noerr]</td>
+			<td align="center">[integrale.vol_noir_realise;noerr]</td>
+			<td align="center">[integrale.vol_noir_facture;noerr]</td>
+			<td align="right">[integrale.cout_unit_noir;frm=0 000,00000;noerr] &euro;</td>
+			<td align="center">[integrale.vol_coul_engage;noerr]</td>
+			<td align="center">[integrale.vol_coul_realise;noerr]</td>
+			<td align="center">[integrale.vol_coul_facture;noerr]</td>
+			<td align="right">[integrale.cout_unit_coul;frm=0 000,00000;noerr] &euro;</td>
+			<td align="right">[integrale.fas;frm=0 000,00;noerr] &euro;</td>
+			<td align="right">[integrale.fass;frm=0 000,00;noerr] &euro;</td>
+			<td align="right">[integrale.frais_dossier;frm=0 000,00;noerr] &euro;</td>
+			<td align="right">[integrale.frais_bris_machine;frm=0 000,00;noerr] &euro;</td>
+			<td align="right">[integrale.frais_facturation;frm=0 000,00;noerr] &euro;</td>
+			<td align="right">[integrale.total_ht_engage;frm=0 000,00;noerr] &euro;</td>
+			<td align="right">[integrale.total_ht_realise;frm=0 000,00;noerr] &euro;</td>
+			<td align="right">[integrale.total_ht_facture;frm=0 000,00;noerr] &euro;</td>
+			<td align="center">[integrale.ecart;frm=0 000,00;noerr] %</td>
 		</tr>
 	</table>
 

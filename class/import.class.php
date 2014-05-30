@@ -595,7 +595,6 @@ class TImport extends TObjetStd {
 		
 		$integrale = &$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]];
 		$integrale->facnumber = $data[$this->mapping['search_key']];
-		$save = false;
 		
 		if(empty($data['label_integrale'])) {
 			if($data['ref_service'] == '037003') {
@@ -607,28 +606,94 @@ class TImport extends TObjetStd {
 			if($data['libelle_ligne'] == 'FRAIS DE FACTURATION') {
 				$integrale->frais_facturation	= $data['total_ht'];
 			}
+			if(strpos($data['libelle_ligne'], '(FAS)') !== false) {
+				$integrale->fas	= $data['total_ht'];
+			}
 		} else {
 			if($data['label_integrale'] == 'ENGAGEMENT COPIES NB' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
 				$integrale->vol_noir_engage = $data['quantite'];
 				$integrale->vol_noir_realise = $data['quantite_integrale'];
 				$integrale->cout_unit_noir = $data['cout_integrale'];
-				$save = true;
 			}
 			if($data['label_integrale'] == 'ENGAGEMENT COPIES COULEUR' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
 				$integrale->vol_coul_engage = $data['quantite'];
 				$integrale->vol_coul_realise = $data['quantite_integrale'];
 				$integrale->cout_unit_coul = $data['cout_integrale'];
-				$save = true;
 			}
 			if($data['ref_service'] == 'SSC054') {
 				$integrale->fass = $data['cout_integrale'];
 			}
-			if($data['ref_service'] == 'SSC106') {
-				$integrale->fas = $data['cout_integrale'];
-			}
 		}
-		if($save == true) {
-			$integrale->save($ATMdb);
+		
+		$integrale->save($ATMdb);
+	}
+
+	function sendAlertEmailIntegrale($ATMdb, $TInfosGlobale) {
+		global $conf, $db, $langs;
+		
+		$TMailToSend = array();
+		foreach ($TInfosGlobale['integrale'] as $facnumber => $integrale) {
+			if(empty($TInfosGlobale[$facnumber])) continue;
+			if($integrale->ecart < $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL) continue;
+			
+			// Récupération des informations à envoyer au commerial
+			$sql= "SELECT s.nom, u.rowid as id_user, u.firstname, u.name, u.email, df.reference";
+			$sql.= " FROM llx_facture f";
+			$sql.= " LEFT JOIN llx_societe s ON s.rowid = f.fk_soc";
+			$sql.= " LEFT JOIN llx_societe_commerciaux sc ON sc.fk_soc = s.rowid AND sc.type_activite_cpro = 'Copieur'";
+			$sql.= " LEFT JOIN llx_user u ON u.rowid = sc.fk_user";
+			$sql.= " LEFT JOIN llx_element_element ee ON ee.fk_target = f.rowid AND ee.targettype = 'facture'";
+			$sql.= " LEFT JOIN llx_fin_dossier d ON d.rowid = ee.fk_source AND ee.sourcetype = 'dossier'";
+			$sql.= " LEFT JOIN llx_fin_dossier_financement df ON df.fk_fin_dossier = d.rowid";
+			$sql.= " WHERE f.facnumber = ".$facnumber;
+			$sql.= " AND df.type = 'CLIENT'";
+			
+			$ATMdb->Execute($sql);
+			$TRes = $ATMdb->Get_All();
+			$obj = $TRes[0];
+			
+			//Compilation avant envois
+			$data = array(
+				'client' => $obj->nom
+				,'contrat' => $obj->reference
+				,'montant_engage' => $integrale->total_ht_engage
+				,'montant_facture' => $integrale->total_ht_facture
+				,'ecart' => $integrale->ecart
+			);
+			$TMailToSend[$obj->id_user]['usermail'] = $obj->email;
+			$TMailToSend[$obj->id_user]['username'] = $obj->firstname.' '.$obj->name;
+			$TMailToSend[$obj->id_user]['content'][] = $data;
+		}
+		
+		foreach($TMailToSend as $data) {
+			pre($data, true);
+			$tabalert = '<table cellpadding="2">';
+			$tabalert.='<tr>';
+			$tabalert.='<th>Client</th>';
+			$tabalert.='<th>Contrat Artis</th>';
+			$tabalert.='<th>Montant engagement</th>';
+			$tabalert.='<th>Montant factur&eacute;</th>';
+			$tabalert.='<th>&Eacute;cart</th>';
+			$tabalert.='</tr>';
+			foreach ($data['content'] as $infos) {
+				$tabalert.='<tr>';
+				$tabalert.='<td>'.$infos['client'].'</td>';
+				$tabalert.='<td>'.$infos['contrat'].'</td>';
+				$tabalert.='<td>'.price($infos['montant_engage'],0,'',1,-1,2).' &euro;</td>';
+				$tabalert.='<td>'.price($infos['montant_facture'],0,'',1,-1,2).' &euro;</td>';
+				$tabalert.='<td>'.price($infos['ecart'],0,'',1,-1,2).' %</td>';
+				$tabalert.='</tr>';
+			}
+			$tabalert.= '</table>';
+			
+			$mailto = $data['usermail'];
+			$mailto = 'maxime@atm-consulting.fr';
+			$subjectMail = '[Lease Board] - Alertes facturation intégrale pour '.$data['username'];
+			$contentMail = $langs->transnoentitiesnoconv('IntegraleEmailAlert', $data['username'], $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL, $tabalert);
+			
+			$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
+			$r->emailtoBcc = 'd.ferrazzi@cpro.fr';
+			$r->send(true);
 		}
 	}
 

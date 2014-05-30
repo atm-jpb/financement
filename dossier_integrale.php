@@ -132,16 +132,11 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 		$integrale = new TIntegrale();
 		$integrale->loadBy($PDOdb, $fac->ref, 'facnumber');
 		
-		$integrale->vol_noir_facture = ($integrale->vol_noir_engage > $integrale->vol_noir_realise) ? $integrale->vol_noir_engage : $integrale->vol_noir_realise;
-		$integrale->vol_coul_facture = ($integrale->vol_coul_engage > $integrale->vol_coul_realise) ? $integrale->vol_coul_engage : $integrale->vol_coul_realise;
-		
 		$integrale->periode = substr($fin->periodicite,0,1);
 		$integrale->periode.= ceil(date('n', $fac->date) / $fin->getiPeriode()) . ' ' . date('Y', $fac->date);
 		
 		$TIntegrale[] = $integrale;
 	}
-	
-	
 	
 	echo $TBS->render('./tpl/dossier_integrale.tpl.php'
 		,array(
