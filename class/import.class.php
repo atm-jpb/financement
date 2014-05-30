@@ -666,7 +666,6 @@ class TImport extends TObjetStd {
 		}
 		
 		foreach($TMailToSend as $data) {
-			pre($data, true);
 			$tabalert = '<table cellpadding="2">';
 			$tabalert.='<tr>';
 			$tabalert.='<th>Client</th>';
