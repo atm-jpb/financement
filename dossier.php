@@ -480,7 +480,8 @@ function _liste_dossiers_incomplets(&$PDOdb, &$dossier) {
 	WHERE a.entity=".$conf->entity."
 	AND a.nature_financement = 'INTERNE'
 	AND (f.type = 'LEASER' AND (f.reference IS NULL OR f.reference = '' OR f.duree = 0 OR f.echeance = 0))
-	AND d.date_maj > '2013-06-13 00:00:00'";
+	AND d.date_maj > '2013-06-13 00:00:00'
+	GROUP BY d.rowid";
 				
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');

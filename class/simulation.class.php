@@ -430,7 +430,7 @@ class TSimulation extends TObjetStd {
 		$TSimuDossier = array_merge($this->dossiers_rachetes, $this->dossiers_rachetes_p1,$this->dossiers_rachetes_nr,$this->dossiers_rachetes_nr_p1,$this->dossiers_rachetes_perso);
 		foreach($TSimuDossier as $idDossier) {
 			$d = new TFin_dossier();
-			$d->load($ATMdb, $idDossier, false);
+			$d->load($ATMdb, $idDossier);
 			
 			if($d->nature_financement == 'INTERNE') {
 				$f = &$d->financement;
