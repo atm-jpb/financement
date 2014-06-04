@@ -404,17 +404,6 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type,$date_debut,$date_fin
 function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb,$date_debut,$date_fin) {
 	global $langs, $db, $conf, $user;
 	
-	$sql = "SELECT fdf.rowid as rowid, s.nom, c.label
-			FROM ".MAIN_DB_PREFIX."fin_dossier as fd
-				LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as fdf ON (fdf.fk_fin_dossier = fd.rowid)
-				LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON (s.rowid = fdf.fk_soc)
-				LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf ON (cf.fk_societe = s.rowid)
-				LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (c.rowid = cf.fk_categorie)
-			WHERE fdf.type = 'LEASER'
-				AND fdf.date_solde = '0000-00-00 00:00:00'
-				AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Leaser')
-			ORDER BY c.rowid";
-			
 	$sql = "SELECT fdf.rowid as id_dossier, c1.label as cat1, c2.label as cat2";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier as fd";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as fdf ON (fdf.fk_fin_dossier = fd.rowid)";
