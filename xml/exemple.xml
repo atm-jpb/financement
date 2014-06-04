@@ -27,8 +27,8 @@
 				<montant>2000.00</montant> //Champ échéance du Dossier
 				<terme>A</terme> //Terme du Dossier
 				<periodicite>1</periodicite> //Périodicité du Dossier
-				<mtVnf>68283.33</mtVnf>
-				<pourcVnf>97.547614</pourcVnf>
+				<mtVnf>68283.33</mtVnf> //Montant total fiancé
+				<pourcVnf>97.547614</pourcVnf> //pourcentage entre <montant> et <mtVnf>
 			</palier>
 			<palier>
 				<no>2</no> 

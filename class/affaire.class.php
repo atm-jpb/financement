@@ -333,14 +333,14 @@ class TFin_affaire extends TObjetStd {
 		
 		$affaire = $xml->createElement("affaire");
 
-		$affaire->appendChild($xml->createElement("dateSignature",$Affaire->date_affaire));
+		$affaire->appendChild($xml->createElement("dateSignature",date("Y-m-d",$Affaire->date_affaire)));
 		$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[0]->dossier->reference));
-		$affaire->appendChild($xml->createElement("siretClient",(!empty($Affaire->societe->siret)) ? $Affaire->societe->siret : $Affaire->societe->siren ));
-		
-		//pre($Affaire,true);
+		$affaire->appendChild($xml->createElement("siretClient",(!empty($Affaire->societe->idprof2)) ? $Affaire->societe->idprof2 : $Affaire->societe->idprof1 ));
+
+		//pre($Affaire,true);exit;
 
 		foreach($Affaire->TLien as $i => $Tdata){
-			$elements = $this->_getElementsXML($xml,$Tdata,$i,$Affaire->TAsset);
+			$elements = $this->_getElementsXML($xml,$Tdata,$i,$Affaire);
 			$affaire->appendChild($elements);
 		}
 
@@ -348,7 +348,7 @@ class TFin_affaire extends TObjetStd {
 
 	}
 	
-	function _getElementsXML(&$xml,&$Tdata,$i,&$TAsset){
+	function _getElementsXML(&$xml,&$Tdata,$i,&$Affaire){
 		
 		$element = $xml->createElement("element");
 		//$element = $xml->appendChild($element);
@@ -357,22 +357,25 @@ class TFin_affaire extends TObjetStd {
 		$element->appendChild($xml->createElement("periodicite",$Tdata->dossier->financementLeaser->periodicite));
 		$element->appendChild($xml->createElement("codeTaxe","20"));
 		$element->appendChild($xml->createElement("terme",substr($Tdata->dossier->financementLeaser->TTerme[$Tdata->dossier->financementLeaser->terme],0,1)));
-		$element->appendChild($xml->createElement("datePremEch",$Tdata->dossier->financementLeaser->date_debut));
-
-		foreach($TAsset as $a => $assetLink){
-			$bien = $this->_getBiensXML($xml,$assetLink,$a);
+		$element->appendChild($xml->createElement("datePremEch",date("Y-m-d",$Tdata->dossier->financementLeaser->date_debut)));
+		
+		$TAssetId = array();
+		
+		foreach($Affaire->TAsset as $a => $assetLink){
+			$bien = $this->_getBiensXML($xml,$assetLink,$Affaire,$a);
+			$AssetId = $assetLink->asset->getId();
 			$element->appendChild($bien);
 		}
-		$paliers = $this->_getPaliersXML($xml,$Tdata->dossier->financementLeaser,0);
+		$paliers = $this->_getPaliersXML($xml,$Tdata->dossier->financementLeaser,$Affaire,$AssetId,0);
 		$commande = $this->_getCommandeXML($xml);
-		
+
 		$element->appendChild($paliers);
 		$element->appendChild($commande);
 
 		return $element;
 	}
 	
-	function _getBiensXML(&$xml,&$assetLink,$a){
+	function _getBiensXML(&$xml,&$assetLink,&$Affaire,$a){
 		global $db;
 		
 		dol_include_once('/product/class/product.class.php');
@@ -384,14 +387,21 @@ class TFin_affaire extends TObjetStd {
 		$ATMdb = new TPDOdb;
 		
 		//Récupération de la facture client de l'équipement associé à l'affaire
-		$TIdFacture = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'asset_link',array('fk_asset'=>$assetLink->asset->getId(), 'type_document'=>'facture'),'fk_document');
+		$sql = "SELECT al1.fk_document 
+				FROM ".MAIN_DB_PREFIX."asset_link as al1
+					LEFT JOIN ".MAIN_DB_PREFIX."asset_link as al2 ON (al2.fk_asset = al1.fk_asset)
+				WHERE al1.fk_asset = ".$assetLink->asset->getId()." AND al1.type_document = 'facture'
+					AND al2.type_document = 'affaire' AND al2.fk_document = ".$Affaire->getId();
+
+		$TIdFacture = TRequeteCore::get_keyval_by_sql($ATMdb, $sql, OBJETSTD_MASTERKEY, "fk_document");
+
 		if(!empty($TIdFacture[0])) {
 			$facture = new Facture($db);
 			$facture->fetch($TIdFacture[0]);
 		}
 		
 		$ATMdb->close();
-		
+
 		$bien = $xml->createElement("bien");
 		//$bien = $xml->appendChild($bien);
 		
@@ -405,18 +415,37 @@ class TFin_affaire extends TObjetStd {
 		return $bien;
 	}
 	
-	function _getPaliersXML(&$xml,&$financementLeaser,$j){
+	function _getPaliersXML(&$xml,&$financementLeaser,&$Affaire,&$AssetId,$j){
+		global $db;
 		
 		$palier = $xml->createElement("palier");
 		//$palier = $xml->appendChild($palier);
+		
+		$ATMdb = new TPDOdb;
+		
+		//Récupération de la facture client de l'équipement associé à l'affaire
+		$sql = "SELECT al1.fk_document 
+				FROM ".MAIN_DB_PREFIX."asset_link as al1
+					LEFT JOIN ".MAIN_DB_PREFIX."asset_link as al2 ON (al2.fk_asset = al1.fk_asset)
+				WHERE al1.fk_asset = ".$AssetId." AND al1.type_document = 'facture'
+					AND al2.type_document = 'affaire' AND al2.fk_document = ".$Affaire->getId();
+
+		$TIdFacture = TRequeteCore::get_keyval_by_sql($ATMdb, $sql, OBJETSTD_MASTERKEY, "fk_document");
+
+		if(!empty($TIdFacture[0])) {
+			$facture = new Facture($db);
+			$facture->fetch($TIdFacture[0]);
+		}
+		
+		$ATMdb->close();
 
 		$palier->appendChild($xml->createElement("no",$j+1));
 		$palier->appendChild($xml->createElement("nbre",$financementLeaser->duree));
 		$palier->appendChild($xml->createElement("montant",$financementLeaser->echeance));
 		$palier->appendChild($xml->createElement("terme",$financementLeaser->terme));
 		$palier->appendChild($xml->createElement("periodicite",$financementLeaser->periodicite));
-		$palier->appendChild($xml->createElement("mtVnf"," "));
-		$palier->appendChild($xml->createElement("pourcVnf"," "));
+		$palier->appendChild($xml->createElement("mtVnf",$Affaire->montant));
+		$palier->appendChild($xml->createElement("pourcVnf",(($Affaire->montant * 100) / $facture->total_ht)));
 
 		return $palier;
 	}
