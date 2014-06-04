@@ -1,5 +1,6 @@
 <?php
-	ini_set("display_errors", true);
+	ini_set("display_errors", 1);
+	error_reporting(E_ALL);
 	require('config.php');
 	require('./class/affaire.class.php');
 	require('./class/dossier.class.php');
@@ -162,13 +163,20 @@
 				break;
 			
 			case 'generateXMLandupload':
-			
+				
+				//TODO a mettre dans des variables donfigurable, voir dans la BDD pour les futurs envoi leaser
+				$host = "localhost";
+				$user = "geoffrey";
+				$pwd = "******";
+				$directory = "/var/www/";
+				
 				$affaire = new TFin_affaire;
 				
 				$TAffaires = $affaire->getAffairesForXML($PDOdb);
-				$dirname = $affaire->genLixxbailXML($TAffaires);
+				$filename = $affaire->genLixxbailXML($TAffaires);
+				$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
 				
-				$affaire->uploadXMLOnLeaserServer($dirname);
+				$affaire->uploadXMLOnLeaserServer($host,$user,$pwd,$directory,$dirname,$filename.'.xml');
 				
 				?>
 				<script language="javascript">
