@@ -40,6 +40,7 @@
 	<table class="border" width="100%">
 		<tr class="liste_titre">
 			<td align="center">Période</td>
+			<td align="center">Facture</td>
 			<td align="center">Vol noir engag&eacute;</td>
 			<td align="center">Vol noir r&eacute;alis&eacute;</td>
 			<td align="center">Vol noir factur&eacute;</td>
@@ -60,6 +61,7 @@
 		</tr>
 		<tr>
 			<td align="center">[integrale.periode;block=tr;noerr]</td>
+			<td align="center">[integrale.facnumber;block=tr;noerr]</td>
 			<td align="center">[integrale.vol_noir_engage;noerr]</td>
 			<td align="center">[integrale.vol_noir_realise;noerr]</td>
 			<td align="center">[integrale.vol_noir_facture;noerr]</td>
