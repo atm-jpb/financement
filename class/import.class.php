@@ -623,6 +623,9 @@ class TImport extends TObjetStd {
 			if($data['ref_service'] == 'SSC054') {
 				$integrale->fass = $data['cout_integrale'];
 			}
+			if(strpos($data['ref_service'], '(FAS)') !== false) {
+				$integrale->fas	= $data['cout_integrale'];
+			}
 		}
 		
 		$integrale->save($ATMdb);
@@ -656,6 +659,7 @@ class TImport extends TObjetStd {
 			$data = array(
 				'client' => $obj->nom
 				,'contrat' => $obj->reference
+				,'facture' => $facnumber
 				,'montant_engage' => $integrale->total_ht_engage
 				,'montant_facture' => $integrale->total_ht_facture
 				,'ecart' => $integrale->ecart
@@ -670,6 +674,7 @@ class TImport extends TObjetStd {
 			$tabalert.='<tr>';
 			$tabalert.='<th>Client</th>';
 			$tabalert.='<th>Contrat Artis</th>';
+			$tabalert.='<th>Facture</th>';
 			$tabalert.='<th>Montant engagement</th>';
 			$tabalert.='<th>Montant factur&eacute;</th>';
 			$tabalert.='<th>&Eacute;cart</th>';
@@ -678,6 +683,7 @@ class TImport extends TObjetStd {
 				$tabalert.='<tr>';
 				$tabalert.='<td>'.$infos['client'].'</td>';
 				$tabalert.='<td>'.$infos['contrat'].'</td>';
+				$tabalert.='<td>'.$infos['facture'].'</td>';
 				$tabalert.='<td>'.price($infos['montant_engage'],0,'',1,-1,2).' &euro;</td>';
 				$tabalert.='<td>'.price($infos['montant_facture'],0,'',1,-1,2).' &euro;</td>';
 				$tabalert.='<td>'.price($infos['ecart'],0,'',1,-1,2).' %</td>';
