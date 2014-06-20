@@ -731,12 +731,13 @@ class TFin_dossier extends TObjetStd {
 		$d = & $this;
 		$f = & $this->financementLeaser;
 		$tva = (FIN_TVA_DEFAUT-1)*100;
+		if($f->date_prochaine_echeance < strtotime('01/01/2014')) $tva = 19.6;
 		$res = '';
 		$object = new FactureFournisseur($db);
 		
 		$reference = $f->reference.'/'.($f->duree_passe+1);
 		
-		$object->ref           = $reference; 
+		$object->ref           = $reference;
 	    $object->socid         = $f->fk_soc;
 	    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".($f->duree_passe+1)."/".$f->duree;
 	    $object->date          = $f->date_prochaine_echeance;
