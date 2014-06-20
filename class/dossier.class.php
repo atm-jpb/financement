@@ -1152,7 +1152,7 @@ class TFin_financement extends TObjetStd {
 		
 		
 		//Cas spécifique Leaser = LOCAM
-		if($this->type == "LEASER" && $this->fk_soc == FK_SOC_LOCAM && !empty($capital_restant_du)){
+		if($this->type == "LEASER" && $this->fk_soc == FK_SOC_LOCAM && !empty($capital_restant_du) && $this->terme == 1){
 			
 			/*echo '<pre>';
 			print_r($capital_restant);
