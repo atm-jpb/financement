@@ -58,6 +58,9 @@
 				
 				$dossier->load($PDOdb, $_REQUEST['id']);
 				$dossier->set_values($_REQUEST);
+				$dossier->set_date('dateperso', $_REQUEST['dateperso']);
+				//pre($dossier);exit;
+				
 				if(isset($dossier->financement))$dossier->financement->set_values($_REQUEST);
 				
 				if(isset($_REQUEST['leaser'])){
