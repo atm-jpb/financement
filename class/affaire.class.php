@@ -313,7 +313,7 @@ class TFin_affaire extends TObjetStd {
 		}
 	}
 	
-	function uploadXMLOnLeaserServer($host,$user,$pwd,$directory,$dirname,$filename){
+	function uploadXMLOnLeaserServer($host,$user,$directory,$dirname,$filename){
 		
 		$destination = $directory.$filename;
 		
@@ -321,7 +321,7 @@ class TFin_affaire extends TObjetStd {
 		{
 			//pre("1");exit;
 		    $sftp = new SFTPConnection($host, 22);
-		    $sftp->login($user,$pwd);
+		    $sftp->login($user);
 		    $sftp->uploadFile($dirname,$destination);
 
 		}
@@ -506,11 +506,15 @@ class SFTPConnection
             throw new Exception("Could not connect to $host on port $port.");
     }
 
-    public function login($username, $password)
+    public function login($username)
     {
-        if (! ssh2_auth_password($this->connection, $username, $password))
-            throw new Exception("Could not authenticate with username $username " .
-                                "and password $password.");
+    	$publickey = ssh2_publickey_init($this->connection);
+		if(! $publickey){
+			throw new Exception("publickkey error");
+		}
+		
+        if (! ssh2_auth_pubkey_file($this->connection, $publickey))
+            throw new Exception("Could not authenticate with publickey");
 
         $this->sftp = ssh2_sftp($this->connection);
         if (! $this->sftp)
