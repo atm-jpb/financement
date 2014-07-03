@@ -500,20 +500,16 @@ class SFTPConnection
 
     public function __construct($host, $port=22)
     {
-    	
+
         $this->connection = ssh2_connect($host, $port);
         if (! $this->connection)
             throw new Exception("Could not connect to $host on port $port.");
+
     }
 
     public function login($username)
     {
-    	$publickey = ssh2_publickey_init($this->connection);
-		if(! $publickey){
-			throw new Exception("publickkey error");
-		}
-		
-        if (! ssh2_auth_pubkey_file($this->connection, $publickey))
+        if (! ssh2_auth_pubkey_file($this->connection,$username, "/var/www/.ssh/id_rsa.pub","/var/www/.ssh/id_rsa"))
             throw new Exception("Could not authenticate with publickey");
 
         $this->sftp = ssh2_sftp($this->connection);
