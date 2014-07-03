@@ -165,10 +165,9 @@
 			case 'generateXMLandupload':
 				
 				//TODO a mettre dans des variables donfigurable, voir dans la BDD pour les futurs envoi leaser
-				$host = "localhost";
-				$user = "geoffrey";
-				$pwd = "******";
-				$directory = "/var/www/";
+				$host = "b2b.eurofactor.com";
+				$user = "cpro";
+				$directory = "";
 				
 				$affaire = new TFin_affaire;
 				
@@ -176,7 +175,7 @@
 				$filename = $affaire->genLixxbailXML($TAffaires);
 				$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
 				
-				$affaire->uploadXMLOnLeaserServer($host,$user,$pwd,$directory,$dirname,$filename.'.xml');
+				$affaire->uploadXMLOnLeaserServer($host,$user,$directory,$dirname,$filename.'.xml');
 				
 				?>
 				<script language="javascript">
