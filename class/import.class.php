@@ -610,14 +610,31 @@ class TImport extends TObjetStd {
 				$integrale->fas	= $data['total_ht'];
 			}
 		} else {
-			if($data['label_integrale'] == 'ENGAGEMENT COPIES NB' && strpos($data['libelle_ligne'], 'LOCATION') !== false && !empty($data['total_ht'])) {
-				$integrale->vol_noir_engage+= $data['quantite'];
-				$integrale->vol_noir_realise+= $data['quantite_integrale'];
+			if($data['label_integrale'] == 'ENGAGEMENT COPIES NB' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
+				if(empty($integrale->materiel_noir)) {
+					$integrale->materiel_noir = $data['matricule'];
+					$integrale->vol_noir_engage = $data['quantite'];
+					$integrale->vol_noir_realise = $data['quantite_integrale'];
+				} else if($integrale->materiel_noir != $data['matricule']) {
+					$integrale->materiel_noir = $data['matricule'];
+					$integrale->vol_noir_engage+= $data['quantite'];
+					$integrale->vol_noir_realise+= $data['quantite_integrale'];
+				}
+				
 				$integrale->cout_unit_noir = $data['cout_integrale'];
+				
 			}
-			if($data['label_integrale'] == 'ENGAGEMENT COPIES COULEUR' && strpos($data['libelle_ligne'], 'LOCATION') !== false && !empty($data['total_ht'])) {
-				$integrale->vol_coul_engage+= $data['quantite'];
-				$integrale->vol_coul_realise+= $data['quantite_integrale'];
+			if($data['label_integrale'] == 'ENGAGEMENT COPIES COULEUR' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
+				if(empty($integrale->materiel_coul)) {
+					$integrale->materiel_coul = $data['matricule'];
+					$integrale->vol_coul_engage = $data['quantite'];
+					$integrale->vol_coul_realise = $data['quantite_integrale'];
+				} else if($integrale->materiel_coul != $date['matricule']) {
+					$integrale->materiel_coul = $data['matricule'];
+					$integrale->vol_coul_engage+= $data['quantite'];
+					$integrale->vol_coul_realise+= $data['quantite_integrale'];
+				}
+				
 				$integrale->cout_unit_coul = $data['cout_integrale'];
 			}
 			if($data['ref_service'] == 'SSC054') {
@@ -661,18 +678,20 @@ class TImport extends TObjetStd {
 				,'montant_engage' => $integrale->total_ht_engage
 				,'montant_facture' => $integrale->total_ht_facture
 				,'ecart' => $integrale->ecart
-				,'Copieur'=>''
-				,'Traceur'=>''
-				,'Solution'=>''
+				,'1-Copieur'=>''
+				,'2-Traceur'=>''
+				,'3-Solution'=>''
 			);
 			
 			// Récupération du destinataire
-			$sql= "SELECT u.rowid as id_user, u.firstname, u.name, u.email, u.login, sc.type_activite_cpro";
+			$sql= "SELECT u.rowid as id_user, u.firstname, u.name, u.email, u.login, ";
+			$sql.=" CASE sc.type_activite_cpro WHEN 'Copieur' THEN '1-Copieur' WHEN 'Traceur' THEN '2-Traceur' WHEN 'Solution' THEN '3-Solution' END activite";
 			$sql.= " FROM llx_facture f";
 			$sql.= " LEFT JOIN llx_societe s ON s.rowid = f.fk_soc";
 			$sql.= " LEFT JOIN llx_societe_commerciaux sc ON sc.fk_soc = s.rowid AND sc.type_activite_cpro IN ('Copieur','Traceur','Solution')";
 			$sql.= " LEFT JOIN llx_user u ON u.rowid = sc.fk_user";
 			$sql.= " WHERE f.facnumber = ".$facnumber;
+			$sql.= " ORDER BY activite";
 			
 			$ATMdb->Execute($sql);
 			$TRes = $ATMdb->Get_All();
@@ -688,14 +707,14 @@ class TImport extends TObjetStd {
 			}
 			
 			foreach($TRes as $user) {
-				$data[$user->type_activite_cpro] = $user->login;
+				$data[$user->activite] = $user->login;
 			}
 			
 			$TMailToSend[$id_user]['usermail'] = $email;
 			$TMailToSend[$id_user]['username'] = $name;
 			$TMailToSend[$id_user]['content'][] = $data;
 		}
-pre($TMailToSend,true);
+//pre($TMailToSend,true);
 		
 		foreach($TMailToSend as $data) {
 			$tabalert = '<table cellpadding="2">';
@@ -715,12 +734,12 @@ pre($TMailToSend,true);
 				$tabalert.='<td>'.$infos['client'].'</td>';
 				$tabalert.='<td>'.$infos['contrat'].'</td>';
 				$tabalert.='<td>'.$infos['facture'].'</td>';
-				$tabalert.='<td>'.price($infos['montant_engage'],0,'',1,-1,2).' &euro;</td>';
-				$tabalert.='<td>'.price($infos['montant_facture'],0,'',1,-1,2).' &euro;</td>';
-				$tabalert.='<td>'.price($infos['ecart'],0,'',1,-1,2).' %</td>';
-				$tabalert.='<td>'.$infos['Copieur'].'</td>';
-				$tabalert.='<td>'.$infos['Traceur'].'</td>';
-				$tabalert.='<td>'.$infos['Solution'].'</td>';
+				$tabalert.='<td align="right">'.price($infos['montant_engage'],0,'',1,-1,2).' &euro;</td>';
+				$tabalert.='<td align="right">'.price($infos['montant_facture'],0,'',1,-1,2).' &euro;</td>';
+				$tabalert.='<td align="right">'.price($infos['ecart'],0,'',1,-1,2).' %</td>';
+				$tabalert.='<td align="center">'.$infos['1-Copieur'].'</td>';
+				$tabalert.='<td align="center">'.$infos['2-Traceur'].'</td>';
+				$tabalert.='<td align="center">'.$infos['3-Solution'].'</td>';
 				$tabalert.='</tr>';
 			}
 			$tabalert.= '</table>';
@@ -732,7 +751,7 @@ pre($TMailToSend,true);
 			
 			$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
 			$r->emailtoBcc = 'maxime@atm-consulting.fr';
-			//$r->send(true);
+			$r->send(true);
 			
 			echo "<hr>".$subjectMail."<br>".$contentMail;
 		}
