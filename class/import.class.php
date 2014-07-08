@@ -629,7 +629,7 @@ class TImport extends TObjetStd {
 					$integrale->materiel_coul = $data['matricule'];
 					$integrale->vol_coul_engage = $data['quantite'];
 					$integrale->vol_coul_realise = $data['quantite_integrale'];
-				} else if($integrale->materiel_coul != $date['matricule']) {
+				} else if($integrale->materiel_coul != $data['matricule']) {
 					$integrale->materiel_coul = $data['matricule'];
 					$integrale->vol_coul_engage+= $data['quantite'];
 					$integrale->vol_coul_realise+= $data['quantite_integrale'];
