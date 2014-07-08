@@ -629,7 +629,7 @@ class TImport extends TObjetStd {
 					$integrale->materiel_coul = $data['matricule'];
 					$integrale->vol_coul_engage = $data['quantite'];
 					$integrale->vol_coul_realise = $data['quantite_integrale'];
-				} else if($integrale->materiel_coul != $date['matricule']) {
+				} else if($integrale->materiel_coul != $data['matricule']) {
 					$integrale->materiel_coul = $data['matricule'];
 					$integrale->vol_coul_engage+= $data['quantite'];
 					$integrale->vol_coul_realise+= $data['quantite_integrale'];
@@ -715,7 +715,8 @@ class TImport extends TObjetStd {
 			$TMailToSend[$id_user]['content'][] = $data;
 		}
 //pre($TMailToSend,true);
-		
+		$contentMail = '';
+		$csvfile = fopen('alertesintegrale.csv', 'w');
 		foreach($TMailToSend as $data) {
 			$tabalert = '<table cellpadding="2">';
 			$tabalert.='<tr>';
@@ -744,17 +745,29 @@ class TImport extends TObjetStd {
 			}
 			$tabalert.= '</table>';
 			
+			fputs($csvfile, implode(';', $data['content']));
+			
 			$mailto = $data['usermail'];
 			$mailto = 'financement@cpro.fr';
 			$subjectMail = '[Lease Board] - Alertes facturation intégrale pour '.$data['username'];
-			$contentMail = $langs->transnoentitiesnoconv('IntegraleEmailAlert', $data['username'], $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL, $tabalert);
+			$contentMail.= $subjectMail.'<br><br>';
+			$contentMail.= $langs->transnoentitiesnoconv('IntegraleEmailAlert', $data['username'], $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL, $tabalert).'<br><br>';
 			
-			$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
-			$r->emailtoBcc = 'maxime@atm-consulting.fr';
-			$r->send(true);
+			//$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
+			//$r->emailtoBcc = 'maxime@atm-consulting.fr';
+			//$r->send(true);
 			
 			echo "<hr>".$subjectMail."<br>".$contentMail;
 		}
+
+		fclose($csvfile);
+		
+		$mailto = 'financement@cpro.fr';
+		$subjectMail = '[Lease Board] - Alertes facturation intégrale';
+		
+		$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
+		$r->emailtoBcc = 'maxime@atm-consulting.fr';
+		$r->send(true);
 	}
 
 	function importLineFactureLettree(&$ATMdb, $data) {
