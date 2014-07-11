@@ -640,7 +640,7 @@ class TImport extends TObjetStd {
 			if($data['ref_service'] == 'SSC054') {
 				$integrale->fass = $data['cout_integrale'];
 			}
-			if(strpos($data['ref_service'], '(FAS)') !== false) {
+			if(strpos($data['label_integrale'], '(FAS)') !== false) {
 				$integrale->fas	= $data['cout_integrale'];
 			}
 		}
@@ -691,7 +691,7 @@ class TImport extends TObjetStd {
 			$sql.= " LEFT JOIN llx_societe_commerciaux sc ON sc.fk_soc = s.rowid AND sc.type_activite_cpro IN ('Copieur','Traceur','Solution')";
 			$sql.= " LEFT JOIN llx_user u ON u.rowid = sc.fk_user";
 			$sql.= " WHERE f.facnumber = ".$facnumber;
-			$sql.= " ORDER BY activite";
+			$sql.= " ORDER BY activite, u.login";
 			
 			$ATMdb->Execute($sql);
 			$TRes = $ATMdb->Get_All();
@@ -707,7 +707,11 @@ class TImport extends TObjetStd {
 			}
 			
 			foreach($TRes as $user) {
-				$data[$user->activite] = $user->login;
+				if(!empty($data[$user->activite])) {
+					$data[$user->activite].= ', '.$user->login;
+				} else {
+					$data[$user->activite] = $user->login;
+				}
 			}
 			
 			$TMailToSend[$id_user]['usermail'] = $email;
@@ -716,7 +720,7 @@ class TImport extends TObjetStd {
 		}
 //pre($TMailToSend,true);
 		$contentMail = '';
-		$csvfile = fopen('alertesintegrale.csv', 'w');
+		$csvfile = fopen(FIN_IMPORT_FOLDER.'alertesintegrale.csv', 'w');
 		foreach($TMailToSend as $data) {
 			$tabalert = '<table cellpadding="2">';
 			$tabalert.='<tr>';
@@ -745,7 +749,7 @@ class TImport extends TObjetStd {
 			}
 			$tabalert.= '</table>';
 			
-			fputs($csvfile, implode(';', $data['content']));
+			fputs($csvfile, implode(';', $data['content'])."\n");
 			
 			$mailto = $data['usermail'];
 			$mailto = 'financement@cpro.fr';
@@ -767,7 +771,7 @@ class TImport extends TObjetStd {
 		
 		$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
 		$r->emailtoBcc = 'maxime@atm-consulting.fr';
-		$r->send(true);
+		$r->send(true, 'UTF-8');
 	}
 
 	function importLineFactureLettree(&$ATMdb, $data) {
