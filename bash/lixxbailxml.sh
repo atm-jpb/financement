@@ -1,9 +1,3 @@
-#!/bin/bash
-if test -f $1; then
-	sftp cpro@b2b.eurofector.com
-	cd IN
-	put $1
-	bye
-else
-echo "****** ERROR : nom de fichier icorrect *****"
-fi
+echo $'cd IN \n put '$1$'\n' > fuckingcmd.txt
+
+sftp -b fuckingcmd.txt cpro@b2b.eurofactor.com
