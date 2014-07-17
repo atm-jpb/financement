@@ -175,7 +175,8 @@
 				$filename = $affaire->genLixxbailXML($TAffaires);
 				$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
 				
-				$affaire->uploadXMLOnLeaserServer($host,$user,$directory,$dirname,$filename.'.xml');
+				//$affaire->uploadXMLOnLeaserServer($host,$user,$directory,$dirname,$filename.'.xml');
+				exec('sh bash/lixxbailxml.sh '.$dirname);
 				
 				?>
 				<script language="javascript">
