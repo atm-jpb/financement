@@ -47,7 +47,10 @@ class TIntegrale extends TObjetStd {
 		// Définition du facturé (= engagé si pas de dépassement, = réalisé sinon)
 		$this->vol_noir_facture = ($this->vol_noir_engage > $this->vol_noir_realise) ? $this->vol_noir_engage : $this->vol_noir_realise;
 		$this->vol_coul_facture = ($this->vol_coul_engage > $this->vol_coul_realise) ? $this->vol_coul_engage : $this->vol_coul_realise;
-		$this->total_ht_facture = ($this->total_ht_realise > $this->total_ht_engage) ? $this->total_ht_realise : $this->total_ht_engage;
+		//$this->total_ht_facture = ($this->total_ht_realise > $this->total_ht_engage) ? $this->total_ht_realise : $this->total_ht_engage;
+		$this->total_ht_facture = $this->vol_noir_facture * $this->cout_unit_noir;
+		$this->total_ht_facture+= $this->vol_coul_facture * $this->cout_unit_coul;
+		$this->total_ht_facture+= $this->total_frais;
 		
 		if($this->total_ht_engage > 0) {
 			$this->ecart = ($this->total_ht_facture - $this->total_ht_engage) * 100 / $this->total_ht_engage;
