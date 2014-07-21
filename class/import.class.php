@@ -121,6 +121,7 @@ class TImport extends TObjetStd {
 				break;
 			case 'facture_location':
 				$this->importLineFactureLocation($ATMdb, $data, $TInfosGlobale);
+				$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
 				break;
 			case 'facture_lettree':
 				$this->importLineFactureLettree($ATMdb, $data);
@@ -582,6 +583,209 @@ class TImport extends TObjetStd {
 		$facture_loc->update($user, 0);
 		
 		return true;
+	}
+
+	function importLineFactureIntegrale(&$ATMdb, $data, &$TInfosGlobale) {
+		global $user, $db;
+		
+		if(empty($TInfosGlobale['integrale'][$data[$this->mapping['search_key']]])) {
+			$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]] = new TIntegrale();
+			$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]]->loadBy($ATMdb, $data[$this->mapping['search_key']], $this->mapping['search_key']);
+		}
+		
+		$integrale = &$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]];
+		$integrale->facnumber = $data[$this->mapping['search_key']];
+		
+		if(empty($data['label_integrale'])) {
+			if($data['ref_service'] == '037003') {
+				$integrale->frais_dossier = $data['total_ht'];
+			}
+			if($data['ref_service'] == '037004') {
+				$integrale->frais_bris_machine	= $data['total_ht'];
+			}
+			if($data['libelle_ligne'] == 'FRAIS DE FACTURATION') {
+				$integrale->frais_facturation	= $data['total_ht'];
+			}
+			if(strpos($data['libelle_ligne'], '(FAS)') !== false) {
+				$integrale->fas	= $data['total_ht'];
+			}
+			
+			if(strpos($data['libelle_ligne'], '(FASS)') !== false) {
+				if(empty($integrale->fass_somme)) { // Gestion FASS sur plusieurs lignes
+					$integrale->fass	= $data['total_ht'];
+					$integrale->fass_somme = true;
+				} else {
+					$integrale->fass	+= $data['total_ht'];
+				}
+			}
+		} else {
+			if($data['label_integrale'] == 'ENGAGEMENT COPIES NB' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
+				if(empty($integrale->materiel_noir)) {
+					$integrale->materiel_noir = $data['matricule'];
+					$integrale->vol_noir_engage = $data['quantite'];
+					$integrale->vol_noir_realise = $data['quantite_integrale'];
+				} else if($integrale->materiel_noir != $data['matricule']) {
+					$integrale->materiel_noir = $data['matricule'];
+					$integrale->vol_noir_engage+= $data['quantite'];
+					$integrale->vol_noir_realise+= $data['quantite_integrale'];
+				}
+				
+				$integrale->cout_unit_noir = $data['cout_integrale'];
+				
+			}
+			if($data['label_integrale'] == 'ENGAGEMENT COPIES COULEUR' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
+				if(empty($integrale->materiel_coul)) {
+					$integrale->materiel_coul = $data['matricule'];
+					$integrale->vol_coul_engage = $data['quantite'];
+					$integrale->vol_coul_realise = $data['quantite_integrale'];
+				} else if($integrale->materiel_coul != $data['matricule']) {
+					$integrale->materiel_coul = $data['matricule'];
+					$integrale->vol_coul_engage+= $data['quantite'];
+					$integrale->vol_coul_realise+= $data['quantite_integrale'];
+				}
+				
+				$integrale->cout_unit_coul = $data['cout_integrale'];
+			}
+			if(strpos($data['label_integrale'], '(FASS)') !== false) {
+				if(empty($integrale->fass_somme)) { // Gestion FASS sur plusieurs lignes
+					$integrale->fass = $data['cout_integrale'];
+					$integrale->fass_somme = true;
+				} else {
+					$integrale->fass = $data['cout_integrale'];
+				}
+			}
+			if(strpos($data['label_integrale'], '(FAS)') !== false) {
+				$integrale->fas	= $data['cout_integrale'];
+			}
+		}
+		
+		$integrale->save($ATMdb);
+	}
+
+	function sendAlertEmailIntegrale($ATMdb, $TInfosGlobale) {
+		global $conf, $db, $langs;
+		
+		$TMailToSend = array();
+		foreach ($TInfosGlobale['integrale'] as $facnumber => $integrale) {
+			if(empty($TInfosGlobale[$facnumber])) continue;
+			if($integrale->ecart < $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL) continue;
+			
+			// Récupération des informations à envoyer au commerial
+			$sql= "SELECT s.nom, df.reference";
+			$sql.= " FROM llx_facture f";
+			$sql.= " LEFT JOIN llx_societe s ON s.rowid = f.fk_soc";
+			$sql.= " LEFT JOIN llx_element_element ee ON ee.fk_target = f.rowid AND ee.targettype = 'facture'";
+			$sql.= " LEFT JOIN llx_fin_dossier d ON d.rowid = ee.fk_source AND ee.sourcetype = 'dossier'";
+			$sql.= " LEFT JOIN llx_fin_dossier_financement df ON df.fk_fin_dossier = d.rowid";
+			$sql.= " WHERE f.facnumber = ".$facnumber;
+			$sql.= " AND df.type = 'CLIENT'";
+			
+			$ATMdb->Execute($sql);
+			$TRes = $ATMdb->Get_All();
+			$obj = $TRes[0];
+			
+			//Compilation avant envois
+			$data = array(
+				'client' => $obj->nom
+				,'contrat' => $obj->reference
+				,'facture' => $facnumber
+				,'montant_engage' => $integrale->total_ht_engage
+				,'montant_facture' => $integrale->total_ht_facture
+				,'ecart' => $integrale->ecart
+				,'1-Copieur'=>''
+				,'2-Traceur'=>''
+				,'3-Solution'=>''
+			);
+			
+			// Récupération du destinataire
+			$sql= "SELECT u.rowid as id_user, u.firstname, u.name, u.email, u.login, ";
+			$sql.=" CASE sc.type_activite_cpro WHEN 'Copieur' THEN '1-Copieur' WHEN 'Traceur' THEN '2-Traceur' WHEN 'Solution' THEN '3-Solution' END activite";
+			$sql.= " FROM llx_facture f";
+			$sql.= " LEFT JOIN llx_societe s ON s.rowid = f.fk_soc";
+			$sql.= " LEFT JOIN llx_societe_commerciaux sc ON sc.fk_soc = s.rowid AND sc.type_activite_cpro IN ('Copieur','Traceur','Solution')";
+			$sql.= " LEFT JOIN llx_user u ON u.rowid = sc.fk_user";
+			$sql.= " WHERE f.facnumber = ".$facnumber;
+			$sql.= " ORDER BY activite, u.login";
+			
+			$ATMdb->Execute($sql);
+			$TRes = $ATMdb->Get_All();
+			
+			if(!empty($TRes[0])) {
+				$email = $TRes[0]->email;
+				$name = $TRes[0]->firstname.' '.$TRes[0]->name;
+				$id_user = $TRes[0]->id_user;
+			} else {
+				$email = 'financement@cpro.fr';
+				$name = 'Cellule financement';
+				$id_user = 999999;
+			}
+			
+			foreach($TRes as $user) {
+				if(!empty($data[$user->activite])) {
+					$data[$user->activite].= ', '.$user->login;
+				} else {
+					$data[$user->activite] = $user->login;
+				}
+			}
+			
+			$TMailToSend[$id_user]['usermail'] = $email;
+			$TMailToSend[$id_user]['username'] = $name;
+			$TMailToSend[$id_user]['content'][] = $data;
+		}
+//pre($TMailToSend,true);
+		$contentMail = '';
+		$csvfile = fopen(FIN_IMPORT_FOLDER.'alertesintegrale'.date('Ymd').'.csv', 'w');
+		foreach($TMailToSend as $data) {
+			$tabalert = '<table cellpadding="2">';
+			$tabalert.='<tr>';
+			$tabalert.='<th>Client</th>';
+			$tabalert.='<th>Contrat Artis</th>';
+			$tabalert.='<th>Facture</th>';
+			$tabalert.='<th>Montant engagement</th>';
+			$tabalert.='<th>Montant factur&eacute;</th>';
+			$tabalert.='<th>&Eacute;cart</th>';
+			$tabalert.='<th>Copieur</th>';
+			$tabalert.='<th>Traceur</th>';
+			$tabalert.='<th>Solution</th>';
+			$tabalert.='</tr>';
+			foreach ($data['content'] as $infos) {
+				$tabalert.='<tr>';
+				$tabalert.='<td>'.$infos['client'].'</td>';
+				$tabalert.='<td>'.$infos['contrat'].'</td>';
+				$tabalert.='<td>'.$infos['facture'].'</td>';
+				$tabalert.='<td align="right">'.price($infos['montant_engage'],0,'',1,-1,2).' &euro;</td>';
+				$tabalert.='<td align="right">'.price($infos['montant_facture'],0,'',1,-1,2).' &euro;</td>';
+				$tabalert.='<td align="right">'.price($infos['ecart'],0,'',1,-1,2).' %</td>';
+				$tabalert.='<td align="center">'.$infos['1-Copieur'].'</td>';
+				$tabalert.='<td align="center">'.$infos['2-Traceur'].'</td>';
+				$tabalert.='<td align="center">'.$infos['3-Solution'].'</td>';
+				$tabalert.='</tr>';
+				
+				fputs($csvfile, implode(';', $infos)."\n");
+			}
+			$tabalert.= '</table>';
+			
+			$mailto = $data['usermail'];
+			$mailto = 'financement@cpro.fr';
+			$subjectMail = '[Lease Board] - Alertes facturation intégrale pour '.$data['username'];
+			$contentMail.= $subjectMail.'<br><br>';
+			$contentMail.= $langs->transnoentitiesnoconv('IntegraleEmailAlert', $data['username'], $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL, $tabalert).'<br><br>';
+			
+			//$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
+			//$r->emailtoBcc = 'maxime@atm-consulting.fr';
+			//$r->send(true);
+			
+			echo "<hr>".$subjectMail."<br>".$contentMail;
+		}
+
+		fclose($csvfile);
+		
+		$mailto = 'financement@cpro.fr';
+		$subjectMail = '[Lease Board] - Alertes facturation intégrale';
+		
+		$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
+		$r->emailtoBcc = 'maxime@atm-consulting.fr';
+		//$r->send(true, 'UTF-8');
 	}
 
 	function importLineFactureLettree(&$ATMdb, $data) {
