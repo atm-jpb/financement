@@ -65,20 +65,20 @@
 			<td align="center">[integrale.vol_noir_engage;noerr]</td>
 			<td align="center">[integrale.vol_noir_realise;noerr]</td>
 			<td align="center">[integrale.vol_noir_facture;noerr]</td>
-			<td align="right">[integrale.cout_unit_noir;frm=0 000,00000;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.cout_unit_noir;frm=0 000,00000;noerr] &euro;</td>
 			<td align="center">[integrale.vol_coul_engage;noerr]</td>
 			<td align="center">[integrale.vol_coul_realise;noerr]</td>
 			<td align="center">[integrale.vol_coul_facture;noerr]</td>
-			<td align="right">[integrale.cout_unit_coul;frm=0 000,00000;noerr] &euro;</td>
-			<td align="right">[integrale.fas;frm=0 000,00;noerr] &euro;</td>
-			<td align="right">[integrale.fass;frm=0 000,00;noerr] &euro;</td>
-			<td align="right">[integrale.frais_dossier;frm=0 000,00;noerr] &euro;</td>
-			<td align="right">[integrale.frais_bris_machine;frm=0 000,00;noerr] &euro;</td>
-			<td align="right">[integrale.frais_facturation;frm=0 000,00;noerr] &euro;</td>
-			<td align="right">[integrale.total_ht_engage;frm=0 000,00;noerr] &euro;</td>
-			<!--<td align="right">[integrale.total_ht_realise;frm=0 000,00;noerr] &euro;</td>-->
-			<td align="right">[integrale.total_ht_facture;frm=0 000,00;noerr] &euro;</td>
-			<td align="center">[integrale.ecart;frm=0 000,00;noerr] %</td>
+			<td align="right" nowrap="nowrap">[integrale.cout_unit_coul;frm=0 000,00000;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.fas;frm=0 000,00;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.fass;frm=0 000,00;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.frais_dossier;frm=0 000,00;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.frais_bris_machine;frm=0 000,00;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.frais_facturation;frm=0 000,00;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.total_ht_engage;frm=0 000,00;noerr] &euro;</td>
+			<!--<td align="right" nowrap="nowrap">[integrale.total_ht_realise;frm=0 000,00;noerr] &euro;</td>-->
+			<td align="right" nowrap="nowrap">[integrale.total_ht_facture;frm=0 000,00;noerr] &euro;</td>
+			<td align="center" nowrap="nowrap">[integrale.ecart;frm=0 000,00;noerr] %</td>
 		</tr>
 	</table>
 
