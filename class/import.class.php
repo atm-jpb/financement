@@ -734,7 +734,7 @@ class TImport extends TObjetStd {
 		}
 //pre($TMailToSend,true);
 		$contentMail = '';
-		$csvfile = fopen(FIN_IMPORT_FOLDER.'alertesintegrale.csv', 'w');
+		$csvfile = fopen(FIN_IMPORT_FOLDER.'alertesintegrale'.date('Ymd').'.csv', 'w');
 		foreach($TMailToSend as $data) {
 			$tabalert = '<table cellpadding="2">';
 			$tabalert.='<tr>';
@@ -785,7 +785,7 @@ class TImport extends TObjetStd {
 		
 		$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
 		$r->emailtoBcc = 'maxime@atm-consulting.fr';
-		$r->send(true, 'UTF-8');
+		//$r->send(true, 'UTF-8');
 	}
 
 	function importLineFactureLettree(&$ATMdb, $data) {
