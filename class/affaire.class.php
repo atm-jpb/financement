@@ -276,7 +276,7 @@ class TFin_affaire extends TObjetStd {
 	
 	function genLixxbailXML(&$TAffaires){
 		
-		$name = "FP_207_MA01_CPRO_".date('Ymd');
+		$name = "CPROMA01IMMA".date('Ymd');
 
 		$xml = new DOMDocument('1.0','UTF-8');
 		$xml->formatOutput = true;
@@ -355,9 +355,24 @@ class TFin_affaire extends TObjetStd {
 		$element = $xml->createElement("element");
 		//$element = $xml->appendChild($element);
 		
+		switch ($Tdata->dossier->financementLeaser->periodicite) {
+			case 'TRIMESTRE':
+				$periodicite = 3;
+				break;
+			case 'MOIS':
+				$periodicite = 1;
+				break;
+			case 'ANNEE':
+				$periodicite = 12;
+				break;
+			case 'SEMESTRE':
+				$periodicite = 6;
+				break;
+		}
+		
 		$element->appendChild($xml->createElement("noElement",$i+1));
-		$element->appendChild($xml->createElement("periodicite",$Tdata->dossier->financementLeaser->periodicite));
-		$element->appendChild($xml->createElement("codeTaxe","20"));
+		$element->appendChild($xml->createElement("periodicite",$periodicite));
+		$element->appendChild($xml->createElement("codeTaxe","10"));
 		$element->appendChild($xml->createElement("terme",substr($Tdata->dossier->financementLeaser->TTerme[$Tdata->dossier->financementLeaser->terme],0,1)));
 		$element->appendChild($xml->createElement("datePremEch",date("Y-m-d",$Tdata->dossier->financementLeaser->date_debut)));
 		
@@ -407,12 +422,32 @@ class TFin_affaire extends TObjetStd {
 		$bien = $xml->createElement("bien");
 		//$bien = $xml->appendChild($bien);
 		
+		$TAssietteTheorique = array(
+				'209B' => 'INFORMATIQUE - micro ordinateur',
+				'204B' => 'INFORMATIQUE - ensemble matériels informatique',
+				'U06C' => 'BUREAUTIQUE - télécopieur',
+				'U01C' => 'BUREAUTIQUE - ensemble matériels bureautique',
+				'216B' => 'INFORMATIQUE - station',
+				'U07C' => 'BUREAUTIQUE - machine traitement du courrier',
+				'212B' => 'INFORMATIQUE - portable',
+				'206C' => 'INFORMATIQUE - imprimante',
+				'214B' => 'INFORMATIQUE - scanner informatique',
+				'219Q' => 'INFORMATIQUE - logiciels',
+				'218C' => 'INFORMATIQUE - traceur',
+				'208C' => 'INFORMATIQUE - imprimante laser',
+				'U03C' => 'BUREAUTIQUE - photocopieur',
+				'211C' => 'INFORMATIQUE - onduleur',
+				'144C' => 'IMPRIMERIE - traceur',
+				'130G' => 'IMPRIMERIE - plieuse',
+				'V09Q' => 'TELECOMMUNICATIONS,VIDEO,AUDIO - installation téléphonique',
+			);
+		
 		$bien->appendChild($xml->createElement("immobilisation",$a+1));
-		$bien->appendChild($xml->createElement("designation",htmlentities($product->label)));
+		$bien->appendChild($xml->createElement("designation",substr(htmlentities($product->label),0,30)));
 		$bien->appendChild($xml->createElement("noSerie",$assetLink->asset->serial_number));
-		$bien->appendChild($xml->createElement("immatriculable"," "));
+		$bien->appendChild($xml->createElement("immatriculable","NON"));
 		$bien->appendChild($xml->createElement("codeAssietteTheorique"," "));
-		$bien->appendChild($xml->createElement("montant",$facture->total_ht));
+		$bien->appendChild($xml->createElement("montant",number_format($facture->total_ht,2)));
 
 		return $bien;
 	}
@@ -440,12 +475,27 @@ class TFin_affaire extends TObjetStd {
 		}
 		
 		$ATMdb->close();
-
+		
+		switch ($financementLeaser->periodicite) {
+			case 'TRIMESTRE':
+				$periodicite = 3;
+				break;
+			case 'MOIS':
+				$periodicite = 1;
+				break;
+			case 'ANNEE':
+				$periodicite = 12;
+				break;
+			case 'SEMESTRE':
+				$periodicite = 6;
+				break;
+		}
+		
 		$palier->appendChild($xml->createElement("no",$j+1));
 		$palier->appendChild($xml->createElement("nbre",$financementLeaser->duree));
 		$palier->appendChild($xml->createElement("montant",$financementLeaser->echeance));
 		$palier->appendChild($xml->createElement("terme",$financementLeaser->terme));
-		$palier->appendChild($xml->createElement("periodicite",$financementLeaser->periodicite));
+		$palier->appendChild($xml->createElement("periodicite",$periodicite));
 		$palier->appendChild($xml->createElement("mtVnf",$Affaire->montant));
 		$palier->appendChild($xml->createElement("pourcVnf",(($Affaire->montant * 100) / $facture->total_ht)));
 
@@ -471,7 +521,7 @@ class TFin_affaire extends TObjetStd {
 		$commandeLig = $xml->createElement("commandeLig");
 
 		$commandeLig->appendChild($xml->createElement("immobilisation"," "));
-		$commandeLig->appendChild($xml->createElement("codeTypeLigne"," "));
+		$commandeLig->appendChild($xml->createElement("codeTypeLigne","ABIE"));
 		$commandeLig->appendChild($xml->createElement("mtHt"," "));
 		$commandeLig->appendChild($xml->createElement("codeTaxe"," "));
 		$commandeLig->appendChild($xml->createElement("mtTaxe"," "));
