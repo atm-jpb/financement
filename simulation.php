@@ -356,6 +356,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	//	$simulation->echeance = __get('echeance', $simulation->echeance, 'float');
 		
 	}
+
+	if(empty($simulation->fk_soc)) $simulation->opt_no_case_to_settle = 1;
 	
 	$extrajs = array('/financement/js/financement.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
