@@ -109,7 +109,9 @@
 		</tr>
 		<tr>
 			<td>Adjonction</td>
-			<td colspan="3">[simulation.opt_adjonction; strconv=no]</td>
+			<td>[simulation.opt_adjonction; strconv=no]</td>
+			<td>Aucun dossier à solder</td>
+			<td>[simulation.no_case_to_settle; strconv=no]</td>
 		</tr>
 		<tr class="liste_titre">
 			<td colspan="4">Paramètres financiers</td>

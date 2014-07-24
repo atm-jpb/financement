@@ -432,6 +432,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'type_materiel'=>$form->texte('','type_materiel',$simulation->type_materiel, 50)
 				,'numero_accord'=>$can_preco ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $simulation->numero_accord
 				
+				,'no_case_to_settle'=>$form->checkbox1('', 'opt_no_case_to_settle', 1, $simulation->opt_no_case_to_settle) 
+				
 				,'accord_val'=>$simulation->accord
 				,'can_preco'=>$can_preco
 				
@@ -510,6 +512,8 @@ function _calcul(&$simulation, $mode='calcul') {
 }
 
 function _liste_dossier(&$ATMdb, &$simulation, $mode) {
+	if(!empty($simulation->date_accord) && $simulation->date_accord < strtotime('-15 days')) return ''; // Ticket 916
+	
 	global $langs,$conf, $db, $bc;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 
