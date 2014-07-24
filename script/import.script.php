@@ -124,7 +124,7 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		
 		print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;
 		
-		//rename($importFolder.$fileName, $importFolderOK.$fileName);
+		rename($importFolder.$fileName, $importFolderOK.$fileName);
 	}
 }
 

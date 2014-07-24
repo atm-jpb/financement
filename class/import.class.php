@@ -609,6 +609,15 @@ class TImport extends TObjetStd {
 			if(strpos($data['libelle_ligne'], '(FAS)') !== false) {
 				$integrale->fas	= $data['total_ht'];
 			}
+			
+			if(strpos($data['libelle_ligne'], '(FASS)') !== false) {
+				if(empty($integrale->fass_somme)) { // Gestion FASS sur plusieurs lignes
+					$integrale->fass	= $data['total_ht'];
+					$integrale->fass_somme = true;
+				} else {
+					$integrale->fass	+= $data['total_ht'];
+				}
+			}
 		} else {
 			if($data['label_integrale'] == 'ENGAGEMENT COPIES NB' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
 				if(empty($integrale->materiel_noir)) {
@@ -637,8 +646,13 @@ class TImport extends TObjetStd {
 				
 				$integrale->cout_unit_coul = $data['cout_integrale'];
 			}
-			if($data['ref_service'] == 'SSC054') {
-				$integrale->fass = $data['cout_integrale'];
+			if(strpos($data['label_integrale'], '(FASS)') !== false) {
+				if(empty($integrale->fass_somme)) { // Gestion FASS sur plusieurs lignes
+					$integrale->fass = $data['cout_integrale'];
+					$integrale->fass_somme = true;
+				} else {
+					$integrale->fass = $data['cout_integrale'];
+				}
 			}
 			if(strpos($data['label_integrale'], '(FAS)') !== false) {
 				$integrale->fas	= $data['cout_integrale'];
@@ -720,7 +734,7 @@ class TImport extends TObjetStd {
 		}
 //pre($TMailToSend,true);
 		$contentMail = '';
-		$csvfile = fopen(FIN_IMPORT_FOLDER.'alertesintegrale.csv', 'w');
+		$csvfile = fopen(FIN_IMPORT_FOLDER.'alertesintegrale'.date('Ymd').'.csv', 'w');
 		foreach($TMailToSend as $data) {
 			$tabalert = '<table cellpadding="2">';
 			$tabalert.='<tr>';
@@ -746,10 +760,10 @@ class TImport extends TObjetStd {
 				$tabalert.='<td align="center">'.$infos['2-Traceur'].'</td>';
 				$tabalert.='<td align="center">'.$infos['3-Solution'].'</td>';
 				$tabalert.='</tr>';
+				
+				fputs($csvfile, implode(';', $infos)."\n");
 			}
 			$tabalert.= '</table>';
-			
-			fputs($csvfile, implode(';', $data['content'])."\n");
 			
 			$mailto = $data['usermail'];
 			$mailto = 'financement@cpro.fr';
@@ -771,7 +785,7 @@ class TImport extends TObjetStd {
 		
 		$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
 		$r->emailtoBcc = 'maxime@atm-consulting.fr';
-		$r->send(true, 'UTF-8');
+		//$r->send(true, 'UTF-8');
 	}
 
 	function importLineFactureLettree(&$ATMdb, $data) {

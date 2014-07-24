@@ -22,6 +22,15 @@ $(document).ready(function() {
 	} else {
 		$('input[name="date_demarrage"]').attr('disabled', false);
 	}
+	
+	// Rachat dossier ou case aucun
+	$('#opt_no_case_to_settle').bind('click', function() {
+		if($(this).attr('checked') == 'checked') {
+			$('input[name^="dossiers_rachetes"]').attr('checked', false);
+			$('input[name^="dossiers_rachetes"]').parent('td.solde').css('background-color', '');
+			calcul_montant_rachat();
+		}
+	});
 });
 
 var get_grille = function() {
@@ -125,6 +134,7 @@ var select_solde = function() {
 		$(this).parent('tr').find('td.solde').css('background-color', '');
 		cb.attr('checked', true);
 		$(this).css('background-color', '#00FF00');
+		$('#opt_no_case_to_settle').attr('checked', false);
 	}
 	
 	calcul_montant_rachat();

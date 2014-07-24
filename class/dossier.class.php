@@ -502,7 +502,7 @@ class TFin_dossier extends TObjetStd {
 				break;
 					
 			case 'SRCPRO': /* Vendeur renouvellant */
-			
+				
 				if($this->nature_financement == 'INTERNE') {
 					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
 				} else {
@@ -519,11 +519,12 @@ class TFin_dossier extends TObjetStd {
 					return ($solde>$LRD)?$LRD:$solde;
 				}
 				else {
+					$this->financementLeaser->setEcheance($iPeriode);
 					
-				
 					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
 					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
-					if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382) {
+					if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382
+						|| $this->financementLeaser->date_prochaine_echeance > strtotime('08/15/2014')) { // Ticket 939
 						$solde *= (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
 					}
 					//exit($LRD_Leaser);
@@ -736,12 +737,13 @@ class TFin_dossier extends TObjetStd {
 		$d = & $this;
 		$f = & $this->financementLeaser;
 		$tva = (FIN_TVA_DEFAUT-1)*100;
+		if($f->date_prochaine_echeance < strtotime('01/01/2014')) $tva = 19.6;
 		$res = '';
 		$object = new FactureFournisseur($db);
 		
 		$reference = $f->reference.'/'.($f->duree_passe+1);
 		
-		$object->ref           = $reference; 
+		$object->ref           = $reference;
 	    $object->socid         = $f->fk_soc;
 	    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".($f->duree_passe+1)."/".$f->duree;
 	    $object->date          = $f->date_prochaine_echeance;
@@ -1163,7 +1165,7 @@ class TFin_financement extends TObjetStd {
 		
 		
 		//Cas spécifique Leaser = LOCAM
-		if($this->type == "LEASER" && $this->fk_soc == FK_SOC_LOCAM && !empty($capital_restant_du)){
+		if($this->type == "LEASER" && $this->fk_soc == FK_SOC_LOCAM && !empty($capital_restant_du) && $this->terme == 1){
 			
 			/*echo '<pre>';
 			print_r($capital_restant);

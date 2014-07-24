@@ -107,6 +107,17 @@ if(!empty($action)) {
 		case 'calcul':
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			$simulation->set_values($_REQUEST);
+			
+			// On vérifie que les dossiers sélectionnés n'ont pas été décochés
+			if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
+			if(empty($_REQUEST['dossiers_rachetes_p1'])) $simulation->dossiers_rachetes_p1 = array();
+			if(empty($_REQUEST['dossiers_rachetes_nr'])) $simulation->dossiers_rachetes_nr = array();
+			if(empty($_REQUEST['dossiers_rachetes_nr_p1'])) $simulation->dossiers_rachetes_nr_p1 = array();
+			if(empty($_REQUEST['dossiers_rachetes_perso'])) $simulation->dossiers_rachetes_perso = array();
+			
+			$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
+			$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
+			$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 
 			_calcul($simulation);
 			_fiche($ATMdb, $simulation,'edit');
@@ -127,6 +138,7 @@ if(!empty($action)) {
 			
 			$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
 			$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
+			$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 			
 			if($simulation->opt_calage != '') {
 				$simulation->set_date('date_demarrage',$_REQUEST['date_demarrage']);
@@ -163,16 +175,9 @@ if(!empty($action)) {
 			
 			// On refait le calcul avant d'enregistrer
 			_calcul($simulation, 'save');
-			
-			if(empty($simulation->type_materiel)) {
-				
+			if($error) {
 				_fiche($ATMdb, $simulation,'edit');
-			
-				setEventMessage('Le type de matériel est obligatoire','errors');
-			
-			}
-			else {
-	
+			} else {
 				//$ATMdb->db->debug=true;
 				$simulation->save($ATMdb, $db);
 				//echo $simulation->opt_calage; exit;
@@ -182,14 +187,11 @@ if(!empty($action)) {
 				}
 				
 				$simulation->load_annexe($ATMdb, $db);
-
-
+				
 				_fiche($ATMdb, $simulation,'view');
 				
 				setEventMessage('Simulation enregistrée : '.$simulation->getRef(),'mesgs');
-					
 			}
-			
 			
 			break;
 		
@@ -445,6 +447,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'type_materiel'=>$form->texte('','type_materiel',$simulation->type_materiel, 50)
 				,'numero_accord'=>$can_preco ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $simulation->numero_accord
 				
+				,'no_case_to_settle'=>$form->checkbox1('', 'opt_no_case_to_settle', 1, $simulation->opt_no_case_to_settle) 
+				
 				,'accord_val'=>$simulation->accord
 				,'can_preco'=>$can_preco
 				
@@ -530,6 +534,8 @@ function _calcul(&$simulation, $mode='calcul') {
 }
 
 function _liste_dossier(&$ATMdb, &$simulation, $mode) {
+	if(!empty($simulation->date_accord) && $simulation->date_accord < strtotime('-15 days')) return ''; // Ticket 916
+	
 	global $langs,$conf, $db, $bc;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 

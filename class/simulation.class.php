@@ -6,7 +6,7 @@ class TSimulation extends TObjetStd {
 		
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation');
 		parent::add_champs('entity,fk_soc,fk_user_author,fk_leaser,accord_confirme','type=entier;');
-		parent::add_champs('duree,opt_administration,opt_creditbail,opt_adjonction','type=entier;');
+		parent::add_champs('duree,opt_administration,opt_creditbail,opt_adjonction,opt_no_case_to_settle','type=entier;');
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_rachete_autres_dossiers,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
 		parent::add_champs('date_simul,date_validite,date_accord,date_demarrage','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,numero_accord,reference,opt_calage','type=chaine;');
@@ -40,6 +40,11 @@ class TSimulation extends TObjetStd {
 		$this->coeff = 0;
 		$this->fk_user_author = $user->id;
 		$this->user = $user;
+		$this->dossiers_rachetes = array();
+		$this->dossiers_rachetes_nr = array();
+		$this->dossiers_rachetes_p1 = array();
+		$this->dossiers_rachetes_nr_p1 = array();
+		$this->dossiers_rachetes_perso = array();
 	}
 
 	function getRef() {
@@ -194,6 +199,14 @@ class TSimulation extends TObjetStd {
 			$this->error = 'ErrorPeriodiciteRequired';
 			return false;
 		}
+		else if(empty($this->opt_no_case_to_settle) && empty($this->dossiers_rachetes) && empty($this->dossiers_rachetes_nr) && empty($this->dossiers_rachetes_p1) && empty($this->dossiers_rachetes_nr_p1)) { // Périodicité obligatoire
+			$this->error = 'ErrorCaseMandatory';
+			return false;
+		}
+		else if(empty($this->type_materiel)) { // Périodicité obligatoire
+			$this->error = 'ErrorMaterielRequired';
+			return false;
+		}
 		
 		// Récupération de la grille pour les paramètres donnés
 		$grille = new TFin_grille_leaser;
@@ -298,6 +311,7 @@ class TSimulation extends TObjetStd {
 				$percent_rachat = (($this->montant_rachete + $this->montant_rachete_concurrence) / $this->montant_total_finance) * 100;
 				
 				if($this->societe->score->score >= $conf->global->FINANCEMENT_SCORE_MINI // Score minimum
+					&& $this->montant_total_finance <= $conf->global->FINANCEMENT_MONTANT_MAX_ACCORD_AUTO // Montant ne dépasse pas le max
 					&& $montant_dispo > $this->montant_total_finance // % "d'endettement"
 					&& $percent_rachat <= $conf->global->FINANCEMENT_PERCENT_RACHAT_AUTORISE // % de rachat
 					&& !in_array($this->societe->idprof3, explode(FIN_IMPORT_FIELD_DELIMITER, $conf->global->FINANCEMENT_NAF_BLACKLIST)) // NAF non black-listé
@@ -412,6 +426,7 @@ class TSimulation extends TObjetStd {
 		$simu = $this;
 		$simu->type_contrat = $a->TContrat[$this->fk_type_contrat];
 		$simu->periodicite = $f->TPeriodicite[$this->opt_periodicite];
+		$simu->mode_rglt = $f->TReglement[$this->opt_mode_reglement];
 		$simu->statut = html_entity_decode($this->getStatut());
 		$back_opt_calage = $simu->opt_calage;
 		$simu->opt_calage = $f->TCalage[$simu->opt_calage];
