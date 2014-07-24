@@ -143,6 +143,19 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 
+// montant max simulation pour accord auto
+$var=! $var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_MONTANT_MAX_ACCORD_AUTO" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("AmountMaxForAutoAgreement").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_MONTANT_MAX_ACCORD_AUTO" value="'.$conf->global->FINANCEMENT_MONTANT_MAX_ACCORD_AUTO.'" /> &euro;';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
 // % écart mini pour alerte commercial sur facturation intégrale
 $var=!$var;
 print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';

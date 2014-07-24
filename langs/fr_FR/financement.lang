@@ -14,6 +14,7 @@ GlobalAdmin=Options globales
 AmountValidationPercent=Pourcentage d'endettement maximum : montant finançable max = (encours conseillé - encours cpro) * X
 RachatPartPercent=Pourcentage maximum que peut représenter la partie rachat par rapport au montant total financé
 AmountValidationScore=Score minimum de validation de simulation
+AmountMaxForAutoAgreement=Montant maximum autorisé pour accord automatique
 NAFBlackList=Liste des codes NAF non acceptés (séparés par des point-virgules)
 EcartAlerteEmailIntegrale=Envoyer une alerte e-mail sur les dépassements intégrale à partir d'un écart de :
 IntegraleEmailAlert=Bonjour %s,<br><br>Ci-dessous, la liste des clients en intégral ayant un dépassement supérieur à %s %% :<br><br>%s<br><br>La cellule financement
@@ -76,10 +77,12 @@ Refus=Financement refusé
 SansSuite=Sans suite
 ErrorNoTypeContratSelected=Merci de sélectionner un type de contrat
 ErrorPeriodiciteRequired=Merci de sélectionner une périodicité
+ErrorMaterielRequired=Le type de matériel est obligatoire
 ErrorNoGrilleSelected=Pas de grille disponible pour le type de contrat sélectionné
 ErrorMontantOrEcheanceRequired=Merci de renseigner un montant ou une échéance
 ErrorAmountOutOfGrille=Le montant total financé est hors grille
 ErrorInvalidVR=La valeur résiduelle ne peut pas être supérieure au montant
+ErrorCaseMandatory=Merci de sélectionner au moins un dossier à racheter ou de cocher la case "Aucun dossier à solder"
 UnableToCreateProspect=Impossible de créer la fiche prospect
 
 # SCORE

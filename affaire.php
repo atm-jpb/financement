@@ -343,7 +343,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 				,'montant_val'=>$affaire->montant
 				,'nature_financement_val'=>$affaire->nature_financement
 				
-				,'addDossierButton'=>(($affaire->solde>0 && $affaire->nature_financement!='') ? 1 : 0)
+				,'addDossierButton'=>(($affaire->nature_financement!='') ? 1 : 0)
 				,'url_therefore'=>FIN_THEREFORE_AFFAIRE_URL
 			)
 			,'view'=>array(
