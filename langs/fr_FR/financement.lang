@@ -77,6 +77,7 @@ Refus=Financement refusé
 SansSuite=Sans suite
 ErrorNoTypeContratSelected=Merci de sélectionner un type de contrat
 ErrorPeriodiciteRequired=Merci de sélectionner une périodicité
+ErrorDureeRequired=Merci de sélectionner une durée
 ErrorMaterielRequired=Le type de matériel est obligatoire
 ErrorNoGrilleSelected=Pas de grille disponible pour le type de contrat sélectionné
 ErrorMontantOrEcheanceRequired=Merci de renseigner un montant ou une échéance
