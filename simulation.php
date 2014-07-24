@@ -107,6 +107,17 @@ if(!empty($action)) {
 		case 'calcul':
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			$simulation->set_values($_REQUEST);
+			
+			// On vérifie que les dossiers sélectionnés n'ont pas été décochés
+			if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
+			if(empty($_REQUEST['dossiers_rachetes_p1'])) $simulation->dossiers_rachetes_p1 = array();
+			if(empty($_REQUEST['dossiers_rachetes_nr'])) $simulation->dossiers_rachetes_nr = array();
+			if(empty($_REQUEST['dossiers_rachetes_nr_p1'])) $simulation->dossiers_rachetes_nr_p1 = array();
+			if(empty($_REQUEST['dossiers_rachetes_perso'])) $simulation->dossiers_rachetes_perso = array();
+			
+			$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
+			$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
+			$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 
 			_calcul($simulation);
 			_fiche($ATMdb, $simulation,'edit');
@@ -127,6 +138,7 @@ if(!empty($action)) {
 			
 			$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
 			$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
+			$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 			
 			if($simulation->opt_calage != '') {
 				$simulation->set_date('date_demarrage',$_REQUEST['date_demarrage']);
@@ -163,20 +175,24 @@ if(!empty($action)) {
 			
 			// On refait le calcul avant d'enregistrer
 			_calcul($simulation, 'save');
+			if($error) {
+				_fiche($ATMdb, $simulation,'edit');
+			} else {
 			
-			//$ATMdb->db->debug=true;
-			$simulation->save($ATMdb, $db);
-			//echo $simulation->opt_calage; exit;
-			// Si l'accord vient d'être donné (par un admin)
-			if(($simulation->accord == 'OK' || $simulation->accord == 'KO') && $simulation->accord != $oldAccord) {
-				$simulation->send_mail_vendeur();
+				//$ATMdb->db->debug=true;
+				$simulation->save($ATMdb, $db);
+				//echo $simulation->opt_calage; exit;
+				// Si l'accord vient d'être donné (par un admin)
+				if(($simulation->accord == 'OK' || $simulation->accord == 'KO') && $simulation->accord != $oldAccord) {
+					$simulation->send_mail_vendeur();
+				}
+				
+				$simulation->load_annexe($ATMdb, $db);
+				
+				_fiche($ATMdb, $simulation,'view');
+				
+				setEventMessage('Simulation enregistrée : '.$simulation->getRef(),'mesgs');
 			}
-			
-			$simulation->load_annexe($ATMdb, $db);
-			
-			_fiche($ATMdb, $simulation,'view');
-			
-			setEventMessage('Simulation enregistrée : '.$simulation->getRef(),'mesgs');
 			
 			break;
 		

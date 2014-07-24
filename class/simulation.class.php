@@ -40,6 +40,11 @@ class TSimulation extends TObjetStd {
 		$this->coeff = 0;
 		$this->fk_user_author = $user->id;
 		$this->user = $user;
+		$this->dossiers_rachetes = array();
+		$this->dossiers_rachetes_nr = array();
+		$this->dossiers_rachetes_p1 = array();
+		$this->dossiers_rachetes_nr_p1 = array();
+		$this->dossiers_rachetes_perso = array();
 	}
 
 	function getRef() {
