@@ -497,7 +497,7 @@ class TFin_dossier extends TObjetStd {
 				break;
 					
 			case 'SRCPRO': /* Vendeur renouvellant */
-			
+				
 				if($this->nature_financement == 'INTERNE') {
 					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
 				} else {
@@ -514,11 +514,12 @@ class TFin_dossier extends TObjetStd {
 					return ($solde>$LRD)?$LRD:$solde;
 				}
 				else {
+					$this->financementLeaser->setEcheance($iPeriode);
 					
-				
 					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
 					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
-					if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382) {
+					if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382
+						|| $this->financementLeaser->date_prochaine_echeance > strtotime('08/15/2014')) { // Ticket 939
 						$solde *= (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
 					}
 					//exit($LRD_Leaser);
