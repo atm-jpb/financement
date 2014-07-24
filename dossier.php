@@ -165,7 +165,7 @@
 			case 'generateXMLandupload':
 				
 				//TODO a mettre dans des variables donfigurable, voir dans la BDD pour les futurs envoi leaser
-				$host = "b2b.eurofactor.com";
+				$host = "test.b2b.eurofactor.com";
 				$user = "cpro";
 				$directory = "";
 				
