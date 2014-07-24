@@ -117,7 +117,7 @@
 			<td colspan="4">Paramètres financiers</td>
 		</tr>
 		<tr>
-			<td>Montant total financ&eacute;</td>
+			<td class="fieldrequired">Montant total financ&eacute;</td>
 			<td>[simulation.montant; strconv=no; frm=0 000,00] &euro;</td>
 			<td colspan="2" rowspan="2" align="center">
 				[onshow;block=begin;when [view.type]=='simul']
