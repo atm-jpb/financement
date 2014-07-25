@@ -592,10 +592,10 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			$soldeNR1 = round($dossier->getSolde($ATMdb2, 'SNRBANK', $fin->duree_passe + 1),2);*/
 		}
 
-		if($fin->duree <= $fin->numero_prochaine_echeance) continue;
+		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		
 		if($fin->date_solde > 0) continue;
-		if($fin->duree <= $fin->numero_prochaine_echeance) continue;
+		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		if(empty($dossier->financementLeaser->reference)) continue;
 		
 		$soldeR = round($dossier->getSolde($ATMdb2, 'SRCPRO'),2);
