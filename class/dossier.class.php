@@ -528,7 +528,7 @@ class TFin_dossier extends TObjetStd {
 				else {
 					$dateProchaine = $this->financementLeaser->date_prochaine_echeance;
 					if($iPeriode > 0) {
-						$nb_month = (($this->duree_passe + 1) * $this->getiPeriode());
+						$nb_month = (($this->financementLeaser->duree_passe + 1) * $this->financementLeaser->getiPeriode());
 						$dateProchaine = strtotime('+'.$nb_month.' month', $this->date_debut + $this->calage);
 					}
 					
