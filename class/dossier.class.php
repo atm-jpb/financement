@@ -528,7 +528,8 @@ class TFin_dossier extends TObjetStd {
 				else {
 					$dateProchaine = $this->financementLeaser->date_prochaine_echeance;
 					if($iPeriode > 0) {
-						$dateProchaine = strtotime('+ '.$this->financementLeaser->getiPeriode().' months', $dateProchaine);
+						$nb_month = (($this->financementLeaser->duree_passe + 1) * $this->financementLeaser->getiPeriode());
+						$dateProchaine = strtotime('+'.$nb_month.' month', $this->date_debut + $this->calage);
 					}
 					
 					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
