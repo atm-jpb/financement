@@ -199,7 +199,10 @@ class TSimulation extends TObjetStd {
 			$this->error = 'ErrorPeriodiciteRequired';
 			return false;
 		}
-		else if(empty($this->opt_no_case_to_settle) && empty($this->dossiers_rachetes) && empty($this->dossiers_rachetes_nr) && empty($this->dossiers_rachetes_p1) && empty($this->dossiers_rachetes_nr_p1)) { // Périodicité obligatoire
+		else if(empty($this->opt_no_case_to_settle)
+				&& empty($this->dossiers_rachetes) && empty($this->dossiers_rachetes_nr)
+				&& empty($this->dossiers_rachetes_p1) && empty($this->dossiers_rachetes_nr_p1)
+				&& empty($this->dossiers_rachetes_perso)) { // Dossier obligatoire
 			$this->error = 'ErrorCaseMandatory';
 			return false;
 		}
@@ -478,14 +481,19 @@ class TSimulation extends TObjetStd {
 			
 			if(in_array($idDossier, $this->dossiers_rachetes)) {
 				$solde = 'R';
+				$datemax = $f->date_prochaine_echeance;
 			} elseif(in_array($idDossier, $this->dossiers_rachetes_nr)) {
 				$solde = 'NR';
+				$datemax = $f->date_prochaine_echeance;
 			} elseif(in_array($idDossier, $this->dossiers_rachetes_p1)) {
 				$solde = 'R';
+				$datemax = strtotime('+ '.$f->getiPeriode().' months', $f->date_prochaine_echeance);
 			} elseif(in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
 				$solde = 'NR';
+				$datemax = strtotime('+ '.$f->getiPeriode().' months', $f->date_prochaine_echeance);
 			} elseif(in_array($idDossier, $this->dossiers_rachetes_perso)) {
 				$solde = 'personnalisé';
+				$datemax = $d->dateperso;
 			} else {
 				$solde = '';
 			}
@@ -533,6 +541,7 @@ class TSimulation extends TObjetStd {
 					,'solde' => $solde
 					,'solde_r' => $solde_r
 					,'solde_nr' => $solde_nr
+					,'datemax' => $datemax
 				);
 			}
 			else{
@@ -542,6 +551,7 @@ class TSimulation extends TObjetStd {
 					,'type_contrat' => $d->type_contrat
 					,'solde' => $solde
 					,'soldeperso' => $soldeperso
+					,'datemax' => $datemax
 				);
 			}
 		}
