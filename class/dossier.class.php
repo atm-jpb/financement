@@ -445,7 +445,7 @@ class TFin_dossier extends TObjetStd {
 		$duree_restante_leaser = ($iPeriode == 0) ? $this->financementLeaser->duree_restante : $this->financementLeaser->duree - $iPeriode;
 		//exit("$iPeriode");
 		$CRD_Leaser = $this->financementLeaser->valeur_actuelle($duree_restante_leaser);
-		$LRD_Leaser = $this->financementLeaser->echeance * $duree_restante_leaser;
+		$LRD_Leaser = $this->financementLeaser->echeance * $duree_restante_leaser + $this->financementLeaser->reste;
 		
 		// MKO 13.09.19 : base de calcul différente en fonction du leaser : voir fichier config
 		global $TLeaserTypeSolde;
@@ -457,7 +457,7 @@ class TFin_dossier extends TObjetStd {
 		$duree_restante_client = ($iPeriode == 0) ? $this->financement->duree_restante : $this->financement->duree - $iPeriode;
 		
 		$CRD = $this->financement->valeur_actuelle($duree_restante_client);
-		$LRD = $this->financement->echeance * $duree_restante_client;
+		$LRD = $this->financement->echeance * $duree_restante_client + $this->financement->reste;
 		
 		switch($type) {
 			case 'SRBANK':/* réel renouvellant */
