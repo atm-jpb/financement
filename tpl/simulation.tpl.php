@@ -205,6 +205,9 @@
 <div class="tabsAction">
 	<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[simulation.id]'">
 	<a href="?id=[simulation.id]&action=edit" class="butAction">Modifier</a>
+	[onshow;block=begin; when [simulation.can_resend_accord]=='OK']
+	<a href="?id=[simulation.id]&action=send_accord" class="butAction">Renvoyer l'accord</a>
+	[onshow;block=end]
 </div>
 <br />
 [onshow;block=end]
