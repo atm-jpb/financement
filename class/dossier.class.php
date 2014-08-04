@@ -1102,7 +1102,7 @@ class TFin_financement extends TObjetStd {
 		$this->date_prochaine_echeance = strtotime('+'.($this->getiPeriode()*($this->duree_passe)).' month', $this->date_debut + $this->calage);
 	}
 	function calculTaux() {
-		$this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100,4);
+		$this->taux = round($this->taux($this->duree * $this->getiPeriode(), -$this->echeance, $this->montant, $this->reste, $this->terme) * $this->getiPeriode() * 100,4);
 	}
 	
 	function load(&$ATMdb, $id, $annexe=false) {
