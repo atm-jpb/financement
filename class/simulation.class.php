@@ -413,6 +413,8 @@ class TSimulation extends TObjetStd {
 
         $r->send(false);
 		
+		setEventMessage('Accord envoyé à : '.$mailto,'mesgs');
+		
 		/*
 		if ($mailfile->error) {
 			echo 'ERR : '.$mailfile->error;

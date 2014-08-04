@@ -195,7 +195,17 @@ if(!empty($action)) {
 			
 			break;
 		
+		case 'send_accord':
+			if(!empty($_REQUEST['id'])) {
+				$simulation->load($ATMdb, $db, $_REQUEST['id']);
+				if($simulation->accord == 'OK') {
+					$simulation->send_mail_vendeur();
+				}
+			}
 			
+			_fiche($ATMdb, $simulation,'view');
+			break;
+		
 		case 'delete':
 			$simulation->load($ATMdb, $db, $_REQUEST['id']);
 			//$ATMdb->db->debug=true;
@@ -442,6 +452,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10)
 				,'cout_financement'=>$simulation->cout_financement
 				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
+				,'can_resend_accord'=>$simulation->accord
 				,'date_validite'=>$simulation->accord == 'OK' ? 'Validité : '.$simulation->get_date('date_validite') : ''
 				,'commentaire'=>$form->zonetexte('', 'commentaire', $simulation->commentaire, 50,3)
 				,'accord_confirme'=>$simulation->accord_confirme
