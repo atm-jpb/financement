@@ -196,6 +196,36 @@
 				$affaire->resetAllDossiersInXML($PDOdb,$TAffaires);
 				
 				break;
+				
+			case 'create_avoir':
+				dol_include_once('/fourn/class/fournisseur.facture.class.php');
+				dol_include_once('/product/class/product.class.php');
+				
+				$idFactureFourn = GETPOST('id_facture_fournisseur');
+				$origine = new FactureFournisseur($db);
+				$origine->fetch($idFactureFourn);
+				
+				$fact = new FactureFournisseur($db);
+				$idClone = $fact->createFromClone($idFactureFourn);
+				$fact->fetch($idClone);
+				
+				$fact->type = 2;
+				$fact->fk_facture_source = $origine->id;
+				$fact->facnumber = 'AV'.$origine->facnumber;
+				$fact->update($user);
+				foreach($fact->lines as $line) {
+					$line->pu_ht *= -1;
+					$fact->updateline($line->rowid, $line->libelle, $line->pu_ht, $line->tva_tx,0,0,$line->qty,$line->fk_product);
+				}
+				
+				$fact->validate($user);
+				$fact->set_paid($user);
+				
+				$urlback = dol_buildpath('/fourn/facture/fiche.php?facid='.$fact->id, 1);
+				header("Location: ".$urlback);
+				exit;
+				
+				break;
 		}
 		
 	}

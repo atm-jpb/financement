@@ -322,7 +322,7 @@ class TFin_dossier extends TObjetStd {
 			}
 		}
 	}
-	function load_factureFournisseur(&$ATMdb) {
+	function load_factureFournisseur(&$ATMdb, $all=false) {
 		global $db;
 		$this->somme_facture_fournisseur = 0;
 		$this->TFactureFournisseur = array();
@@ -340,8 +340,21 @@ class TFin_dossier extends TObjetStd {
 		while($ATMdb->Get_line()) {
 			$fact = new FactureFournisseur($db);
 			$fact->fetch($ATMdb->Get_field('fk_target'));
-			$this->somme_facture_fournisseur += $fact->total_ht;
-			$this->TFactureFournisseur[] = $fact;
+			if(!$all) {
+				$facidavoir=$fact->getListIdAvoirFromInvoice();
+				foreach ($facidavoir as $idAvoir) {
+					$avoir = new FactureFournisseur($db);
+					$avoir->fetch($idAvoir);
+					$fact->total_ht += $avoir->total_ht;
+				}
+				
+				if($fact->type == 0 && $fact->total_ht > 0) { // Récupération uniquement des factures standard et sans avoir qui l'annule complètement
+					$this->somme_facture_fournisseur += $fact->total_ht;
+					$this->TFactureFournisseur[] = $fact;
+				}
+			} else {
+				$this->TFactureFournisseur[] = $fact;
+			}
 		}
 	}
 	function load_factureMateriel(&$ATMdb) {
