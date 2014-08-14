@@ -365,7 +365,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 		
 	}
 	
-	llxHeader('','Dossier');
+	$extrajs = array('/financement/js/dossier.js');
+	llxHeader('','Dossier','','','','',$extrajs);
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formAff','POST');
 	$form->Set_typeaff($mode);

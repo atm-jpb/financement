@@ -306,7 +306,8 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		$ATMdb->close(); 
 	}
 	
-	llxHeader('','Affaires');
+	$extrajs = array('/financement/js/dossier.js');
+	llxHeader('','Affaires','','','','',$extrajs);
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formAff','POST');
 	$form->Set_typeaff($mode);
