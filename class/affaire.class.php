@@ -393,6 +393,8 @@ class TFin_affaire extends TObjetStd {
 	}
 
 	function _getFactureXML(&$assetLink,&$Affaire){
+		global $db;
+		
 		$ATMdb = new TPDOdb;
 		
 		//Récupération de la facture client de l'équipement associé à l'affaire
@@ -512,15 +514,15 @@ class TFin_affaire extends TObjetStd {
 		
 		$commande = $xml->createElement("commande");
 
-		$commande->appendChild($xml->createElement("noCommande"," "));
+		//pre($TAsset[0]->asset->serial_number);exit;
+		$commande->appendChild($xml->createElement("noCommande",((count($TAsset) > 1) ? date('dmY') : $TAsset[0]->asset->serial_number)));
 		$commande->appendChild($xml->createElement("fournisseur","M000355961"));
-		
+
 		foreach($TAsset as $assetLink){
 				
 			$commandeLig = $this->_getCommandeLigXML($xml,$assetLink,$Affaire);
+			$commande->appendChild($commandeLig);
 		}
-
-		$commande->appendChild($commandeLig);
 
 		return $commande;
 	}
@@ -533,7 +535,7 @@ class TFin_affaire extends TObjetStd {
 		
 		$commandeLig = $xml->createElement("commandeLig");
 
-		$commandeLig->appendChild($xml->createElement("immobilisation",$Asset->serial_number));
+		$commandeLig->appendChild($xml->createElement("immobilisation",$assetLink->asset->serial_number));
 		$commandeLig->appendChild($xml->createElement("codeTypeLigne","ABIE"));
 		$commandeLig->appendChild($xml->createElement("mtHt",number_format($facture->total_ht,2)));
 		$commandeLig->appendChild($xml->createElement("codeTaxe","10"));
