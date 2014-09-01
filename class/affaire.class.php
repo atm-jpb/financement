@@ -384,23 +384,15 @@ class TFin_affaire extends TObjetStd {
 			$element->appendChild($bien);
 		}
 		$paliers = $this->_getPaliersXML($xml,$Tdata->dossier->financementLeaser,$Affaire,$AssetId,0);
-		$commande = $this->_getCommandeXML($xml);
+		$commande = $this->_getCommandeXML($xml,$Affaire->TAsset,$Affaire);
 
 		$element->appendChild($paliers);
 		$element->appendChild($commande);
 
 		return $element;
 	}
-	
-	function _getBiensXML(&$xml,&$assetLink,&$Affaire,$a){
-		global $db;
-		
-		dol_include_once('/product/class/product.class.php');
-		dol_include_once('/compta/facture/class/facture.class.php');
 
-		$product = new Product($db);
-		$product->fetch($assetLink->asset->fk_product);
-		
+	function _getFactureXML(&$assetLink,&$Affaire){
 		$ATMdb = new TPDOdb;
 		
 		//Récupération de la facture client de l'équipement associé à l'affaire
@@ -418,6 +410,20 @@ class TFin_affaire extends TObjetStd {
 		}
 		
 		$ATMdb->close();
+		
+		return $facture;
+	}
+	
+	function _getBiensXML(&$xml,&$assetLink,&$Affaire,$a){
+		global $db;
+		
+		dol_include_once('/product/class/product.class.php');
+		dol_include_once('/compta/facture/class/facture.class.php');
+
+		$product = new Product($db);
+		$product->fetch($assetLink->asset->fk_product);
+		
+		$facture = $this->_getFactureXML($assetLink,$Affaire);
 
 		$bien = $xml->createElement("bien");
 		//$bien = $xml->appendChild($bien);
@@ -502,30 +508,37 @@ class TFin_affaire extends TObjetStd {
 		return $palier;
 	}
 	
-	function _getCommandeXML(&$xml){
+	function _getCommandeXML(&$xml,&$TAsset,&$Affaire){
 		
 		$commande = $xml->createElement("commande");
 
 		$commande->appendChild($xml->createElement("noCommande"," "));
-		$commande->appendChild($xml->createElement("fournisseur"," "));
-
-		$commandeLig = $this->_getCommandeLigXML($xml);
+		$commande->appendChild($xml->createElement("fournisseur","M000355961"));
+		
+		foreach($TAsset as $assetLink){
+				
+			$commandeLig = $this->_getCommandeLigXML($xml,$assetLink,$Affaire);
+		}
 
 		$commande->appendChild($commandeLig);
 
 		return $commande;
 	}
 	
-	function _getCommandeLigXML(&$xml){
+	function _getCommandeLigXML(&$xml, &$assetLink,&$Affaire){
+		
+		dol_include_once('/compta/facture/class/facture.class.php');
+		
+		$facture = $this->_getFactureXML($assetLink,$Affaire);
 		
 		$commandeLig = $xml->createElement("commandeLig");
 
-		$commandeLig->appendChild($xml->createElement("immobilisation"," "));
+		$commandeLig->appendChild($xml->createElement("immobilisation",$Asset->serial_number));
 		$commandeLig->appendChild($xml->createElement("codeTypeLigne","ABIE"));
-		$commandeLig->appendChild($xml->createElement("mtHt"," "));
-		$commandeLig->appendChild($xml->createElement("codeTaxe"," "));
-		$commandeLig->appendChild($xml->createElement("mtTaxe"," "));
-		$commandeLig->appendChild($xml->createElement("mtTTC"," "));
+		$commandeLig->appendChild($xml->createElement("mtHt",number_format($facture->total_ht,2)));
+		$commandeLig->appendChild($xml->createElement("codeTaxe","10"));
+		$commandeLig->appendChild($xml->createElement("mtTaxe",number_format($facture->total_tva,2)));
+		$commandeLig->appendChild($xml->createElement("mtTTC",number_format($facture->total_ttc,2)));
 
 		return $commandeLig;
 	}
