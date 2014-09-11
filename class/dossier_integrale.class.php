@@ -7,7 +7,7 @@ class TIntegrale extends TObjetStd {
 
 		parent::add_champs('label','type=chaine;');
 		parent::add_champs('vol_noir_engage,vol_noir_realise,vol_coul_engage,vol_coul_realise','type=entier;');
-		parent::add_champs('cout_unit_noir,cout_unit_coul,fas,fass,frais_dossier,frais_bris_machine,frais_facturation,total_ht_engage,total_ht_realise,ecart','type=float;');
+		parent::add_champs('cout_unit_noir,cout_unit_coul,fas,fass,frais_dossier,frais_bris_machine,frais_facturation,total_ht_engage,total_ht_realise,total_ht_facture,ecart','type=float;');
 		
 		parent::start();
 		parent::_init_vars();

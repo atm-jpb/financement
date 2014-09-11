@@ -596,29 +596,40 @@ class TImport extends TObjetStd {
 		$integrale = &$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]];
 		$integrale->facnumber = $data[$this->mapping['search_key']];
 		
-		if(empty($data['label_integrale'])) {
-			if($data['ref_service'] == '037003') {
-				$integrale->frais_dossier = $data['total_ht'];
+		// Gestion des frais divers
+		// FASS
+		if(strpos($data['libelle_ligne'], 'FASS') !== false) {
+			if(empty($integrale->fass_somme)) { // Gestion FASS sur plusieurs lignes
+				$integrale->fass	= $data['total_ht'];
+				$integrale->fass_somme = true;
+			} else {
+				$integrale->fass	+= $data['total_ht'];
 			}
-			if($data['ref_service'] == '037004') {
-				$integrale->frais_bris_machine	= $data['total_ht'];
-			}
-			if($data['libelle_ligne'] == 'FRAIS DE FACTURATION') {
-				$integrale->frais_facturation	= $data['total_ht'];
-			}
-			if(strpos($data['libelle_ligne'], '(FAS)') !== false) {
+		}
+		// FAS
+		if(strpos($data['label_integrale'], '(FAS)') !== false || substr($data['label_integrale'], -3) === 'FAS') {
+			if(empty($integrale->fas_somme)) { // Gestion FASS sur plusieurs lignes
 				$integrale->fas	= $data['total_ht'];
+				$integrale->fas_somme = true;
+			} else {
+				$integrale->fas	+= $data['total_ht'];
 			}
 			
-			if(strpos($data['libelle_ligne'], '(FASS)') !== false) {
-				if(empty($integrale->fass_somme)) { // Gestion FASS sur plusieurs lignes
-					$integrale->fass	= $data['total_ht'];
-					$integrale->fass_somme = true;
-				} else {
-					$integrale->fass	+= $data['total_ht'];
-				}
-			}
-		} else {
+		}
+		// Frais dossier
+		if($data['ref_service'] == '037003') {
+			$integrale->frais_dossier = $data['total_ht'];
+		}
+		// Frais bris de machine
+		if($data['ref_service'] == '037004') {
+			$integrale->frais_bris_machine	= $data['total_ht'];
+		}
+		// Frais de facturation
+		if($data['libelle_ligne'] == 'FRAIS DE FACTURATION') {
+			$integrale->frais_facturation	= $data['total_ht'];
+		}
+		
+		if(!empty($data['label_integrale'])) {
 			if($data['label_integrale'] == 'ENGAGEMENT COPIES NB' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
 				if(empty($integrale->materiel_noir)) {
 					$integrale->materiel_noir = $data['matricule'];
@@ -645,17 +656,6 @@ class TImport extends TObjetStd {
 				}
 				
 				$integrale->cout_unit_coul = $data['cout_integrale'];
-			}
-			if(strpos($data['label_integrale'], '(FASS)') !== false) {
-				if(empty($integrale->fass_somme)) { // Gestion FASS sur plusieurs lignes
-					$integrale->fass = $data['cout_integrale'];
-					$integrale->fass_somme = true;
-				} else {
-					$integrale->fass = $data['cout_integrale'];
-				}
-			}
-			if(strpos($data['label_integrale'], '(FAS)') !== false) {
-				$integrale->fas	= $data['cout_integrale'];
 			}
 		}
 		
