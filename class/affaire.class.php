@@ -451,11 +451,11 @@ class TFin_affaire extends TObjetStd {
 			);
 		
 		$bien->appendChild($xml->createElement("immobilisation",$a+1));
-		$bien->appendChild($xml->createElement("designation",substr(htmlentities($product->label),0,30)));
+		$bien->appendChild($xml->createElement("designation1",substr(htmlentities($product->label),0,30)));
 		$bien->appendChild($xml->createElement("noSerie",$assetLink->asset->serial_number));
 		$bien->appendChild($xml->createElement("immatriculable","NON"));
 		$bien->appendChild($xml->createElement("codeAssietteTheorique","U03C"));
-		$bien->appendChild($xml->createElement("montant",number_format($facture->total_ht,2)));
+		$bien->appendChild($xml->createElement("montant",round($facture->total_ht,2)));
 
 		return $bien;
 	}
@@ -502,7 +502,7 @@ class TFin_affaire extends TObjetStd {
 		$palier->appendChild($xml->createElement("no",$j+1));
 		$palier->appendChild($xml->createElement("nbre",$financementLeaser->duree));
 		$palier->appendChild($xml->createElement("montant",$financementLeaser->echeance));
-		$palier->appendChild($xml->createElement("terme",$financementLeaser->terme));
+		$palier->appendChild($xml->createElement("terme",substr($financementLeaser->TTerme[$financementLeaser->terme],0,1)));
 		$palier->appendChild($xml->createElement("periodicite",$periodicite));
 		$palier->appendChild($xml->createElement("mtVnf",$Affaire->montant));
 		$palier->appendChild($xml->createElement("pourcVnf",(($Affaire->montant * 100) / $facture->total_ht)));
@@ -537,10 +537,10 @@ class TFin_affaire extends TObjetStd {
 
 		$commandeLig->appendChild($xml->createElement("immobilisation",$assetLink->asset->serial_number));
 		$commandeLig->appendChild($xml->createElement("codeTypeLigne","ABIE"));
-		$commandeLig->appendChild($xml->createElement("mtHt",number_format($facture->total_ht,2)));
+		$commandeLig->appendChild($xml->createElement("mtHt",round($facture->total_ht,2)));
 		$commandeLig->appendChild($xml->createElement("codeTaxe","10"));
-		$commandeLig->appendChild($xml->createElement("mtTaxe",number_format($facture->total_tva,2)));
-		$commandeLig->appendChild($xml->createElement("mtTTC",number_format($facture->total_ttc,2)));
+		$commandeLig->appendChild($xml->createElement("mtTaxe",round($facture->total_tva,2)));
+		$commandeLig->appendChild($xml->createElement("mtTTC",round($facture->total_ttc,2)));
 
 		return $commandeLig;
 	}
