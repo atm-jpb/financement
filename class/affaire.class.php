@@ -295,12 +295,12 @@ class TFin_affaire extends TObjetStd {
 
 			$affairelist->appendChild($affaires);
 		}
-
+		
+		$name2 = "FP_207_MA01_CPRO_".$date;
+		
 		$chaine = $xml->saveXML();
 		dol_mkdir(DOL_DATA_ROOT.'/financement/XML/Lixxbail/');
-		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name.'.xml', $chaine);
-		
-		$name2 = "FP_207_MA01_CPRO_".$date.".xml";
+		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name2.'.xml', $chaine);
 		
 		return $name2;
 	}
