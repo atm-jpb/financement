@@ -287,7 +287,7 @@ class TFin_affaire extends TObjetStd {
 
 		$affairelist->appendChild($xml->createElement("nomFich",$name));
 		$affairelist->appendChild($xml->createElement("refExtPartenaire","CPROMA01"));
-		$affairelist->appendChild($xml->createElement("numLot","IMMA".$date));
+		$affairelist->appendChild($xml->createElement("numLot","IMMA".date('ymd')));
 		
 		//Chargement des noeuds correspondant aux affaires
 		foreach($TAffaires as $Affaire){
