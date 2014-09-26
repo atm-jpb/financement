@@ -276,7 +276,8 @@ class TFin_affaire extends TObjetStd {
 	
 	function genLixxbailXML(&$TAffaires){
 		
-		$name = "CPROMA01IMMA".date('Ymd');
+		$date = date('Ymd');
+		$name = "CPROMA01IMMA".$date;
 
 		$xml = new DOMDocument('1.0','UTF-8');
 		$xml->formatOutput = true;
@@ -285,8 +286,8 @@ class TFin_affaire extends TObjetStd {
 		$affairelist = $xml->appendChild($affairelist);
 
 		$affairelist->appendChild($xml->createElement("nomFich",$name));
-		$affairelist->appendChild($xml->createElement("refExtPartenaire"," "));
-		$affairelist->appendChild($xml->createElement("numLot"," "));
+		$affairelist->appendChild($xml->createElement("refExtPartenaire","CPROMA01"));
+		$affairelist->appendChild($xml->createElement("numLot","IMMA".date('ymd')));
 		
 		//Chargement des noeuds correspondant aux affaires
 		foreach($TAffaires as $Affaire){
@@ -294,12 +295,14 @@ class TFin_affaire extends TObjetStd {
 
 			$affairelist->appendChild($affaires);
 		}
-
+		
+		$name2 = "FP_207_MA01_CPRO_".$date;
+		
 		$chaine = $xml->saveXML();
 		dol_mkdir(DOL_DATA_ROOT.'/financement/XML/Lixxbail/');
-		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name.'.xml', $chaine);
+		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name2.'.xml', $chaine);
 		
-		return $name;
+		return $name2;
 	}
 	
 	function resetAllDossiersInXML(&$ATMdb,&$TAffaires){
