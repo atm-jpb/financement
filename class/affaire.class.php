@@ -336,7 +336,7 @@ class TFin_affaire extends TObjetStd {
 		$affaire = $xml->createElement("affaire");
 
 		$affaire->appendChild($xml->createElement("dateSignature",date("Y-m-d",$Affaire->date_affaire)));
-		$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[0]->dossier->reference));
+		$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[0]->dossier->financementLeaser->reference));
 		$affaire->appendChild($xml->createElement("siretClient",(!empty($Affaire->societe->idprof2)) ? $Affaire->societe->idprof2 : $Affaire->societe->idprof1 ));
 
 		//pre($Affaire,true);exit;
