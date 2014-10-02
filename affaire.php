@@ -43,12 +43,12 @@
 			case 'save':
 				$affaire->load($ATMdb, $_REQUEST['id']);
 				$affaire->set_values($_REQUEST);
-				
+				$affaire->fk_soc = $_REQUEST['socid'];
 				//$ATMdb->db->debug=true;
 				//print_r($_REQUEST);
 				
 				$affaire->save($ATMdb);
-				
+				$affaire->load($ATMdb, $_REQUEST['id']);
 				_fiche($ATMdb, $affaire,'view');
 				
 				break;
@@ -311,7 +311,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formAff','POST');
 	$form->Set_typeaff($mode);
-	
+	$doliform = new Form($db);
 	echo $form->hidden('id', $affaire->getId());
 	echo $form->hidden('action', 'save');
 	echo $form->hidden('fk_soc', $affaire->fk_soc);
@@ -339,8 +339,8 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 				,'solde'=>$affaire->solde // montant à financer - somme des dossiers	
 				,'date_maj'=>$affaire->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$affaire->get_date('date_cre','d/m/Y')
-				
-				,'societe'=>$affaire->societe->getNomUrl(1)
+//				,'societe'=>$affaire->societe->getNomUrl(1)
+				,'societe'=>$mode == "edit" ? $doliform->select_company($affaire->societe->id) : $affaire->societe->getNomUrl(1)
 				,'montant_val'=>$affaire->montant
 				,'nature_financement_val'=>$affaire->nature_financement
 				

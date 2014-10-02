@@ -21,6 +21,7 @@ if(empty($id_dossier)) {
 	_liste($PDOdb, $dossier);
 } else {
 	$dossier->load($PDOdb, $id_dossier);
+	$dossier->load_facture($PDOdb, true);
 	_fiche($PDOdb, $db, $dossier);
 }
 
@@ -54,6 +55,7 @@ function _liste(&$PDOdb, &$dossier) {
 	$sql.=" AND a.contrat='INTEGRAL' ";
 	$sql.=" AND fc.duree > 0 ";
 	$sql.=" AND fc.echeance > 0 ";
+	$sql.=" AND fc.date_solde = '0000-00-00 00:00:00' ";
 	
 	if (!$user->rights->societe->client->voir) //restriction
 	{

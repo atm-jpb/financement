@@ -547,7 +547,7 @@ class TFin_dossier extends TObjetStd {
 					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
 					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
 					if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382
-						|| $dateProchaine > strtotime('08/15/2014')) { // Ticket 939
+						|| $dateProchaine > strtotime('2014-08-15')) { // Ticket 939
 						$solde *= (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
 					}
 					//exit($LRD_Leaser);
@@ -1115,7 +1115,7 @@ class TFin_financement extends TObjetStd {
 		$this->date_prochaine_echeance = strtotime('+'.($this->getiPeriode()*($this->duree_passe)).' month', $this->date_debut + $this->calage);
 	}
 	function calculTaux() {
-		$this->taux = round($this->taux($this->duree * $this->getiPeriode(), -$this->echeance, $this->montant, $this->reste, $this->terme) * $this->getiPeriode() * 100,4);
+		$this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100,4);
 	}
 	
 	function load(&$ATMdb, $id, $annexe=false) {

@@ -39,27 +39,48 @@
 	<br>
 	<table class="border" width="100%">
 		<tr class="liste_titre">
-			<td align="center">Période</td>
-			<td align="center">Facture</td>
-			<td align="center">Vol noir engag&eacute;</td>
-			<td align="center">Vol noir r&eacute;alis&eacute;</td>
-			<td align="center">Vol noir factur&eacute;</td>
-			<td align="center">Coût unitaire noir</td>
-			<td align="center">Vol couleur engag&eacute;</td>
-			<td align="center">Vol couleur r&eacute;alis&eacute;</td>
-			<td align="center">Vol couleur factur&eacute;</td>
-			<td align="center">Coût unitaire couleur</td>
-			<td align="center">FAS</td>
-			<td align="center">FASS</td>
-			<td align="center">Frais de dossier</td>
-			<td align="center">Bris de machine</td>
-			<td align="center">FTC</td>
-			<td align="center">Total HT engag&eacute;</td>
-			<!--<td align="center">Total HT r&eacute;alis&eacute;</td>-->
-			<td align="center">Total HT factur&eacute;</td>
-			<td align="center">%</td>
+			<th class="liste_titre" align="center">Période</th>
+			<th class="liste_titre" align="center">Facture</th>
+			<th class="liste_titre" align="center">Vol noir<br>engag&eacute;</th>
+			<th class="liste_titre" align="center">Vol noir<br>r&eacute;alis&eacute;</th>
+			<th class="liste_titre" align="center">Vol noir<br>factur&eacute;</th>
+			<th class="liste_titre" align="center">Coût unitaire<br>noir</th>
+			<th class="liste_titre" align="center">Vol couleur<br>engag&eacute;</th>
+			<th class="liste_titre" align="center">Vol couleur<br>r&eacute;alis&eacute;</th>
+			<th class="liste_titre" align="center">Vol couleur<br>factur&eacute;</th>
+			<th class="liste_titre" align="center">Coût unitaire<br>couleur</th>
+			<th class="liste_titre" align="center">FAS</th>
+			<th class="liste_titre" align="center">FASS</th>
+			<th class="liste_titre" align="center">Frais de<br>dossier</th>
+			<th class="liste_titre" align="center">Bris de<br>machine</th>
+			<th class="liste_titre" align="center">FTC</th>
+			<th class="liste_titre" align="center">Total HT<br>engag&eacute;</th>
+			<!--<th class="liste_titre" align="center">Total HT r&eacute;alis&eacute;</th>-->
+			<th class="liste_titre" align="center">Total HT<br>factur&eacute;</th>
+			<th class="liste_titre" align="center">%</th>
 		</tr>
-		<tr>
+		<tr class="impair">
+			<td align="center">[integrale.periode;block=tr;noerr]</td>
+			<td align="center">[integrale.facnumber;block=tr;noerr]</td>
+			<td align="center">[integrale.vol_noir_engage;noerr]</td>
+			<td align="center">[integrale.vol_noir_realise;noerr]</td>
+			<td align="center">[integrale.vol_noir_facture;noerr]</td>
+			<td align="right" nowrap="nowrap">[integrale.cout_unit_noir;frm=0 000,00000;noerr] &euro;</td>
+			<td align="center">[integrale.vol_coul_engage;noerr]</td>
+			<td align="center">[integrale.vol_coul_realise;noerr]</td>
+			<td align="center">[integrale.vol_coul_facture;noerr]</td>
+			<td align="right" nowrap="nowrap">[integrale.cout_unit_coul;frm=0 000,00000;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.fas;frm=0 000,00;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.fass;frm=0 000,00;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.frais_dossier;frm=0 000,00;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.frais_bris_machine;frm=0 000,00;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.frais_facturation;frm=0 000,00;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.total_ht_engage;frm=0 000,00;noerr] &euro;</td>
+			<!--<td align="right" nowrap="nowrap">[integrale.total_ht_realise;frm=0 000,00;noerr] &euro;</td>-->
+			<td align="right" nowrap="nowrap">[integrale.total_ht_facture;frm=0 000,00;noerr] &euro;</td>
+			<td align="center" nowrap="nowrap">[integrale.ecart;frm=0 000,00;noerr] %</td>
+		</tr>
+		<tr class="pair">
 			<td align="center">[integrale.periode;block=tr;noerr]</td>
 			<td align="center">[integrale.facnumber;block=tr;noerr]</td>
 			<td align="center">[integrale.vol_noir_engage;noerr]</td>
