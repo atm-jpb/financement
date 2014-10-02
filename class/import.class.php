@@ -598,7 +598,8 @@ class TImport extends TObjetStd {
 		
 		// Gestion des frais divers
 		// FASS
-		if(strpos($data['libelle_ligne'], 'FASS') !== false) {
+		$TFASS = array('SSC025', 'SSC054', 'SSC114', 'SSC115', 'SSC121', 'SSC124', 'SSC127');
+		if(in_array($data['ref_service'], $TFASS)) {
 			if(empty($integrale->fass_somme)) { // Gestion FASS sur plusieurs lignes
 				$integrale->fass	= $data['total_ht'];
 				$integrale->fass_somme = true;
@@ -607,7 +608,8 @@ class TImport extends TObjetStd {
 			}
 		}
 		// FAS
-		if(strpos($data['label_integrale'], '(FAS)') !== false || substr($data['label_integrale'], -3) === 'FAS') {
+		$TFAS = array('SSC004', 'SSC005', 'SSC024', 'SSC101', 'SSC102', 'SSC106', 'SSC128');
+		if(in_array($data['ref_service'], $TFAS)) {
 			if(empty($integrale->fas_somme)) { // Gestion FASS sur plusieurs lignes
 				$integrale->fas	= $data['total_ht'];
 				$integrale->fas_somme = true;
