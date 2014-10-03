@@ -521,24 +521,24 @@ class TFin_affaire extends TObjetStd {
 		$commande->appendChild($xml->createElement("noCommande",((count($TAsset) > 1) ? date('dmY') : $TAsset[0]->asset->serial_number)));
 		$commande->appendChild($xml->createElement("fournisseur","M000355961"));
 
-		foreach($TAsset as $assetLink){
+		foreach($TAsset as $a=>$assetLink){
 				
-			$commandeLig = $this->_getCommandeLigXML($xml,$assetLink,$Affaire);
+			$commandeLig = $this->_getCommandeLigXML($xml,$assetLink,$Affaire,$a);
 			$commande->appendChild($commandeLig);
 		}
 
 		return $commande;
 	}
 	
-	function _getCommandeLigXML(&$xml, &$assetLink,&$Affaire){
+	function _getCommandeLigXML(&$xml, &$assetLink,&$Affaire,$a){
 		
 		dol_include_once('/compta/facture/class/facture.class.php');
 		
 		$facture = $this->_getFactureXML($assetLink,$Affaire);
 		
 		$commandeLig = $xml->createElement("commandeLig");
-
-		$commandeLig->appendChild($xml->createElement("immobilisation",$assetLink->asset->serial_number));
+		
+		$commandeLig->appendChild($xml->createElement("immobilisation",$a+1));
 		$commandeLig->appendChild($xml->createElement("codeTypeLigne","ABIE"));
 		$commandeLig->appendChild($xml->createElement("mtHt",round($facture->total_ht,2)));
 		$commandeLig->appendChild($xml->createElement("codeTaxe","10"));
