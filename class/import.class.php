@@ -608,7 +608,7 @@ class TImport extends TObjetStd {
 			}
 		}
 		// FAS
-		$TFAS = array('SSC004', 'SSC005', 'SSC024', 'SSC101', 'SSC102', 'SSC106', 'SSC128');
+		$TFAS = array('SSC101', 'SSC102', 'SSC106');
 		if(in_array($data['ref_service'], $TFAS)) {
 			if(empty($integrale->fas_somme)) { // Gestion FASS sur plusieurs lignes
 				$integrale->fas	= $data['total_ht'];
