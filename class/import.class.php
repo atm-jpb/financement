@@ -608,8 +608,9 @@ class TImport extends TObjetStd {
 			}
 		}
 		// FAS
-		$TFAS = array('SSC101', 'SSC102', 'SSC106');
-		if(in_array($data['ref_service'], $TFAS)) {
+		//$TFAS = array('SSC101', 'SSC102', 'SSC106');
+		//if(in_array($data['ref_service'], $TFAS)) {
+		if(strpos($data['label_integrale'], '(FAS)') !== false || substr($data['label_integrale'], -3) === 'FAS') {
 			if(empty($integrale->fas_somme)) { // Gestion FASS sur plusieurs lignes
 				$integrale->fas	= $data['total_ht'];
 				$integrale->fas_somme = true;
