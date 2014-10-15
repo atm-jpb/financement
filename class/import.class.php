@@ -187,10 +187,11 @@ class TImport extends TObjetStd {
 			
 			if($dossier->nature_financement == 'EXTERNE') { // Dossier externe => MAJ des informations
 				// Echéance à 0 dans le fichier, on classe le dossier a soldé
-				if($data['echeance'] == 0 && $dossier->financementLeaser->date_solde == 0) {
+				// 14.10.15 : suite échange avec Damien on fait sauter cette règle
+				/*if($data['echeance'] == 0 && $dossier->financementLeaser->date_solde == 0) {
 					$dossier->financementLeaser->date_solde = time();
 					$data['echeance'] = $dossier->financementLeaser->echeance;
-				}
+				}*/
 				
 				foreach ($data as $key => $value) {
 					$dossier->financementLeaser->{$key} = $value;
