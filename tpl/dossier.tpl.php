@@ -90,8 +90,8 @@
 						
 						<tr class="impair"><td>Bon pour facturation ? </td><td >[financementLeaser.okPourFacturation; strconv=no][onshow;block=tr;when [dossier.nature_financement]=='INTERNE']</td></tr>
 						<tr class="pair"><td>Bon pour transfert ?</td><td >[financementLeaser.transfert; strconv=no][onshow;block=tr;when '[dossier.affaire1.type_financement]'=='Location mandatée']</td></tr>
-						<tr class="impair"><td>Réinitialisation des factures leaser</td><td >[financementLeaser.reinit; strconv=no][onshow;block=tr;when [dossier.nature_financement]=='INTERNE']</td></tr>
 						
+						<tr class="impair"><td>&nbsp;</td></tr>
 						</table>
 						
 						

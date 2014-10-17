@@ -97,8 +97,8 @@
 				//$PDOdb->db->debug=true;
 				
 				$dossier->load($PDOdb, $_REQUEST['id']);
-				$dossier->generate_factures_leaser(false, true);
-				$dossier->save($PDOdb);
+				//$dossier->generate_factures_leaser(false, true);
+				//$dossier->save($PDOdb);
 				
 				$dossier->load_factureFournisseur($PDOdb);
 				_fiche($PDOdb,$dossier,'view');
@@ -425,7 +425,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'okPourFacturation'=>$form->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
 			,'transfert'=>$form->combo('', 'leaser[transfert]', $financementLeaser->TTransfert , $financementLeaser->transfert)
 			
-			,'reinit'=>'<a href="'.$_SERVER['PHP_SELF'].'?action=regenerate-facture-leaser&id='.$dossier->getId().'">Lancer</a>'
+			//,'reinit'=>'<a href="'.$_SERVER['PHP_SELF'].'?action=regenerate-facture-leaser&id='.$dossier->getId().'">Lancer</a>'
 			
 			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			
