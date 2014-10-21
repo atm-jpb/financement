@@ -38,8 +38,7 @@
 						<tr class="pair"><td>Valeur résiduelle</td><td>[financement.reste; strconv=no; frm=0 000,00] &euro;</td></tr>
 						<tr class="impair"><td>Mode de réglement</td><td>[financement.reglement; strconv=no]</td></tr>
 						<tr class="pair"><td>Terme</td><td>[financement.terme; strconv=no]</td></tr>
-						<tr class="impair"><td>Assurance</td><td>[financement.assurance; strconv=no; frm=0 000,00] &euro;</td></tr>
-						<!-- <tr><td>Montant de prestation</td><td>[financement.montant_prestation; strconv=no]</td></tr> -->
+						<tr class="impair"><td>Montant de maintenance</td><td>[financement.montant_prestation; strconv=no]</td></tr>
 					
 						<tr class="pair"><td>Incident de paiement</td><td>[financement.incident_paiement; strconv=no]</td></tr>
 						<tr class="impair"><td>Relocation</td><td>[financement.reloc; strconv=no]</td></tr>
@@ -47,8 +46,9 @@
 						<tr class="pair"><td>Date du solde</td><td[financement.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financement.date_solde; strconv=no;]</td></tr>
 						<tr class="impair"><td>Montant du solde</td><td[financement.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financement.montant_solde; strconv=no; frm=0 000,00] &euro;</td></tr>
 						
-						<tr class="pair"><td>Pénalité de reprise de dossier</td><td>[financement.penalite_reprise; strconv=no; frm=0 000,00] &euro;</td></tr>
-						<tr class="impair"><td>Taux de commission</td><td>[financement.taux_commission; strconv=no; frm=0,00] %</td></tr>
+						<tr class="pair"><td>Assurance</td><td>[financement.assurance; strconv=no; frm=0 000,00] &euro;</td></tr>
+						<tr class="impair"><td>Pénalité de reprise de dossier</td><td>[financement.penalite_reprise; strconv=no; frm=0 000,00] &euro;</td></tr>
+						<tr class="pair"><td>Taux de commission</td><td>[financement.taux_commission; strconv=no; frm=0,00] %</td></tr>
 						
 						</table>
 						

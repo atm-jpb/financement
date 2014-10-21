@@ -661,6 +661,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'fin' => $fin->date_fin
 			,'prochaine_echeance' => $fin->date_prochaine_echeance
 			,'avancement' => $fin->numero_prochaine_echeance.'/'.$fin->duree
+			,'reloc' => $fin->reloc
 			,'solde_r' => $soldeR
 			,'solde_nr' => $soldeNR
 			,'solde_r1' => $soldeR1

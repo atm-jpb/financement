@@ -418,7 +418,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'terme'=>$formFinLeaser->combo('', 'leaser[terme]', $financementLeaser->TTerme , $financementLeaser->terme)
 			,'reglement'=>$formFinLeaser->combo('', 'leaser[reglement]', $financementLeaser->TReglement , $financementLeaser->reglement)
 			,'incident_paiement'=>$formFinLeaser->combo('', 'leaser[incident_paiement]', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement)
-			,'reloc'=>$form->combo('', 'reloc', $financementLeaser->TReloc, $financementLeaser->reloc) 
+			,'reloc'=>$form->combo('', 'leaser[reloc]', $financementLeaser->TReloc, $financementLeaser->reloc)
 			
 			,'date_debut'=>$formFinLeaser->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
 			,'date_fin'=>$financementLeaser->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
@@ -460,6 +460,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'periodicite'=>$form->combo('', 'periodicite', $financement->TPeriodicite , $financement->periodicite)
 			,'reglement'=>$form->combo('', 'reglement', $financement->TReglement , $financement->reglement)
 			,'incident_paiement'=>$form->combo('', 'incident_paiement', $financement->TIncidentPaiement , $financement->incident_paiement)
+			,'reloc'=>$form->combo('', 'reloc', $financement->TReloc, $financement->reloc)
 			
 			,'date_debut'=>$form->calendrier('', 'date_debut', $financement->get_date('date_debut'),10)
 			,'date_fin'=>$financement->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)

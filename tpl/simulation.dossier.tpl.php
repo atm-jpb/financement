@@ -24,7 +24,12 @@
 		<td align="center">[champs.duree; strconv=no]</td>
 		<td align="right" nowrap="nowrap">[champs.echeance; strconv=no; frm=0 000,00] &euro;</td>
 		<td align="center">[champs.debut; strconv=no; frm=dd/mm/yy]<br>[champs.fin; strconv=no; frm=dd/mm/yy]</td>
-		<td align="center">[champs.prochaine_echeance; strconv=no; frm=dd/mm/yy]<br>[champs.avancement; strconv=no]</td>
+		<td align="center">
+			[champs.prochaine_echeance; strconv=no; frm=dd/mm/yy]<br>[champs.avancement; strconv=no]
+			[onshow;block=begin;when [champs.reloc]=='OUI']
+			R
+			[onshow;block=end]
+		</td>
 		<td align="right" nowrap="nowrap">[champs.assurance; strconv=no; frm=0 000,00] &euro;</td>
 		<td align="right" nowrap="nowrap">[champs.maintenance; strconv=no; frm=0 000,00] &euro;</td>
 		[onshow;block=begin;when [champs.display_solde]=='0']
