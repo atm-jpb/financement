@@ -210,6 +210,10 @@ class TSimulation extends TObjetStd {
 			$this->error = 'ErrorMaterielRequired';
 			return false;
 		}
+		else if($this->montant_presta_trim <= 0 && $this->fk_type_contrat == "FORFAITGLOBAL") {
+			$this->error = 'ErrorMontantTrimRequired';
+			return false;
+		}
 		
 		// Récupération de la grille pour les paramètres donnés
 		$grille = new TFin_grille_leaser;

@@ -79,6 +79,7 @@ ErrorNoTypeContratSelected=Merci de sélectionner un type de contrat
 ErrorPeriodiciteRequired=Merci de sélectionner une périodicité
 ErrorDureeRequired=Merci de sélectionner une durée
 ErrorMaterielRequired=Le type de matériel est obligatoire
+ErrorMontantTrimRequired=Merci de remplir un montant trimestriel pour les contrats de type "Forfait global"
 ErrorNoGrilleSelected=Pas de grille disponible pour le type de contrat sélectionné
 ErrorMontantOrEcheanceRequired=Merci de renseigner un montant ou une échéance
 ErrorAmountOutOfGrille=Le montant total financé est hors grille

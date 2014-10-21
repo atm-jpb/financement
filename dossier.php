@@ -97,8 +97,8 @@
 				//$PDOdb->db->debug=true;
 				
 				$dossier->load($PDOdb, $_REQUEST['id']);
-				$dossier->generate_factures_leaser(false, true);
-				$dossier->save($PDOdb);
+				//$dossier->generate_factures_leaser(false, true);
+				//$dossier->save($PDOdb);
 				
 				$dossier->load_factureFournisseur($PDOdb);
 				_fiche($PDOdb,$dossier,'view');
@@ -445,6 +445,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'terme'=>$formFinLeaser->combo('', 'leaser[terme]', $financementLeaser->TTerme , $financementLeaser->terme)
 			,'reglement'=>$formFinLeaser->combo('', 'leaser[reglement]', $financementLeaser->TReglement , $financementLeaser->reglement)
 			,'incident_paiement'=>$formFinLeaser->combo('', 'leaser[incident_paiement]', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement)
+			,'reloc'=>$form->combo('', 'reloc', $financementLeaser->TReloc, $financementLeaser->reloc) 
 			
 			,'date_debut'=>$formFinLeaser->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
 			,'date_fin'=>$financementLeaser->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
@@ -456,7 +457,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'okPourFacturation'=>$form->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
 			,'transfert'=>$form->combo('', 'leaser[transfert]', $financementLeaser->TTransfert , $financementLeaser->transfert)
 			
-			,'reinit'=>'<a href="'.$_SERVER['PHP_SELF'].'?action=regenerate-facture-leaser&id='.$dossier->getId().'">Lancer</a>'
+			//,'reinit'=>'<a href="'.$_SERVER['PHP_SELF'].'?action=regenerate-facture-leaser&id='.$dossier->getId().'">Lancer</a>'
 			
 			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			
@@ -485,7 +486,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'terme'=>$form->combo('', 'terme', $financement->TTerme , $financement->terme)
 			,'periodicite'=>$form->combo('', 'periodicite', $financement->TPeriodicite , $financement->periodicite)
 			,'reglement'=>$form->combo('', 'reglement', $financement->TReglement , $financement->reglement)
-			,'incident_paiement'=>$form->combo('', 'incident_paiement', $financement->TIncidentPaiement , $financement->incident_paiement) 
+			,'incident_paiement'=>$form->combo('', 'incident_paiement', $financement->TIncidentPaiement , $financement->incident_paiement)
 			
 			,'date_debut'=>$form->calendrier('', 'date_debut', $financement->get_date('date_debut'),10)
 			,'date_fin'=>$financement->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)

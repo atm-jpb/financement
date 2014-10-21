@@ -739,7 +739,7 @@ class TFin_dossier extends TObjetStd {
 		$f = & $this->financementLeaser;
 		
 		$cpt = 0;
-		while($f->date_prochaine_echeance < time() && $f->numero_prochaine_echeance <= $f->duree && $cpt<50) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
+		while($f->date_prochaine_echeance < time() && ($f->date_prochaine_echeance < $f->date_solde || $f->date_solde == 0)  && $f->numero_prochaine_echeance <= $f->duree && $cpt<50) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
 			// Demande du 28/02/14, mettre en impayé dorénavant, sauf ce qui est avant 2014
 			// @TODO : à finir
 			//$paid = $paid || date('Y', $f->date_prochaine_echeance) < 2014;
@@ -849,7 +849,7 @@ class TFin_financement extends TObjetStd {
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
 		parent::add_champs('fk_soc,fk_fin_dossier','type=entier;index;');
-		parent::add_champs('okPourFacturation,transfert','type=chaine;index;');
+		parent::add_champs('okPourFacturation,transfert,reloc','type=chaine;index;');
 				
 		parent::start();
 		parent::_init_vars();
@@ -919,6 +919,11 @@ class TFin_financement extends TObjetStd {
 		
 		$this->date_solde=0;
 		
+		$this->TReloc=array(
+			'OUI'=>'Oui'
+			,'NON'=>'Non'
+		);
+		$this->reloc = 'NON';
 	}
 	/*
 	 * Définie la date de prochaine échéance et le numéro d'échéance en fonction de nb
@@ -1024,11 +1029,12 @@ class TFin_financement extends TObjetStd {
 		$sql = "SELECT a.rowid, a.nature_financement, a.montant, df.rowid as idDossierLeaser, df.reference as refDossierLeaser ";
 		$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
+		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (da.fk_fin_dossier = d.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid) ";
-		if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."') ";
-		else $sql.= "WHERE s.siren = '".$siren."' ";
+		if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
+		else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
 		$sql.= "AND df.type = 'LEASER' ";
 		//$sql.= "AND df.date_solde = '0000-00-00 00:00:00'";
 		$sql.= "AND (df.reference = '' OR df.reference IS NULL) ";
@@ -1040,8 +1046,8 @@ class TFin_financement extends TObjetStd {
 			$sql = "SELECT a.rowid, a.montant ";
 			$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
-			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."') ";
-			else $sql.= "WHERE s.siren = '".$siren."' ";
+			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
+			else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
 			$sql.= "AND a.solde >= ".($montant - 0.01)." ";
 			$sql.= "AND a.solde <= ".($montant + 0.01)." ";
 			
