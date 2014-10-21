@@ -104,6 +104,18 @@ class ActionsFinancement
 				if($obj->sourcetype == 'dossier') {
 					$link = '<a href="'.DOL_URL_ROOT_ALT.'/financement/dossier.php?id='.$obj->fk_source.'">Voir le dossier de financement</a>';
 					echo '<tr><td >Facture de loyer leaser</td><td'.$parameters['colspan'].'>'.$link.'</td></tr>';
+					
+					// Affichage bouton permettant de créer un avoir directement
+					if($object->type != 2) {
+						$url = dol_buildpath('/financement/dossier.php?action=create_avoir&id_facture_fournisseur='.$object->id.'&id_dossier='.$obj->fk_source, 1);
+						?>
+						<script type="text/javascript">
+							$(document).ready(function(){
+								$('div.tabsAction').append('<a class="butAction" href="<?php echo $url ?>">Créer un avoir</a>');
+							});
+						</script>
+						<?php
+					}
 				}
 			}
 		}

@@ -322,7 +322,7 @@ class TFin_dossier extends TObjetStd {
 			}
 		}
 	}
-	function load_factureFournisseur(&$ATMdb) {
+	function load_factureFournisseur(&$ATMdb, $all=false) {
 		global $db;
 		$this->somme_facture_fournisseur = 0;
 		$this->TFactureFournisseur = array();
@@ -340,8 +340,21 @@ class TFin_dossier extends TObjetStd {
 		while($ATMdb->Get_line()) {
 			$fact = new FactureFournisseur($db);
 			$fact->fetch($ATMdb->Get_field('fk_target'));
-			$this->somme_facture_fournisseur += $fact->total_ht;
-			$this->TFactureFournisseur[] = $fact;
+			if(!$all) {
+				$facidavoir=$fact->getListIdAvoirFromInvoice();
+				foreach ($facidavoir as $idAvoir) {
+					$avoir = new FactureFournisseur($db);
+					$avoir->fetch($idAvoir);
+					$fact->total_ht += $avoir->total_ht;
+				}
+				
+				if($fact->type == 0 && $fact->total_ht > 0) { // Récupération uniquement des factures standard et sans avoir qui l'annule complètement
+					$this->somme_facture_fournisseur += $fact->total_ht;
+					$this->TFactureFournisseur[] = $fact;
+				}
+			} else {
+				$this->TFactureFournisseur[] = $fact;
+			}
 		}
 	}
 	function load_factureMateriel(&$ATMdb) {
@@ -1016,11 +1029,12 @@ class TFin_financement extends TObjetStd {
 		$sql = "SELECT a.rowid, a.nature_financement, a.montant, df.rowid as idDossierLeaser, df.reference as refDossierLeaser ";
 		$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
+		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (da.fk_fin_dossier = d.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid) ";
-		if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."') ";
-		else $sql.= "WHERE s.siren = '".$siren."' ";
+		if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
+		else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
 		$sql.= "AND df.type = 'LEASER' ";
 		//$sql.= "AND df.date_solde = '0000-00-00 00:00:00'";
 		$sql.= "AND (df.reference = '' OR df.reference IS NULL) ";
@@ -1032,8 +1046,8 @@ class TFin_financement extends TObjetStd {
 			$sql = "SELECT a.rowid, a.montant ";
 			$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
-			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."') ";
-			else $sql.= "WHERE s.siren = '".$siren."' ";
+			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
+			else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
 			$sql.= "AND a.solde >= ".($montant - 0.01)." ";
 			$sql.= "AND a.solde <= ".($montant + 0.01)." ";
 			

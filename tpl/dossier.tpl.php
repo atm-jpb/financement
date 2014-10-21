@@ -174,7 +174,7 @@
 		<div class="tabsAction">
 		[onshow; block=div; when [view.userRight]==1]	
 		&nbsp; &nbsp; <a href="?id=[dossier.id]&action=edit" class="butAction">Modifier</a>
-		<input type="button" id="action-delete" value="Supprimer" name="cancel" class="butActionDelete" onclick="document.location.href='?action=delete&id=[dossier.id]'">
+		<input type="button" id="action-delete" value="Supprimer" name="delete" class="butActionDelete" onclick="delete_elem([dossier.id],'dossier');">
 		</div>
 [onshow;block=end]	
 [onshow;block=begin;when [view.mode]!='view']

@@ -276,7 +276,8 @@ class TFin_affaire extends TObjetStd {
 	
 	function genLixxbailXML(&$TAffaires){
 		
-		$name = "CPROMA01IMMA".date('Ymd');
+		$date = date('Ymd');
+		$name = "CPROMA01IMMA".$date;
 
 		$xml = new DOMDocument('1.0','UTF-8');
 		$xml->formatOutput = true;
@@ -285,8 +286,8 @@ class TFin_affaire extends TObjetStd {
 		$affairelist = $xml->appendChild($affairelist);
 
 		$affairelist->appendChild($xml->createElement("nomFich",$name));
-		$affairelist->appendChild($xml->createElement("refExtPartenaire"," "));
-		$affairelist->appendChild($xml->createElement("numLot"," "));
+		$affairelist->appendChild($xml->createElement("refExtPartenaire","CPROMA01"));
+		$affairelist->appendChild($xml->createElement("numLot","IMMA".date('ymd')));
 		
 		//Chargement des noeuds correspondant aux affaires
 		foreach($TAffaires as $Affaire){
@@ -294,12 +295,14 @@ class TFin_affaire extends TObjetStd {
 
 			$affairelist->appendChild($affaires);
 		}
-
+		
+		$name2 = "FP_207_MA01_CPRO_".$date;
+		
 		$chaine = $xml->saveXML();
 		dol_mkdir(DOL_DATA_ROOT.'/financement/XML/Lixxbail/');
-		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name.'.xml', $chaine);
+		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name2.'.xml', $chaine);
 		
-		return $name;
+		return $name2;
 	}
 	
 	function resetAllDossiersInXML(&$ATMdb,&$TAffaires){
@@ -336,7 +339,7 @@ class TFin_affaire extends TObjetStd {
 		$affaire = $xml->createElement("affaire");
 
 		$affaire->appendChild($xml->createElement("dateSignature",date("Y-m-d",$Affaire->date_affaire)));
-		$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[0]->dossier->reference));
+		$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[0]->dossier->financementLeaser->reference));
 		$affaire->appendChild($xml->createElement("siretClient",(!empty($Affaire->societe->idprof2)) ? $Affaire->societe->idprof2 : $Affaire->societe->idprof1 ));
 
 		//pre($Affaire,true);exit;
@@ -384,22 +387,16 @@ class TFin_affaire extends TObjetStd {
 			$element->appendChild($bien);
 		}
 		$paliers = $this->_getPaliersXML($xml,$Tdata->dossier->financementLeaser,$Affaire,$AssetId,0);
-		$commande = $this->_getCommandeXML($xml);
+		$commande = $this->_getCommandeXML($xml,$Affaire->TAsset,$Affaire);
 
 		$element->appendChild($paliers);
 		$element->appendChild($commande);
 
 		return $element;
 	}
-	
-	function _getBiensXML(&$xml,&$assetLink,&$Affaire,$a){
-		global $db;
-		
-		dol_include_once('/product/class/product.class.php');
-		dol_include_once('/compta/facture/class/facture.class.php');
 
-		$product = new Product($db);
-		$product->fetch($assetLink->asset->fk_product);
+	function _getFactureXML(&$assetLink,&$Affaire){
+		global $db;
 		
 		$ATMdb = new TPDOdb;
 		
@@ -418,6 +415,20 @@ class TFin_affaire extends TObjetStd {
 		}
 		
 		$ATMdb->close();
+		
+		return $facture;
+	}
+	
+	function _getBiensXML(&$xml,&$assetLink,&$Affaire,$a){
+		global $db;
+		
+		dol_include_once('/product/class/product.class.php');
+		dol_include_once('/compta/facture/class/facture.class.php');
+
+		$product = new Product($db);
+		$product->fetch($assetLink->asset->fk_product);
+		
+		$facture = $this->_getFactureXML($assetLink,$Affaire);
 
 		$bien = $xml->createElement("bien");
 		//$bien = $xml->appendChild($bien);
@@ -443,11 +454,11 @@ class TFin_affaire extends TObjetStd {
 			);
 		
 		$bien->appendChild($xml->createElement("immobilisation",$a+1));
-		$bien->appendChild($xml->createElement("designation",substr(htmlentities($product->label),0,30)));
+		$bien->appendChild($xml->createElement("designation1",substr(htmlentities($product->label),0,30)));
 		$bien->appendChild($xml->createElement("noSerie",$assetLink->asset->serial_number));
 		$bien->appendChild($xml->createElement("immatriculable","NON"));
-		$bien->appendChild($xml->createElement("codeAssietteTheorique"," "));
-		$bien->appendChild($xml->createElement("montant",number_format($facture->total_ht,2)));
+		$bien->appendChild($xml->createElement("codeAssietteTheorique","U03C"));
+		$bien->appendChild($xml->createElement("montant",round($facture->total_ht,2)));
 
 		return $bien;
 	}
@@ -494,7 +505,7 @@ class TFin_affaire extends TObjetStd {
 		$palier->appendChild($xml->createElement("no",$j+1));
 		$palier->appendChild($xml->createElement("nbre",$financementLeaser->duree));
 		$palier->appendChild($xml->createElement("montant",$financementLeaser->echeance));
-		$palier->appendChild($xml->createElement("terme",$financementLeaser->terme));
+		$palier->appendChild($xml->createElement("terme",substr($financementLeaser->TTerme[$financementLeaser->terme],0,1)));
 		$palier->appendChild($xml->createElement("periodicite",$periodicite));
 		$palier->appendChild($xml->createElement("mtVnf",$Affaire->montant));
 		$palier->appendChild($xml->createElement("pourcVnf",(($Affaire->montant * 100) / $facture->total_ht)));
@@ -502,30 +513,37 @@ class TFin_affaire extends TObjetStd {
 		return $palier;
 	}
 	
-	function _getCommandeXML(&$xml){
+	function _getCommandeXML(&$xml,&$TAsset,&$Affaire){
 		
 		$commande = $xml->createElement("commande");
 
-		$commande->appendChild($xml->createElement("noCommande"," "));
-		$commande->appendChild($xml->createElement("fournisseur"," "));
+		//pre($TAsset[0]->asset->serial_number);exit;
+		$commande->appendChild($xml->createElement("noCommande",((count($TAsset) > 1) ? date('dmY') : $TAsset[0]->asset->serial_number)));
+		$commande->appendChild($xml->createElement("fournisseur","M000355961"));
 
-		$commandeLig = $this->_getCommandeLigXML($xml);
-
-		$commande->appendChild($commandeLig);
+		foreach($TAsset as $a=>$assetLink){
+				
+			$commandeLig = $this->_getCommandeLigXML($xml,$assetLink,$Affaire,$a);
+			$commande->appendChild($commandeLig);
+		}
 
 		return $commande;
 	}
 	
-	function _getCommandeLigXML(&$xml){
+	function _getCommandeLigXML(&$xml, &$assetLink,&$Affaire,$a){
+		
+		dol_include_once('/compta/facture/class/facture.class.php');
+		
+		$facture = $this->_getFactureXML($assetLink,$Affaire);
 		
 		$commandeLig = $xml->createElement("commandeLig");
-
-		$commandeLig->appendChild($xml->createElement("immobilisation"," "));
+		
+		$commandeLig->appendChild($xml->createElement("immobilisation",$a+1));
 		$commandeLig->appendChild($xml->createElement("codeTypeLigne","ABIE"));
-		$commandeLig->appendChild($xml->createElement("mtHt"," "));
-		$commandeLig->appendChild($xml->createElement("codeTaxe"," "));
-		$commandeLig->appendChild($xml->createElement("mtTaxe"," "));
-		$commandeLig->appendChild($xml->createElement("mtTTC"," "));
+		$commandeLig->appendChild($xml->createElement("mtHt",round($facture->total_ht,2)));
+		$commandeLig->appendChild($xml->createElement("codeTaxe","10"));
+		$commandeLig->appendChild($xml->createElement("mtTaxe",round($facture->total_tva,2)));
+		$commandeLig->appendChild($xml->createElement("mtTTC",round($facture->total_ttc,2)));
 
 		return $commandeLig;
 	}
