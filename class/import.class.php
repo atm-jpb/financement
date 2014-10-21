@@ -187,10 +187,11 @@ class TImport extends TObjetStd {
 			
 			if($dossier->nature_financement == 'EXTERNE') { // Dossier externe => MAJ des informations
 				// Echéance à 0 dans le fichier, on classe le dossier a soldé
-				if($data['echeance'] == 0 && $dossier->financementLeaser->date_solde == 0) {
+				// 14.10.15 : suite échange avec Damien on fait sauter cette règle
+				/*if($data['echeance'] == 0 && $dossier->financementLeaser->date_solde == 0) {
 					$dossier->financementLeaser->date_solde = time();
 					$data['echeance'] = $dossier->financementLeaser->echeance;
-				}
+				}*/
 				
 				foreach ($data as $key => $value) {
 					$dossier->financementLeaser->{$key} = $value;
@@ -608,8 +609,9 @@ class TImport extends TObjetStd {
 			}
 		}
 		// FAS
-		$TFAS = array('SSC004', 'SSC005', 'SSC024', 'SSC101', 'SSC102', 'SSC106', 'SSC128');
-		if(in_array($data['ref_service'], $TFAS)) {
+		//$TFAS = array('SSC101', 'SSC102', 'SSC106');
+		//if(in_array($data['ref_service'], $TFAS)) {
+		if(strpos($data['label_integrale'], '(FAS)') !== false || substr($data['label_integrale'], -3) === 'FAS') {
 			if(empty($integrale->fas_somme)) { // Gestion FASS sur plusieurs lignes
 				$integrale->fas	= $data['total_ht'];
 				$integrale->fas_somme = true;

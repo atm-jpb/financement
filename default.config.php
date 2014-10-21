@@ -60,3 +60,5 @@
 	define('SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH', 12);
 	define('FK_SOC_LOCAM', 3306);
 	
+	define('BASE_TEST', 1);
+	

@@ -139,6 +139,8 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 		$integrale->periode = substr($fin->periodicite,0,1);
 		$integrale->periode.= ceil(date('n', $fac->date) / $fin->getiPeriode()) . ' ' . date('Y', $fac->date);
 		
+		$integrale->date_facture = $fac->date;
+		
 		$TIntegrale[] = $integrale;
 	}
 	

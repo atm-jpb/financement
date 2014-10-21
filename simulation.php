@@ -670,7 +670,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'echeance' => $fin->echeance
 			,'debut' => $fin->date_debut
 			,'fin' => $fin->date_fin
-			,'prochaine_echeance' => $fin->get_date('date_prochaine_echeance').' ('.$fin->numero_prochaine_echeance.'/'.$fin->duree.')'
+			,'prochaine_echeance' => $fin->date_prochaine_echeance
+			,'avancement' => $fin->numero_prochaine_echeance.'/'.$fin->duree
 			,'solde_r' => $soldeR
 			,'solde_nr' => $soldeNR
 			,'solde_r1' => $soldeR1
