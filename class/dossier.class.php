@@ -1071,7 +1071,12 @@ class TFin_financement extends TObjetStd {
 				}
 				return true;
 			} else if($db->Get_Recordcount() == 0) { // Création d'une affaire pour création dossier fin externe
-				$TIdClient = TRequeteCore::get_id_from_what_you_want($db, MAIN_DB_PREFIX."societe", array('siren'=>substr($siren, 0, 9)));
+				$sql = "SELECT s.rowid ";
+				$sql.= "FROM ".MAIN_DB_PREFIX."societe s ";
+				$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
+				if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
+				else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
+				$TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
 				if(!empty($TIdClient[0])) {
 					$d=new TFin_dossier;
 					$d->financementLeaser = $this;
