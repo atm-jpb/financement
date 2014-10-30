@@ -4,7 +4,7 @@
 		<td style="width: 130px;">Leaser</td>
 		<td>Type contrat</td>
 		<td align="center">Montant</td>
-		<td align="center">D</td>
+		<td align="center">Durée</td>
 		<td align="center">Loyer</td>
 		<td align="center">Dates</td>
 		<td align="center">Prochaine</td>
@@ -21,11 +21,18 @@
 		<td>[champs.leaser; strconv=no]</td>
 		<td>[champs.type_contrat; strconv=no]</td>
 		<td align="right" nowrap="nowrap">[champs.montant; strconv=no; frm=0 000,00] &euro;</td>
-		<td align="center">[champs.duree; strconv=no]</td>
-		<td align="right" nowrap="nowrap">[champs.echeance; strconv=no; frm=0 000,00] &euro;</td>
-		<td align="center">[champs.debut; strconv=no; frm=dd/mm/yy]<br>[champs.fin; strconv=no; frm=dd/mm/yy]</td>
 		<td align="center">
-			[champs.prochaine_echeance; strconv=no; frm=dd/mm/yy]<br>[champs.avancement; strconv=no]
+			[champs.duree; strconv=no]<br>
+			[champs.terme; strconv=no]
+		</td>
+		<td align="right" nowrap="nowrap">[champs.echeance; strconv=no; frm=0 000,00] &euro;</td>
+		<td align="center">
+			[champs.debut; strconv=no; frm=dd/mm/yy]<br>
+			[champs.fin; strconv=no; frm=dd/mm/yy]
+		</td>
+		<td align="center">
+			[champs.prochaine_echeance; strconv=no; frm=dd/mm/yy]<br>
+			[champs.avancement; strconv=no]
 			[onshow;block=begin;when [champs.reloc]=='OUI']
 			R
 			[onshow;block=end]
