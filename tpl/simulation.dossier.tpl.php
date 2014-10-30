@@ -25,7 +25,11 @@
 			[champs.duree; strconv=no]<br>
 			[champs.terme; strconv=no]
 		</td>
-		<td align="right" nowrap="nowrap">[champs.echeance; strconv=no; frm=0 000,00] &euro;</td>
+		<td align="right" nowrap="nowrap">
+			[champs.echeance; strconv=no; frm=0 000,00] &euro;<br>
+			[champs.loyer_actualise; strconv=no; frm=0 000,00] &euro;
+		
+		</td>
 		<td align="center">
 			[champs.debut; strconv=no; frm=dd/mm/yy]<br>
 			[champs.fin; strconv=no; frm=dd/mm/yy]
