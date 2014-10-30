@@ -583,6 +583,23 @@ class TImport extends TObjetStd {
 		$facture_loc->date_lim_reglement = $data['date_lim_reglement'];
 		$facture_loc->update($user, 0);
 		
+		// 2014.10.30 : Evolution pour stocker assurance, maintenance et loyer actualisé
+		$facture_loc->fetchObjectLinked('','dossier');
+		if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
+			$dossier = new TFin_dossier;
+			$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0]);
+			if(!empty($dossier->TLien[0]->affaire) && $dossier->TLien[0]->affaire->contrat == 'FORFAITGLOBAL') {
+				if($data['ref_service'] == '037004') {
+					$dossier->financement->assurance = $data['total_ht'];
+				}
+				
+				if($data['ref_service'] == 'XXXXXX') {
+					$dossier->financement->montant_prestation = $data['total_ht'];
+				}
+			}
+			$dossier->financement->loyer_actualise = $facture_loc->total_ht;
+		}
+		
 		return true;
 	}
 

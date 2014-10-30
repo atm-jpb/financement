@@ -612,7 +612,7 @@ class TFin_dossier extends TObjetStd {
 				,'amortissement'=>$capital_amortit
 				,'interet'=>$part_interet
 				,'assurance'=>$f->assurance
-				,'loyerHT'=>$f->echeance+$f->assurance
+				,'loyerHT'=>$f->echeance
 				,'loyer'=>($f->echeance+$f->assurance) * FIN_TVA_DEFAUT
 			);
 			
@@ -845,7 +845,7 @@ class TFin_financement extends TObjetStd {
 	
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
 		parent::add_champs('duree,numero_prochaine_echeance,terme','type=entier;');
-		parent::add_champs('montant_prestation,montant,echeance,loyer_intercalaire,reste,taux,capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier','type=float;');
+		parent::add_champs('montant_prestation,montant,echeance,loyer_intercalaire,reste,taux,capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier,loyer_actualise','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
 		parent::add_champs('fk_soc,fk_fin_dossier','type=entier;index;');
@@ -1046,6 +1046,7 @@ class TFin_financement extends TObjetStd {
 			$sql = "SELECT a.rowid, a.montant ";
 			$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
+			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
 			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
 			else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
 			$sql.= "AND a.solde >= ".($montant - 0.01)." ";
@@ -1070,7 +1071,12 @@ class TFin_financement extends TObjetStd {
 				}
 				return true;
 			} else if($db->Get_Recordcount() == 0) { // Création d'une affaire pour création dossier fin externe
-				$TIdClient = TRequeteCore::get_id_from_what_you_want($db, MAIN_DB_PREFIX."societe", array('siren'=>substr($siren, 0, 9)));
+				$sql = "SELECT s.rowid ";
+				$sql.= "FROM ".MAIN_DB_PREFIX."societe s ";
+				$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
+				if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
+				else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
+				$TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
 				if(!empty($TIdClient[0])) {
 					$d=new TFin_dossier;
 					$d->financementLeaser = $this;

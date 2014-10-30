@@ -668,10 +668,13 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'type_contrat' => $affaire->TContrat[$ATMdb->Get_field('Type contrat')]
 			,'duree' => $fin->duree.' '.substr($fin->periodicite,0,1)
 			,'echeance' => $fin->echeance
+			,'loyer_actualise' => ($dossier->nature_financement == 'INTERNE') ? $fin->loyer_actualise : ''
 			,'debut' => $fin->date_debut
 			,'fin' => $fin->date_fin
 			,'prochaine_echeance' => $fin->date_prochaine_echeance
 			,'avancement' => $fin->numero_prochaine_echeance.'/'.$fin->duree
+			,'terme' => $fin->TTerme[$fin->terme]
+			,'reloc' => $fin->reloc
 			,'solde_r' => $soldeR
 			,'solde_nr' => $soldeNR
 			,'solde_r1' => $soldeR1
@@ -680,7 +683,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'display_solde' => $dossier->display_solde
 			,'fk_user' => $ATMdb->Get_field('fk_user')
 			,'user' => $ATMdb->Get_field('Utilisateur')
-			,'leaser' => $leaser->getNomUrl(1)
+			,'leaser' => $leaser->getNomUrl(0)
 			,'choice_solde' => ($simulation->contrat == $ATMdb->Get_field('Type contrat')) ? 'solde_r' : 'solde_nr'
 			,'checkboxr'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes['.$ATMdb->Get_field('IDDoss').']', $ATMdb->Get_field('IDDoss'), $checkedr, $checkbox_moreR) : ''
 			,'checkboxnr'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes_nr['.$ATMdb->Get_field('IDDoss').']', $ATMdb->Get_field('IDDoss'), $checkednr, $checkbox_moreNR) : ''
