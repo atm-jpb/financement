@@ -216,6 +216,7 @@
 				$fact->type = 2;
 				$fact->fk_facture_source = $origine->id;
 				$fact->facnumber = 'AV'.$origine->facnumber;
+				$fact->ref_supplier = 'AV'.$origine->facnumber;
 				$fact->update($user);
 				foreach($fact->lines as $line) {
 					$line->pu_ht *= -1;
@@ -223,7 +224,9 @@
 				}
 				
 				$fact->validate($user);
-				$fact->set_paid($user);
+				
+				// Ajout lien dossier
+				$fact->add_object_linked('dossier', GETPOST('id_dossier'));
 				
 				$urlback = dol_buildpath('/fourn/facture/fiche.php?facid='.$fact->id, 1);
 				header("Location: ".$urlback);
