@@ -34,7 +34,7 @@
 			[champs.prochaine_echeance; strconv=no; frm=dd/mm/yy]<br>
 			[champs.avancement; strconv=no]
 			[onshow;block=begin;when [champs.reloc]=='OUI']
-			R
+			<span style="color: #FF0000; font-weight: bold;">Rel</span>
 			[onshow;block=end]
 		</td>
 		<td align="right" nowrap="nowrap">[champs.assurance; strconv=no; frm=0 000,00] &euro;</td>
