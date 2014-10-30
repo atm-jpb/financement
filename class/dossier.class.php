@@ -612,7 +612,7 @@ class TFin_dossier extends TObjetStd {
 				,'amortissement'=>$capital_amortit
 				,'interet'=>$part_interet
 				,'assurance'=>$f->assurance
-				,'loyerHT'=>$f->echeance+$f->assurance
+				,'loyerHT'=>$f->echeance
 				,'loyer'=>($f->echeance+$f->assurance) * FIN_TVA_DEFAUT
 			);
 			
@@ -845,7 +845,7 @@ class TFin_financement extends TObjetStd {
 	
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
 		parent::add_champs('duree,numero_prochaine_echeance,terme','type=entier;');
-		parent::add_champs('montant_prestation,montant,echeance,loyer_intercalaire,reste,taux,capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier','type=float;');
+		parent::add_champs('montant_prestation,montant,echeance,loyer_intercalaire,reste,taux,capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier,loyer_actualise','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
 		parent::add_champs('fk_soc,fk_fin_dossier','type=entier;index;');
