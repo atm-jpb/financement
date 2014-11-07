@@ -435,7 +435,7 @@ function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb,$date_debut,$date_
 				$dossierFin->load($ATMdb, $iddossier);
 				
 				$va = $dossierFin->valeur_actuelle();
-				if(is_nan($va)) {
+				if(is_nan($va) || empty($dossierFin->montant) || $dossierFin->taux > 100 || $dossierFin->taux < 0) {
 					echo '<br>DOSSIER A CORRIGER : '.$dossierFin->reference. ' - CALCUL VA FAUX : '.$va;
 				} else {
 					$TRes[$cat1][$cat2] += $va;
