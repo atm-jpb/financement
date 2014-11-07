@@ -206,6 +206,7 @@
 				dol_include_once('/product/class/product.class.php');
 				
 				$idFactureFourn = GETPOST('id_facture_fournisseur');
+				$idDossier = GETPOST('id_dossier');
 				$origine = new FactureFournisseur($db);
 				$origine->fetch($idFactureFourn);
 				
@@ -226,7 +227,12 @@
 				$fact->validate($user);
 				
 				// Ajout lien dossier
-				$fact->add_object_linked('dossier', GETPOST('id_dossier'));
+				$fact->add_object_linked('dossier', $idDossier);
+				
+				// Maj échéance dossier
+				$dossier = new TFin_dossier();
+				$dossier->load($PDOdb, $idDossier);
+				$dossier->financementLeaser->setEcheance(-1, false);
 				
 				$urlback = dol_buildpath('/fourn/facture/fiche.php?facid='.$fact->id, 1);
 				header("Location: ".$urlback);
