@@ -668,6 +668,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'type_contrat' => $affaire->TContrat[$ATMdb->Get_field('Type contrat')]
 			,'duree' => $fin->duree.' '.substr($fin->periodicite,0,1)
 			,'echeance' => $fin->echeance
+			,'loyer_actualise' => ($dossier->nature_financement == 'INTERNE') ? $fin->loyer_actualise : ''
 			,'debut' => $fin->date_debut
 			,'fin' => $fin->date_fin
 			,'prochaine_echeance' => $fin->date_prochaine_echeance
