@@ -56,7 +56,7 @@
 		
 		[onshow; block=begin; when [autre.nature_financement]=='INTERNE']
 		[onshow; block=begin; when [ligne.facture_total_ht]!='']
-		<td align="right" style="background-color: [ligne.facture_bg];"><a href="[ligne.facture_link]">[ligne.facture_total_ht; frm=0 000,00] &euro;</a></td>
+		<td align="right" style="background-color: [ligne.facture_bg];"><a href="[ligne.facture_link]">[ligne.facture_total_ht; frm=0 000,00]</a></td>
 		[onshow;block=end]
 		[onshow; block=begin; when [ligne.facture_total_ht]=='']
 		<td align="center" style="background-color: [ligne.facture_bg];">-</td>
@@ -74,7 +74,7 @@
 		
 		[onshow; block=begin; when [autre.nature_financement]=='INTERNE']
 		[onshow; block=begin; when [ligne.facture_total_ht]!='']
-		<td align="right" style="background-color: [ligne.facture_bg];"><a href="[ligne.facture_link]">[ligne.facture_total_ht; frm=0 000,00] &euro;</a></td>
+		<td align="right" style="background-color: [ligne.facture_bg];"><a href="[ligne.facture_link]">[ligne.facture_total_ht; frm=0 000,00]</a></td>
 		[onshow;block=end]
 		[onshow; block=begin; when [ligne.facture_total_ht]=='']
 		<td align="center" style="background-color: [ligne.facture_bg];">-</td>
