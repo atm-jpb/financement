@@ -239,6 +239,23 @@
 				exit;
 				
 				break;
+			case 'new_facture_leaser':
+				dol_include_once('/fourn/class/fournisseur.facture.class.php');
+				dol_include_once('/product/class/product.class.php');
+				
+				$idDossier = GETPOST('id_dossier');
+				$echeance = GETPOST('echeance');
+				
+				// Maj échéance dossier
+				$dossier = new TFin_dossier();
+				$dossier->load($PDOdb, $idDossier);
+				$fact = $dossier->create_facture_leaser(false, true, $echeance, time());
+				
+				$urlback = dol_buildpath('/fourn/facture/fiche.php?facid='.$fact->id, 1);
+				header("Location: ".$urlback);
+				exit;
+				
+				break;
 		}
 		
 	}
