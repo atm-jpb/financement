@@ -50,6 +50,8 @@
 						<tr class="impair"><td>Pénalité de reprise de dossier</td><td>[financement.penalite_reprise; strconv=no; frm=0 000,00] &euro;</td></tr>
 						<tr class="pair"><td>Taux de commission</td><td>[financement.taux_commission; strconv=no; frm=0,00] %</td></tr>
 						
+						<tr class="impair"><td colspan="2" align="center">&nbsp;</td></tr>
+						
 						</table>
 						
 						
@@ -92,6 +94,8 @@
 						<tr class="impair"><td>Bon pour transfert ?</td><td >[financementLeaser.transfert; strconv=no][onshow;block=tr;when '[dossier.affaire1.type_financement]'=='Location mandatée']</td></tr>
 						
 						<tr class="pair"><td colspan="2">&nbsp;</td></tr>
+						
+						<tr class="impair"><td colspan="2" align="center"><a href="[financementLeaser.detail_fact]">D&eacute;tail facturation</a></td></tr>
 						
 						</table>
 						

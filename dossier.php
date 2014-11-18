@@ -491,6 +491,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			
 			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			
+			,'detail_fact' => dol_buildpath('/fourn/facture/index.php?search_ref_supplier='.$financementLeaser->reference,2)
+			
 			
 	);
 	//print $financement->get_date('date_solde','d/m/Y',true);
@@ -528,6 +530,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'taux_commission'=>$form->texte('', 'taux_commission', $financement->taux_commission, 5,255,'','') 
 	
 			,'echeancier'=>$dossier->echeancier($PDOdb)
+			
+			,'detail_fact' => ''
 			
 			,'client'=>$TAffaire[0]['client']
 		);
