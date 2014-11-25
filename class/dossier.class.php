@@ -634,7 +634,7 @@ class TFin_dossier extends TObjetStd {
 				$data['facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
 				$data['facture_link'] .= $fact->id;
 				$data['facture_bg'] = ($fact->paye == 1) ? '#00FF00' : '#FF0000';
-			} else if($type_echeancier == 'LEASER' && $this->nature_financement == 'INTERNE') {
+			} else if($type_echeancier == 'LEASER' && $this->nature_financement == 'INTERNE' && $time < time()) {
 				$link = dol_buildpath('/financement/dossier.php?action=new_facture_leaser&id_dossier='.$this->rowid.'&echeance='.($i+1),1);
 				$data['facture_total_ht'] = '+';
 				$data['facture_link'] = $link;
