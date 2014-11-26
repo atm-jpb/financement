@@ -239,6 +239,23 @@
 				exit;
 				
 				break;
+			case 'new_facture_leaser':
+				dol_include_once('/fourn/class/fournisseur.facture.class.php');
+				dol_include_once('/product/class/product.class.php');
+				
+				$idDossier = GETPOST('id_dossier');
+				$echeance = GETPOST('echeance');
+				
+				// Maj échéance dossier
+				$dossier = new TFin_dossier();
+				$dossier->load($PDOdb, $idDossier);
+				$fact = $dossier->create_facture_leaser(false, true, $echeance, time());
+				
+				$urlback = dol_buildpath('/fourn/facture/fiche.php?facid='.$fact->id, 1);
+				header("Location: ".$urlback);
+				exit;
+				
+				break;
 		}
 		
 	}
@@ -474,6 +491,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			
 			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			
+			,'detail_fact' => dol_buildpath('/fourn/facture/index.php?search_ref_supplier='.$financementLeaser->reference,2)
+			
 			
 	);
 	//print $financement->get_date('date_solde','d/m/Y',true);
@@ -511,6 +530,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'taux_commission'=>$form->texte('', 'taux_commission', $financement->taux_commission, 5,255,'','') 
 	
 			,'echeancier'=>$dossier->echeancier($PDOdb)
+			
+			,'detail_fact' => ''
 			
 			,'client'=>$TAffaire[0]['client']
 		);
