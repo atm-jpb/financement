@@ -1,3 +1,0 @@
-cd IN 
- put /var/www/dolibarr/documents/financement/XML/Lixxbail/FP_207_MA01_CPRO_20140717.xml
-
