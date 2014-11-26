@@ -289,10 +289,12 @@ class TFin_dossier extends TObjetStd {
 		$this->TFacture = array();
 		
 		$sql = "SELECT fk_target";
-		$sql.= " FROM ".MAIN_DB_PREFIX."element_element";
+		$sql.= " FROM ".MAIN_DB_PREFIX."element_element ee";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture f ON f.rowid = ee.fk_target";
 		$sql.= " WHERE sourcetype='dossier'";
 		$sql.= " AND targettype='facture'";
 		$sql.= " AND fk_source=".$this->getId();
+		$sql.= " ORDER BY f.facnumber ASC";
 		
 		$ATMdb->Execute($sql);
 		
