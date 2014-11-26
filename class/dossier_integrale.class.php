@@ -6,7 +6,7 @@ class TIntegrale extends TObjetStd {
 		parent::add_champs('facnumber','type=chaine;index');
 
 		parent::add_champs('label','type=chaine;');
-		parent::add_champs('vol_noir_engage,vol_noir_realise,vol_coul_engage,vol_coul_realise','type=entier;');
+		parent::add_champs('vol_noir_engage,vol_noir_realise,vol_noir_facture,vol_coul_engage,vol_coul_realise,vol_coul_facture','type=entier;');
 		parent::add_champs('cout_unit_noir,cout_unit_coul,fas,fass,frais_dossier,frais_bris_machine,frais_facturation,total_ht_engage,total_ht_realise,total_ht_facture,ecart','type=float;');
 		
 		parent::start();
@@ -44,10 +44,6 @@ class TIntegrale extends TObjetStd {
 		$this->total_ht_realise+= $this->vol_coul_realise * $this->cout_unit_coul;
 		$this->total_ht_realise+= $this->total_frais;
 		
-		// Définition du facturé (= engagé si pas de dépassement, = réalisé sinon)
-		$this->vol_noir_facture = ($this->vol_noir_engage > $this->vol_noir_realise) ? $this->vol_noir_engage : $this->vol_noir_realise;
-		$this->vol_coul_facture = ($this->vol_coul_engage > $this->vol_coul_realise) ? $this->vol_coul_engage : $this->vol_coul_realise;
-		//$this->total_ht_facture = ($this->total_ht_realise > $this->total_ht_engage) ? $this->total_ht_realise : $this->total_ht_engage;
 		$this->total_ht_facture = $this->vol_noir_facture * $this->cout_unit_noir;
 		$this->total_ht_facture+= $this->vol_coul_facture * $this->cout_unit_coul;
 		$this->total_ht_facture+= $this->total_frais;
