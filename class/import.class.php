@@ -650,75 +650,60 @@ class TImport extends TObjetStd {
 			$integrale->frais_facturation	= $data['total_ht'];
 		}
 		
-		if(!empty($data['label_integrale'])) {
-			/*if($data['label_integrale'] == 'ENGAGEMENT COPIES NB' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
-				if(empty($integrale->materiel_noir)) {
-					$integrale->materiel_noir = $data['matricule'];
-					$integrale->vol_noir_engage = $data['quantite'];
-					$integrale->vol_noir_realise = $data['quantite_integrale'];
-				} else if($integrale->materiel_noir != $data['matricule']) {
-					$integrale->materiel_noir = $data['matricule'];
-					$integrale->vol_noir_engage+= $data['quantite'];
-					$integrale->vol_noir_realise+= $data['quantite_integrale'];
-				}
-				
-				$integrale->cout_unit_noir = $data['cout_integrale'];
-				
-			}
-			if($data['label_integrale'] == 'ENGAGEMENT COPIES COULEUR' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
-				if(empty($integrale->materiel_coul)) {
-					$integrale->materiel_coul = $data['matricule'];
-					$integrale->vol_coul_engage = $data['quantite'];
-					$integrale->vol_coul_realise = $data['quantite_integrale'];
-				} else if($integrale->materiel_coul != $data['matricule']) {
-					$integrale->materiel_coul = $data['matricule'];
-					$integrale->vol_coul_engage+= $data['quantite'];
-					$integrale->vol_coul_realise+= $data['quantite_integrale'];
-				}
-				
-				$integrale->cout_unit_coul = $data['cout_integrale'];
-			}*/
-			
-			// ENGAGEMENT NOIR
-			if($data['ref_service'] == 'SSC015') {
-				if(empty($integrale->materiel_noir)) {
-					$integrale->materiel_noir = $data['matricule'];
-					$integrale->vol_noir_engage = $data['quantite'];
-					$integrale->vol_noir_realise = $data['quantite_integrale'];
-					$integrale->vol_noir_facture = $data['quantite'];
-				} else if($integrale->materiel_noir != $data['matricule']) {
-					$integrale->materiel_noir = $data['matricule'];
-					$integrale->vol_noir_engage+= $data['quantite'];
-					$integrale->vol_noir_realise+= $data['quantite_integrale'];
-					$integrale->vol_noir_facture+= $data['quantite'];
-				}
-				
-				$integrale->cout_unit_noir = $data['cout_integrale'];
-			}
-			// COPIE SUP NOIR
-			if($data['ref_service'] == 'SSC016') {
+		// ENGAGEMENT NOIR
+		if($data['ref_service'] == 'SSC015') {
+			if(empty($integrale->materiel_noir)) {
+				$integrale->materiel_noir = $data['matricule'];
+				$integrale->vol_noir_engage = $data['quantite'];
+				$integrale->vol_noir_realise = $data['quantite_integrale'];
+				$integrale->vol_noir_facture = $data['quantite'];
+			} else if($integrale->materiel_noir != $data['matricule']) {
+				$integrale->materiel_noir = $data['matricule'];
+				$integrale->vol_noir_engage+= $data['quantite'];
+				$integrale->vol_noir_realise+= $data['quantite_integrale'];
 				$integrale->vol_noir_facture+= $data['quantite'];
 			}
-			// ENGAGEMENT COULEUR
-			if($data['ref_service'] == 'SSC010') {
-				if(empty($integrale->materiel_coul)) {
-					$integrale->materiel_coul = $data['matricule'];
-					$integrale->vol_coul_engage = $data['quantite'];
-					$integrale->vol_coul_realise = $data['quantite_integrale'];
-					$integrale->vol_coul_facture = $data['quantite'];
-				} else if($integrale->materiel_coul != $data['matricule']) {
-					$integrale->materiel_coul = $data['matricule'];
-					$integrale->vol_coul_engage+= $data['quantite'];
-					$integrale->vol_coul_realise+= $data['quantite_integrale'];
-					$integrale->vol_coul_facture+= $data['quantite'];
-				}
-				
-				$integrale->cout_unit_coul = $data['cout_integrale'];
-			}
-			// COPIE SUP COULEUR
-			if($data['ref_service'] == 'SSC011') {
+			
+			$integrale->cout_unit_noir = $data['cout_integrale'];
+		}
+		// COPIE SUP NOIR
+		if($data['ref_service'] == 'SSC016') {
+			$integrale->vol_noir_facture+= $data['quantite'];
+		}
+		// COPIE ECHUES NOIR
+		if($data['ref_service'] == 'SSC017') {
+			$integrale->vol_noir_realise+= $data['quantite_integrale'];
+			$integrale->vol_noir_facture+= $data['quantite'];
+			
+			$integrale->cout_unit_noir = $data['pu'];
+		}
+		
+		// ENGAGEMENT COULEUR
+		if($data['ref_service'] == 'SSC010') {
+			if(empty($integrale->materiel_coul)) {
+				$integrale->materiel_coul = $data['matricule'];
+				$integrale->vol_coul_engage = $data['quantite'];
+				$integrale->vol_coul_realise = $data['quantite_integrale'];
+				$integrale->vol_coul_facture = $data['quantite'];
+			} else if($integrale->materiel_coul != $data['matricule']) {
+				$integrale->materiel_coul = $data['matricule'];
+				$integrale->vol_coul_engage+= $data['quantite'];
+				$integrale->vol_coul_realise+= $data['quantite_integrale'];
 				$integrale->vol_coul_facture+= $data['quantite'];
 			}
+			
+			$integrale->cout_unit_coul = $data['cout_integrale'];
+		}
+		// COPIE SUP COULEUR
+		if($data['ref_service'] == 'SSC011') {
+			$integrale->vol_coul_facture+= $data['quantite'];
+		}
+		// COPIE ECHUES COULEUR
+		if($data['ref_service'] == 'SSC012') {
+			$integrale->vol_coul_realise+= $data['quantite_integrale'];
+			$integrale->vol_coul_facture+= $data['quantite'];
+			
+			$integrale->cout_unit_coul = $data['pu'];
 		}
 		
 		$integrale->save($ATMdb);
