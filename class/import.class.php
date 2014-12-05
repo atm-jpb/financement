@@ -121,7 +121,6 @@ class TImport extends TObjetStd {
 				break;
 			case 'facture_location':
 				$this->importLineFactureLocation($ATMdb, $data, $TInfosGlobale);
-				$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
 				break;
 			case 'facture_lettree':
 				$this->importLineFactureLettree($ATMdb, $data);
@@ -598,6 +597,11 @@ class TImport extends TObjetStd {
 				}
 			}
 			$dossier->financement->loyer_actualise = $facture_loc->total_ht;
+			
+			// 2014.12.05 : on ne charge les données intégrale que si affaire de type intégral
+			if(!empty($dossier->TLien[0]->affaire) && $dossier->TLien[0]->affaire->contrat == 'INTEGRAL') {
+				$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
+			}
 		}
 		
 		return true;
