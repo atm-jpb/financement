@@ -756,7 +756,7 @@ class TFin_dossier extends TObjetStd {
 			// @TODO : à finir
 			//$paid = $paid || date('Y', $f->date_prochaine_echeance) < 2014;
 			
-			$res.= $this->create_facture_leaser($paid);
+			$this->create_facture_leaser($paid);
 			$f->setEcheance();
 			
 			$cpt++;
