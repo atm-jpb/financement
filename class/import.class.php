@@ -614,8 +614,8 @@ class TImport extends TObjetStd {
 			$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0]);
 			
 			// 2014.12.05 : on ne charge les données intégrale que si affaire de type intégral
-			if(!empty($dossier->TLien[0]->affaire) && $dossier->TLien[0]->affaire->contrat == 'INTEGRAL') {
-				$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
+			if(!empty($dossier->TLien[0]->affaire) && $dossier->TLien[0]->affaire->contrat != 'INTEGRAL') {
+				return false;
 			}
 		}
 		
