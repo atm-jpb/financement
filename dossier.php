@@ -250,6 +250,7 @@
 				$dossier = new TFin_dossier();
 				$dossier->load($PDOdb, $idDossier);
 				$fact = $dossier->create_facture_leaser(false, true, $echeance, time());
+				$dossier->financementLeaser->setEcheanceExterne();
 				
 				$urlback = dol_buildpath('/fourn/facture/fiche.php?facid='.$fact->id, 1);
 				header("Location: ".$urlback);
