@@ -756,7 +756,7 @@ class TFin_dossier extends TObjetStd {
 			// @TODO : à finir
 			//$paid = $paid || date('Y', $f->date_prochaine_echeance) < 2014;
 			
-			$res.= $this->create_facture_leaser($paid);
+			$this->create_facture_leaser($paid);
 			$f->setEcheance();
 			
 			$cpt++;
@@ -772,12 +772,13 @@ class TFin_dossier extends TObjetStd {
 		$d = & $this;
 		$f = & $this->financementLeaser;
 		$tva = (FIN_TVA_DEFAUT-1)*100;
-		if($date < strtotime('01/01/2014')) $tva = 19.6;
 		$res = '';
 		
 		// Ajout pour gérer création facture manuelle
 		if(empty($echeance)) $echeance = $f->duree_passe+1;
 		if(empty($date)) $date = $f->date_prochaine_echeance;
+		
+		if($date < strtotime('01/01/2014')) $tva = 19.6;
 		
 		$object = new FactureFournisseur($db);
 		
