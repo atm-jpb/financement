@@ -625,9 +625,10 @@ class TFin_dossier extends TObjetStd {
 			
 			// Ajout factures liées au dossier
 			$iFacture = $i;
-			if($f->loyer_intercalaire > 0) { // Décalage si loyer intercalaire car 1ère facture = loyer intercalaire, et non 1ère échéance
+			// 2014.12.08 : Plus besoin de décalage car affichage en fonction échéance
+			/*if($f->loyer_intercalaire > 0) { // Décalage si loyer intercalaire car 1ère facture = loyer intercalaire, et non 1ère échéance
 				$iFacture++;
-			}
+			}*/
 			$fact = false;
 			if($type_echeancier == 'CLIENT' && !empty($this->TFacture[$iFacture])) $fact = $this->TFacture[$iFacture];
 			if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[$iFacture])) $fact = $this->TFactureFournisseur[$iFacture];
@@ -694,7 +695,7 @@ class TFin_dossier extends TObjetStd {
 		if($f->loyer_intercalaire > 0) {
 			$fact = false;
 			if($type_echeancier == 'CLIENT' && !empty($this->TFacture[0])) $fact = $this->TFacture[0];
-			if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[0])) $fact = $this->TFactureFournisseur[0];
+			if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[0])) $fact = $this->TFactureFournisseur[-1];
 			if(is_object($fact)) {
 				$autre['loyer_intercalaire_facture_total_ht'] = $fact->total_ht;
 				$autre['loyer_intercalaire_facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
@@ -965,7 +966,7 @@ class TFin_financement extends TObjetStd {
 		
 		
 		if($this->date_prochaine_echeance<$this->date_debut) $this->date_prochaine_echeance = $this->date_debut ; 
-		if($try_to_correct_last_echeance && $this->date_prochaine_echeance>$this->date_fin) $this->setEcheance(-1, false);
+		//if($try_to_correct_last_echeance && $this->date_prochaine_echeance>$this->date_fin) $this->setEcheance(-1, false);
 		
 		/*$this->date_prochaine_echeance = strtotime(($nb * $this->getiPeriode()).' month', $this->date_prochaine_echeance);
 		$this->numero_prochaine_echeance += $nb;
