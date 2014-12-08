@@ -617,6 +617,8 @@ class TImport extends TObjetStd {
 			if(empty($dossier->TLien[0]->affaire) || $dossier->TLien[0]->affaire->contrat != 'INTEGRAL') {
 				return false;
 			}
+		} else {
+			return false;
 		}
 		
 		if(empty($TInfosGlobale['integrale'][$data[$this->mapping['search_key']]])) {
