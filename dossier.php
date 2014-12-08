@@ -302,7 +302,7 @@ function _liste(&$PDOdb, &$dossier) {
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END as 'Prochaine', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END as 'date_debut', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END as 'Fin', ";
-	$sql.="f.rowid as fk_fact_materiel, f.facnumber as fact_materiel";
+	$sql.="f.rowid as fk_fact_materiel, f.facnumber as fact_materiel ";
 	$sql.="FROM ((((((((@table@ d ";
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (d.rowid=da.fk_fin_dossier)) ";
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (da.fk_fin_affaire=a.rowid)) ";
