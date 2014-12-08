@@ -121,6 +121,7 @@ class TImport extends TObjetStd {
 				break;
 			case 'facture_location':
 				$this->importLineFactureLocation($ATMdb, $data, $TInfosGlobale);
+				$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
 				break;
 			case 'facture_lettree':
 				$this->importLineFactureLettree($ATMdb, $data);
@@ -597,11 +598,6 @@ class TImport extends TObjetStd {
 				}
 			}
 			$dossier->financement->loyer_actualise = $facture_loc->total_ht;
-			
-			// 2014.12.05 : on ne charge les données intégrale que si affaire de type intégral
-			if(!empty($dossier->TLien[0]->affaire) && $dossier->TLien[0]->affaire->contrat == 'INTEGRAL') {
-				$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
-			}
 		}
 		
 		return true;
@@ -609,6 +605,19 @@ class TImport extends TObjetStd {
 
 	function importLineFactureIntegrale(&$ATMdb, $data, &$TInfosGlobale) {
 		global $user, $db;
+		
+		$facture_loc = new Facture($db);
+		$facture_loc->fetch('',$data[$this->mapping['search_key']]);
+		$facture_loc->fetchObjectLinked('','dossier');
+		if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
+			$dossier = new TFin_dossier;
+			$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0]);
+			
+			// 2014.12.05 : on ne charge les données intégrale que si affaire de type intégral
+			if(!empty($dossier->TLien[0]->affaire) && $dossier->TLien[0]->affaire->contrat == 'INTEGRAL') {
+				$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
+			}
+		}
 		
 		if(empty($TInfosGlobale['integrale'][$data[$this->mapping['search_key']]])) {
 			$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]] = new TIntegrale();
