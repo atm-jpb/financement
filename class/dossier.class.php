@@ -596,7 +596,7 @@ class TFin_dossier extends TObjetStd {
 		$capital_restant = $capital_restant_init;
 		$f->capital_restant = $capital_restant; 
 		$TLigne=array();
-		
+//var_dump($this->TFacture);		
 		for($i=($echeanceInit-1); $i<$f->duree; $i++) {
 			
 			$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut + $f->calage);
@@ -630,12 +630,18 @@ class TFin_dossier extends TObjetStd {
 				$iFacture++;
 			}*/
 			$fact = false;
-			if($type_echeancier == 'CLIENT' && !empty($this->TFacture[$iFacture])) $fact = $this->TFacture[$iFacture];
-			if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[$iFacture])) $fact = $this->TFactureFournisseur[$iFacture];
+			if($type_echeancier == 'CLIENT' && !empty($this->TFacture[$iFacture])) {
+				$fact = $this->TFacture[$iFacture];
+				//print $iFacture.' '.$fact->id.'<br />';
+
+			}
+			else if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[$iFacture])) $fact = $this->TFactureFournisseur[$iFacture];
+//var_dump($fa);
 			if(is_object($fact)) {
 				$data['facture_total_ht'] = $fact->total_ht;
 				$data['facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
 				$data['facture_link'] .= $fact->id;
+			//	print $iFacture.' '.$fact->id.'<br />';
 				$data['facture_bg'] = ($fact->paye == 1) ? '#00FF00' : '#FF0000';
 			} else if($type_echeancier == 'LEASER' && $this->nature_financement == 'INTERNE' && $time < time() && $f->date_solde == 0 && $f->montant_solde == 0) {
 				$link = dol_buildpath('/financement/dossier.php?action=new_facture_leaser&id_dossier='.$this->rowid.'&echeance='.($i+1),1);
@@ -671,6 +677,7 @@ class TFin_dossier extends TObjetStd {
 			
 			
 			$TLigne[] = $data;
+//var_dump($TLigne);
 		}
 		$f->somme_echeance = $total_loyer;
 		$total_loyer += $f->reste;
@@ -691,11 +698,13 @@ class TFin_dossier extends TObjetStd {
 			,'nature_financement'=>$this->nature_financement
 			,'date_debut'=>date('d/m/Y', $f->date_debut)
 		);
-		
+//var_dump($autre);		
+//echo $f->lo;
 		if($f->loyer_intercalaire > 0) {
 			$fact = false;
-			if($type_echeancier == 'CLIENT' && !empty($this->TFacture[0])) $fact = $this->TFacture[0];
-			if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[0])) $fact = $this->TFactureFournisseur[-1];
+			if($type_echeancier == 'CLIENT' && !empty($this->TFacture[-1])) $fact = $this->TFacture[-1];
+			else if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[-1])) $fact = $this->TFactureFournisseur[-1];
+//echo $fact->paye;
 			if(is_object($fact)) {
 				$autre['loyer_intercalaire_facture_total_ht'] = $fact->total_ht;
 				$autre['loyer_intercalaire_facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
