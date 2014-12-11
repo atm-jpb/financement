@@ -292,6 +292,8 @@ class TFin_dossier extends TObjetStd {
 		$ATMdb->Execute($sql);
 		
 		dol_include_once("/compta/facture/class/facture.class.php");
+		$echeance = 0;
+		if($this->financement->loyer_intercalaire > 0) $echeance = -1;
 		
 		while($ATMdb->Get_line()) {
 			$fact = new Facture($db);
@@ -310,11 +312,12 @@ class TFin_dossier extends TObjetStd {
 				if($fact->type == 0 && $fact->total_ht > 0) { // Récupération uniquement des factures standard et sans avoir qui l'annule complètement
 					$this->somme_facture += $fact->total_ht;
 					if($fact->paye == 1) $this->somme_facture_reglee += $fact->total_ht;
-					$this->TFacture[] = $fact;
+					$this->TFacture[$echeance] = $fact;
 				}
 			} else {
-				$this->TFacture[] = $fact;
+				$this->TFacture[$echeance] = $fact;
 			}
+			$echeance++;
 		}
 	}
 	function load_factureFournisseur(&$ATMdb, $all=false) {
