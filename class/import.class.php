@@ -583,11 +583,43 @@ class TImport extends TObjetStd {
 		$facture_loc->date_lim_reglement = $data['date_lim_reglement'];
 		$facture_loc->update($user, 0);
 		
+		// 2014.10.30 : Evolution pour stocker assurance, maintenance et loyer actualisé
+		$facture_loc->fetchObjectLinked('','dossier');
+		if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
+			$dossier = new TFin_dossier;
+			$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0]);
+			if(!empty($dossier->TLien[0]->affaire) && $dossier->TLien[0]->affaire->contrat == 'FORFAITGLOBAL') {
+				if($data['ref_service'] == '037004') {
+					$dossier->financement->assurance = $data['total_ht'];
+				}
+				
+				if($data['ref_service'] == 'XXXXXX') {
+					$dossier->financement->montant_prestation = $data['total_ht'];
+				}
+			}
+			$dossier->financement->loyer_actualise = $facture_loc->total_ht;
+		}
+		
 		return true;
 	}
 
 	function importLineFactureIntegrale(&$ATMdb, $data, &$TInfosGlobale) {
 		global $user, $db;
+		
+		$facture_loc = new Facture($db);
+		$facture_loc->fetch('',$data[$this->mapping['search_key']]);
+		$facture_loc->fetchObjectLinked('','dossier');
+		if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
+			$dossier = new TFin_dossier;
+			$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0]);
+			
+			// 2014.12.05 : on ne charge les données intégrale que si affaire de type intégral
+			if(empty($dossier->TLien[0]->affaire) || $dossier->TLien[0]->affaire->contrat != 'INTEGRAL') {
+				return false;
+			}
+		} else {
+			return false;
+		}
 		
 		if(empty($TInfosGlobale['integrale'][$data[$this->mapping['search_key']]])) {
 			$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]] = new TIntegrale();
@@ -612,7 +644,7 @@ class TImport extends TObjetStd {
 		//$TFAS = array('SSC101', 'SSC102', 'SSC106');
 		//if(in_array($data['ref_service'], $TFAS)) {
 		if(strpos($data['label_integrale'], '(FAS)') !== false || substr($data['label_integrale'], -3) === 'FAS') {
-			if(empty($integrale->fas_somme)) { // Gestion FASS sur plusieurs lignes
+			if(empty($integrale->fas_somme)) { // Gestion FAS sur plusieurs lignes
 				$integrale->fas	= $data['total_ht'];
 				$integrale->fas_somme = true;
 			} else {
@@ -633,34 +665,60 @@ class TImport extends TObjetStd {
 			$integrale->frais_facturation	= $data['total_ht'];
 		}
 		
-		if(!empty($data['label_integrale'])) {
-			if($data['label_integrale'] == 'ENGAGEMENT COPIES NB' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
-				if(empty($integrale->materiel_noir)) {
-					$integrale->materiel_noir = $data['matricule'];
-					$integrale->vol_noir_engage = $data['quantite'];
-					$integrale->vol_noir_realise = $data['quantite_integrale'];
-				} else if($integrale->materiel_noir != $data['matricule']) {
-					$integrale->materiel_noir = $data['matricule'];
-					$integrale->vol_noir_engage+= $data['quantite'];
-					$integrale->vol_noir_realise+= $data['quantite_integrale'];
-				}
-				
-				$integrale->cout_unit_noir = $data['cout_integrale'];
-				
+		// ENGAGEMENT NOIR
+		if($data['ref_service'] == 'SSC015') {
+			if(empty($integrale->materiel_noir)) {
+				$integrale->materiel_noir = $data['matricule'];
+				$integrale->vol_noir_engage = $data['quantite'];
+				$integrale->vol_noir_realise = $data['quantite_integrale'];
+				$integrale->vol_noir_facture = $data['quantite'];
+			} else if($integrale->materiel_noir != $data['matricule']) {
+				$integrale->materiel_noir = $data['matricule'];
+				$integrale->vol_noir_engage+= $data['quantite'];
+				$integrale->vol_noir_realise+= $data['quantite_integrale'];
+				$integrale->vol_noir_facture+= $data['quantite'];
 			}
-			if($data['label_integrale'] == 'ENGAGEMENT COPIES COULEUR' && strpos($data['libelle_ligne'], 'LOCATION') !== false) {
-				if(empty($integrale->materiel_coul)) {
-					$integrale->materiel_coul = $data['matricule'];
-					$integrale->vol_coul_engage = $data['quantite'];
-					$integrale->vol_coul_realise = $data['quantite_integrale'];
-				} else if($integrale->materiel_coul != $data['matricule']) {
-					$integrale->materiel_coul = $data['matricule'];
-					$integrale->vol_coul_engage+= $data['quantite'];
-					$integrale->vol_coul_realise+= $data['quantite_integrale'];
-				}
-				
-				$integrale->cout_unit_coul = $data['cout_integrale'];
+			
+			$integrale->cout_unit_noir = $data['cout_integrale'];
+		}
+		// COPIE SUP NOIR
+		if($data['ref_service'] == 'SSC016') {
+			$integrale->vol_noir_facture+= $data['quantite'];
+		}
+		// COPIE ECHUES NOIR
+		if($data['ref_service'] == 'SSC017') {
+			$integrale->vol_noir_realise+= $data['quantite_integrale'];
+			$integrale->vol_noir_facture+= $data['quantite'];
+			
+			$integrale->cout_unit_noir = $data['pu'];
+		}
+		
+		// ENGAGEMENT COULEUR
+		if($data['ref_service'] == 'SSC010') {
+			if(empty($integrale->materiel_coul)) {
+				$integrale->materiel_coul = $data['matricule'];
+				$integrale->vol_coul_engage = $data['quantite'];
+				$integrale->vol_coul_realise = $data['quantite_integrale'];
+				$integrale->vol_coul_facture = $data['quantite'];
+			} else if($integrale->materiel_coul != $data['matricule']) {
+				$integrale->materiel_coul = $data['matricule'];
+				$integrale->vol_coul_engage+= $data['quantite'];
+				$integrale->vol_coul_realise+= $data['quantite_integrale'];
+				$integrale->vol_coul_facture+= $data['quantite'];
 			}
+			
+			$integrale->cout_unit_coul = $data['cout_integrale'];
+		}
+		// COPIE SUP COULEUR
+		if($data['ref_service'] == 'SSC011') {
+			$integrale->vol_coul_facture+= $data['quantite'];
+		}
+		// COPIE ECHUES COULEUR
+		if($data['ref_service'] == 'SSC012') {
+			$integrale->vol_coul_realise+= $data['quantite_integrale'];
+			$integrale->vol_coul_facture+= $data['quantite'];
+			
+			$integrale->cout_unit_coul = $data['pu'];
 		}
 		
 		$integrale->save($ATMdb);

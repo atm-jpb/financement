@@ -39,6 +39,8 @@ foreach($Tab as $id) {
 	echo 'Contrat client : '.$d->reference_contrat_interne.' - Contrat leaser : '.$f->reference.' ('.date('d/m/Y',$f->date_prochaine_echeance).' - '.$f->numero_prochaine_echeance.')<br />';
 	
 	$paid = $f->okPourFacturation == 'MANUEL' ? true : false;
+	// Si le numéro de contrat leaser n'est pas rempli, on passe au dossier suivant
+	if(empty($f->reference)) continue;
 	
 	echo $d->generate_factures_leaser($paid);
 	
