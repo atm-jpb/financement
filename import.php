@@ -85,6 +85,10 @@
 
 					rename($importFolder.$fileName, $importFolderOK.$fileName);
 					
+					if(isset($_REQUEST['solde_dossiers_non_presents'])) {
+						$imp->solde_dossiers_non_presents($ATMdb, $societe->id, $TInfosGlobale);
+					}
+					
 					fclose($f1);
 					
 					_fiche($ATMdb, $imp, 'view');
@@ -232,6 +236,7 @@ function _fiche(&$ATMdb, &$import, $mode) {
 				,'delimiter'=>$form->texte('', 'delimiter', FIN_IMPORT_FIELD_DELIMITER, 5)
 				,'enclosure'=>$form->texte('', 'enclosure', FIN_IMPORT_FIELD_ENCLOSURE, 5)
 				,'fileToImport'=>$form->fichier('', 'fileToImport', '', 10)
+				,'solde_dossiers_non_presents'=>$form->checkbox1('', 'solde_dossiers_non_presents', 0)
 				
 				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$import->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$user->nom.'</a>'
 				,'nb_lines'=>$import->nb_lines

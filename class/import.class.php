@@ -134,7 +134,7 @@ class TImport extends TObjetStd {
 				break;
 			case 'fichier_leaser':
 				
-				$this->importFichierLeaser($ATMdb, $data);
+				$this->importFichierLeaser($ATMdb, $data, $TInfosGlobale);
 				
 				break;
 			case 'score':
@@ -155,7 +155,7 @@ class TImport extends TObjetStd {
 		$db->commit();
 	}
 
-	function importFichierLeaser(&$ATMdb, $data) {
+	function importFichierLeaser(&$ATMdb, $data, &$TInfosGlobale) {
 		/*$ATMdb->debug=true;
 		echo '<hr><pre>'.$this->nb_lines;
 		print_r($data);
@@ -223,12 +223,34 @@ class TImport extends TObjetStd {
 			
 			$dossier->save($ATMdb);
 			$this->nb_update++;
+			
+			$TInfosGlobale[] = $dossier->financementLeaser->getId();
 		
 			return true;
 		
 		}
 		
 		return false;
+	}
+
+	function solde_dossiers_non_presents(&$ATMdb, $idLeaser, &$TInfosGlobale) {
+		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."fin_dossier_financement f ";
+		$sql.= "WHERE f.type = 'LEASER' ";
+		$sql.= "AND f.fk_soc = ".$idLeaser." ";
+		$sql.= "AND f.date_solde = '0000-00-00 00:00:00' ";
+		echo $sql;
+		
+		$TRes = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
+		pre($TRes, true);
+		pre($TInfosGlobale, true);
+		$f = new TFin_financement();
+		foreach ($TRes as $idFinancement) {
+			if(!in_array($idFinancement, $TInfosGlobale)) {
+				$f->load($ATMdb, $idFinancement);
+				$f->date_solde = strtotime('1998-07-12');
+				$f->save($ATMdb);
+			}
+		}
 	}
 
 	function importLineTiers(&$ATMdb, $data) {
