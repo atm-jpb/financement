@@ -57,6 +57,7 @@ Les colonnes sont :
 	$Tab = $ATMdb->Get_All();
 	
 	$TResult = array();
+	$TLeaser = array();
 	
 	foreach($Tab as &$row) {
 			
@@ -104,6 +105,12 @@ Les colonnes sont :
 						
 					
 					);
+					
+					if($dt->getTimestamp() < strtotime('+6 months')) {
+						$month = date('Y/m', $dt->getTimestamp());
+						$TMonth[$month] += $echeance['loyerHT'];
+						$TLeaser[$row->Leaser][$month] += $echeance['loyerHT'];
+					}
 				
 				
 			}
@@ -147,13 +154,14 @@ Les colonnes sont :
 	
 	llxHeader('','Rapport');
 	
+	_display_recap_by_leaser($TLeaser, $TMonth);
+	
 	$r=new TListviewTBS('lreport');
 	
 	$form=new TFormCore('auto', 'formReport','post');
 	
 	echo $form->hidden('download', '1' );
 	echo $form->hidden('rapport', 'echeance-restante' );
-	
 	
 	echo $form->btsubmit('Télécharger au format CSV', 'btsub');
 	
@@ -193,3 +201,56 @@ Les colonnes sont :
 	
  	
  	llxFooter();
+	
+	function _display_recap_by_leaser($TLeaser, $TMonth) {
+		ksort($TMonth);
+		ksort($TLeaser);
+		
+		print '<table class="border" width="100%">';
+		
+		// Titre
+		print '<tr class="liste_titre">';
+		print '<td>Leaser</td>';
+		
+		foreach($TMonth as $m => $total) {
+			print '<td>';
+			print $m;
+			print '</td>';
+		}
+		
+		print '</tr>';
+		
+		// Data
+		$class = 'pair';
+		foreach($TLeaser as $leaser => $data) {
+			$class = $class == 'pair' ? 'impair' : 'pair';
+			
+			print '<tr class="'.$class.'"><td>'.$leaser.'</td>';
+			foreach($TMonth as $m => $total) {
+				print '<td align="right">';
+				if(!empty($data[$m])) {
+					print price($data[$m]);
+				} else {
+					print price(0);
+				}
+				print '</td>';
+			}
+			print '</tr>';
+		}
+		
+		// Total
+		print '<tr class="liste_titre">';
+		print '<td>Total</td>';
+		
+		foreach($TMonth as $m => $total) {
+			print '<td align="right">';
+			print price($total);
+			print '</td>';
+		}
+		
+		print '</tr>';
+		
+		print '</table>';
+		
+		print '<br>';
+	}
