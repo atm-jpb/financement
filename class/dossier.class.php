@@ -202,7 +202,6 @@ class TFin_dossier extends TObjetStd {
 		global $user;
 		
 		if(!$user->rights->financement->affaire->write) return false;
-		echo '<hr>SAVE DOSSIER '.$this->getId();
 		$this->setNatureFinancementOnSimpleLink($db);
 		
 		$this->calculSolde();
@@ -218,7 +217,6 @@ class TFin_dossier extends TObjetStd {
 		// Calcul de la date et du numéro de prochaine échéance
 		if($this->nature_financement == 'EXTERNE') {
 			$this->financementLeaser->setEcheanceExterne();
-			echo '<hr>DELETE FIN CLIENT !!!';
 			$this->financement->to_delete = true;
 			$this->financement->save($db);
 		}
@@ -316,11 +314,12 @@ class TFin_dossier extends TObjetStd {
 					$this->somme_facture += $fact->total_ht;
 					if($fact->paye == 1) $this->somme_facture_reglee += $fact->total_ht;
 					$this->TFacture[$echeance] = $fact;
+					$echeance++;
 				}
 			} else {
 				$this->TFacture[$echeance] = $fact;
+				$echeance++;
 			}
-			$echeance++;
 		}
 	}
 	function load_factureFournisseur(&$ATMdb, $all=false) {
