@@ -180,18 +180,20 @@ class TFin_dossier extends TObjetStd {
 		}
 	}
 	
-	private function setNatureFinancementOnSimpleLink() {
+	private function setNatureFinancementOnSimpleLink(&$db) {
 		/*
 		 * Modifie la nature d'un dossier pour suivre l'affaire s'il n'y a qu'une affaire
 		 */
+		if(count($this->TLien)==0) {
+			$this->load_affaire($db);
+		}
 		if(count($this->TLien)==1) {
 			
 			$lien = & $this->TLien[0];
 			
 			if(!empty($lien->affaire->nature_financement)) {
 				$this->nature_financement = $lien->affaire->nature_financement;
-			}	
-			
+			}
 		}
 		
 	}
@@ -200,8 +202,7 @@ class TFin_dossier extends TObjetStd {
 		global $user;
 		
 		if(!$user->rights->financement->affaire->write) return false;
-		
-		$this->setNatureFinancementOnSimpleLink();
+		$this->setNatureFinancementOnSimpleLink($db);
 		
 		$this->calculSolde();
 		$this->calculRenta($db);
@@ -313,7 +314,6 @@ class TFin_dossier extends TObjetStd {
 					$this->somme_facture += $fact->total_ht;
 					if($fact->paye == 1) $this->somme_facture_reglee += $fact->total_ht;
 					$this->TFacture[$echeance] = $fact;
-
 					$echeance++;
 				}
 			} else {

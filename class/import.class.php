@@ -830,24 +830,15 @@ class TImport extends TObjetStd {
 			$mailto = $data['usermail'];
 			$mailto = 'financement@cpro.fr';
 			$subjectMail = '[Lease Board] - Alertes facturation intégrale pour '.$data['username'];
-			$contentMail.= $subjectMail.'<br><br>';
-			$contentMail.= $langs->transnoentitiesnoconv('IntegraleEmailAlert', $data['username'], $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL, $tabalert).'<br><br>';
+			$contentMail = $langs->transnoentitiesnoconv('IntegraleEmailAlert', $data['username'], $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL, $tabalert).'<br><br>';
 			
-			//$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
-			//$r->emailtoBcc = 'maxime@atm-consulting.fr';
-			//$r->send(true);
+			$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
+			$r->send(true);
 			
-			echo "<hr>".$subjectMail."<br>".$contentMail;
+			//echo "<hr>".$subjectMail."<br>".$contentMail;
 		}
 
 		fclose($csvfile);
-		
-		$mailto = 'financement@cpro.fr';
-		$subjectMail = '[Lease Board] - Alertes facturation intégrale';
-		
-		$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
-		$r->emailtoBcc = 'maxime@atm-consulting.fr';
-		//$r->send(true, 'UTF-8');
 	}
 
 	function importLineFactureLettree(&$ATMdb, $data) {
