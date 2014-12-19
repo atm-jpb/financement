@@ -217,8 +217,10 @@ class TFin_dossier extends TObjetStd {
 		// Calcul de la date et du numéro de prochaine échéance
 		if($this->nature_financement == 'EXTERNE') {
 			$this->financementLeaser->setEcheanceExterne();
-			$this->financement->to_delete = true;
-			$this->financement->save($db);
+			if(!empty($this->financement)) {
+				$this->financement->to_delete = true;
+				$this->financement->save($db);
+			}
 		}
 		
 		$this->financementLeaser->fk_fin_dossier = $this->getId();
