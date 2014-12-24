@@ -454,7 +454,8 @@ class TFin_affaire extends TObjetStd {
 			);
 		
 		$bien->appendChild($xml->createElement("immobilisation",$a+1));
-		$bien->appendChild($xml->createElement("designation1",substr(htmlentities($product->label),0,30)));
+		//$bien->appendChild($xml->createElement("designation1",substr(htmlentities($product->label),0,30)));
+		$bien->appendChild($xml->createElement("designation1",substr($product->label,0,30)));
 		$bien->appendChild($xml->createElement("noSerie",$assetLink->asset->serial_number));
 		$bien->appendChild($xml->createElement("immatriculable","NON"));
 		$bien->appendChild($xml->createElement("codeAssietteTheorique","U03C"));
