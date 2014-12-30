@@ -46,6 +46,7 @@ foreach($Tab as $id) {
 	
 	if($f->okPourFacturation == 'OUI') $f->okPourFacturation='NON';
 	$f->save($ATMdb);
+	$d->save($ATMdb); // Sauvegarde le dossier et le financement leaser qui a été modifié par la génération de facture
 
 	echo '<hr>';
 	
