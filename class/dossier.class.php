@@ -866,8 +866,6 @@ class TFin_dossier_affaire extends TObjetStd {
 	
 	function save(&$db) {
 		parent::save($db);
-		// Sauvegarde du dossier pour mise à jour si changement de classification
-		$this->dossier->save($db);
 	} 
 }	
 
