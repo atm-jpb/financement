@@ -575,7 +575,7 @@ class TFin_affaire extends TObjetStd {
 			$commandeLig->appendChild($xml->createElement("mtTTC",round(($facture->total_ttc - $Affaire->totalTtc),2)));
 		}
 		else{
-			$Affaire->totalTva += round(($facture->total_ht / $nbAsset),2);
+			$Affaire->totalTva += round(($facture->total_tva / $nbAsset),2);
 			$Affaire->totalTtc += round(($facture->total_ttc / $nbAsset),2);
 			$commandeLig->appendChild($xml->createElement("mtTaxe",round(($facture->total_tva / $nbAsset),2)));
 			$commandeLig->appendChild($xml->createElement("mtTTC",round(($facture->total_ttc / $nbAsset),2)));
