@@ -430,6 +430,8 @@ class TFin_affaire extends TObjetStd {
 		$product = new Product($db);
 		$product->fetch($assetLink->asset->fk_product);
 		
+		$nbAsset = count($Affaire->TAsset);
+		
 		$facture = $this->_getFactureXML($assetLink,$Affaire);
 
 		$bien = $xml->createElement("bien");
@@ -462,8 +464,16 @@ class TFin_affaire extends TObjetStd {
 		$bien->appendChild($xml->createElement("noSerie",$assetLink->asset->serial_number));
 		$bien->appendChild($xml->createElement("immatriculable","NON"));
 		$bien->appendChild($xml->createElement("codeAssietteTheorique","U03C"));
-		$bien->appendChild($xml->createElement("montant",round($facture->total_ht,2)));
-
+		
+		//On divise le montant total HT de la facture par le nombre de bien
+		//Seul pb, les arrondies risquent de faussé les montants donc pour le dernier bien ajouté montan = total HT - somme des montants des bien précédent
+		if($a+1 == $nbAsset){
+			$bien->appendChild($xml->createElement("montant",round(($facture->total_ht - $totalBien),2)));
+		}
+		else{
+			$totalBien += round(($facture->total_ht / $nbAsset),2);
+			$bien->appendChild($xml->createElement("montant",round(($facture->total_ht / $nbAsset),2)));
+		}
 		return $bien;
 	}
 	
