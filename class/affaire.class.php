@@ -468,10 +468,11 @@ class TFin_affaire extends TObjetStd {
 		//On divise le montant total HT de la facture par le nombre de bien
 		//Seul pb, les arrondies risquent de faussé les montants donc pour le dernier bien ajouté montan = total HT - somme des montants des bien précédent
 		if($a+1 == $nbAsset){
-			$bien->appendChild($xml->createElement("montant",round(($facture->total_ht - $totalBien),2)));
+			//echo $Affaire->totalBien;exit;
+			$bien->appendChild($xml->createElement("montant",round(($facture->total_ht - $Affaire->totalBien),2)));
 		}
 		else{
-			$totalBien += round(($facture->total_ht / $nbAsset),2);
+			$Affaire->totalBien += round(($facture->total_ht / $nbAsset),2);
 			$bien->appendChild($xml->createElement("montant",round(($facture->total_ht / $nbAsset),2)));
 		}
 		return $bien;
