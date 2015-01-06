@@ -555,10 +555,31 @@ class TFin_affaire extends TObjetStd {
 		
 		$commandeLig->appendChild($xml->createElement("immobilisation",$a+1));
 		$commandeLig->appendChild($xml->createElement("codeTypeLigne","ABIE"));
-		$commandeLig->appendChild($xml->createElement("mtHt",round($facture->total_ht,2)));
+		
+		$nbAsset = count($Affaire->TAsset);
+		
+		if($a+1 == $nbAsset){
+			//echo $Affaire->totalBien;exit;
+			$commandeLig->appendChild($xml->createElement("mtHt",round(($facture->total_ht - $Affaire->totalHt),2)));
+		}
+		else{
+			$Affaire->totalHt += round(($facture->total_ht / $nbAsset),2);
+			$commandeLig->appendChild($xml->createElement("mtHt",round(($facture->total_ht / $nbAsset),2)));
+		}
+		
 		$commandeLig->appendChild($xml->createElement("codeTaxe","10"));
-		$commandeLig->appendChild($xml->createElement("mtTaxe",round($facture->total_tva,2)));
-		$commandeLig->appendChild($xml->createElement("mtTTC",round($facture->total_ttc,2)));
+		
+		if($a+1 == $nbAsset){
+			//echo $Affaire->totalBien;exit;
+			$commandeLig->appendChild($xml->createElement("mtTaxe",round(($facture->total_tva - $Affaire->totalTva),2)));
+			$commandeLig->appendChild($xml->createElement("mtTTC",round(($facture->total_ttc - $Affaire->totalTtc),2)));
+		}
+		else{
+			$Affaire->totalTva += round(($facture->total_ht / $nbAsset),2);
+			$Affaire->totalTtc += round(($facture->total_ttc / $nbAsset),2);
+			$commandeLig->appendChild($xml->createElement("mtTaxe",round(($facture->total_tva / $nbAsset),2)));
+			$commandeLig->appendChild($xml->createElement("mtTTC",round(($facture->total_ttc / $nbAsset),2)));
+		}
 
 		return $commandeLig;
 	}
