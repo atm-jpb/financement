@@ -458,9 +458,16 @@ class TFin_affaire extends TObjetStd {
 			);
 		
 		$bien->appendChild($xml->createElement("immobilisation",$a+1));
-		//$bien->appendChild($xml->createElement("designation1",substr(htmlentities($product->label),0,30)));
-		$des = $bien->appendChild($xml->createElement("designation1"));
-		$des->appendChild($xml->createCDATASection(substr($product->label,0,30)));
+		$trans = array('&'=>'et');
+		
+		$designation = htmlentities($product->label, ENT_NOQUOTES, 'UTF-8');
+	    $designation = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $designation);
+	    $designation = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $designation); // pour les ligatures e.g. '&oelig;'
+	    $designation = preg_replace('#&[^;]+;#', '', $designation); // supprime les autres caractères
+		
+		$bien->appendChild($xml->createElement("designation1",substr(strtoupper(($designation)),0,30)));
+		/*$des = $bien->appendChild($xml->createElement("designation1"));
+		$des->appendChild($xml->createCDATASection(substr($product->label,0,30)));*/
 		$bien->appendChild($xml->createElement("noSerie",$assetLink->asset->serial_number));
 		$bien->appendChild($xml->createElement("immatriculable","NON"));
 		$bien->appendChild($xml->createElement("codeAssietteTheorique","U03C"));
