@@ -540,7 +540,7 @@ class TFin_affaire extends TObjetStd {
 		$des->appendChild($xml->createCDATASection(substr($product->label,0,30)));*/
 		
 		//$bien->appendChild($xml->createElement("noSerie",$assetLink->asset->serial_number));
-		$bien->appendChild($xml->createElement("noSerie",substr($serial_numbers,0,30));
+		$bien->appendChild($xml->createElement("noSerie",substr($serial_numbers,0,30)));
 		$bien->appendChild($xml->createElement("immatriculable","NON"));
 		$bien->appendChild($xml->createElement("codeAssietteTheorique","U03C"));
 		
