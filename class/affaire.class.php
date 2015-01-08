@@ -396,7 +396,7 @@ class TFin_affaire extends TObjetStd {
 			$AssetId = $assetLink->asset->getId();
 		}
 		
-		$bien = $this->_getBiensXML($xml,$assetLink,$Affaire,$a,$serial_numbers,$TDesignation);
+		$bien = $this->_getBiensXML($xml,$Affaire->TAsset[0],$Affaire,$a,$serial_numbers,$TDesignation);
 		$element->appendChild($bien);
 		
 		$paliers = $this->_getPaliersXML($xml,$Tdata->dossier->financementLeaser,$Affaire,$AssetId,0);
