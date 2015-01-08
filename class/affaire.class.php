@@ -395,8 +395,8 @@ class TFin_affaire extends TObjetStd {
 			$TDesignation = $this->_getDesignationBienXML($TDesignation,$assetLink);
 			$AssetId = $assetLink->asset->getId();
 		}
-		
-		$bien = $this->_getBiensXML($xml,$Affaire->TAsset[0],$Affaire,$a,$serial_numbers,$TDesignation);
+
+		$bien = $this->_getBiensXML($xml,$Affaire->TAsset[$a],$Affaire,$a,$serial_numbers,$TDesignation);
 		$element->appendChild($bien);
 		
 		$paliers = $this->_getPaliersXML($xml,$Tdata->dossier->financementLeaser,$Affaire,$AssetId,0);
@@ -419,10 +419,10 @@ class TFin_affaire extends TObjetStd {
 		$tailleDesignation1B = strlen($TDesignation[0]);
 		$tailleDesignation1C = strlen($TDesignation[1]);
 		
-		if($tailleDesignation1B >= 30){
-			if($tailleDesignation1C >= 30){
-				$TDesignation[0] = substr(substr($TDesignation[0], 0,-3),0,30);
-				$TDesignation[1] = substr(substr($TDesignation[1], 0,-3),0,30);
+		if($tailleDesignation1B >= 1){
+			if($tailleDesignation1C >= 1){
+				$TDesignation[0] = substr($TDesignation[0],0,-3);
+				$TDesignation[1] = substr($TDesignation[1],0,-3);
 				return $TDesignation;
 			}
 			else{
@@ -433,8 +433,8 @@ class TFin_affaire extends TObjetStd {
 			$TDesignation[0] .= $product->label." - ";
 		}
 		
-		$TDesignation[0] = substr(substr($TDesignation[0], 0,-3),0,30);
-		$TDesignation[1] = substr(substr($TDesignation[1], 0,-3),0,30);
+		$TDesignation[0] = substr($TDesignation[0],0,-3);
+		$TDesignation[1] = substr($TDesignation[1],0,-3);
 		
 		return $TDesignation;
 	}
@@ -443,21 +443,21 @@ class TFin_affaire extends TObjetStd {
 		
 		$serial_numbers .= $serial_number.' - ';
 		
-		if($serial_numbers >= 30){
-			return substr(substr($serial_numbers,0,-3),0,30);
-		}
-		else{
+		if(strlen($serial_numbers) <= 30){
 			$serial_numbers .= $product->label;
 		}
+		else{
+			return substr($serial_numbers,0,-3);
+		}
 		
-		return substr(substr($serial_numbers,0,-3),0,30);
+		return $serial_numbers;
 	}
 
 	function _getFactureXML(&$assetLink,&$Affaire){
 		global $db;
 		
 		$ATMdb = new TPDOdb;
-		
+
 		//Récupération de la facture client de l'équipement associé à l'affaire
 		$sql = "SELECT al1.fk_document 
 				FROM ".MAIN_DB_PREFIX."asset_link as al1
@@ -488,6 +488,7 @@ class TFin_affaire extends TObjetStd {
 		
 		$nbAsset = count($Affaire->TAsset);
 		
+		//pre($assetLink,true);
 		$facture = $this->_getFactureXML($assetLink,$Affaire);
 
 		$bien = $xml->createElement("bien");
@@ -516,15 +517,25 @@ class TFin_affaire extends TObjetStd {
 		$bien->appendChild($xml->createElement("immobilisation",$a+1));
 		$trans = array('&'=>'et');
 		
-		$designation = htmlentities($product->label, ENT_NOQUOTES, 'UTF-8');
-	    $designation = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $designation);
-	    $designation = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $designation); // pour les ligatures e.g. '&oelig;'
-	    $designation = preg_replace('#&[^;]+;#', '', $designation); // supprime les autres caractères
+		foreach($TDesignation as $k => $designation){
+			$designation = htmlentities($designation, ENT_NOQUOTES, 'UTF-8');
+		    $designation = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $designation);
+		    $designation = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $designation); // pour les ligatures e.g. '&oelig;'
+		    $designation = preg_replace('#&[^;]+;#', '', $designation); // supprime les autres caractères
+		    
+		    $TDesignation[$k] = substr($designation,0,30);
+		}
 		
 		//$bien->appendChild($xml->createElement("designation1",substr(strtoupper(($designation)),0,30)));
-		$bien->appendChild($xml->createElement("designation1","ensemble de copieurs"));
-		$bien->appendChild($xml->createElement("designation1B",$TDesignation[0]));
-		$bien->appendChild($xml->createElement("designation1C",$TDesignation[1]));
+		
+		if($nbAsset === 1){
+			$bien->appendChild($xml->createElement("designation1",$TDesignation[0]));
+		}
+		else{
+			$bien->appendChild($xml->createElement("designation1","ensemble de copieurs"));
+			$bien->appendChild($xml->createElement("designation1B",$TDesignation[0]));
+			$bien->appendChild($xml->createElement("designation1C",$TDesignation[1]));
+		}
 		/*$des = $bien->appendChild($xml->createElement("designation1"));
 		$des->appendChild($xml->createCDATASection(substr($product->label,0,30)));*/
 		
@@ -608,7 +619,7 @@ class TFin_affaire extends TObjetStd {
 
 		//foreach($TAsset as $a=>$assetLink){
 				
-			$commandeLig = $this->_getCommandeLigXML($xml,$assetLink,$Affaire,$a);
+			$commandeLig = $this->_getCommandeLigXML($xml,$TAsset[0],$Affaire,$a);
 			$commande->appendChild($commandeLig);
 		//}
 
