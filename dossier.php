@@ -22,6 +22,10 @@
 	
 	$fk_leaser = __val($_REQUEST['fk_leaser'],'','integer');
 	
+	if(GETPOST('envoiXML')){
+		setEventMessage('La génération et l\'envoi du fichier XML s\'est effectué avec succès');
+	}
+	
 	if(isset($_REQUEST['action'])) {
 		switch($_REQUEST['action']) {
 			case 'add':
@@ -187,7 +191,7 @@
 				
 				?>
 				<script language="javascript">
-					document.location.href="?fk_leaser=<?php echo $fk_leaser; ?>";					
+					document.location.href="?fk_leaser=<?php echo $fk_leaser; ?>&envoiXML=ok";					
 				</script>
 				<?
 				
