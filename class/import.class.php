@@ -643,7 +643,8 @@ class TImport extends TObjetStd {
 		// FAS
 		//$TFAS = array('SSC101', 'SSC102', 'SSC106');
 		//if(in_array($data['ref_service'], $TFAS)) {
-		if(strpos($data['label_integrale'], '(FAS)') !== false || substr($data['label_integrale'], -3) === 'FAS') {
+		if(strpos($data['label_integrale'], '(FAS)') !== false || substr($data['label_integrale'], -3) === 'FAS'
+			|| strpos($data['label_integrale'], 'Forfait d\'Accès au Service') !== false) {
 			if(empty($integrale->fas_somme)) { // Gestion FAS sur plusieurs lignes
 				$integrale->fas	= $data['total_ht'];
 				$integrale->fas_somme = true;
@@ -829,7 +830,7 @@ class TImport extends TObjetStd {
 			
 			$mailto = $data['usermail'];
 			$mailto = 'financement@cpro.fr';
-			$subjectMail = '[Lease Board] - Alertes facturation intégrale pour '.$data['username'];
+			$subjectMail = '[Lease Board] - Alertes facturation int&eacute;grale pour '.$data['username'];
 			$contentMail = $langs->transnoentitiesnoconv('IntegraleEmailAlert', $data['username'], $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL, $tabalert).'<br><br>';
 			
 			$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
