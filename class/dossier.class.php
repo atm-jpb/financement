@@ -293,13 +293,14 @@ class TFin_dossier extends TObjetStd {
 		$ATMdb->Execute($sql);
 		
 		dol_include_once("/compta/facture/class/facture.class.php");
-		$echeance = 0;
-		if($this->financement->loyer_intercalaire > 0) $echeance = -1;
 		
 		while($ATMdb->Get_line()) {
 			$fact = new Facture($db);
 			$fact->fetch($ATMdb->Get_field('fk_target'));
 			if($fact->socid == $this->financementLeaser->fk_soc) continue; // Facture matériel associée au leaser, ne pas prendre en compte comme une facture client au sens CPRO
+			
+			$datePeriode = strtotime(implode('-', array_reverse(explode('/', $fact->ref_client))));
+			$echeance = $this->_get_num_echeance_from_date($datePeriode);
 			
 			if(!$all) {
 				$facidavoir=$fact->getListIdAvoirFromInvoice();
@@ -322,6 +323,13 @@ class TFin_dossier extends TObjetStd {
 			}
 		}
 	}
+
+	// Donne le numéro d'échéance correspondant à une date
+	function _get_num_echeance_from_date($date) {		
+		$echeance = date('m', $date - $this->financement->date_debut) / $this->financement->getiPeriode();
+		return $echeance;
+	}
+
 	function load_factureFournisseur(&$ATMdb, $all=false) {
 		global $db;
 		$this->somme_facture_fournisseur = 0;
