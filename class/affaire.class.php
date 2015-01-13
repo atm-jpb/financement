@@ -5,8 +5,8 @@ class TFin_affaire extends TObjetStd {
 		global $langs;
 
 		parent::set_table(MAIN_DB_PREFIX.'fin_affaire');
-		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel','type=chaine;');
-		parent::add_champs('date_affaire','type=date;');
+		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel,xml_fic_transfert','type=chaine;');
+		parent::add_champs('date_affaire,xml_date_transfert','type=date;');
 		parent::add_champs('fk_soc,entity','type=entier;index;');
 		parent::add_champs('montant,solde','type=float;');
 		
@@ -276,7 +276,7 @@ class TFin_affaire extends TObjetStd {
 		return $TAffaires;
 	}	
 	
-	function genLixxbailXML(&$TAffaires){
+	function genLixxbailXML(&$PDOdb, &$TAffaires){
 		
 		$date = date('Ymd');
 		$name = "CPROMA01IMMA".$date;
@@ -291,18 +291,21 @@ class TFin_affaire extends TObjetStd {
 		$affairelist->appendChild($xml->createElement("refExtPartenaire","CPROMA01"));
 		$affairelist->appendChild($xml->createElement("numLot","IMMA".date('ymd')));
 		
+		$name2 = "FP_207_MA01_CPRO_".$date.".xml";
+		
 		//Chargement des noeuds correspondant aux affaires
 		foreach($TAffaires as $Affaire){
 			$affaires = $this->_getAffairesXML($xml,$Affaire);
+			$Affaire->xml_date_transfert = time();
+			$Affaire->xml_fic_transfert = $name2;
+			$Affaire->save($PDOdb);
 
 			$affairelist->appendChild($affaires);
 		}
 		
-		$name2 = "FP_207_MA01_CPRO_".$date;
-		
 		$chaine = $xml->saveXML();
 		dol_mkdir(DOL_DATA_ROOT.'/financement/XML/Lixxbail/');
-		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name2.'.xml', $chaine);
+		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name2, $chaine);
 		
 		return $name2;
 	}
