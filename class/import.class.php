@@ -733,8 +733,8 @@ class TImport extends TObjetStd {
 			if(empty($TInfosGlobale[$facnumber])) continue;
 			if($integrale->ecart < $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL) continue;
 			
-			// Récupération des informations à envoyer au commerial
-			$sql= "SELECT s.nom, df.reference";
+			// Récupération des informations à envoyer au commercial
+			$sql= "SELECT s.nom, df.reference, d.rowid";
 			$sql.= " FROM llx_facture f";
 			$sql.= " LEFT JOIN llx_societe s ON s.rowid = f.fk_soc";
 			$sql.= " LEFT JOIN llx_element_element ee ON ee.fk_target = f.rowid AND ee.targettype = 'facture'";
@@ -751,6 +751,7 @@ class TImport extends TObjetStd {
 			$data = array(
 				'client' => $obj->nom
 				,'contrat' => $obj->reference
+				,'id_dossier' => $obj->rowid
 				,'facture' => $facnumber
 				,'montant_engage' => $integrale->total_ht_engage
 				,'montant_facture' => $integrale->total_ht_facture
@@ -812,13 +813,15 @@ class TImport extends TObjetStd {
 			$tabalert.='<th>Solution</th>';
 			$tabalert.='</tr>';
 			foreach ($data['content'] as $infos) {
+				$link = '<a href="'.dol_buildpath('/financement/dossier_integrale.php?id='.$infos['id_dossier'],2).'">'.$infos['contrat'].'</a>';
+				
 				$tabalert.='<tr>';
-				$tabalert.='<td>'.$infos['client'].'</td>';
-				$tabalert.='<td>'.$infos['contrat'].'</td>';
-				$tabalert.='<td>'.$infos['facture'].'</td>';
-				$tabalert.='<td align="right">'.price($infos['montant_engage'],0,'',1,-1,2).' &euro;</td>';
-				$tabalert.='<td align="right">'.price($infos['montant_facture'],0,'',1,-1,2).' &euro;</td>';
-				$tabalert.='<td align="right">'.price($infos['ecart'],0,'',1,-1,2).' %</td>';
+				$tabalert.='<td align="center">'.$infos['client'].'</td>';
+				$tabalert.='<td align="center">'.$link.'</td>';
+				$tabalert.='<td align="center">'.$infos['facture'].'</td>';
+				$tabalert.='<td align="center">'.price($infos['montant_engage'],0,'',1,-1,2).' &euro;</td>';
+				$tabalert.='<td align="center">'.price($infos['montant_facture'],0,'',1,-1,2).' &euro;</td>';
+				$tabalert.='<td align="center">'.price($infos['ecart'],0,'',1,-1,2).' %</td>';
 				$tabalert.='<td align="center">'.$infos['1-Copieur'].'</td>';
 				$tabalert.='<td align="center">'.$infos['2-Traceur'].'</td>';
 				$tabalert.='<td align="center">'.$infos['3-Solution'].'</td>';
