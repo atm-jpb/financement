@@ -291,7 +291,7 @@ class TFin_affaire extends TObjetStd {
 		$affairelist->appendChild($xml->createElement("refExtPartenaire","CPROMA01"));
 		$affairelist->appendChild($xml->createElement("numLot","IMMA".date('ymd')));
 		
-		$name2 = "FP_207_MA01_CPRO_".$date.".xml";
+		$name2 = "FP_207_MA01_CPRO_".$date;
 		
 		//Chargement des noeuds correspondant aux affaires
 		foreach($TAffaires as $Affaire){
@@ -305,7 +305,7 @@ class TFin_affaire extends TObjetStd {
 		
 		$chaine = $xml->saveXML();
 		dol_mkdir(DOL_DATA_ROOT.'/financement/XML/Lixxbail/');
-		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name2, $chaine);
+		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name2.'.xml', $chaine);
 		
 		return $name2;
 	}
