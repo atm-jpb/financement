@@ -617,7 +617,8 @@ class TFin_affaire extends TObjetStd {
 		$commande = $xml->createElement("commande");
 
 		//pre($TAsset[0]->asset->serial_number);exit;
-		$commande->appendChild($xml->createElement("noCommande",((count($TAsset) > 1) ? date('dmY') : $TAsset[0]->asset->serial_number)));
+		//$commande->appendChild($xml->createElement("noCommande",((count($TAsset) > 1) ? date('dmY') : $TAsset[0]->asset->serial_number)));
+		$commande->appendChild($xml->createElement("noCommande",($Affaire->reference)));
 		$commande->appendChild($xml->createElement("fournisseur","M000355961"));
 
 		//foreach($TAsset as $a=>$assetLink){
