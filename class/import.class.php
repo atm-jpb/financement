@@ -606,13 +606,13 @@ class TImport extends TObjetStd {
 		$facture_loc->update($user, 0);
 		
 		// 2014.10.30 : Evolution pour stocker assurance, maintenance et loyer actualisé
-		$facture_loc->fetchObjectLinked('','dossier');
+		/*$facture_loc->fetchObjectLinked('','dossier');
 		if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
 			$dossier = new TFin_dossier;
 			$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0]);
-			if(!empty($dossier->TLien[0]->affaire) && $dossier->TLien[0]->affaire->contrat == 'FORFAITGLOBAL') {
+			if(!empty($dossier->TLien[0]->affaire) && ($dossier->TLien[0]->affaire->contrat == 'FORFAITGLOBAL' || $dossier->TLien[0]->affaire->contrat == 'INTEGRAL')) {
 				if($data['ref_service'] == '037004') {
-					$dossier->financement->assurance = $data['total_ht'];
+					$dossier->financement->assurance_actualise = $data['total_ht'];
 				}
 				
 				if($data['ref_service'] == 'XXXXXX') {
@@ -620,7 +620,7 @@ class TImport extends TObjetStd {
 				}
 			}
 			$dossier->financement->loyer_actualise = $facture_loc->total_ht;
-		}
+		}*/
 		
 		return true;
 	}
@@ -665,7 +665,8 @@ class TImport extends TObjetStd {
 		// FAS
 		//$TFAS = array('SSC101', 'SSC102', 'SSC106');
 		//if(in_array($data['ref_service'], $TFAS)) {
-		if(strpos($data['label_integrale'], '(FAS)') !== false || strpos($data['libelle_ligne'], '(FAS)') !== false || substr($data['label_integrale'], -3) === 'FAS') {
+		if(strpos($data['label_integrale'], '(FAS)') !== false || substr($data['label_integrale'], -3) === 'FAS'
+			|| strpos($data['label_integrale'], 'Forfait d\'Accès au Service') !== false) {
 			if(empty($integrale->fas_somme)) { // Gestion FAS sur plusieurs lignes
 				$integrale->fas	= $data['total_ht'];
 				$integrale->fas_somme = true;
@@ -754,8 +755,8 @@ class TImport extends TObjetStd {
 			if(empty($TInfosGlobale[$facnumber])) continue;
 			if($integrale->ecart < $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL) continue;
 			
-			// Récupération des informations à envoyer au commerial
-			$sql= "SELECT s.nom, df.reference";
+			// Récupération des informations à envoyer au commercial
+			$sql= "SELECT s.nom, df.reference, d.rowid";
 			$sql.= " FROM llx_facture f";
 			$sql.= " LEFT JOIN llx_societe s ON s.rowid = f.fk_soc";
 			$sql.= " LEFT JOIN llx_element_element ee ON ee.fk_target = f.rowid AND ee.targettype = 'facture'";
@@ -772,6 +773,7 @@ class TImport extends TObjetStd {
 			$data = array(
 				'client' => $obj->nom
 				,'contrat' => $obj->reference
+				,'id_dossier' => $obj->rowid
 				,'facture' => $facnumber
 				,'montant_engage' => $integrale->total_ht_engage
 				,'montant_facture' => $integrale->total_ht_facture
@@ -833,13 +835,15 @@ class TImport extends TObjetStd {
 			$tabalert.='<th>Solution</th>';
 			$tabalert.='</tr>';
 			foreach ($data['content'] as $infos) {
+				$link = '<a href="'.dol_buildpath('/financement/dossier_integrale.php?id='.$infos['id_dossier'],2).'">'.$infos['contrat'].'</a>';
+				
 				$tabalert.='<tr>';
-				$tabalert.='<td>'.$infos['client'].'</td>';
-				$tabalert.='<td>'.$infos['contrat'].'</td>';
-				$tabalert.='<td>'.$infos['facture'].'</td>';
-				$tabalert.='<td align="right">'.price($infos['montant_engage'],0,'',1,-1,2).' &euro;</td>';
-				$tabalert.='<td align="right">'.price($infos['montant_facture'],0,'',1,-1,2).' &euro;</td>';
-				$tabalert.='<td align="right">'.price($infos['ecart'],0,'',1,-1,2).' %</td>';
+				$tabalert.='<td align="center">'.$infos['client'].'</td>';
+				$tabalert.='<td align="center">'.$link.'</td>';
+				$tabalert.='<td align="center">'.$infos['facture'].'</td>';
+				$tabalert.='<td align="center">'.price($infos['montant_engage'],0,'',1,-1,2).' &euro;</td>';
+				$tabalert.='<td align="center">'.price($infos['montant_facture'],0,'',1,-1,2).' &euro;</td>';
+				$tabalert.='<td align="center">'.price($infos['ecart'],0,'',1,-1,2).' %</td>';
 				$tabalert.='<td align="center">'.$infos['1-Copieur'].'</td>';
 				$tabalert.='<td align="center">'.$infos['2-Traceur'].'</td>';
 				$tabalert.='<td align="center">'.$infos['3-Solution'].'</td>';
@@ -851,25 +855,16 @@ class TImport extends TObjetStd {
 			
 			$mailto = $data['usermail'];
 			$mailto = 'financement@cpro.fr';
-			$subjectMail = '[Lease Board] - Alertes facturation intégrale pour '.$data['username'];
-			$contentMail.= $subjectMail.'<br><br>';
-			$contentMail.= $langs->transnoentitiesnoconv('IntegraleEmailAlert', $data['username'], $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL, $tabalert).'<br><br>';
+			$subjectMail = '[Lease Board] - Alertes facturation int&eacute;grale pour '.$data['username'];
+			$contentMail = $langs->transnoentitiesnoconv('IntegraleEmailAlert', $data['username'], $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL, $tabalert).'<br><br>';
 			
-			//$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
-			//$r->emailtoBcc = 'maxime@atm-consulting.fr';
-			//$r->send(true);
+			$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
+			$r->send(true);
 			
-			echo "<hr>".$subjectMail."<br>".$contentMail;
+			//echo "<hr>".$subjectMail."<br>".$contentMail;
 		}
 
 		fclose($csvfile);
-		
-		$mailto = 'financement@cpro.fr';
-		$subjectMail = '[Lease Board] - Alertes facturation intégrale';
-		
-		$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
-		$r->emailtoBcc = 'maxime@atm-consulting.fr';
-		//$r->send(true, 'UTF-8');
 	}
 
 	function importLineFactureLettree(&$ATMdb, $data) {

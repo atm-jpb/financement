@@ -5,8 +5,8 @@ class TFin_affaire extends TObjetStd {
 		global $langs;
 
 		parent::set_table(MAIN_DB_PREFIX.'fin_affaire');
-		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel','type=chaine;');
-		parent::add_champs('date_affaire','type=date;');
+		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel,xml_fic_transfert','type=chaine;');
+		parent::add_champs('date_affaire,xml_date_transfert','type=date;');
 		parent::add_champs('fk_soc,entity','type=entier;index;');
 		parent::add_champs('montant,solde','type=float;');
 		
@@ -126,8 +126,10 @@ class TFin_affaire extends TObjetStd {
 		parent::save($db);
 		
 		foreach($this->TLien as &$lien) {
-			$lien->fk_fin_affaire = $this->getId();	
+			$lien->fk_fin_affaire = $this->getId();
 			$lien->save($db);
+			// Sauvegarde du dossier pour mise à jour si changement de classification
+			$lien->dossier->save($db);
 		}
 		foreach($this->TAsset as &$lien) {
 			$lien->fk_document = $this->getId();	
@@ -274,7 +276,7 @@ class TFin_affaire extends TObjetStd {
 		return $TAffaires;
 	}	
 	
-	function genLixxbailXML(&$TAffaires){
+	function genLixxbailXML(&$PDOdb, &$TAffaires){
 		
 		$date = date('Ymd');
 		$name = "CPROMA01IMMA".$date;
@@ -289,18 +291,21 @@ class TFin_affaire extends TObjetStd {
 		$affairelist->appendChild($xml->createElement("refExtPartenaire","CPROMA01"));
 		$affairelist->appendChild($xml->createElement("numLot","IMMA".date('ymd')));
 		
+		$name2 = "FP_207_MA01_CPRO_".$date.".xml";
+		
 		//Chargement des noeuds correspondant aux affaires
 		foreach($TAffaires as $Affaire){
 			$affaires = $this->_getAffairesXML($xml,$Affaire);
+			$Affaire->xml_date_transfert = time();
+			$Affaire->xml_fic_transfert = $name2;
+			$Affaire->save($PDOdb);
 
 			$affairelist->appendChild($affaires);
 		}
 		
-		$name2 = "FP_207_MA01_CPRO_".$date;
-		
 		$chaine = $xml->saveXML();
 		dol_mkdir(DOL_DATA_ROOT.'/financement/XML/Lixxbail/');
-		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name2.'.xml', $chaine);
+		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name2, $chaine);
 		
 		return $name2;
 	}
@@ -381,11 +386,22 @@ class TFin_affaire extends TObjetStd {
 		
 		$TAssetId = array();
 		
-		foreach($Affaire->TAsset as $a => $assetLink){
+		/*foreach($Affaire->TAsset as $a => $assetLink){
 			$bien = $this->_getBiensXML($xml,$assetLink,$Affaire,$a);
 			$AssetId = $assetLink->asset->getId();
 			$element->appendChild($bien);
+		}*/
+		$serial_numbers ='';
+		$TDesignation = array();
+		foreach($Affaire->TAsset as $a => $assetLink){
+			$serial_numbers = $this->_getSerialNumbersBienXML($serial_numbers,$assetLink->asset->serial_number);
+			$TDesignation = $this->_getDesignationBienXML($TDesignation,$assetLink);
+			$AssetId = $assetLink->asset->getId();
 		}
+
+		$bien = $this->_getBiensXML($xml,$Affaire->TAsset[$a],$Affaire,$a,$serial_numbers,$TDesignation);
+		$element->appendChild($bien);
+		
 		$paliers = $this->_getPaliersXML($xml,$Tdata->dossier->financementLeaser,$Affaire,$AssetId,0);
 		$commande = $this->_getCommandeXML($xml,$Affaire->TAsset,$Affaire);
 
@@ -395,11 +411,56 @@ class TFin_affaire extends TObjetStd {
 		return $element;
 	}
 
+	function _getDesignationBienXML(&$TDesignation,&$assetLink){
+		global $db;
+		
+		dol_include_once('/product/class/product.class.php');
+		
+		$product = new Product($db);
+		$product->fetch($assetLink->asset->fk_product);
+		
+		$tailleDesignation1B = strlen($TDesignation[0]);
+		$tailleDesignation1C = strlen($TDesignation[1]);
+		
+		if($tailleDesignation1B >= 1){
+			if($tailleDesignation1C >= 1){
+				$TDesignation[0] = substr($TDesignation[0],0,-3);
+				$TDesignation[1] = substr($TDesignation[1],0,-3);
+				return $TDesignation;
+			}
+			else{
+				$TDesignation[1] .= $product->label.' - ';
+			}
+		}
+		else{
+			$TDesignation[0] .= $product->label." - ";
+		}
+		
+		$TDesignation[0] = substr($TDesignation[0],0,-3);
+		$TDesignation[1] = substr($TDesignation[1],0,-3);
+		
+		return $TDesignation;
+	}
+	
+	function _getSerialNumbersBienXML(&$serial_numbers,&$serial_number){
+		
+		$serial_numbers .= $serial_number.' - ';
+		
+		if(strlen($serial_numbers) <= 30){
+			$serial_numbers .= $product->label;
+		}
+		else{
+			return substr($serial_numbers,0,-3);
+		}
+		
+		return $serial_numbers;
+	}
+
 	function _getFactureXML(&$assetLink,&$Affaire){
 		global $db;
 		
 		$ATMdb = new TPDOdb;
-		
+
 		//Récupération de la facture client de l'équipement associé à l'affaire
 		$sql = "SELECT al1.fk_document 
 				FROM ".MAIN_DB_PREFIX."asset_link as al1
@@ -419,7 +480,7 @@ class TFin_affaire extends TObjetStd {
 		return $facture;
 	}
 	
-	function _getBiensXML(&$xml,&$assetLink,&$Affaire,$a){
+	function _getBiensXML(&$xml,&$assetLink,&$Affaire,$a,$serial_numbers='',$TDesignation=array()){
 		global $db;
 		
 		dol_include_once('/product/class/product.class.php');
@@ -428,6 +489,9 @@ class TFin_affaire extends TObjetStd {
 		$product = new Product($db);
 		$product->fetch($assetLink->asset->fk_product);
 		
+		$nbAsset = count($Affaire->TAsset);
+		
+		//pre($assetLink,true);
 		$facture = $this->_getFactureXML($assetLink,$Affaire);
 
 		$bien = $xml->createElement("bien");
@@ -454,12 +518,47 @@ class TFin_affaire extends TObjetStd {
 			);
 		
 		$bien->appendChild($xml->createElement("immobilisation",$a+1));
-		$bien->appendChild($xml->createElement("designation1",substr(htmlentities($product->label),0,30)));
-		$bien->appendChild($xml->createElement("noSerie",$assetLink->asset->serial_number));
+		$trans = array('&'=>'et');
+		
+		foreach($TDesignation as $k => $designation){
+			$designation = htmlentities($designation, ENT_NOQUOTES, 'UTF-8');
+		    $designation = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $designation);
+		    $designation = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $designation); // pour les ligatures e.g. '&oelig;'
+		    $designation = preg_replace('#&[^;]+;#', '', $designation); // supprime les autres caractères
+		    
+		    $TDesignation[$k] = substr($designation,0,30);
+		}
+		
+		//$bien->appendChild($xml->createElement("designation1",substr(strtoupper(($designation)),0,30)));
+		
+		if($nbAsset === 1){
+			$bien->appendChild($xml->createElement("designation1",$TDesignation[0]));
+		}
+		else{
+			$bien->appendChild($xml->createElement("designation1","ensemble de copieurs"));
+			$bien->appendChild($xml->createElement("designation1B",$TDesignation[0]));
+			$bien->appendChild($xml->createElement("designation1C",$TDesignation[1]));
+		}
+		/*$des = $bien->appendChild($xml->createElement("designation1"));
+		$des->appendChild($xml->createCDATASection(substr($product->label,0,30)));*/
+		
+		//$bien->appendChild($xml->createElement("noSerie",$assetLink->asset->serial_number));
+		$bien->appendChild($xml->createElement("noSerie",substr($serial_numbers,0,30)));
 		$bien->appendChild($xml->createElement("immatriculable","NON"));
 		$bien->appendChild($xml->createElement("codeAssietteTheorique","U03C"));
-		$bien->appendChild($xml->createElement("montant",round($facture->total_ht,2)));
-
+		
+		//On divise le montant total HT de la facture par le nombre de bien
+		//Seul pb, les arrondies risquent de faussé les montants donc pour le dernier bien ajouté montan = total HT - somme des montants des bien précédent
+		/*if($a+1 == $nbAsset){
+			//echo $Affaire->totalBien;exit;
+			$bien->appendChild($xml->createElement("montant",round(($facture->total_ht - $Affaire->totalBien),2)));
+		}
+		else{
+			$Affaire->totalBien += round(($facture->total_ht / $nbAsset),2);
+			$bien->appendChild($xml->createElement("montant",round(($facture->total_ht / $nbAsset),2)));
+		}*/
+		$bien->appendChild($xml->createElement("montant",round(($facture->total_ht),2)));
+		
 		return $bien;
 	}
 	
@@ -518,14 +617,15 @@ class TFin_affaire extends TObjetStd {
 		$commande = $xml->createElement("commande");
 
 		//pre($TAsset[0]->asset->serial_number);exit;
-		$commande->appendChild($xml->createElement("noCommande",((count($TAsset) > 1) ? date('dmY') : $TAsset[0]->asset->serial_number)));
+		//$commande->appendChild($xml->createElement("noCommande",((count($TAsset) > 1) ? date('dmY') : $TAsset[0]->asset->serial_number)));
+		$commande->appendChild($xml->createElement("noCommande",($Affaire->reference)));
 		$commande->appendChild($xml->createElement("fournisseur","M000355961"));
 
-		foreach($TAsset as $a=>$assetLink){
+		//foreach($TAsset as $a=>$assetLink){
 				
-			$commandeLig = $this->_getCommandeLigXML($xml,$assetLink,$Affaire,$a);
+			$commandeLig = $this->_getCommandeLigXML($xml,$TAsset[0],$Affaire,$a);
 			$commande->appendChild($commandeLig);
-		}
+		//}
 
 		return $commande;
 	}
@@ -540,11 +640,36 @@ class TFin_affaire extends TObjetStd {
 		
 		$commandeLig->appendChild($xml->createElement("immobilisation",$a+1));
 		$commandeLig->appendChild($xml->createElement("codeTypeLigne","ABIE"));
+		
+		/*$nbAsset = count($Affaire->TAsset);
+		
+		if($a+1 == $nbAsset){
+			//echo $Affaire->totalBien;exit;
+			$commandeLig->appendChild($xml->createElement("mtHt",round(($facture->total_ht - $Affaire->totalHt),2)));
+		}
+		else{
+			$Affaire->totalHt += round(($facture->total_ht / $nbAsset),2);
+			$commandeLig->appendChild($xml->createElement("mtHt",round(($facture->total_ht / $nbAsset),2)));
+		}*/
+		
 		$commandeLig->appendChild($xml->createElement("mtHt",round($facture->total_ht,2)));
 		$commandeLig->appendChild($xml->createElement("codeTaxe","10"));
+		
+		/*if($a+1 == $nbAsset){
+			//echo $Affaire->totalBien;exit;
+			$commandeLig->appendChild($xml->createElement("mtTaxe",round(($facture->total_tva - $Affaire->totalTva),2)));
+			$commandeLig->appendChild($xml->createElement("mtTTC",round(($facture->total_ttc - $Affaire->totalTtc),2)));
+		}
+		else{
+			$Affaire->totalTva += round(($facture->total_tva / $nbAsset),2);
+			$Affaire->totalTtc += round(($facture->total_ttc / $nbAsset),2);
+			$commandeLig->appendChild($xml->createElement("mtTaxe",round(($facture->total_tva / $nbAsset),2)));
+			$commandeLig->appendChild($xml->createElement("mtTTC",round(($facture->total_ttc / $nbAsset),2)));
+		}*/
+		
 		$commandeLig->appendChild($xml->createElement("mtTaxe",round($facture->total_tva,2)));
 		$commandeLig->appendChild($xml->createElement("mtTTC",round($facture->total_ttc,2)));
-
+		
 		return $commandeLig;
 	}
 }

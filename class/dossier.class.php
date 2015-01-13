@@ -217,8 +217,10 @@ class TFin_dossier extends TObjetStd {
 		// Calcul de la date et du numéro de prochaine échéance
 		if($this->nature_financement == 'EXTERNE') {
 			$this->financementLeaser->setEcheanceExterne();
-			$this->financement->to_delete = true;
-			$this->financement->save($db);
+			if(!empty($this->financement)) {
+				$this->financement->to_delete = true;
+				$this->financement->save($db);
+			}
 		}
 		
 		$this->financementLeaser->fk_fin_dossier = $this->getId();
@@ -767,7 +769,7 @@ class TFin_dossier extends TObjetStd {
 		$f = & $this->financementLeaser;
 		
 		$cpt = 0;
-		while($f->date_prochaine_echeance < time() && ($f->date_prochaine_echeance < $f->date_solde || $f->date_solde == 0)  && $f->numero_prochaine_echeance <= $f->duree && $cpt<50) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
+		while($f->date_prochaine_echeance < time() && ($f->date_prochaine_echeance < $f->date_solde || $f->date_solde <= 0)  && $f->numero_prochaine_echeance <= $f->duree && $cpt<50) { // On ne créé la facture que si l'échéance est passée et qu'il en reste
 			// Demande du 28/02/14, mettre en impayé dorénavant, sauf ce qui est avant 2014
 			// @TODO : à finir
 			//$paid = $paid || date('Y', $f->date_prochaine_echeance) < 2014;
@@ -872,8 +874,6 @@ class TFin_dossier_affaire extends TObjetStd {
 	
 	function save(&$db) {
 		parent::save($db);
-		// Sauvegarde du dossier pour mise à jour si changement de classification
-		$this->dossier->save($db);
 	} 
 }	
 
@@ -887,7 +887,7 @@ class TFin_financement extends TObjetStd {
 	
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
 		parent::add_champs('duree,numero_prochaine_echeance,terme','type=entier;');
-		parent::add_champs('montant_prestation,montant,echeance,loyer_intercalaire,reste,taux,capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier,loyer_actualise','type=float;');
+		parent::add_champs('montant_prestation,montant,echeance,loyer_intercalaire,reste,taux,capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier,loyer_actualise,assurance_actualise','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
 		parent::add_champs('fk_soc,fk_fin_dossier','type=entier;index;');
