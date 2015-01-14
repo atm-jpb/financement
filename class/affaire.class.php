@@ -607,7 +607,7 @@ class TFin_affaire extends TObjetStd {
 		$palier->appendChild($xml->createElement("terme",substr($financementLeaser->TTerme[$financementLeaser->terme],0,1)));
 		$palier->appendChild($xml->createElement("periodicite",$periodicite));
 		$palier->appendChild($xml->createElement("mtVnf",$Affaire->montant));
-		$palier->appendChild($xml->createElement("pourcVnf",(($Affaire->montant * 100) / $facture->total_ht)));
+		$palier->appendChild($xml->createElement("pourcVnf",round((($Affaire->montant * 100) / $facture->total_ht),2)));
 
 		return $palier;
 	}
@@ -618,7 +618,7 @@ class TFin_affaire extends TObjetStd {
 
 		//pre($TAsset[0]->asset->serial_number);exit;
 		//$commande->appendChild($xml->createElement("noCommande",((count($TAsset) > 1) ? date('dmY') : $TAsset[0]->asset->serial_number)));
-		$commande->appendChild($xml->createElement("noCommande",($Affaire->reference)));
+		$commande->appendChild($xml->createElement("noCommande",substr($Affaire->reference,0,10)));
 		$commande->appendChild($xml->createElement("fournisseur","M000355961"));
 
 		//foreach($TAsset as $a=>$assetLink){
