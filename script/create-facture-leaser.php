@@ -1,6 +1,6 @@
 <?php
 	
-//define('INC_FROM_CRON_SCRIPT', true);
+define('INC_FROM_CRON_SCRIPT', true);
 
 require('../config.php');
 
@@ -14,9 +14,11 @@ $langs->load("main");				// To load language file for default language
 @set_time_limit(0);					// No timeout for this script
 
 // Load user and its permissions
-$result=$user->fetch('',DOL_ADMIN_USER);	// Load user for login 'admin'. Comment line to run as anonymous user.
-if (! $result > 0) { dol_print_error('',$user->error); exit; }
-$user->getrights();
+if(empty($user->id)) {
+	$result=$user->fetch('',DOL_ADMIN_USER);	// Load user for login 'admin'. Comment line to run as anonymous user.
+	if (! $result > 0) { dol_print_error('',$user->error); exit; }
+	$user->getrights();
+}
 
 
 $ATMdb=new Tdb;
