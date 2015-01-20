@@ -471,7 +471,11 @@ class TImport extends TObjetStd {
 			return false;
 		}
 		
+		$firstLine = false;
+		
 		if(empty($TInfosGlobale[$data[$this->mapping['search_key']]])) {
+			$firstLine = true;
+			
 			// Recherche si facture existante dans la base
 			$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 			if($facid === false) return false;
@@ -606,21 +610,40 @@ class TImport extends TObjetStd {
 		$facture_loc->update($user, 0);
 		
 		// 2014.10.30 : Evolution pour stocker assurance, maintenance et loyer actualisé
-		/*$facture_loc->fetchObjectLinked('','dossier');
+		$facture_loc->fetchObjectLinked('','dossier');
 		if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
 			$dossier = new TFin_dossier;
-			$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0]);
+			$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0], false);
 			if(!empty($dossier->TLien[0]->affaire) && ($dossier->TLien[0]->affaire->contrat == 'FORFAITGLOBAL' || $dossier->TLien[0]->affaire->contrat == 'INTEGRAL')) {
 				if($data['ref_service'] == '037004') {
 					$dossier->financement->assurance_actualise = $data['total_ht'];
 				}
 				
-				if($data['ref_service'] == 'XXXXXX') {
-					$dossier->financement->montant_prestation = $data['total_ht'];
+				// Addition de différents SSC pour le calcul du montant prestation
+				// Addition de différents SSC pour le calcul du loyer actualisé
+				if(in_array($data['ref_service'], array('SSC124','SSC105','SSC054','SSC05','SSC015','SSC010',
+														'SSC114','SSC004','SSC121','SSC014','SSC118','SSC008',
+														'SSC016','SSC011','SSC122','SSC119'))) {
+					if($firstLine) {
+						$dossier->financement->montant_prestation = $data['pu'];
+					} else {
+						$dossier->financement->montant_prestation+= $data['pu'];
+					}
 				}
+			
+				// Addition de différents SSC pour le calcul du loyer actualisé
+				if(in_array($data['ref_service'], array('18528','20021','SSC101','SSC102','SSC106','33741'
+														,'SSC104','SSC108','SSC107','SSC109'))) {
+					if($firstLine) {
+						$dossier->financement->loyer_actualise = $data['pu'];
+					} else {
+						$dossier->financement->loyer_actualise+= $data['pu'];
+					}
+				}
+				
+				$dossier->save($ATMdb);
 			}
-			$dossier->financement->loyer_actualise = $facture_loc->total_ht;
-		}*/
+		}
 		
 		return true;
 	}

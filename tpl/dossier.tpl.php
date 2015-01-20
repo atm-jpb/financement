@@ -31,7 +31,7 @@
 			
 						<tr class="impair"><td>Loyer intercalaire</td><td>[financement.loyer_intercalaire; strconv=no; frm=0 000,00] &euro;</td></tr>
 						<tr class="pair"><td>Frais de dossier</td><td >[financement.frais_dossier; strconv=no; frm=0 000,00] &euro;</td></tr>
-						<tr class="impair"><td>Echéance</td><td>[financement.echeance; strconv=no; frm=0 000,00] &euro;</td></tr>
+						<tr class="impair"><td>Echéance</td><td>[financement.echeance; strconv=no; frm=0 000,00] &euro; ([financement.loyer_actualise; strconv=no; frm=0 000,00] &euro;)</td></tr>
 						<tr class="pair"><td>N° prochaine échéance</td><td>[financement.numero_prochaine_echeance; strconv=no]</td></tr>
 						<tr class="impair"><td>Date de prochaine échéance</td><td>[financement.date_prochaine_echeance; strconv=no]</td></tr>
 						
@@ -46,7 +46,7 @@
 						<tr class="pair"><td>Date du solde</td><td[financement.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financement.date_solde; strconv=no;]</td></tr>
 						<tr class="impair"><td>Montant du solde</td><td[financement.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financement.montant_solde; strconv=no; frm=0 000,00] &euro;</td></tr>
 						
-						<tr class="pair"><td>Assurance</td><td>[financement.assurance; strconv=no; frm=0 000,00] &euro;</td></tr>
+						<tr class="pair"><td>Assurance</td><td>[financement.assurance; strconv=no; frm=0 000,00] &euro; ([financement.assurance_actualise; strconv=no; frm=0 000,00] &euro;)</td></tr>
 						<tr class="impair"><td>Pénalité de reprise de dossier</td><td>[financement.penalite_reprise; strconv=no; frm=0 000,00] &euro;</td></tr>
 						<tr class="pair"><td>Taux de commission</td><td>[financement.taux_commission; strconv=no; frm=0,00] %</td></tr>
 						

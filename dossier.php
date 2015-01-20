@@ -515,8 +515,10 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'taux'=> $financement->taux //$form->texte('', 'taux', $financement->taux, 5,255,'','','à saisir')
 			
 			,'assurance'=>$form->texte('', 'assurance', $financement->assurance, 10,255,'','','à saisir')
+			,'assurance_actualise' => $financement->assurance_actualise
 			,'loyer_intercalaire'=>$form->texte('', 'loyer_intercalaire', $financement->loyer_intercalaire, 10,255,'','','à saisir')
 			,'echeance'=>$form->texte('', 'echeance', $financement->echeance, 10,255,'','','à saisir')
+			,'loyer_actualise' => $financement->loyer_actualise
 			,'reste'=>$form->texte('', 'reste', $financement->reste, 10,255,'','','à saisir')
 			,'montant_prestation'=>$form->texte('', 'montant_prestation', $financement->montant_prestation, 10,255,'','','à saisir')
 			,'montant_solde'=>$form->texte('', 'montant_solde', $financement->montant_solde, 10,255,'','','0')
