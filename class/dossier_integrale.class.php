@@ -33,6 +33,11 @@ class TIntegrale extends TObjetStd {
 	function load_annexe(&$PDOdb) {
 		global $db;
 		
+		dol_include_once('/compta/facture/class/facture.class.php');
+		
+		$this->facture = new Facture($db);
+		$this->facture->fetch(0,$this->facnumber);
+		
 		$sql= "SELECT f.fk_soc, d.rowid";
 		$sql.= " FROM llx_facture f";
 		$sql.= " LEFT JOIN llx_element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
@@ -43,6 +48,9 @@ class TIntegrale extends TObjetStd {
 		$PDOdb->Get_line();
 		$idSoc = $PDOdb->Get_field('fk_soc');
 		$idDoss = $PDOdb->Get_field('rowid');
+		
+		dol_include_once('/financement/class/dossier.class.php');
+		dol_include_once('/financement/class/grille.class.php');
 		
 		if(!empty($idDoss)) {
 			$this->dossier = new TFin_dossier();

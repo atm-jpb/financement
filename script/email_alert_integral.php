@@ -10,8 +10,6 @@ define('INC_FROM_CRON_SCRIPT',true);
 
 require('../config.php');
 require('../class/dossier_integrale.class.php');
-require('../class/dossier.class.php');
-require('../class/grille.class.php');
 
 set_time_limit(0);
 
@@ -42,6 +40,8 @@ $TMailToSend = array();
 foreach($Tab as $row) {
 	$integral = new TIntegrale();
 	$integral->load($ATMdb, $row->rowid, true);
+	$TIdAvoir = $integral->facture->getListIdAvoirFromInvoice();
+	if(!empty($TIdAvoir)) continue;
 	
 	$link = '<a href="'.dol_buildpath('/financement/dossier_integrale.php?id='.$integral->dossier->getId(),2).'">'.$integral->dossier->financement->reference.'</a>';
 	
