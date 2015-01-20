@@ -24,7 +24,7 @@ $ATMdb=new TPDOdb;
  * Les alertes sont donc envoyées à J+1 par rapport à la facturation ce qui permet de ne rien envoyer si 
  * entretemps la facture est corrigée ou fait l'objet d'un avoir
  */
-$time = strtotime('-94 day');
+$time = strtotime('-1 day');
 $date = date('Y-m-d', $time);
 
 $sql = "SELECT fi.rowid ";
