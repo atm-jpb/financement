@@ -623,7 +623,7 @@ class TImport extends TObjetStd {
 				// Addition de différents SSC pour le calcul du loyer actualisé
 				if(in_array($data['ref_service'], array('SSC124','SSC105','SSC054','SSC05','SSC015','SSC010',
 														'SSC114','SSC004','SSC121','SSC014','SSC118','SSC008',
-														'SSC016','SSC011','SSC122','SSC119'))) {
+														))) {
 					if($firstLine) {
 						$dossier->financement->montant_prestation = $data['pu'];
 					} else {
@@ -633,7 +633,7 @@ class TImport extends TObjetStd {
 			
 				// Addition de différents SSC pour le calcul du loyer actualisé
 				if(in_array($data['ref_service'], array('18528','20021','SSC101','SSC102','SSC106','33741'
-														,'SSC104','SSC108','SSC107','SSC109'))) {
+														,'SSC104'))) {
 					if($firstLine) {
 						$dossier->financement->loyer_actualise = $data['pu'];
 					} else {
