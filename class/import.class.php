@@ -121,7 +121,7 @@ class TImport extends TObjetStd {
 				break;
 			case 'facture_location':
 				$this->importLineFactureLocation($ATMdb, $data, $TInfosGlobale);
-				$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
+				//$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
 				break;
 			case 'facture_lettree':
 				$this->importLineFactureLettree($ATMdb, $data);

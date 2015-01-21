@@ -18,9 +18,49 @@ class TIntegrale extends TObjetStd {
 		$this->ecart = 0;
 	}
 	
-	function load(&$db, $id) {
+	function load(&$db, $id, $annexe=false) {
 		parent::load($db, $id);
-		$this->calcule_totaux();
+		// Ce n'est plus utile de recalculer les totaux au load car maintenant toutes les données sont stockées
+		// Le calcul des totaux et écart se fait juste avant le save
+		//$this->calcule_totaux();
+		
+		if($annexe && !empty($this->facnumber)) {
+			$this->load_annexe($db);
+		}
+	}
+	
+	
+	function load_annexe(&$PDOdb) {
+		global $db;
+		
+		dol_include_once('/compta/facture/class/facture.class.php');
+		
+		$this->facture = new Facture($db);
+		$this->facture->fetch(0,$this->facnumber);
+		
+		$sql= "SELECT f.fk_soc, d.rowid";
+		$sql.= " FROM llx_facture f";
+		$sql.= " LEFT JOIN llx_element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
+		$sql.= " LEFT JOIN llx_fin_dossier d ON (d.rowid = ee.fk_source AND ee.sourcetype = 'dossier')";
+		$sql.= " WHERE f.facnumber = ".$this->facnumber;
+		
+		$PDOdb->Execute($sql);
+		$PDOdb->Get_line();
+		$idSoc = $PDOdb->Get_field('fk_soc');
+		$idDoss = $PDOdb->Get_field('rowid');
+		
+		dol_include_once('/financement/class/dossier.class.php');
+		dol_include_once('/financement/class/grille.class.php');
+		
+		if(!empty($idDoss)) {
+			$this->dossier = new TFin_dossier();
+			$this->dossier->load($PDOdb, $idDoss, false);
+		}
+		
+		if(!empty($idSoc)) {
+			$this->client = new Societe($db);
+			$this->client->fetch($idSoc);
+		}
 	}
 	
 	function save(&$db) {

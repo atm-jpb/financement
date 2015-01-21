@@ -458,7 +458,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 
 	$formFinLeaser=new TFormCore;
 	
-	if($mode=='edit' && ( $financementLeaser->okPourFacturation!='AUTO' || count($dossier->TFactureFournisseur)==0 || $user->rights->financement->alldossier->write )  ) $mode_aff_fLeaser = 'edit';
+	if($mode=='edit' && ( $financementLeaser->okPourFacturation!='AUTO' || count($dossier->TFactureFournisseur)==0 || $user->rights->financement->admin->write )  ) $mode_aff_fLeaser = 'edit';
 	else $mode_aff_fLeaser='view';
 	
 	$formFinLeaser->Set_typeaff( $mode_aff_fLeaser );
@@ -486,7 +486,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'terme'=>$formFinLeaser->combo('', 'leaser[terme]', $financementLeaser->TTerme , $financementLeaser->terme)
 			,'reglement'=>$formFinLeaser->combo('', 'leaser[reglement]', $financementLeaser->TReglement , $financementLeaser->reglement)
 			,'incident_paiement'=>$formFinLeaser->combo('', 'leaser[incident_paiement]', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement)
-			,'reloc'=>$form->combo('', 'leaser[reloc]', $financementLeaser->TReloc, $financementLeaser->reloc)
+			,'reloc'=>$formFinLeaser->combo('', 'leaser[reloc]', $financementLeaser->TReloc, $financementLeaser->reloc)
 			
 			,'date_debut'=>$formFinLeaser->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
 			,'date_fin'=>$financementLeaser->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
@@ -497,6 +497,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			
 			,'okPourFacturation'=>$form->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
 			,'transfert'=>$form->combo('', 'leaser[transfert]', $financementLeaser->TTransfert , $financementLeaser->transfert)
+			,'xml_infos_transfert' => (!empty($affaire) && !empty($affaire->xml_fic_transfert)) ? ' - '.$affaire->xml_fic_transfert. ' - '.$affaire->get_date('xml_date_transfert') : ''
 			
 			//,'reinit'=>'<a href="'.$_SERVER['PHP_SELF'].'?action=regenerate-facture-leaser&id='.$dossier->getId().'">Lancer</a>'
 			
