@@ -41,7 +41,10 @@
 			<span style="color: #FF0000; font-weight: bold;">Rel</span>
 			[onshow;block=end]
 		</td>
-		<td align="right" nowrap="nowrap">[champs.assurance; strconv=no; frm=0 000,00] &euro;</td>
+		<td align="right" nowrap="nowrap">
+			[champs.assurance; strconv=no; frm=0 000,00] &euro;<br>
+			[champs.assurance_actualise; strconv=no; frm=0 000,00] &euro;
+		</td>
 		<td align="right" nowrap="nowrap">[champs.maintenance; strconv=no; frm=0 000,00] &euro;</td>
 		[onshow;block=begin;when [champs.display_solde]=='0']
 		<td colspan="4" align="center">Soldes non disponibles. Contactez le service financement</td>
