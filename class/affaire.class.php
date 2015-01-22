@@ -393,13 +393,21 @@ class TFin_affaire extends TObjetStd {
 		}*/
 		$serial_numbers ='';
 		$TDesignation = array();
-		foreach($Affaire->TAsset as $a => $assetLink){
-			$serial_numbers = $this->_getSerialNumbersBienXML($serial_numbers,$assetLink->asset->serial_number);
-			$TDesignation = $this->_getDesignationBienXML($TDesignation,$assetLink);
-			$AssetId = $assetLink->asset->getId();
+		
+		//Si au moin un bien (équipement) lié à l'affaire
+		if(count($Affaire->TAsset)){
+			foreach($Affaire->TAsset as $a => $assetLink){
+				$serial_numbers = $this->_getSerialNumbersBienXML($serial_numbers,$assetLink->asset->serial_number);
+				$TDesignation = $this->_getDesignationBienXML($TDesignation,$assetLink);
+				$AssetId = $assetLink->asset->getId();
+			}
+		}
+		else{
+			$serial_numbers = "Cf facture materiel";
+			$TDesignation = array("Bien manquant");
 		}
 
-		$bien = $this->_getBiensXML($xml,$Affaire->TAsset[$a],$Affaire,$a,$serial_numbers,$TDesignation);
+		$bien = $this->_getBiensXML($xml,$Affaire->TAsset[0],$Affaire,0,$serial_numbers,$TDesignation);
 		$element->appendChild($bien);
 		
 		$paliers = $this->_getPaliersXML($xml,$Tdata->dossier->financementLeaser,$Affaire,$AssetId,0);
@@ -485,14 +493,20 @@ class TFin_affaire extends TObjetStd {
 		
 		dol_include_once('/product/class/product.class.php');
 		dol_include_once('/compta/facture/class/facture.class.php');
-
-		$product = new Product($db);
-		$product->fetch($assetLink->asset->fk_product);
-		
-		$nbAsset = count($Affaire->TAsset);
+			
+		//Si on a un équipement de lié
+		if($assetLink->asset->fk_product){
+			/*$product = new Product($db);
+			$product->fetch($assetLink->asset->fk_product);*/
+			$facture = $this->_getFactureXML($assetLink,$Affaire);
+			$nbAsset = count($Affaire->TAsset);
+		}
+		else{
+			$nbAsset = 1;
+		}
 		
 		//pre($assetLink,true);
-		$facture = $this->_getFactureXML($assetLink,$Affaire);
+		
 
 		$bien = $xml->createElement("bien");
 		//$bien = $xml->appendChild($bien);
@@ -557,7 +571,7 @@ class TFin_affaire extends TObjetStd {
 			$Affaire->totalBien += round(($facture->total_ht / $nbAsset),2);
 			$bien->appendChild($xml->createElement("montant",round(($facture->total_ht / $nbAsset),2)));
 		}*/
-		$bien->appendChild($xml->createElement("montant",round(($facture->total_ht),2)));
+		$bien->appendChild($xml->createElement("montant",round((($assetLink->asset->fk_product) ? $facture->total_ht : $Affaire->montant),2)));
 		
 		return $bien;
 	}
