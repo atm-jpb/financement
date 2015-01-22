@@ -316,6 +316,14 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 	echo $form->hidden('action', 'save');
 	echo $form->hidden('fk_soc', $affaire->fk_soc);
 	
+	$formRestricted=new TFormCore;
+	if($mode=='edit' && ( (!empty($affaire->TLien[0]->dossier->financementLeaser->okPourFacturation) && $affaire->TLien[0]->dossier->financementLeaser->okPourFacturation!='AUTO')
+		 || count($affaire->TLien[0]->dossier->TFactureFournisseur)==0 
+		 || $user->rights->financement->admin->write )  ) $mode_aff_fLeaser = 'edit';
+	else $mode_aff_fLeaser='view';
+	
+	$formRestricted->Set_typeaff( $mode_aff_fLeaser );
+	
 	//require('./tpl/affaire.tpl.php');
 	$TBS=new TTemplateTBS();
 	
@@ -328,19 +336,19 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 			'affaire'=>array(
 				'id'=>$affaire->rowid
 				,'ref'=>$affaire->reference
-				,'reference'=>$form->texte('', 'reference', $affaire->reference, 100,255,'','','à saisir') 
-				,'nature_financement'=>$form->combo('', 'nature_financement', $affaire->TNatureFinancement , $affaire->nature_financement)
-				,'type_financement'=>$form->combo('', 'type_financement', $affaire->TTypeFinancement , $affaire->type_financement)
-				,'contrat'=>$form->combo('', 'contrat', $affaire->TContrat , $affaire->contrat) 
-				,'type_materiel'=>$form->combo('', '', $affaire->TTypeMateriel , $affaire->type_materiel)
-				,'date_affaire'=>$form->calendrier('', 'date_affaire', $affaire->date_affaire,10)
-				,'montant'=>$form->texte('', 'montant', $affaire->montant, 20,255,'','','à saisir')
+				,'reference'=>$formRestricted->texte('', 'reference', $affaire->reference, 100,255,'','','à saisir') 
+				,'nature_financement'=>$formRestricted->combo('', 'nature_financement', $affaire->TNatureFinancement , $affaire->nature_financement)
+				,'type_financement'=>$formRestricted->combo('', 'type_financement', $affaire->TTypeFinancement , $affaire->type_financement)
+				,'contrat'=>$formRestricted->combo('', 'contrat', $affaire->TContrat , $affaire->contrat) 
+				,'type_materiel'=>$formRestricted->combo('', '', $affaire->TTypeMateriel , $affaire->type_materiel)
+				,'date_affaire'=>$formRestricted->calendrier('', 'date_affaire', $affaire->date_affaire,10)
+				,'montant'=>$formRestricted->texte('', 'montant', $affaire->montant, 20,255,'','','à saisir')
 				,'montant_ok'=>$affaire->somme_dossiers // somme des dossiers rattachés
 				,'solde'=>$affaire->solde // montant à financer - somme des dossiers	
 				,'date_maj'=>$affaire->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$affaire->get_date('date_cre','d/m/Y')
 //				,'societe'=>$affaire->societe->getNomUrl(1)
-				,'societe'=>$mode == "edit" ? $doliform->select_company($affaire->societe->id) : $affaire->societe->getNomUrl(1)
+				,'societe'=>$mode == "edit" && $mode_aff_fLeaser == "edit"? $doliform->select_company($affaire->societe->id) : $affaire->societe->getNomUrl(1)
 				,'montant_val'=>$affaire->montant
 				,'nature_financement_val'=>$affaire->nature_financement
 				
