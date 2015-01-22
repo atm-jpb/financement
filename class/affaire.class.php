@@ -621,7 +621,8 @@ class TFin_affaire extends TObjetStd {
 		$palier->appendChild($xml->createElement("terme",substr($financementLeaser->TTerme[$financementLeaser->terme],0,1)));
 		$palier->appendChild($xml->createElement("periodicite",$periodicite));
 		$palier->appendChild($xml->createElement("mtVnf",$Affaire->montant));
-		$palier->appendChild($xml->createElement("pourcVnf",round((($Affaire->montant * 100) / $facture->total_ht),2)));
+		//$palier->appendChild($xml->createElement("pourcVnf",round((($Affaire->montant * 100) / $facture->total_ht),2)));
+		$palier->appendChild($xml->createElement("pourcVnf",100));
 
 		return $palier;
 	}
@@ -648,7 +649,17 @@ class TFin_affaire extends TObjetStd {
 		
 		dol_include_once('/compta/facture/class/facture.class.php');
 		
-		$facture = $this->_getFactureXML($assetLink,$Affaire);
+		if($assetLink->asset->fk_product){
+			$facture = $this->_getFactureXML($assetLink,$Affaire);
+			$total_ht = $facture->total_ht;
+			$total_tva = $facture->total_tva;
+			$total_ttc = $facture->total_ttc;
+		}
+		else{
+			$total_ht = $Affaire->montant;
+			$total_tva = ($Affaire->montant * 20 / 100);
+			$total_ttc = $total_ht + $total_tva;
+		}
 		
 		$commandeLig = $xml->createElement("commandeLig");
 		
@@ -666,7 +677,7 @@ class TFin_affaire extends TObjetStd {
 			$commandeLig->appendChild($xml->createElement("mtHt",round(($facture->total_ht / $nbAsset),2)));
 		}*/
 		
-		$commandeLig->appendChild($xml->createElement("mtHt",round($facture->total_ht,2)));
+		$commandeLig->appendChild($xml->createElement("mtHt",round($total_ht,2)));
 		$commandeLig->appendChild($xml->createElement("codeTaxe","10"));
 		
 		/*if($a+1 == $nbAsset){
@@ -681,8 +692,8 @@ class TFin_affaire extends TObjetStd {
 			$commandeLig->appendChild($xml->createElement("mtTTC",round(($facture->total_ttc / $nbAsset),2)));
 		}*/
 		
-		$commandeLig->appendChild($xml->createElement("mtTaxe",round($facture->total_tva,2)));
-		$commandeLig->appendChild($xml->createElement("mtTTC",round($facture->total_ttc,2)));
+		$commandeLig->appendChild($xml->createElement("mtTaxe",round($total_tva,2)));
+		$commandeLig->appendChild($xml->createElement("mtTTC",round($total_ttc,2)));
 		
 		return $commandeLig;
 	}
