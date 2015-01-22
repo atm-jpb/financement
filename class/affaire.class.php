@@ -131,9 +131,11 @@ class TFin_affaire extends TObjetStd {
 			// Sauvegarde du dossier pour mise à jour si changement de classification
 			$lien->dossier->save($db);
 		}
-		foreach($this->TAsset as &$lien) {
-			$lien->fk_document = $this->getId();	
-			$lien->save($db);
+		if(count($this->TAsset)){
+			foreach($this->TAsset as &$lien) {
+				$lien->fk_document = $this->getId();	
+				$lien->save($db);
+			}
 		}
 		foreach($this->TCommercial as &$lien) {
 			$lien->fk_fin_affaire = $this->getId();	
