@@ -1067,7 +1067,7 @@ class TFin_financement extends TObjetStd {
 
 		return false;
 	}
-	function loadOrCreateSirenMontant(&$db, $siren, $montant) {
+	function loadOrCreateSirenMontant(&$db, $siren, $montant, $reference) {
 		$sql = "SELECT a.rowid, a.nature_financement, a.montant, df.rowid as idDossierLeaser, df.reference as refDossierLeaser ";
 		$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
@@ -1085,57 +1085,29 @@ class TFin_financement extends TObjetStd {
 		
 		$db->Execute($sql); // Recherche d'un dossier leaser en cours sans référence et dont le montant de l'affaire correspond
 		if($db->Get_Recordcount() == 0) { // Aucun dossier trouvé, on essaye de le créer
-			$sql = "SELECT a.rowid, a.montant ";
-			$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
-			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
+			 // Création d'une affaire pour création dossier fin externe
+			$sql = "SELECT s.rowid ";
+			$sql.= "FROM ".MAIN_DB_PREFIX."societe s ";
 			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
 			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
 			else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
-			$sql.= "AND a.solde >= ".($montant - 0.01)." ";
-			$sql.= "AND a.solde <= ".($montant + 0.01)." ";
 			
-			$db->Execute($sql); // Recherche d'une affaire sans dossier pour création du dossier EXTERNE
-			if($db->Get_Recordcount() == 1) { // Une seule affaire trouvée OK, on créé
-				$idAffaire = $db->Get_field('rowid');
+			$TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
+			
+			if(!empty($TIdClient[0])) {
+				$d=new TFin_dossier;
+				$d->financementLeaser = $this;
+				$d->save($db);
 				
+				$idClient = $TIdClient[0];
 				$a=new TFin_affaire();
-				$a->load($db, $idAffaire);
-				
-				if($a->nature_financement == 'EXTERNE') { // Si affaire externe, OK on créé le dossier, le financement sera rempli par la suite.
-					$d=new TFin_dossier;
-					$d->financementLeaser = $this;
-					$d->save($db);
-					
-					$a->addDossier($db, $d->getId());
-					$a->save($db);
-				} else {
-					return false; // Affaire interne mais dossier non trouvé selon les conditions définies, erreur à régler
-				}
+				$a->reference = 'EXT-'.date('ymd').'-'.$reference;
+				$a->montant = $montant;
+				$a->fk_soc = $idClient;
+				$a->nature_financement = 'EXTERNE';
+				$a->addDossier($db, $d->getId());
+				$a->save($db);
 				return true;
-			} else if($db->Get_Recordcount() == 0) { // Création d'une affaire pour création dossier fin externe
-				$sql = "SELECT s.rowid ";
-				$sql.= "FROM ".MAIN_DB_PREFIX."societe s ";
-				$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
-				if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
-				else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
-				$TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
-				if(!empty($TIdClient[0])) {
-					$d=new TFin_dossier;
-					$d->financementLeaser = $this;
-					$d->save($db);
-					
-					$idClient = $TIdClient[0];
-					$a=new TFin_affaire();
-					$a->reference = 'EXT-'.date('ymd').'-'.$idClient;
-					$a->montant = $montant;
-					$a->fk_soc = $idClient;
-					$a->nature_financement = 'EXTERNE';
-					$a->addDossier($db, $d->getId());
-					$a->save($db);
-					return true;
-				} else {
-					return false;
-				}
 			} else {
 				return false;
 			}

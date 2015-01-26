@@ -136,12 +136,44 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 		$integrale = new TIntegrale();
 		$integrale->loadBy($PDOdb, $fac->ref, 'facnumber');
 		
-		$integrale->periode = substr($fin->periodicite,0,1);
-		$integrale->periode.= ceil(date('n', $fac->date) / $fin->getiPeriode()) . ' ' . date('Y', $fac->date);
-		
 		$integrale->date_facture = $fac->date;
 		
-		$TIntegrale[] = $integrale;
+		if(!empty($integrale->facture->ref_client)){
+			
+			//Pour certains champs on concatène
+			$TIntegrale[$integrale->facture->ref_client]->date_facture .= "<br>".$integrale->date_facture;
+			$TIntegrale[$integrale->facture->ref_client]->facnumber .= "<br>".$integrale->facnumber;
+			
+			//Additiond des champs qui vont bien
+			$TIntegrale[$integrale->facture->ref_client]->vol_noir_engage += $integrale->vol_noir_engage;
+			$TIntegrale[$integrale->facture->ref_client]->vol_noir_realise += $integrale->vol_noir_realise;
+			$TIntegrale[$integrale->facture->ref_client]->vol_noir_facture += $integrale->vol_noir_facture;
+			
+			$TIntegrale[$integrale->facture->ref_client]->cout_unit_noir .= "<br>".$integrale->cout_unit_noir;
+			
+			$TIntegrale[$integrale->facture->ref_client]->vol_coul_engage += $integrale->vol_coul_engage;
+			$TIntegrale[$integrale->facture->ref_client]->vol_coul_realise += $integrale->vol_coul_realise;
+			$TIntegrale[$integrale->facture->ref_client]->vol_coul_facture += $integrale->vol_coul_facture;
+			
+			$TIntegrale[$integrale->facture->ref_client]->cout_unit_coul .= "<br>".$integrale->cout_unit_coul;
+			
+			$TIntegrale[$integrale->facture->ref_client]->fas += $integrale->fas;
+			$TIntegrale[$integrale->facture->ref_client]->fass += $integrale->fass;
+			$TIntegrale[$integrale->facture->ref_client]->frais_dossier += $integrale->frais_dossier;
+			$TIntegrale[$integrale->facture->ref_client]->frais_bris_machine += $integrale->frais_bris_machine;
+			$TIntegrale[$integrale->facture->ref_client]->frais_facturation += $integrale->frais_facturation;
+			$TIntegrale[$integrale->facture->ref_client]->total_ht_engage += $integrale->total_ht_engage;
+			$TIntegrale[$integrale->facture->ref_client]->total_ht_realise += $integrale->total_ht_realise;
+			$TIntegrale[$integrale->facture->ref_client]->total_ht_facture += $integrale->total_ht_facture;
+
+			$TIntegrale[$integrale->facture->ref_client]->ecart += $integrale->ecart;
+			$TIntegrale[$integrale->facture->ref_client]->nb_ecart += 1;
+
+		}
+		else{
+			$integrale->nb_ecart = 1;
+			$TIntegrale[] = $integrale;
+		}
 	}
 	
 	echo $TBS->render('./tpl/dossier_integrale.tpl.php'
