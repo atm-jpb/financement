@@ -456,47 +456,47 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	if($financementLeaser->fk_soc>0)$leaser->fetch($financementLeaser->fk_soc);
 	else { $leaser->nom="Non défini"; }
 
-	$formFinLeaser=new TFormCore;
+	$formRestricted=new TFormCore;
 	
 	if($mode=='edit' && ( $financementLeaser->okPourFacturation!='AUTO' || count($dossier->TFactureFournisseur)==0 || $user->rights->financement->admin->write )  ) $mode_aff_fLeaser = 'edit';
 	else $mode_aff_fLeaser='view';
 	
-	$formFinLeaser->Set_typeaff( $mode_aff_fLeaser );
+	$formRestricted->Set_typeaff( $mode_aff_fLeaser );
 
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()
-			,'reference'=>$formFinLeaser->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir')
-			,'montant'=>$formFinLeaser->texte('', 'leaser[montant]', $financementLeaser->montant, 10,255,'','','à saisir')
+			,'reference'=>$formRestricted->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir')
+			,'montant'=>$formRestricted->texte('', 'leaser[montant]', $financementLeaser->montant, 10,255,'','','à saisir')
 			,'taux'=> $financementLeaser->taux
 			
-			,'assurance'=>$formFinLeaser->texte('', 'leaser[assurance]', $financementLeaser->assurance, 10,255,'','','à saisir')
-			,'loyer_intercalaire'=>$formFinLeaser->texte('', 'leaser[loyer_intercalaire]', $financementLeaser->loyer_intercalaire, 10,255,'','','à saisir')
-			,'echeance'=>$formFinLeaser->texte('', 'leaser[echeance]', $financementLeaser->echeance, 10,255,'','','à saisir')
-			,'reste'=>$formFinLeaser->texte('', 'leaser[reste]', $financementLeaser->reste, 10,255,'','','à saisir')
-			,'montant_prestation'=>$formFinLeaser->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 10,255,'','','à saisir')
-			,'frais_dossier'=>$formFinLeaser->texte('', 'leaser[frais_dossier]', $financementLeaser->frais_dossier, 10,255,'','','à saisir')
+			,'assurance'=>$formRestricted->texte('', 'leaser[assurance]', $financementLeaser->assurance, 10,255,'','','à saisir')
+			,'loyer_intercalaire'=>$formRestricted->texte('', 'leaser[loyer_intercalaire]', $financementLeaser->loyer_intercalaire, 10,255,'','','à saisir')
+			,'echeance'=>$formRestricted->texte('', 'leaser[echeance]', $financementLeaser->echeance, 10,255,'','','à saisir')
+			,'reste'=>$formRestricted->texte('', 'leaser[reste]', $financementLeaser->reste, 10,255,'','','à saisir')
+			,'montant_prestation'=>$formRestricted->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 10,255,'','','à saisir')
+			,'frais_dossier'=>$formRestricted->texte('', 'leaser[frais_dossier]', $financementLeaser->frais_dossier, 10,255,'','','à saisir')
 			,'montant_solde'=>$form->texte('', 'leaser[montant_solde]', $financementLeaser->montant_solde, 10,255,'','','0')
 			,'dossier_termine'=>($financementLeaser->montant_solde > 0) ? 1 : 0
 							
 				
 			,'numero_prochaine_echeance'=>$financementLeaser->numero_prochaine_echeance 
-			,'duree'=>$formFinLeaser->texte('', 'leaser[duree]', $financementLeaser->duree, 5,255,'','','à saisir')
+			,'duree'=>$formRestricted->texte('', 'leaser[duree]', $financementLeaser->duree, 5,255,'','','à saisir')
 								
-			,'periodicite'=>$formFinLeaser->combo('', 'leaser[periodicite]', $financementLeaser->TPeriodicite , $financementLeaser->periodicite)
-			,'terme'=>$formFinLeaser->combo('', 'leaser[terme]', $financementLeaser->TTerme , $financementLeaser->terme)
-			,'reglement'=>$formFinLeaser->combo('', 'leaser[reglement]', $financementLeaser->TReglement , $financementLeaser->reglement)
-			,'incident_paiement'=>$formFinLeaser->combo('', 'leaser[incident_paiement]', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement)
-			,'reloc'=>$formFinLeaser->combo('', 'leaser[reloc]', $financementLeaser->TReloc, $financementLeaser->reloc)
+			,'periodicite'=>$formRestricted->combo('', 'leaser[periodicite]', $financementLeaser->TPeriodicite , $financementLeaser->periodicite)
+			,'terme'=>$formRestricted->combo('', 'leaser[terme]', $financementLeaser->TTerme , $financementLeaser->terme)
+			,'reglement'=>$formRestricted->combo('', 'leaser[reglement]', $financementLeaser->TReglement , $financementLeaser->reglement)
+			,'incident_paiement'=>$formRestricted->combo('', 'leaser[incident_paiement]', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement)
+			,'reloc'=>$formRestricted->combo('', 'leaser[reloc]', $financementLeaser->TReloc, $financementLeaser->reloc)
 			
-			,'date_debut'=>$formFinLeaser->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
+			,'date_debut'=>$formRestricted->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
 			,'date_fin'=>$financementLeaser->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financementLeaser->date_prochaine_echeance>0) ? $financementLeaser->get_date('date_prochaine_echeance') : ''
 			,'date_solde'=>$form->calendrier('', 'leaser[date_solde]', $financementLeaser->get_date('date_solde'),10)
 						
 			,'leaser'=>($mode_aff_fLeaser=='edit') ? $html->select_company($leaser->id,'leaser[fk_soc]','fournisseur=1',0, 0,1) : $leaser->getNomUrl(1)
 			
-			,'okPourFacturation'=>$form->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
-			,'transfert'=>$form->combo('', 'leaser[transfert]', $financementLeaser->TTransfert , $financementLeaser->transfert)
+			,'okPourFacturation'=>$formRestricted->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
+			,'transfert'=>$formRestricted->combo('', 'leaser[transfert]', $financementLeaser->TTransfert , $financementLeaser->transfert)
 			,'xml_infos_transfert' => (!empty($affaire) && !empty($affaire->xml_fic_transfert)) ? ' - '.$affaire->xml_fic_transfert. ' - '.$affaire->get_date('xml_date_transfert') : ''
 			
 			//,'reinit'=>'<a href="'.$_SERVER['PHP_SELF'].'?action=regenerate-facture-leaser&id='.$dossier->getId().'">Lancer</a>'
@@ -510,36 +510,36 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	//print $financement->get_date('date_solde','d/m/Y',true);
 	if(isset($financement)) {
 		$TFinancement = array(
-			'montant'=>$form->texte('', 'montant', $financement->montant, 10,255,'','','à saisir') 
-			,'reference'=>$form->texte('', 'reference', $financement->reference, 20,255,'','','à saisir')/*$dossier->getId().'/'.$financement->getId()*/
+			'montant'=>$formRestricted->texte('', 'montant', $financement->montant, 10,255,'','','à saisir') 
+			,'reference'=>$formRestricted->texte('', 'reference', $financement->reference, 20,255,'','','à saisir')/*$dossier->getId().'/'.$financement->getId()*/
 			
 			,'taux'=> $financement->taux //$form->texte('', 'taux', $financement->taux, 5,255,'','','à saisir')
 			
-			,'assurance'=>$form->texte('', 'assurance', $financement->assurance, 10,255,'','','à saisir')
-			,'loyer_intercalaire'=>$form->texte('', 'loyer_intercalaire', $financement->loyer_intercalaire, 10,255,'','','à saisir')
-			,'echeance'=>$form->texte('', 'echeance', $financement->echeance, 10,255,'','','à saisir')
-			,'reste'=>$form->texte('', 'reste', $financement->reste, 10,255,'','','à saisir')
-			,'montant_prestation'=>$form->texte('', 'montant_prestation', $financement->montant_prestation, 10,255,'','','à saisir')
+			,'assurance'=>$formRestricted->texte('', 'assurance', $financement->assurance, 10,255,'','','à saisir')
+			,'loyer_intercalaire'=>$formRestricted->texte('', 'loyer_intercalaire', $financement->loyer_intercalaire, 10,255,'','','à saisir')
+			,'echeance'=>$formRestricted->texte('', 'echeance', $financement->echeance, 10,255,'','','à saisir')
+			,'reste'=>$formRestricted->texte('', 'reste', $financement->reste, 10,255,'','','à saisir')
+			,'montant_prestation'=>$formRestricted->texte('', 'montant_prestation', $financement->montant_prestation, 10,255,'','','à saisir')
 			,'montant_solde'=>$form->texte('', 'montant_solde', $financement->montant_solde, 10,255,'','','0')
-			,'frais_dossier'=>$form->texte('', 'frais_dossier', $financement->frais_dossier, 10,255,'','','à saisir')
+			,'frais_dossier'=>$formRestricted->texte('', 'frais_dossier', $financement->frais_dossier, 10,255,'','','à saisir')
 			,'dossier_termine'=>($financement->montant_solde > 0) ? 1 : 0
 				
 			,'numero_prochaine_echeance'=>$financement->numero_prochaine_echeance 
-			,'duree'=>$form->texte('', 'duree', $financement->duree, 5,255,'','','à saisir')
+			,'duree'=>$formRestricted->texte('', 'duree', $financement->duree, 5,255,'','','à saisir')
 								
-			,'terme'=>$form->combo('', 'terme', $financement->TTerme , $financement->terme)
-			,'periodicite'=>$form->combo('', 'periodicite', $financement->TPeriodicite , $financement->periodicite)
-			,'reglement'=>$form->combo('', 'reglement', $financement->TReglement , $financement->reglement)
-			,'incident_paiement'=>$form->combo('', 'incident_paiement', $financement->TIncidentPaiement , $financement->incident_paiement)
-			,'reloc'=>$form->combo('', 'reloc', $financement->TReloc, $financement->reloc)
+			,'terme'=>$formRestricted->combo('', 'terme', $financement->TTerme , $financement->terme)
+			,'periodicite'=>$formRestricted->combo('', 'periodicite', $financement->TPeriodicite , $financement->periodicite)
+			,'reglement'=>$formRestricted->combo('', 'reglement', $financement->TReglement , $financement->reglement)
+			,'incident_paiement'=>$formRestricted->combo('', 'incident_paiement', $financement->TIncidentPaiement , $financement->incident_paiement)
+			,'reloc'=>$formRestricted->combo('', 'reloc', $financement->TReloc, $financement->reloc)
 			
-			,'date_debut'=>$form->calendrier('', 'date_debut', $financement->get_date('date_debut'),10)
+			,'date_debut'=>$formRestricted->calendrier('', 'date_debut', $financement->get_date('date_debut'),10)
 			,'date_fin'=>$financement->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
 			,'date_prochaine_echeance'=>($financement->date_prochaine_echeance>0) ? $financement->get_date('date_prochaine_echeance') : ''
 			,'date_solde'=>$form->calendrier('', 'date_solde', $financement->get_date('date_solde'),10)
 						
-			,'penalite_reprise'=>$form->texte('', 'penalite_reprise', $financement->penalite_reprise, 10,255,'','','à saisir') 
-			,'taux_commission'=>$form->texte('', 'taux_commission', $financement->taux_commission, 5,255,'','') 
+			,'penalite_reprise'=>$formRestricted->texte('', 'penalite_reprise', $financement->penalite_reprise, 10,255,'','','à saisir') 
+			,'taux_commission'=>$formRestricted->texte('', 'taux_commission', $financement->taux_commission, 5,255,'','') 
 	
 			,'echeancier'=>$dossier->echeancier($PDOdb)
 			
