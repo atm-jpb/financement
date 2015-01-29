@@ -318,7 +318,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 	
 	$formRestricted=new TFormCore;
 	if($mode=='edit' && ( (!empty($affaire->TLien[0]->dossier->financementLeaser->okPourFacturation) && $affaire->TLien[0]->dossier->financementLeaser->okPourFacturation!='AUTO')
-		 || count($affaire->TLien[0]->dossier->TFactureFournisseur)==0 
+		 //|| count($affaire->TLien[0]->dossier->TFactureFournisseur)==0 
 		 || $user->rights->financement->admin->write )  ) $mode_aff_fLeaser = 'edit';
 	else $mode_aff_fLeaser='view';
 	
