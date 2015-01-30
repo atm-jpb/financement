@@ -316,6 +316,8 @@ class TFin_dossier extends TObjetStd {
 				if($fact->type == 0 && $fact->total_ht > 0) { // Récupération uniquement des factures standard et sans avoir qui l'annule complètement
 					$this->somme_facture += $fact->total_ht;
 					if($fact->paye == 1) $this->somme_facture_reglee += $fact->total_ht;
+					
+					//TODO si plusieurs facture même échéance alors + modification affiche pour afficher tous les liens
 					$this->TFacture[$echeance] = $fact;
 					$echeance++;
 				}
@@ -331,13 +333,18 @@ class TFin_dossier extends TObjetStd {
 	// Donne le numéro d'échéance correspondant à une date
 	function _get_num_echeance_from_date($date) {
 		//$echeance = date('m', $date - $this->financement->date_debut) / $this->financement->getiPeriode();
+		if($date - ($this->financement->date_debut + $this->financement->calage) < 0){
+			return -1;
+		}
+		
 		$datetime1 = new DateTime(date('Y-m-d',$date));
-	    $datetime2 = new DateTime(date('Y-m-d',$this->financement->date_debut));
-	    $interval = $datetime1->diff($datetime2);
+	    $datetime2 = new DateTime(date('Y-m-d',$this->financement->date_debut + $this->financement->calage));
+	    $interval = $datetime2->diff($datetime1);
+
 	    $nbmonth = $interval->format('%m'); //Retourne le nombre de mois
 		$nbmonth += $interval->y * 12; //on ajoute le nombre de mois correspondant au nombre d'année d'écart
 		$echeance = $nbmonth / $this->financement->getiPeriode(); //On divise par la périodicité pour avoir le numéro de l'échéance
-		
+
 		return $echeance;
 	}
 
