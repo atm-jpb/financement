@@ -121,7 +121,17 @@ class TFin_affaire extends TObjetStd {
 		
 		$this->calculSolde();
 		$this->entity = $conf->entity;
-		
+
+		//Si dossier financement verrouillé, seule une action humaine doit permettre la modification de la classif
+		if($this->TLien[0]->dossier->financementLeaser->okPourFacturation === 'AUTO'){
+			$force_update = GETPOST('force_update');
+
+			if(!$force_update){
+				$liste_champ_to_unsave = 'reference,nature_financement,contrat,type_financement,type_materiel,date_affaire,montant,solde';
+				
+				$this->_no_save_vars($liste_champ_to_unsave);
+			}
+		}
 		
 		parent::save($db);
 		

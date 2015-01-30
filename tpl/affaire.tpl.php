@@ -22,7 +22,11 @@
 
 			<tr><td>Type de contrat</td><td>[affaire.contrat; strconv=no]</td></tr>
 			<tr><td>Date de l'affaire</td><td>[affaire.date_affaire; strconv=no]</td></tr>
-			
+			[onshow;block=begin;when [view.mode]!='view']
+				[onshow;block=begin;when [view.financement_verouille]=='verrouille']
+					<tr><td><span style="color: red">Financement Leaser verrouillé, veuillez cocher cette case pour forcer la modification de la classification de l'affaire</span></td><td>[affaire.force_update; strconv=no]</td></tr>
+				[onshow;block=end]
+			[onshow;block=end]
 			</table>
 			
 			<table width="100%" class="border" style="margin-top:20px;">
