@@ -291,7 +291,7 @@ class TFin_dossier extends TObjetStd {
 		$sql.= " AND targettype='facture'";
 		$sql.= " AND fk_source=".$this->getId();
 		$sql.= " ORDER BY f.facnumber ASC";
-		
+
 		$ATMdb->Execute($sql);
 		
 		dol_include_once("/compta/facture/class/facture.class.php");
@@ -324,11 +324,20 @@ class TFin_dossier extends TObjetStd {
 				$echeance++;
 			}
 		}
+
+		//pre($this->TFacture,true);exit;
 	}
 
 	// Donne le numéro d'échéance correspondant à une date
-	function _get_num_echeance_from_date($date) {		
-		$echeance = date('m', $date - $this->financement->date_debut) / $this->financement->getiPeriode();
+	function _get_num_echeance_from_date($date) {
+		//$echeance = date('m', $date - $this->financement->date_debut) / $this->financement->getiPeriode();
+		$datetime1 = new DateTime(date('Y-m-d',$date));
+	    $datetime2 = new DateTime(date('Y-m-d',$this->financement->date_debut));
+	    $interval = $datetime1->diff($datetime2);
+	    $nbmonth = $interval->format('%m'); //Retourne le nombre de mois
+		$nbmonth += $interval->y * 12; //on ajoute le nombre de mois correspondant au nombre d'année d'écart
+		$echeance = $nbmonth / $this->financement->getiPeriode(); //On divise par la périodicité pour avoir le numéro de l'échéance
+		
 		return $echeance;
 	}
 
@@ -645,6 +654,10 @@ class TFin_dossier extends TObjetStd {
 			}
 			else if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[$iFacture])) $fact = $this->TFactureFournisseur[$iFacture];
 //var_dump($fa);
+			
+			
+			//pre($this->TFacture,true);exit;
+			
 			if(is_object($fact)) {
 				$data['facture_total_ht'] = $fact->total_ht;
 				$data['facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
