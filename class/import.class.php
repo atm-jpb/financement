@@ -416,7 +416,18 @@ class TImport extends TObjetStd {
 		}
 		
 		// Création du lien facture matériel / affaire financement
-		$facture_mat->add_object_linked('affaire', $affaire->getId());
+		//$facture_mat->add_object_linked('affaire', $affaire->getId());
+		
+		//Vérification si lien affaire => facture matériel déjà existant
+		$ATMdb->query("SELECT rowid FROM ".MAIN_DB_PREFIX."element_element WHERE sourcetype = 'affaire' AND targettype = 'facture' AND fk_target = ".$facture_mat->id);
+		
+		if($ATMdb->Get_line()){
+			$this->addError($ATMdb, 'ErrorCreatingLinkAffaireFactureMaterielAlreidyExist', $data['code_affaire']." => ".$facture_mat->ref, 'ERROR');
+		}
+		else{
+			// Création du lien facture matériel / affaire financement
+			$facture_mat->add_object_linked('affaire', $affaire->getId());
+		}
 		
 		// Actions spécifiques
 		// On repasse en brouillon pour ajouter la ligne
