@@ -136,10 +136,9 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 		$integrale = new TIntegrale();
 		$integrale->loadBy($PDOdb, $fac->ref, 'facnumber');
 		
-		$integrale->periode = substr($fin->periodicite,0,1);
-		$integrale->periode.= ceil(date('n', $fac->date) / $fin->getiPeriode()) . ' ' . date('Y', $fac->date);
-		
 		$integrale->date_facture = $fac->date;
+		$integrale->date_periode = $fac->ref_ext;
+		$integrale->facnumber = $fac->getNomUrl();
 		
 		$TIntegrale[] = $integrale;
 	}
