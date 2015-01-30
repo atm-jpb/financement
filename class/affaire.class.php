@@ -278,7 +278,7 @@ class TFin_affaire extends TObjetStd {
 		return $TAffaires;
 	}	
 	
-	function genLixxbailXML(&$PDOdb, &$TAffaires){
+	function genLixxbailXML(&$PDOdb, &$TAffaires,$andUpload=false){
 		
 		$date = date('Ymd');
 		$name = "CPROMA01IMMA".$date;
@@ -298,8 +298,10 @@ class TFin_affaire extends TObjetStd {
 		//Chargement des noeuds correspondant aux affaires
 		foreach($TAffaires as $Affaire){
 			$affaires = $this->_getAffairesXML($xml,$Affaire);
-			$Affaire->xml_date_transfert = time();
-			$Affaire->xml_fic_transfert = $name2;
+			if($andUpload){
+				$Affaire->xml_date_transfert = time();
+				$Affaire->xml_fic_transfert = $name2;
+			}
 			$Affaire->save($PDOdb);
 
 			$affairelist->appendChild($affaires);

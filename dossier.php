@@ -179,7 +179,7 @@
 				$affaire = new TFin_affaire;
 				
 				$TAffaires = $affaire->getAffairesForXML($PDOdb);
-				$filename = $affaire->genLixxbailXML($PDOdb, $TAffaires);
+				$filename = $affaire->genLixxbailXML($PDOdb, $TAffaires,true);
 				$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
 				
 				//$affaire->uploadXMLOnLeaserServer($host,$user,$directory,$dirname,$filename.'.xml');
