@@ -1,6 +1,6 @@
 Bonjour [dataMail.username],
 <br><br>
-Tu trouveras ci-dessous, le(s) client(s) int&eacute;gral ayant une surfacturation au-del&agrave; de [conf.global.FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL] % :
+Tu trouveras ci-dessous, le(s) client(s) integral ayant une surfacturation au-del&agrave; de [conf.global.FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL] % :
 <br><br>
 <table width="100%">
 	<tr>
