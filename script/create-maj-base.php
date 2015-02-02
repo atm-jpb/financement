@@ -56,6 +56,9 @@
 	$o=new TImportError;
 	$o->init_db_by_vars($ATMdb);
 	
+	$o=new TImportHistorique;
+	$o->init_db_by_vars($ATMdb);
+	
 	// Intégrale
 	$o=new TIntegrale();
 	$o->init_db_by_vars($ATMdb);
