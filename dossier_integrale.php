@@ -137,6 +137,8 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 		$integrale->loadBy($PDOdb, $fac->ref, 'facnumber');
 		
 		$integrale->date_facture = $fac->date;
+		$integrale->date_periode = $fac->ref_client;
+		$integrale->facnumber = $fac->getNomUrl();
 		
 		if(!empty($integrale->facture->ref_client)){
 			

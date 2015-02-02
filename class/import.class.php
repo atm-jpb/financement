@@ -121,7 +121,7 @@ class TImport extends TObjetStd {
 				break;
 			case 'facture_location':
 				$this->importLineFactureLocation($ATMdb, $data, $TInfosGlobale);
-				//$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
+				$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
 				break;
 			case 'facture_lettree':
 				$this->importLineFactureLettree($ATMdb, $data);
@@ -226,11 +226,12 @@ class TImport extends TObjetStd {
 			
 			$dossier->save($ATMdb);
 			$this->nb_update++;
-			
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
+
 			$TInfosGlobale[] = $dossier->financementLeaser->getId();
-		
+
 			return true;
-		
+
 		}
 		
 		return false;
@@ -290,6 +291,8 @@ class TImport extends TObjetStd {
 				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $societe->error);
 				return false;
 			} else {
+				
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($societe), $societe->id,'update');
 				$this->nb_update++;
 			}			
 		} else {
@@ -301,6 +304,7 @@ class TImport extends TObjetStd {
 				return false;
 			} else {
 				$this->nb_create++;
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($societe), $societe->id,'create');
 			}
 		}
 		
@@ -363,6 +367,7 @@ class TImport extends TObjetStd {
 					return false;
 				} else {
 					$this->nb_update++;
+					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_mat), $facture_mat->id,'update');
 				}			
 			} else {
 				$res = $facture_mat->create($user);
@@ -372,6 +377,7 @@ class TImport extends TObjetStd {
 					return false;
 				} else {
 					$this->nb_create++;
+					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_mat), $facture_mat->id,'create');
 				}
 			}
 			
@@ -379,6 +385,7 @@ class TImport extends TObjetStd {
 			// Mise à jour de l'affaire
 			$affaire->montant = $this->validateValue('total_ht',$data['total_ht']);	
 			$affaire->save($ATMdb);
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($affaire), $affaire->getId(),'update');
 			
 			// Création des liens entre affaire et matériel
 			$TSerial = explode(' - ',$data['matricule']);
@@ -393,7 +400,8 @@ class TImport extends TObjetStd {
 					$asset->add_link($affaire->getId(),'affaire');
 					$asset->add_link($facture_mat->id,'facture');
 					
-					$asset->save($ATMdb);	
+					$asset->save($ATMdb);
+					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($asset), $asset->getId(),'update');
 				}
 				else {
 					$this->addError($ATMdb, 'ErrorMaterielNotFound', $serial);
@@ -416,6 +424,7 @@ class TImport extends TObjetStd {
 							unset($dossier->financement);
 						}
 						$dossier->save($ATMdb);
+						TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'create');
 					} else {
 						$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], 'ERROR');
 					}
@@ -425,6 +434,7 @@ class TImport extends TObjetStd {
 				$dossier->load($ATMdb, $financement->fk_fin_dossier);
 				$dossier->addAffaire($ATMdb, $affaire->getId());
 				$dossier->save($ATMdb);
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
 			}
 
 			// On repasse en brouillon pour supprimer les ligne
@@ -441,7 +451,18 @@ class TImport extends TObjetStd {
 		}
 		
 		// Création du lien facture matériel / affaire financement
-		$facture_mat->add_object_linked('affaire', $affaire->getId());
+		//$facture_mat->add_object_linked('affaire', $affaire->getId());
+		
+		//Vérification si lien affaire => facture matériel déjà existant
+		$ATMdb->query("SELECT rowid FROM ".MAIN_DB_PREFIX."element_element WHERE sourcetype = 'affaire' AND targettype = 'facture' AND fk_target = ".$facture_mat->id);
+		
+		if($ATMdb->Get_line()){
+			$this->addError($ATMdb, 'ErrorCreatingLinkAffaireFactureMaterielAlreidyExist', $data['code_affaire']." => ".$facture_mat->ref, 'ERROR');
+		}
+		else{
+			// Création du lien facture matériel / affaire financement
+			$facture_mat->add_object_linked('affaire', $affaire->getId());
+		}
 		
 		// Actions spécifiques
 		// On repasse en brouillon pour ajouter la ligne
@@ -461,6 +482,7 @@ class TImport extends TObjetStd {
 		// La validation entraine le recalcul de la date d'échéance de la facture, on remet celle fournie
 		$facture_mat->date_lim_reglement = $data['date_lim_reglement'];
 		$facture_mat->update($user, 0);
+		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_mat), $facture_mat->id,'update');
 		
 		return true;
 	}
@@ -518,7 +540,8 @@ class TImport extends TObjetStd {
 					$financement->setEcheance($nb);
 				}
 				$financement->save($ATMdb);
-	
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($financement), $financement->getId(),'update');
+				
 				// Création du lien entre dossier et facture
 				$facture_loc->linked_objects['dossier'] = $financement->fk_fin_dossier;
 			} else {
@@ -529,6 +552,7 @@ class TImport extends TObjetStd {
 					$nb = ($facture_loc->type == 2) ? -1 : 1;
 					$dossier->financement->setEcheance($nb);
 					$dossier->save($ATMdb);
+					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
 					$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['reference_dossier_interne'], 'WARNING');
 				} else {
 					/* PAS OK */
@@ -545,6 +569,7 @@ class TImport extends TObjetStd {
 					return false;
 				} else {
 					$this->nb_update++;
+					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_loc), $facture_loc->id,'update');
 					
 					// Ajout objet lié
 					if(!empty($facture_loc->linked_objects['dossier'])) {
@@ -559,6 +584,7 @@ class TImport extends TObjetStd {
 					return false;
 				} else {
 					$this->nb_create++;
+					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_loc), $facture_loc->id,'create');
 				}
 			}
 			
@@ -596,6 +622,7 @@ class TImport extends TObjetStd {
 			)
 		,1);
 		// print "Création du service($fk_service)";
+		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, 'Service', $fk_service,'create');
 		
 		//On choisis le taux de tva en fonction de la date limite de règlement : 19.6% avant 2014, 20% après 2014
 		if($data['date_lim_reglement'] < strtotime("2014-01-01"))
@@ -611,6 +638,7 @@ class TImport extends TObjetStd {
 		// La validation entraine le recalcul de la date d'échéance de la facture, on remet celle fournie
 		$facture_loc->date_lim_reglement = $data['date_lim_reglement'];
 		$facture_loc->update($user, 0);
+		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_loc), $facture_loc->id,'update');
 		
 		// 2014.10.30 : Evolution pour stocker assurance, maintenance et loyer actualisé
 		$facture_loc->fetchObjectLinked('','dossier');
@@ -692,7 +720,7 @@ class TImport extends TObjetStd {
 		//$TFAS = array('SSC101', 'SSC102', 'SSC106');
 		//if(in_array($data['ref_service'], $TFAS)) {
 		if(strpos($data['label_integrale'], '(FAS)') !== false || substr($data['label_integrale'], -3) === 'FAS'
-			|| strpos($data['label_integrale'], 'Forfait d\'Accès au Service') !== false) {
+			|| $data['label_integrale'] == 'Forfait d\'Accès au Service') {
 			if(empty($integrale->fas_somme)) { // Gestion FAS sur plusieurs lignes
 				$integrale->fas	= $data['total_ht'];
 				$integrale->fas_somme = true;
@@ -771,6 +799,7 @@ class TImport extends TObjetStd {
 		}
 		
 		$integrale->save($ATMdb);
+		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($integrale), $integrale->getId(),'update');
 	}
 
 	function sendAlertEmailIntegrale($ATMdb, $TInfosGlobale) {
@@ -914,6 +943,7 @@ class TImport extends TObjetStd {
 			return false;
 		} else {
 			$this->nb_update++;
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture), $facture->id,'update');
 		}
 
 		return true;
@@ -960,8 +990,10 @@ class TImport extends TObjetStd {
 		
 		if($a->getId() > 0) {
 			$this->nb_update++;
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($a), $a->getId(),'update');
 		} else {
 			$this->nb_create++;
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($a), $a->getId(),'create');
 		}
 		
 		$a->save($ATMdb);
@@ -1040,8 +1072,10 @@ class TImport extends TObjetStd {
 			
 			if($asset->getId() > 0) {
 				$this->nb_update++;
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($asset), $asset->getId(),'update');
 			} else {
 				$this->nb_create++;
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($asset), $asset->getId(),'create');
 			}
 			
 			$asset->entity = $conf->entity;
@@ -1084,8 +1118,10 @@ class TImport extends TObjetStd {
 		
 		if($c->getId() > 0) {
 			$this->nb_update++;
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($c), $c->getId(),'update');
 		} else {
 			$this->nb_create++;
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($c), $c->getId(),'create');
 		}
 		
 		$c->save($ATMdb);
@@ -1123,6 +1159,7 @@ class TImport extends TObjetStd {
 				return false;
 			} else {
 				$this->nb_create++;
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($score), $score->getId(),'create');
 			}
 			
 			// Mise à jour de la fiche tiers
@@ -1184,6 +1221,7 @@ class TImport extends TObjetStd {
 			}
 			
 			$this->nb_update++;
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($affaire), $affaire->getId(),'update');
 		} else {
 			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire'], 'WARNING');
 		}
@@ -1198,6 +1236,7 @@ class TImport extends TObjetStd {
 					$this->_save_dossier_init($ATMdb, $doss, $affaire, $data);
 					$found = true;
 					$this->nb_update++;
+					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($affaire), $affaire->getId(),'update');
 				}
 			}
 		}
@@ -1423,6 +1462,39 @@ class TImport extends TObjetStd {
 		}
 		
 		return $rowid;
+	}
+}
+
+class TImportHistorique extends TObjetStd {
+	function __construct() {
+		parent::set_table(MAIN_DB_PREFIX.'fin_import_historique');
+		parent::add_champs('fk_user_author,entity,fk_object','type=entier;index;');
+		parent::add_champs('type_import,filename,type_object,action,hash','type=chaine;index;');
+		parent::add_champs('date_import','type=date;index;');
+		parent::start();
+		parent::_init_vars();
+	}
+	
+	static function addHistory(&$db,$type_import,$filename,$type_object,$fk_object,$action='') {
+		global $conf, $user;
+		
+		$h = new TImportHistorique;
+		
+		$h->fk_user_author = $user->id;
+		$h->entity = $conf->entity;
+		$h->date_import = time();
+		
+		$h->type_import = $type_import;
+		$h->filename = $filename;
+		$h->type_object = $type_object;
+		$h->fk_object = $fk_object;
+		$h->action = $action;
+		
+		$h->hash = md5($h->fk_object."?".$h->type_import."?".$h->filename."?".$h->type_object."?".$h->action."?".$h->date_import);
+		
+		if(!$h->loadBy($db,$h->hash, 'hash')){
+			$h->save($db);
+		}
 	}
 }
 ?>

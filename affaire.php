@@ -318,10 +318,10 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 	
 	$formRestricted=new TFormCore;
 	if($mode=='edit' && ( (!empty($affaire->TLien[0]->dossier->financementLeaser->okPourFacturation) && $affaire->TLien[0]->dossier->financementLeaser->okPourFacturation!='AUTO')
-		 || count($affaire->TLien[0]->dossier->TFactureFournisseur)==0 
+		 //|| count($affaire->TLien[0]->dossier->TFactureFournisseur)==0 
 		 || $user->rights->financement->admin->write )  ) $mode_aff_fLeaser = 'edit';
 	else $mode_aff_fLeaser='view';
-	
+	//$mode_aff_fLeaser = $mode;
 	$formRestricted->Set_typeaff( $mode_aff_fLeaser );
 	
 	//require('./tpl/affaire.tpl.php');
@@ -350,6 +350,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 //				,'societe'=>$affaire->societe->getNomUrl(1)
 				,'societe'=>$mode == "edit" && $mode_aff_fLeaser == "edit"? $doliform->select_company($affaire->societe->id) : $affaire->societe->getNomUrl(1)
 				,'montant_val'=>$affaire->montant
+				,'force_update'=>$formRestricted->checkbox1('', 'force_update', 1)
 				,'nature_financement_val'=>$affaire->nature_financement
 				
 				,'addDossierButton'=>(($affaire->nature_financement!='') ? 1 : 0)
@@ -359,6 +360,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 				'mode'=>$mode
 				,'otherDossier'=>$otherDossier
 				,'userRight'=>((int)$user->rights->financement->affaire->write)
+				,'financement_verouille'=>($affaire->TLien[0]->dossier->financementLeaser->okPourFacturation === 'AUTO' && $user->rights->financement->admin->write) ? 'verrouille' : ''
 			)
 			
 		)

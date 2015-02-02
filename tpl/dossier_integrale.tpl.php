@@ -39,8 +39,9 @@
 	<br>
 	<table class="border" width="100%">
 		<tr class="liste_titre">
-			<th class="liste_titre" align="center">Date</th>
+			<th class="liste_titre" align="center">P&eacute;riode</th>
 			<th class="liste_titre" align="center">Facture</th>
+			<th class="liste_titre" align="center">Date</th>
 			<th class="liste_titre" align="center">Vol noir<br>engag&eacute;</th>
 			<th class="liste_titre" align="center">Vol noir<br>r&eacute;alis&eacute;</th>
 			<th class="liste_titre" align="center">Vol noir<br>factur&eacute;</th>
@@ -60,8 +61,9 @@
 			<th class="liste_titre" align="center">%</th>
 		</tr>
 		<tr class="impair">
+			<td align="center">[integrale.date_periode;block=tr;noerr]</td>
+			<td align="center">[integrale.facnumber;block=tr;noerr;strconv=no]</td>
 			<td align="center">[integrale.date_facture;block=tr;noerr;frm=dd/mm/yyyy]</td>
-			<td align="center">[integrale.facnumber;block=tr;noerr]</td>
 			<td align="center">[integrale.vol_noir_engage;noerr]</td>
 			<td align="center">[integrale.vol_noir_realise;noerr]</td>
 			<td align="center">[integrale.vol_noir_facture;noerr]</td>
@@ -81,8 +83,9 @@
 			<td align="center" nowrap="nowrap">[integrale.ecart;frm=0 000,00;noerr] %</td>
 		</tr>
 		<tr class="pair">
+			<td align="center">[integrale.date_periode;block=tr;noerr]</td>
+			<td align="center">[integrale.facnumber;block=tr;noerr;strconv=no]</td>
 			<td align="center">[integrale.date_facture;block=tr;noerr;frm=dd/mm/yyyy]</td>
-			<td align="center">[integrale.facnumber;block=tr;noerr]</td>
 			<td align="center">[integrale.vol_noir_engage;noerr]</td>
 			<td align="center">[integrale.vol_noir_realise;noerr]</td>
 			<td align="center">[integrale.vol_noir_facture;noerr]</td>

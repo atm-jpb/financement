@@ -119,7 +119,7 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		
 		// Traitement spécifique sur les factures location : envoi e-mail à la fin de l'intégration du fichier pour alertes dépassement (ticket 551)
 		if($fileType == 'facture_location') {
-			$imp->sendAlertEmailIntegrale($ATMdb, $TInfosGlobale);
+			//$imp->sendAlertEmailIntegrale($ATMdb, $TInfosGlobale);
 		}
 		
 		print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;

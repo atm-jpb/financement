@@ -51,6 +51,8 @@ foreach($Tab as $row) {
 		,'contrat' => $link
 		,'ref_contrat' => $integral->dossier->financement->reference
 		,'facture' => $integral->facnumber
+		,'date_facture' => date('d/m/y', strtotime($integral->facture->date))
+		,'date_periode' => $integral->facture->ref_client
 		,'montant_engage' => $integral->total_ht_engage
 		,'montant_facture' => $integral->total_ht_facture
 		,'ecart' => $integral->ecart
@@ -120,7 +122,7 @@ foreach($TMailToSend as $dataMail) {
 	$mailto = $dataMail['usermail'];
 	// Mail to service financment pour le moment
 	$mailto = 'financement@cpro.fr';
-	$subjectMail = '[Lease Board] - Alertes facturation int&eacute;grale pour '.$data['username'];
+	$subjectMail = '[Lease Board] - Alerte facturation integral';
 	$contentMail = $html;
 	
 	$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
