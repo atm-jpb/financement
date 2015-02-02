@@ -8,7 +8,7 @@ Tu trouveras ci-dessous, le(s) client(s) integral ayant une surfacturation au-de
 		<th>Contrat Artis</th>
 		<th>Facture</th>
 		<th>Date facture</th>
-		<th>Date période</th>
+		<th>Date p&eacute;riode</th>
 		<th>Montant<br>engagement</th>
 		<th>Montant<br>factur&eacute;</th>
 		<th>&Eacute;cart</th>
@@ -20,7 +20,7 @@ Tu trouveras ci-dessous, le(s) client(s) integral ayant une surfacturation au-de
 		<td align="center">[content.client;block=tr]</td>
 		<td align="center">[content.contrat;strconv=no]</td>
 		<td align="center">[content.facture]</td>
-		<td align="center">[content.date_facture]</td>
+		<td align="center">[content.date_facture;frm=dd/mm/yyyy]</td>
 		<td align="center">[content.date_periode]</td>
 		<td align="center">[content.montant_engage;frm=0 000,00] &euro;</td>
 		<td align="center">[content.montant_facture;frm=0 000,00] &euro;</td>

@@ -122,7 +122,7 @@ foreach($TMailToSend as $dataMail) {
 	$mailto = $dataMail['usermail'];
 	// Mail to service financment pour le moment
 	$mailto = 'financement@cpro.fr';
-	$subjectMail = '[Lease Board] - Alertes facturation integral pour '.$data['username'];
+	$subjectMail = '[Lease Board] - Alerte facturation integral';
 	$contentMail = $html;
 	
 	$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
