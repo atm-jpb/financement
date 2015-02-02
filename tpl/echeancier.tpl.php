@@ -56,9 +56,17 @@
 		
 		[onshow; block=begin; when [autre.nature_financement]=='INTERNE']
 			[onshow; block=begin; when [ligne.facture_total_ht]!='']
-			[onshow; block=begin; when [ligne.facture_total_ht]!='+']
-			<td align="right" style="background-color: [ligne.facture_bg];"><a href="[ligne.facture_link]">[ligne.facture_total_ht; frm=0 000,00] &euro;</a></td>
-			[onshow;block=end]
+				[onshow; block=begin; when [ligne.facture_total_ht]!='+']
+					<td align="right" style="padding:0;background-color: [ligne.facture_bg];">
+						[onshow;block=begin; when [ligne.facture_multiple]='0']
+							<a href="[ligne.facture_link]">[ligne.facture_total_ht; frm=0 000,00] &euro;</a>
+						[onshow;block=end]
+						[onshow;block=begin; when [ligne.facture_multiple]='1']
+							<b>Total : [ligne.facture_total_ht; frm=0 000,00] &euro;</b>
+							[ligne.facture_link;strconv=no]
+						[onshow;block=end]
+					</td>
+				[onshow;block=end]
 			[onshow;block=end]
 			
 			[onshow; block=begin; when [ligne.facture_total_ht]=='+']
@@ -80,19 +88,26 @@
 		<td align="right">[ligne.loyerHT; frm=0 000,00] &euro;</td>
 		
 		[onshow; block=begin; when [autre.nature_financement]=='INTERNE']
-		[onshow; block=begin; when [ligne.facture_total_ht]!='']
-		[onshow; block=begin; when [ligne.facture_total_ht]!='+']
-		<td align="right" style="background-color: [ligne.facture_bg];"><a href="[ligne.facture_link]">[ligne.facture_total_ht; frm=0 000,00] &euro;</a></td>
-		[onshow;block=end]
-		[onshow;block=end]
-		
-		[onshow; block=begin; when [ligne.facture_total_ht]=='+']
-		<td align="center" style="background-color: [ligne.facture_bg];"><a href="[ligne.facture_link]">+</a></td>
-		[onshow;block=end]
-
-		[onshow; block=begin; when [ligne.facture_total_ht]=='']
-		<td align="center" style="background-color: [ligne.facture_bg];">-</td>
-		[onshow;block=end]
+			[onshow; block=begin; when [ligne.facture_total_ht]!='']
+				[onshow; block=begin; when [ligne.facture_total_ht]!='+']
+					<td align="right" style="background-color: [ligne.facture_bg];">
+						[onshow;block=begin; when [ligne.facture_multiple]='0']
+							<a href="[ligne.facture_link]">[ligne.facture_total_ht; frm=0 000,00] &euro;</a>
+						[onshow;block=end]
+						[onshow;block=begin; when [ligne.facture_multiple]='1']
+							[ligne.facture_link;strconv=no]
+						[onshow;block=end]
+					</td>
+				[onshow;block=end]
+			[onshow;block=end]
+			
+			[onshow; block=begin; when [ligne.facture_total_ht]=='+']
+			<td align="center" style="background-color: [ligne.facture_bg];"><a href="[ligne.facture_link]">+</a></td>
+			[onshow;block=end]
+	
+			[onshow; block=begin; when [ligne.facture_total_ht]=='']
+			<td align="center" style="background-color: [ligne.facture_bg];">-</td>
+			[onshow;block=end]
 		[onshow;block=end]
 	</tr>
 

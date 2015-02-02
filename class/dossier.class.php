@@ -318,7 +318,7 @@ class TFin_dossier extends TObjetStd {
 					if($fact->paye == 1) $this->somme_facture_reglee += $fact->total_ht;
 					
 					//TODO si plusieurs facture même échéance alors modification affichage pour afficher tous les liens
-					/*if(!empty($this->TFacture[$echeance])){
+					if(!empty($this->TFacture[$echeance])){
 						if(is_array($this->TFacture[$echeance])){
 							$this->TFacture[$echeance] = array_merge($this->TFacture[$echeance],array($fact));
 						}
@@ -326,9 +326,9 @@ class TFin_dossier extends TObjetStd {
 							$this->TFacture[$echeance] = array($this->TFacture[$echeance],$fact);
 						}
 					}
-					else{*/
+					else{
 						$this->TFacture[$echeance] = $fact;
-					//}
+					}
 					$echeance++;
 				}
 			} else {
@@ -607,6 +607,8 @@ class TFin_dossier extends TObjetStd {
 		if($type_echeancier == 'CLIENT') $f = &$this->financement;
 		else $f = &$this->financementLeaser;
 
+		//if($type_echeancier == 'CLIENT') pre($this->TFacture,true);
+
 		 /*
 		 * Affiche l'échéancier
 		 * ----
@@ -677,6 +679,7 @@ class TFin_dossier extends TObjetStd {
 			
 			if(is_object($fact)) { // Financement Client avec une seule facture
 				$data['facture_total_ht'] = $fact->total_ht;
+				$data['facture_multiple'] = '0';
 				$data['facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
 				$data['facture_link'] .= $fact->id;
 			//	print $iFacture.' '.$fact->id.'<br />';
@@ -685,20 +688,25 @@ class TFin_dossier extends TObjetStd {
 			else if(is_array($fact)) { // Financement Client avec plusieurs factures
 				
 				foreach($fact as $facture_client){
-					$data['facture_total_ht'] .= $fact->total_ht." - ";
-					$data['facture_link'] .= ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
-					$data['facture_link'] .= $fact->id;
+					$data['facture_total_ht'] += $facture_client->total_ht;
+					$data['facture_multiple'] = '1';
+					$bg_color = ($facture_client->paye == 1) ? '#00FF00' : '#FF0000';
+					$data['facture_link'] .= ($type_echeancier == 'CLIENT') ? '<a style="display:block;margin:0;background-color:'.$bg_color.'" href="'.DOL_URL_ROOT.'/compta/facture.php?facid=' : '<a href="'.DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
+					$data['facture_link'] .= $facture_client->id.'">'.number_format($facture_client->total_ht,2,',','').' €</a>';
 				//	print $iFacture.' '.$fact->id.'<br />';
-					$data['facture_bg'] = ($fact->paye == 1) ? '#00FF00' : '#FF0000';
+					//$data['facture_bg'] = ($facture_client->paye == 1) ? '#00FF00' : '#FF0000';
+					$data['facture_bg'] = ($bg_color === '#FF0000') ? '#CC9933' : '#00FF00' ;
 				}
 			}
 			 else if($type_echeancier == 'LEASER' && $this->nature_financement == 'INTERNE' && $time < time() && $f->date_solde <= 0 && $f->montant_solde == 0) {
 				$link = dol_buildpath('/financement/dossier.php?action=new_facture_leaser&id_dossier='.$this->rowid.'&echeance='.($i+1),1);
 				$data['facture_total_ht'] = '+';
+				$data['facture_multiple'] = '0';
 				$data['facture_link'] = $link;
 				$data['facture_bg'] = '';
 			} else {
 				$data['facture_total_ht'] = '';
+				$data['facture_multiple'] = '0';
 				$data['facture_link'] = '';
 				$data['facture_bg'] = '';
 			}
