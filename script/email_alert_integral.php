@@ -29,8 +29,8 @@ $date = date('Y-m-d', $time);
 
 $sql = "SELECT fi.rowid ";
 $sql.= "FROM ".MAIN_DB_PREFIX."fin_facture_integrale fi ";
-$sql.= "WHERE fi.date_maj LIKE '".$date."%' ";
-$sql.= "AND fi.ecart >= ".$conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL." ";
+$sql.= "WHERE ";//fi.date_maj LIKE '".$date."%' ";
+$sql.= /*"AND*/" fi.ecart >= ".$conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL." ";
 
 //echo $sql;
 $ATMdb->Execute($sql);
@@ -103,7 +103,47 @@ foreach($Tab as $row) {
 	}
 }
 
-//pre($TMailToSend, true);
+//Fonction pour faire la somme des factures par client, par contrat et par période
+function parseData(&$TMailToSend){
+	
+	//pre($TMailToSend,true);
+	
+	$TContent = array();
+	foreach($TMailToSend as $i =>$TMail){
+		
+		foreach($TMail['content'] as $k => $TFacture){
+			
+			if($TMail['content'][$k-1]['client'] == $TMail['content'][$k]['client']
+				&& $TMail['content'][$k-1]['ref_contrat'] == $TMail['content'][$k]['ref_contrat']
+				&& $TMail['content'][$k-1]['date_periode'] == $TMail['content'][$k]['date_periode']
+			){
+				//pre($TFacture,true);exit;
+				$TMail['content'][$k-1]['facture'] .= "<br>".$TMail['content'][$k]['facture'];
+				$TMail['content'][$k-1]['date_facture'] .= "<br>".$TMail['content'][$k]['date_facture'];
+				$TMail['content'][$k-1]['montant_engage'] += $TMail['content'][$k]['montant_engage'];
+				$TMail['content'][$k-1]['montant_facture'] += $TMail['content'][$k]['montant_facture'];				
+				$TMail['content'][$k-1]['ecart'] = ($TMail['content'][$k-1]['montant_facture'] - $TMail['content'][$k-1]['montant_engage']) *100 / $TMail['content'][$k-1]['montant_engage'];
+				
+				$TMail['content'][$k-1]['1-Copieur'] = ($TMail['content'][$k]['1-Copieur'] < $TMail['content'][$k-1]['1-Copieur']) ? $TMail['content'][$k-1]['1-Copieur'] : $TMail['content'][$k]['1-Copieur'];
+				$TMail['content'][$k-1]['2-Traceur'] = ($TMail['content'][$k]['2-Traceur'] < $TMail['content'][$k-1]['2-Traceur']) ? $TMail['content'][$k-1]['2-Traceur'] : $TMail['content'][$k]['2-Traceur'];
+				$TMail['content'][$k-1]['3-Solution'] = ($TMail['content'][$k]['3-Solution'] < $TMail['content'][$k-1]['3-Solution']) ? $TMail['content'][$k-1]['3-Solution'] : $TMail['content'][$k]['3-Solution'];
+				
+				/*pre($TMail['content'][$k],true);
+				pre($TMail['content'][$k-1],true);exit;*/
+				$TMailToSend[$i]['content'][$k-1] = $TMail['content'][$k-1];
+				unset($TMailToSend[$i]['content'][$k]);
+			}
+			
+		}
+	}
+	/*echo '<hr>';
+	pre($TMailToSend,true);exit;*/
+	return $TMailToSend;
+}
+
+$TMailToSend = parseData($TMailToSend);
+
+//pre($TMailToSend, true);exit;
 
 $tpl = dol_buildpath('/financement/tpl/email_alert_integral.tpl.php');
 $tbs = new TTemplateTBS();
@@ -125,8 +165,8 @@ foreach($TMailToSend as $dataMail) {
 	$subjectMail = '[Lease Board] - Alerte facturation integral';
 	$contentMail = $html;
 	
-	$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
-	$r->send(true);
+	/*$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
+	$r->send(true);*/
 	
 	echo $html;
 	echo '<hr>';
