@@ -21,7 +21,7 @@ if(empty($id_dossier)) {
 	_liste($PDOdb, $dossier);
 } else {
 	$dossier->load($PDOdb, $id_dossier);
-	$dossier->load_facture($PDOdb, true);
+	$dossier->load_facture($PDOdb);
 	_fiche($PDOdb, $db, $dossier);
 }
 
@@ -116,6 +116,67 @@ function _liste(&$PDOdb, &$dossier) {
 	$form->end();
 }
 
+function _formatIntegrale(&$integrale){
+	
+	$integrale->date_facture = $integrale->get_date('date_facture','d/m/Y');
+	
+	return $integrale;
+	
+}
+
+function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale){
+	
+	$integrale = new TIntegrale;
+	$integrale->loadBy($PDOdb, $facture->ref, 'facnumber');
+	
+	$integrale->date_facture = $facture->date;
+	$integrale->date_periode = $facture->ref_client;
+	$integrale->facnumber = $facture->getNomUrl();
+	
+	if(!empty($TIntegrale[$integrale->date_periode])){
+			
+		//Pour certains champs on concatène
+		$TIntegrale[$integrale->date_periode]->date_facture .= "<br>".$integrale->get_date('date_facture','d/m/Y');
+		$TIntegrale[$integrale->date_periode]->facnumber .= "<br>".$integrale->facnumber;
+		
+		//Addition des champs qui vont bien
+		$TIntegrale[$integrale->date_periode]->vol_noir_engage += $integrale->vol_noir_engage;
+		$TIntegrale[$integrale->date_periode]->vol_noir_realise += $integrale->vol_noir_realise;
+		$TIntegrale[$integrale->date_periode]->vol_noir_facture += $integrale->vol_noir_facture;
+		
+		$TIntegrale[$integrale->date_periode]->cout_unit_noir .= "<br>".number_format($integrale->cout_unit_noir,5,',','')." €";
+		
+		$TIntegrale[$integrale->date_periode]->vol_coul_engage += $integrale->vol_coul_engage;
+		$TIntegrale[$integrale->date_periode]->vol_coul_realise += $integrale->vol_coul_realise;
+		$TIntegrale[$integrale->date_periode]->vol_coul_facture += $integrale->vol_coul_facture;
+		
+		$TIntegrale[$integrale->date_periode]->cout_unit_coul .= "<br>".number_format($integrale->cout_unit_coul,5,',','')." €";
+		
+		$TIntegrale[$integrale->date_periode]->fas += $integrale->fas;
+		$TIntegrale[$integrale->date_periode]->fass += $integrale->fass;
+		$TIntegrale[$integrale->date_periode]->frais_dossier += $integrale->frais_dossier;
+		$TIntegrale[$integrale->date_periode]->frais_bris_machine += $integrale->frais_bris_machine;
+		$TIntegrale[$integrale->date_periode]->frais_facturation += $integrale->frais_facturation;
+		$TIntegrale[$integrale->date_periode]->total_ht_engage += $integrale->total_ht_engage;
+		$TIntegrale[$integrale->date_periode]->total_ht_realise += $integrale->total_ht_realise;
+		$TIntegrale[$integrale->date_periode]->total_ht_facture += $integrale->total_ht_facture;
+
+		$TIntegrale[$integrale->date_periode]->ecart += $integrale->ecart;
+		$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
+
+	}
+	else{
+		$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
+		$integrale->date_facture = $integrale->get_date('date_facture','d/m/Y');
+		$integrale->cout_unit_noir = number_format($integrale->cout_unit_noir,5,',','')." €";
+		$integrale->cout_unit_coul = number_format($integrale->cout_unit_coul,5,',','')." €";
+		$TIntegrale[$integrale->date_periode] = $integrale;
+	}
+	
+	return $TIntegrale;
+	
+}
+
 function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 	$TBS = new TTemplateTBS;
 	
@@ -130,51 +191,19 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 	$fin->_affterme = $fin->TTerme[$fin->terme];
 	$fin->_affperiodicite = $fin->TPeriodicite[$fin->periodicite];
 	
+	//pre($dossier->TFacture,true);
 	
 	$TIntegrale = array();
 	foreach ($dossier->TFacture as $fac) {
-		$integrale = new TIntegrale();
-		$integrale->loadBy($PDOdb, $fac->ref, 'facnumber');
 		
-		$integrale->date_facture = $fac->date;
-		$integrale->date_periode = $fac->ref_client;
-		$integrale->facnumber = $fac->getNomUrl();
-		
-		if(!empty($integrale->facture->ref_client)){
-			
-			//Pour certains champs on concatène
-			$TIntegrale[$integrale->facture->ref_client]->date_facture .= "<br>".$integrale->date_facture;
-			$TIntegrale[$integrale->facture->ref_client]->facnumber .= "<br>".$integrale->facnumber;
-			
-			//Additiond des champs qui vont bien
-			$TIntegrale[$integrale->facture->ref_client]->vol_noir_engage += $integrale->vol_noir_engage;
-			$TIntegrale[$integrale->facture->ref_client]->vol_noir_realise += $integrale->vol_noir_realise;
-			$TIntegrale[$integrale->facture->ref_client]->vol_noir_facture += $integrale->vol_noir_facture;
-			
-			$TIntegrale[$integrale->facture->ref_client]->cout_unit_noir .= "<br>".$integrale->cout_unit_noir;
-			
-			$TIntegrale[$integrale->facture->ref_client]->vol_coul_engage += $integrale->vol_coul_engage;
-			$TIntegrale[$integrale->facture->ref_client]->vol_coul_realise += $integrale->vol_coul_realise;
-			$TIntegrale[$integrale->facture->ref_client]->vol_coul_facture += $integrale->vol_coul_facture;
-			
-			$TIntegrale[$integrale->facture->ref_client]->cout_unit_coul .= "<br>".$integrale->cout_unit_coul;
-			
-			$TIntegrale[$integrale->facture->ref_client]->fas += $integrale->fas;
-			$TIntegrale[$integrale->facture->ref_client]->fass += $integrale->fass;
-			$TIntegrale[$integrale->facture->ref_client]->frais_dossier += $integrale->frais_dossier;
-			$TIntegrale[$integrale->facture->ref_client]->frais_bris_machine += $integrale->frais_bris_machine;
-			$TIntegrale[$integrale->facture->ref_client]->frais_facturation += $integrale->frais_facturation;
-			$TIntegrale[$integrale->facture->ref_client]->total_ht_engage += $integrale->total_ht_engage;
-			$TIntegrale[$integrale->facture->ref_client]->total_ht_realise += $integrale->total_ht_realise;
-			$TIntegrale[$integrale->facture->ref_client]->total_ht_facture += $integrale->total_ht_facture;
-
-			$TIntegrale[$integrale->facture->ref_client]->ecart += $integrale->ecart;
-			$TIntegrale[$integrale->facture->ref_client]->nb_ecart += 1;
-
+		//Cas plusieurs factures sur la même échéance
+		if(is_array($fac)){
+			foreach($fac as $facture){
+				$TIntegrale = addInTIntegrale($PDOdb,$facture,$TIntegrale);
+			}
 		}
 		else{
-			$integrale->nb_ecart = 1;
-			$TIntegrale[] = $integrale;
+			$TIntegrale = addInTIntegrale($PDOdb,$fac,$TIntegrale);
 		}
 	}
 	

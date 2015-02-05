@@ -63,15 +63,15 @@
 		<tr class="impair">
 			<td align="center">[integrale.date_periode;block=tr;noerr]</td>
 			<td align="center">[integrale.facnumber;block=tr;noerr;strconv=no]</td>
-			<td align="center">[integrale.date_facture;block=tr;noerr;frm=dd/mm/yyyy]</td>
+			<td align="center">[integrale.date_facture;block=tr;noerr;strconv=no]</td>
 			<td align="center">[integrale.vol_noir_engage;noerr]</td>
 			<td align="center">[integrale.vol_noir_realise;noerr]</td>
 			<td align="center">[integrale.vol_noir_facture;noerr]</td>
-			<td align="right" nowrap="nowrap">[integrale.cout_unit_noir;frm=0 000,00000;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.cout_unit_noir;noerr;strconv=no]</td>
 			<td align="center">[integrale.vol_coul_engage;noerr]</td>
 			<td align="center">[integrale.vol_coul_realise;noerr]</td>
 			<td align="center">[integrale.vol_coul_facture;noerr]</td>
-			<td align="right" nowrap="nowrap">[integrale.cout_unit_coul;frm=0 000,00000;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.cout_unit_coul;noerr;strconv=no]</td>
 			<td align="right" nowrap="nowrap">[integrale.fas;frm=0 000,00;noerr] &euro;</td>
 			<td align="right" nowrap="nowrap">[integrale.fass;frm=0 000,00;noerr] &euro;</td>
 			<td align="right" nowrap="nowrap">[integrale.frais_dossier;frm=0 000,00;noerr] &euro;</td>
@@ -85,15 +85,15 @@
 		<tr class="pair">
 			<td align="center">[integrale.date_periode;block=tr;noerr]</td>
 			<td align="center">[integrale.facnumber;block=tr;noerr;strconv=no]</td>
-			<td align="center">[integrale.date_facture;block=tr;noerr;frm=dd/mm/yyyy]</td>
+			<td align="center">[integrale.date_facture;block=tr;noerr;strconv=no]</td>
 			<td align="center">[integrale.vol_noir_engage;noerr]</td>
 			<td align="center">[integrale.vol_noir_realise;noerr]</td>
 			<td align="center">[integrale.vol_noir_facture;noerr]</td>
-			<td align="right" nowrap="nowrap">[integrale.cout_unit_noir;frm=0 000,00000;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.cout_unit_noir;noerr;strconv=no]</td>
 			<td align="center">[integrale.vol_coul_engage;noerr]</td>
 			<td align="center">[integrale.vol_coul_realise;noerr]</td>
 			<td align="center">[integrale.vol_coul_facture;noerr]</td>
-			<td align="right" nowrap="nowrap">[integrale.cout_unit_coul;frm=0 000,00000;noerr] &euro;</td>
+			<td align="right" nowrap="nowrap">[integrale.cout_unit_coul;noerr;strconv=no]</td>
 			<td align="right" nowrap="nowrap">[integrale.fas;frm=0 000,00;noerr] &euro;</td>
 			<td align="right" nowrap="nowrap">[integrale.fass;frm=0 000,00;noerr] &euro;</td>
 			<td align="right" nowrap="nowrap">[integrale.frais_dossier;frm=0 000,00;noerr] &euro;</td>
