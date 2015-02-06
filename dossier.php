@@ -305,19 +305,19 @@ function _liste(&$PDOdb, &$dossier) {
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.echeance ELSE fl.echeance END as 'Echéance', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END as 'Prochaine', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END as 'date_debut', ";
-	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END as 'Fin', ";
-	$sql.="f.rowid as fk_fact_materiel, f.facnumber as fact_materiel ";
+	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END as 'Fin' ";
+	$sql.=", '' as fact_materiel ";
 	$sql.="FROM ((((((((@table@ d ";
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (d.rowid=da.fk_fin_dossier)) ";
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (da.fk_fin_affaire=a.rowid)) ";
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_financement fc ON (d.rowid=fc.fk_fin_dossier AND fc.type='CLIENT')) ";
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_financement fl ON (d.rowid=fl.fk_fin_dossier AND fl.type='LEASER')) ";
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe c ON (a.fk_soc=c.rowid)) ";
-	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe l ON (fl.fk_soc=l.rowid)) ";
-	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_source=a.rowid AND ee.sourcetype = 'affaire' AND ee.targettype = 'facture')) ";
-	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."facture f ON (f.rowid=ee.fk_target)) ";
+	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe l ON (fl.fk_soc=l.rowid)))) ";
+	//$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_source=a.rowid AND ee.sourcetype = 'affaire' AND ee.targettype = 'facture')) ";
+	//$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."facture f ON (f.rowid=ee.fk_target)) ";
 
-	$sql.="WHERE a.entity=".$conf->entity;
+	$sql.=" WHERE a.entity=".$conf->entity;
 	
 	//Filtrage sur leaser et uniquement dossier avec "Bon pour transfert" = 1 (Oui)
 	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
@@ -329,6 +329,7 @@ function _liste(&$PDOdb, &$dossier) {
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	$aff = new TFin_affaire;
 	
+	//echo $sql;
 	$r->liste($PDOdb, $sql, array(
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
@@ -340,12 +341,12 @@ function _liste(&$PDOdb, &$dossier) {
 			,'refDosCli'=>'<a href="?id=@ID@">@val@</a>'
 			,'refDosLea'=>'<a href="?id=@ID@">@val@</a>'
 			,'Affaire'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/affaire.php?id=@ID affaire@">@val@</a>'
-			,'fact_materiel'=>'<a href="'.DOL_URL_ROOT.'/compta/facture.php?facid=@fk_fact_materiel@">'.img_object('', 'bill').' @val@</a>'
+			//,'fact_materiel'=>'<a href="'.DOL_URL_ROOT.'/compta/facture.php?facid=@fk_fact_materiel@">'.img_object('', 'bill').' @val@</a>'
 		)
 		,'translate'=>array(
 			'nature_financement'=>$aff->TNatureFinancement
 		)
-		,'hide'=>array('fk_soc','ID','ID affaire')
+		,'hide'=>array('fk_soc','ID','ID affaire','fk_fact_materiel')
 		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'Echéance'=>'money')
 		,'liste'=>array(
 			'titre'=>"Liste des dossiers"
@@ -376,6 +377,7 @@ function _liste(&$PDOdb, &$dossier) {
 			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
 			//,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
 		)
+		,'eval'=>array('fact_materiel'=>'_get_facture_mat(@ID affaire@);')
 		
 	));
 	$form->end();
@@ -391,6 +393,27 @@ function _liste(&$PDOdb, &$dossier) {
 	}
 	
 	llxFooter();
+}
+
+function _get_facture_mat($fk_source){
+	
+	$PDOdb = new TPDOdb;
+	
+	$sql = "SELECT f.rowid, f.facnumber
+			FROM ".MAIN_DB_PREFIX."element_element as ee
+				LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON (ee.fk_target = f.rowid)
+			WHERE ee.fk_target=f.rowid AND ee.sourcetype = 'affaire' AND ee.targettype = 'facture' AND ee.fk_source = ".$fk_source."";
+
+	$PDOdb->Execute($sql);
+	
+	$link = '';
+	while($PDOdb->Get_line()){
+		$link .= '<a href="'.DOL_URL_ROOT.'/compta/facture.php?facid='.$PDOdb->Get_field('rowid').'">'.img_object('', 'bill').' '.$PDOdb->Get_field('facnumber').'</a><br>';
+	}
+	
+	$PDOdb->close();
+	
+	return $link;
 }
 
 function _fiche(&$PDOdb, &$dossier, $mode) {
