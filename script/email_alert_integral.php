@@ -120,7 +120,7 @@ function parseData(&$TMailToSend){
 				//pre($TFacture,true);exit;
 				$TMail['content'][$k-1]['facture'] .= "<br>".$TMail['content'][$k]['facture'];
 				$TMail['content'][$k-1]['date_facture'] .= "<br>".$TMail['content'][$k]['date_facture'];
-				$TMail['content'][$k-1]['montant_engage'] += $TMail['content'][$k]['montant_engage'];
+				//$TMail['content'][$k-1]['montant_engage'] += $TMail['content'][$k]['montant_engage'];
 				$TMail['content'][$k-1]['montant_facture'] += $TMail['content'][$k]['montant_facture'];				
 				$TMail['content'][$k-1]['ecart'] = ($TMail['content'][$k-1]['montant_facture'] - $TMail['content'][$k-1]['montant_engage']) *100 / $TMail['content'][$k-1]['montant_engage'];
 				

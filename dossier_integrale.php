@@ -157,7 +157,7 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale){
 		$TIntegrale[$integrale->date_periode]->frais_dossier += $integrale->frais_dossier;
 		$TIntegrale[$integrale->date_periode]->frais_bris_machine += $integrale->frais_bris_machine;
 		$TIntegrale[$integrale->date_periode]->frais_facturation += $integrale->frais_facturation;
-		$TIntegrale[$integrale->date_periode]->total_ht_engage += $integrale->total_ht_engage;
+		//$TIntegrale[$integrale->date_periode]->total_ht_engage += $integrale->total_ht_engage;
 		$TIntegrale[$integrale->date_periode]->total_ht_realise += $integrale->total_ht_realise;
 		$TIntegrale[$integrale->date_periode]->total_ht_facture += $integrale->total_ht_facture;
 
