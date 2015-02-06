@@ -442,7 +442,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'date_demarrage'=>$form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12)
 				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)
 				,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)
-				,'montant_rachete_autres_dossiers'=>$form->3-Solution{$rachat_autres}('', 'montant_rachete_autres_dossiers', $simulation->montant_rachete_autres_dossiers, 10)
+				,'montant_rachete_autres_dossiers'=>$form->{$rachat_autres}('', 'montant_rachete_autres_dossiers', $simulation->montant_rachete_autres_dossiers, 10)
 				,'montant_rachete_concurrence'=>$form->texte('', 'montant_rachete_concurrence', $simulation->montant_rachete_concurrence, 10)
 				,'duree'=>$form->combo('', 'duree', $TDuree, $simulation->duree)
 				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
