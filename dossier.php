@@ -158,8 +158,13 @@
 				_fiche($PDOdb,$dossier,'edit');
 				
 				break;
-			case 'generateXML':
+			case 'exportXML':
 			
+				_liste($PDOdb, $dossier);
+				
+				break;
+			case 'generateXML':
+				
 				$affaire = new TFin_affaire;
 				
 				$TAffaires = $affaire->getAffairesForXML($PDOdb);
@@ -193,7 +198,7 @@
 				<script language="javascript">
 					document.location.href="?fk_leaser=<?php echo $fk_leaser; ?>&envoiXML=ok";					
 				</script>
-				<?
+				<?php
 				
 				break;
 				
@@ -383,8 +388,10 @@ function _liste(&$PDOdb, &$dossier) {
 	$form->end();
 	
 	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
+		$fk_leaser = GETPOST('fk_leaser');
 		?>
 		<div class="tabsAction">
+				<a href="?action=exportXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Exporter</a>
 				<a href="?action=generateXML" class="butAction">Générer le XML Lixxbail</a>
 				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Générer le XML Lixxbail et envoyer au Leaser</a>
 				<a href="?action=setnottransfer" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
@@ -392,10 +399,60 @@ function _liste(&$PDOdb, &$dossier) {
 		<?php
 	}
 	
+	//Cas action export CSV de la liste des futurs affaire transféré en XML
+	$action = GETPOST('action');
+	if($action === 'exportXML'){
+		_getExportXML($sql);
+	}
+	
 	llxFooter();
 }
 
-function _get_facture_mat($fk_source){
+function _getExportXML($sql){
+	
+	$PDOdb = new TPDOdb;;
+	
+	$sql = str_replace('@table@','llx_fin_dossier',$sql);
+	
+	//On met l'order by ajouter par le render()
+	$sql .= " ORDER BY ID DESC, fc.reference ASC";
+	
+	$PDOdb->Execute($sql);
+	$TTRes = $PDOdb->Get_All(PDO::FETCH_ASSOC);
+	
+	$filename = 'export_XML.csv';
+	$filepath = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename;
+	$file = fopen($filepath,'w');
+	
+	//Ajout première ligne libelle
+	$TLabel = array('Contrat','Contrat Leaser','Affaire','Nature','Client','Leaser','Durée','Montant','Echéance','Prochaine','Début','Fin','Facture Matériel');
+	fputcsv($file, $TLabel,';','"');
+	
+	foreach($TTRes as $TRes){
+
+		//On renseigne la facture mat car on l'a avec un eval() dans la liste
+		$TRes['fact_materiel'] = _get_facture_mat($TRes['ID affaire'],false);
+		
+		//Suppression des colonnes inutiles
+		unset($TRes['ID']);
+		unset($TRes['ID affaire']);
+		unset($TRes['fk_soc']);
+		
+		fputcsv($file, $TRes,';','"');
+	}
+	
+	fclose($file);
+	
+	?>
+	<script language="javascript">
+		document.location.href="<?php echo dol_buildpath("/document.php?modulepart=financement&entity=1&file=XML/Lixxbail/".$filename,2); ?>";					
+	</script>
+	<?php
+	
+	$PDOdb->close();
+}	
+
+function _get_facture_mat($fk_source,$withlink=true){
 	
 	$PDOdb = new TPDOdb;
 	
@@ -408,7 +465,12 @@ function _get_facture_mat($fk_source){
 	
 	$link = '';
 	while($PDOdb->Get_line()){
-		$link .= '<a href="'.DOL_URL_ROOT.'/compta/facture.php?facid='.$PDOdb->Get_field('rowid').'">'.img_object('', 'bill').' '.$PDOdb->Get_field('facnumber').'</a><br>';
+		if($withlink){
+			$link .= '<a href="'.DOL_URL_ROOT.'/compta/facture.php?facid='.$PDOdb->Get_field('rowid').'">'.img_object('', 'bill').' '.$PDOdb->Get_field('facnumber').'</a><br>';
+		}
+		else{
+			$link .= $PDOdb->Get_field('facnumber')." ";
+		}
 	}
 	
 	$PDOdb->close();
