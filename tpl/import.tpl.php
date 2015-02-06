@@ -27,13 +27,20 @@
 			<td>[import.type_import; strconv=no]</td>
 			<td>Leaser</td>
 			<td>[import.leaser; strconv=no]</td>
+			<td rowspan="4"><input type="submit" name="import" class="button" value="Importer"></td>
+		</tr>
+		<tr>
 			<td>Fichier à importer</td>
-			<td>[import.fileToImport; strconv=no]</td>
-			<td rowspan="2"><input type="submit" name="import" class="button" value="Importer"></td>
+			<td colspan="3">[import.fileToImport; strconv=no]</td>
 		</tr>
 		<tr>
 			<td>Ignorer la premi&egrave;re ligne</td>
 			<td>[import.ignore_first_line; strconv=no]</td>
+			<td>Solder les dossiers du leaser non présents dans le fichier</td>
+			<td>[import.solde_dossiers_non_presents; strconv=no]</td>
+			
+		</tr>
+		<tr>
 			<td>Valeurs d&eacute;limit&eacute;es par</td>
 			<td>[import.delimiter; strconv=no]</td>
 			<td>Encadrement des valeurs</td>

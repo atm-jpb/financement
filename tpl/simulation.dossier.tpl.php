@@ -4,11 +4,11 @@
 		<td style="width: 130px;">Leaser</td>
 		<td>Type contrat</td>
 		<td align="center">Montant</td>
-		<td align="center">Durée</td>
-		<td align="center">Loyer</td>
-		<td align="center">Dates</td>
-		<td align="center">Prochaine</td>
-		<td align="center">Ass.</td>
+		<td align="center">Durée<br>Terme</td>
+		<td align="center">Loyer<br>Loyer act.</td>
+		<td align="center">D&eacute;but<br>Fin</td>
+		<td align="center">Prochaine<br>&eacute;ch&eacute;ance</td>
+		<td align="center">Ass.<br>Ass. act</td>
 		<td align="center">Maint.</td>
 		<td align="center">Solde R.</td>
 		<td align="center">Solde NR.</td>
@@ -41,7 +41,10 @@
 			<span style="color: #FF0000; font-weight: bold;">Rel</span>
 			[onshow;block=end]
 		</td>
-		<td align="right" nowrap="nowrap">[champs.assurance; strconv=no; frm=0 000,00] &euro;</td>
+		<td align="right" nowrap="nowrap">
+			[champs.assurance; strconv=no; frm=0 000,00] &euro;<br>
+			[champs.assurance_actualise; strconv=no; frm=0 000,00] &euro;
+		</td>
 		<td align="right" nowrap="nowrap">[champs.maintenance; strconv=no; frm=0 000,00] &euro;</td>
 		[onshow;block=begin;when [champs.display_solde]=='0']
 		<td colspan="4" align="center">Soldes non disponibles. Contactez le service financement</td>

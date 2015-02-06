@@ -291,17 +291,18 @@ class TFin_dossier extends TObjetStd {
 		$sql.= " AND targettype='facture'";
 		$sql.= " AND fk_source=".$this->getId();
 		$sql.= " ORDER BY f.facnumber ASC";
-		
+
 		$ATMdb->Execute($sql);
 		
 		dol_include_once("/compta/facture/class/facture.class.php");
-		$echeance = 0;
-		if($this->financement->loyer_intercalaire > 0) $echeance = -1;
-//		var_dump($all);
+		
 		while($ATMdb->Get_line()) {
 			$fact = new Facture($db);
 			$fact->fetch($ATMdb->Get_field('fk_target'));
 			if($fact->socid == $this->financementLeaser->fk_soc) continue; // Facture matériel associée au leaser, ne pas prendre en compte comme une facture client au sens CPRO
+			
+			$datePeriode = strtotime(implode('-', array_reverse(explode('/', $fact->ref_client))));
+			$echeance = $this->_get_num_echeance_from_date($datePeriode);
 			
 			if(!$all) {
 				$facidavoir=$fact->getListIdAvoirFromInvoice();
@@ -315,7 +316,19 @@ class TFin_dossier extends TObjetStd {
 				if($fact->type == 0 && $fact->total_ht > 0) { // Récupération uniquement des factures standard et sans avoir qui l'annule complètement
 					$this->somme_facture += $fact->total_ht;
 					if($fact->paye == 1) $this->somme_facture_reglee += $fact->total_ht;
-					$this->TFacture[$echeance] = $fact;
+					
+					//TODO si plusieurs facture même échéance alors modification affichage pour afficher tous les liens
+					if(!empty($this->TFacture[$echeance])){
+						if(is_array($this->TFacture[$echeance])){
+							$this->TFacture[$echeance] = array_merge($this->TFacture[$echeance],array($fact));
+						}
+						else{
+							$this->TFacture[$echeance] = array($this->TFacture[$echeance],$fact);
+						}
+					}
+					else{
+						$this->TFacture[$echeance] = $fact;
+					}
 					$echeance++;
 				}
 			} else {
@@ -323,7 +336,28 @@ class TFin_dossier extends TObjetStd {
 				$echeance++;
 			}
 		}
+
+		//pre($this->TFacture,true);exit;
 	}
+
+	// Donne le numéro d'échéance correspondant à une date
+	function _get_num_echeance_from_date($date) {
+		//$echeance = date('m', $date - $this->financement->date_debut) / $this->financement->getiPeriode();
+		if($date - ($this->financement->date_debut + $this->financement->calage) < 0){
+			return -1;
+		}
+		
+		$datetime1 = new DateTime(date('Y-m-d',$date));
+	    $datetime2 = new DateTime(date('Y-m-d',$this->financement->date_debut + $this->financement->calage));
+	    $interval = $datetime2->diff($datetime1);
+
+	    $nbmonth = $interval->format('%m'); //Retourne le nombre de mois
+		$nbmonth += $interval->y * 12; //on ajoute le nombre de mois correspondant au nombre d'année d'écart
+		$echeance = $nbmonth / $this->financement->getiPeriode(); //On divise par la périodicité pour avoir le numéro de l'échéance
+
+		return $echeance;
+	}
+
 	function load_factureFournisseur(&$ATMdb, $all=false) {
 		global $db;
 		$this->somme_facture_fournisseur = 0;
@@ -572,7 +606,9 @@ class TFin_dossier extends TObjetStd {
 	function echeancier(&$ATMdb,$type_echeancier='CLIENT', $echeanceInit = 1 ,$return = false, $withSolde = true) {
 		if($type_echeancier == 'CLIENT') $f = &$this->financement;
 		else $f = &$this->financementLeaser;
-		
+
+		//if($type_echeancier == 'CLIENT') pre($this->TFacture,true);
+
 		 /*
 		 * Affiche l'échéancier
 		 * ----
@@ -637,19 +673,40 @@ class TFin_dossier extends TObjetStd {
 			}
 			else if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[$iFacture])) $fact = $this->TFactureFournisseur[$iFacture];
 //var_dump($fa);
-			if(is_object($fact)) {
+			
+			
+			//pre($this->TFacture,true);exit;
+			
+			if(is_object($fact)) { // Financement Client avec une seule facture
 				$data['facture_total_ht'] = $fact->total_ht;
+				$data['facture_multiple'] = '0';
 				$data['facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
 				$data['facture_link'] .= $fact->id;
 			//	print $iFacture.' '.$fact->id.'<br />';
 				$data['facture_bg'] = ($fact->paye == 1) ? '#00FF00' : '#FF0000';
-			} else if($type_echeancier == 'LEASER' && $this->nature_financement == 'INTERNE' && $time < time() && $f->date_solde <= 0 && $f->montant_solde == 0) {
+			}
+			else if(is_array($fact)) { // Financement Client avec plusieurs factures
+				
+				foreach($fact as $facture_client){
+					$data['facture_total_ht'] += $facture_client->total_ht;
+					$data['facture_multiple'] = '1';
+					$bg_color = ($facture_client->paye == 1) ? '#00FF00' : '#FF0000';
+					$data['facture_link'] .= ($type_echeancier == 'CLIENT') ? '<a style="display:block;margin:0;background-color:'.$bg_color.'" href="'.DOL_URL_ROOT.'/compta/facture.php?facid=' : '<a href="'.DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
+					$data['facture_link'] .= $facture_client->id.'">'.number_format($facture_client->total_ht,2,',','').' €</a>';
+				//	print $iFacture.' '.$fact->id.'<br />';
+					//$data['facture_bg'] = ($facture_client->paye == 1) ? '#00FF00' : '#FF0000';
+					$data['facture_bg'] = ($bg_color === '#FF0000') ? '#CC9933' : '#00FF00' ;
+				}
+			}
+			 else if($type_echeancier == 'LEASER' && $this->nature_financement == 'INTERNE' && $time < time() && $f->date_solde <= 0 && $f->montant_solde == 0) {
 				$link = dol_buildpath('/financement/dossier.php?action=new_facture_leaser&id_dossier='.$this->rowid.'&echeance='.($i+1),1);
 				$data['facture_total_ht'] = '+';
+				$data['facture_multiple'] = '0';
 				$data['facture_link'] = $link;
 				$data['facture_bg'] = '';
 			} else {
 				$data['facture_total_ht'] = '';
+				$data['facture_multiple'] = '0';
 				$data['facture_link'] = '';
 				$data['facture_bg'] = '';
 			}
@@ -1059,7 +1116,7 @@ class TFin_financement extends TObjetStd {
 
 		return false;
 	}
-	function loadOrCreateSirenMontant(&$db, $siren, $montant) {
+	function loadOrCreateSirenMontant(&$db, $siren, $montant, $reference) {
 		$sql = "SELECT a.rowid, a.nature_financement, a.montant, df.rowid as idDossierLeaser, df.reference as refDossierLeaser ";
 		$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
@@ -1077,57 +1134,29 @@ class TFin_financement extends TObjetStd {
 		
 		$db->Execute($sql); // Recherche d'un dossier leaser en cours sans référence et dont le montant de l'affaire correspond
 		if($db->Get_Recordcount() == 0) { // Aucun dossier trouvé, on essaye de le créer
-			$sql = "SELECT a.rowid, a.montant ";
-			$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
-			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
+			 // Création d'une affaire pour création dossier fin externe
+			$sql = "SELECT s.rowid ";
+			$sql.= "FROM ".MAIN_DB_PREFIX."societe s ";
 			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
 			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
 			else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
-			$sql.= "AND a.solde >= ".($montant - 0.01)." ";
-			$sql.= "AND a.solde <= ".($montant + 0.01)." ";
 			
-			$db->Execute($sql); // Recherche d'une affaire sans dossier pour création du dossier EXTERNE
-			if($db->Get_Recordcount() == 1) { // Une seule affaire trouvée OK, on créé
-				$idAffaire = $db->Get_field('rowid');
+			$TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
+			
+			if(!empty($TIdClient[0])) {
+				$d=new TFin_dossier;
+				$d->financementLeaser = $this;
+				$d->save($db);
 				
+				$idClient = $TIdClient[0];
 				$a=new TFin_affaire();
-				$a->load($db, $idAffaire);
-				
-				if($a->nature_financement == 'EXTERNE') { // Si affaire externe, OK on créé le dossier, le financement sera rempli par la suite.
-					$d=new TFin_dossier;
-					$d->financementLeaser = $this;
-					$d->save($db);
-					
-					$a->addDossier($db, $d->getId());
-					$a->save($db);
-				} else {
-					return false; // Affaire interne mais dossier non trouvé selon les conditions définies, erreur à régler
-				}
+				$a->reference = 'EXT-'.date('ymd').'-'.$reference;
+				$a->montant = $montant;
+				$a->fk_soc = $idClient;
+				$a->nature_financement = 'EXTERNE';
+				$a->addDossier($db, $d->getId());
+				$a->save($db);
 				return true;
-			} else if($db->Get_Recordcount() == 0) { // Création d'une affaire pour création dossier fin externe
-				$sql = "SELECT s.rowid ";
-				$sql.= "FROM ".MAIN_DB_PREFIX."societe s ";
-				$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
-				if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
-				else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
-				$TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
-				if(!empty($TIdClient[0])) {
-					$d=new TFin_dossier;
-					$d->financementLeaser = $this;
-					$d->save($db);
-					
-					$idClient = $TIdClient[0];
-					$a=new TFin_affaire();
-					$a->reference = 'EXT-'.date('ymd').'-'.$idClient;
-					$a->montant = $montant;
-					$a->fk_soc = $idClient;
-					$a->nature_financement = 'EXTERNE';
-					$a->addDossier($db, $d->getId());
-					$a->save($db);
-					return true;
-				} else {
-					return false;
-				}
 			} else {
 				return false;
 			}

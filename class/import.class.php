@@ -134,7 +134,7 @@ class TImport extends TObjetStd {
 				break;
 			case 'fichier_leaser':
 				
-				$this->importFichierLeaser($ATMdb, $data);
+				$this->importFichierLeaser($ATMdb, $data, $TInfosGlobale);
 				
 				break;
 			case 'score':
@@ -155,7 +155,7 @@ class TImport extends TObjetStd {
 		$db->commit();
 	}
 
-	function importFichierLeaser(&$ATMdb, $data) {
+	function importFichierLeaser(&$ATMdb, $data, &$TInfosGlobale) {
 		/*$ATMdb->debug=true;
 		echo '<hr><pre>'.$this->nb_lines;
 		print_r($data);
@@ -164,13 +164,16 @@ class TImport extends TObjetStd {
 		/*if($data['echeance']==0) {
 			return false;
 		}*/
+		if(empty($data['reference'])) {
+			return false;
+		}
 	
 		$f=new TFin_financement;
 		if($f->loadReference($ATMdb, $data['reference'], 'LEASER')) { // Recherche du financement leaser par référence
 			// Le financement leaser a été trouvé avec la référence contrat leaser
 		} else if (!empty($data['reference_dossier_interne']) && $f->loadReference($ATMdb, $data['reference_dossier_interne'], 'CLIENT')) { // Recherche du financement client par référence CPRO
 			// Le financement client a été trouvé avec la référence CPRO
-		} else if ($f->loadOrCreateSirenMontant($ATMdb, $data['siren'], $data['montant'])) { // Recherche du financement leaser par siren et montant
+		} else if ($f->loadOrCreateSirenMontant($ATMdb, $data['siren'], $data['montant'], $data['reference'])) { // Recherche du financement leaser par siren et montant
 			// Le financement leaser a été trouvé ou créé par le siren et le montant de l'affaire
 		} else {
 			$this->addError($ATMdb, 'cantFindOrCreateFinancement', $data['reference']);
@@ -224,12 +227,34 @@ class TImport extends TObjetStd {
 			$dossier->save($ATMdb);
 			$this->nb_update++;
 			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
-		
+
+			$TInfosGlobale[] = $dossier->financementLeaser->getId();
+
 			return true;
-		
+
 		}
 		
 		return false;
+	}
+
+	function solde_dossiers_non_presents(&$ATMdb, $idLeaser, &$TInfosGlobale) {
+		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."fin_dossier_financement f ";
+		$sql.= "WHERE f.type = 'LEASER' ";
+		$sql.= "AND f.fk_soc = ".$idLeaser." ";
+		$sql.= "AND f.date_solde = '0000-00-00 00:00:00' ";
+		echo $sql;
+		
+		$TRes = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
+		pre($TRes, true);
+		pre($TInfosGlobale, true);
+		$f = new TFin_financement();
+		foreach ($TRes as $idFinancement) {
+			if(!in_array($idFinancement, $TInfosGlobale)) {
+				$f->load($ATMdb, $idFinancement);
+				$f->date_solde = strtotime('1998-07-12');
+				$f->save($ATMdb);
+			}
+		}
 	}
 
 	function importLineTiers(&$ATMdb, $data) {
@@ -465,13 +490,17 @@ class TImport extends TObjetStd {
 	function importLineFactureLocation(&$ATMdb, $data, &$TInfosGlobale) {
 		global $user, $db;
 		
-		if(!in_array($data['ref_service'], array('SSC101','SSC102','SSC106','037004','037003','033741'))) {
+		if(!in_array($data['ref_service'], array('SSC101','SSC102','SSC106','037004','037003','033741','SSC109','SSC108','SSC104','SSC107','018528','020021'))) {
 			//On importe uniquement certaine ref produit
 			//$this->addError($ATMdb, 'InfoRefServiceNotNeededNow', $data['ref_service'], 'WARNING');
 			return false;
 		}
 		
+		$firstLine = false;
+		
 		if(empty($TInfosGlobale[$data[$this->mapping['search_key']]])) {
+			$firstLine = true;
+			
 			// Recherche si facture existante dans la base
 			$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 			if($facid === false) return false;
@@ -612,21 +641,40 @@ class TImport extends TObjetStd {
 		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_loc), $facture_loc->id,'update');
 		
 		// 2014.10.30 : Evolution pour stocker assurance, maintenance et loyer actualisé
-		/*$facture_loc->fetchObjectLinked('','dossier');
+		$facture_loc->fetchObjectLinked('','dossier');
 		if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
 			$dossier = new TFin_dossier;
-			$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0]);
+			$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0], false);
 			if(!empty($dossier->TLien[0]->affaire) && ($dossier->TLien[0]->affaire->contrat == 'FORFAITGLOBAL' || $dossier->TLien[0]->affaire->contrat == 'INTEGRAL')) {
 				if($data['ref_service'] == '037004') {
 					$dossier->financement->assurance_actualise = $data['total_ht'];
 				}
 				
-				if($data['ref_service'] == 'XXXXXX') {
-					$dossier->financement->montant_prestation = $data['total_ht'];
+				// Addition de différents SSC pour le calcul du montant prestation
+				// Addition de différents SSC pour le calcul du loyer actualisé
+				if(in_array($data['ref_service'], array('SSC124','SSC105','SSC054','SSC05','SSC015','SSC010',
+														'SSC114','SSC004','SSC121','SSC014','SSC118','SSC008',
+														))) {
+					if($firstLine) {
+						$dossier->financement->montant_prestation = $data['pu'];
+					} else {
+						$dossier->financement->montant_prestation+= $data['pu'];
+					}
 				}
+			
+				// Addition de différents SSC pour le calcul du loyer actualisé
+				if(in_array($data['ref_service'], array('18528','20021','SSC101','SSC102','SSC106','33741'
+														,'SSC104'))) {
+					if($firstLine) {
+						$dossier->financement->loyer_actualise = $data['pu'];
+					} else {
+						$dossier->financement->loyer_actualise+= $data['pu'];
+					}
+				}
+				
+				$dossier->save($ATMdb);
 			}
-			$dossier->financement->loyer_actualise = $facture_loc->total_ht;
-		}*/
+		}
 		
 		return true;
 	}
