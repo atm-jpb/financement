@@ -165,8 +165,8 @@ foreach($TMailToSend as $dataMail) {
 	$subjectMail = '[Lease Board] - Alerte facturation integral';
 	$contentMail = $html;
 	
-	/*$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
-	$r->send(true);*/
+	$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
+	$r->send(true);
 	
 	echo $html;
 	echo '<hr>';
