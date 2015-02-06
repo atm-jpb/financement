@@ -303,7 +303,7 @@ class TFin_dossier extends TObjetStd {
 			
 			$datePeriode = strtotime(implode('-', array_reverse(explode('/', $fact->ref_client))));
 			$echeance = $this->_get_num_echeance_from_date($datePeriode);
-			
+			//echo $echeance.'<br>';
 			if(!$all) {
 				$facidavoir=$fact->getListIdAvoirFromInvoice();
 				//$totalht = $fact->total_ht;
@@ -329,15 +329,15 @@ class TFin_dossier extends TObjetStd {
 					else{
 						$this->TFacture[$echeance] = $fact;
 					}
-					$echeance++;
+					//$echeance++;
 				}
 			} else {
 				$this->TFacture[$echeance] = $fact;
-				$echeance++;
+				//$echeance++;
 			}
 		}
 
-		//pre($this->TFacture,true);exit;
+		//pre($this->TFacture,true);
 	}
 
 	// Donne le numéro d'échéance correspondant à une date
@@ -355,7 +355,7 @@ class TFin_dossier extends TObjetStd {
 		$nbmonth += $interval->y * 12; //on ajoute le nombre de mois correspondant au nombre d'année d'écart
 		$echeance = $nbmonth / $this->financement->getiPeriode(); //On divise par la périodicité pour avoir le numéro de l'échéance
 
-		return $echeance;
+		return round($echeance);
 	}
 
 	function load_factureFournisseur(&$ATMdb, $all=false) {
