@@ -698,6 +698,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			
 			,'maintenance' => $fin->montant_prestation
 			,'assurance' => $fin->assurance
+			,'assurance_actualise' => $fin->assurance_actualise
 			,'montant' => $fin->montant
 			
 			,'class' => $bc[$var]
