@@ -51,7 +51,7 @@ foreach($Tab as $row) {
 		,'contrat' => $link
 		,'ref_contrat' => $integral->dossier->financement->reference
 		,'facture' => $integral->facnumber
-		,'date_facture' => date('d/m/y', strtotime($integral->facture->date))
+		,'date_facture' => date('d/m/Y', strtotime($integral->facture->date))
 		,'date_periode' => $integral->facture->ref_client
 		,'montant_engage' => $integral->total_ht_engage
 		,'montant_facture' => $integral->total_ht_facture
