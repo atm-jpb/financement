@@ -29,8 +29,8 @@ $date = date('Y-m-d', $time);
 
 $sql = "SELECT fi.rowid ";
 $sql.= "FROM ".MAIN_DB_PREFIX."fin_facture_integrale fi ";
-$sql.= "WHERE ";//fi.date_maj LIKE '".$date."%' ";
-$sql.= /*"AND*/" fi.ecart >= ".$conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL." ";
+$sql.= "WHERE fi.date_maj LIKE '".$date."%' ";
+$sql.= "AND fi.ecart >= ".$conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL." ";
 
 //echo $sql;
 $ATMdb->Execute($sql);
