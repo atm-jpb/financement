@@ -346,16 +346,35 @@ class TFin_dossier extends TObjetStd {
 		if($date - ($this->financement->date_debut + $this->financement->calage) < 0){
 			return -1;
 		}
-		
-		$datetime1 = new DateTime(date('Y-m-d',$date));
-	    $datetime2 = new DateTime(date('Y-m-d',$this->financement->date_debut + $this->financement->calage));
-	    $interval = $datetime2->diff($datetime1);
+		/*
+		$datefacture = new DateTime(date('Y-m-d',$date));
+	    $datefirstecheance = new DateTime(date('Y-m-d',$this->financement->date_debut + $this->financement->calage));
+		//echo $datetime1->format('Y-m-d H:i:s').'<br>';
+		//echo $datetime2->format('Y-m-d H:i:s').'<br>';
+	    $interval = $datefirstecheance->diff($datefacture);
 
 	    $nbmonth = $interval->format('%m'); //Retourne le nombre de mois
 		$nbmonth += $interval->y * 12; //on ajoute le nombre de mois correspondant au nombre d'année d'écart
+		$nbmonth += ($interval->d > 0) ? 1 : 0; //on ajoute un mois suplémentaire si on a un écart en jours
 		$echeance = $nbmonth / $this->financement->getiPeriode(); //On divise par la périodicité pour avoir le numéro de l'échéance
 
-		return round($echeance);
+		 return round($echeance); 
+		 */
+
+		$flag = true; $cpt = 0; 
+		$t = $this->financement->date_debut + $this->financement->calage; 
+		$iEcheance = 0;
+		while($flag && $cpt<100) {
+			
+			$t = strtotime('+'.$this->financement->getiPeriode().'month', $t);
+			if($t>$date) break;
+
+			$iEcheance++;
+
+			$cpt++;
+		}
+		
+		return $iEcheance;
 	}
 
 	function load_factureFournisseur(&$ATMdb, $all=false) {
