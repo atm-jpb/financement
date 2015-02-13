@@ -29,8 +29,8 @@ $date = date('Y-m-d', $time);
 
 $sql = "SELECT fi.rowid ";
 $sql.= "FROM ".MAIN_DB_PREFIX."fin_facture_integrale fi ";
-$sql.= "WHERE ";//fi.date_maj LIKE '".$date."%' ";
-$sql.= /*"AND*/" fi.ecart >= ".$conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL." ";
+$sql.= "WHERE fi.date_maj LIKE '".$date."%' ";
+$sql.= "AND fi.ecart >= ".$conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL." ";
 
 //echo $sql;
 $ATMdb->Execute($sql);
@@ -51,7 +51,7 @@ foreach($Tab as $row) {
 		,'contrat' => $link
 		,'ref_contrat' => $integral->dossier->financement->reference
 		,'facture' => $integral->facnumber
-		,'date_facture' => date('d/m/y', strtotime($integral->facture->date))
+		,'date_facture' => date('d/m/Y', strtotime($integral->facture->date))
 		,'date_periode' => $integral->facture->ref_client
 		,'montant_engage' => $integral->total_ht_engage
 		,'montant_facture' => $integral->total_ht_facture
