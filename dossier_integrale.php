@@ -140,13 +140,13 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale){
 		$TIntegrale[$integrale->date_periode]->facnumber .= "<br>".$integrale->facnumber;
 		
 		//Addition des champs qui vont bien
-		$TIntegrale[$integrale->date_periode]->vol_noir_engage += $integrale->vol_noir_engage;
+		$TIntegrale[$integrale->date_periode]->vol_noir_engage = $integrale->vol_noir_engage;
 		$TIntegrale[$integrale->date_periode]->vol_noir_realise += $integrale->vol_noir_realise;
 		$TIntegrale[$integrale->date_periode]->vol_noir_facture += $integrale->vol_noir_facture;
 		
 		$TIntegrale[$integrale->date_periode]->cout_unit_noir .= "<br>".number_format($integrale->cout_unit_noir,5,',','')." €";
 		
-		$TIntegrale[$integrale->date_periode]->vol_coul_engage += $integrale->vol_coul_engage;
+		$TIntegrale[$integrale->date_periode]->vol_coul_engage = $integrale->vol_coul_engage;
 		$TIntegrale[$integrale->date_periode]->vol_coul_realise += $integrale->vol_coul_realise;
 		$TIntegrale[$integrale->date_periode]->vol_coul_facture += $integrale->vol_coul_facture;
 		
