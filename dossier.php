@@ -425,7 +425,7 @@ function _getExportXML($sql){
 	$file = fopen($filepath,'w');
 	
 	//Ajout première ligne libelle
-	$TLabel = array('Contrat','Contrat Leaser','Affaire','Nature','Client','Leaser','Durée','Montant','Echéance','Prochaine','Début','Fin','Facture Matériel');
+	$TLabel = array('Contrat','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant','Echeance','Prochaine','Debut','Fin','Facture Materiel');
 	fputcsv($file, $TLabel,';','"');
 	
 	foreach($TTRes as $TRes){
