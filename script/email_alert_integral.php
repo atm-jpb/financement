@@ -29,8 +29,8 @@ $date = date('Y-m-d', $time);
 
 $sql = "SELECT fi.rowid ";
 $sql.= "FROM ".MAIN_DB_PREFIX."fin_facture_integrale fi ";
-$sql.= "WHERE ";//fi.date_maj LIKE '".$date."%' ";
-$sql.= /*"AND*/" fi.ecart >= ".$conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL." ";
+$sql.= "WHERE fi.date_maj LIKE '".$date."%' ";
+$sql.= "AND fi.ecart >= ".$conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL." ";
 
 //echo $sql;
 $ATMdb->Execute($sql);
@@ -51,7 +51,7 @@ foreach($Tab as $row) {
 		,'contrat' => $link
 		,'ref_contrat' => $integral->dossier->financement->reference
 		,'facture' => $integral->facnumber
-		,'date_facture' => date('d/m/y', strtotime($integral->facture->date))
+		,'date_facture' => date('d/m/Y', strtotime($integral->facture->date))
 		,'date_periode' => $integral->facture->ref_client
 		,'montant_engage' => $integral->total_ht_engage
 		,'montant_facture' => $integral->total_ht_facture
@@ -120,7 +120,7 @@ function parseData(&$TMailToSend){
 				//pre($TFacture,true);exit;
 				$TMail['content'][$k-1]['facture'] .= "<br>".$TMail['content'][$k]['facture'];
 				$TMail['content'][$k-1]['date_facture'] .= "<br>".$TMail['content'][$k]['date_facture'];
-				$TMail['content'][$k-1]['montant_engage'] += $TMail['content'][$k]['montant_engage'];
+				//$TMail['content'][$k-1]['montant_engage'] += $TMail['content'][$k]['montant_engage'];
 				$TMail['content'][$k-1]['montant_facture'] += $TMail['content'][$k]['montant_facture'];				
 				$TMail['content'][$k-1]['ecart'] = ($TMail['content'][$k-1]['montant_facture'] - $TMail['content'][$k-1]['montant_engage']) *100 / $TMail['content'][$k-1]['montant_engage'];
 				
@@ -165,8 +165,8 @@ foreach($TMailToSend as $dataMail) {
 	$subjectMail = '[Lease Board] - Alerte facturation integral';
 	$contentMail = $html;
 	
-	/*$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
-	$r->send(true);*/
+	$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
+	$r->send(true);
 	
 	echo $html;
 	echo '<hr>';

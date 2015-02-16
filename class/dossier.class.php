@@ -303,7 +303,7 @@ class TFin_dossier extends TObjetStd {
 			
 			$datePeriode = strtotime(implode('-', array_reverse(explode('/', $fact->ref_client))));
 			$echeance = $this->_get_num_echeance_from_date($datePeriode);
-			
+			//echo $echeance.'<br>';
 			if(!$all) {
 				$facidavoir=$fact->getListIdAvoirFromInvoice();
 				//$totalht = $fact->total_ht;
@@ -329,15 +329,15 @@ class TFin_dossier extends TObjetStd {
 					else{
 						$this->TFacture[$echeance] = $fact;
 					}
-					$echeance++;
+					//$echeance++;
 				}
 			} else {
 				$this->TFacture[$echeance] = $fact;
-				$echeance++;
+				//$echeance++;
 			}
 		}
 
-		//pre($this->TFacture,true);exit;
+		//pre($this->TFacture,true);
 	}
 
 	// Donne le numéro d'échéance correspondant à une date
@@ -346,16 +346,35 @@ class TFin_dossier extends TObjetStd {
 		if($date - ($this->financement->date_debut + $this->financement->calage) < 0){
 			return -1;
 		}
-		
-		$datetime1 = new DateTime(date('Y-m-d',$date));
-	    $datetime2 = new DateTime(date('Y-m-d',$this->financement->date_debut + $this->financement->calage));
-	    $interval = $datetime2->diff($datetime1);
+		/*
+		$datefacture = new DateTime(date('Y-m-d',$date));
+	    $datefirstecheance = new DateTime(date('Y-m-d',$this->financement->date_debut + $this->financement->calage));
+		//echo $datetime1->format('Y-m-d H:i:s').'<br>';
+		//echo $datetime2->format('Y-m-d H:i:s').'<br>';
+	    $interval = $datefirstecheance->diff($datefacture);
 
 	    $nbmonth = $interval->format('%m'); //Retourne le nombre de mois
 		$nbmonth += $interval->y * 12; //on ajoute le nombre de mois correspondant au nombre d'année d'écart
+		$nbmonth += ($interval->d > 0) ? 1 : 0; //on ajoute un mois suplémentaire si on a un écart en jours
 		$echeance = $nbmonth / $this->financement->getiPeriode(); //On divise par la périodicité pour avoir le numéro de l'échéance
 
-		return $echeance;
+		 return round($echeance); 
+		 */
+
+		$flag = true; $cpt = 0; 
+		$t = $this->financement->date_debut + $this->financement->calage; 
+		$iEcheance = 0;
+		while($flag && $cpt<100) {
+			
+			$t = strtotime('+'.$this->financement->getiPeriode().'month', $t);
+			if($t>$date) break;
+
+			$iEcheance++;
+
+			$cpt++;
+		}
+		
+		return $iEcheance;
 	}
 
 	function load_factureFournisseur(&$ATMdb, $all=false) {
@@ -1140,6 +1159,8 @@ class TFin_financement extends TObjetStd {
 			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
 			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
 			else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
+			$sql.= "AND a.solde >= ".($montant - 0.01)." ";
+			$sql.= "AND a.solde <= ".($montant + 0.01)." ";
 			
 			$TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
 			
@@ -1157,6 +1178,30 @@ class TFin_financement extends TObjetStd {
 				$a->addDossier($db, $d->getId());
 				$a->save($db);
 				return true;
+			} else if($db->Get_Recordcount() == 0) { // Création d'une affaire pour création dossier fin externe
+				$sql = "SELECT s.rowid ";
+				$sql.= "FROM ".MAIN_DB_PREFIX."societe s ";
+				$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
+				if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
+				else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
+				$TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
+				if(!empty($TIdClient[0])) {
+					$d=new TFin_dossier;
+					$d->financementLeaser = $this;
+					$d->save($db);
+					
+					$idClient = $TIdClient[0];
+					$a=new TFin_affaire();
+					$a->reference = 'EXT-'.date('ymd').'-'.$idClient;
+					$a->montant = $montant;
+					$a->fk_soc = $idClient;
+					$a->nature_financement = 'EXTERNE';
+					$a->addDossier($db, $d->getId());
+					$a->save($db);
+					return true;
+				} else {
+					return false;
+				}
 			} else {
 				return false;
 			}

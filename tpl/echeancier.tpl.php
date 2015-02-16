@@ -95,6 +95,7 @@
 							<a href="[ligne.facture_link]">[ligne.facture_total_ht; frm=0 000,00] &euro;</a>
 						[onshow;block=end]
 						[onshow;block=begin; when [ligne.facture_multiple]='1']
+							<b>Total : [ligne.facture_total_ht; frm=0 000,00] &euro;</b>
 							[ligne.facture_link;strconv=no]
 						[onshow;block=end]
 					</td>

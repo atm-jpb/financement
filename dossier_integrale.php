@@ -21,7 +21,7 @@ if(empty($id_dossier)) {
 	_liste($PDOdb, $dossier);
 } else {
 	$dossier->load($PDOdb, $id_dossier);
-	$dossier->load_facture($PDOdb);
+	$dossier->load_facture($PDOdb, true);
 	_fiche($PDOdb, $db, $dossier);
 }
 
@@ -140,13 +140,13 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale){
 		$TIntegrale[$integrale->date_periode]->facnumber .= "<br>".$integrale->facnumber;
 		
 		//Addition des champs qui vont bien
-		$TIntegrale[$integrale->date_periode]->vol_noir_engage += $integrale->vol_noir_engage;
+		$TIntegrale[$integrale->date_periode]->vol_noir_engage = $integrale->vol_noir_engage;
 		$TIntegrale[$integrale->date_periode]->vol_noir_realise += $integrale->vol_noir_realise;
 		$TIntegrale[$integrale->date_periode]->vol_noir_facture += $integrale->vol_noir_facture;
 		
 		$TIntegrale[$integrale->date_periode]->cout_unit_noir .= "<br>".number_format($integrale->cout_unit_noir,5,',','')." €";
 		
-		$TIntegrale[$integrale->date_periode]->vol_coul_engage += $integrale->vol_coul_engage;
+		$TIntegrale[$integrale->date_periode]->vol_coul_engage = $integrale->vol_coul_engage;
 		$TIntegrale[$integrale->date_periode]->vol_coul_realise += $integrale->vol_coul_realise;
 		$TIntegrale[$integrale->date_periode]->vol_coul_facture += $integrale->vol_coul_facture;
 		
@@ -157,7 +157,7 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale){
 		$TIntegrale[$integrale->date_periode]->frais_dossier += $integrale->frais_dossier;
 		$TIntegrale[$integrale->date_periode]->frais_bris_machine += $integrale->frais_bris_machine;
 		$TIntegrale[$integrale->date_periode]->frais_facturation += $integrale->frais_facturation;
-		$TIntegrale[$integrale->date_periode]->total_ht_engage += $integrale->total_ht_engage;
+		//$TIntegrale[$integrale->date_periode]->total_ht_engage += $integrale->total_ht_engage;
 		$TIntegrale[$integrale->date_periode]->total_ht_realise += $integrale->total_ht_realise;
 		$TIntegrale[$integrale->date_periode]->total_ht_facture += $integrale->total_ht_facture;
 
