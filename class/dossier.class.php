@@ -1273,10 +1273,58 @@ class TFin_financement extends TObjetStd {
 		
 		$g->calcul_financement($this->montant, $this->duree, $this->echeance, $this->reste, $this->taux);
 		*/
+		
+		//Dans le cas d'un financement LEASER, si la date du sole est renseignée, alors on créé les avoirs correspondant au factures fournisseur
+		//qui existe pour les échéances situées après cette date
+		if($this->type == 'LEASER' && !empty($this->date_solde)){
+			$dossier = new TFin_dossier;
+			$dossier->load($ATMdb, $this->fk_fin_dossier);
+			$dossier->load_factureFournisseur($ATMdb);
+			
+			foreach($dossier->TFactureFournisseur as $echeance => $facturefourn){
+				$date_debut_echeance = $dossier->getDateDebutPeriode($echeance);
+
+				if(strtotime($date_debut_echeance) >= $this->date_solde){
+					$this->createAvoirLeaserFromFacture($ATMdb,$facturefourn->id,$dossier->rowid);
+				}
+			}
+		}
+		
 		parent::save($ATMdb);
 		
 		return true;
 	}
+
+	function createAvoirLeaserFromFacture(&$ATMdb,$idFactureFourn,$idDossier){
+		global $db,$user;
+		
+		dol_include_once('/fourn/class/fournisseur.facture.class.php');
+		dol_include_once('/product/class/product.class.php');
+
+		$origine = new FactureFournisseur($db);
+		$origine->fetch($idFactureFourn);
+		
+		$fact = new FactureFournisseur($db);
+		$idClone = $fact->createFromClone($idFactureFourn);
+		$fact->fetch($idClone);
+		
+		$fact->type = 2;
+		$fact->fk_facture_source = $origine->id;
+		$fact->facnumber = 'AV'.$origine->facnumber;
+		$fact->ref_supplier = 'AV'.$origine->facnumber;
+		$fact->update($user);
+		foreach($fact->lines as $line) {
+			$line->pu_ht *= -1;
+			$fact->updateline($line->rowid, $line->libelle, $line->pu_ht, $line->tva_tx,0,0,$line->qty,$line->fk_product);
+		}
+		
+		$fact->validate($user);
+		
+		// Ajout lien dossier
+		$fact->add_object_linked('dossier', $idDossier);
+
+	}
+
 	private function getTypeContrat(&$ATMdb) {
 		if(!isset($this->idTypeContrat)) {
 			$ATMdb->Execute("SELECT contrat 
