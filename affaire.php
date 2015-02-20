@@ -105,19 +105,21 @@
 			
 			case 'add_facture_mat':
 			//$ATMdb->db->debug=true;
-				/*$affaire->load($ATMdb, $_REQUEST['id']);
+				$affaire->load($ATMdb, $_REQUEST['id']);
 				$affaire->set_values($_REQUEST);
-			
-				if(!$affaire->addDossier($ATMdb, null, $_REQUEST['dossier_to_add'])) {
-					$mesg = '<div class="error">Impossible d\'ajouter ce dossier à l\'affaire. </div>';
+				
+				//echo $_REQUEST['facture_mat_to_add'];exit;
+				
+				if(!$affaire->addFactureMat($ATMdb,$_REQUEST['facture_mat_to_add'])) {
+					$mesg = '<div class="error">Impossible de lier cette facture matériel à l\'affaire. </div>';
 					$error=true;
 					
 				}	
 				else {
-					$mesg = '<div class="ok">Dossier ajouté à l\'affaire</div>';
+					$mesg = '<div class="ok">Facture matériel liée à l\'affaire</div>';
 				}
 				//exit($mesg);
-				$affaire->save($ATMdb);*/
+				$affaire->save($ATMdb);
 				
 				_fiche($ATMdb, $affaire,'edit');
 				

@@ -58,13 +58,13 @@
 			</table>
 			
 			[onshow;block=begin;when [view.mode]!='view']
-			<!-- <p>Ajouter la facture matériel numéro : <input type="text" value="" name="facture_mat_to_add" size="20" id="facture_mat_to_add" /><input type="button" value="Ajouter" name="add_facture_mat" class="button" onclick="$('#action').val('add_facture_mat'); $('#formAff').submit();"></p> 
+			<p>Ajouter la facture matériel numéro : <input type="text" value="" name="facture_mat_to_add" size="20" id="facture_mat_to_add" /><input type="button" value="Ajouter" name="add_facture_mat" class="button" onclick="$('#action').val('add_facture_mat'); $('#formAff').submit();"></p> 
 			<script language="javascript">
 				$('#facture_mat_to_add').autocomplete({
 					source: [view.otherFactureMat; strconv=no; protect=no]
 				});
 				 $("#facture_mat_to_add" ).autocomplete("option", "minLength", 3);
-			</script> -->
+			</script>
 			[onshow;block=end]
 			
 [onshow;block=begin;when [view.mode]=='view']

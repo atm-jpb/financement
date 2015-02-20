@@ -204,8 +204,8 @@ class TFin_affaire extends TObjetStd {
 		$facture->fetch_lines();
 
 		foreach($facture->lines as $line){
-		
-			if(strpos($line->desc, 'Matricule(s)')){
+
+			if(strpos($line->desc, 'Matricule(s)') !== FALSE){
 				// Création des liens entre affaire et matériel
 				$TSerial = explode(' - ',strtr($line->desc, array('Matricule(s) '=>'')));
 
@@ -214,16 +214,15 @@ class TFin_affaire extends TObjetStd {
 
 					$asset=new TAsset;
 					if($asset->loadReference($ATMdb, $serial)) {
-						$asset->fk_soc = $affaire->fk_soc;
+						//pre($asset,true);exit;
+						$asset->fk_soc = $this->fk_soc;
 
-						$asset->add_link($affaire->getId(),'affaire');
+						$asset->add_link($this->getId(),'affaire');
 						$asset->add_link($facture_mat->id,'facture');
 
 						$asset->save($ATMdb);
 					}
-					else {
-						$this->addError($ATMdb, 'ErrorMaterielNotFound', $serial);
-					}
+
 				}
 				
 				//Vérification si lien affaire => facture matériel déjà existant
@@ -234,10 +233,13 @@ class TFin_affaire extends TObjetStd {
 				}
 				else{*/
 					// Création du lien facture matériel / affaire financement
-					$facture_mat->add_object_linked('affaire', $affaire->getId());
+					
+					$facture->add_object_linked('affaire', $this->getId());
 				//}
 			}
 		}
+		
+		return true;
 	}
 	
 	function deleteEquipement(&$db, $id) {
