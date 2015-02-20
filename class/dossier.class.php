@@ -1430,3 +1430,17 @@ class TFin_financement extends TObjetStd {
 		return $rate;
 	}
 }
+
+
+class TFin_facture_fournisseur extends TObjetStd {
+		
+	function __construct() { /* declaration */
+	global $langs;
+
+		parent::set_table(MAIN_DB_PREFIX.'facture_fourn');
+		parent::add_champs('date_debut_periode,date_fin_periode','type=chaine;');
+
+		parent::start();
+		parent::_init_vars();
+	}
+}

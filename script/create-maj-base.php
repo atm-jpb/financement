@@ -62,3 +62,6 @@
 	// Intégrale
 	$o=new TIntegrale();
 	$o->init_db_by_vars($ATMdb);
+
+	$o=new TFin_facture_fournisseur;
+	$o->init_db_by_vars($ATMdb);
