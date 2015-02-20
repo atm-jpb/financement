@@ -38,7 +38,7 @@ foreach($TData as $obj) {
 		$date_debut_periode = $dossier->getDateDebutPeriode($echeance);
 		$date_fin_periode = $dossier->getDateFinPeriode($echeance);
 
-		$sql = "UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('d/m/Y',strtotime($date_debut_periode))."' , date_fin_periode = '".date('d/m/Y',strtotime($date_fin_periode))."' WHERE rowid = ".$facture->id;
+		$sql = "UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$facture->id;
 		$PDOdb->Execute($sql);
 	}
 }
