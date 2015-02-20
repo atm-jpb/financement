@@ -195,6 +195,51 @@ class TFin_affaire extends TObjetStd {
 		}
 		
 	}
+	
+	function addFactureMat(&$ATMdb,$facnumber){
+		global $db;
+
+		$facture = new Facture($db);
+		$facture->fetch('',$facnumber);
+		$facture->fetch_lines();
+
+		foreach($facture->lines as $line){
+		
+			if(strpos($line->desc, 'Matricule(s)')){
+				// Création des liens entre affaire et matériel
+				$TSerial = explode(' - ',strtr($line->desc, array('Matricule(s) '=>'')));
+
+				foreach($TSerial as $serial) {
+					$serial = trim($serial);
+
+					$asset=new TAsset;
+					if($asset->loadReference($ATMdb, $serial)) {
+						$asset->fk_soc = $affaire->fk_soc;
+
+						$asset->add_link($affaire->getId(),'affaire');
+						$asset->add_link($facture_mat->id,'facture');
+
+						$asset->save($ATMdb);
+					}
+					else {
+						$this->addError($ATMdb, 'ErrorMaterielNotFound', $serial);
+					}
+				}
+				
+				//Vérification si lien affaire => facture matériel déjà existant
+				/*$ATMdb->Execute("SELECT rowid FROM ".MAIN_DB_PREFIX."element_element WHERE sourcetype = 'affaire' AND targettype = 'facture' AND fk_target = ".$facture_mat->id);
+
+				if($ATMdb->Get_line()){
+					$this->addError($ATMdb, 'ErrorCreatingLinkAffaireFactureMaterielAlreidyExist', $data['code_affaire']." => ".$facture_mat->ref, 'ERROR');
+				}
+				else{*/
+					// Création du lien facture matériel / affaire financement
+					$facture_mat->add_object_linked('affaire', $affaire->getId());
+				//}
+			}
+		}
+	}
+	
 	function deleteEquipement(&$db, $id) {
 		foreach($this->TAsset as $k=>&$lien) {
 			if($lien->asset->getId()==$id && $lien->fk_document==$this->getId() && $lien->type_document=='affaire') {
