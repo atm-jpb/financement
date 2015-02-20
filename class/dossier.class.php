@@ -656,6 +656,11 @@ class TFin_dossier extends TObjetStd {
 			
 			$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut + $f->calage);
 			
+			//Cas spécifique lorsque date début contrat au 31
+			if(date('d',$time) == '01'){
+				$time = strtotime('-1 day',$time);
+			}
+			
 			$capital_amortit = $f->amortissement_echeance( $i + 1 ,$capital_restant);
 			$part_interet = $f->echeance -$capital_amortit;
 
@@ -935,6 +940,10 @@ class TFin_dossier extends TObjetStd {
 		else{
 			$date = date('Y-m-d',$this->financement->date_debut + $this->financement->calage);
 			$date = date('Y-m-d',strtotime('+'.($echeance * $this->financement->getiPeriode()).' month',strtotime($date)));
+		}
+
+		if(date('d',strtotime($date)) == '01'){
+			$date = date('Y-m-d',strtotime('-1 day',strtotime($date)));
 		}
 
 		return $date;

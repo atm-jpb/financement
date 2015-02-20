@@ -21,6 +21,7 @@ $PDOdb=new TPDOdb;
 $sql = "SELECT d.rowid
 		FROM ".MAIN_DB_PREFIX."fin_dossier d
 		LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement f ON (f.fk_fin_dossier = d.rowid AND f.type = 'LEASER')";
+//$sql .= " WHERE d.rowid = 2273";
 
 $PDOdb->Execute($sql);
 $TData = $PDOdb->Get_All();
