@@ -926,17 +926,23 @@ class TFin_dossier extends TObjetStd {
 	}
 
 
-	function getDateDebutPeriode($echeance){
+	function getDateDebutPeriode($echeance,$type='LEASER'){
 		
-		$date = date('Y-m-d',$this->date_debut);
-		$date = date('Y-m-d',strtotime('+'.($echeance * $this->financementLeaser->getiPeriode()).' month',strtotime($date)));
+		if($type == 'LEASER'){
+			$date = date('Y-m-d',$this->financementLeaser->date_debut + $this->financementLeaser->calage);
+			$date = date('Y-m-d',strtotime('+'.($echeance * $this->financementLeaser->getiPeriode()).' month',strtotime($date)));
+		}
+		else{
+			$date = date('Y-m-d',$this->financement->date_debut + $this->financement->calage);
+			$date = date('Y-m-d',strtotime('+'.($echeance * $this->financement->getiPeriode()).' month',strtotime($date)));
+		}
 
 		return $date;
 	}
 	
-	function getDateFinPeriode($echeance){
+	function getDateFinPeriode($echeance,$type='LEASER'){
 		
-		$date = $this->getDateDebutPeriode($echeance+1);
+		$date = $this->getDateDebutPeriode($echeance+1,$type);
 		$date = date('Y-m-d',strtotime('-1 day',strtotime($date)));
 		
 		return $date;

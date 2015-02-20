@@ -33,11 +33,15 @@ foreach($TData as $obj) {
 	//Parcours de toutes les factures fournisseur associé à un dossier de financement leaser
 	//Objectif : peupler proprement les champs date_debut_periode et date_fin_periode
 	foreach($dossier->TFactureFournisseur as $echeance => $facture){
-		$echeance += 1;
 		
-		$date_debut_periode = $dossier->getDateDebutPeriode($echeance);
+		$date_debut_periode = $dossier->getDateDebutPeriode($echeance,'LEASER');
 		$date_fin_periode = $dossier->getDateFinPeriode($echeance);
-
+		
+		/*echo date('d/m/Y',$dossier->date_debut)." ".$dossier->financementLeaser->calage.'<br>';
+		echo $echeance.'<br>';
+		echo $date_debut_periode.'<br>';
+		echo $date_fin_periode.'<br><hr>';*/
+		
 		$sql = "UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$facture->id;
 		$PDOdb->Execute($sql);
 	}
