@@ -949,12 +949,12 @@ class TFin_dossier extends TObjetStd {
 		if($type == 'LEASER'){
 			$date = date('Y-m-d',$this->financementLeaser->date_debut + $this->financementLeaser->calage);
 			//$date = date('Y-m-d',strtotime('+'.($echeance * $this->financementLeaser->getiPeriode()).' month',strtotime($date)));
-			$date = $this->_add_month($echeance * $this->financementLeaser->getiPeriode(),  strtotime($date));
+			$date = date('Y-m-d',$this->_add_month($echeance * $this->financementLeaser->getiPeriode(),  strtotime($date)));
 		}
 		else{
 			$date = date('Y-m-d',$this->financement->date_debut + $this->financement->calage);
 			//$date = date('Y-m-d',strtotime('+'.($echeance * $this->financement->getiPeriode()).' month',strtotime($date)));
-			$date = $this->_add_month($echeance * $this->financement->getiPeriode(),  strtotime($date));
+			$date = date('Y-m-d',$this->_add_month($echeance * $this->financement->getiPeriode(),  strtotime($date)));
 		}
 
 		return $date;
