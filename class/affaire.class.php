@@ -312,7 +312,7 @@ class TFin_affaire extends TObjetStd {
 		
 		$TAffaires = array();
 		
-		$sql = 'SELECT fa.rowid 
+		$sql = 'SELECT DISTINCT(fa.rowid) 
 				FROM '.MAIN_DB_PREFIX.'fin_affaire as fa
 					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire as da ON (da.fk_fin_affaire = fa.rowid)
 					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement as df ON (df.fk_fin_dossier = da.fk_fin_dossier)
@@ -411,8 +411,10 @@ class TFin_affaire extends TObjetStd {
 		//pre($Affaire,true);exit;
 
 		foreach($Affaire->TLien as $i => $Tdata){
-			$elements = $this->_getElementsXML($xml,$Tdata,$i,$Affaire);
-			$affaire->appendChild($elements);
+			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert){
+				$elements = $this->_getElementsXML($xml,$Tdata,$i,$Affaire);
+				$affaire->appendChild($elements);
+			}
 		}
 
 		return $affaire;
