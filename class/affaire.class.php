@@ -195,6 +195,53 @@ class TFin_affaire extends TObjetStd {
 		}
 		
 	}
+	
+	function addFactureMat(&$ATMdb,$facnumber){
+		global $db;
+
+		$facture = new Facture($db);
+		$facture->fetch('',$facnumber);
+		$facture->fetch_lines();
+
+		foreach($facture->lines as $line){
+
+			if(strpos($line->desc, 'Matricule(s)') !== FALSE){
+				// Création des liens entre affaire et matériel
+				$TSerial = explode(' - ',strtr($line->desc, array('Matricule(s) '=>'')));
+
+				foreach($TSerial as $serial) {
+					$serial = trim($serial);
+
+					$asset=new TAsset;
+					if($asset->loadReference($ATMdb, $serial)) {
+						//pre($asset,true);exit;
+						$asset->fk_soc = $this->fk_soc;
+
+						$asset->add_link($this->getId(),'affaire');
+						$asset->add_link($facture_mat->id,'facture');
+
+						$asset->save($ATMdb);
+					}
+
+				}
+				
+				//Vérification si lien affaire => facture matériel déjà existant
+				/*$ATMdb->Execute("SELECT rowid FROM ".MAIN_DB_PREFIX."element_element WHERE sourcetype = 'affaire' AND targettype = 'facture' AND fk_target = ".$facture_mat->id);
+
+				if($ATMdb->Get_line()){
+					$this->addError($ATMdb, 'ErrorCreatingLinkAffaireFactureMaterielAlreidyExist', $data['code_affaire']." => ".$facture_mat->ref, 'ERROR');
+				}
+				else{*/
+					// Création du lien facture matériel / affaire financement
+					
+					$facture->add_object_linked('affaire', $this->getId());
+				//}
+			}
+		}
+		
+		return true;
+	}
+	
 	function deleteEquipement(&$db, $id) {
 		foreach($this->TAsset as $k=>&$lien) {
 			if($lien->asset->getId()==$id && $lien->fk_document==$this->getId() && $lien->type_document=='affaire') {
@@ -265,7 +312,7 @@ class TFin_affaire extends TObjetStd {
 		
 		$TAffaires = array();
 		
-		$sql = 'SELECT fa.rowid 
+		$sql = 'SELECT DISTINCT(fa.rowid) 
 				FROM '.MAIN_DB_PREFIX.'fin_affaire as fa
 					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire as da ON (da.fk_fin_affaire = fa.rowid)
 					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement as df ON (df.fk_fin_dossier = da.fk_fin_dossier)
@@ -364,8 +411,10 @@ class TFin_affaire extends TObjetStd {
 		//pre($Affaire,true);exit;
 
 		foreach($Affaire->TLien as $i => $Tdata){
-			$elements = $this->_getElementsXML($xml,$Tdata,$i,$Affaire);
-			$affaire->appendChild($elements);
+			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert){
+				$elements = $this->_getElementsXML($xml,$Tdata,$i,$Affaire);
+				$affaire->appendChild($elements);
+			}
 		}
 
 		return $affaire;

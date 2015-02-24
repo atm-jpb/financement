@@ -621,6 +621,23 @@ class TFin_dossier extends TObjetStd {
 				break;
 		}
 	}
+
+	private function _add_month($how_many_month, $time) {
+
+		$time_result = strtotime('+'.$how_many_month.' month', $time);
+
+		if(date('d', $time) == date('t', $time) || date('d', $time) > date('d', $time_result)) {
+			$time1 = strtotime(date('Y-m-01', $time));
+			$time2 = strtotime('+'.$how_many_month.' month', $time1);
+			$time= strtotime( date('Y-m-t', $time2) );
+		}
+		else{
+			$time = $time_result;
+		}
+	
+	
+		return $time;
+	}
 	
 	function echeancier(&$ATMdb,$type_echeancier='CLIENT', $echeanceInit = 1 ,$return = false, $withSolde = true) {
 		if($type_echeancier == 'CLIENT') $f = &$this->financement;
@@ -654,8 +671,9 @@ class TFin_dossier extends TObjetStd {
 //var_dump($this->TFacture);		
 		for($i=($echeanceInit-1); $i<$f->duree; $i++) {
 			
-			$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut + $f->calage);
-			
+			//$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut + $f->calage);
+			$time = $this->_add_month($i*$f->getiPeriode(),  $f->date_debut + $f->calage);
+
 			$capital_amortit = $f->amortissement_echeance( $i + 1 ,$capital_restant);
 			$part_interet = $f->echeance -$capital_amortit;
 
@@ -923,6 +941,31 @@ class TFin_dossier extends TObjetStd {
 		}
 		
 		return $object;
+	}
+
+
+	function getDateDebutPeriode($echeance,$type='LEASER'){
+		
+		if($type == 'LEASER'){
+			$date = date('Y-m-d',$this->financementLeaser->date_debut + $this->financementLeaser->calage);
+			//$date = date('Y-m-d',strtotime('+'.($echeance * $this->financementLeaser->getiPeriode()).' month',strtotime($date)));
+			$date = date('Y-m-d',$this->_add_month($echeance * $this->financementLeaser->getiPeriode(),  strtotime($date)));
+		}
+		else{
+			$date = date('Y-m-d',$this->financement->date_debut + $this->financement->calage);
+			//$date = date('Y-m-d',strtotime('+'.($echeance * $this->financement->getiPeriode()).' month',strtotime($date)));
+			$date = date('Y-m-d',$this->_add_month($echeance * $this->financement->getiPeriode(),  strtotime($date)));
+		}
+
+		return $date;
+	}
+	
+	function getDateFinPeriode($echeance,$type='LEASER'){
+		
+		$date = $this->getDateDebutPeriode($echeance+1,$type);
+		$date = date('Y-m-d',strtotime('-1 day',strtotime($date)));
+		
+		return $date;
 	}
 }
 
@@ -1282,10 +1325,58 @@ class TFin_financement extends TObjetStd {
 		
 		$g->calcul_financement($this->montant, $this->duree, $this->echeance, $this->reste, $this->taux);
 		*/
+		
+		//Dans le cas d'un financement LEASER, si la date du sole est renseignée, alors on créé les avoirs correspondant au factures fournisseur
+		//qui existe pour les échéances situées après cette date
+		if($this->type == 'LEASER' && !empty($this->date_solde)){
+			$dossier = new TFin_dossier;
+			$dossier->load($ATMdb, $this->fk_fin_dossier);
+			$dossier->load_factureFournisseur($ATMdb);
+			
+			foreach($dossier->TFactureFournisseur as $echeance => $facturefourn){
+				$date_debut_echeance = $dossier->getDateDebutPeriode($echeance);
+
+				if(strtotime($date_debut_echeance) >= $this->date_solde){
+					$this->createAvoirLeaserFromFacture($ATMdb,$facturefourn->id,$dossier->rowid);
+				}
+			}
+		}
+		
 		parent::save($ATMdb);
 		
 		return true;
 	}
+
+	function createAvoirLeaserFromFacture(&$ATMdb,$idFactureFourn,$idDossier){
+		global $db,$user;
+		
+		dol_include_once('/fourn/class/fournisseur.facture.class.php');
+		dol_include_once('/product/class/product.class.php');
+
+		$origine = new FactureFournisseur($db);
+		$origine->fetch($idFactureFourn);
+		
+		$fact = new FactureFournisseur($db);
+		$idClone = $fact->createFromClone($idFactureFourn);
+		$fact->fetch($idClone);
+		
+		$fact->type = 2;
+		$fact->fk_facture_source = $origine->id;
+		$fact->facnumber = 'AV'.$origine->facnumber;
+		$fact->ref_supplier = 'AV'.$origine->facnumber;
+		$fact->update($user);
+		foreach($fact->lines as $line) {
+			$line->pu_ht *= -1;
+			$fact->updateline($line->rowid, $line->libelle, $line->pu_ht, $line->tva_tx,0,0,$line->qty,$line->fk_product);
+		}
+		
+		$fact->validate($user);
+		
+		// Ajout lien dossier
+		$fact->add_object_linked('dossier', $idDossier);
+
+	}
+
 	private function getTypeContrat(&$ATMdb) {
 		if(!isset($this->idTypeContrat)) {
 			$ATMdb->Execute("SELECT contrat 
@@ -1454,5 +1545,19 @@ class TFin_financement extends TObjetStd {
 		}
 		
 		return $rate;
+	}
+}
+
+
+class TFin_facture_fournisseur extends TObjetStd {
+		
+	function __construct() { /* declaration */
+	global $langs;
+
+		parent::set_table(MAIN_DB_PREFIX.'facture_fourn');
+		parent::add_champs('date_debut_periode,date_fin_periode','type=chaine;');
+
+		parent::start();
+		parent::_init_vars();
 	}
 }

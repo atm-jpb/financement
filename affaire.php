@@ -102,6 +102,44 @@
 				_fiche($ATMdb, $affaire,'edit');
 				
 				break;
+			
+			case 'add_facture_mat':
+			//$ATMdb->db->debug=true;
+				$affaire->load($ATMdb, $_REQUEST['id']);
+				$affaire->set_values($_REQUEST);
+				
+				//echo $_REQUEST['facture_mat_to_add'];exit;
+				
+				if(!$affaire->addFactureMat($ATMdb,$_REQUEST['facture_mat_to_add'])) {
+					$mesg = '<div class="error">Impossible de lier cette facture matériel à l\'affaire. </div>';
+					$error=true;
+					
+				}	
+				else {
+					$mesg = '<div class="ok">Facture matériel liée à l\'affaire</div>';
+				}
+				//exit($mesg);
+				$affaire->save($ATMdb);
+				
+				_fiche($ATMdb, $affaire,'edit');
+				
+				break;
+				
+			case 'delete_facture_mat':
+				//$ATMdb->db->debug=true;
+				//$affaire->set_values($_REQUEST);
+				/*$affaire->load($ATMdb, $_REQUEST['id']);
+				
+			
+				if($affaire->deleteDossier($ATMdb, $_REQUEST['id_dossier'])) {
+					$mesg = '<div class="ok">Dossier retiré de l\'affaire</div>';	
+				}	
+				
+				$affaire->save($ATMdb);*/
+				
+				_fiche($ATMdb, $affaire,'edit');
+				
+				break;
 		}
 		
 	}
@@ -291,7 +329,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 	/*
 	 * Pour autocomplete ajout dossier
 	 */
-	$otherDossier='';
+	$otherDossier=$otherFactureMat='';
 	if($mode=='edit') {
 		$ATMdb=new Tdb;
 		//$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,'llx_fin_dossier', " solde>0 AND reference!='' " ,'reference');
@@ -303,6 +341,16 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		$Tab = TRequeteCore::_get_id_by_sql($ATMdb, $sql,'reference');
 		
 		$otherDossier = '["'. implode('","', $Tab). '"]';
+		
+		$sql = "SELECT DISTINCT(f.facnumber) as reference 
+				FROM ".MAIN_DB_PREFIX."facture f
+					LEFT JOIN ".MAIN_DB_PREFIX."facturedet as fd ON (fd.fk_facture = f.rowid)
+				WHERE LOCATE('Matricule',fd.description) > 0";
+	//	print $sql;
+		$Tab = TRequeteCore::_get_id_by_sql($ATMdb, $sql,'reference');
+		
+		$otherFactureMat = '["'. implode('","', $Tab). '"]';
+		
 		$ATMdb->close(); 
 	}
 	
@@ -359,6 +407,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 			,'view'=>array(
 				'mode'=>$mode
 				,'otherDossier'=>$otherDossier
+				,'otherFactureMat'=>$otherFactureMat
 				,'userRight'=>((int)$user->rights->financement->affaire->write)
 				,'financement_verouille'=>($affaire->TLien[0]->dossier->financementLeaser->okPourFacturation === 'AUTO' && $user->rights->financement->admin->write) ? 'verrouille' : ''
 			)
