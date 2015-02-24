@@ -1355,6 +1355,7 @@ class TImport extends TObjetStd {
 		if($data['reference_dossier_interne'] != '04062022') return false;
 		
 		$data['reference_dossier_interne'] = str_pad($data['reference_dossier_interne'], 8, '0', STR_PAD_LEFT);
+		
 		//pre($data,true);
 		
 		$d = new TFin_dossier();
@@ -1374,7 +1375,10 @@ class TImport extends TObjetStd {
 		}
 		pre($data,true);
 		
-		$f1 = $d->financement;
+		$data['duree'] /= $d->financement->getiPeriode();
+		echo date('d/m/Y H:i:s', $data['date_debut']).'<br>';
+		
+		$f1 = clone($d->financement);
 		
 		// Contrôle client
 		$a = &$d->TLien[0];
@@ -1397,6 +1401,7 @@ class TImport extends TObjetStd {
 		
 		if($f1 == $f2) {
 			echo $data['reference_dossier_interne']. ' : no change<br>';
+			return false;
 		} else {
 			echo $data['reference_dossier_interne']. ' : update<br>';
 			//return false;
@@ -1411,7 +1416,7 @@ class TImport extends TObjetStd {
 		$d->financementLeaser->reference = $d->financement->reference.'L';
 		$d->financementLeaser->okPourFacturation = 'NON';
 		$d->display_solde = false;
-		//$d->save($ATMdb);
+		$d->save($ATMdb);
 				
 		return true;
 	}
