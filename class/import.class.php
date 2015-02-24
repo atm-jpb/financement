@@ -20,7 +20,12 @@ class TImport extends TObjetStd {
 			,'facture_lettree' => 'Fichier facture lettrée'
 			,'score' => 'Fichier score'
 		);
-		$this->TType_import = array('fichier_leaser' => 'Fichier leaser','dossier_init_adossee'=>'Import initial adosées','dossier_init_mandatee'=>'Import initial mandatées','dossier_init_all'=>'Import initial');
+		$this->TType_import = array(
+			'fichier_leaser' => 'Fichier leaser',
+			'dossier_init_adossee'=>'Import initial adosées',
+			'dossier_init_mandatee'=>'Import initial mandatées',
+			'dossier_init_all'=>'Import initial',
+			'dossier_init_loc_pure'=>'Import initial Loc Pures');
 		$this->current_line = array();
 	}
 
@@ -145,6 +150,10 @@ class TImport extends TObjetStd {
 			case 'dossier_init_mandatee':
 			case 'dossier_init_all':
 				$this->importDossierInit($ATMdb, $data);
+				break;
+			
+			case 'dossier_init_loc_pure':
+				$this->importDossierInitLocPure($ATMdb, $data);
 				break;
 			
 			default:
@@ -1337,6 +1346,74 @@ class TImport extends TObjetStd {
 			
 			//print "Création facture fournisseur ($id) : ".$object->ref."<br/>";
 		}
+	}
+
+	function importDossierInitLocPure(&$ATMdb, $data) {
+		global $user, $db;
+		//$ATMdb->debug = true;
+		//if($this->nb_lines > 4) return false;
+		if($data['reference_dossier_interne'] != '04062022') return false;
+		
+		$data['reference_dossier_interne'] = str_pad($data['reference_dossier_interne'], 8, '0', STR_PAD_LEFT);
+		//pre($data,true);
+		
+		$d = new TFin_dossier();
+		$d->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'], true);
+		if($d->getId() == 0) {
+		
+			$fin = new TFin_financement();
+			$fin->loadReference($ATMdb, $data['reference_dossier_interne'], 'CLIENT');
+			
+			if($fin->getId() == 0) {
+				echo $data['reference_dossier_interne']. ' : unknown<br>';
+				//$this->addError($ATMdb, 'ErrorDossierClientNotFound', $data['reference_dossier_interne']);
+				return false;
+			} else {
+				$d->load($ATMdb, $fin->fk_fin_dossier, true);
+			}
+		}
+		pre($data,true);
+		
+		$f1 = $d->financement;
+		
+		// Contrôle client
+		$a = &$d->TLien[0];
+		if($a->fk_soc > 0 && $a->fk_soc != $data['code_client']) { // client ne correspond pas
+			//$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_client']);
+			return false;
+		}
+		
+		// On remplit la donnée si vide dans LB et non vide dans le fichier
+		foreach ($data as $key => $value) {
+			if(empty($d->financement->{$key}) && !empty($value)) {
+				$d->financement->{$key} = $value;
+				$d->financementLeaser->{$key} = $value;
+			}
+		}
+		unset($d->financement->reference_dossier_interne);
+		unset($d->financement->code_client);
+		unset($d->financement->idLeaser);
+		$f2 = $d->financement;
+		
+		if($f1 == $f2) {
+			echo $data['reference_dossier_interne']. ' : no change<br>';
+		} else {
+			echo $data['reference_dossier_interne']. ' : update<br>';
+			//return false;
+		}
+		
+		echo '<table><tr><td>';
+		pre($f1,true);
+		echo '</td><td>';
+		pre($f2,true);
+		echo '</td></tr></table>';
+		
+		$d->financementLeaser->reference = $d->financement->reference.'L';
+		$d->financementLeaser->okPourFacturation = 'NON';
+		$d->display_solde = false;
+		//$d->save($ATMdb);
+				
+		return true;
 	}
 
 	function checkData() {
