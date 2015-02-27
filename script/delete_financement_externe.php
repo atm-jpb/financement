@@ -3,6 +3,8 @@
 
 	require('../config.php');
 	require('../class/dossier.class.php');
+	require('../class/affaire.class.php');
+	require('../class/grille.class.php');
 
 	set_time_limit(0);
 
@@ -13,22 +15,33 @@
 
 	$ATMdb=new TPDOdb;
 
-	$sql="SELECT f.rowid as 'rowid'
-			FROM ".MAIN_DB_PREFIX."fin_dossier_financement f 
-				INNER JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (f.fk_fin_dossier=d.rowid)
-			WHERE d.nature_financement = 'EXTERNE'";
-
+	$sql="SELECT a.rowid as 'rowid'
+			FROM ".MAIN_DB_PREFIX."fin_affaire as a
+			WHERE a.reference LIKE '%EXT%'";
+	
+	//echo $sql.'<br>';
+	
 	$ATMdb->Execute($sql);
 	$Tab = $ATMdb->Get_all();
-
+	
+	//pre($Tab,true);
+	
 	foreach($Tab as $row) {
 		
-		$f=new TFin_financement;
-		$f->load($ATMdb, $row->rowid);
+		$a=new TFin_affaire;
+		$a->load($ATMdb, $row->rowid);
 		
-		echo $f->reference." supprimé<br>";
+		foreach($a->TLien as $i => $TFin_dossier_affaire){
+			$dossier = new TFin_dossier;
+			$dossier->load($ATMdb, $TFin_dossier_affaire->dossier->rowid);
+			
+			//pre($dossier,true);
+			$dossier->delete($ATMdb);
+			
+			echo "affaire : ".$a->reference." supprimé<br>";
+		}
 		
-		$f->delete($ATMdb);
+		$a->delete($ATMdb);
 	}
 
 	
