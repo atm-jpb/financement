@@ -916,6 +916,11 @@ class TFin_dossier extends TObjetStd {
 				$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
 			}
 			
+			$date_debut_periode = $dossier->getDateDebutPeriode($echeance,'LEASER');
+			$date_fin_periode = $dossier->getDateFinPeriode($echeance);
+
+			$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$object->id);
+			
 			$res.= "Création facture fournisseur ($id) : ".$object->ref."<br />";
 		} else {
 			$object = new FactureFournisseur($db);
