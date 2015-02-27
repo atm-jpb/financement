@@ -18,7 +18,7 @@ $error=false;
 
 llxHeader('','Pilotage');
 
-$type_annee = GETPOST('type_annee');
+$type_annee = (GETPOST('type_annee')) ? GETPOST('type_annee') : 'fiscale';
 
 if($type_annee == 'fiscale'){
 	//Calcule de l'année fiscale
