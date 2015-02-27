@@ -432,7 +432,15 @@ class TImport extends TObjetStd {
 			} else if(!empty($data['reference_dossier_interne'])) { // Lien avec l'affaire sinon
 				$dossier = new TFin_dossier;
 				$dossier->load($ATMdb, $financement->fk_fin_dossier);
-				$dossier->addAffaire($ATMdb, $affaire->getId());
+				
+				$addlink = true;
+				//Gestion des Adjonction
+				//Avant de faire la liaison, si un dossier "-adj" est déjà lié à l'affaire, alors on ne fait pas de lien
+				foreach($affaire->TLien as $i => $TFin_dossier_affaire){
+					if(strpos(strtoupper($TFin_dossier_affaire->dossier->reference),'ADJ') !== FALSE) $addlink = false;
+				}
+				
+				if($addlink) $dossier->addAffaire($ATMdb, $affaire->getId());
 				$dossier->save($ATMdb);
 				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
 			}
