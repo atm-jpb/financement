@@ -558,7 +558,27 @@ class TImport extends TObjetStd {
 					$dossier->nature_financement = 'INTERNE';
 					$dossier->financement->reference = $data['reference_dossier_interne'];
 					$nb = ($facture_loc->type == 2) ? -1 : 1;
-					$dossier->financement->setEcheance($nb);
+					//$dossier->financement->setEcheance($nb);
+					
+					//Cacul de la date et du numéro de prochaine échéance
+					$sql = "SELECT f.reference, COUNT(i.rowid) as nbFact, SUM(CASE WHEN i.type = 0 THEN 1 ELSE -1 END) as echeance_passee
+							FROM ".MAIN_DB_PREFIX."fin_dossier_financement f
+							LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON ee.fk_source = f.fk_fin_dossier AND ee.sourcetype = 'dossier' AND ee.targettype = 'facture'
+							LEFT JOIN ".MAIN_DB_PREFIX."facture i ON i.rowid = ee.fk_target
+							WHERE f.reference = '".$dossier->financement->reference."'";
+
+					$ATMdb->Execute($sql);
+					$TData = $ATMdb->Get_All();
+					
+					foreach($TData as $data) {
+						$fin = new TFin_financement();
+						if($fin->loadReference($ATMdb, $data->reference, 'CLIENT')) {
+							$fin->initEcheance();
+							$fin->setEcheance($data->echeance_passee);
+							$fin->save($ATMdb);
+						}
+					}
+					
 					$dossier->save($ATMdb);
 					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
 					$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['reference_dossier_interne'], 'WARNING');
