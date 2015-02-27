@@ -916,6 +916,11 @@ class TFin_dossier extends TObjetStd {
 				$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
 			}
 			
+			$date_debut_periode = $this->getDateDebutPeriode($echeance-1,'LEASER');
+			$date_fin_periode = $this->getDateFinPeriode($echeance-1);
+
+			$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$object->id);
+			
 			$res.= "Création facture fournisseur ($id) : ".$object->ref."<br />";
 		} else {
 			$object = new FactureFournisseur($db);
@@ -1318,7 +1323,7 @@ class TFin_financement extends TObjetStd {
 		
 		//Dans le cas d'un financement LEASER, si la date du sole est renseignée, alors on créé les avoirs correspondant au factures fournisseur
 		//qui existe pour les échéances situées après cette date
-		if($this->type == 'LEASER' && !empty($this->date_solde)){
+		if($this->type == 'LEASER' && (!empty($this->date_solde) && $this->date_solde > 0)){
 			$dossier = new TFin_dossier;
 			$dossier->load($ATMdb, $this->fk_fin_dossier);
 			$dossier->load_factureFournisseur($ATMdb);
