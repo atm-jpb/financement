@@ -105,6 +105,7 @@ class TImport extends TObjetStd {
 		$this->nb_lines++;
 		// On save l'import tout les X enregistrements traités pour voir l'avancement de l'import
 		if($this->nb_lines % 50 == 0) $this->save($ATMdb);
+		if($this->nb_lines % 1000 == 0) sleep(1);
 
 		if(!$this->checkData()) return false;
 		$data = $this->contructDataTab();
