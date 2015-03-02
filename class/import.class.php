@@ -571,11 +571,11 @@ class TImport extends TObjetStd {
 					$ATMdb->Execute($sql);
 					$TData = $ATMdb->Get_All();
 					
-					foreach($TData as $data) {
+					foreach($TData as $tdata) {
 						$fin = new TFin_financement();
-						if($fin->loadReference($ATMdb, $data->reference, 'CLIENT')) {
+						if($fin->loadReference($ATMdb, $tdata->reference, 'CLIENT')) {
 							$fin->initEcheance();
-							$fin->setEcheance($data->echeance_passee);
+							$fin->setEcheance($tdata->echeance_passee);
 							$fin->save($ATMdb);
 						}
 					}
