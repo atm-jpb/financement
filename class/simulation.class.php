@@ -27,6 +27,8 @@ class TSimulation extends TObjetStd {
 			0=>'Echu'
 			,1=>'A Echoir'
 		);
+		
+		$this->TSimulationSuivi = array();
 	}
 	
 	function init() {
@@ -149,6 +151,14 @@ class TSimulation extends TObjetStd {
 			$this->user = new User($doliDB);
 			$this->user->fetch($this->fk_user_author);
 		}
+		
+		//Récupération des suivis demande de financement leaser
+		$this->load_suivi_simulation($db);
+	}
+
+	function load_suivi_simulation(&$PDOdb){
+			
+		$sql = "SELECT ";
 	}
 	
 	/**
@@ -614,3 +624,33 @@ class TSimulation extends TObjetStd {
 		$res = ob_get_clean();
 	}
 }
+
+
+class TSimulationSuivi extends TObjetStd {
+	function __construct() {
+		global $langs;
+
+		parent::set_table(MAIN_DB_PREFIX.'fin_simulation_suivi');
+		parent::add_champs('entity,fk_simulation,fk_leaser,fk_user_author,statut_demande','type=entier;');
+		parent::add_champs('coeff_leaser','type=float;');
+		parent::add_champs('date_demande,date_accord,date_selection','type=date;');
+		parent::add_champs('numero_accord_leaser,statut','type=chaine;');
+		parent::start();
+		parent::_init_vars();
+
+		$this->init();
+
+		$this->TStatut=array(
+			'OK'=>$langs->trans('Accord')
+			,'WAIT'=>$langs->trans('Etude')
+			,'KO'=>$langs->trans('Refus')
+		);
+	}
+	
+	//Chargement du suivi simulation
+	function load(&$PDOdb,$id){
+		$res = parent::load($PDOdb, $id);
+		return $res;
+	}
+}
+
