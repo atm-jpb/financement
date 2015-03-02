@@ -512,10 +512,22 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	echo $form->end_form();
 	// End of page
 	
+	if($user->rights->financement->allsimul->suivi_leaser){
+		_fiche_suivi(&$ATMdb, &$simulation, $mode);
+	}
+	
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 	llxFooter();
 }
+
+function _fiche_suivi(&$ATMdb, &$simulation, $mode){
+	global $conf, $db;
+	
+	$simulation->get_suivi_simulation($PDOdb);
+	
+}
+
 
 function _calcul(&$simulation, $mode='calcul') {
 	global $mesg, $error, $langs, $db;

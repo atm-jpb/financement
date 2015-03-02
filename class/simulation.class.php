@@ -88,9 +88,9 @@ class TSimulation extends TObjetStd {
 
 			//Pour chaque leaser, ajout d'une ligne de suivi
 			foreach($TLeaser as $leaser){
-				$TSimulationSuivi = new TSimulationSuivi;
-				$TSimulationSuivi->init($PDOdb,$leaser,$this->getId());
-				$TSimulationSuivi->save($PDOdb);
+				$simulationSuivi = new TSimulationSuivi;
+				$simulationSuivi->init($PDOdb,$leaser,$this->getId());
+				$simulationSuivi->save($PDOdb);
 			}
 		}
 	}
@@ -191,14 +191,30 @@ class TSimulation extends TObjetStd {
 		//Si les suivis existent déjà
 		if(count($TRowid) > 0){
 			foreach($TRowid as $obj){
-				$TSimulationSuivi = new TSimulationSuivi;
-				$TSimulationSuivi->load($PDOdb, $obj->rowid);
+				$simulationSuivi = new TSimulationSuivi;
+				$simulationSuivi->load($PDOdb, $obj->rowid);
 
-				$this->TSimulationSuivi[] = $TSimulationSuivi;
+				$this->TSimulationSuivi[] = $simulationSuivi;
 			}
 		}
 		else{
 			$this->create_suivi_simulation($PDOdb);
+		}
+	}
+	
+	function get_suivi_simulation(&$PDOdb){
+		global $db;
+		$this->load_suivi_simulation($PDOdb);
+		
+		$TLignes = array();
+		//Construction d'un tableau de ligne pour futur affichage TBS
+		foreach($this->TSimulationSuivi as $simulationSuivi){
+			$ligne = array();
+			
+			$ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
+			$ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png',1).'" />' : '' ;
+			$linge['date_demande'] = $simulationSuivi->get_Date('date_demande');
+			$ligne['resultat'] = ($simulationSuivi->TStatut[$simulationSuivi->statut] == 'KO') ? : 
 		}
 	}
 	
@@ -688,7 +704,12 @@ class TSimulationSuivi extends TObjetStd {
 	
 	//Chargement du suivi simulation
 	function load(&$PDOdb,$id){
+		global $db;
+		
 		$res = parent::load($PDOdb, $id);
+		$this->leaser = new Societe($db);
+		$this->leaser->fetch($this->fk_leaser);
+		
 		return $res;
 	}
 	
