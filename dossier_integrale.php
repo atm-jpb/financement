@@ -21,7 +21,7 @@ if(empty($id_dossier)) {
 	_liste($PDOdb, $dossier);
 } else {
 	$dossier->load($PDOdb, $id_dossier);
-	$dossier->load_facture($PDOdb);
+	$dossier->load_facture($PDOdb, true);
 	_fiche($PDOdb, $db, $dossier);
 }
 

@@ -1197,6 +1197,8 @@ class TFin_financement extends TObjetStd {
 			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
 			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
 			else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
+			$sql.= "AND a.solde >= ".($montant - 0.01)." ";
+			$sql.= "AND a.solde <= ".($montant + 0.01)." ";
 			
 			$TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
 			
@@ -1214,6 +1216,30 @@ class TFin_financement extends TObjetStd {
 				$a->addDossier($db, $d->getId());
 				$a->save($db);
 				return true;
+			} else if($db->Get_Recordcount() == 0) { // Création d'une affaire pour création dossier fin externe
+				$sql = "SELECT s.rowid ";
+				$sql.= "FROM ".MAIN_DB_PREFIX."societe s ";
+				$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
+				if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
+				else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
+				$TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
+				if(!empty($TIdClient[0])) {
+					$d=new TFin_dossier;
+					$d->financementLeaser = $this;
+					$d->save($db);
+					
+					$idClient = $TIdClient[0];
+					$a=new TFin_affaire();
+					$a->reference = 'EXT-'.date('ymd').'-'.$idClient;
+					$a->montant = $montant;
+					$a->fk_soc = $idClient;
+					$a->nature_financement = 'EXTERNE';
+					$a->addDossier($db, $d->getId());
+					$a->save($db);
+					return true;
+				} else {
+					return false;
+				}
 			} else {
 				return false;
 			}
