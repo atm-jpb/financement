@@ -40,6 +40,9 @@
 	$o=new TSimulation;
 	$o->init_db_by_vars($ATMdb);
 	
+	$o=new TSimulationSuivi;
+	$o->init_db_by_vars($ATMdb);
+	
 	$o=new TFin_grille_leaser;
 	$o->init_db_by_vars($ATMdb);
 	

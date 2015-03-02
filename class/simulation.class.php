@@ -68,6 +68,31 @@ class TSimulation extends TObjetStd {
 		$this->gen_simulation_pdf($db, $doliDB);
 		$this->reference = $this->getRef();
 		parent::save($db);
+		
+		//Création du suivi simulation leaser
+		$this->create_suivi_simulation($db);
+	}
+	
+	function create_suivi_simulation(&$PDOdb){
+		global $db, $conf;
+		dol_include_once('/categories/class/categorie.class.php');
+		
+		//Pour chacun des leasers, on créé un suivi demande de financement
+		//Les leasers concernés sont ceux présent dans la catégorie "Type de financement" => id = 2
+		$categorieParent = new Categorie($db);
+		$categorieParent->fetch('','Type de financement');
+		$TCategoriesFille = $categorieParent->get_filles();
+		
+		foreach ($TCategoriesFille as $categorieFille) {
+			$TLeaser = $categorieFille->get_type("societe","Fournisseur","fournisseur");
+
+			//Pour chaque leaser, ajout d'une ligne de suivi
+			foreach($TLeaser as $leaser){
+				$TSimulationSuivi = new TSimulationSuivi;
+				$TSimulationSuivi->init($PDOdb,$leaser,$this->getId());
+				$TSimulationSuivi->save($PDOdb);
+			}
+		}
 	}
 	
 	function getStatut() {
@@ -155,10 +180,26 @@ class TSimulation extends TObjetStd {
 		//Récupération des suivis demande de financement leaser
 		$this->load_suivi_simulation($db);
 	}
-
+	
+	//Charge dans un tableau les différents suivis de demande leaser concernant la simulation
 	function load_suivi_simulation(&$PDOdb){
 			
-		$sql = "SELECT ";
+		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."fin_simulation_suivi WHERE fk_simulation = ".$this->getId();
+		$PDOdb->Execute($sql);
+		$TRowid = $PDOdb->Get_All();
+
+		//Si les suivis existent déjà
+		if(count($TRowid) > 0){
+			foreach($TRowid as $obj){
+				$TSimulationSuivi = new TSimulationSuivi;
+				$TSimulationSuivi->load($PDOdb, $obj->rowid);
+
+				$this->TSimulationSuivi[] = $TSimulationSuivi;
+			}
+		}
+		else{
+			$this->create_suivi_simulation($PDOdb);
+		}
 	}
 	
 	/**
@@ -638,8 +679,6 @@ class TSimulationSuivi extends TObjetStd {
 		parent::start();
 		parent::_init_vars();
 
-		$this->init();
-
 		$this->TStatut=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
@@ -651,6 +690,15 @@ class TSimulationSuivi extends TObjetStd {
 	function load(&$PDOdb,$id){
 		$res = parent::load($PDOdb, $id);
 		return $res;
+	}
+	
+	function init(&$PDOdb,&$leaser,$fk_simulation){
+		global $db, $conf, $user;
+		
+		$this->entity = $conf->entity;
+		$this->fk_simulation = $fk_simulation;
+		$this->fk_leaser = $leaser->id;
+		$this->fk_user_author = $user->id;
 	}
 }
 
