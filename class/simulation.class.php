@@ -214,7 +214,7 @@ class TSimulation extends TObjetStd {
 			$ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
 			$ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png',1).'" />' : '' ;
 			$linge['date_demande'] = $simulationSuivi->get_Date('date_demande');
-			$ligne['resultat'] = ($simulationSuivi->TStatut[$simulationSuivi->statut] == 'KO') ? : 
+			$ligne['resultat'] = ($simulationSuivi->TStatut[$simulationSuivi->statut] == 'KO') ? '' : '';
 		}
 	}
 	
