@@ -20,11 +20,13 @@ $PDOdb=new TPDOdb;
 $sql = "SELECT  df.rowid, df.fk_fin_dossier, df.reference, df.numero_prochaine_echeance, df.date_prochaine_echeance, df.periodicite,df.echeance,df.`loyer_intercalaire`
 		, count(ee.rowid) as nbf, MAX(f.datef)
 		FROM ".MAIN_DB_PREFIX."fin_dossier_financement df
+		LEFT JOIN ".MAIN_DB_PREFIX."fin_dosser d ON (d.rowid = fd.fk_fin_dossier)
 		LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_source = df.fk_fin_dossier AND ee.sourcetype = 'dossier' AND ee.targettype = 'invoice_supplier')
 		LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn f ON (f.rowid = ee.fk_target)
 		WHERE df.type = 'LEASER'
 		AND df.date_solde < '2010-12-31'
 		AND `okPourFacturation` = 'AUTO'
+		AND d.nature_financement= 'INTERNE'
 		GROUP BY df.fk_fin_dossier
 		HAVING (MAX(f.datef) < '2015-03-05' OR MAX(f.datef) IS NULL)
 		AND ((nbf < df.numero_prochaine_echeance AND `loyer_intercalaire` > 0) OR nbf +1 < df.numero_prochaine_echeance)";
