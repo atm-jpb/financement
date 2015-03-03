@@ -26,7 +26,7 @@ $sql = "SELECT  df.rowid, df.fk_fin_dossier, df.reference, df.numero_prochaine_e
 		AND df.date_solde < '2010-12-31'
 		AND `okPourFacturation` = 'AUTO'
 		GROUP BY df.fk_fin_dossier
-		HAVING MAX(f.datef) < '2015-01-01'
+		HAVING (MAX(f.datef) < '2015-03-05' OR MAX(f.datef) IS NULL)
 		AND ((nbf < df.numero_prochaine_echeance AND `loyer_intercalaire` > 0) OR nbf +1 < df.numero_prochaine_echeance)";
 //echo $sql; exit;
 $PDOdb->Execute($sql);
