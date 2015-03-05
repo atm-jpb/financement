@@ -6,6 +6,7 @@ require('../config.php');
 require('../class/affaire.class.php');
 require('../class/dossier.class.php');
 require('../class/grille.class.php');
+dol_include_once("/fourn/class/fournisseur.facture.class.php");
 
 $langs->load("main");				// To load language file for default language
 @set_time_limit(0);					// No timeout for this script
@@ -29,14 +30,35 @@ $TData = $PDOdb->Get_All();
 foreach($TData as $obj) {
 	$dossier = new TFin_dossier;
 	$dossier->load($PDOdb, $obj->rowid);
-	$dossier->load_factureFournisseur($PDOdb,true);
+	//$dossier->load_factureFournisseur($PDOdb,true);
+	
+	$sql = "SELECT fk_target";
+	$sql.= " FROM ".MAIN_DB_PREFIX."element_element";
+	$sql.= " WHERE sourcetype='dossier'";
+	$sql.= " AND targettype='invoice_supplier'";
+	$sql.= " AND fk_source=".$dossier->getId();
+	
+	$PDOdb->Execute($sql);
+	
+	while($PDOdb->Get_line()) {
+		$fact = new FactureFournisseur($db);
+		$fact->fetch($PDOdb->Get_field('fk_target'));
+		
+		// Permet d'afficher la facture en face de la bonne échéance, le numéro de facture fournisseur finissant par /XX (XX est le numéro d'échéance)
+		$TTmp = explode('/', $fact->ref_supplier);
+		$echeance = array_pop($TTmp) - 1;
+		$fact->echeance = $echeance;
+
+		$dossier->TFactureFournisseur[] = $fact;
+		
+	}
 	
 	//Parcours de toutes les factures fournisseur associé à un dossier de financement leaser
 	//Objectif : peupler proprement les champs date_debut_periode et date_fin_periode
-	foreach($dossier->TFactureFournisseur as $echeance => $facture){
+	foreach($dossier->TFactureFournisseur as $facture){
 		
-		$date_debut_periode = $dossier->getDateDebutPeriode($echeance,'LEASER');
-		$date_fin_periode = $dossier->getDateFinPeriode($echeance);
+		$date_debut_periode = $dossier->getDateDebutPeriode($facture->echeance,'LEASER');
+		$date_fin_periode = $dossier->getDateFinPeriode($facture->echeance);
 		
 		/*echo date('d/m/Y',$dossier->date_debut)." ".$dossier->financementLeaser->calage.'<br>';
 		echo $echeance.'<br>';

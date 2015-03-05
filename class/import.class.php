@@ -110,6 +110,7 @@ class TImport extends TObjetStd {
 		$this->nb_lines++;
 		// On save l'import tout les X enregistrements traités pour voir l'avancement de l'import
 		if($this->nb_lines % 50 == 0) $this->save($ATMdb);
+		if($this->nb_lines % 1000 == 0) sleep(1);
 
 		if(!$this->checkData()) return false;
 		$data = $this->contructDataTab();
@@ -441,7 +442,15 @@ class TImport extends TObjetStd {
 			} else if(!empty($data['reference_dossier_interne'])) { // Lien avec l'affaire sinon
 				$dossier = new TFin_dossier;
 				$dossier->load($ATMdb, $financement->fk_fin_dossier);
-				$dossier->addAffaire($ATMdb, $affaire->getId());
+				
+				$addlink = true;
+				//Gestion des Adjonction
+				//Avant de faire la liaison, si un dossier "-adj" est déjà lié à l'affaire, alors on ne fait pas de lien
+				foreach($affaire->TLien as $i => $TFin_dossier_affaire){
+					if(strpos(strtoupper($TFin_dossier_affaire->dossier->reference),'ADJ') !== FALSE) $addlink = false;
+				}
+				
+				if($addlink) $dossier->addAffaire($ATMdb, $affaire->getId());
 				$dossier->save($ATMdb);
 				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
 			}
@@ -559,7 +568,27 @@ class TImport extends TObjetStd {
 					$dossier->nature_financement = 'INTERNE';
 					$dossier->financement->reference = $data['reference_dossier_interne'];
 					$nb = ($facture_loc->type == 2) ? -1 : 1;
-					$dossier->financement->setEcheance($nb);
+					//$dossier->financement->setEcheance($nb);
+					
+					//Cacul de la date et du numéro de prochaine échéance
+					$sql = "SELECT f.reference, COUNT(i.rowid) as nbFact, SUM(CASE WHEN i.type = 0 THEN 1 ELSE -1 END) as echeance_passee
+							FROM ".MAIN_DB_PREFIX."fin_dossier_financement f
+							LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON ee.fk_source = f.fk_fin_dossier AND ee.sourcetype = 'dossier' AND ee.targettype = 'facture'
+							LEFT JOIN ".MAIN_DB_PREFIX."facture i ON i.rowid = ee.fk_target
+							WHERE f.reference = '".$dossier->financement->reference."'";
+
+					$ATMdb->Execute($sql);
+					$TData = $ATMdb->Get_All();
+					
+					foreach($TData as $tdata) {
+						$fin = new TFin_financement();
+						if($fin->loadReference($ATMdb, $tdata->reference, 'CLIENT')) {
+							$fin->initEcheance();
+							$fin->setEcheance($tdata->echeance_passee);
+							$fin->save($ATMdb);
+						}
+					}
+					
 					$dossier->save($ATMdb);
 					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
 					$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['reference_dossier_interne'], 'WARNING');

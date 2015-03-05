@@ -346,21 +346,11 @@ class TFin_dossier extends TObjetStd {
 		if($date - ($this->financement->date_debut + $this->financement->calage) < 0){
 			return -1;
 		}
-		/*
-		$datefacture = new DateTime(date('Y-m-d',$date));
-	    $datefirstecheance = new DateTime(date('Y-m-d',$this->financement->date_debut + $this->financement->calage));
-		//echo $datetime1->format('Y-m-d H:i:s').'<br>';
-		//echo $datetime2->format('Y-m-d H:i:s').'<br>';
-	    $interval = $datefirstecheance->diff($datefacture);
-
-	    $nbmonth = $interval->format('%m'); //Retourne le nombre de mois
-		$nbmonth += $interval->y * 12; //on ajoute le nombre de mois correspondant au nombre d'année d'écart
-		$nbmonth += ($interval->d > 0) ? 1 : 0; //on ajoute un mois suplémentaire si on a un écart en jours
-		$echeance = $nbmonth / $this->financement->getiPeriode(); //On divise par la périodicité pour avoir le numéro de l'échéance
-
-		 return round($echeance); 
-		 */
-
+		
+		//On ajoute 10 jours à la date pour le cas ou la facture à été facturé en fin de mois précédent la période que l'on souhaite
+		//Ex: 30/09 correspond à la période du 01/10
+		$date = strtotime('+3 day',$date);
+		
 		$flag = true; $cpt = 0; 
 		$t = $this->financement->date_debut + $this->financement->calage; 
 		$iEcheance = 0;
@@ -926,6 +916,11 @@ class TFin_dossier extends TObjetStd {
 				$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
 			}
 			
+			$date_debut_periode = $this->getDateDebutPeriode($echeance-1,'LEASER');
+			$date_fin_periode = $this->getDateFinPeriode($echeance-1);
+
+			$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$object->id);
+			
 			$res.= "Création facture fournisseur ($id) : ".$object->ref."<br />";
 		} else {
 			$object = new FactureFournisseur($db);
@@ -1328,7 +1323,7 @@ class TFin_financement extends TObjetStd {
 		
 		//Dans le cas d'un financement LEASER, si la date du sole est renseignée, alors on créé les avoirs correspondant au factures fournisseur
 		//qui existe pour les échéances situées après cette date
-		if($this->type == 'LEASER' && !empty($this->date_solde)){
+		if($this->type == 'LEASER' && (!empty($this->date_solde) && $this->date_solde > 0)){
 			$dossier = new TFin_dossier;
 			$dossier->load($ATMdb, $this->fk_fin_dossier);
 			$dossier->load_factureFournisseur($ATMdb);

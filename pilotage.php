@@ -18,15 +18,26 @@ $error=false;
 
 llxHeader('','Pilotage');
 
-//Calcule de l'année fiscale
-if(date('m') < $conf->global->SOCIETE_FISCAL_MONTH_START){
-	$date_debut = (date('Y')-1)."-0".$conf->global->SOCIETE_FISCAL_MONTH_START."-01";
+$type_annee = (GETPOST('type_annee')) ? GETPOST('type_annee') : 'fiscale';
+
+if($type_annee == 'fiscale'){
+	//Calcule de l'année fiscale
+	if(date('m') < $conf->global->SOCIETE_FISCAL_MONTH_START){
+		$date_debut = (date('Y')-1)."-0".$conf->global->SOCIETE_FISCAL_MONTH_START."-01";
+		$date_fin = date('Y-m-t',strtotime("+11 month",strtotime($date_debut)));
+	}
+	else{
+		$date_debut = date('Y')."-0".$conf->global->SOCIETE_FISCAL_MONTH_START."-01";
+		$date_fin = date('Y-m-t',strtotime("+11 month",strtotime($date_debut)));
+	}
+}
+else{ //Année civile
+	$date_debut = date('Y')."-01-01";
 	$date_fin = date('Y-m-t',strtotime("+11 month",strtotime($date_debut)));
 }
-else{
-	$date_debut = date('Y')."-0".$conf->global->SOCIETE_FISCAL_MONTH_START."-01";
-	$date_fin = date('Y-m-t',strtotime("+11 month",strtotime($date_debut)));
-}
+
+/*echo $date_debut.'<br>';
+echo $date_fin.'<br>';*/
 
 ?>
 
@@ -82,6 +93,22 @@ else{
 	<tr>
 		<td><div class="titre" style="text-align: center;font-size: 22px;">Pilotage de la cellule Financement</div></td>
 	</tr>
+	
+	<tr>
+		<td colspan="2" style="text-align: left">
+			<?php
+			$form = new TFormCore('#','switch_type_annee');
+			
+			$TSelect = array('fiscale'=>'Fiscale','civile'=>'Civile');
+			print $form->combo('Année en cours :', 'type_annee', $TSelect, $type_annee);
+			
+			print $form->btsubmit('Afficher', 'bt_switch');
+			$form->end();
+			?>
+		</td>
+	</tr>
+	
+	
 	<tr><td height="15"></td></tr>
 	<tr>
 		<?php _listeNbAffaireParTypeContrat($ATMdb,$date_debut,$date_fin); ?>
