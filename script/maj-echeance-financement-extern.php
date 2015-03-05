@@ -27,8 +27,7 @@
 		$f=new TFin_financement;
 		$f->load($ATMdb, $row->rowid);
 	
-		print "Recalcule financement (".$f->fk_fin_dossier.' : '.$f->refe
-rence.") ".$f->get_date('date_prochaine_echeance')." ".$f->numero_prochaine_echeance."...";
+		print "Recalcule financement (".$f->fk_fin_dossier.' : '.$f->reference.") ".$f->get_date('date_prochaine_echeance')." ".$f->numero_prochaine_echeance."...";
 	
 		if(!$f->setEcheanceExterne()) {
 			print "Erreur dates financement <br />";
