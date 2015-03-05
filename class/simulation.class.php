@@ -217,13 +217,14 @@ class TSimulation extends TObjetStd {
 			$ligne = array();
 			//echo $simulationSuivi->get_Date('date_demande').'<br>';
 			$ligne['rowid'] = $simulationSuivi->getId();
+			$ligne['class'] = ($simulationSuivi->getId() % 2) ? 'impair' : 'pair';
 			$ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
 			$ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png',1).'" />' : '' ;
 			$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande') : '' ;
-			$ligne['resultat'] = ($simulationSuivi->TStatut[$simulationSuivi->statut] != 'SS') ? $simulationSuivi->TStatut[$simulationSuivi->statut].'.png' : '';
+			$ligne['resultat'] = ($simulationSuivi->TStatut[$simulationSuivi->statut]) ? $simulationSuivi->TStatut[$simulationSuivi->statut].'.png' : '';
 			$ligne['numero_accord_leaser'] = ($simulationSuivi->numero_accord_leaser) ? $simulationSuivi->numero_accord_leaser : '';
 			$ligne['coeff_leaser'] = ($simulationSuivi->coeff_leaser) ? $simulationSuivi->coeff_leaser : '';
-			$ligne['actions'] = '';
+			$ligne['actions'] = $simulationSuivi->getAction();
 			
 			$TLignes[] = $ligne;
 		}
@@ -729,6 +730,7 @@ class TSimulationSuivi extends TObjetStd {
 		return $res;
 	}
 	
+	//Initialisation de l'objet avec les infos de base
 	function init(&$PDOdb,&$leaser,$fk_simulation){
 		global $db, $conf, $user;
 		
@@ -736,6 +738,82 @@ class TSimulationSuivi extends TObjetStd {
 		$this->fk_simulation = $fk_simulation;
 		$this->fk_leaser = $leaser->id;
 		$this->fk_user_author = $user->id;
+	}
+	
+	//Retourne les actions possible pour ce suivi suivant les règles de gestion
+	function getAction(){
+		
+		$actions = '';
+		//Demander
+		if($this->statut_demande != 1 && $this->date_demande < 0){
+			$actions .= '<a href="?action=demander" title="Demande transmise au leaser"><img src="'.dol_buildpath('/financement/img/demander.png',1).'" /></a>&nbsp;';
+		}
+		else{
+			//Sélectionner
+			if($this->statut === 'OK'){
+				$actions .= '<a href="?action=selectionner" title="Sélectionner ce leaser"><img src="'.dol_buildpath('/financement/img/selectionner.png',1).'" /></a>&nbsp;';
+			}
+			else{
+				//Envoyer
+				$actions .= '<a href="?action=envoyer" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
+				//Accepter
+				$actions .= '<a href="?action=accepter" title="Demande acceptée"><img src="'.dol_buildpath('/financement/img/accepter.png',1).'" /></a>&nbsp;';
+				//Refuser
+				$actions .= '<a href="?action=refuser" title="Demande refusée"><img src="'.dol_buildpath('/financement/img/refuser.png',1).'" /></a>&nbsp;';
+			}
+		}
+		
+		return $actions;
+	}
+	
+	//Exécute une action et met en oeuvre les règles de gestion en conséquence
+	function doAction(&$PDOdb,$action){
+		
+		switch ($action) {
+			case 'demander':
+				$this->doActionDemander($PDOdb);
+				break;
+			case 'envoyer':
+				$this->doActionEnvoyer($PDOdb);
+				break;
+			case 'accepter':
+				$this->doActionAccepter($PDOdb);
+				break;
+			case 'refuser':
+				$this->doActionRefuser($PDOdb);
+				break;
+			case 'selectionner':
+				$this->doActionSelectionner($PDOdb);
+				break;
+			default:
+				
+				break;
+		}
+	}
+	
+	//Effectuer l'action de faire la demande de financement au leaser
+	function doActionDemander($PDOdb){
+		
+	}
+	
+	//Effectuer l'action d'envoyer au leaser la demande de financement
+	function doActionEnvoyer($PDOdb){
+		
+	}
+	
+	//Effectue l'action de passer au statut accepter la demande de financement leaser
+	function doActionAccepter($PDOdb){
+		
+	}
+	
+	//Effectue l'action de passer au statut refusé la demande de financement leaser
+	function doActionRefuser($PDOdb){
+		
+	}
+	
+	//Effectue l'action de choisir définitivement un leaser pour financer la simulation
+	function doActionSelectionner($PDOdb){
+		
 	}
 }
 
