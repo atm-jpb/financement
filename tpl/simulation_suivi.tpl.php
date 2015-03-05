@@ -20,7 +20,7 @@
 			<td><!-- [ligne.#; block=tr] -->[ligne.leaser;strconv=no]</td>
 			<td>[ligne.demande;strconv=no]</td>
 			<td>[ligne.date_demande]</td>
-			<td>[ligne.resultat]</td>
+			<td>[ligne.resultat;strconv=no]</td>
 			<td>[ligne.numero_accord_leaser]</td>
 			<td>[ligne.coeff_leaser]</td>
 			<td>[ligne.actions;strconv=no]</td>

@@ -218,6 +218,18 @@ if(!empty($action)) {
 			<?
 			
 			break;
+		
+		default:
+			
+			//Actions spécifiques au suivi financement leaser
+			$id_suivi = GETPOST('id_suivi');
+			if($id_suivi){
+				$simulation->load($ATMdb, $db, $_REQUEST['id']);
+				$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$action);
+				_fiche($ATMdb, $simulation, 'view');
+			}
+			
+			break;
 	}
 	
 }
