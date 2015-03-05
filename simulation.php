@@ -513,7 +513,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	// End of page
 	
 	if($user->rights->financement->allsimul->suivi_leaser){
-		_fiche_suivi(&$ATMdb, &$simulation, $mode);
+		_fiche_suivi($ATMdb, $simulation, $mode);
 	}
 	
 	global $mesg, $error;
@@ -522,10 +522,26 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 }
 
 function _fiche_suivi(&$ATMdb, &$simulation, $mode){
-	global $conf, $db;
+	global $conf, $db, $langs;
 	
-	$simulation->get_suivi_simulation($PDOdb);
+	$TLignes = $simulation->get_suivi_simulation($ATMdb);
 	
+	//pre($TLignes,true);exit;
+	
+	$TBS=new TTemplateTBS;
+	
+	print $TBS->render('./tpl/simulation_suivi.tpl.php'
+		,array(
+			'ligne' => $TLignes
+		)
+		,array(
+			'view'=>array(
+				'mode'=>$mode
+				,'type'=>($simulation->fk_soc > 0) ? 'simul' : 'calcul'
+				,'titre'=>load_fiche_titre($langs->trans("SimulationSuivi"),'','object_simul.png@financement')
+			)
+		)
+	);
 }
 
 

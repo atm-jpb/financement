@@ -69,14 +69,15 @@ class TSimulation extends TObjetStd {
 		$this->reference = $this->getRef();
 		parent::save($db);
 		
-		//Création du suivi simulation leaser
-		$this->create_suivi_simulation($db);
+		//Création du suivi simulation leaser s'il n'existe pas
+		//Sinon chargement du suivi
+		$this->load_suivi_simulation($db);
 	}
 	
 	function create_suivi_simulation(&$PDOdb){
 		global $db, $conf;
 		dol_include_once('/categories/class/categorie.class.php');
-		
+		//echo 'create<br>';
 		//Pour chacun des leasers, on créé un suivi demande de financement
 		//Les leasers concernés sont ceux présent dans la catégorie "Type de financement" => id = 2
 		$categorieParent = new Categorie($db);
@@ -91,6 +92,8 @@ class TSimulation extends TObjetStd {
 				$simulationSuivi = new TSimulationSuivi;
 				$simulationSuivi->init($PDOdb,$leaser,$this->getId());
 				$simulationSuivi->save($PDOdb);
+				
+				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 			}
 		}
 	}
@@ -177,24 +180,23 @@ class TSimulation extends TObjetStd {
 			$this->user->fetch($this->fk_user_author);
 		}
 		
-		//Récupération des suivis demande de financement leaser
+		//Récupération des suivis demande de financement leaser s'ils existent
+		//Sinon on les créé
 		$this->load_suivi_simulation($db);
 	}
 	
 	//Charge dans un tableau les différents suivis de demande leaser concernant la simulation
 	function load_suivi_simulation(&$PDOdb){
-			
-		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."fin_simulation_suivi WHERE fk_simulation = ".$this->getId();
-		$PDOdb->Execute($sql);
-		$TRowid = $PDOdb->Get_All();
-
+		//echo 'load<br>';
+		$TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()));
+		//pre($TRowid,true);exit;
 		//Si les suivis existent déjà
 		if(count($TRowid) > 0){
-			foreach($TRowid as $obj){
+			foreach($TRowid as $rowid){
 				$simulationSuivi = new TSimulationSuivi;
-				$simulationSuivi->load($PDOdb, $obj->rowid);
+				$simulationSuivi->load($PDOdb, $rowid);
 
-				$this->TSimulationSuivi[] = $simulationSuivi;
+				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 			}
 		}
 		else{
@@ -205,17 +207,28 @@ class TSimulation extends TObjetStd {
 	function get_suivi_simulation(&$PDOdb){
 		global $db;
 		$this->load_suivi_simulation($PDOdb);
-		
+		//echo 'get<br>';
 		$TLignes = array();
+		
+		//pre($this->TSimulationSuivi,true);
 		//Construction d'un tableau de ligne pour futur affichage TBS
 		foreach($this->TSimulationSuivi as $simulationSuivi){
+			//echo $simulationSuivi->rowid.'<br>';
 			$ligne = array();
-			
+			//echo $simulationSuivi->get_Date('date_demande').'<br>';
+			$ligne['rowid'] = $simulationSuivi->getId();
 			$ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
 			$ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png',1).'" />' : '' ;
-			$linge['date_demande'] = $simulationSuivi->get_Date('date_demande');
-			$ligne['resultat'] = ($simulationSuivi->TStatut[$simulationSuivi->statut] == 'KO') ? '' : '';
+			$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande') : '' ;
+			$ligne['resultat'] = ($simulationSuivi->TStatut[$simulationSuivi->statut] != 'SS') ? $simulationSuivi->TStatut[$simulationSuivi->statut].'.png' : '';
+			$ligne['numero_accord_leaser'] = ($simulationSuivi->numero_accord_leaser) ? $simulationSuivi->numero_accord_leaser : '';
+			$ligne['coeff_leaser'] = ($simulationSuivi->coeff_leaser) ? $simulationSuivi->coeff_leaser : '';
+			$ligne['actions'] = '';
+			
+			$TLignes[] = $ligne;
 		}
+
+		return $TLignes;
 	}
 	
 	/**
@@ -694,6 +707,9 @@ class TSimulationSuivi extends TObjetStd {
 		parent::add_champs('numero_accord_leaser,statut','type=chaine;');
 		parent::start();
 		parent::_init_vars();
+		
+		//Reset des dates car par défaut = time() à l'instanciation de la classe
+		$this->date_demande = $this->date_accord = $this->date_selection = '';
 
 		$this->TStatut=array(
 			'OK'=>$langs->trans('Accord')
