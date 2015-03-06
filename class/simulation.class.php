@@ -751,7 +751,7 @@ class TSimulationSuivi extends TObjetStd {
 
 		if(!$this->financementAlreadyAccepted){
 			//Demander
-			if($this->statut_demande != 1 && $this->date_demande < 0){
+			if($this->statut_demande != 1){// && $this->date_demande < 0){
 				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Demande transmise au leaser"><img src="'.dol_buildpath('/financement/img/demander.png',1).'" /></a>&nbsp;';
 			}
 			else{
