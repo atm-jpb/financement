@@ -124,13 +124,22 @@ function _formatIntegrale(&$integrale){
 	
 }
 
-function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale){
+function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 	
 	$integrale = new TIntegrale;
 	$integrale->loadBy($PDOdb, $facture->ref, 'facnumber');
 	
 	$integrale->date_facture = $facture->date;
-	$integrale->date_periode = $facture->ref_client;
+	$integrale->date_periode = strtotime(implode('-', array_reverse(explode('/', $facture->ref_client))));
+	
+	//Si la facture a une date de facturation dans la ref_client
+	if($dossier->_get_num_echeance_from_date($integrale->date_periode) != '-1'){
+		$integrale->date_periode = date('d/m/Y',strtotime($dossier->getDateDebutPeriode($dossier->_get_num_echeance_from_date($integrale->date_periode),'CLIENT')));
+	}
+	else{
+		$integrale->date_periode = $facture->ref_client;
+	}
+	
 	$integrale->facnumber = $facture->getNomUrl();
 	
 	if(!empty($TIntegrale[$integrale->date_periode])){
@@ -199,11 +208,11 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 		//Cas plusieurs factures sur la même échéance
 		if(is_array($fac)){
 			foreach($fac as $facture){
-				$TIntegrale = addInTIntegrale($PDOdb,$facture,$TIntegrale);
+				$TIntegrale = addInTIntegrale($PDOdb,$facture,$TIntegrale,$dossier);
 			}
 		}
 		else{
-			$TIntegrale = addInTIntegrale($PDOdb,$fac,$TIntegrale);
+			$TIntegrale = addInTIntegrale($PDOdb,$fac,$TIntegrale,$dossier);
 		}
 	}
 	
