@@ -478,7 +478,7 @@ class modFinancement extends DolibarrModules
 		
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
-								'titre'=>$langs->trans('Affaire en erreur'),
+								'titre'=>$langs->trans('Affaires en erreur'),
 								'mainmenu'=>'financement',
 								'leftmenu'=>'affaire_list',
 								'url'=>'/financement/affaire.php?errone=1',
