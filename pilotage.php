@@ -205,10 +205,10 @@ function _listeNbAffaireParTypeContrat(&$ATMdb,$date_debut,$date_fin) {
 				</tr>
 				<tr class="liste_titre">
 					<td></td>
-					<td class="titre_colonne"><?=date("Y", strtotime("-1 year", strtotime($date_debut)));?>/<?=date("Y",strtotime($date_debut));?></td>
-					<td class="titre_colonne"><?=date("Y", strtotime($date_debut));?>/<?=date("Y",strtotime($date_fin));?></td>
-					<td class="titre_colonne"><?=date("Y", strtotime("-1 year", strtotime($date_debut)));?>/<?=date("Y",strtotime($date_debut));?></td>
-					<td class="titre_colonne"><?=date("Y", strtotime($date_debut));?>/<?=date("Y",strtotime($date_fin));?></td>
+					<td class="titre_colonne"><?=(GETPOST('type_annee') == 'civile') ? date("Y", strtotime("-1 year", strtotime($date_debut))) : date("Y", strtotime("-1 year", strtotime($date_debut))).'/'.date("Y",strtotime($date_debut));?></td>
+					<td class="titre_colonne"><?=(GETPOST('type_annee') == 'civile') ? date("Y", strtotime($date_debut)) : date("Y", strtotime($date_debut)).'/'.date("Y",strtotime($date_fin));?></td>
+					<td class="titre_colonne"><?=(GETPOST('type_annee') == 'civile') ? date("Y", strtotime("-1 year", strtotime($date_debut))) : date("Y", strtotime("-1 year", strtotime($date_debut))).'/'.date("Y",strtotime($date_debut));?></td>
+					<td class="titre_colonne"><?=(GETPOST('type_annee') == 'civile') ? date("Y", strtotime($date_debut)) : date("Y", strtotime($date_debut)).'/'.date("Y",strtotime($date_fin));?></td>
 				</tr>
 				<?php
 				foreach($TRes as $contrat=>$TNb){
@@ -355,8 +355,8 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type,$date_debut,$date_fin
 			<table class="border" width="100%">
 				<tr class="liste_titre">
 					<td></td>
-					<td colspan="2" class="titre_colonne"><?=date("Y", strtotime("-1 year", strtotime($date_debut)));?>/<?=date("Y",strtotime($date_debut));?></td>
-					<td colspan="2" class="titre_colonne"><?=date("Y", strtotime($date_debut));?>/<?=date("Y",strtotime($date_fin));?></td>
+					<td class="titre_colonne" colspan="2"><?=(GETPOST('type_annee') == 'civile') ? date("Y", strtotime("-1 year", strtotime($date_debut))) : date("Y", strtotime("-1 year", strtotime($date_debut))).'/'.date("Y",strtotime($date_debut));?></td>
+					<td class="titre_colonne" colspan="2"><?=(GETPOST('type_annee') == 'civile') ? date("Y", strtotime($date_debut)) : date("Y", strtotime($date_debut)).'/'.date("Y",strtotime($date_fin));?></td>
 				</tr>
 				<tr class="liste_titre">
 					<td class="titre_colonne">au <?=date('d/m/Y');?></td>
