@@ -1367,6 +1367,17 @@ class TFin_financement extends TObjetStd {
 		
 		$fact->validate($user);
 		
+		$echeance = explode('/',$origine->facnumber);
+		$echeance = $echeance[1];
+		
+		//MAJ dates période facture
+		$dossier = new TFin_dossier;
+		$dossier->load($ATMdb, $this->fk_fin_dossier);
+		$date_debut_periode = $dossier->getDateDebutPeriode($echeance-1,'LEASER');
+		$date_fin_periode = $dossier->getDateFinPeriode($echeance-1);
+
+		$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$fact->id);
+		
 		// Ajout lien dossier
 		$fact->add_object_linked('dossier', $idDossier);
 
