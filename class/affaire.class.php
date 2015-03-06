@@ -634,7 +634,7 @@ class TFin_affaire extends TObjetStd {
 			$Affaire->totalBien += round(($facture->total_ht / $nbAsset),2);
 			$bien->appendChild($xml->createElement("montant",round(($facture->total_ht / $nbAsset),2)));
 		}*/
-		$bien->appendChild($xml->createElement("montant",round((($assetLink->asset->fk_product) ? $facture->total_ht : $Affaire->montant),2)));
+		$bien->appendChild($xml->createElement("montant",round((($assetLink->asset->fk_product) ? $facture->total_ht : $Affaire->TLien[0]->dossier->financementLeaser->montant),2)));
 		
 		return $bien;
 	}
