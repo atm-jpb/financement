@@ -38,12 +38,14 @@
 		$dossier->load($ATMdb, $financemementLeaser->fk_fin_dossier,false);
 		$dossier->load_factureFournisseur($ATMdb,true);
 		
-		$duree = $financemementLeaser->duree;
-		
+		$duree = $financemementLeaser->duree - $financemementLeaser->duree_restante;
+
 		//Pour chaque échéance on regarde si on a une facture
 		for($echeance=1;$echeance<=$duree;$echeance++){
 				
-			if(array_key_exists($echeance, $dossier->TFactureFournisseur)){
+			if(!array_key_exists($echeance-1, $dossier->TFactureFournisseur)){
+				/*echo $echeance.' '.$dossier->rowid.'<br>';
+				pre($dossier->TFactureFournisseur,true);exit;*/
 				$TError[$dossier->rowid] = 1;
 				$cpt ++;
 			}
