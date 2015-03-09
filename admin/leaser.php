@@ -61,8 +61,31 @@ $action = GETPOST('action', 'alpha');
 
 if($action == 'save') {
 	
+	//Traitement de l'ajout des nouvelles lignes
+	if(GETPOST('newline')){
+		
+		$TNewLine = GETPOST('newline');
+		foreach($TNewLine as $typeLine => $Tline){
+			
+			//pre($Tline,true);exit;
+			
+			$TFin_grille_suivi = new TFin_grille_suivi;
+			$res = $TFin_grille_suivi->addLine($Tline,$typeLine);
+
+			if($res) $TFin_grille_suivi->save($ATMdb);
+			else $error = 'ErrorNewLine'.$typeLine;
+		}
+	}
 	
-	
+	//Traitement de la mise à jour des lignes existante
+	if(GETPOST('TGrille')){
+		
+		$TAllGrille = GETPOST('TGrille');
+		foreach($TAllGrille as $typeGrille => $TGrille){
+			
+		}
+	}
+
 }
 
 //Toujours en mode edition
@@ -88,6 +111,8 @@ foreach ($liste_type_contrat as $typeContrat => $label) {
 	echo $form->hidden('typeContrat', $typeContrat );
 
 	$TBS=new TTemplateTBS;
+	
+	pre($grille,true);
 	
 	print $TBS->render('../tpl/fingrille.suivi.tpl.php'
 		,array(

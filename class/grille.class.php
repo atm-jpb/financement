@@ -109,7 +109,7 @@ class TFin_grille_leaser extends TObjetStd {
 			/* S'assure que toutes les colonnes sont correctement définie dans la grille (parfois selon la base il en manque) */
 		
 			$this->setPalier();
-		
+
 			foreach($this->TPalier as $palier) {
 				
 				foreach($this->TGrille as $periode=>&$row) {
@@ -381,6 +381,8 @@ class TFin_grille_suivi extends TObjetStd {
     function get_grille(&$PDOdb,$fk_type_contrat)
     {
 		
+		$form=new TFormCore();
+		
     	$sql = "SELECT rowid, fk_leaser_solde, montant, fk_leaser_entreprise,fk_leaser_administration,fk_leaser_association
         	 	FROM ".MAIN_DB_PREFIX."fin_grille_suivi
         	 	WHERE fk_type_contrat = '".$fk_type_contrat."'
@@ -392,24 +394,18 @@ class TFin_grille_suivi extends TObjetStd {
 
 		while($PDOdb->get_line()) {
 			
-			/*
-			 $TResult[] = array(
+			
+			 $TLineGrille[] = array(
 				 'rowid' => $PDOdb->Get_field('rowid')
-				,'fk_leaser_solde' => $PDOdb->Get_field('fk_leaser_solde')
 				,'montant' => $PDOdb->Get_field('montant')
-				,'fk_leaser_entreprise' => $PDOdb->Get_field('fk_leaser_entreprise')
-				,'fk_leaser_administration' => $PDOdb->Get_field('fk_leaser_administration')
-				,'fk_leaser_association' => $PDOdb->Get_field('fk_leaser_association')
 			 );
-			 */
-			
-			
-			$montantBase = ((is_null($TResult[end(array_keys($TResult))-1]['montant'])) ? '0' : $TResult[end(array_keys($TResult))-1]['montant']);
+
+			$lastMontant = ((is_null($TLineGrille[end(array_keys($TLineGrille))-1]['montant'])) ? '0' : $TLineGrille[end(array_keys($TLineGrille))-1]['montant']);
 			
 			$TResult[] = array(
 				 'rowid' => $PDOdb->Get_field('rowid')
 				,'solde' => $form->combo("", "TGrille[".$fk_type_contrat."][solde][".$PDOdb->Get_field('rowid')."]", $this->TLeaser, $PDOdb->Get_field('fk_leaser_solde'))
-				,'montant' => 'de '.$montantBase.' € à '.$form->texte('', "TGrille[".$fk_type_contrat."][montant][".$PDOdb->Get_field('rowid')."]", $PDOdb->Get_field('montant'), 5)
+				,'montant' => 'de '.$lastMontant.' € à '.$form->texte('', "TGrille[".$fk_type_contrat."][montant][".$PDOdb->Get_field('rowid')."]", $PDOdb->Get_field('montant'), 5)
 				,'entreprise' => $form->combo("", "TGrille[".$fk_type_contrat."][entreprise]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_entreprise'))
 				,'administration' => $form->combo("", "TGrille[".$fk_type_contrat."][administration]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_administration'))
 				,'association' => $form->combo("", "TGrille[".$fk_type_contrat."][association]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_association'))
@@ -446,5 +442,29 @@ class TFin_grille_suivi extends TObjetStd {
 				}
 			}
 		}
+	}
+	
+	function addLine(&$Tline,$typeLine){
+		
+		$lineok = $this->checkData($Tline);
+		
+		if($lineok){
+			$this->fk_type_contrat = $typeLine;
+			$this->fk_leaser_solde = $Tline['solde'];
+			$this->montant = $Tline['montant'];
+			$this->fk_leaser_entreprise = $Tline['entreprise'];
+			$this->fk_leaser_administration = $Tline['administration'];
+			$this->fk_leaser_association = $Tline['association'];
+		}
+		
+		return $lineok;
+	}
+	
+	function checkData(&$Tline){
+		
+		if($Tline['montant'] < 0) return false;
+		if($Tline['solde'] < 0) return false;
+		
+		return true;
 	}
 }

@@ -8,11 +8,11 @@
 	</tr>
 	<tr>
 		<!-- [grille.rowid; block=tr;strconv=no;sub1] -->
-		<td align="center">[grille_sub1.solde;strconv=no]</td>
-		<td align="center">[grille_sub1.montant;strconv=no]</td>
-		<td align="center">[grille_sub1.entreprise;strconv=no]</td>
-		<td align="center">[grille_sub1.administration;strconv=no]</td>
-		<td align="center">[grille_sub1.association;strconv=no]</td>
+		<td align="center">[grille.solde;strconv=no]</td>
+		<td align="center">[grille.montant;strconv=no]</td>
+		<td align="center">[grille.entreprise;strconv=no]</td>
+		<td align="center">[grille.administration;strconv=no]</td>
+		<td align="center">[grille.association;strconv=no]</td>
 	</tr>
 	<tr >
 		<td align="center">[newline.solde;strconv=no]</td>
