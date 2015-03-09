@@ -348,3 +348,103 @@ class TFin_grille_leaser extends TObjetStd {
 		return $iPeriode;
 	}
 }
+
+class TFin_grille_suivi extends TObjetStd {
+	function __construct() { /* declaration */
+		global $langs;
+
+		parent::set_table(MAIN_DB_PREFIX.'fin_grille_suivi');
+		parent::add_champs('fk_type_contrat','type=chaine;');
+		parent::add_champs('fk_leaser_solde,fk_leaser_entreprise,fk_leaser_administration,fk_leaser_association','type=entier;');
+		parent::add_champs('montant','type=float;');
+		
+		parent::_init_vars();
+		parent::start();
+		
+		$this->TLeaser = array(
+				-1 => '',
+				0 => "Pas de solde / Refus du leaser en place"
+			);
+		
+		$this->loadLeaserByCategories();
+		$this->loadLeaserByCategories('Leaser');
+		
+		ksort($this->TLeaser);
+	}
+	
+	/**
+     *  Chargement d'un tableau de grille pour un leaser donné, pour un type de contrat donné
+     *
+	 *  @param	int		$fk_type_contrat     Type du contrat (LOCSIMPLE,FORFAITGLOBAL,INTEGRAL)
+     *  @return array   Tableau contenant la grille assocée au type de contrat
+     */
+    function get_grille(&$PDOdb,$fk_type_contrat)
+    {
+		
+    	$sql = "SELECT rowid, fk_leaser_solde, montant, fk_leaser_entreprise,fk_leaser_administration,fk_leaser_association
+        	 	FROM ".MAIN_DB_PREFIX."fin_grille_suivi
+        	 	WHERE fk_type_contrat = '".$fk_type_contrat."'
+        	 	ORDER BY rowid, montant ASC";
+
+		$PDOdb->Execute($sql);
+
+		$TResult=array();
+
+		while($PDOdb->get_line()) {
+			
+			/*
+			 $TResult[] = array(
+				 'rowid' => $PDOdb->Get_field('rowid')
+				,'fk_leaser_solde' => $PDOdb->Get_field('fk_leaser_solde')
+				,'montant' => $PDOdb->Get_field('montant')
+				,'fk_leaser_entreprise' => $PDOdb->Get_field('fk_leaser_entreprise')
+				,'fk_leaser_administration' => $PDOdb->Get_field('fk_leaser_administration')
+				,'fk_leaser_association' => $PDOdb->Get_field('fk_leaser_association')
+			 );
+			 */
+			
+			
+			$montantBase = ((is_null($TResult[end(array_keys($TResult))-1]['montant'])) ? '0' : $TResult[end(array_keys($TResult))-1]['montant']);
+			
+			$TResult[] = array(
+				 'rowid' => $PDOdb->Get_field('rowid')
+				,'solde' => $form->combo("", "TGrille[".$fk_type_contrat."][solde][".$PDOdb->Get_field('rowid')."]", $this->TLeaser, $PDOdb->Get_field('fk_leaser_solde'))
+				,'montant' => 'de '.$montantBase.' € à '.$form->texte('', "TGrille[".$fk_type_contrat."][montant][".$PDOdb->Get_field('rowid')."]", $PDOdb->Get_field('montant'), 5)
+				,'entreprise' => $form->combo("", "TGrille[".$fk_type_contrat."][entreprise]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_entreprise'))
+				,'administration' => $form->combo("", "TGrille[".$fk_type_contrat."][administration]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_administration'))
+				,'association' => $form->combo("", "TGrille[".$fk_type_contrat."][association]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_association'))
+			);
+		}
+
+		return $TResult;
+	}
+	
+	function loadLeaserByCategories($categorie = 'Type de financement'){
+		global $db;
+
+		dol_include_once('/categories/class/categorie.class.php');
+
+		//Pour chacun des type de contrat (LOCSIMPLE,FORFAITGLOBAL,INTEGRAL) on charge les tiers associé à la catégorie correspondante
+		//Les leasers concernés sont ceux présent dans la catégorie "Type de financement" => id = 2
+		$categorieParent = new Categorie($db);
+		$categorieParent->fetch('',$categorie);
+		$TCategoriesFille = $categorieParent->get_filles();
+		
+		$TLeaserByCategories = array();
+		
+		foreach ($TCategoriesFille as $categorieFille) {
+			
+			if($categorie === 'Leaser'){
+				$this->TLeaser[$categorieFille->id] = $categorieFille->label;
+			}
+			else{
+				$TLeaser = $categorieFille->get_type("societe","Fournisseur","fournisseur");
+	
+				//Pour chaque leaser, ajout dans le tableau qui va bien
+				foreach($TLeaser as $leaser){
+					$this->TLeaserByCategories[$leaser->id] = $leaser->name;
+				}
+			}
+		}
+	}
+}
