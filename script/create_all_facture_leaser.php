@@ -46,7 +46,7 @@
 			if(!array_key_exists($echeance-1, $dossier->TFactureFournisseur)){
 				/*echo $echeance.' '.$dossier->rowid.'<br>';
 				pre($dossier->TFactureFournisseur,true);exit;*/
-				$TError[$dossier->rowid] = 1;
+				$TError[$dossier->rowid] = $dossier->financement->reference." / ".$dossier->financementLeaser->reference;
 				$cpt ++;
 			}
 		}
