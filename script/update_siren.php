@@ -76,7 +76,7 @@ $fileHandler = fopen($fileName, 'r');
 
 while($dataline = fgetcsv($fileHandler, 1024, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
 	
-	$code_client = $dataline[1];
+	$code_client = str_pad($dataline[1], 6,'0',STR_PAD_LEFT);
 	$autre_sien = $dataline[0];
 	
 	echo $code_client." ".$autre_sien.'<br>';
