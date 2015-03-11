@@ -386,7 +386,7 @@ class TFin_grille_suivi extends TObjetStd {
     	$sql = "SELECT rowid, fk_leaser_solde, montantbase, montantfin, fk_leaser_entreprise,fk_leaser_administration,fk_leaser_association
         	 	FROM ".MAIN_DB_PREFIX."fin_grille_suivi
         	 	WHERE fk_type_contrat = '".$fk_type_contrat."'
-        	 	ORDER BY rowid, montantbase ASC";
+        	 	ORDER BY rowid ASC";
 
 		$PDOdb->Execute($sql);
 
@@ -394,8 +394,8 @@ class TFin_grille_suivi extends TObjetStd {
 
 		while($PDOdb->get_line()) {
 			
-			$montantbase = $form->texte('', "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][montantbase]", $PDOdb->Get_field('montantbase'), 5);
-			$montantfin = $form->texte('', "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][montantfin]", $PDOdb->Get_field('montantfin'), 5);
+			$montantbase = $form->texte('', "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][montantbase]", $PDOdb->Get_field('montantbase'), 10);
+			$montantfin = $form->texte('', "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][montantfin]", $PDOdb->Get_field('montantfin'), 10);
 			
 			$TResult[] = array(
 				 'rowid' => $PDOdb->Get_field('rowid')

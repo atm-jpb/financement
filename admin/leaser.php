@@ -161,7 +161,7 @@ foreach ($liste_type_contrat as $typeContrat => $label) {
 			)
 			,'newline'=>array(
 				'solde' => $form->combo("", "newline[".$typeContrat."][solde]", $TFin_grille_suivi->TLeaser, '-1')
-				,'montant' => 'de '.$form->texte('', "newline[".$typeContrat."][montantbase]", '', 5).' € à '.$form->texte('', "newline[".$typeContrat."][montantfin]", '', 5).' €'
+				,'montant' => 'de '.$form->texte('', "newline[".$typeContrat."][montantbase]", '', 10).' € à '.$form->texte('', "newline[".$typeContrat."][montantfin]", '', 10).' €'
 				,'entreprise' => $form->combo("", "newline[".$typeContrat."][entreprise]", $TFin_grille_suivi->TLeaserByCategories,'')
 				,'administration' => $form->combo("", "newline[".$typeContrat."][administration]", $TFin_grille_suivi->TLeaserByCategories,'')
 				,'association' => $form->combo("", "newline[".$typeContrat."][association]", $TFin_grille_suivi->TLeaserByCategories,'')
@@ -191,6 +191,7 @@ echo $form->hidden('typeContrat', $typeContrat );
 
 $ATMdb->Execute("SELECT rowid, fk_leaser_solde, montantbase FROM ".MAIN_DB_PREFIX."fin_grille_suivi WHERE fk_type_contrat = '".$typeContrat."' ORDER BY montantbase ASC");
 $ordre = 1;
+$grille = array();
 while ($ATMdb->Get_line()) {
 	$grille[] = array(
 		'rowid'=>$ATMdb->Get_field('rowid')
