@@ -44,30 +44,34 @@ dol_htmloutput_mesg($mesg);
 $ATMdb=new TPDOdb;
 
 $affaire = new TFin_affaire;
+
 $liste_type_contrat = $affaire->TContrat;
 $TGrille=array();
-
-foreach ($liste_type_contrat as $typeContrat => $label) {
-	$TFin_grille_suivi = new TFin_grille_suivi;
-	$grille = $TFin_grille_suivi->get_grille($ATMdb,$typeContrat);
-	
-	$TGrille[$typeContrat] = $grille;
-}
-
 
 $error = false;
 $mesg = '';
 $action = GETPOST('action', 'alpha');
 
+//pre($_REQUEST,true);
+
 if($action == 'save') {
 	
 	//Traitement de l'ajout des nouvelles lignes
 	if(GETPOST('newline')){
-		
+
 		$TNewLine = GETPOST('newline');
 		foreach($TNewLine as $typeLine => $Tline){
-			
-			//pre($Tline,true);exit;
+
+			if($typeLine == 'DEFAUT'){
+				$Tline = array(
+					"solde" => ($Tline['leaser'] == 0) ? -1 : $Tline['leaser']
+					,"montantbase" => $Tline['ordre']
+					,"montantfin" => 0
+					,"entreprise" => 0
+					,"administration" => 0 
+					,"association" => 0
+				);
+			}
 			
 			$TFin_grille_suivi = new TFin_grille_suivi;
 			$res = $TFin_grille_suivi->addLine($Tline,$typeLine);
@@ -81,22 +85,54 @@ if($action == 'save') {
 	if(GETPOST('TGrille')){
 		
 		$TAllGrille = GETPOST('TGrille');
-		foreach($TAllGrille as $typeGrille => $TGrille){
+
+		foreach($TAllGrille as $typeGrille => $grille_temp){
 			
+			foreach($grille_temp as $rowid => $linegrille){				
+				
+				if($typeLine == 'DEFAUT'){
+					$linegrille = array(
+						"solde" => ($linegrille['leaser'] == 0) ? -1 : $linegrille['leaser']
+						,"montantbase" => $linegrille['ordre']
+						,"montantfin" => 0
+						,"entreprise" => 0
+						,"administration" => 0 
+						,"association" => 0
+					);
+				}
+				
+				$TFin_grille_suivi = new TFin_grille_suivi;
+				$TFin_grille_suivi->load($ATMdb, $rowid);
+				
+				if($linegrille['solde'] == -1 || $linegrille['leaser'] == -1){
+					$TFin_grille_suivi->delete($ATMdb);
+				}
+				else{
+					$res = $TFin_grille_suivi->addLine($linegrille,$typeGrille);
+					
+					if($res) $TFin_grille_suivi->save($ATMdb);
+					else $error = 'ErrorUpdateLine'.$typeLine;
+				}
+			}
 		}
 	}
 
 }
 
+foreach ($liste_type_contrat as $typeContrat => $label) {
+	$TFin_grille_suivi = new TFin_grille_suivi;
+	$grille = $TFin_grille_suivi->get_grille($ATMdb,$typeContrat);
+	
+	$TGrille[$typeContrat] = $grille;
+}
+
+
 //Toujours en mode edition
 $mode = 'edit';
 
 /* *********************************
- * Afficahge des grilles de Leasers
+ * Affichage des grilles de Leasers
  * *********************************/
-
-//pre($TFin_grille_suivi->TLeaserByCategories,true);
-//pre($TFin_grille_suivi->TLeaser,true);
 
 foreach ($liste_type_contrat as $typeContrat => $label) {
 	
@@ -112,7 +148,7 @@ foreach ($liste_type_contrat as $typeContrat => $label) {
 
 	$TBS=new TTemplateTBS;
 	
-	pre($grille,true);
+	//pre($grille,true);
 	
 	print $TBS->render('../tpl/fingrille.suivi.tpl.php'
 		,array(
@@ -125,7 +161,7 @@ foreach ($liste_type_contrat as $typeContrat => $label) {
 			)
 			,'newline'=>array(
 				'solde' => $form->combo("", "newline[".$typeContrat."][solde]", $TFin_grille_suivi->TLeaser, '-1')
-				,'montant' => 'de '.((is_null($grille[end(array_keys($grille))]['montant'])) ? '0' : $grille[end(array_keys($grille))]['montant']).' € à '.$form->texte('', "newline[".$typeContrat."][montant]", '', 5)
+				,'montant' => 'de '.$form->texte('', "newline[".$typeContrat."][montantbase]", '', 5).' € à '.$form->texte('', "newline[".$typeContrat."][montantfin]", '', 5).' €'
 				,'entreprise' => $form->combo("", "newline[".$typeContrat."][entreprise]", $TFin_grille_suivi->TLeaserByCategories,'')
 				,'administration' => $form->combo("", "newline[".$typeContrat."][administration]", $TFin_grille_suivi->TLeaserByCategories,'')
 				,'association' => $form->combo("", "newline[".$typeContrat."][association]", $TFin_grille_suivi->TLeaserByCategories,'')
@@ -137,6 +173,50 @@ foreach ($liste_type_contrat as $typeContrat => $label) {
 	print $form->end_form();
 
 }
+
+echo '<hr><br><br>';
+
+/* *************************************************************************
+ * Affichage du tableau permettant de définir l'ordre par défaut des leasers
+ * ************************************************************************/
+ 
+$typeContrat = "DEFAUT";
+print_titre('Ordre des leasers par défaut');
+
+$form=new TFormCore($_SERVER['PHP_SELF'],'formGrille'.$typeContrat,'POST');
+$form->Set_typeaff($mode);
+
+echo $form->hidden('action', 'save');
+echo $form->hidden('typeContrat', $typeContrat );
+
+$ATMdb->Execute("SELECT rowid, fk_leaser_solde, montantbase FROM ".MAIN_DB_PREFIX."fin_grille_suivi WHERE fk_type_contrat = '".$typeContrat."' ORDER BY montantbase ASC");
+$ordre = 1;
+while ($ATMdb->Get_line()) {
+	$grille[] = array(
+		'rowid'=>$ATMdb->Get_field('rowid')
+		,'leaser'=>$form->combo("", "TGrille[".$typeContrat."][".$ATMdb->Get_field('rowid')."][leaser]", array_merge(array(-1=>''),$TFin_grille_suivi->TLeaserByCategories),$ATMdb->Get_field('fk_leaser_solde'))
+		,'ordre'=>$form->hidden("TGrille[".$typeContrat."][".$ATMdb->Get_field('rowid')."][ordre]",$ATMdb->Get_field('montantbase'))
+	);
+	$ordre  = $ATMdb->Get_field('montantbase')+1;
+}
+
+print $TBS->render('../tpl/findefaut.suivi.tpl.php'
+	,array(
+		'grille'=>$grille
+	)
+	,array(
+		'view'=>array(
+			'mode'=>$mode
+		)
+		,'newline'=>array(
+			'leaser' => $form->combo("", "newline[".$typeContrat."][leaser]", array_merge(array(-1=>''),$TFin_grille_suivi->TLeaserByCategories),'')
+			,'ordre' => $form->hidden("newline[".$typeContrat."][ordre]",$ordre)
+		)
+		
+	)
+);
+
+print $form->end_form();
 
 dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 

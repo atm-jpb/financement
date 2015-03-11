@@ -356,7 +356,7 @@ class TFin_grille_suivi extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_grille_suivi');
 		parent::add_champs('fk_type_contrat','type=chaine;');
 		parent::add_champs('fk_leaser_solde,fk_leaser_entreprise,fk_leaser_administration,fk_leaser_association','type=entier;');
-		parent::add_champs('montant','type=float;');
+		parent::add_champs('montantbase,montantfin','type=float;');
 		
 		parent::_init_vars();
 		parent::start();
@@ -383,10 +383,10 @@ class TFin_grille_suivi extends TObjetStd {
 		
 		$form=new TFormCore();
 		
-    	$sql = "SELECT rowid, fk_leaser_solde, montant, fk_leaser_entreprise,fk_leaser_administration,fk_leaser_association
+    	$sql = "SELECT rowid, fk_leaser_solde, montantbase, montantfin, fk_leaser_entreprise,fk_leaser_administration,fk_leaser_association
         	 	FROM ".MAIN_DB_PREFIX."fin_grille_suivi
         	 	WHERE fk_type_contrat = '".$fk_type_contrat."'
-        	 	ORDER BY rowid, montant ASC";
+        	 	ORDER BY rowid, montantbase ASC";
 
 		$PDOdb->Execute($sql);
 
@@ -394,21 +394,16 @@ class TFin_grille_suivi extends TObjetStd {
 
 		while($PDOdb->get_line()) {
 			
-			
-			 $TLineGrille[] = array(
-				 'rowid' => $PDOdb->Get_field('rowid')
-				,'montant' => $PDOdb->Get_field('montant')
-			 );
-
-			$lastMontant = ((is_null($TLineGrille[end(array_keys($TLineGrille))-1]['montant'])) ? '0' : $TLineGrille[end(array_keys($TLineGrille))-1]['montant']);
+			$montantbase = $form->texte('', "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][montantbase]", $PDOdb->Get_field('montantbase'), 5);
+			$montantfin = $form->texte('', "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][montantfin]", $PDOdb->Get_field('montantfin'), 5);
 			
 			$TResult[] = array(
 				 'rowid' => $PDOdb->Get_field('rowid')
-				,'solde' => $form->combo("", "TGrille[".$fk_type_contrat."][solde][".$PDOdb->Get_field('rowid')."]", $this->TLeaser, $PDOdb->Get_field('fk_leaser_solde'))
-				,'montant' => 'de '.$lastMontant.' € à '.$form->texte('', "TGrille[".$fk_type_contrat."][montant][".$PDOdb->Get_field('rowid')."]", $PDOdb->Get_field('montant'), 5)
-				,'entreprise' => $form->combo("", "TGrille[".$fk_type_contrat."][entreprise]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_entreprise'))
-				,'administration' => $form->combo("", "TGrille[".$fk_type_contrat."][administration]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_administration'))
-				,'association' => $form->combo("", "TGrille[".$fk_type_contrat."][association]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_association'))
+				,'solde' => $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][solde]", $this->TLeaser, $PDOdb->Get_field('fk_leaser_solde'))
+				,'montant' => 'de '.$montantbase.' € à '.$montantfin.' €'
+				,'entreprise' => $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][entreprise]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_entreprise'))
+				,'administration' => $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][administration]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_administration'))
+				,'association' => $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][association]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_association'))
 			);
 		}
 
@@ -451,7 +446,8 @@ class TFin_grille_suivi extends TObjetStd {
 		if($lineok){
 			$this->fk_type_contrat = $typeLine;
 			$this->fk_leaser_solde = $Tline['solde'];
-			$this->montant = $Tline['montant'];
+			$this->montantbase = $Tline['montantbase'];
+			$this->montantfin = $Tline['montantfin'];
 			$this->fk_leaser_entreprise = $Tline['entreprise'];
 			$this->fk_leaser_administration = $Tline['administration'];
 			$this->fk_leaser_association = $Tline['association'];
@@ -462,7 +458,7 @@ class TFin_grille_suivi extends TObjetStd {
 	
 	function checkData(&$Tline){
 		
-		if($Tline['montant'] < 0) return false;
+		if($Tline['montantbase'] < 0) return false;
 		if($Tline['solde'] < 0) return false;
 		
 		return true;
