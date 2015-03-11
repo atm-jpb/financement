@@ -86,7 +86,7 @@ class TSimulation extends TObjetStd {
 		
 		foreach ($TCategoriesFille as $categorieFille) {
 			$TLeaser = $categorieFille->get_type("societe","Fournisseur","fournisseur");
-
+			
 			//Pour chaque leaser, ajout d'une ligne de suivi
 			foreach($TLeaser as $leaser){
 				$simulationSuivi = new TSimulationSuivi;
@@ -198,10 +198,50 @@ class TSimulation extends TObjetStd {
 
 				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 			}
+			
+			//Réorganisation de l'ordre de la liste en fonction de la grille d'administration
+			$TLeaser = $this->reordreSimulationSuivi($PDOdb);
 		}
 		else{
 			$this->create_suivi_simulation($PDOdb);
 		}
+	}
+	
+	//Réorganisation de l'ordre de la liste en fonction de la grille d'administration
+	function reordreSimulationSuivi(&$PDOdb){
+		
+		$TSimulationSuiviTemp = array();
+		
+		//Récupération du leaser prioritaire pour affichage en premier dans le tableau
+		$idLeaserPrio = $this->getIdLeaserPrioritaire($PDOdb);
+		//Récupération Id suivi simulation correspondant au leaser
+		$idSimulationSuiviLeaserPrio = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId(),'fk_leaser'=>$idLeaserPrio));
+		$idSimulationSuiviLeaserPrio = $idSimulationSuiviLeaserPrio[0];
+		//Chargement du suivi simulation associé au leaser
+		$simulationSuiviLeaserPrio = new TSimulationSuivi;
+		$simulationSuiviLeaserPrio->load($PDOdb,$idSimulationSuiviLeaserPrio);
+		//Ajout du suivi simulation associé dans le tableau à la première place
+		$TSimulationSuiviTemp[$simulationSuiviLeaserPrio->getId()] = $simulationSuiviLeaserPrio;
+		
+		//Récupération de l'ordre par défaut pour les Leaser non prioritaire
+		$sql = "SELECT rowid, fk_leaser_solde, montantbase FROM ".MAIN_DB_PREFIX."fin_grille_suivi WHERE fk_type_contrat = 'DEFAUT' AND fk_leaser_solde != ".$idLeaserPrio." ORDER BY montantbase ASC";
+		$PDOdb->Execute($sql);
+
+		while($PDOdb->Get_line()){
+			foreach($this->TSimulationSuivi as $simulationSuivi){
+				if((int)$simulationSuivi->fk_leaser === (int)$PDOdb->Get_field('fk_leaser_solde')){
+					$TSimulationSuiviTemp[$simulationSuivi->rowid] = $simulationSuivi;
+				}
+			}
+		}
+		
+		$this->TSimulationSuivi = $TSimulationSuiviTemp;
+	}
+	
+	
+	function getIdLeaserPrioritaire(&$PDOdb){
+		
+		return 18305;
 	}
 	
 	function get_suivi_simulation(&$PDOdb){

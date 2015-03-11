@@ -399,6 +399,7 @@ class TFin_grille_suivi extends TObjetStd {
 			
 			$TResult[] = array(
 				 'rowid' => $PDOdb->Get_field('rowid')
+				,'fk_leaser' => $PDOdb->Get_field('fk_leaser_solde')
 				,'solde' => $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][solde]", $this->TLeaser, $PDOdb->Get_field('fk_leaser_solde'))
 				,'montant' => 'de '.$montantbase.' € à '.$montantfin.' €'
 				,'entreprise' => $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][entreprise]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_entreprise'))
@@ -430,7 +431,8 @@ class TFin_grille_suivi extends TObjetStd {
 			}
 			else{
 				$TLeaser = $categorieFille->get_type("societe","Fournisseur","fournisseur");
-	
+				
+				$this->TLeaserByCategories[-1]='';
 				//Pour chaque leaser, ajout dans le tableau qui va bien
 				foreach($TLeaser as $leaser){
 					$this->TLeaserByCategories[$leaser->id] = $leaser->name;

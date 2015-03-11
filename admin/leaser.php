@@ -195,11 +195,13 @@ $grille = array();
 while ($ATMdb->Get_line()) {
 	$grille[] = array(
 		'rowid'=>$ATMdb->Get_field('rowid')
-		,'leaser'=>$form->combo("", "TGrille[".$typeContrat."][".$ATMdb->Get_field('rowid')."][leaser]", array_merge(array(-1=>''),$TFin_grille_suivi->TLeaserByCategories),$ATMdb->Get_field('fk_leaser_solde'))
+		,'leaser'=>$form->combo("", "TGrille[".$typeContrat."][".$ATMdb->Get_field('rowid')."][leaser]", $TFin_grille_suivi->TLeaserByCategories,$ATMdb->Get_field('fk_leaser_solde'))
 		,'ordre'=>$form->hidden("TGrille[".$typeContrat."][".$ATMdb->Get_field('rowid')."][ordre]",$ATMdb->Get_field('montantbase'))
 	);
 	$ordre  = $ATMdb->Get_field('montantbase')+1;
 }
+
+//pre($TFin_grille_suivi->TLeaserByCategories,true);exit;
 
 print $TBS->render('../tpl/findefaut.suivi.tpl.php'
 	,array(
@@ -210,7 +212,7 @@ print $TBS->render('../tpl/findefaut.suivi.tpl.php'
 			'mode'=>$mode
 		)
 		,'newline'=>array(
-			'leaser' => $form->combo("", "newline[".$typeContrat."][leaser]", array_merge(array(-1=>''),$TFin_grille_suivi->TLeaserByCategories),'')
+			'leaser' => $form->combo("", "newline[".$typeContrat."][leaser]", $TFin_grille_suivi->TLeaserByCategories,'')
 			,'ordre' => $form->hidden("newline[".$typeContrat."][ordre]",$ordre)
 		)
 		
