@@ -378,7 +378,7 @@ class TFin_grille_suivi extends TObjetStd {
 	 *  @param	int		$fk_type_contrat     Type du contrat (LOCSIMPLE,FORFAITGLOBAL,INTEGRAL)
      *  @return array   Tableau contenant la grille assocée au type de contrat
      */
-    function get_grille(&$PDOdb,$fk_type_contrat)
+    function get_grille(&$PDOdb,$fk_type_contrat,$admin=true)
     {
 		
 		$form=new TFormCore();
@@ -394,17 +394,17 @@ class TFin_grille_suivi extends TObjetStd {
 
 		while($PDOdb->get_line()) {
 			
-			$montantbase = $form->texte('', "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][montantbase]", $PDOdb->Get_field('montantbase'), 10);
-			$montantfin = $form->texte('', "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][montantfin]", $PDOdb->Get_field('montantfin'), 10);
+			$montantbase = ($admin) ? $form->texte('', "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][montantbase]", $PDOdb->Get_field('montantbase'), 10) : $PDOdb->Get_field('montantbase');
+			$montantfin = ($admin) ? $form->texte('', "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][montantfin]", $PDOdb->Get_field('montantfin'), 10) : $PDOdb->Get_field('montantfin');
 			
 			$TResult[] = array(
 				 'rowid' => $PDOdb->Get_field('rowid')
 				,'fk_leaser' => $PDOdb->Get_field('fk_leaser_solde')
-				,'solde' => $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][solde]", $this->TLeaser, $PDOdb->Get_field('fk_leaser_solde'))
-				,'montant' => 'de '.$montantbase.' € à '.$montantfin.' €'
-				,'entreprise' => $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][entreprise]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_entreprise'))
-				,'administration' => $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][administration]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_administration'))
-				,'association' => $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][association]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_association'))
+				,'solde' => ($admin) ? $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][solde]", $this->TLeaser, $PDOdb->Get_field('fk_leaser_solde')) : $PDOdb->Get_field('fk_leaser_solde')
+				,'montant' =>  ($admin) ? 'de '.$montantbase.' € à '.$montantfin.' €' : $montantbase.';'.$montantfin
+				,'entreprise' => ($admin) ? $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][entreprise]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_entreprise')) : $PDOdb->Get_field('fk_leaser_entreprise')
+				,'administration' => ($admin) ? $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][administration]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_administration')) : $PDOdb->Get_field('fk_leaser_administration')
+				,'association' => ($admin) ? $form->combo("", "TGrille[".$fk_type_contrat."][".$PDOdb->Get_field('rowid')."][association]", $this->TLeaserByCategories,$PDOdb->Get_field('fk_leaser_association')) : $PDOdb->Get_field('fk_leaser_association')
 			);
 		}
 

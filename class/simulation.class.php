@@ -214,17 +214,24 @@ class TSimulation extends TObjetStd {
 		
 		//Récupération du leaser prioritaire pour affichage en premier dans le tableau
 		$idLeaserPrio = $this->getIdLeaserPrioritaire($PDOdb);
-		//Récupération Id suivi simulation correspondant au leaser
-		$idSimulationSuiviLeaserPrio = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId(),'fk_leaser'=>$idLeaserPrio));
-		$idSimulationSuiviLeaserPrio = $idSimulationSuiviLeaserPrio[0];
-		//Chargement du suivi simulation associé au leaser
-		$simulationSuiviLeaserPrio = new TSimulationSuivi;
-		$simulationSuiviLeaserPrio->load($PDOdb,$idSimulationSuiviLeaserPrio);
-		//Ajout du suivi simulation associé dans le tableau à la première place
-		$TSimulationSuiviTemp[$simulationSuiviLeaserPrio->getId()] = $simulationSuiviLeaserPrio;
 		
-		//Récupération de l'ordre par défaut pour les Leaser non prioritaire
-		$sql = "SELECT rowid, fk_leaser_solde, montantbase FROM ".MAIN_DB_PREFIX."fin_grille_suivi WHERE fk_type_contrat = 'DEFAUT' AND fk_leaser_solde != ".$idLeaserPrio." ORDER BY montantbase ASC";
+		if($idLeaserPrio){
+			//Récupération Id suivi simulation correspondant au leaser
+			$idSimulationSuiviLeaserPrio = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId(),'fk_leaser'=>$idLeaserPrio));
+			//Chargement du suivi simulation associé au leaser
+			$simulationSuiviLeaserPrio = new TSimulationSuivi;
+			$simulationSuiviLeaserPrio->load($PDOdb,$idSimulationSuiviLeaserPrio[0]);
+			//Ajout du suivi simulation associé dans le tableau à la première place
+			$TSimulationSuiviTemp[$simulationSuiviLeaserPrio->getId()] = $simulationSuiviLeaserPrio;
+		}
+		
+		//Récupération de l'ordre par défaut pour les autres Leaser
+		$sql = "SELECT rowid, fk_leaser_solde, montantbase 
+				FROM ".MAIN_DB_PREFIX."fin_grille_suivi 
+				WHERE fk_type_contrat = 'DEFAUT'";
+		if($idLeaserPrio) $sql .= " AND fk_leaser_solde != ".$idLeaserPrio;	
+		$sql .= " ORDER BY montantbase ASC";
+		
 		$PDOdb->Execute($sql);
 
 		while($PDOdb->Get_line()){
@@ -239,9 +246,62 @@ class TSimulation extends TObjetStd {
 	}
 	
 	
+	//Retourne l'identifiant leaser prioritaire en fonction de la grille d'administration
 	function getIdLeaserPrioritaire(&$PDOdb){
+		global $db;
 		
-		return 18305;
+		$idLeaserPrioritaire = 0; //18305 ACECOM pour test
+		
+		$TFinGrilleSuivi = new TFin_grille_suivi;
+		$grille = $TFinGrilleSuivi->get_grille($PDOdb, $this->fk_type_contrat,false);
+		
+		//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
+		$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
+		//Récupération de la catégorie du client : entreprise, administration ou association
+		$labelCategorie = $this->getLabelCategorieClient();
+		
+		//On récupère l'id du leaser prioritaire en fonction des règles de gestion
+		foreach($grille as $TElement){
+			$TMontant = explode(';',$TElement['montant']);
+			if($TMontant[0] < $this->montant_total_finance && $TMontant[1] > $this->montant_total_finance && !empty($TElement[$labelCategorie]) && $idLeaserDossierSolde == $TElement['solde']){
+				$idLeaserPrioritaire = $TElement[$labelCategorie];
+			}
+		}
+
+		return $idLeaserPrioritaire;
+	}
+	
+	//Récupération de la catégorie du client : entreprise, administration ou association
+	function getLabelCategorieClient(){
+		global $db;
+		
+		//Récupération de la catégorie du client : entreprise, administration ou association
+		$categorie = new Categorie($db);
+		$TCategories = $categorie->get_all_categories(2);
+		$labelCategorie = '';
+		if(count($TCategories)){
+			foreach($TCategories as $categorie){
+				if($categorie->label == 'Entreprise' || $categorie->label == 'Administration' || $categorie->label == 'Association'){
+					$labelCategorie = strtolower($categorie->label);
+				}
+			}
+		}
+		
+		return $labelCategorie;
+	}
+	
+	//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
+	function getIdLeaserDossierSolde(&$PDOdb){
+		
+		$idLeaserDossierSolde = 0;
+		$TDossierUsed = $this->get_list_dossier_used();
+		if(count($TDossierUsed)){
+			$dossier = new TFin_dossier;
+			$dossier->load($PDOdb, $TDossierUsed[0]);
+			$idLeaserDossierSolde = $dossier->TLien[0]->dossier->financementLeaser->fk_soc;
+		}
+		
+		return $idLeaserDossierSolde;
 	}
 	
 	function get_suivi_simulation(&$PDOdb){
@@ -257,7 +317,7 @@ class TSimulation extends TObjetStd {
 			$ligne = array();
 			//echo $simulationSuivi->get_Date('date_demande').'<br>';
 			$ligne['rowid'] = $simulationSuivi->getId();
-			$ligne['class'] = ($simulationSuivi->getId() % 2) ? 'impair' : 'pair';
+			$ligne['class'] = (count($TLignes) % 2) ? 'impair' : 'pair';
 			$ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
 			$ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png',1).'" />' : '' ;
 			$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande') : '' ;
