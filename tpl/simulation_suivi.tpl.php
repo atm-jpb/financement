@@ -8,21 +8,25 @@
 
 		<tr class="liste_titre">
 			<td>Leaser</td>
-			<td>Demande</td>
+			<!--<td>Demande</td> -->
 			<td>Date<br>demande</td>
 			<td>Résultat</td>
 			<td>N° accord<br>Leaser</td>
 			<td>Coeff.<br>Leaser</td>
+			<td>Date sélection<br>Leaser</td>
+			<td>Utilisateur</td>
 			<td>Actions</td>
 		</tr>
 		
 		<tr class="[ligne.class]">
 			<td><!-- [ligne.#; block=tr] -->[ligne.leaser;strconv=no]</td>
-			<td>[ligne.demande;strconv=no]</td>
+			<!--<td>[ligne.demande;strconv=no]</td>-->
 			<td>[ligne.date_demande]</td>
 			<td>[ligne.resultat;strconv=no]</td>
 			<td>[ligne.numero_accord_leaser]</td>
 			<td>[ligne.coeff_leaser]</td>
+			<td>[ligne.date_selection]</td>
+			<td>[ligne.utilisateur;strconv=no]</td>
 			<td>[ligne.actions;strconv=no]</td>
 		</tr>
 		

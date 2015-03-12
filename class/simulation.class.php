@@ -314,6 +314,8 @@ class TSimulation extends TObjetStd {
 		//Construction d'un tableau de ligne pour futur affichage TBS
 		foreach($this->TSimulationSuivi as $simulationSuivi){
 			//echo $simulationSuivi->rowid.'<br>';
+			$link_user = '<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulationSuivi->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulationSuivi->user->login.'</a>';
+			
 			$ligne = array();
 			//echo $simulationSuivi->get_Date('date_demande').'<br>';
 			$ligne['rowid'] = $simulationSuivi->getId();
@@ -323,6 +325,10 @@ class TSimulation extends TObjetStd {
 			$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande') : '' ;
 			$ligne['resultat'] = ($simulationSuivi->statut) ? '<img title="'.$simulationSuivi->TStatut[$simulationSuivi->statut].'" src="'.dol_buildpath('/financement/img/'.$simulationSuivi->statut.'.png',1).'" />' : '';
 			$ligne['numero_accord_leaser'] = ($simulationSuivi->numero_accord_leaser) ? $simulationSuivi->numero_accord_leaser : '';
+			
+			$ligne['date_selection'] = ($simulationSuivi->get_Date('date_selection')) ? $simulationSuivi->get_Date('date_selection') : '' ;
+			$ligne['utilisateur'] = ($simulationSuivi->fk_user_author && $simulationSuivi->date_cre != $simulationSuivi->date_maj) ? $link_user : '' ;
+			
 			$ligne['coeff_leaser'] = ($simulationSuivi->coeff_leaser) ? $simulationSuivi->coeff_leaser : '';
 			$ligne['actions'] = $simulationSuivi->getAction($this);
 			
@@ -826,6 +832,9 @@ class TSimulationSuivi extends TObjetStd {
 		$res = parent::load($PDOdb, $id);
 		$this->leaser = new Societe($db);
 		$this->leaser->fetch($this->fk_leaser);
+		
+		$this->user = new User($db);
+		$this->user->fetch($this->fk_user_author);
 		
 		if($this->date_selection > 0){
 			$this->financementAlreadyAccepted = true;
