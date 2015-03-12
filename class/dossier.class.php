@@ -351,7 +351,34 @@ class TFin_dossier extends TObjetStd {
 
 		//pre($this->TFacture,true);
 	}
+	
+	//Réorganisation spécifique pour l'affichage des factures intégrale
+	function format_facture_integrale(&$ATMdb) {
+		global $db;
+		
+		foreach($this->TFacture as $echeance => $Tfacture){
+			
+			if(is_array($Tfacture)){
+				
+				foreach($Tfacture as $k => $facture){
+					
+					//Si la facture est un avoir qui annule totalement la facture d'origine, on supprime l'avoir du tableau
+					if($facture->type == 2){
+						$facture_origine = new Facture($db);
+						$facture_origine->fetch($facture->fk_facture_source);
+						
+						if($facture_origine->total_ht == $facture->total_ht){
+							unset($this->TFacture[$echeance][$k]);
+						}
+					}
+				}
+			}
+			
+		}
 
+		//pre($this->TFacture,true);
+	}
+	
 	// Donne le numéro d'échéance correspondant à une date
 	function _get_num_echeance_from_date($date) {
 		//$echeance = date('m', $date - $this->financement->date_debut) / $this->financement->getiPeriode();

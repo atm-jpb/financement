@@ -22,6 +22,7 @@ if(empty($id_dossier)) {
 } else {
 	$dossier->load($PDOdb, $id_dossier);
 	$dossier->load_facture($PDOdb,true);
+	$dossier->format_facture_integrale($PDOdb);
 	_fiche($PDOdb, $db, $dossier);
 }
 
