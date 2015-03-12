@@ -256,7 +256,7 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$sql = "SELECT DISTINCT s.rowid, s.reference, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'mois' WHEN s.opt_periodicite = 'ANNEE' THEN 'années' ELSE 'trimestres' END) as 'Durée',";
-	$sql.= " s.date_simul, u.login, s.accord, s.type_financement, lea.nom as leaser";
+	$sql.= " s.date_simul, u.login, s.accord, s.type_financement, lea.nom as leaser, '' as suivi";
 	$sql.= " FROM @table@ s ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON s.fk_user_author = u.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc ON s.fk_soc = soc.rowid";
@@ -348,6 +348,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'accord'=>'Statut'
 			,'type_financement'=>'Type financement'
 			,'leaser'=>'Leaser'
+			,'suivi'=>'Accord Leaser'
 		)
 		,'search'=>array(
 			'nom'=>array('recherche'=>true, 'table'=>'soc')
@@ -358,6 +359,9 @@ function _liste(&$ATMdb, &$simulation) {
 			,'accord'=>$simulation->TStatut
 			,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
 		)
+		,'eval'=>array(
+			'suivi' => 'getStatutSuivi(@rowid@);'
+		)
 	));
 	
 	$form->end();
@@ -367,6 +371,33 @@ function _liste(&$ATMdb, &$simulation) {
 	}
 	
 	llxFooter();
+}
+
+function getStatutSuivi($idSimulation){
+	global $db;
+
+	$ATMdb = new TPDOdb;
+
+	$sql = "SELECT statut, date_selection 
+			FROM ".MAIN_DB_PREFIX."fin_simulation_suivi
+			WHERE fk_simulation = ".$idSimulation;
+	$ATMdb->Execute($sql);
+
+	$res = '';
+	while($ATMdb->Get_line()){
+		if($ATMdb->Get_field('statut') == 'OK' && $ATMdb->Get_field('date_selection') != '0000-00-00 00:00:00'){
+			return $res =  '<img title="Accord" src="'.dol_buildpath('/financement/img/OK.png',1).'" />';
+		}
+		else if($ATMdb->Get_field('statut') == 'WAIT'){
+			$res =  '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
+		}
+	} 
+	
+	return $res;
+
+	$ATMdb->close();
+
+	return $res;
 }
 	
 function _fiche(&$ATMdb, &$simulation, $mode) {
