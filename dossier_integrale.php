@@ -21,7 +21,7 @@ if(empty($id_dossier)) {
 	_liste($PDOdb, $dossier);
 } else {
 	$dossier->load($PDOdb, $id_dossier);
-	$dossier->load_facture($PDOdb, true);
+	$dossier->load_facture($PDOdb,true);
 	_fiche($PDOdb, $db, $dossier);
 }
 
@@ -175,11 +175,11 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 
 	}
 	else{
-		$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
 		$integrale->date_facture = $integrale->get_date('date_facture','d/m/Y');
 		$integrale->cout_unit_noir = number_format($integrale->cout_unit_noir,5,',','')." €";
 		$integrale->cout_unit_coul = number_format($integrale->cout_unit_coul,5,',','')." €";
 		$TIntegrale[$integrale->date_periode] = $integrale;
+		$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
 	}
 	
 	return $TIntegrale;

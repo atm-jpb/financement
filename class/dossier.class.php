@@ -332,7 +332,19 @@ class TFin_dossier extends TObjetStd {
 					//$echeance++;
 				}
 			} else {
-				$this->TFacture[$echeance] = $fact;
+				
+				//TODO si plusieurs facture même échéance alors modification affichage pour afficher tous les liens
+				if(!empty($this->TFacture[$echeance])){
+					if(is_array($this->TFacture[$echeance])){
+						$this->TFacture[$echeance] = array_merge($this->TFacture[$echeance],array($fact));
+					}
+					else{
+						$this->TFacture[$echeance] = array($this->TFacture[$echeance],$fact);
+					}
+				}
+				else{
+					$this->TFacture[$echeance] = $fact;
+				}
 				//$echeance++;
 			}
 		}
