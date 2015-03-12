@@ -304,7 +304,7 @@ class TSimulation extends TObjetStd {
 		return $idLeaserDossierSolde;
 	}
 	
-	function get_suivi_simulation(&$PDOdb){
+	function get_suivi_simulation(&$PDOdb,&$form){
 		global $db;
 		$this->load_suivi_simulation($PDOdb);
 		//echo 'get<br>';
@@ -324,12 +324,12 @@ class TSimulation extends TObjetStd {
 			$ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png',1).'" />' : '' ;
 			$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande') : '' ;
 			$ligne['resultat'] = ($simulationSuivi->statut) ? '<img title="'.$simulationSuivi->TStatut[$simulationSuivi->statut].'" src="'.dol_buildpath('/financement/img/'.$simulationSuivi->statut.'.png',1).'" />' : '';
-			$ligne['numero_accord_leaser'] = ($simulationSuivi->numero_accord_leaser) ? $simulationSuivi->numero_accord_leaser : '';
+			$ligne['numero_accord_leaser'] = ($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][num_accord]', $simulationSuivi->numero_accord_leaser, 15) : '';
 			
 			$ligne['date_selection'] = ($simulationSuivi->get_Date('date_selection')) ? $simulationSuivi->get_Date('date_selection') : '' ;
 			$ligne['utilisateur'] = ($simulationSuivi->fk_user_author && $simulationSuivi->date_cre != $simulationSuivi->date_maj) ? $link_user : '' ;
 			
-			$ligne['coeff_leaser'] = ($simulationSuivi->coeff_leaser) ? $simulationSuivi->coeff_leaser : '';
+			$ligne['coeff_leaser'] = ($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][coeff_accord]', $simulationSuivi->coeff_leaser, 5) : '';
 			$ligne['actions'] = $simulationSuivi->getAction($this);
 			
 			$TLignes[] = $ligne;
@@ -871,7 +871,7 @@ class TSimulationSuivi extends TObjetStd {
 				else{
 					if($this->statut !== 'KO'){	
 						//Envoyer
-						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=envoyer" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
+						//$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=envoyer" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
 						//Accepter
 						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter" title="Demande acceptée"><img src="'.dol_buildpath('/financement/img/accepter.png',1).'" /></a>&nbsp;';
 						//Refuser

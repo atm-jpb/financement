@@ -4,9 +4,9 @@
 	[view.titre; strconv=no]
 	<br />
 	
-	<table class="simulation_suivi border" width="100%">
+	<table class="simulation_suivi border" width="100%" style="text-align: center;">
 
-		<tr class="liste_titre">
+		<tr class="liste_titre" style="text-align: center;">
 			<td>Leaser</td>
 			<!--<td>Demande</td> -->
 			<td>Date<br>demande</td>
@@ -19,12 +19,12 @@
 		</tr>
 		
 		<tr class="[ligne.class]">
-			<td><!-- [ligne.#; block=tr] -->[ligne.leaser;strconv=no]</td>
+			<td style="text-align: left;"><!-- [ligne.#; block=tr] -->[ligne.leaser;strconv=no]</td>
 			<!--<td>[ligne.demande;strconv=no]</td>-->
 			<td>[ligne.date_demande]</td>
 			<td>[ligne.resultat;strconv=no]</td>
-			<td>[ligne.numero_accord_leaser]</td>
-			<td>[ligne.coeff_leaser]</td>
+			<td>[ligne.numero_accord_leaser;strconv=no]</td>
+			<td>[ligne.coeff_leaser;strconv=no]</td>
 			<td>[ligne.date_selection]</td>
 			<td>[ligne.utilisateur;strconv=no]</td>
 			<td>[ligne.actions;strconv=no]</td>

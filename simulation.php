@@ -536,7 +536,12 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	global $conf, $db, $langs;
 	
-	$TLignes = $simulation->get_suivi_simulation($ATMdb);
+	$form=new TFormCore($_SERVER['PHP_SELF'],'suivi_simulation','POST');
+	$form->Set_typeaff('edit');
+	
+	echo $form->hidden('action', 'save');
+	
+	$TLignes = $simulation->get_suivi_simulation($ATMdb,$form);
 	
 	//pre($TLignes,true);exit;
 	
@@ -554,6 +559,8 @@ function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 			)
 		)
 	);
+	
+	$form->end_form();
 }
 
 
