@@ -255,9 +255,12 @@
 				$dossier->load($PDOdb, $idDossier);
 				$dossier->financementLeaser->setEcheance(-1, false);
 				
+				$Techeance = explode('/', $fac->facnumber);
+				$echeance = array_pop($Techeance);
+				
 				//MAJ dates période facture
-				$date_debut_periode = $dossier->getDateDebutPeriode($dossier->financementLeaser->numero_prochaine_echeance-1,'LEASER');
-				$date_fin_periode = $dossier->getDateFinPeriode($dossier->financementLeaser->numero_prochaine_echeance-1);
+				$date_debut_periode = $dossier->getDateDebutPeriode($echeance,'LEASER');
+				$date_fin_periode = $dossier->getDateFinPeriode($echeance);
 
 				$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$fact->id);
 				
@@ -425,6 +428,94 @@ function _liste(&$PDOdb, &$dossier) {
 	
 	llxFooter();
 }
+
+function _liste_renta_negative(&$PDOdb, &$dossier) {
+	global $conf, $db, $langs;
+	
+	llxHeader('','Dossiers');
+
+	$r = new TSSRenderControler($dossier);
+	
+	$sql = "SELECT rowid 
+			FROM ".MAIN_DB_PREFIX."fin_";
+	
+	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
+	$aff = new TFin_affaire;
+	
+	//echo $sql;
+	$r->liste($PDOdb, $sql, array(
+		'limit'=>array(
+			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
+			,'nbLine'=>'30'
+		)
+		,'link'=>array(
+			'nomCli'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
+			,'nomLea'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
+			,'refDosCli'=>'<a href="?id=@ID@">@val@</a>'
+			,'refDosLea'=>'<a href="?id=@ID@">@val@</a>'
+			,'Affaire'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/affaire.php?id=@ID affaire@">@val@</a>'
+			//,'fact_materiel'=>'<a href="'.DOL_URL_ROOT.'/compta/facture.php?facid=@fk_fact_materiel@">'.img_object('', 'bill').' @val@</a>'
+		)
+		,'translate'=>array(
+			'nature_financement'=>$aff->TNatureFinancement
+		)
+		,'hide'=>array('fk_soc','ID','ID affaire','fk_fact_materiel')
+		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'Echéance'=>'money')
+		,'liste'=>array(
+			'titre'=>"Liste des dossiers"
+			,'image'=>img_picto('','title.png', '', 0)
+			,'picto_precedent'=>img_picto('','previous.png', '', 0)
+			,'picto_suivant'=>img_picto('','next.png', '', 0)
+			,'order_down'=>img_picto('','1downarrow.png', '', 0)
+			,'order_up'=>img_picto('','1uparrow.png', '', 0)
+			,'noheader'=>FALSE
+			,'messageNothing'=>"Il n'y a aucun dossier"
+			,'picto_search'=>img_picto('','search.png', '', 0)
+			)
+		,'title'=>array(
+			'refDosCli'=>'Contrat'
+			,'refDosLea'=>'Contrat Leaser'
+			,'nomCli'=>'Client'
+			,'nomLea'=>'Leaser'
+			,'nature_financement'=>'Nature'
+			,'date_debut'=>'Début'
+			,'fact_materiel'=>'Facture matériel'
+		)
+		,'orderBy'=> array('ID'=>'DESC','fc.reference'=>'ASC')
+		,'search'=>array(
+			'refDosCli'=>array('recherche'=>true, 'table'=>'fc', 'field'=>'reference')
+			,'refDosLea'=>array('recherche'=>true, 'table'=>'fl', 'field'=>'reference')
+			,'nomCli'=>array('recherche'=>true, 'table'=>'c', 'field'=>'nom')
+			,'nomLea'=>array('recherche'=>true, 'table'=>'l', 'field'=>'nom')
+			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
+			//,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
+		)
+		,'eval'=>array('fact_materiel'=>'_get_facture_mat(@ID affaire@);')
+		
+	));
+	$form->end();
+	
+	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
+		$fk_leaser = GETPOST('fk_leaser');
+		?>
+		<div class="tabsAction">
+				<a href="?action=exportXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Exporter</a>
+				<a href="?action=generateXML" class="butAction">Générer le XML Lixxbail</a>
+				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Générer le XML Lixxbail et envoyer au Leaser</a>
+				<a href="?action=setnottransfer" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
+		</div>
+		<?php
+	}
+	
+	//Cas action export CSV de la liste des futurs affaire transféré en XML
+	$action = GETPOST('action');
+	if($action === 'exportXML'){
+		_getExportXML($sql);
+	}
+	
+	llxFooter();
+}
+
 
 function _getExportXML($sql){
 	
