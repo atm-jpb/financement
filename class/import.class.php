@@ -187,7 +187,7 @@ class TImport extends TObjetStd {
 		}
 		
 		$dossier = new TFin_dossier();
-		if($dossier->load($ATMdb, $f->fk_fin_dossier)) { // Chargement du dossier correspondant
+		if($dossier->load($ATMdb, $f->fk_fin_dossier,true)) { // Chargement du dossier correspondant
 			
 			if($dossier->nature_financement == 'EXTERNE') { // Dossier externe => MAJ des informations
 				// Echéance à 0 dans le fichier, on classe le dossier a soldé
@@ -230,6 +230,29 @@ class TImport extends TObjetStd {
 			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
 
 			$TInfosGlobale[] = $dossier->financementLeaser->getId();
+			
+			//Ajout traitement
+			//Si colonne biens renseigné alors on créé les equipements si inexistant
+			//Puis ajout de la liaison equipement -> affaire sans passer par la facture matériel
+			if(!empty($data['biens'])){
+				$TRefBiens = explode(';', $data['biens']);
+				
+				foreach($TRefBiens as $refBien){
+					$serial = trim($refBien);
+				
+					$asset=new TAsset;
+					if(!$asset->loadReference($ATMdb, $serial)) {
+						
+						$asset->fk_soc = $dossier->TLien[0]->affaire->fk_soc;
+						$asset->save($ATMdb);
+					}
+					
+					//Ajout du lien à l'affaire
+					$asset->add_link($dossier->TLien[0]->affaire->getId(),'affaire');
+
+					$asset->save($ATMdb);
+				}
+			}
 
 			return true;
 
