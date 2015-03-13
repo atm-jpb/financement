@@ -126,6 +126,7 @@ function _formatIntegrale(&$integrale){
 }
 
 function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
+	global $db;
 	
 	$integrale = new TIntegrale;
 	$integrale->loadBy($PDOdb, $facture->ref, 'facnumber');
@@ -143,6 +144,24 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 	
 	$integrale->facnumber = $facture->getNomUrl();
 	
+	$facidavoir=$facture->getListIdAvoirFromInvoice();
+
+	//$totalht = $fact->total_ht;
+	foreach ($facidavoir as $idAvoir) {
+		$avoir = new Facture($db);
+		$avoir->fetch($idAvoir);
+		
+		$integrale_avoir = new TIntegrale;
+		$integrale_avoir->loadBy($PDOdb, $avoir->ref, 'facnumber');
+		
+		$integrale->vol_noir_engage -= $integrale_avoir->vol_noir_engage;
+		$integrale->vol_noir_realise -= $integrale_avoir->vol_noir_realise;
+		$integrale->vol_noir_facture -= $integrale_avoir->vol_noir_facture;
+		$integrale->vol_coul_engage -= $integrale_avoir->vol_coul_engage;
+		$integrale->vol_coul_realise -= $integrale_avoir->vol_coul_realise;
+		$integrale->vol_coul_facture -= $integrale_avoir->vol_coul_facture;
+	}
+	
 	if(!empty($TIntegrale[$integrale->date_periode])){
 			
 		//Pour certains champs on concatène
@@ -156,7 +175,9 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		$TIntegrale[$integrale->date_periode]->vol_noir_realise += $integrale->vol_noir_realise;
 		$TIntegrale[$integrale->date_periode]->vol_noir_facture += $integrale->vol_noir_facture;
 		
-		$TIntegrale[$integrale->date_periode]->cout_unit_noir .= "<br>".number_format($integrale->cout_unit_noir,5,',','')." €";
+		if($integrale->cout_unit_noir > $TIntegrale[$integrale->date_periode]->cout_unit_noir){
+			$TIntegrale[$integrale->date_periode]->cout_unit_noir = $integrale->cout_unit_noir;
+		}
 		
 		if($TIntegrale[$integrale->date_periode]->vol_coul_engage < $integrale->vol_coul_engage){
 			$TIntegrale[$integrale->date_periode]->vol_coul_engage = $integrale->vol_coul_engage;
@@ -164,7 +185,9 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		$TIntegrale[$integrale->date_periode]->vol_coul_realise += $integrale->vol_coul_realise;
 		$TIntegrale[$integrale->date_periode]->vol_coul_facture += $integrale->vol_coul_facture;
 		
-		$TIntegrale[$integrale->date_periode]->cout_unit_coul .= "<br>".number_format($integrale->cout_unit_coul,5,',','')." €";
+		if($integrale->cout_unit_coul > $TIntegrale[$integrale->date_periode]->cout_unit_coul){
+			$TIntegrale[$integrale->date_periode]->cout_unit_coul = $integrale->cout_unit_coul;
+		}
 		
 		$TIntegrale[$integrale->date_periode]->fas += $integrale->fas;
 		$TIntegrale[$integrale->date_periode]->fass += $integrale->fass;
@@ -181,8 +204,8 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 	}
 	else{
 		$integrale->date_facture = $integrale->get_date('date_facture','d/m/Y');
-		$integrale->cout_unit_noir = number_format($integrale->cout_unit_noir,5,',','')." €";
-		$integrale->cout_unit_coul = number_format($integrale->cout_unit_coul,5,',','')." €";
+		$integrale->cout_unit_noir = $integrale->cout_unit_noir;
+		$integrale->cout_unit_coul = $integrale->cout_unit_coul;
 		$TIntegrale[$integrale->date_periode] = $integrale;
 		$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
 	}
@@ -205,7 +228,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 	$fin->_affterme = $fin->TTerme[$fin->terme];
 	$fin->_affperiodicite = $fin->TPeriodicite[$fin->periodicite];
 	
-	//pre($dossier->TFacture,true);
+	//pre($dossier->TFacture[6],true);
 	
 	$TIntegrale = array();
 	foreach ($dossier->TFacture as $fac) {
