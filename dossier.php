@@ -26,6 +26,18 @@
 		setEventMessage('La génération et l\'envoi du fichier XML s\'est effectué avec succès');
 	}
 	
+	$id = GETPOST('id');
+	if(!$id && GETPOST('searchdossier')){
+		$sql = "SELECT d.rowid 
+				FROM ".MAIN_DB_PREFIX."fin_dossier as d
+					LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as df ON (df.fk_fin_dossier = d.rowid)
+				WHERE df.reference LIKE '%".GETPOST('searchdossier')."%'";
+		$Tid = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+		if(!empty($Tid)){
+			$id = $Tid[0];
+		}
+	}
+	
 	if(isset($_REQUEST['action'])) {
 		switch($_REQUEST['action']) {
 			case 'add':
@@ -57,7 +69,7 @@
 				break;	
 			case 'edit'	:
 			
-				$dossier->load($PDOdb, $_REQUEST['id']);
+				$dossier->load($PDOdb, $id);
 				
 				_fiche($PDOdb,$dossier,'edit');
 				break;
@@ -65,7 +77,7 @@
 			case 'save':
 				//$PDOdb->db->debug=true;
 				
-				$dossier->load($PDOdb, $_REQUEST['id']);
+				$dossier->load($PDOdb, $id);
 				$dossier->set_values($_REQUEST);
 				$dossier->set_date('dateperso', $_REQUEST['dateperso']);
 				//pre($dossier);exit;
@@ -100,7 +112,7 @@
 			case 'regenerate-facture-leaser':
 				//$PDOdb->db->debug=true;
 				
-				$dossier->load($PDOdb, $_REQUEST['id']);
+				$dossier->load($PDOdb, $id);
 				//$dossier->generate_factures_leaser(false, true);
 				//$dossier->save($PDOdb);
 				
@@ -111,7 +123,7 @@
 				
 			case 'delete':
 				//$PDOdb->db->debug=true;
-				$dossier->load($PDOdb, $_REQUEST['id']);
+				$dossier->load($PDOdb, $id);
 				$dossier->delete($PDOdb);
 				
 				?>
@@ -125,7 +137,7 @@
 				
 			case 'add_affaire':
 			//$PDOdb->db->debug=true;
-				$dossier->load($PDOdb, $_REQUEST['id']);
+				$dossier->load($PDOdb, $id);
 				$dossier->set_values($_REQUEST);
 			
 				if(!$dossier->addAffaire($PDOdb, null, $_REQUEST['affaire_to_add'])) {
@@ -146,7 +158,7 @@
 			case 'delete_affaire':
 				//$PDOdb->db->debug=true;
 				//$affaire->set_values($_REQUEST);
-				$dossier->load($PDOdb, $_REQUEST['id']);
+				$dossier->load($PDOdb, $id);
 				
 			
 				if($dossier->deleteAffaire($PDOdb, $_REQUEST['id_affaire'])) {
@@ -276,8 +288,8 @@
 		}
 		
 	}
-	elseif(isset($_REQUEST['id'])) {
-		$dossier->load($PDOdb, $_REQUEST['id']);
+	elseif($id) {
+		$dossier->load($PDOdb, $id);
 		_fiche($PDOdb,$dossier, 'view');
 	}
 	else {
