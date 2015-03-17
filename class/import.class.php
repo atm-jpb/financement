@@ -154,7 +154,7 @@ class TImport extends TObjetStd {
 				break;
 			
 			case 'dossier_init_loc_pure':
-				$this->importDossierInitLocPure($ATMdb, $data);
+				$this->importDossierInitLocPure($ATMdb, $data, $TInfosGlobale);
 				break;
 			
 			default:
@@ -1377,11 +1377,12 @@ class TImport extends TObjetStd {
 		}
 	}
 
-	function importDossierInitLocPure(&$ATMdb, $data) {
+	function importDossierInitLocPure(&$ATMdb, $data, &$TInfosGlobale) {
 		global $user, $db;
+		
 		//$ATMdb->debug = true;
 		//if($this->nb_lines > 4) return false;
-		if($data['reference_dossier_interne'] != '04062022') return false;
+		//if($data['reference_dossier_interne'] != '04062022') return false;
 		
 		$data['reference_dossier_interne'] = str_pad($data['reference_dossier_interne'], 8, '0', STR_PAD_LEFT);
 		
@@ -1410,19 +1411,38 @@ class TImport extends TObjetStd {
 		$f1 = clone($d->financement);
 		
 		// Contrôle client
-		$a = &$d->TLien[0];
-		if($a->fk_soc > 0 && $a->fk_soc != $data['code_client']) { // client ne correspond pas
-			//$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_client']);
-			return false;
+		if(!empty($d->TLien[0]->affaire)) {
+			$a = &$d->TLien[0]->affaire;
+			if($a->fk_soc > 0 && $a->societe->code_client != $data['code_client']) { // client ne correspond pas
+				echo $data['reference_dossier_interne']. ' : customer don\'t match<br>';
+				//$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_client']);
+				return false;
+			}
 		}
 		
 		// On remplit la donnée si vide dans LB et non vide dans le fichier
 		foreach ($data as $key => $value) {
-			if(empty($d->financement->{$key}) && !empty($value)) {
+			if(!empty($value)) {
 				$d->financement->{$key} = $value;
 				$d->financementLeaser->{$key} = $value;
 			}
 		}
+		
+		// On va chercher montant, échéance et durée dans le 2ème fichier
+		if(!empty($a)) {
+			foreach($TInfosGlobale['locpure'] as $line) {
+				if(strpos($a->reference, $line[0]) !== false
+					&& !empty($line[1]) && !empty($line[2]) && !empty($line[4])) {
+					$d->financement->montant = price2num($line[4]);
+					$d->financement->echeance = price2num($line[1]);
+					$d->financement->duree = price2num($line[2]);
+					$d->financementLeaser->montant = price2num($line[4]);
+					$d->financementLeaser->echeance = price2num($line[1]);
+					$d->financementLeaser->duree = price2num($line[2]);
+				}
+			}
+		}
+		
 		unset($d->financement->reference_dossier_interne);
 		unset($d->financement->code_client);
 		unset($d->financement->idLeaser);
@@ -1436,15 +1456,17 @@ class TImport extends TObjetStd {
 			//return false;
 		}
 		
-		echo '<table><tr><td>';
+		/*echo '<table><tr><td>';
 		pre($f1,true);
 		echo '</td><td>';
 		pre($f2,true);
-		echo '</td></tr></table>';
+		echo '</td></tr></table>';*/
 		
 		$d->financementLeaser->reference = $d->financement->reference.'L';
 		$d->financementLeaser->okPourFacturation = 'NON';
+		$d->financementLeaser->fk_soc = 18495;
 		$d->display_solde = false;
+		//if($d->financement->reference == '04057118') pre($d, true);
 		$d->save($ATMdb);
 				
 		return true;
