@@ -728,7 +728,7 @@ class TFin_affaire extends TObjetStd {
 		}
 		
 		$total_ht = round($Affaire->TLien[0]->dossier->financementLeaser->montant, 2);
-		$total_tva = round($total_ht * 1.20, 2);
+		$total_tva = round($total_ht * 0.20, 2);
 		$total_ttc = round($total_ht + $total_tva, 2);
 		
 		$commandeLig = $xml->createElement("commandeLig");
