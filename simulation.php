@@ -218,6 +218,18 @@ if(!empty($action)) {
 			<?
 			
 			break;
+		
+		default:
+			
+			//Actions spécifiques au suivi financement leaser
+			$id_suivi = GETPOST('id_suivi');
+			if($id_suivi){
+				$simulation->load($ATMdb, $db, $_REQUEST['id']);
+				$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$action);
+				_fiche($ATMdb, $simulation, 'view');
+			}
+			
+			break;
 	}
 	
 }
@@ -244,7 +256,7 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$sql = "SELECT DISTINCT s.rowid, s.reference, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'mois' WHEN s.opt_periodicite = 'ANNEE' THEN 'années' ELSE 'trimestres' END) as 'Durée',";
-	$sql.= " s.date_simul, u.login, s.accord, s.type_financement, lea.nom as leaser";
+	$sql.= " s.date_simul, u.login, s.accord, s.type_financement, lea.nom as leaser, '' as suivi";
 	$sql.= " FROM @table@ s ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON s.fk_user_author = u.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc ON s.fk_soc = soc.rowid";
@@ -293,6 +305,10 @@ function _liste(&$ATMdb, &$simulation) {
 		$THide[] = 'Client';
 	}
 	
+	if(!$user->rights->financement->allsimul->suivi_leaser){
+		$THide[] = 'suivi';
+	}
+	
 	$TOrder = array('date_simul'=>'DESC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
 	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
@@ -336,6 +352,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'accord'=>'Statut'
 			,'type_financement'=>'Type financement'
 			,'leaser'=>'Leaser'
+			,'suivi'=>'Accord Leaser'
 		)
 		,'search'=>array(
 			'nom'=>array('recherche'=>true, 'table'=>'soc')
@@ -346,6 +363,9 @@ function _liste(&$ATMdb, &$simulation) {
 			,'accord'=>$simulation->TStatut
 			,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
 		)
+		,'eval'=>array(
+			'suivi' => 'getStatutSuivi(@rowid@);'
+		)
 	));
 	
 	$form->end();
@@ -355,6 +375,33 @@ function _liste(&$ATMdb, &$simulation) {
 	}
 	
 	llxFooter();
+}
+
+function getStatutSuivi($idSimulation){
+	global $db;
+
+	$ATMdb = new TPDOdb;
+
+	$sql = "SELECT statut, date_selection 
+			FROM ".MAIN_DB_PREFIX."fin_simulation_suivi
+			WHERE fk_simulation = ".$idSimulation;
+	$ATMdb->Execute($sql);
+
+	$res = '';
+	while($ATMdb->Get_line()){
+		if($ATMdb->Get_field('statut') == 'OK' && $ATMdb->Get_field('date_selection') != '0000-00-00 00:00:00'){
+			return $res =  '<img title="Accord" src="'.dol_buildpath('/financement/img/OK.png',1).'" />';
+		}
+		else if($ATMdb->Get_field('statut') == 'WAIT'){
+			$res =  '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
+		}
+	} 
+	
+	return $res;
+
+	$ATMdb->close();
+
+	return $res;
 }
 	
 function _fiche(&$ATMdb, &$simulation, $mode) {
@@ -512,10 +559,45 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	echo $form->end_form();
 	// End of page
 	
+	if($user->rights->financement->allsimul->suivi_leaser){
+		_fiche_suivi($ATMdb, $simulation, $mode);
+	}
+	
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 	llxFooter();
 }
+
+function _fiche_suivi(&$ATMdb, &$simulation, $mode){
+	global $conf, $db, $langs;
+	
+	$form=new TFormCore($_SERVER['PHP_SELF'],'suivi_simulation','POST');
+	$form->Set_typeaff('edit');
+	
+	echo $form->hidden('action', 'save');
+	
+	$TLignes = $simulation->get_suivi_simulation($ATMdb,$form);
+	
+	//pre($TLignes,true);exit;
+	
+	$TBS=new TTemplateTBS;
+	
+	print $TBS->render('./tpl/simulation_suivi.tpl.php'
+		,array(
+			'ligne' => $TLignes
+		)
+		,array(
+			'view'=>array(
+				'mode'=>$mode
+				,'type'=>($simulation->fk_soc > 0) ? 'simul' : 'calcul'
+				,'titre'=>load_fiche_titre($langs->trans("SimulationSuivi"),'','object_simul.png@financement')
+			)
+		)
+	);
+	
+	$form->end_form();
+}
+
 
 function _calcul(&$simulation, $mode='calcul') {
 	global $mesg, $error, $langs, $db;

@@ -25,6 +25,11 @@ function financement_admin_prepare_head()
 	$head[$h][2] = 'rentabilite';
 	$h++;
 	
+	$head[$h][0] = dol_buildpath('/financement/admin/leaser.php', 1);
+	$head[$h][1] = $langs->trans("leaser");
+	$head[$h][2] = 'leaser';
+	$h++;
+	
 	/*
 	$head[$h][0] = dol_buildpath('/financement/admin/other.php', 1);
 	$head[$h][1] = $langs->trans("Other");

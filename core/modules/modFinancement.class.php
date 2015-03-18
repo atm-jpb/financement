@@ -248,6 +248,12 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'allsimul';
 		$this->rights[$r][5] = 'simul_preco';
 		$r++;
+		$this->rights[$r][0] = 210034;
+		$this->rights[$r][1] = 'Accéder au suivi leaser simulation';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'allsimul';
+		$this->rights[$r][5] = 'suivi_leaser';
+		$r++;
 		
 		$this->rights[$r][0] = 210041;
 		$this->rights[$r][1] = 'Consulter les scores client';

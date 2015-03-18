@@ -27,6 +27,8 @@ class TSimulation extends TObjetStd {
 			0=>'Echu'
 			,1=>'A Echoir'
 		);
+		
+		$this->TSimulationSuivi = array();
 	}
 	
 	function init() {
@@ -66,6 +68,34 @@ class TSimulation extends TObjetStd {
 		$this->gen_simulation_pdf($db, $doliDB);
 		$this->reference = $this->getRef();
 		parent::save($db);
+		
+		//Création du suivi simulation leaser s'il n'existe pas
+		//Sinon chargement du suivi
+		$this->load_suivi_simulation($db);
+	}
+	
+	function create_suivi_simulation(&$PDOdb){
+		global $db, $conf;
+		dol_include_once('/categories/class/categorie.class.php');
+		//echo 'create<br>';
+		//Pour chacun des leasers, on créé un suivi demande de financement
+		//Les leasers concernés sont ceux présent dans la catégorie "Type de financement" => id = 2
+		$categorieParent = new Categorie($db);
+		$categorieParent->fetch('','Type de financement');
+		$TCategoriesFille = $categorieParent->get_filles();
+		
+		foreach ($TCategoriesFille as $categorieFille) {
+			$TLeaser = $categorieFille->get_type("societe","Fournisseur","fournisseur");
+			
+			//Pour chaque leaser, ajout d'une ligne de suivi
+			foreach($TLeaser as $leaser){
+				$simulationSuivi = new TSimulationSuivi;
+				$simulationSuivi->init($PDOdb,$leaser,$this->getId());
+				$simulationSuivi->save($PDOdb);
+				
+				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+			}
+		}
 	}
 	
 	function getStatut() {
@@ -149,6 +179,163 @@ class TSimulation extends TObjetStd {
 			$this->user = new User($doliDB);
 			$this->user->fetch($this->fk_user_author);
 		}
+		
+		//Récupération des suivis demande de financement leaser s'ils existent
+		//Sinon on les créé
+		$this->load_suivi_simulation($db);
+	}
+	
+	//Charge dans un tableau les différents suivis de demande leaser concernant la simulation
+	function load_suivi_simulation(&$PDOdb){
+		//echo 'load<br>';
+		$TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()));
+		//pre($TRowid,true);exit;
+		//Si les suivis existent déjà
+		if(count($TRowid) > 0){
+			foreach($TRowid as $rowid){
+				$simulationSuivi = new TSimulationSuivi;
+				$simulationSuivi->load($PDOdb, $rowid);
+
+				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+			}
+			
+			//Réorganisation de l'ordre de la liste en fonction de la grille d'administration
+			$TLeaser = $this->reordreSimulationSuivi($PDOdb);
+		}
+		else{
+			$this->create_suivi_simulation($PDOdb);
+		}
+	}
+	
+	//Réorganisation de l'ordre de la liste en fonction de la grille d'administration
+	function reordreSimulationSuivi(&$PDOdb){
+		
+		$TSimulationSuiviTemp = array();
+		
+		//Récupération du leaser prioritaire pour affichage en premier dans le tableau
+		$idLeaserPrio = $this->getIdLeaserPrioritaire($PDOdb);
+		
+		if($idLeaserPrio){
+			//Récupération Id suivi simulation correspondant au leaser
+			$idSimulationSuiviLeaserPrio = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId(),'fk_leaser'=>$idLeaserPrio));
+			//Chargement du suivi simulation associé au leaser
+			$simulationSuiviLeaserPrio = new TSimulationSuivi;
+			$simulationSuiviLeaserPrio->load($PDOdb,$idSimulationSuiviLeaserPrio[0]);
+			//Ajout du suivi simulation associé dans le tableau à la première place
+			$TSimulationSuiviTemp[$simulationSuiviLeaserPrio->getId()] = $simulationSuiviLeaserPrio;
+		}
+		
+		//Récupération de l'ordre par défaut pour les autres Leaser
+		$sql = "SELECT rowid, fk_leaser_solde, montantbase 
+				FROM ".MAIN_DB_PREFIX."fin_grille_suivi 
+				WHERE fk_type_contrat = 'DEFAUT'";
+		if($idLeaserPrio) $sql .= " AND fk_leaser_solde != ".$idLeaserPrio;	
+		$sql .= " ORDER BY montantbase ASC";
+		
+		$PDOdb->Execute($sql);
+
+		while($PDOdb->Get_line()){
+			foreach($this->TSimulationSuivi as $simulationSuivi){
+				if((int)$simulationSuivi->fk_leaser === (int)$PDOdb->Get_field('fk_leaser_solde')){
+					$TSimulationSuiviTemp[$simulationSuivi->rowid] = $simulationSuivi;
+				}
+			}
+		}
+		
+		$this->TSimulationSuivi = $TSimulationSuiviTemp;
+	}
+	
+	
+	//Retourne l'identifiant leaser prioritaire en fonction de la grille d'administration
+	function getIdLeaserPrioritaire(&$PDOdb){
+		global $db;
+		
+		$idLeaserPrioritaire = 0; //18305 ACECOM pour test
+		
+		$TFinGrilleSuivi = new TFin_grille_suivi;
+		$grille = $TFinGrilleSuivi->get_grille($PDOdb, $this->fk_type_contrat,false);
+		
+		//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
+		$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
+		//Récupération de la catégorie du client : entreprise, administration ou association
+		$labelCategorie = $this->getLabelCategorieClient();
+		
+		//On récupère l'id du leaser prioritaire en fonction des règles de gestion
+		foreach($grille as $TElement){
+			$TMontant = explode(';',$TElement['montant']);
+			if($TMontant[0] < $this->montant_total_finance && $TMontant[1] > $this->montant_total_finance && !empty($TElement[$labelCategorie]) && $idLeaserDossierSolde == $TElement['solde']){
+				$idLeaserPrioritaire = $TElement[$labelCategorie];
+			}
+		}
+
+		return $idLeaserPrioritaire;
+	}
+	
+	//Récupération de la catégorie du client : entreprise, administration ou association
+	function getLabelCategorieClient(){
+		global $db;
+		
+		//Récupération de la catégorie du client : entreprise, administration ou association
+		$categorie = new Categorie($db);
+		$TCategories = $categorie->get_all_categories(2);
+		$labelCategorie = '';
+		if(count($TCategories)){
+			foreach($TCategories as $categorie){
+				if($categorie->label == 'Entreprise' || $categorie->label == 'Administration' || $categorie->label == 'Association'){
+					$labelCategorie = strtolower($categorie->label);
+				}
+			}
+		}
+		
+		return $labelCategorie;
+	}
+	
+	//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
+	function getIdLeaserDossierSolde(&$PDOdb){
+		
+		$idLeaserDossierSolde = 0;
+		$TDossierUsed = $this->get_list_dossier_used();
+		if(count($TDossierUsed)){
+			$dossier = new TFin_dossier;
+			$dossier->load($PDOdb, $TDossierUsed[0]);
+			$idLeaserDossierSolde = $dossier->TLien[0]->dossier->financementLeaser->fk_soc;
+		}
+		
+		return $idLeaserDossierSolde;
+	}
+	
+	function get_suivi_simulation(&$PDOdb,&$form){
+		global $db;
+		$this->load_suivi_simulation($PDOdb);
+		//echo 'get<br>';
+		$TLignes = array();
+		
+		//pre($this->TSimulationSuivi,true);
+		//Construction d'un tableau de ligne pour futur affichage TBS
+		foreach($this->TSimulationSuivi as $simulationSuivi){
+			//echo $simulationSuivi->rowid.'<br>';
+			$link_user = '<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulationSuivi->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulationSuivi->user->login.'</a>';
+			
+			$ligne = array();
+			//echo $simulationSuivi->get_Date('date_demande').'<br>';
+			$ligne['rowid'] = $simulationSuivi->getId();
+			$ligne['class'] = (count($TLignes) % 2) ? 'impair' : 'pair';
+			$ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
+			$ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png',1).'" />' : '' ;
+			$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande') : '' ;
+			$ligne['resultat'] = ($simulationSuivi->statut) ? '<img title="'.$simulationSuivi->TStatut[$simulationSuivi->statut].'" src="'.dol_buildpath('/financement/img/'.$simulationSuivi->statut.'.png',1).'" />' : '';
+			$ligne['numero_accord_leaser'] = ($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][num_accord]', $simulationSuivi->numero_accord_leaser, 15) : '';
+			
+			$ligne['date_selection'] = ($simulationSuivi->get_Date('date_selection')) ? $simulationSuivi->get_Date('date_selection') : '' ;
+			$ligne['utilisateur'] = ($simulationSuivi->fk_user_author && $simulationSuivi->date_cre != $simulationSuivi->date_maj) ? $link_user : '' ;
+			
+			$ligne['coeff_leaser'] = ($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][coeff_accord]', $simulationSuivi->coeff_leaser, 5) : '';
+			$ligne['actions'] = $simulationSuivi->getAction($this);
+			
+			$TLignes[] = $ligne;
+		}
+
+		return $TLignes;
 	}
 	
 	/**
@@ -614,3 +801,145 @@ class TSimulation extends TObjetStd {
 		$res = ob_get_clean();
 	}
 }
+
+
+class TSimulationSuivi extends TObjetStd {
+	function __construct() {
+		global $langs;
+
+		parent::set_table(MAIN_DB_PREFIX.'fin_simulation_suivi');
+		parent::add_champs('entity,fk_simulation,fk_leaser,fk_user_author,statut_demande','type=entier;');
+		parent::add_champs('coeff_leaser','type=float;');
+		parent::add_champs('date_demande,date_accord,date_selection','type=date;');
+		parent::add_champs('numero_accord_leaser,statut','type=chaine;');
+		parent::start();
+		parent::_init_vars();
+		
+		//Reset des dates car par défaut = time() à l'instanciation de la classe
+		$this->date_demande = $this->date_accord = $this->date_selection = '';
+
+		$this->TStatut=array(
+			'OK'=>$langs->trans('Accord')
+			,'WAIT'=>$langs->trans('Etude')
+			,'KO'=>$langs->trans('Refus')
+		);
+	}
+	
+	//Chargement du suivi simulation
+	function load(&$PDOdb,$id){
+		global $db;
+		
+		$res = parent::load($PDOdb, $id);
+		$this->leaser = new Societe($db);
+		$this->leaser->fetch($this->fk_leaser);
+		
+		$this->user = new User($db);
+		$this->user->fetch($this->fk_user_author);
+		
+		if($this->date_selection > 0){
+			$this->financementAlreadyAccepted = true;
+		}
+		
+		return $res;
+	}
+	
+	//Initialisation de l'objet avec les infos de base
+	function init(&$PDOdb,&$leaser,$fk_simulation){
+		global $db, $conf, $user;
+		
+		$this->entity = $conf->entity;
+		$this->fk_simulation = $fk_simulation;
+		$this->fk_leaser = $leaser->id;
+		$this->fk_user_author = $user->id;
+	}
+	
+	//Retourne les actions possible pour ce suivi suivant les règles de gestion
+	function getAction(&$simulation){
+		
+		$actions = '';
+
+		if(!$this->financementAlreadyAccepted){
+			//Demander
+			if($this->statut_demande != 1){// && $this->date_demande < 0){
+				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Demande transmise au leaser"><img src="'.dol_buildpath('/financement/img/demander.png',1).'" /></a>&nbsp;';
+			}
+			else{
+				//Sélectionner
+				if($this->statut === 'OK'){
+					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=selectionner" title="Sélectionner ce leaser"><img src="'.dol_buildpath('/financement/img/selectionner.png',1).'" /></a>&nbsp;';
+				}
+				else{
+					if($this->statut !== 'KO'){	
+						//Envoyer
+						//$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=envoyer" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
+						//Accepter
+						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter" title="Demande acceptée"><img src="'.dol_buildpath('/financement/img/accepter.png',1).'" /></a>&nbsp;';
+						//Refuser
+						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser" title="Demande refusée"><img src="'.dol_buildpath('/financement/img/refuser.png',1).'" /></a>&nbsp;';
+					}
+				}
+			}
+		}
+		
+		return $actions;
+	}
+	
+	//Exécute une action et met en oeuvre les règles de gestion en conséquence
+	function doAction(&$PDOdb,$action){
+		
+		switch ($action) {
+			case 'demander':
+				$this->doActionDemander($PDOdb);
+				break;
+			case 'envoyer':
+				$this->doActionEnvoyer($PDOdb);
+				break;
+			case 'accepter':
+				$this->doActionAccepter($PDOdb);
+				break;
+			case 'refuser':
+				$this->doActionRefuser($PDOdb);
+				break;
+			case 'selectionner':
+				$this->doActionSelectionner($PDOdb);
+				break;
+			default:
+				
+				break;
+		}
+	}
+	
+	//Effectuer l'action de faire la demande de financement au leaser
+	function doActionDemander($PDOdb){
+		
+		$this->statut_demande = 1;
+		$this->date_demande = time();
+		$this->statut = 'WAIT';
+		$this->save($PDOdb);
+	}
+	
+	//Effectuer l'action d'envoyer au leaser la demande de financement
+	function doActionEnvoyer($PDOdb){
+		$this->statut = 'WAIT';
+		$this->save($PDOdb);
+	}
+	
+	//Effectue l'action de passer au statut accepter la demande de financement leaser
+	function doActionAccepter($PDOdb){
+		$this->statut = 'OK';
+		$this->save($PDOdb);
+	}
+	
+	//Effectue l'action de passer au statut refusé la demande de financement leaser
+	function doActionRefuser($PDOdb){
+		$this->statut = 'KO';
+		$this->save($PDOdb);
+	}
+	
+	//Effectue l'action de choisir définitivement un leaser pour financer la simulation
+	function doActionSelectionner($PDOdb){
+		$this->date_selection = time();
+		$this->save($PDOdb);
+	}
+}
+
