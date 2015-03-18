@@ -1431,14 +1431,19 @@ class TImport extends TObjetStd {
 		// On va chercher montant, échéance et durée dans le 2ème fichier
 		if(!empty($a)) {
 			foreach($TInfosGlobale['locpure'] as $line) {
-				if(strpos($a->reference, $line[0]) !== false
-					&& !empty($line[1]) && !empty($line[2]) && !empty($line[4])) {
-					$d->financement->montant = price2num($line[4]);
-					$d->financement->echeance = price2num($line[1]);
-					$d->financement->duree = price2num($line[2]);
-					$d->financementLeaser->montant = price2num($line[4]);
-					$d->financementLeaser->echeance = price2num($line[1]);
-					$d->financementLeaser->duree = price2num($line[2]);
+				if(strpos($a->reference, $line[0]) !== false) {
+					if(!empty($line[1]) && empty($d->financement->echeance)) {
+						$d->financement->echeance = price2num($line[1]);
+						$d->financementLeaser->echeance = $d->financement->echeance;
+					}
+					if(!empty($line[2]) && empty($d->financement->duree)) {
+						$d->financement->duree = price2num($line[2]);
+						$d->financementLeaser->duree = $d->financement->duree;
+					}
+					if(!empty($line[4]) && empty($d->financement->montant)) {
+						$d->financement->montant = price2num($line[4]);
+						$d->financementLeaser->montant = $d->financement->montant;
+					}
 				}
 			}
 		}
