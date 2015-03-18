@@ -1386,6 +1386,7 @@ class TImport extends TObjetStd {
 		
 		$data['reference_dossier_interne'] = str_pad($data['reference_dossier_interne'], 8, '0', STR_PAD_LEFT);
 		
+		echo $data['reference_dossier_interne'].';';
 		//pre($data,true);
 		
 		$d = new TFin_dossier();
@@ -1396,17 +1397,17 @@ class TImport extends TObjetStd {
 			$fin->loadReference($ATMdb, $data['reference_dossier_interne'], 'CLIENT');
 			
 			if($fin->getId() == 0) {
-				echo $data['reference_dossier_interne']. ' : unknown<br>';
+				echo 'ERR : dossier inconnu<br>';
 				//$this->addError($ATMdb, 'ErrorDossierClientNotFound', $data['reference_dossier_interne']);
 				return false;
 			} else {
 				$d->load($ATMdb, $fin->fk_fin_dossier, true);
 			}
 		}
-		pre($data,true);
+		//pre($data,true);
 		
 		$data['duree'] /= $d->financement->getiPeriode();
-		echo date('d/m/Y H:i:s', $data['date_debut']).'<br>';
+		//echo date('d/m/Y H:i:s', $data['date_debut']).'<br>';
 		
 		$f1 = clone($d->financement);
 		
@@ -1414,7 +1415,7 @@ class TImport extends TObjetStd {
 		if(!empty($d->TLien[0]->affaire)) {
 			$a = &$d->TLien[0]->affaire;
 			if($a->fk_soc > 0 && $a->societe->code_client != $data['code_client']) { // client ne correspond pas
-				echo $data['reference_dossier_interne']. ' : customer don\'t match<br>';
+				echo 'ERR : clients '.$data['code_client'].' / '.$a->societe->code_client.'<br>';
 				//$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_client']);
 				return false;
 			}
@@ -1436,10 +1437,11 @@ class TImport extends TObjetStd {
 						$d->financement->echeance = price2num($line[1]);
 						$d->financementLeaser->echeance = $d->financement->echeance;
 					}
-					if(!empty($line[2]) && empty($d->financement->duree)) {
+					// Vu avec Damien, la durée est juste dans le 1er fichier
+					/*if(!empty($line[2]) && empty($d->financement->duree)) {
 						$d->financement->duree = price2num($line[2]);
 						$d->financementLeaser->duree = $d->financement->duree;
-					}
+					}*/
 					if(!empty($line[4]) && empty($d->financement->montant)) {
 						$d->financement->montant = price2num($line[4]);
 						$d->financementLeaser->montant = $d->financement->montant;
@@ -1454,10 +1456,15 @@ class TImport extends TObjetStd {
 		$f2 = $d->financement;
 		
 		if($f1 == $f2) {
-			echo $data['reference_dossier_interne']. ' : no change<br>';
+			echo 'ERR : pas de changement<br>';
 			return false;
 		} else {
-			echo $data['reference_dossier_interne']. ' : update<br>';
+			echo 'OK : maj;';
+			echo $f1->montant.' => '.$f2->montant.';';
+			echo $f1->duree.' => '.$f2->duree.';';
+			echo $f1->echeance.' => '.$f2->echeance.';';
+			echo $f1->periodicite.' => '.$f2->periodicite.';';
+			echo '<br>';
 			//return false;
 		}
 		
@@ -1473,6 +1480,11 @@ class TImport extends TObjetStd {
 		$d->display_solde = false;
 		//if($d->financement->reference == '04057118') pre($d, true);
 		$d->save($ATMdb);
+		
+		$a = &$d->TLien[0]->affaire;
+		$a->montant = $d->financement->montant;
+		$a->save($ATMdb);
+		$this->nb_update++;
 				
 		return true;
 	}
