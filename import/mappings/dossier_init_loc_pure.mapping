@@ -6,6 +6,7 @@
 8=periodicite
 9=duree
 4=date_debut
+5=loyer_intercalaire
 7=echeance
 13=terme
 14=reste
@@ -20,6 +21,7 @@ date_debut=date
 [transco]
 periodicite=1
 terme=1
+loyer_intercalaire=1
 
 [periodicite]
 TRIM=TRIMESTRE
@@ -29,3 +31,7 @@ ANNEE=ANNEE
 [terme]
 A échoir=1
 Echu=0
+
+[loyer_intercalaire]
+NON=0
+OUI=1
