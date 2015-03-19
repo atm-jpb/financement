@@ -288,6 +288,10 @@
 				exit;
 				
 				break;
+			
+			case 'exportListeDossier' :
+				_liste_renta_negative($PDOdb, $dossier);
+			break;
 		}
 		
 	}
@@ -430,6 +434,62 @@ function _liste(&$PDOdb, &$dossier) {
 	llxFooter();
 }
 
+function _load_facture(&$PDOdb,&$dossier_temp) {
+	
+	$TFacture = array();
+	
+	$sql = "SELECT f.rowid, f.ref_client, f.total, f.paye
+			FROM ".MAIN_DB_PREFIX."element_element ee
+				LEFT JOIN ".MAIN_DB_PREFIX."facture f ON (f.rowid = ee.fk_target)
+			WHERE ee.sourcetype='dossier'
+				AND ee.targettype='facture'
+				AND ee.fk_source=".$dossier_temp->getId()."
+				AND f.type = 0 
+				AND (f.ref_client != '' OR f.ref_client IS NOT NULL)
+			ORDER BY f.facnumber ASC";
+
+	$PDOdb->Execute($sql);
+
+	while($PDOdb->Get_line()) {
+		$date_echeance = explode('/',$PDOdb->Get_field('ref_client'));
+		$date_echeance = strtotime($date_echeance[2].'-'.$date_echeance[1].'-'.$date_echeance[0]);
+		$echeance = $dossier_temp->_get_num_echeance_from_date($date_echeance);
+
+		$TFacture[$echeance]['rowid'] = $PDOdb->Get_field('rowid');
+		$TFacture[$echeance]['ref_client'] = $PDOdb->Get_field('ref_client');
+		$TFacture[$echeance]['total_ht'] = $PDOdb->Get_field('total');
+		$TFacture[$echeance]['paye'] = $PDOdb->Get_field('paye');
+	}
+
+	return $TFacture;
+}
+
+function _load_factureFournisseur(&$PDOdb,&$dossier_temp){
+	global $db;
+	
+	$TFactureFourn = array();
+
+	$sql = "SELECT ff.rowid, ff.date_debut_periode
+			FROM ".MAIN_DB_PREFIX."element_element as ee
+				LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as ff ON (ff.rowid = ee.fk_target)
+			WHERE ee.sourcetype='dossier'
+				AND ee.targettype='invoice_supplier'
+				AND ee.fk_source=".$dossier_temp->getId();
+
+	$PDOdb->Execute($sql);
+
+	while($PDOdb->Get_line()) {
+			
+		$date_echeance = $PDOdb->Get_field('date_debut_periode');
+		$echeance = $dossier_temp->_get_num_echeance_from_date($date_echeance);	
+
+		$TFacture[$echeance]['rowid'] = $PDOdb->Get_field('rowid');
+
+	}
+	
+	return $TFactureFourn;
+}
+
 function _liste_renta_negative(&$PDOdb, &$dossier) {
 	global $conf, $db, $langs;
 	
@@ -439,25 +499,37 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 	
 	$r = new TListviewTBS('list_'.$dossier->get_table());
 	
-	$sql = "SELECT rowid
-			FROM ".MAIN_DB_PREFIX."fin_dossier
-			WHERE montant_solde = '0.00' AND date_solde = '0000-00-00 00:00:00' LIMIT 500"; //Limit 500 parce que sinon la liste est trop longue
-
-	$TIdDossiers = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+	$sql = "SELECT d.rowid as 'iddossier', a.rowid as 'idaffaire', a.reference, a.nature_financement, a.fk_soc
+			FROM ".MAIN_DB_PREFIX."fin_dossier as d
+				LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire as da ON (da.fk_fin_dossier = d.rowid)
+				LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire as a ON (a.rowid = da.fk_fin_affaire)
+			WHERE d.montant_solde = '0.00' AND d.date_solde = '0000-00-00 00:00:00'
+				AND a.rowid IS NOT NULL";
+	//echo $sql;
+	$PDOdb->Execute($sql);	
 	
-	foreach($TIdDossiers as $idDossier){
+	while ($PDOdb->Get_line()) {
+		$res['iddossier'] = $PDOdb->Get_field('iddossier');
+		$res['idaffaire'] = $PDOdb->Get_field('idaffaire');
+		$res['reference'] = $PDOdb->Get_field('reference');
+		$res['nature_financement'] = $PDOdb->Get_field('nature_financement');
+		$res['fk_soc'] = $PDOdb->Get_field('fk_soc');
+		
+		$Tres[] = $res;
+	}
+	
+	foreach($Tres as $res){
 		
 		$renta_negative = false;
 		
 		$dossier_temp = new TFin_dossier;
-		$dossier_temp->load($PDOdb, $idDossier, false);
-		$dossier_temp->load_facture($PDOdb);
-		$dossier_temp->load_factureFournisseur($PDOdb);
-		$dossier_temp->load_affaire($PDOdb);
+		$dossier_temp->load($PDOdb, $res['iddossier'], false);
+		$TFactures = _load_facture($PDOdb,$dossier_temp);
+		$TFacturesFourn = _load_factureFournisseur($PDOdb,$dossier_temp);
 		
-		foreach ($dossier_temp->TFactureFournisseur as $echeance =>$factureFourn) {
+		foreach ($TFacturesFourn as $echeance => $TfactureFourn) {
 			
-			$sql = "SELECT date_fin_periode FROM ".MAIN_DB_PREFIX."facture_fourn WHERE rowid = ".$factureFourn->id;
+			$sql = "SELECT date_fin_periode FROM ".MAIN_DB_PREFIX."facture_fourn WHERE rowid = ".$TfactureFourn['rowid'];
 			$PDOdb->Execute($sql);
 			
 			if($PDOdb->Get_line()){
@@ -465,27 +537,27 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 				$date_fin_periode = $date_fin_periode[2]."-".$date_fin_periode[1]."-".$date_fin_periode[0];
 			}
 			
-			if(!$dossier_temp->TFacture[$echeance] && strtotime($date_fin_periode) > strtotime('2014-04-01')){
+			if(!$TFactures[$echeance] && strtotime($date_fin_periode) > strtotime('2014-04-01')){
 				//echo "1<br>";
 				$renta_negative = true;break;
 			}
 		}
 		
 		if(!$renta_negative){
-			foreach($dossier_temp->TFacture as $echeanceClient => $facture_temp){
+			foreach($TFactures as $echeanceClient => $Tfacture){
 				
-				$date_fact_client  = explode("/",$facture_temp->ref_client);
+				$date_fact_client  = explode("/",$Tfacture['ref_client']);
 				$date_fact_client = $date_fact_client[2]."-".$date_fact_client[1]."-".$date_fact_client[0];
 				
 				if($echeanceClient == -1 || strtotime($date_fact_client) > strtotime('2014-04-01')) continue;
 				
 				//Renta négative si une facture échéance client < facture échéance leaser (dossierfinleaser->echeance)
-				if($facture_temp->total_ht < $dossier_temp->financementLeaser->echeance && $facture_temp->ref_client){
+				if($Tfacture['total_ht'] < $dossier_temp->financementLeaser->echeance && $Tfacture['ref_client']){
 					//echo "2<br>";
 					$renta_negative = true; break;
 				}
 				//Renta négative si une facture échéance client >= facture échéance leaser (dossierfinleaser->echeance) MAIS STATUS NON PAYE
-				else if($facture_temp->total_ht >= $dossier_temp->financementLeaser->echeance && $facture_temp->paye == 0){
+				else if($Tfacture['total_ht'] >= $dossier_temp->financementLeaser->echeance && $Tfacture['paye'] == 0){
 					//echo "3<br>";
 					$renta_negative = true; break;
 				}
@@ -500,13 +572,13 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			$nomLea =  $societe_temp->nom;
 			
 			$TLines[] = array(
-				'ID' => $idDossier,
+				'ID' => $res['iddossier'],
 				'refDosCli' => $dossier_temp->financement->reference,
 				'refDosLea' => $dossier_temp->financementLeaser->reference,
-				'ID affaire' => $dossier_temp->TLien[0]->affaire->rowid,
-				'Affaire' => $dossier_temp->TLien[0]->affaire->reference,
-				'nature_financement' => $dossier_temp->TLien[0]->affaire->nature_financement,
-				'fk_soc' => $dossier_temp->TLien[0]->affaire->fk_soc,
+				'ID affaire' => $res['idaffaire'],
+				'Affaire' => $res['reference'],
+				'nature_financement' =>$res['nature_financement'],
+				'fk_soc' => $res['fk_soc'],
 				'nomCli' => $nomCli,
 				'nomLea' => $nomLea,
 				'Durée' => $dossier_temp->financement->duree,
@@ -528,6 +600,7 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 	$aff = new TFin_affaire;
 	$dos = new TFin_dossier;
 	
+	//pre($TLines,true);exit;
 	//echo $sql;
 	print $r->renderArray($PDOdb, $TLines, array(
 		'limit'=>array(
@@ -595,15 +668,51 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 		</div>
 		<?php
 	}
-	
+	else{
+		?>
+		<div class="tabsAction">
+				<a href="?liste_renta_negative=1&action=exportListeDossier" class="butAction">Exporter</a>
+		</div>
+		<?php
+	}
+
 	//Cas action export CSV de la liste des futurs affaire transféré en XML
 	$action = GETPOST('action');
-	if($action === 'exportXML'){
-		_getExportXML($sql);
+	if($action === 'exportListeDossier'){
+		_getExport($TLines);
 	}
 	
 	llxFooter();
 }
+
+function _getExport(&$TLines){
+	
+	$filename = 'export_liste_dossier.csv';
+	$filepath = DOL_DATA_ROOT.'/financement/'.$filename;
+	$file = fopen($filepath,'w');
+	
+	//Ajout première ligne libelle
+	$TLabel = array('Contrat','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant','Echeance','Prochaine','Debut','Fin','Facture Materiel');
+	fputcsv($file, $TLabel,';','"');
+	
+	foreach($TLines as $line){
+
+		//On renseigne la facture mat car on l'a avec un eval() dans la liste
+		$line['fact_materiel'] = _get_facture_mat($line['ID affaire'],false);
+		
+		fputcsv($file, $line,';','"');
+	}
+	
+	fclose($file);
+	
+	?>
+	<script language="javascript">
+		document.location.href="<?php echo dol_buildpath("/document.php?modulepart=financement&entity=1&file=".$filename,2); ?>";					
+	</script>
+	<?php
+	
+	$PDOdb->close();
+}	
 
 
 function _getExportXML($sql){
