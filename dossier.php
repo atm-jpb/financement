@@ -300,6 +300,7 @@
 		 * Liste
 		 */
 		if(isset($_REQUEST['liste_incomplet'])) _liste_dossiers_incomplets($PDOdb, $dossier);
+		else if(isset($_REQUEST['liste_renta_negative'])) _liste_renta_negative($PDOdb,$dossier);
 		else _liste($PDOdb, $dossier);
 	}
 	
@@ -433,17 +434,102 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 	global $conf, $db, $langs;
 	
 	llxHeader('','Dossiers');
-
-	$r = new TSSRenderControler($dossier);
 	
-	$sql = "SELECT rowid 
-			FROM ".MAIN_DB_PREFIX."fin_";
+	$TTemplateTBS = new TTemplateTBS;
+	
+	$r = new TListviewTBS('list_'.$dossier->get_table());
+	
+	$sql = "SELECT rowid
+			FROM ".MAIN_DB_PREFIX."fin_dossier
+			WHERE montant_solde = '0.00' AND date_solde = '0000-00-00 00:00:00' LIMIT 500"; //Limit 500 parce que sinon la liste est trop longue
+
+	$TIdDossiers = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+	
+	foreach($TIdDossiers as $idDossier){
+		
+		$renta_negative = false;
+		
+		$dossier_temp = new TFin_dossier;
+		$dossier_temp->load($PDOdb, $idDossier, false);
+		$dossier_temp->load_facture($PDOdb);
+		$dossier_temp->load_factureFournisseur($PDOdb);
+		$dossier_temp->load_affaire($PDOdb);
+		
+		foreach ($dossier_temp->TFactureFournisseur as $echeance =>$factureFourn) {
+			
+			$sql = "SELECT date_fin_periode FROM ".MAIN_DB_PREFIX."facture_fourn WHERE rowid = ".$factureFourn->id;
+			$PDOdb->Execute($sql);
+			
+			if($PDOdb->Get_line()){
+				$date_fin_periode = explode('/',$PDOdb->Get_field('date_fin_periode'));
+				$date_fin_periode = $date_fin_periode[2]."-".$date_fin_periode[1]."-".$date_fin_periode[0];
+			}
+			
+			if(!$dossier_temp->TFacture[$echeance] && strtotime($date_fin_periode) > strtotime('2014-04-01')){
+				//echo "1<br>";
+				$renta_negative = true;break;
+			}
+		}
+		
+		if(!$renta_negative){
+			foreach($dossier_temp->TFacture as $echeanceClient => $facture_temp){
+				
+				$date_fact_client  = explode("/",$facture_temp->ref_client);
+				$date_fact_client = $date_fact_client[2]."-".$date_fact_client[1]."-".$date_fact_client[0];
+				
+				if($echeanceClient == -1 || strtotime($date_fact_client) > strtotime('2014-04-01')) continue;
+				
+				//Renta négative si une facture échéance client < facture échéance leaser (dossierfinleaser->echeance)
+				if($facture_temp->total_ht < $dossier_temp->financementLeaser->echeance && $facture_temp->ref_client){
+					//echo "2<br>";
+					$renta_negative = true; break;
+				}
+				//Renta négative si une facture échéance client >= facture échéance leaser (dossierfinleaser->echeance) MAIS STATUS NON PAYE
+				else if($facture_temp->total_ht >= $dossier_temp->financementLeaser->echeance && $facture_temp->paye == 0){
+					//echo "3<br>";
+					$renta_negative = true; break;
+				}
+			}
+		}
+		
+		if($renta_negative){
+			$societe_temp = new Societe($db);
+			$societe_temp->fetch($dossier_temp->financement->fk_soc);
+			$nomCli = $societe_temp->nom;
+			$societe_temp->fetch($dossier_temp->financementLeaser->fk_soc);
+			$nomLea =  $societe_temp->nom;
+			
+			$TLines[] = array(
+				'ID' => $idDossier,
+				'refDosCli' => $dossier_temp->financement->reference,
+				'refDosLea' => $dossier_temp->financementLeaser->reference,
+				'ID affaire' => $dossier_temp->TLien[0]->affaire->rowid,
+				'Affaire' => $dossier_temp->TLien[0]->affaire->reference,
+				'nature_financement' => $dossier_temp->TLien[0]->affaire->nature_financement,
+				'fk_soc' => $dossier_temp->TLien[0]->affaire->fk_soc,
+				'nomCli' => $nomCli,
+				'nomLea' => $nomLea,
+				'Durée' => $dossier_temp->financement->duree,
+				'Montant' => $dossier_temp->financement->montant,
+				'Echéance' => $dossier_temp->financement->echeance,
+				'Prochaine' => $dossier_temp->financement->get_date('date_prochaine_echeance'),
+				'date_debut' => $dossier_temp->financement->get_date('date_debut'),
+				'Fin' => $dossier_temp->financement->get_date('date_fin'),
+				'fact_materiel' => '',
+				'visa_renta'=>$dossier_temp->visa_renta
+			);
+		}
+	}
+	
+	//pre($TLines,true);
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
+	echo $form->hidden('liste_renta_negative', '1');
 	$aff = new TFin_affaire;
+	$dos = new TFin_dossier;
 	
 	//echo $sql;
-	$r->liste($PDOdb, $sql, array(
+	print $r->renderArray($PDOdb, $TLines, array(
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
 			,'nbLine'=>'30'
@@ -458,9 +544,10 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 		)
 		,'translate'=>array(
 			'nature_financement'=>$aff->TNatureFinancement
+			,'visa_renta'=>$dos->Tvisa
 		)
 		,'hide'=>array('fk_soc','ID','ID affaire','fk_fact_materiel')
-		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'Echéance'=>'money')
+		,'type'=>array()//'date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'Echéance'=>'money')
 		,'liste'=>array(
 			'titre'=>"Liste des dossiers"
 			,'image'=>img_picto('','title.png', '', 0)
@@ -480,6 +567,7 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			,'nature_financement'=>'Nature'
 			,'date_debut'=>'Début'
 			,'fact_materiel'=>'Facture matériel'
+			,'visa_renta'=>'Visa Rentabilité'
 		)
 		,'orderBy'=> array('ID'=>'DESC','fc.reference'=>'ASC')
 		,'search'=>array(
@@ -488,6 +576,7 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			,'nomCli'=>array('recherche'=>true, 'table'=>'c', 'field'=>'nom')
 			,'nomLea'=>array('recherche'=>true, 'table'=>'l', 'field'=>'nom')
 			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
+			,'visa_renta'=>array('recherche'=>$dos->Tvisa,'table'=>'d', 'field' => 'visa_renta')
 			//,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
 		)
 		,'eval'=>array('fact_materiel'=>'_get_facture_mat(@ID affaire@);')
@@ -816,6 +905,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'dateperso'=>$dateperso
 				,'url_therefore'=>FIN_THEREFORE_DOSSIER_URL
 				,'affaire1'=>$TAffaire[0]
+				,'visa_renta'=>$form->combo('', 'visa_renta', array('1' => 'Oui', '0' => 'Non'), $dossier->visa_renta)
+				,'commentaire_visa'=>$form->zonetexte('', 'commentaire_visa', $dossier->commentaire_visa,100,5,'')
 			)
 			,'financement'=>$TFinancement
 			,'financementLeaser'=>$TFinancementLeaser

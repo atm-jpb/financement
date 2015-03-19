@@ -140,7 +140,14 @@
 			<td>Solde personnalisé</td><td>[dossier.soldeperso; frm=0 000,00] &euro;</td>
 			<td>Date de validité</td><td>[dossier.dateperso; strconv=no]</td>
 		</tr>
-		
+		[onshow;block=begin; when [view.userRight]==1]
+			<tr>
+				<td>Visa rentabilité</td><td>[dossier.visa_renta;strconv=no]</td>
+			</tr>
+			<tr>
+				<td>Commentaire rentabilité</td><td>[dossier.commentaire_visa; strconv=no]</td>
+			</tr>
+		[onshow;block=end]
 		</table>
 
 			[onshow;block=begin;when [view.mode]!='view']
