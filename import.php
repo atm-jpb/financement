@@ -79,7 +79,7 @@
 					
 					// Spécifique import Loc Pure
 					if($fileType == 'dossier_init_loc_pure') {
-						$fOther = file(FIN_IMPORT_FOLDER.'todo/Base Projet.csv');
+						$fOther = file(FIN_IMPORT_FOLDER.'Base Projet.csv');
 						foreach($fOther as $line) {
 							$TInfosGlobale['locpure'][] = explode(";", $line);
 						}
