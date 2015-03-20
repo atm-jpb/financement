@@ -165,13 +165,28 @@ function _liste(&$ATMdb, &$affaire) {
 	
 	llxHeader('','Affaires');
 	
+	$errone = GETPOST('errone');
+	
 	$r = new TSSRenderControler($affaire);
 	$sql="SELECT a.rowid as 'ID', a.reference, a.montant as 'Montant', a.fk_soc, s.nom
 	, a.nature_financement, a.type_financement, a.contrat, a.date_affaire
 		FROM @table@ a LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid)
 		WHERE a.entity=".$conf->entity;
 	//echo $sql; exit;
-	$THide = array('fk_soc', 'ID');
+	
+	if($errone){
+		$sql="SELECT a.rowid as 'ID', a.reference, a.montant as 'Montant Affaire', SUM(df.montant) as 'Montant Financé', df.fk_fin_dossier, a.fk_soc, s.nom , a.nature_financement, a.type_financement, a.contrat, a.date_affaire 
+			  FROM llx_fin_affaire a 
+			  	LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid) 
+			  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) 
+			  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (d.rowid = da.fk_fin_dossier) 
+			  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid) 
+			  WHERE a.entity=".$conf->entity."
+			  	AND df.type = 'LEASER' 
+			  	AND df.montant != a.montant";
+	}
+	
+	$THide = array('fk_soc', 'ID', 'fk_fin_dossier');
 	
 	if(isset($_REQUEST['socid'])) {
 		$sql.= ' AND (a.fk_soc='.$_REQUEST['socid'].' OR  a.fk_soc IN (
@@ -210,9 +225,11 @@ function _liste(&$ATMdb, &$affaire) {
 			)
 		);
 	}
+
+	if($errone) $sql .= " GROUP BY a.rowid";
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formAffaire', 'GET');
-	
+	//echo $sql;
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
 			'page'=>1

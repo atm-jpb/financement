@@ -20,6 +20,16 @@ class ActionsFinancement
  */
         return 0;
     }
+	
+	function printSearchForm($parameters, &$object, &$action, $hookmanager) {
+		global $langs;
+		
+		 $res = printSearchForm(DOL_URL_ROOT.'/custom/financement/dossier.php', DOL_URL_ROOT.'/custom/financement/dossier.php', img_object('','financeico').' '.$langs->trans("Dossiers"), 'searchdossier', 'searchdossier');
+		 $res .= printSearchForm(DOL_URL_ROOT.'/compta/facture/list.php', DOL_URL_ROOT.'/compta/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Clients"), 'products', 'search_ref');
+		 $res .= printSearchForm(DOL_URL_ROOT.'/fourn/facture/index.php', DOL_URL_ROOT.'/fourn/facture/index.php', img_object('','invoice').' '.$langs->trans("Factures Leasers"), 'products', 'search_ref');
+		 
+		 return $res;
+	}
     
 	function formObjectOptions($parameters, &$object, &$action, $hookmanager) {
 		global $user, $db;

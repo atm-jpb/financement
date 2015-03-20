@@ -7,7 +7,7 @@ class TFin_dossier extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
 		parent::add_champs('solde,soldeperso,montant,montant_solde','type=float;');
 		parent::add_champs('renta_previsionnelle,renta_attendue,renta_reelle,marge_previsionnelle,marge_attendue,marge_reelle','type=float;');
-		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne,display_solde','type=chaine;');
+		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne,display_solde,visa_renta,commentaire_visa','type=chaine;');
 		parent::add_champs('date_relocation,date_solde,dateperso','type=date;');
 			
 		parent::start();
@@ -17,6 +17,8 @@ class TFin_dossier extends TObjetStd {
 		$this->display_solde = 1;
 		
 		$this->date_relocation=0;
+		
+		$this->Tvisa = array(0=>'Non',1=>'Oui');
 		
 		$this->TLien=array();
 		$this->financement=new TFin_financement;
@@ -332,14 +334,53 @@ class TFin_dossier extends TObjetStd {
 					//$echeance++;
 				}
 			} else {
-				$this->TFacture[$echeance] = $fact;
+				
+				//TODO si plusieurs facture même échéance alors modification affichage pour afficher tous les liens
+				if(!empty($this->TFacture[$echeance])){
+					if(is_array($this->TFacture[$echeance])){
+						$this->TFacture[$echeance] = array_merge($this->TFacture[$echeance],array($fact));
+					}
+					else{
+						$this->TFacture[$echeance] = array($this->TFacture[$echeance],$fact);
+					}
+				}
+				else{
+					$this->TFacture[$echeance] = $fact;
+				}
 				//$echeance++;
 			}
 		}
 
 		//pre($this->TFacture,true);
 	}
+	
+	//Réorganisation spécifique pour l'affichage des factures intégrale
+	function format_facture_integrale(&$ATMdb) {
+		global $db;
+		
+		foreach($this->TFacture as $echeance => $Tfacture){
+			
+			if(is_array($Tfacture)){
+				
+				foreach($Tfacture as $k => $facture){
+					
+					//Si la facture est un avoir qui annule totalement la facture d'origine, on supprime l'avoir du tableau
+					if($facture->type == 2){
+						$facture_origine = new Facture($db);
+						$facture_origine->fetch($facture->fk_facture_source);
+						
+						if($facture_origine->total_ht == $facture->total_ht){
+							unset($this->TFacture[$echeance][$k]);
+						}
+					}
+				}
+			}
+			
+		}
 
+		//pre($this->TFacture,true);
+	}
+	
 	// Donne le numéro d'échéance correspondant à une date
 	function _get_num_echeance_from_date($date) {
 		//$echeance = date('m', $date - $this->financement->date_debut) / $this->financement->getiPeriode();
@@ -1366,6 +1407,17 @@ class TFin_financement extends TObjetStd {
 		}
 		
 		$fact->validate($user);
+		
+		$echeance = explode('/',$origine->facnumber);
+		$echeance = $echeance[1];
+		
+		//MAJ dates période facture
+		$dossier = new TFin_dossier;
+		$dossier->load($ATMdb, $this->fk_fin_dossier);
+		$date_debut_periode = $dossier->getDateDebutPeriode($echeance-1,'LEASER');
+		$date_fin_periode = $dossier->getDateFinPeriode($echeance-1);
+
+		$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$fact->id);
 		
 		// Ajout lien dossier
 		$fact->add_object_linked('dossier', $idDossier);

@@ -634,7 +634,8 @@ class TFin_affaire extends TObjetStd {
 			$Affaire->totalBien += round(($facture->total_ht / $nbAsset),2);
 			$bien->appendChild($xml->createElement("montant",round(($facture->total_ht / $nbAsset),2)));
 		}*/
-		$bien->appendChild($xml->createElement("montant",round((($assetLink->asset->fk_product) ? $facture->total_ht : $Affaire->montant),2)));
+		//$bien->appendChild($xml->createElement("montant",round((($assetLink->asset->fk_product) ? $facture->total_ht : $Affaire->TLien[0]->dossier->financementLeaser->montant),2)));
+		$bien->appendChild($xml->createElement("montant",round($Affaire->TLien[0]->dossier->financementLeaser->montant,2)));
 		
 		return $bien;
 	}
@@ -683,7 +684,9 @@ class TFin_affaire extends TObjetStd {
 		$palier->appendChild($xml->createElement("montant",$financementLeaser->echeance));
 		$palier->appendChild($xml->createElement("terme",substr($financementLeaser->TTerme[$financementLeaser->terme],0,1)));
 		$palier->appendChild($xml->createElement("periodicite",$periodicite));
-		$palier->appendChild($xml->createElement("mtVnf",$Affaire->montant));
+		//$palier->appendChild($xml->createElement("mtVnf",$Affaire->montant));
+		$palier->appendChild($xml->createElement("mtVnf",round($Affaire->TLien[0]->dossier->financementLeaser->montant,2)));
+		
 		//$palier->appendChild($xml->createElement("pourcVnf",round((($Affaire->montant * 100) / $facture->total_ht),2)));
 		$palier->appendChild($xml->createElement("pourcVnf",100));
 
@@ -723,6 +726,10 @@ class TFin_affaire extends TObjetStd {
 			$total_tva = ($Affaire->montant * 20 / 100);
 			$total_ttc = $total_ht + $total_tva;
 		}
+		
+		$total_ht = round($Affaire->TLien[0]->dossier->financementLeaser->montant, 2);
+		$total_tva = round($total_ht * 0.20, 2);
+		$total_ttc = round($total_ht + $total_tva, 2);
 		
 		$commandeLig = $xml->createElement("commandeLig");
 		
