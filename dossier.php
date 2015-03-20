@@ -457,7 +457,7 @@ function _load_facture(&$PDOdb,&$dossier_temp) {
 
 		$TFacture[$echeance]['rowid'] = $PDOdb->Get_field('rowid');
 		$TFacture[$echeance]['ref_client'] = $PDOdb->Get_field('ref_client');
-		$TFacture[$echeance]['total_ht'] = $PDOdb->Get_field('total');
+		$TFacture[$echeance]['total_ht'] += $PDOdb->Get_field('total');
 		$TFacture[$echeance]['paye'] = $PDOdb->Get_field('paye');
 	}
 
@@ -495,6 +495,13 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 	
 	llxHeader('','Dossiers');
 	
+	$TErrorStatus=array(
+		'EcheanceClientEcheanceLeaser' => "Echéance Client < Echéance Leaser",
+		'NoFactureOnEcheance' => "Echéance client non facturée",
+		'FactureClientFactureLeaser' => "Facture Client < Facture leaser",
+		"FactureClientUnpaid" => "Facture Client impayée"
+	);
+	
 	$TTemplateTBS = new TTemplateTBS;
 	
 	$r = new TListviewTBS('list_'.$dossier->get_table());
@@ -504,7 +511,8 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 				LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire as da ON (da.fk_fin_dossier = d.rowid)
 				LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire as a ON (a.rowid = da.fk_fin_affaire)
 			WHERE d.montant_solde = '0.00' AND d.date_solde = '0000-00-00 00:00:00'
-				AND a.rowid IS NOT NULL";
+				AND a.rowid IS NOT NULL
+			ORDER BY d.rowid";
 	//echo $sql;
 	$PDOdb->Execute($sql);	
 	
@@ -521,11 +529,17 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 	foreach($Tres as $res){
 		
 		$renta_negative = false;
+		$TError = array();
 		
 		$dossier_temp = new TFin_dossier;
 		$dossier_temp->load($PDOdb, $res['iddossier'], false);
 		$TFactures = _load_facture($PDOdb,$dossier_temp);
 		$TFacturesFourn = _load_factureFournisseur($PDOdb,$dossier_temp);
+		
+		if($dossier_temp->financement->echeance < $dossier_temp->financementLeaser->echeance){
+			$renta_negative = true;
+			$TError[$res['iddossier']][] = "EcheanceClientEcheanceLeaser";
+		}
 		
 		foreach ($TFacturesFourn as $echeance => $TfactureFourn) {
 			
@@ -539,32 +553,44 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			
 			if(!$TFactures[$echeance] && strtotime($date_fin_periode) > strtotime('2014-04-01')){
 				//echo "1<br>";
+				$TError[$res['iddossier']][] = "NoFactureOnEcheance";
 				$renta_negative = true;break;
 			}
 		}
-		
-		if(!$renta_negative){
-			foreach($TFactures as $echeanceClient => $Tfacture){
-				
-				$date_fact_client  = explode("/",$Tfacture['ref_client']);
-				$date_fact_client = $date_fact_client[2]."-".$date_fact_client[1]."-".$date_fact_client[0];
-				
-				if($echeanceClient == -1 || strtotime($date_fact_client) > strtotime('2014-04-01')) continue;
-				
-				//Renta négative si une facture échéance client < facture échéance leaser (dossierfinleaser->echeance)
-				if($Tfacture['total_ht'] < $dossier_temp->financementLeaser->echeance && $Tfacture['ref_client']){
-					//echo "2<br>";
-					$renta_negative = true; break;
-				}
-				//Renta négative si une facture échéance client >= facture échéance leaser (dossierfinleaser->echeance) MAIS STATUS NON PAYE
-				else if($Tfacture['total_ht'] >= $dossier_temp->financementLeaser->echeance && $Tfacture['paye'] == 0){
-					//echo "3<br>";
-					$renta_negative = true; break;
-				}
+
+		foreach($TFactures as $echeanceClient => $Tfacture){
+			
+			$date_fact_client  = explode("/",$Tfacture['ref_client']);
+			$date_fact_client = $date_fact_client[2]."-".$date_fact_client[1]."-".$date_fact_client[0];
+			
+			if($echeanceClient == -1 || strtotime($date_fact_client) > strtotime('2014-04-01')) continue;
+			
+			//Renta négative si une facture échéance client < facture échéance leaser (dossierfinleaser->echeance)
+			if($Tfacture['total_ht'] < $dossier_temp->financementLeaser->echeance && $Tfacture['ref_client']){
+				$TError[$res['iddossier']][] = "FactureClientFactureLeaser";
+				$renta_negative = true; break;
+			}
+			//Renta négative si une facture échéance client >= facture échéance leaser (dossierfinleaser->echeance) MAIS STATUS NON PAYE
+			else if($Tfacture['total_ht'] >= $dossier_temp->financementLeaser->echeance && $Tfacture['paye'] == 0){
+				$TError[$res['iddossier']][] = "FactureClientUnpaid";
+				$renta_negative = true; break;
 			}
 		}
 		
+		//pre($TError,true);exit;
+		
 		if($renta_negative){
+			
+			$error = "";
+			
+			foreach ($TError as $iddossier => $TLabel) {
+				foreach($TLabel as $label){
+					$error .= $TErrorStatus[$label]."\n";
+				}
+			}
+			
+			$error = substr($error, 0,-1);
+			
 			$societe_temp = new Societe($db);
 			$societe_temp->fetch($dossier_temp->financement->fk_soc);
 			$nomCli = $societe_temp->nom;
@@ -581,6 +607,7 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 				'fk_soc' => $res['fk_soc'],
 				'nomCli' => $nomCli,
 				'nomLea' => $nomLea,
+				'status' => $error,
 				'Durée' => $dossier_temp->financement->duree,
 				'Montant' => $dossier_temp->financement->montant,
 				'Echéance' => $dossier_temp->financement->echeance,
@@ -588,7 +615,7 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 				'date_debut' => $dossier_temp->financement->get_date('date_debut'),
 				'Fin' => $dossier_temp->financement->get_date('date_fin'),
 				'fact_materiel' => '',
-				'visa_renta'=>$dossier_temp->visa_renta
+				//'visa_renta'=>$dossier_temp->Tvisa[$dossier_temp->visa_renta]
 			);
 		}
 	}
@@ -639,19 +666,20 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			,'nomLea'=>'Leaser'
 			,'nature_financement'=>'Nature'
 			,'date_debut'=>'Début'
+			,'status'=>'Statut'
 			,'fact_materiel'=>'Facture matériel'
 			,'visa_renta'=>'Visa Rentabilité'
 		)
 		,'orderBy'=> array('ID'=>'DESC','fc.reference'=>'ASC')
-		,'search'=>array(
+		/*,'search'=>array(
 			'refDosCli'=>array('recherche'=>true, 'table'=>'fc', 'field'=>'reference')
 			,'refDosLea'=>array('recherche'=>true, 'table'=>'fl', 'field'=>'reference')
 			,'nomCli'=>array('recherche'=>true, 'table'=>'c', 'field'=>'nom')
 			,'nomLea'=>array('recherche'=>true, 'table'=>'l', 'field'=>'nom')
 			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
-			,'visa_renta'=>array('recherche'=>$dos->Tvisa,'table'=>'d', 'field' => 'visa_renta')
+			//,'visa_renta'=>array('recherche'=>$dos->Tvisa,'table'=>'d', 'field' => 'visa_renta')
 			//,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
-		)
+		)*/
 		,'eval'=>array('fact_materiel'=>'_get_facture_mat(@ID affaire@);')
 		
 	));
@@ -692,13 +720,17 @@ function _getExport(&$TLines){
 	$file = fopen($filepath,'w');
 	
 	//Ajout première ligne libelle
-	$TLabel = array('Contrat','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant','Echeance','Prochaine','Debut','Fin','Facture Materiel');
+	$TLabel = array('Contrat','Contrat Leaser','Affaire','Nature','Client','Leaser','Statut','Duree','Montant','Echeance','Prochaine','Debut','Fin','Facture Materiel');
 	fputcsv($file, $TLabel,';','"');
 	
 	foreach($TLines as $line){
-
+		
 		//On renseigne la facture mat car on l'a avec un eval() dans la liste
 		$line['fact_materiel'] = _get_facture_mat($line['ID affaire'],false);
+		
+		unset($line['ID']);
+		unset($line['ID affaire']);
+		unset($line['fk_soc']);
 		
 		fputcsv($file, $line,';','"');
 	}
