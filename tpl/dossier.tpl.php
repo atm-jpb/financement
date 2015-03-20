@@ -137,15 +137,25 @@
 		<tr><td>Renouvellant CPRO</td><td colspan="3">[dossier.soldeRCPRO; frm=0 000,00] &euro;</td></tr>
 		<tr><td>Non renouvellant CPRO</td><td colspan="3">[dossier.soldeNRCPRO; frm=0 000,00] &euro;</td></tr>
 		<tr>
-			<td>Solde personnalisé</td><td>[dossier.soldeperso; frm=0 000,00] &euro;</td>
-			<td>Date de validité</td><td>[dossier.dateperso; strconv=no]</td>
+			<td>Solde personnalisé</td><td>[dossier.soldeperso; frm=0 000,00] &euro; [onshow;block=begin; when [view.contrat]==INTEGRAL] ([dossier.soldepersointegrale; frm=0 000,00] &euro;) [onshow;block=end]</td>
+			<td>Disponibilité du solde</td><td>[dossier.soldepersodispo; strconv=no]</td>
 		</tr>
-		[onshow;block=begin; when [view.userRight]==1]
+		[onshow;block=begin; when [view.contrat]==INTEGRAL]
 			<tr>
-				<td>Visa rentabilité</td><td>[dossier.visa_renta;strconv=no]</td>
+				<td>Quote-part NOIR</td><td>[dossier.quote_part_noir; frm=0 000,00000]</td>
+				<td>Quote-part COULEUR</td><td>[dossier.quote_part_couleur;; frm=0 000,00000]</td>
 			</tr>
 			<tr>
-				<td>Commentaire rentabilité</td><td>[dossier.commentaire_visa; strconv=no]</td>
+				<td>Copies suplémentaire NOIR</td><td>[dossier.somme_sup_noir; strconv=no]</td>
+				<td>Copies suplémentaire COULEUR</td><td>[dossier.somme_sup_coul; strconv=no]</td>
+			</tr>
+		[onshow;block=end]
+		[onshow;block=begin; when [view.userRight]==1]
+			<tr>
+				<td>Visa rentabilité</td><td colspan="3">[dossier.visa_renta;strconv=no]</td>
+			</tr>
+			<tr>
+				<td>Commentaire rentabilité</td><td colspan="3">[dossier.commentaire_visa; strconv=no]</td>
 			</tr>
 		[onshow;block=end]
 		</table>
