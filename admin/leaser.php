@@ -180,12 +180,12 @@ echo '<hr><br><br>';
  * Affichage du tableau permettant de définir l'ordre par défaut des leasers
  * ************************************************************************/
  
-$typeContrat = "DEFAUT_LOCATION";
+$typeContrat = "DEFAUT_LOCSIMPLE";
 print_titre('Ordre des leasers par défaut Location Simple');
 
 _affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
 
-$typeContrat = "DEFAUT_FORFAIT";
+$typeContrat = "DEFAUT_FORFAITGLOBAL";
 print_titre('Ordre des leasers par défaut Forfait global');
 
 _affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
