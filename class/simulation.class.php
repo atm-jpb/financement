@@ -19,6 +19,8 @@ class TSimulation extends TObjetStd {
 		$this->TStatut=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
+			,'WAIT_LEASER'=>$langs->trans('Etude - Elements demandés Leaser')
+			,'WAIT_SELLER'=>$langs->trans('Etude - Elements demandés Vendeur')
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
