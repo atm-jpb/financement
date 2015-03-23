@@ -266,7 +266,7 @@ class TSimulation extends TObjetStd {
 		//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 		$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
 		//Récupération de la catégorie du client : entreprise, administration ou association
-		//TODO suivant sont code NAF
+		// suivant sont code NAF
 		// entreprise = les autres
 		// association = 94
 		// administration = 84
@@ -318,12 +318,18 @@ class TSimulation extends TObjetStd {
 	//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 	function getIdLeaserDossierSolde(&$PDOdb){
 		
-		$idLeaserDossierSolde = 0;
+		$idLeaserDossierSolde = $montantDossierSole = 0;
 		$TDossierUsed = $this->get_list_dossier_used();
 		if(count($TDossierUsed)){
-			$dossier = new TFin_dossier;
-			$dossier->load($PDOdb, $TDossierUsed[0]);
-			$idLeaserDossierSolde = $dossier->TLien[0]->dossier->financementLeaser->fk_soc;
+			foreach($TDossierUsed as $k => $id_dossier){
+				$dossier = new TFin_dossier;
+				$dossier->load($PDOdb, $TDossierUsed[$k]);
+				//Si plusieurs dossiers soldé dans la simulation alors on prends le Leaser de celui ayant le plus gros montant
+				if($dossier->montant > $montantDossierSole){
+					$idLeaserDossierSolde = $dossier->TLien[$k]->dossier->financementLeaser->fk_soc;
+					$montantDossierSole = $dossier->montant;
+				}
+			}
 		}
 		
 		return $idLeaserDossierSolde;
