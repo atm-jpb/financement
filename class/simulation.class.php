@@ -1017,8 +1017,8 @@ class TSimulationSuivi extends TObjetStd {
 	function doActionRefuser(&$PDOdb,&$simulation){
 		global $db;
 
-		$simulation->accord = 'KO';
-		$simulation->save($PDOdb, $db);
+		/*$simulation->accord = 'KO';
+		$simulation->save($PDOdb, $db);*/
 		
 		$this->statut = 'KO';
 		$this->save($PDOdb);
