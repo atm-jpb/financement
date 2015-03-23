@@ -96,6 +96,7 @@ class TSimulation extends TObjetStd {
 				$simulationSuivi->save($PDOdb);
 				
 				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+				$this->reordreSimulationSuivi($PDOdb);
 			}
 		}
 	}
@@ -847,6 +848,16 @@ class TSimulationSuivi extends TObjetStd {
 			,'WAIT'=>$langs->trans('Etude')
 			,'KO'=>$langs->trans('Refus')
 		);
+		
+		$this->TLeaserAuto=array(
+			'3382' => 'BNP PARIBAS LEASE GROUP'
+			,'19553' => 'BNP PARIBAS LEASE GROUP (ADOSSE)'
+			,'20113' => 'BNP PARIBAS LEASE GROUP (MANDATE)'
+			,'7411' => 'GE CAPITAL EQUIPEMENT FINANCE'
+			,'21382' => 'GE CAPITAL EQUIPEMENT FINANCE (MANDATEE)'
+		);
+		
+		$this->simulation = new TSimulation;
 	}
 	
 	//Chargement du suivi simulation
@@ -882,7 +893,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$actions = '';
 
-		if(!$this->financementAlreadyAccepted){
+		if(!$this->financementAlreadyAccepted && $simulation->accord != "OK"){
 			//Demander
 			if($this->statut_demande != 1){// && $this->date_demande < 0){
 				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Demande transmise au leaser"><img src="'.dol_buildpath('/financement/img/demander.png',1).'" /></a>&nbsp;';
@@ -911,32 +922,66 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	//Exécute une action et met en oeuvre les règles de gestion en conséquence
-	function doAction(&$PDOdb,$action){
+	function doAction(&$PDOdb,&$simulation,$action){
 		
-		switch ($action) {
-			case 'demander':
-				$this->doActionDemander($PDOdb);
-				break;
-			case 'envoyer':
-				$this->doActionEnvoyer($PDOdb);
-				break;
-			case 'accepter':
-				$this->doActionAccepter($PDOdb);
-				break;
-			case 'refuser':
-				$this->doActionRefuser($PDOdb);
-				break;
-			case 'selectionner':
-				$this->doActionSelectionner($PDOdb);
-				break;
-			default:
-				
-				break;
+		if($simulation->accord != "OK"){
+		
+			switch ($action) {
+				case 'demander':
+					//if(empty($this->statut)){ //Possibilité d'effectuer le demande une seule fois uniquement
+						$this->doActionDemander($PDOdb,$simulation);
+					//}
+					break;
+				case 'envoyer':
+					$this->doActionEnvoyer($PDOdb,$simulation);
+					break;
+				case 'accepter':
+					$this->doActionAccepter($PDOdb,$simulation);
+					break;
+				case 'refuser':
+					$this->doActionRefuser($PDOdb,$simulation);
+					break;
+				case 'selectionner':
+					$this->doActionSelectionner($PDOdb,$simulation);
+					break;
+				default:
+					
+					break;
+			}
 		}
 	}
 	
 	//Effectuer l'action de faire la demande de financement au leaser
-	function doActionDemander($PDOdb){
+	function doActionDemander(&$PDOdb,&$simulation){
+		global $db;
+
+		$simulation->accord = 'WAIT_LEASER';
+		$simulation->save($PDOdb, $db);
+		
+	    // Leaser ACECOM = demande BNP mandaté et BNP cession + Lixxbail mandaté et Lixxbail cession
+		if($this->fk_leaser == 18305){
+			// 20113 = BNP Mandatée // 3382 = BNP Cession (Location simple) // 19483 = Lixxbail Mandatée // 6065 = Lixxbail Cession (Location simple)
+			$sql = "SELECT rowid 
+					FROM ".MAIN_DB_PREFIX."fin_simulation_suivi 
+					WHERE fk_leaser = 20113 
+						OR fk_leaser = 3382 
+						OR fk_leaser = 19483
+						OR fk_leaser = 6065
+						AND fk_simulation = ".$this->fk_simulation;
+			$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+
+			foreach($TIds as $idSimulationSuivi){
+				$simulation_suivi = new TSimulationSuivi;
+				$simulation_suivi->load($PDOdb, $idSimulationSuivi);
+				$simulation_suivi->doAction($PDOdb, $simulation, 'demander');
+				$simulation_suivi->save($PDOdb);
+			}
+		}
+		
+		//Si leaser auto alors on envoye la demande par XML
+		/*if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
+			$this->_sendDemandeByXML($PDOdb);
+		}*/
 		
 		$this->statut_demande = 1;
 		$this->date_demande = time();
@@ -945,27 +990,74 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	//Effectuer l'action d'envoyer au leaser la demande de financement
-	function doActionEnvoyer($PDOdb){
+	function doActionEnvoyer(&$PDOdb,&$simulation){
+		global $db;
+		
+		$simulation->accord = 'WAIT';
+		$simulation->save($PDOdb, $db);
+		
 		$this->statut = 'WAIT';
 		$this->save($PDOdb);
 	}
 	
 	//Effectue l'action de passer au statut accepter la demande de financement leaser
-	function doActionAccepter($PDOdb){
+	function doActionAccepter(&$PDOdb,&$simulation){
+		global $db;
+		
+		$simulation->accord = 'WAIT';
+		$simulation->save($PDOdb, $db);
+		
 		$this->statut = 'OK';
 		$this->save($PDOdb);
 	}
 	
 	//Effectue l'action de passer au statut refusé la demande de financement leaser
-	function doActionRefuser($PDOdb){
+	function doActionRefuser(&$PDOdb,&$simulation){
+		global $db;
+		
+		$simulation->accord = 'KO';
+		$simulation->save($PDOdb, $db);
+		
 		$this->statut = 'KO';
 		$this->save($PDOdb);
 	}
 	
 	//Effectue l'action de choisir définitivement un leaser pour financer la simulation
-	function doActionSelectionner($PDOdb){
+	function doActionSelectionner(&$PDOdb,&$simulation){
+		global $db;
+		
+		if($simulation->type_financement != "ADOSSEE" && $simulation->type_financement != "MANDATEE"){
+			$simulation->coeff_final = $this->coeff_leaser;
+		}
+		
+		$simulation->accord = 'OK';
+		$simulation->numero_accord = $this->numero_accord_leaser;
+		$simulation->fk_leaser = $this->fk_leaser;
+		$simulation->save($PDOdb, $db);
+
 		$this->date_selection = time();
+
 		$this->save($PDOdb);
+	}
+	
+	function save(&$PDOdb){
+		global $db;
+		
+		$res = parent::save($PDOdb);
+		
+		if(!empty($this->fk_simulation)){
+			$simulation = new TSimulation;
+			$simulation->load($PDOdb, $db, $this->fk_simulation);
+			
+			//Si Leaser possiblité demande auto alors on effectue directement l'action
+			/*if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
+				$this->doAction($PDOdb, $simulation, "demander");
+			}*/
+		}
+	}
+	
+	function _sendDemandeByXML(&$PDOdb){
+		echo "demande envoyé automatiquement";
 	}
 }
 

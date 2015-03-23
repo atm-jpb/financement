@@ -248,7 +248,7 @@ if(!empty($action)) {
 			$id_suivi = GETPOST('id_suivi');
 			if($id_suivi){
 				$simulation->load($ATMdb, $db, $_REQUEST['id']);
-				$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$action);
+				$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$simulation,$action);
 				_fiche($ATMdb, $simulation, 'view');
 			}
 			
