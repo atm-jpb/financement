@@ -129,7 +129,30 @@ if(!empty($action)) {
 
 			_fiche($ATMdb, $simulation,'edit');
 			break;
+		
+		case 'save_suivi':
 			
+			$simulation->load($ATMdb, $db, $_REQUEST['id']);
+			$simulation_suivi = new TSimulationSuivi;
+			
+			//pre($_REQUEST,true);exit;
+			
+			foreach($_REQUEST as $key => $value){
+				if($key == 'TSuivi'){
+					foreach ($value as $id_suivi => $Tval) {
+						$simulation_suivi->load($ATMdb, $id_suivi);
+						
+						$Tab['numero_accord_leaser'] = $Tval['num_accord'];
+						$Tab['coeff_leaser'] = $Tval['coeff_accord'];
+						$simulation_suivi->set_values($Tab);
+						$simulation_suivi->save($ATMdb);	
+					}
+				}
+			}
+
+			_fiche($ATMdb, $simulation,'edit');
+			break;
+		
 		case 'save':
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			$oldAccord = $simulation->accord;
@@ -225,7 +248,7 @@ if(!empty($action)) {
 			$id_suivi = GETPOST('id_suivi');
 			if($id_suivi){
 				$simulation->load($ATMdb, $db, $_REQUEST['id']);
-				$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$action);
+				$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$simulation,$action);
 				_fiche($ATMdb, $simulation, 'view');
 			}
 			
@@ -458,10 +481,21 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 																  ug.nom = 'GSL_DOLIBARR_FINANCEMENT_COMMERCIAL'");
 		//pre($TUserExculde,true); exit;
 		$link_user = $formdolibarr->select_dolusers($simulation->fk_user_author,'fk_user_author',1,'',0,$TUserInclude,'',$conf->entity);
+		
+		$TUserInclude = TRequeteCore::_get_id_by_sql($ATMdb, "SELECT u.rowid 
+															FROM ".MAIN_DB_PREFIX."user as u 
+																LEFT JOIN ".MAIN_DB_PREFIX."usergroup_user as ugu ON (ugu.fk_user = u.rowid)
+																LEFT JOIN ".MAIN_DB_PREFIX."usergroup as ug ON (ug.rowid = ugu.fk_usergroup)
+															WHERE ug.nom = 'GSL_DOLIBARR_FINANCEMENT_ADMIN' OR 
+																  ug.nom = 'GSL_DOLIBARR_FINANCEMENT_ADV' OR
+																  ug.nom = 'GSL_DOLIBARR_FINANCEMENT_COMMERCIAL'");
+		
+		$link_user_suivi = $formdolibarr->select_dolusers($simulation->fk_user_suivi,'fk_user_suivi',1,'',0,$TUserInclude,'',$conf->entity);
 	}
 	else{
 		$rachat_autres = "texteRO";
 		$link_user = '<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>';
+		$link_user_suivi = '<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_suivi.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user_suivi->login.'</a>';
 	}
 	
 	print $TBS->render('./tpl/simulation.tpl.php'
@@ -513,6 +547,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'can_preco'=>$can_preco
 				
 				,'user'=>$link_user
+				,'user_suivi'=>$link_user_suivi
 				,'date'=>$simulation->date_simul
 				,'bt_calcul'=>$form->btsubmit('Calculer', 'calculate')
 				,'bt_cancel'=>$form->btsubmit('Annuler', 'cancel')
@@ -571,11 +606,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	global $conf, $db, $langs;
 	
-	$form=new TFormCore($_SERVER['PHP_SELF'],'suivi_simulation','POST');
+	$form=new TFormCore($_SERVER['PHP_SELF'],'form_suivi_simulation','POST');
 	$form->Set_typeaff('edit');
 	
-	echo $form->hidden('action', 'save');
-	
+	echo $form->hidden('action', 'save_suivi');
+	echo $form->hidden('id', $simulation->getId());
 	$TLignes = $simulation->get_suivi_simulation($ATMdb,$form);
 	
 	//pre($TLignes,true);exit;
