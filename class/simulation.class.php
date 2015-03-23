@@ -260,6 +260,10 @@ class TSimulation extends TObjetStd {
 		//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 		$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
 		//Récupération de la catégorie du client : entreprise, administration ou association
+		//TODO suivant sont code NAF
+		// entreprise = les autres
+		// association = 94
+		// administration = 84
 		$labelCategorie = $this->getLabelCategorieClient();
 		
 		//On récupère l'id du leaser prioritaire en fonction des règles de gestion
@@ -278,7 +282,7 @@ class TSimulation extends TObjetStd {
 		global $db;
 		
 		//Récupération de la catégorie du client : entreprise, administration ou association
-		$categorie = new Categorie($db);
+		/*$categorie = new Categorie($db);
 		$TCategories = $categorie->get_all_categories(2);
 		$labelCategorie = '';
 		if(count($TCategories)){
@@ -287,6 +291,19 @@ class TSimulation extends TObjetStd {
 					$labelCategorie = strtolower($categorie->label);
 				}
 			}
+		}*/
+		
+		switch (substr($this->societe->idprof3,0,2)) {
+			case '84':
+				$labelCategorie = 'administration';
+				break;
+			case '94':
+				$labelCategorie = 'association';
+				break;
+			
+			default:
+				$labelCategorie = 'entreprise';
+				break;
 		}
 		
 		return $labelCategorie;
