@@ -129,7 +129,30 @@ if(!empty($action)) {
 
 			_fiche($ATMdb, $simulation,'edit');
 			break;
+		
+		case 'save_suivi':
 			
+			$simulation->load($ATMdb, $db, $_REQUEST['id']);
+			$simulation_suivi = new TSimulationSuivi;
+			
+			//pre($_REQUEST,true);exit;
+			
+			foreach($_REQUEST as $key => $value){
+				if($key == 'TSuivi'){
+					foreach ($value as $id_suivi => $Tval) {
+						$simulation_suivi->load($ATMdb, $id_suivi);
+						
+						$Tab['numero_accord_leaser'] = $Tval['num_accord'];
+						$Tab['coeff_leaser'] = $Tval['coeff_accord'];
+						$simulation_suivi->set_values($Tab);
+						$simulation_suivi->save($ATMdb);	
+					}
+				}
+			}
+
+			_fiche($ATMdb, $simulation,'edit');
+			break;
+		
 		case 'save':
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			$oldAccord = $simulation->accord;
@@ -583,11 +606,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	global $conf, $db, $langs;
 	
-	$form=new TFormCore($_SERVER['PHP_SELF'],'suivi_simulation','POST');
+	$form=new TFormCore($_SERVER['PHP_SELF'],'form_suivi_simulation','POST');
 	$form->Set_typeaff('edit');
 	
-	echo $form->hidden('action', 'save');
-	
+	echo $form->hidden('action', 'save_suivi');
+	echo $form->hidden('id', $simulation->getId());
 	$TLignes = $simulation->get_suivi_simulation($ATMdb,$form);
 	
 	//pre($TLignes,true);exit;

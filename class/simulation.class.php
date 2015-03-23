@@ -896,6 +896,8 @@ class TSimulationSuivi extends TObjetStd {
 					if($this->statut !== 'KO'){	
 						//Envoyer
 						//$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=envoyer" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
+						//Enregistrer
+						$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
 						//Accepter
 						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter" title="Demande acceptée"><img src="'.dol_buildpath('/financement/img/accepter.png',1).'" /></a>&nbsp;';
 						//Refuser
