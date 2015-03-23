@@ -5,7 +5,7 @@ class TSimulation extends TObjetStd {
 		global $langs;
 		
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation');
-		parent::add_champs('entity,fk_soc,fk_user_author,fk_leaser,accord_confirme','type=entier;');
+		parent::add_champs('entity,fk_soc,fk_user_author,fk_user_suivi,fk_leaser,accord_confirme','type=entier;');
 		parent::add_champs('duree,opt_administration,opt_creditbail,opt_adjonction,opt_no_case_to_settle','type=entier;');
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_rachete_autres_dossiers,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
 		parent::add_champs('date_simul,date_validite,date_accord,date_demarrage','type=date;');
@@ -19,8 +19,8 @@ class TSimulation extends TObjetStd {
 		$this->TStatut=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
-			,'WAIT_LEASER'=>$langs->trans('Etude - Elements demandés Leaser')
-			,'WAIT_SELLER'=>$langs->trans('Etude - Elements demandés Vendeur')
+			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser')
+			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur')
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
@@ -180,6 +180,11 @@ class TSimulation extends TObjetStd {
 		if(!empty($this->fk_user_author)) {
 			$this->user = new User($doliDB);
 			$this->user->fetch($this->fk_user_author);
+		}
+		
+		if(!empty($this->fk_user_suivi)) {
+			$this->user_suivi = new User($doliDB);
+			$this->user_suivi->fetch($this->fk_user_suivi);
 		}
 		
 		//Récupération des suivis demande de financement leaser s'ils existent

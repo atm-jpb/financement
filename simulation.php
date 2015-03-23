@@ -458,10 +458,21 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 																  ug.nom = 'GSL_DOLIBARR_FINANCEMENT_COMMERCIAL'");
 		//pre($TUserExculde,true); exit;
 		$link_user = $formdolibarr->select_dolusers($simulation->fk_user_author,'fk_user_author',1,'',0,$TUserInclude,'',$conf->entity);
+		
+		$TUserInclude = TRequeteCore::_get_id_by_sql($ATMdb, "SELECT u.rowid 
+															FROM ".MAIN_DB_PREFIX."user as u 
+																LEFT JOIN ".MAIN_DB_PREFIX."usergroup_user as ugu ON (ugu.fk_user = u.rowid)
+																LEFT JOIN ".MAIN_DB_PREFIX."usergroup as ug ON (ug.rowid = ugu.fk_usergroup)
+															WHERE ug.nom = 'GSL_DOLIBARR_FINANCEMENT_ADMIN' OR 
+																  ug.nom = 'GSL_DOLIBARR_FINANCEMENT_ADV' OR
+																  ug.nom = 'GSL_DOLIBARR_FINANCEMENT_COMMERCIAL'");
+		
+		$link_user_suivi = $formdolibarr->select_dolusers($simulation->fk_user_suivi,'fk_user_suivi',1,'',0,$TUserInclude,'',$conf->entity);
 	}
 	else{
 		$rachat_autres = "texteRO";
 		$link_user = '<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>';
+		$link_user_suivi = '<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_suivi.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user_suivi->login.'</a>';
 	}
 	
 	print $TBS->render('./tpl/simulation.tpl.php'
@@ -513,6 +524,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'can_preco'=>$can_preco
 				
 				,'user'=>$link_user
+				,'user_suivi'=>$link_user_suivi
 				,'date'=>$simulation->date_simul
 				,'bt_calcul'=>$form->btsubmit('Calculer', 'calculate')
 				,'bt_cancel'=>$form->btsubmit('Annuler', 'cancel')
