@@ -877,10 +877,6 @@ class TSimulationSuivi extends TObjetStd {
 		$this->user = new User($db);
 		$this->user->fetch($this->fk_user_author);
 		
-		if($this->date_selection > 0){
-			$this->financementAlreadyAccepted = true;
-		}
-		
 		return $res;
 	}
 	
@@ -899,7 +895,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$actions = '';
 
-		if(!$this->financementAlreadyAccepted && $simulation->accord != "OK"){
+		if($simulation->accord != "OK"){
 			//Demander
 			if($this->statut_demande != 1){// && $this->date_demande < 0){
 				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Demande transmise au leaser"><img src="'.dol_buildpath('/financement/img/demander.png',1).'" /></a>&nbsp;';
@@ -1020,7 +1016,7 @@ class TSimulationSuivi extends TObjetStd {
 	//Effectue l'action de passer au statut refusé la demande de financement leaser
 	function doActionRefuser(&$PDOdb,&$simulation){
 		global $db;
-		
+
 		$simulation->accord = 'KO';
 		$simulation->save($PDOdb, $db);
 		
