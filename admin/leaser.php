@@ -62,7 +62,7 @@ if($action == 'save') {
 		$TNewLine = GETPOST('newline');
 		foreach($TNewLine as $typeLine => $Tline){
 
-			if($typeLine == 'DEFAUT'){
+			if($typeLine == 'DEFAUT_LOCATION' || $typeLine == 'DEFAUT_FORFAIT' || $typeLine == 'DEFAUT_INTEGRAL'){
 				$Tline = array(
 					"solde" => ($Tline['leaser'] == 0) ? -1 : $Tline['leaser']
 					,"montantbase" => $Tline['ordre']
@@ -90,7 +90,7 @@ if($action == 'save') {
 			
 			foreach($grille_temp as $rowid => $linegrille){				
 				
-				if($typeLine == 'DEFAUT'){
+				if($typeLine == 'DEFAUT_LOCATION' || $typeLine == 'DEFAUT_FORFAIT' || $typeLine == 'DEFAUT_INTEGRAL'){
 					$linegrille = array(
 						"solde" => ($linegrille['leaser'] == 0) ? -1 : $linegrille['leaser']
 						,"montantbase" => $linegrille['ordre']
@@ -180,46 +180,61 @@ echo '<hr><br><br>';
  * Affichage du tableau permettant de définir l'ordre par défaut des leasers
  * ************************************************************************/
  
-$typeContrat = "DEFAUT";
-print_titre('Ordre des leasers par défaut');
+$typeContrat = "DEFAUT_LOCATION";
+print_titre('Ordre des leasers par défaut Location Simple');
 
-$form=new TFormCore($_SERVER['PHP_SELF'],'formGrille'.$typeContrat,'POST');
-$form->Set_typeaff($mode);
+_affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
 
-echo $form->hidden('action', 'save');
-echo $form->hidden('typeContrat', $typeContrat );
+$typeContrat = "DEFAUT_FORFAIT";
+print_titre('Ordre des leasers par défaut Forfait global');
 
-$ATMdb->Execute("SELECT rowid, fk_leaser_solde, montantbase FROM ".MAIN_DB_PREFIX."fin_grille_suivi WHERE fk_type_contrat = '".$typeContrat."' ORDER BY montantbase ASC");
-$ordre = 1;
-$grille = array();
-while ($ATMdb->Get_line()) {
-	$grille[] = array(
-		'rowid'=>$ATMdb->Get_field('rowid')
-		,'leaser'=>$form->combo("", "TGrille[".$typeContrat."][".$ATMdb->Get_field('rowid')."][leaser]", $TFin_grille_suivi->TLeaserByCategories,$ATMdb->Get_field('fk_leaser_solde'))
-		,'ordre'=>$form->hidden("TGrille[".$typeContrat."][".$ATMdb->Get_field('rowid')."][ordre]",$ATMdb->Get_field('montantbase'))
+_affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
+
+$typeContrat = "DEFAUT_INTEGRAL";
+print_titre('Ordre des leasers par défaut Integral');
+
+_affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
+
+function _affOrdreLeaser(&$ATMdb,&$TBS,&$TFin_grille_suivi,$mode,$typeContrat){
+	
+	$form=new TFormCore($_SERVER['PHP_SELF'],'formGrille'.$typeContrat,'POST');
+	$form->Set_typeaff($mode);
+	
+	echo $form->hidden('action', 'save');
+	echo $form->hidden('typeContrat', $typeContrat );
+	
+	$ATMdb->Execute("SELECT rowid, fk_leaser_solde, montantbase FROM ".MAIN_DB_PREFIX."fin_grille_suivi WHERE fk_type_contrat = '".$typeContrat."' ORDER BY montantbase ASC");
+	$ordre = 1;
+	$grille = array();
+	while ($ATMdb->Get_line()) {
+		$grille[] = array(
+			'rowid'=>$ATMdb->Get_field('rowid')
+			,'leaser'=>$form->combo("", "TGrille[".$typeContrat."][".$ATMdb->Get_field('rowid')."][leaser]", $TFin_grille_suivi->TLeaserByCategories,$ATMdb->Get_field('fk_leaser_solde'))
+			,'ordre'=>$form->hidden("TGrille[".$typeContrat."][".$ATMdb->Get_field('rowid')."][ordre]",$ATMdb->Get_field('montantbase'))
+		);
+		$ordre  = $ATMdb->Get_field('montantbase')+1;
+	}
+	
+	//pre($TFin_grille_suivi->TLeaserByCategories,true);exit;
+	
+	print $TBS->render('../tpl/findefaut.suivi.tpl.php'
+		,array(
+			'grille'=>$grille
+		)
+		,array(
+			'view'=>array(
+				'mode'=>$mode
+			)
+			,'newline'=>array(
+				'leaser' => $form->combo("", "newline[".$typeContrat."][leaser]", $TFin_grille_suivi->TLeaserByCategories,'')
+				,'ordre' => $form->hidden("newline[".$typeContrat."][ordre]",$ordre)
+			)
+			
+		)
 	);
-	$ordre  = $ATMdb->Get_field('montantbase')+1;
+	
+	print $form->end_form();
 }
-
-//pre($TFin_grille_suivi->TLeaserByCategories,true);exit;
-
-print $TBS->render('../tpl/findefaut.suivi.tpl.php'
-	,array(
-		'grille'=>$grille
-	)
-	,array(
-		'view'=>array(
-			'mode'=>$mode
-		)
-		,'newline'=>array(
-			'leaser' => $form->combo("", "newline[".$typeContrat."][leaser]", $TFin_grille_suivi->TLeaserByCategories,'')
-			,'ordre' => $form->hidden("newline[".$typeContrat."][ordre]",$ordre)
-		)
-		
-	)
-);
-
-print $form->end_form();
 
 dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 
