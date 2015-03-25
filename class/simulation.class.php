@@ -853,6 +853,8 @@ class TSimulationSuivi extends TObjetStd {
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
 			,'KO'=>$langs->trans('Refus')
+			,'SS'=>$langs->trans('SansSuite')
+			,'MEL'=>$langs->trans('Mise En Loyé')
 		);
 		
 		$this->TLeaserAuto=array(
@@ -981,9 +983,9 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		//Si leaser auto alors on envoye la demande par XML
-		/*if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
-			$this->_sendDemandeByXML($PDOdb);
-		}*/
+		if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
+			$this->_sendDemandeAuto($PDOdb);
+		}
 		
 		$this->statut_demande = 1;
 		$this->date_demande = time();
@@ -1065,7 +1067,8 @@ class TSimulationSuivi extends TObjetStd {
 			case '3382':
 			case '19553':
 			case '20113':
-				$this->_createDemandeBNP();
+				$this->_createDemandeBNP($PDOdb);
+				//$this->_consulterDemandeBNP();
 				//$this->_sendDemandeBNP();
 				break;
 			//GE CAPITAL EQUIPEMENT FINANCE
@@ -1080,8 +1083,241 @@ class TSimulationSuivi extends TObjetStd {
 		}
 	}
 	
-	function _createDemandeBNP(){
+	function _createDemandeBNP(&$PDOdb){
 		
+		$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+		$soap = new SoapClient($soapWSDL);
+		//pre($soap->__getFunctions(),true);exit;
+		
+		$TtransmettreDemandeFinancementRequest = $this->_getBNPDataTabForDemande();
+		
+		//pre($TtransmettreDemandeFinancementRequest,true);exit;
+		
+		$reponseDemandeFinancement = $soap->__call('transmettreDemandeFinancement',$TtransmettreDemandeFinancementRequest);
+		
+		$this->traiteBNPReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
+	}
+
+	function _consulterDemandeBNP(){
+		
+		$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+		$soap = new SoapClient($soapWSDL);
+
+		$TconsulterSuivisDemandesRequest = $this->_getBNPDataTabForConsultation();
+		
+		//pre($TconsulterSuivisDemandesRequest,true);exit;
+		
+		$TreponseSuivisDemandes = $soap->__call('transmettreDemandeFinancement',$TconsulterSuivisDemandesRequest);
+		
+		$this->traiteBNPReponseSuivisDemande($TreponseSuivisDemandes);
+	}
+	
+	function traiteBNPReponseDemandeFinancement(&$PDOdb,&$reponseDemandeFinancement){
+		
+		$this->numero_accord_leaser = $reponseDemandeFinancement->transmettreDemandeFinancementResponse->numeroDemandeProvisoire;
+		$this->save($PDOdb);
+	}
+	
+	function traiteBNPReponseSuivisDemande(&$PDOdb,&$TreponseSuivisDemandes){
+		
+		$TCodeStatut = array(
+			'E1' => 'OK'
+			,'E2' => 'KO'
+			,'E3' => 'WAIT'
+			,'E4' => 'SS'
+			,'E5' => 'MEL'
+		);
+		
+		foreach($TreponseSuivisDemandes->consulterSuivisDemandesResponse as $rapportSuivi){
+			if($rapportSuivi->suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
+				$this->statut = $TCodeStatut[$apportSuivi->suiviDemande->etat->codeStatutDemande];
+				$this->save($PDOdb);
+			}
+		}
+	}
+
+	function _getBNPDataTabForDemande(){
+		
+		$TData = array();
+		
+		//Tableau Prescripteur
+		$TPrescripteur = array(
+			'prescripteur_id' => ''
+		);
+		
+		$TData['prescripteur'] = $TPrescripteur;
+		$TData['numeroDemandePartenaire'] = '';
+		//$TData['numeroDemandeProvisoire'] = '';
+		//$TData['codeFamilleMateriel'] = '';
+		
+		//Tableau Client
+		$TClient = $this->_getBNPDataTabClient();
+		$TData['Client'] = $TClient;
+		
+		//Tableau Matériel (Equipement)
+		/*$TMateriel = $this->_getBNPDataTabMateriel();
+		$TData['Materiel'] = $TMateriel;*/
+		
+		//Tableau Financement
+		$TFinancement = $this->_getBNPDataTabFinancement();
+		$TData['Financement'] = $TFinancement;
+		
+		/*$TPrestation = array(
+			'prestation' => array(
+				'codeTypePrestation' => ''
+				,'montantPrestation' => ''
+			)
+		);
+		$TData['Prestations'] = $TPrestation;*/
+
+		//$TData['commentairesPartenaire'] = '';
+		
+		return $TData;
+	}
+
+	function _getBNPDataTabClient(){
+		
+		$TClient = array(
+			'idNationalEntreprise' => ''
+			,'codeTypeClient' => ''
+			//,'codeFormeJuridique' => ''
+			//,'raisonSociale' => ''
+			//,'specificiteClientPays' => array(
+				//'specificiteClientFrance' => array(
+					//'dirigeant' => array(
+						//'codeCivilite' => ''
+						//,'nom' => ''
+						//,'prenom' => ''
+						//,'dateNaissance' => ''
+					//)
+				//)
+			//)
+			//,'adresse' => array(
+				//'adresse' => ''
+				//,'adresseComplement' => ''
+				//,'codePostal' => ''
+				//,'Ville' => ''
+			//)
+		);
+		
+		return $TClient;
+	}
+
+	function _getBNPDataTabMateriel(){
+		
+		$TMateriel = array(
+			'codeMateriel' => ''
+			,'codeEtatMateriel' => ''
+			,'prixDeVente' => ''
+			,'prixTarif' => ''
+			,'anneeFabrication' => ''
+			,'codeMarque' => ''
+			,'type' => ''
+			,'modele' => ''
+			,'dateDeMiseEnCirculation' => ''
+			,'nombreHeuresUtilisation' => ''
+			,'kilometrage' => ''
+		);
+		
+		return $TMateriel;
+	}
+
+	function _getBNPDataTabFinancement(){
+		$TFinancement = array(
+			'codeTypeCalcul' => ''
+			//,'typeFinancement' => array(
+				//'codeProduitFinancier' => ''
+				//,'codeProduitCommercial' => ''
+			//)
+			,'codeBareme' => ''
+			//,'montantFinance' => ''
+			//,'codeTerme' => ''
+			//,'valeurResiduelle' => array(
+				//'montant'=> ''
+				//,'pourcentage'=>''
+				//,'periodicite'=>''
+			//)
+			//,'presenceFranchiseDeLoyer' => ''
+			//,'paliersDeLoyer' => array(
+				//'palierDeLoyer' => array(
+					//'nombreDeLoyers' => ''
+					//,'periodicite' => ''
+					//,'montantLoyers' => ''
+					//,'poidsDuPalier' => ''
+				//)
+			//)
+		);
+		
+		return $TFinancement;
+	}
+
+	function _getBNPDataTabForConsultation(){
+		
+		$TData = array();
+		
+		//Tableau Prescripteur
+		$TPrescripteur = array(
+			'prescripteur_id' => ''
+		);
+		
+		$TData['prescripteur'] = $TPrescripteur;
+		
+		//Tableau Numéro demande
+		$TNumerosDemande = array(
+			'numeroIdentifiantDemande' => array(
+				'numeroDemandeDefinitif' => ''
+				,'numeroDemandeProvisoire' => ''
+			)
+		);
+		
+		$TData['numerosDemande'] = $TNumerosDemande;
+		
+		//Tableau Rapport Suivi
+		$TRapportSuivi = $this->_getBNPDataTabRapportSuivi();
+
+		$TData['rapportSuivi'] = $TRapportSuivi;
+
+		return $TData;
+	}
+
+	function _getBNPDataTabRapportSuivi(){
+		
+		$TRapportSuivi = array(
+			'suiviDemande'=>$this->__getBNPDataTabSuiviDemande()
+			,'demandeNonTrouve' => array(
+				'numeroDemandeDefinitif' => ''
+				,'numeroDemandeDefinitif' => ''
+			)
+		);
+		
+		return $TRapportSuivi;
+	}
+	
+	function __getBNPDataTabSuiviDemande(){
+			
+		$TSuiviDemande = array(
+				'numeroDemandeProvisoire' => ''
+				,'numeroDemandeDefinitif' => ''
+				,'etat' => array(
+					'codeStatutDemande' => ''
+					,'libelleStatutDemande' => ''
+					//,'situationAu' => ''
+				)
+				,'client' => array(
+					'raisonSociale' => ''
+				)
+				//,'financement' => array(
+					//'montantFinance' => ''
+					//,'paliersDeLoyer' => array(
+						//'palierDeLoyer'=> array(
+							//'montantLoyers' => ''
+						//)
+					//)
+				//)
+				//,'demandeInformationComplementaires' => ''
+		);
+		
+		return $TSuiviDemande;
 	}
 }
 
