@@ -1058,8 +1058,30 @@ class TSimulationSuivi extends TObjetStd {
 		}
 	}
 	
-	function _sendDemandeByXML(&$PDOdb){
-		echo "demande envoyé automatiquement";
+	function _sendDemandeAuto(&$PDOdb){
+		
+		switch ($this->fk_leaser) {
+			//BNP PARIBAS LEASE GROUP
+			case '3382':
+			case '19553':
+			case '20113':
+				$this->_createDemandeBNP();
+				//$this->_sendDemandeBNP();
+				break;
+			//GE CAPITAL EQUIPEMENT FINANCE
+			case '7411':
+			case '21382':
+				$this->_createDemandeGE();
+				//$this->_sendDemandeGE();
+				break;
+			default:
+				
+				break;
+		}
+	}
+	
+	function _createDemandeBNP(){
+		
 	}
 }
 
