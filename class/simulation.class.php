@@ -1070,6 +1070,9 @@ class TSimulationSuivi extends TObjetStd {
 	
 	function _sendDemandeAuto(&$PDOdb){
 		
+		$this->simulation->societe = new Societe($db);
+		$this->simulation->societe->fetch($this->simulation->fk_soc);
+		
 		switch ($this->fk_leaser) {
 			//BNP PARIBAS LEASE GROUP
 			case '3382':
@@ -1090,6 +1093,65 @@ class TSimulationSuivi extends TObjetStd {
 	
 	function _createDemandeGE(&$PDOdb){
 		
+		$xml = new DOMDocument('1.0','UTF-8');
+		$xml->formatOutput = true;
+
+		$CreateDemFinRequest = $xml->createElement("CreateDemFinRequest");
+		$CreateDemFinRequest = $xml->appendChild($CreateDemFinRequest);
+
+		$APP_Infos_B2B = $xml->createElement("APP_Infos_B2B");
+		$APP_Infos_B2B->appendChild($xml->createElement("B2B_CLIENT",'')); //TODO en attente communication id by GE
+		$APP_Infos_B2B->appendChild($xml->createElement("B2B_TIMESTAMP",time()));
+
+		$CreateDemFinRequest->appendChild($APP_Infos_B2B);
+
+		$APP_CREA_Demande = $xml->createElement("APP_CREA_Demande");
+		$APP_CREA_Demande->appendChild($xml->createElement("B2B_ECTR_FLG",'FALSE'));
+		$APP_CREA_Demande->appendChild($xml->createElement("B2B_NATURE_DEMANDE",'S')); //TODO a vérifier
+		//$APP_CREA_Demande->appendChild($xml->createElement("B2B_TYPE_DEMANDE",'E')); //TODO spcéfié inactif sur le doc, a voir ce qu'il faut en faire en définitif
+		
+		$CreateDemFinRequest->appendChild($APP_CREA_Demande);
+
+		$Infos_Apporteur = $xml->createElement("Infos_Apporteur");
+		$Infos_Apporteur->appendChild($xml->createElement("B2B_APPORTEUR_ID",'')); //TODO voir lequel on met => identifiant
+		$Infos_Apporteur->appendChild($xml->createElement("B2B_PROT_ID",'')); //TODO voir lequel on met => identifiant
+		$Infos_Apporteur->appendChild($xml->createElement("B2B_VENDEUR_ID",'')); //TODO voir lequel on met => identifiant
+		
+		$CreateDemFinRequest->appendChild($Infos_Apporteur);
+		
+		$Infos_Client = $xml->createElement("Infos_Client");
+		$Infos_Client->appendChild($xml->createElement("B2B_SIREN",($this->simulation->societe->idprof1) ? $this->simulation->societe->idprof1 : $this->simulation->societe->array_options['options_other_siren'] ));
+		
+		$CreateDemFinRequest->appendChild($Infos_Client);
+		
+		$Infos_Financieres = $xml->createElement("Infos_Financieres");
+		if($this->simulation->opt_mode_reglement == 'PRE') $mode_reglement = 'AP';
+		else $mode_reglement = $this->simulation->opt_mode_reglement;
+		$Infos_Financieres->appendChild($xml->createElement("B2B_MODPAIE",$mode_reglement));
+		$Infos_Financieres->appendChild($xml->createElement("B2B_MINERVAFPID",'')); //TODO Transmis par GE
+		if($this->simulation->opt_terme == 0) $terme = '2';
+		else $terme = $this->simulation->opt_terme;
+		$Infos_Financieres->appendChild($xml->createElement("B2B_TERME",$terme));
+		
+		$CreateDemFinRequest->appendChild($Infos_Financieres);
+		
+		$Infos_Materiel = $xml->createElement("Infos_Materiel");
+		$Infos_Materiel->appendChild($xml->createElement("B2B_MARQMAT",'')); //TODO Transmis par GE
+		$Infos_Materiel->appendChild($xml->createElement("B2B_MT_UNIT",'')); //TODO je n'ai pas cette info dans LeaserBoard :/
+		$Infos_Materiel->appendChild($xml->createElement("B2B_QTE",'1')); //TODO vérifier au prêt de Damien
+		$Infos_Materiel->appendChild($xml->createElement("B2B_TYPMAT",'')); //TODO Transmis par GE
+		$Infos_Materiel->appendChild($xml->createElement("B2B_ETAT",'N')); //TODO vérifier au prêt de Damien
+		
+		$CreateDemFinRequest->appendChild($Infos_Materiel);
+
+		$APP_Reponse_B2B = $xml->createElement("APP_Reponse_B2B");
+		$APP_Reponse_B2B->appendChild($xml->createElement("B2B_CLIENT_ASYNC",'')); //TODO adresse d'appel auto pour MAJ statut simulation
+		
+		$CreateDemFinRequest->appendChild($APP_Reponse_B2B);
+
+		$chaine = $xml->saveXML();
+		dol_mkdir(DOL_DATA_ROOT.'/financement/XML/GE/');
+		file_put_contents(DOL_DATA_ROOT.'/financement/XML/GE/demandes/'.$name2.'.xml', $chaine);
 	}
 	
 	function _createDemandeBNP(&$PDOdb){
@@ -1187,9 +1249,6 @@ class TSimulationSuivi extends TObjetStd {
 
 	function _getBNPDataTabClient(&$PDOdb){
 		global $db;
-
-		$this->simulation->societe = new Societe($db);
-		$this->simulation->societe->fetch($this->simulation->fk_soc);
 
 		$typeClient = $this->simulation->getLabelCategorieClient();
 		if($typeClient == "administration") $codeTypeClient = 3;
