@@ -200,13 +200,13 @@ class TSimulation extends TObjetStd {
 		//pre($TRowid,true);exit;
 		//Si les suivis existent déjà
 		if(count($TRowid) > 0){
+			
 			foreach($TRowid as $rowid){
 				$simulationSuivi = new TSimulationSuivi;
 				$simulationSuivi->load($PDOdb, $rowid);
 
 				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 			}
-			
 			//Réorganisation de l'ordre de la liste en fonction de la grille d'administration
 			$TLeaser = $this->reordreSimulationSuivi($PDOdb);
 		}
@@ -337,6 +337,7 @@ class TSimulation extends TObjetStd {
 	
 	function get_suivi_simulation(&$PDOdb,&$form){
 		global $db;
+
 		$this->load_suivi_simulation($PDOdb);
 		//echo 'get<br>';
 		$TLignes = array();
@@ -876,6 +877,12 @@ class TSimulationSuivi extends TObjetStd {
 		$this->leaser = new Societe($db);
 		$this->leaser->fetch($this->fk_leaser);
 		
+		if(!empty($this->fk_simulation)){
+			$simulation = new TSimulation;
+			$simulation->load($PDOdb, $db, $this->fk_simulation, false);
+			$this->simulation = $simulation;
+		}
+		
 		$this->user = new User($db);
 		$this->user->fetch($this->fk_user_author);
 		
@@ -1051,7 +1058,8 @@ class TSimulationSuivi extends TObjetStd {
 		
 		if(!empty($this->fk_simulation)){
 			$simulation = new TSimulation;
-			$simulation->load($PDOdb, $db, $this->fk_simulation);
+			$simulation->load($PDOdb, $db, $this->fk_simulation,false);
+			$this->simulation = $simulation;
 			
 			//Si Leaser possiblité demande auto alors on effectue directement l'action
 			/*if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
@@ -1068,19 +1076,20 @@ class TSimulationSuivi extends TObjetStd {
 			case '19553':
 			case '20113':
 				$this->_createDemandeBNP($PDOdb);
-				//$this->_consulterDemandeBNP();
-				//$this->_sendDemandeBNP();
 				break;
 			//GE CAPITAL EQUIPEMENT FINANCE
 			case '7411':
 			case '21382':
-				$this->_createDemandeGE();
-				//$this->_sendDemandeGE();
+				$this->_createDemandeGE($PDOdb);
 				break;
 			default:
 				
 				break;
 		}
+	}
+	
+	function _createDemandeGE(&$PDOdb){
+		
 	}
 	
 	function _createDemandeBNP(&$PDOdb){
@@ -1089,7 +1098,7 @@ class TSimulationSuivi extends TObjetStd {
 		$soap = new SoapClient($soapWSDL);
 		//pre($soap->__getFunctions(),true);exit;
 		
-		$TtransmettreDemandeFinancementRequest = $this->_getBNPDataTabForDemande();
+		$TtransmettreDemandeFinancementRequest = $this->_getBNPDataTabForDemande($PDOdb);
 		
 		//pre($TtransmettreDemandeFinancementRequest,true);exit;
 		
@@ -1120,6 +1129,7 @@ class TSimulationSuivi extends TObjetStd {
 	
 	function traiteBNPReponseSuivisDemande(&$PDOdb,&$TreponseSuivisDemandes){
 		
+		//Statut spécifique retourné par BNP
 		$TCodeStatut = array(
 			'E1' => 'OK'
 			,'E2' => 'KO'
@@ -1136,22 +1146,22 @@ class TSimulationSuivi extends TObjetStd {
 		}
 	}
 
-	function _getBNPDataTabForDemande(){
+	function _getBNPDataTabForDemande(&$PDOdb){
 		
 		$TData = array();
 		
 		//Tableau Prescripteur
 		$TPrescripteur = array(
-			'prescripteur_id' => ''
+			'prescripteur_id' => '' //TODO en attente de la communication par BNP
 		);
-		
+
 		$TData['prescripteur'] = $TPrescripteur;
-		$TData['numeroDemandePartenaire'] = '';
+		$TData['numeroDemandePartenaire'] = $this->simulation->reference;
 		//$TData['numeroDemandeProvisoire'] = '';
 		//$TData['codeFamilleMateriel'] = '';
 		
 		//Tableau Client
-		$TClient = $this->_getBNPDataTabClient();
+		$TClient = $this->_getBNPDataTabClient($PDOdb);
 		$TData['Client'] = $TClient;
 		
 		//Tableau Matériel (Equipement)
@@ -1175,11 +1185,20 @@ class TSimulationSuivi extends TObjetStd {
 		return $TData;
 	}
 
-	function _getBNPDataTabClient(){
+	function _getBNPDataTabClient(&$PDOdb){
+		global $db;
+
+		$this->simulation->societe = new Societe($db);
+		$this->simulation->societe->fetch($this->simulation->fk_soc);
+
+		$typeClient = $this->simulation->getLabelCategorieClient();
+		if($typeClient == "administration") $codeTypeClient = 3;
+		elseif($typeClient == "entreprise") $codeTypeClient = 4;
+		else $codeTypeClient = 0; //Général
 		
 		$TClient = array(
-			'idNationalEntreprise' => ''
-			,'codeTypeClient' => ''
+			'idNationalEntreprise' => $this->simulation->societe->idprof2
+			,'codeTypeClient' => $codeTypeClient
 			//,'codeFormeJuridique' => ''
 			//,'raisonSociale' => ''
 			//,'specificiteClientPays' => array(
@@ -1223,13 +1242,14 @@ class TSimulationSuivi extends TObjetStd {
 	}
 
 	function _getBNPDataTabFinancement(){
+		
 		$TFinancement = array(
-			'codeTypeCalcul' => ''
+			'codeTypeCalcul' => 'M' //TODO vérifier que c'est bien toujours 'Recherche montant financé'
 			//,'typeFinancement' => array(
 				//'codeProduitFinancier' => ''
 				//,'codeProduitCommercial' => ''
 			//)
-			,'codeBareme' => ''
+			,'codeBareme' => '' //TODO récupérer la grille de barême (8 barêmes différents)
 			//,'montantFinance' => ''
 			//,'codeTerme' => ''
 			//,'valeurResiduelle' => array(
