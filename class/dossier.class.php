@@ -373,6 +373,18 @@ class TFin_dossier extends TObjetStd {
 							unset($this->TFacture[$echeance][$k]);
 						}
 					}
+					else{
+						$facidavoir=$facture->getListIdAvoirFromInvoice();
+						//$totalht = $fact->total_ht;
+						foreach ($facidavoir as $idAvoir) {
+							$avoir = new Facture($db);
+							$avoir->fetch($idAvoir);
+							
+							if(abs($avoir->total_ht) == $facture->total_ht){
+								unset($this->TFacture[$echeance][$k]);
+							}
+						}
+					}
 				}
 			}
 			
