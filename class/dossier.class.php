@@ -6,8 +6,8 @@ class TFin_dossier extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
 		parent::add_champs('solde,soldeperso,montant,montant_solde','type=float;');
-		parent::add_champs('renta_previsionnelle,renta_attendue,renta_reelle,marge_previsionnelle,marge_attendue,marge_reelle','type=float;');
-		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne,display_solde','type=chaine;');
+		parent::add_champs('renta_previsionnelle,renta_attendue,renta_reelle,marge_previsionnelle,marge_attendue,marge_reelle,quote_part_couleur,quote_part_noir','type=float;');
+		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne,display_solde,visa_renta,commentaire_visa,soldepersodispo','type=chaine;');
 		parent::add_champs('date_relocation,date_solde,dateperso','type=date;');
 			
 		parent::start();
@@ -17,6 +17,8 @@ class TFin_dossier extends TObjetStd {
 		$this->display_solde = 1;
 		
 		$this->date_relocation=0;
+		
+		$this->Tvisa = array(0=>'Non',1=>'Oui');
 		
 		$this->TLien=array();
 		$this->financement=new TFin_financement;
@@ -332,14 +334,53 @@ class TFin_dossier extends TObjetStd {
 					//$echeance++;
 				}
 			} else {
-				$this->TFacture[$echeance] = $fact;
+				
+				//TODO si plusieurs facture même échéance alors modification affichage pour afficher tous les liens
+				if(!empty($this->TFacture[$echeance])){
+					if(is_array($this->TFacture[$echeance])){
+						$this->TFacture[$echeance] = array_merge($this->TFacture[$echeance],array($fact));
+					}
+					else{
+						$this->TFacture[$echeance] = array($this->TFacture[$echeance],$fact);
+					}
+				}
+				else{
+					$this->TFacture[$echeance] = $fact;
+				}
 				//$echeance++;
 			}
 		}
 
 		//pre($this->TFacture,true);
 	}
+	
+	//Réorganisation spécifique pour l'affichage des factures intégrale
+	function format_facture_integrale(&$ATMdb) {
+		global $db;
+		
+		foreach($this->TFacture as $echeance => $Tfacture){
+			
+			if(is_array($Tfacture)){
+				
+				foreach($Tfacture as $k => $facture){
+					
+					//Si la facture est un avoir qui annule totalement la facture d'origine, on supprime l'avoir du tableau
+					if($facture->type == 2){
+						$facture_origine = new Facture($db);
+						$facture_origine->fetch($facture->fk_facture_source);
+						
+						if($facture_origine->total_ht == $facture->total_ht){
+							unset($this->TFacture[$echeance][$k]);
+						}
+					}
+				}
+			}
+			
+		}
 
+		//pre($this->TFacture,true);
+	}
+	
 	// Donne le numéro d'échéance correspondant à une date
 	function _get_num_echeance_from_date($date) {
 		//$echeance = date('m', $date - $this->financement->date_debut) / $this->financement->getiPeriode();
@@ -962,6 +1003,74 @@ class TFin_dossier extends TObjetStd {
 		
 		return $date;
 	}
+	
+	//Retourne le volume (noir + couleur) réalisé, le volume noir engagé et le colument couleur engagé sur les 4 dernière échéances du dossier
+	function getSommesIntegrale(&$PDOdb,$copiesup=false){
+		$sommeRealise = $sommeNoir = $sommeCouleur = $sommeCopieSupNoir = $sommeCopieSupCouleur = 0;
+		$nbEcheance = count($this->TFacture) - 1 ; //-1 car échéance 1 = 0
+		
+		foreach($this->TFacture as $echeance => $Tfacture){
+			if($echeance == -1) $nbEcheance -= 1; //supression loyer intercalaire
+			
+			//Somme uniquement sur les 4 dernières échéances
+			if($echeance > ($nbEcheance - 4)){
+				//pre($Tfacture,true);exit;
+				if(is_array($Tfacture)){
+					foreach($Tfacture as $k => $facture){
+						$integrale = new TIntegrale;
+						$integrale->loadBy($PDOdb, $facture->ref, 'facnumber');
+
+						//Somme Réalisé = somme réalisé noir + somme réalisé couleur
+						$sommeRealise += $integrale->vol_noir_realise;
+						$sommeRealise += $integrale->vol_coul_realise;
+						
+						//Somme engagé Noir 
+						$sommEngageNoir += $integrale->vol_noir_engage;
+						
+						//Somme engagé Couleur
+						$sommeEngageCouleur += $integrale->vol_coul_engage;
+						
+						//Copie suplémantaire
+						$sommeCopieSupNoir += $integrale->vol_noir_facture - $integrale->vol_noir_engage;
+						$sommeCopieSupCouleur += $integrale->vol_coul_facture - $integrale->vol_coul_engage;
+					}
+				}
+				else{
+					$integrale = new TIntegrale;
+					$integrale->loadBy($PDOdb, $Tfacture->ref, 'facnumber');
+					//pre($integrale,true);exit;
+					//Somme Réalisé = somme réalisé noir + somme réalisé couleur
+					$sommeRealise += $integrale->vol_noir_realise;
+					$sommeRealise += $integrale->vol_coul_realise;
+					
+					//Somme engagé Noir 
+					$sommEngageNoir += $integrale->vol_noir_engage;
+					
+					//Somme engagé Couleur
+					$sommeEngageCouleur += $integrale->vol_coul_engage;
+					
+					//Copie suplémantaire
+					$sommeCopieSupNoir += $integrale->vol_noir_facture - $integrale->vol_noir_engage;
+					$sommeCopieSupCouleur += $integrale->vol_coul_facture - $integrale->vol_coul_engage;
+				}
+			}
+		}
+		
+		if($copiesup){
+			return array($sommeCopieSupNoir,$sommeCopieSupCouleur);
+		}
+		else{
+			//echo $sommeRealise." ".$sommeNoir." ".$sommeCouleur;exit;
+			return array($sommeRealise,$sommEngageNoir,$sommeEngageCouleur);
+		}
+	}
+
+	function getSoldePersoIntegrale(&$PDOdb){
+		$soldepersointegrale = 0;
+		
+		return $soldepersointegrale;
+	}
+
 }
 
 /*
@@ -1366,6 +1475,17 @@ class TFin_financement extends TObjetStd {
 		}
 		
 		$fact->validate($user);
+		
+		$echeance = explode('/',$origine->facnumber);
+		$echeance = $echeance[1];
+		
+		//MAJ dates période facture
+		$dossier = new TFin_dossier;
+		$dossier->load($ATMdb, $this->fk_fin_dossier);
+		$date_debut_periode = $dossier->getDateDebutPeriode($echeance-1,'LEASER');
+		$date_fin_periode = $dossier->getDateFinPeriode($echeance-1);
+
+		$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$fact->id);
 		
 		// Ajout lien dossier
 		$fact->add_object_linked('dossier', $idDossier);

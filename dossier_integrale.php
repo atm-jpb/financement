@@ -21,7 +21,8 @@ if(empty($id_dossier)) {
 	_liste($PDOdb, $dossier);
 } else {
 	$dossier->load($PDOdb, $id_dossier);
-	$dossier->load_facture($PDOdb, true);
+	$dossier->load_facture($PDOdb,true);
+	$dossier->format_facture_integrale($PDOdb);
 	_fiche($PDOdb, $db, $dossier);
 }
 
@@ -124,14 +125,42 @@ function _formatIntegrale(&$integrale){
 	
 }
 
-function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale){
+function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
+	global $db;
 	
 	$integrale = new TIntegrale;
 	$integrale->loadBy($PDOdb, $facture->ref, 'facnumber');
 	
 	$integrale->date_facture = $facture->date;
-	$integrale->date_periode = $facture->ref_client;
+	$integrale->date_periode = strtotime(implode('-', array_reverse(explode('/', $facture->ref_client))));
+	
+	//Si la facture a une date de facturation dans la ref_client
+	if($dossier->_get_num_echeance_from_date($integrale->date_periode) != '-1'){
+		$integrale->date_periode = date('d/m/Y',strtotime($dossier->getDateDebutPeriode($dossier->_get_num_echeance_from_date($integrale->date_periode),'CLIENT')));
+	}
+	else{
+		$integrale->date_periode = $facture->ref_client;
+	}
+	
 	$integrale->facnumber = $facture->getNomUrl();
+	
+	$facidavoir=$facture->getListIdAvoirFromInvoice();
+
+	//$totalht = $fact->total_ht;
+	foreach ($facidavoir as $idAvoir) {
+		$avoir = new Facture($db);
+		$avoir->fetch($idAvoir);
+		
+		$integrale_avoir = new TIntegrale;
+		$integrale_avoir->loadBy($PDOdb, $avoir->ref, 'facnumber');
+		
+		$integrale->vol_noir_engage -= $integrale_avoir->vol_noir_engage;
+		$integrale->vol_noir_realise -= $integrale_avoir->vol_noir_realise;
+		$integrale->vol_noir_facture -= $integrale_avoir->vol_noir_facture;
+		$integrale->vol_coul_engage -= $integrale_avoir->vol_coul_engage;
+		$integrale->vol_coul_realise -= $integrale_avoir->vol_coul_realise;
+		$integrale->vol_coul_facture -= $integrale_avoir->vol_coul_facture;
+	}
 	
 	if(!empty($TIntegrale[$integrale->date_periode])){
 			
@@ -140,17 +169,25 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale){
 		$TIntegrale[$integrale->date_periode]->facnumber .= "<br>".$integrale->facnumber;
 		
 		//Addition des champs qui vont bien
-		$TIntegrale[$integrale->date_periode]->vol_noir_engage = $integrale->vol_noir_engage;
+		if($TIntegrale[$integrale->date_periode]->vol_noir_engage < $integrale->vol_noir_engage){
+			$TIntegrale[$integrale->date_periode]->vol_noir_engage = $integrale->vol_noir_engage;
+		}
 		$TIntegrale[$integrale->date_periode]->vol_noir_realise += $integrale->vol_noir_realise;
 		$TIntegrale[$integrale->date_periode]->vol_noir_facture += $integrale->vol_noir_facture;
 		
-		$TIntegrale[$integrale->date_periode]->cout_unit_noir .= "<br>".number_format($integrale->cout_unit_noir,5,',','')." €";
+		if($integrale->cout_unit_noir > $TIntegrale[$integrale->date_periode]->cout_unit_noir){
+			$TIntegrale[$integrale->date_periode]->cout_unit_noir = $integrale->cout_unit_noir;
+		}
 		
-		$TIntegrale[$integrale->date_periode]->vol_coul_engage = $integrale->vol_coul_engage;
+		if($TIntegrale[$integrale->date_periode]->vol_coul_engage < $integrale->vol_coul_engage){
+			$TIntegrale[$integrale->date_periode]->vol_coul_engage = $integrale->vol_coul_engage;
+		}
 		$TIntegrale[$integrale->date_periode]->vol_coul_realise += $integrale->vol_coul_realise;
 		$TIntegrale[$integrale->date_periode]->vol_coul_facture += $integrale->vol_coul_facture;
 		
-		$TIntegrale[$integrale->date_periode]->cout_unit_coul .= "<br>".number_format($integrale->cout_unit_coul,5,',','')." €";
+		if($integrale->cout_unit_coul > $TIntegrale[$integrale->date_periode]->cout_unit_coul){
+			$TIntegrale[$integrale->date_periode]->cout_unit_coul = $integrale->cout_unit_coul;
+		}
 		
 		$TIntegrale[$integrale->date_periode]->fas += $integrale->fas;
 		$TIntegrale[$integrale->date_periode]->fass += $integrale->fass;
@@ -166,11 +203,11 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale){
 
 	}
 	else{
-		$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
 		$integrale->date_facture = $integrale->get_date('date_facture','d/m/Y');
-		$integrale->cout_unit_noir = number_format($integrale->cout_unit_noir,5,',','')." €";
-		$integrale->cout_unit_coul = number_format($integrale->cout_unit_coul,5,',','')." €";
+		$integrale->cout_unit_noir = $integrale->cout_unit_noir;
+		$integrale->cout_unit_coul = $integrale->cout_unit_coul;
 		$TIntegrale[$integrale->date_periode] = $integrale;
+		$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
 	}
 	
 	return $TIntegrale;
@@ -191,7 +228,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 	$fin->_affterme = $fin->TTerme[$fin->terme];
 	$fin->_affperiodicite = $fin->TPeriodicite[$fin->periodicite];
 	
-	//pre($dossier->TFacture,true);
+	//pre($dossier->TFacture[6],true);
 	
 	$TIntegrale = array();
 	foreach ($dossier->TFacture as $fac) {
@@ -199,11 +236,11 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 		//Cas plusieurs factures sur la même échéance
 		if(is_array($fac)){
 			foreach($fac as $facture){
-				$TIntegrale = addInTIntegrale($PDOdb,$facture,$TIntegrale);
+				$TIntegrale = addInTIntegrale($PDOdb,$facture,$TIntegrale,$dossier);
 			}
 		}
 		else{
-			$TIntegrale = addInTIntegrale($PDOdb,$fac,$TIntegrale);
+			$TIntegrale = addInTIntegrale($PDOdb,$fac,$TIntegrale,$dossier);
 		}
 	}
 	
