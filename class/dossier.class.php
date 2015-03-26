@@ -384,6 +384,7 @@ class TFin_dossier extends TObjetStd {
 	// Donne le numéro d'échéance correspondant à une date
 	function _get_num_echeance_from_date($date) {
 		//$echeance = date('m', $date - $this->financement->date_debut) / $this->financement->getiPeriode();
+		if(strpos($date,'-')) $date = strtotime($date);
 		if($date - ($this->financement->date_debut + $this->financement->calage) < 0){
 			return -1;
 		}

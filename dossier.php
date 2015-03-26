@@ -476,7 +476,7 @@ function _load_factureFournisseur(&$PDOdb,&$dossier_temp){
 			WHERE ee.sourcetype='dossier'
 				AND ee.targettype='invoice_supplier'
 				AND ee.fk_source=".$dossier_temp->getId();
-
+	//echo $sql;
 	$PDOdb->Execute($sql);
 
 	while($PDOdb->Get_line()) {
@@ -484,7 +484,7 @@ function _load_factureFournisseur(&$PDOdb,&$dossier_temp){
 		$date_echeance = $PDOdb->Get_field('date_debut_periode');
 		$echeance = $dossier_temp->_get_num_echeance_from_date($date_echeance);	
 
-		$TFacture[$echeance]['rowid'] = $PDOdb->Get_field('rowid');
+		$TFactureFourn[$echeance]['rowid'] = $PDOdb->Get_field('rowid');
 
 	}
 	
@@ -542,23 +542,30 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			$TError[$res['iddossier']]['error_1'] = "EcheanceClientEcheanceLeaser";
 		}
 		
+		//if($dossier_temp->rowid == 434){ pre($TFacturesFourn,true); pre($TFactures,true); }
+		
 		foreach ($TFacturesFourn as $echeance => $TfactureFourn) {
 			
 			$sql = "SELECT date_fin_periode FROM ".MAIN_DB_PREFIX."facture_fourn WHERE rowid = ".$TfactureFourn['rowid'];
 			$PDOdb->Execute($sql);
 			
-			if($PDOdb->Get_line()){
+			if($PDOdb->Get_line() && strpos($PDOdb->Get_field('date_fin_periode'), '/')){
 				$date_fin_periode = explode('/',$PDOdb->Get_field('date_fin_periode'));
 				$date_fin_periode = $date_fin_periode[2]."-".$date_fin_periode[1]."-".$date_fin_periode[0];
 			}
-			
-			if(!$TFactures[$echeance] && strtotime($date_fin_periode) > strtotime('2014-04-01')){
+			else{
+				$date_fin_periode = $PDOdb->Get_field('date_fin_periode');
+			}
+
+			if(empty($TFactures[$echeance]['rowid']) && strtotime($date_fin_periode) > strtotime('2014-04-01')){
 				//echo "1<br>";
 				$TError[$res['iddossier']]['error_2'] = "NoFactureOnEcheance";
 				$renta_negative = true;break;
 			}
 		}
-
+		
+		//if($dossier_temp->rowid == 1315){ pre($TError,true); }
+		
 		foreach($TFactures as $echeanceClient => $Tfacture){
 			
 			$date_fact_client  = explode("/",$Tfacture['ref_client']);
@@ -569,16 +576,16 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			//Renta négative si une facture échéance client < facture échéance leaser (dossierfinleaser->echeance)
 			if($Tfacture['total_ht'] < $dossier_temp->financementLeaser->echeance && $Tfacture['ref_client']){
 				$TError[$res['iddossier']]['error_3'] = "FactureClientFactureLeaser";
-				$renta_negative = true; break;
+				$renta_negative = true;
 			}
-			//Renta négative si une facture échéance client >= facture échéance leaser (dossierfinleaser->echeance) MAIS STATUS NON PAYE
-			else if($Tfacture['total_ht'] >= $dossier_temp->financementLeaser->echeance && $Tfacture['paye'] == 0){
+			//Renta négative si une facture échéance client STATUS NON PAYE
+			if($Tfacture['paye'] == 0){
 				$TError[$res['iddossier']]['error_4'] = "FactureClientUnpaid";
-				$renta_negative = true; break;
+				$renta_negative = true;break;
 			}
 		}
 		
-		//pre($TError,true);exit;
+		//if($dossier_temp->rowid == 1315){ pre($TError,true);exit; }
 		
 		if($renta_negative){
 			
