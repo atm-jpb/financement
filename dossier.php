@@ -497,10 +497,10 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 	llxHeader('','Dossiers');
 	
 	$TErrorStatus=array(
-		'EcheanceClientEcheanceLeaser' => "Echéance Client < Echéance Leaser",
-		'NoFactureOnEcheance' => "Echéance client non facturée",
-		'FactureClientFactureLeaser' => "Facture Client < Facture leaser",
-		"FactureClientUnpaid" => "Facture Client impayée"
+		'error_1' => "Echéance Client <br>< Echéance Leaser",
+		'error_2' => "Echéance client <br>non facturée",
+		'error_3' => "Facture Client <br>< Facture leaser",
+		'error_4' => "Facture Client <br>impayée"
 	);
 	
 	$TTemplateTBS = new TTemplateTBS;
@@ -539,7 +539,7 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 		
 		if($dossier_temp->financement->echeance < $dossier_temp->financementLeaser->echeance){
 			$renta_negative = true;
-			$TError[$res['iddossier']][] = "EcheanceClientEcheanceLeaser";
+			$TError[$res['iddossier']]['error_1'] = "EcheanceClientEcheanceLeaser";
 		}
 		
 		foreach ($TFacturesFourn as $echeance => $TfactureFourn) {
@@ -554,7 +554,7 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			
 			if(!$TFactures[$echeance] && strtotime($date_fin_periode) > strtotime('2014-04-01')){
 				//echo "1<br>";
-				$TError[$res['iddossier']][] = "NoFactureOnEcheance";
+				$TError[$res['iddossier']]['error_2'] = "NoFactureOnEcheance";
 				$renta_negative = true;break;
 			}
 		}
@@ -568,12 +568,12 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			
 			//Renta négative si une facture échéance client < facture échéance leaser (dossierfinleaser->echeance)
 			if($Tfacture['total_ht'] < $dossier_temp->financementLeaser->echeance && $Tfacture['ref_client']){
-				$TError[$res['iddossier']][] = "FactureClientFactureLeaser";
+				$TError[$res['iddossier']]['error_3'] = "FactureClientFactureLeaser";
 				$renta_negative = true; break;
 			}
 			//Renta négative si une facture échéance client >= facture échéance leaser (dossierfinleaser->echeance) MAIS STATUS NON PAYE
 			else if($Tfacture['total_ht'] >= $dossier_temp->financementLeaser->echeance && $Tfacture['paye'] == 0){
-				$TError[$res['iddossier']][] = "FactureClientUnpaid";
+				$TError[$res['iddossier']]['error_4'] = "FactureClientUnpaid";
 				$renta_negative = true; break;
 			}
 		}
@@ -582,15 +582,13 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 		
 		if($renta_negative){
 			
-			$error = "";
-			
+			$error_1 = $error_2 = $error_3 = $error_4 = "Non";
+
 			foreach ($TError as $iddossier => $TLabel) {
-				foreach($TLabel as $label){
-					$error .= $TErrorStatus[$label]."\n";
+				foreach($TLabel as $key => $label){
+					${$key} = 'Oui';
 				}
 			}
-			
-			$error = substr($error, 0,-1);
 			
 			$societe_temp = new Societe($db);
 			$societe_temp->fetch($dossier_temp->financement->fk_soc);
@@ -608,7 +606,10 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 				'fk_soc' => $res['fk_soc'],
 				'nomCli' => $nomCli,
 				'nomLea' => $nomLea,
-				'status' => $error,
+				'status_1' => $error_1,
+				'status_2' => $error_2,
+				'status_3' => $error_3,
+				'status_4' => $error_4,
 				'Durée' => $dossier_temp->financement->duree,
 				'Montant' => $dossier_temp->financement->montant,
 				'Echéance' => $dossier_temp->financement->echeance,
@@ -667,7 +668,10 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			,'nomLea'=>'Leaser'
 			,'nature_financement'=>'Nature'
 			,'date_debut'=>'Début'
-			,'status'=>'Statut'
+			,'status_1'=>$TErrorStatus['error_1']
+			,'status_2'=>$TErrorStatus['error_2']
+			,'status_3'=>$TErrorStatus['error_3']
+			,'status_4'=>$TErrorStatus['error_4']
 			,'fact_materiel'=>'Facture matériel'
 			,'visa_renta'=>'Visa Rentabilité'
 		)
@@ -721,7 +725,9 @@ function _getExport(&$TLines){
 	$file = fopen($filepath,'w');
 	
 	//Ajout première ligne libelle
-	$TLabel = array('Contrat','Contrat Leaser','Affaire','Nature','Client','Leaser','Statut','Duree','Montant','Echeance','Prochaine','Debut','Fin','Facture Materiel');
+	$TLabel = array('Contrat','Contrat Leaser','Affaire','Nature','Client','Leaser'
+					,'Echéance Client < Echéance Leaser','Echéance client non facturée ','Facture Client < Facture leaser ','Facture Client impayée '
+					,'Duree','Montant','Echeance','Prochaine','Debut','Fin','Facture Materiel');
 	fputcsv($file, $TLabel,';','"');
 	
 	foreach($TLines as $line){
