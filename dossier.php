@@ -596,29 +596,35 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			$societe_temp->fetch($dossier_temp->financementLeaser->fk_soc);
 			$nomLea =  $societe_temp->nom;
 			
-			$TLines[] = array(
-				'ID' => $res['iddossier'],
-				'refDosCli' => $dossier_temp->financement->reference,
-				'refDosLea' => $dossier_temp->financementLeaser->reference,
-				'ID affaire' => $res['idaffaire'],
-				'Affaire' => $res['reference'],
-				'nature_financement' =>$res['nature_financement'],
-				'fk_soc' => $res['fk_soc'],
-				'nomCli' => $nomCli,
-				'nomLea' => $nomLea,
-				'status_1' => $error_1,
-				'status_2' => $error_2,
-				'status_3' => $error_3,
-				'status_4' => $error_4,
-				'Durée' => $dossier_temp->financement->duree,
-				'Montant' => $dossier_temp->financement->montant,
-				'Echéance' => $dossier_temp->financement->echeance,
-				'Prochaine' => $dossier_temp->financement->get_date('date_prochaine_echeance'),
-				'date_debut' => $dossier_temp->financement->get_date('date_debut'),
-				'Fin' => $dossier_temp->financement->get_date('date_fin'),
-				'fact_materiel' => '',
-				//'visa_renta'=>$dossier_temp->Tvisa[$dossier_temp->visa_renta]
-			);
+			$affiche = true;
+			if($dossier_temp->visa_renta && $error_1 == 'Oui') $affiche = false;
+			if($dossier_temp->visa_renta_ndossier && ($error_2 == 'Oui' || $error_3 == 'Oui')) $affiche = false; 
+			
+			if($affiche){
+				$TLines[] = array(
+					'ID' => $res['iddossier'],
+					'refDosCli' => $dossier_temp->financement->reference,
+					'refDosLea' => $dossier_temp->financementLeaser->reference,
+					'ID affaire' => $res['idaffaire'],
+					'Affaire' => $res['reference'],
+					'nature_financement' =>$res['nature_financement'],
+					'fk_soc' => $res['fk_soc'],
+					'nomCli' => $nomCli,
+					'nomLea' => $nomLea,
+					'status_1' => $error_1,
+					'status_2' => $error_2,
+					'status_3' => $error_3,
+					'status_4' => $error_4,
+					'Durée' => $dossier_temp->financement->duree,
+					'Montant' => $dossier_temp->financement->montant,
+					'Echéance' => $dossier_temp->financement->echeance,
+					'Prochaine' => $dossier_temp->financement->get_date('date_prochaine_echeance'),
+					'date_debut' => $dossier_temp->financement->get_date('date_debut'),
+					'Fin' => $dossier_temp->financement->get_date('date_fin'),
+					'fact_materiel' => '',
+					//'visa_renta'=>$dossier_temp->Tvisa[$dossier_temp->visa_renta]
+				);
+			}
 		}
 	}
 	
@@ -1073,6 +1079,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'url_therefore'=>FIN_THEREFORE_DOSSIER_URL
 				,'affaire1'=>$TAffaire[0]
 				,'visa_renta'=>$form->combo('', 'visa_renta', array('1' => 'Oui', '0' => 'Non'), $dossier->visa_renta)
+				,'visa_renta_ndossier'=>$form->combo('', 'visa_renta_ndossier', array('1' => 'Oui', '0' => 'Non'), $dossier->visa_renta_ndossier)
 				,'commentaire_visa'=>$form->zonetexte('', 'commentaire_visa', $dossier->commentaire_visa,100,5,'')
 				,'quote_part_noir' => $form->texte('', 'quote_part_noir', $dossier_for_integral->quote_part_noir, 10)
 				,'quote_part_couleur' => $form->texte('', 'quote_part_couleur', $dossier_for_integral->quote_part_couleur, 10)

@@ -152,7 +152,8 @@
 		[onshow;block=end]
 		[onshow;block=begin; when [view.userRight]==1]
 			<tr>
-				<td>Visa rentabilité</td><td colspan="3">[dossier.visa_renta;strconv=no]</td>
+				<td>Visa renta Echéance</td><td>[dossier.visa_renta;strconv=no]</td>
+				<td>Visa renta Dossier Multiple</td><td>[dossier.visa_renta_ndossier;strconv=no]</td>
 			</tr>
 			<tr>
 				<td>Commentaire rentabilité</td><td colspan="3">[dossier.commentaire_visa; strconv=no]</td>
