@@ -523,7 +523,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'date_demarrage'=>$form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12)
 				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)
 				,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)
-				,'montant_rachete_autres_dossiers'=>$form->{$rachat_autres}('', 'montant_rachete_autres_dossiers', $simulation->montant_rachete_autres_dossiers, 10)
+				,'montant_decompte_copies_sup'=>$form->texteRO('', 'montant_decompte_copies_sup', $simulation->montant_decompte_copies_sup, 10)
+				,'montant_rachat_final'=>$form->texteRO('', 'montant_rachat_final', $simulation->montant_rachat_final, 10)
 				,'montant_rachete_concurrence'=>$form->texte('', 'montant_rachete_concurrence', $simulation->montant_rachete_concurrence, 10)
 				,'duree'=>$form->combo('', 'duree', $TDuree, $simulation->duree)
 				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
@@ -664,7 +665,7 @@ function _calcul(&$simulation, $mode='calcul') {
 }
 
 function _liste_dossier(&$ATMdb, &$simulation, $mode) {
-	if(!empty($simulation->date_accord) && $simulation->date_accord < strtotime('-15 days')) return ''; // Ticket 916
+	if(!empty($simulation->date_accord) && $simulation->date_accord < strtotime('-999 days')) return ''; // Ticket 916 -15 jours
 	
 	global $langs,$conf, $db, $bc;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
@@ -689,6 +690,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	
 	//return $sql;
 	
+	//return $sql;
 	$TDossier = array();
 	$form=new TFormCore;
 	$form->Set_typeaff($mode);
@@ -777,6 +779,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
 		if($leaser->code_client == '024242') $dossier->display_solde = 0; // Ticket 447, suite
 		
+		$dossier->display_solde = 1;
+		
 		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
 			,'num_affaire' => $ATMdb->Get_field('N° affaire')
@@ -806,7 +810,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'checkboxnr'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes_nr['.$ATMdb->Get_field('IDDoss').']', $ATMdb->Get_field('IDDoss'), $checkednr, $checkbox_moreNR) : ''
 			,'checkboxr1'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes_p1['.$ATMdb->Get_field('IDDoss').']', $ATMdb->Get_field('IDDoss'), $checkedr1, $checkbox_moreR1) : ''
 			,'checkboxnr1'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes_nr_p1['.$ATMdb->Get_field('IDDoss').']', $ATMdb->Get_field('IDDoss'), $checkednr1, $checkbox_moreNR1) : ''
-			,'checkboxperso'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes_perso['.$ATMdb->Get_field('IDDoss').']', $ATMdb->Get_field('IDDoss'), $checkedperso, $checkbox_moreperso) : ''
+			,'checkboxperso'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes_perso['.$ATMdb->Get_field('IDDoss').']', $ATMdb->Get_field('IDDoss'),$checkbox_moreperso) : ''
 			,'checkedperso'=>$checkedperso
 			,'checkedr'=>$checkedr
 			,'checkednr'=>$checkednr
@@ -831,6 +835,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	}
 	
 	$THide = array('IDAff', 'IDDoss', 'fk_user', 'Type contrat');
+	
+	//pre($TDossier,true);
 	
 	return $r->renderArray($ATMdb, $TDossier, array(
 		'limit'=>array(
