@@ -31,6 +31,10 @@ $(document).ready(function() {
 			calcul_montant_rachat();
 		}
 	});
+	
+	$('input[name="validate_simul"]').click(function(){
+		$(this).hide();
+	});
 });
 
 var get_grille = function() {

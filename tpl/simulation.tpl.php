@@ -175,9 +175,9 @@
 			</td>
 			<td align="center" colspan="2">
 				[onshow;block=begin;when [view.type]=='simul']
-				[onshow;block=begin;when [view.calcul]==1]
-				[simulation.bt_save; strconv=no]
-				[onshow;block=end]
+					[onshow;block=begin;when [view.calcul]==1]
+						[simulation.bt_save; strconv=no]
+					[onshow;block=end]
 				[onshow;block=end]
 			</td>
 		</tr>
