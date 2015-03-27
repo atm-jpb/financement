@@ -548,7 +548,7 @@ function _calcul(&$simulation, $mode='calcul') {
 }
 
 function _liste_dossier(&$ATMdb, &$simulation, $mode) {
-	if(!empty($simulation->date_accord) && $simulation->date_accord < strtotime('-999 days')) return ''; // Ticket 916 -15 jours
+	if(!empty($simulation->date_accord) && $simulation->date_accord < strtotime('-15 days')) return ''; // Ticket 916 -15 jours
 	
 	global $langs,$conf, $db, $bc;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
@@ -662,7 +662,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
 		if($leaser->code_client == '024242') $dossier->display_solde = 0; // Ticket 447, suite
 		
-		$dossier->display_solde = 1;
+		//$dossier->display_solde = 1;
 		
 		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
