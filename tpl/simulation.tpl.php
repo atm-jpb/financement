@@ -130,14 +130,18 @@
 			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
-			<td>dont montant rachat autres dossiers</td>
-			<td>[simulation.montant_rachete_autres_dossiers; strconv=no; frm=0 000,00] &euro;</td>
+			<td>montant décompte copies sup</td>
+			<td>[simulation.montant_decompte_copies_sup; strconv=no; frm=0 000,00] &euro;</td>
 			[onshow;block=begin;when [view.type]=='simul']
 				<td align="right">Service Financement</td>
 				<td align="left">
 					<span style="font-size: 16px;">[simulation.user_suivi; strconv=no]</span><br />
 				</td>
 			[onshow;block=end]
+		</tr>
+		<tr>
+			<td>montant rachat final</td>
+			<td>[simulation.montant_rachat_final; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
 			<td>dont montant rachat concurrence</td>
