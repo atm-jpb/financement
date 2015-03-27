@@ -55,6 +55,6 @@
 		<td align="right" nowrap="nowrap" class="solde"[champs.checkedr1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxr1; strconv=no] [champs.solde_r1; strconv=no; frm=0 000,00] &euro;</td>
 		<td align="right" nowrap="nowrap" class="solde"[champs.checkednr1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxnr1; strconv=no] [champs.solde_nr1; strconv=no; frm=0 000,00] &euro;</td>
 		[onshow;block=end]
-		<td align="right" nowrap="nowrap" class="solde"[champs.checkedperso;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxperso; strconv=no] [champs.soldeperso; strconv=no; frm=0 000,00] &euro;</td>
+		<td align="right" nowrap="nowrap" class="solde">[champs.checkboxperso; strconv=no] [champs.soldeperso; strconv=no; frm=0 000,00] &euro;</td>
 	</tr>
 </table>
