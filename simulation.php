@@ -446,7 +446,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	$financement = new TFin_financement;
 	$grille = new TFin_grille_leaser();
 	$html=new Form($db);
-	$form=new TFormCore($_SERVER['PHP_SELF'].'#calculateur','formSimulation','POST');
+	$form=new TFormCore($_SERVER['PHP_SELF'].'#calculateur','formSimulation','POST'); //,FALSE,'onsubmit="return soumettreUneSeuleFois(this);"'
 	$form->Set_typeaff($mode);
 
 	echo $form->hidden('id', $simulation->getId());
@@ -552,7 +552,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'date'=>$simulation->date_simul
 				,'bt_calcul'=>$form->btsubmit('Calculer', 'calculate')
 				,'bt_cancel'=>$form->btsubmit('Annuler', 'cancel')
-				,'bt_save'=>$form->btsubmit('Enregistrer simulation', 'validate_simul',"", 'button',true)
+				,'bt_save'=>$form->btsubmit('Enregistrer simulation', 'validate_simul') //'onclick="$(this).remove(); $("#formSimulation").submit();"'
 				
 				,'display_preco'=>$can_preco
 				,'type_financement'=>$can_preco ? $form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement) : $simulation->type_financement
