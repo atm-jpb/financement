@@ -665,7 +665,7 @@ function _calcul(&$simulation, $mode='calcul') {
 }
 
 function _liste_dossier(&$ATMdb, &$simulation, $mode) {
-	if(!empty($simulation->date_accord) && $simulation->date_accord < strtotime('-15 days')) return ''; // Ticket 916 -15 jours
+	//if(!empty($simulation->date_accord) && $simulation->date_accord < strtotime('-15 days')) return ''; // Ticket 916 -15 jours
 	
 	global $langs,$conf, $db, $bc;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
@@ -687,6 +687,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$sql.= " AND a.fk_soc IN (SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE siren = (SELECT siren from ".MAIN_DB_PREFIX."societe WHERE rowid = ".$simulation->fk_soc.") AND siren != '')";
 	//$sql.= " AND s.rowid = ".$simulation->fk_soc;
 	//$sql.= " AND f.type = 'CLIENT'";
+	
+	//$sql.= " AND d.montant < 50000";
 	
 	//return $sql;
 	
@@ -778,8 +780,20 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		if($ATMdb->Get_field('incident_paiement')=='OUI') $dossier->display_solde = 0;
 		if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
 		if($leaser->code_client == '024242') $dossier->display_solde = 0; // Ticket 447, suite
-		
+		if($dossier->montant >= 50000) $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
 		//$dossier->display_solde = 1;
+		
+		//Ne pas laissé disponible un dossier dont la dernière facture client est impayée
+		foreach ($dossier->TFacture as $echeance => $facture) {
+			if(is_array($facture)){
+				foreach ($facture as $key => $fact) {
+					if($fact->paye == 0) $dossier->display_solde = 0;
+				}
+			}
+			else{
+				if($facture->paye == 0) $dossier->display_solde = 0;
+			}
+		}
 		
 		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
