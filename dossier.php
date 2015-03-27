@@ -4,6 +4,7 @@
 	require('config.php');
 	require('./class/affaire.class.php');
 	require('./class/dossier.class.php');
+	require('./class/dossier_integrale.class.php');
 	require('./class/grille.class.php');
 	
 	dol_include_once("/core/lib/company.lib.php");
@@ -1014,8 +1015,25 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 		$soldeperso = $dossier->soldeperso;
 	}
 	
-	//pre($TAffaire,true);exit;
+	$dossier_for_integral = new TFin_dossier;
+	$dossier_for_integral->load($PDOdb, $dossier->getId());
+	$dossier_for_integral->load_facture($PDOdb,true);
+	$dossier_for_integral->format_facture_integrale($PDOdb);
+	$sommeRealise = $sommeNoir = $sommeCouleur = $sommeCopieSupCouleur = $sommeCopieSupNoir = 0;
+	//list($sommeRealise,$sommeNoir,$sommeCouleur) = $dossier_for_integral->getSommesIntegrale($PDOdb);
+	list($sommeCopieSupNoir,$sommeCopieSupCouleur) = $dossier_for_integral->getSommesIntegrale($PDOdb,true);
 	
+	$decompteCopieSupNoir = $sommeCopieSupNoir * $dossier_for_integral->quote_part_noir;
+	$decompteCopieSupCouleur = $sommeCopieSupCouleur * $dossier_for_integral->quote_part_couleur;
+	
+	$soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
+
+	$soldepersointegrale = ($soldepersointegrale * 0.8); //On enlève 20% conformément  la règle de gestion
+
+	//echo $soldepersointegrale;
+	//echo $sommeRealise." ".$sommeNoir." ".$sommeCouleur;
+	
+	//pre($TAffaire,true);exit;
 	print $TBS->render('./tpl/dossier.tpl.php'
 		,array(
 			'affaire'=>$TAffaire
@@ -1043,11 +1061,17 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO')
 				,'soldeNRCPRO'=>$dossier->getSolde($PDOdb, 'SNRCPRO')
 				,'soldeperso'=>$soldeperso
+				,'soldepersodispo'=>$form->combo('', 'soldepersodispo', array('1' => 'Oui', '0' => 'Non'), $dossier->soldepersodispo)
+				,'soldepersointegrale'=>$soldepersointegrale
 				,'dateperso'=>$dateperso
 				,'url_therefore'=>FIN_THEREFORE_DOSSIER_URL
 				,'affaire1'=>$TAffaire[0]
 				,'visa_renta'=>$form->combo('', 'visa_renta', array('1' => 'Oui', '0' => 'Non'), $dossier->visa_renta)
 				,'commentaire_visa'=>$form->zonetexte('', 'commentaire_visa', $dossier->commentaire_visa,100,5,'')
+				,'quote_part_noir' => $form->texte('', 'quote_part_noir', $dossier_for_integral->quote_part_noir, 10)
+				,'quote_part_couleur' => $form->texte('', 'quote_part_couleur', $dossier_for_integral->quote_part_couleur, 10)
+				,'somme_sup_noir' => $sommeCopieSupNoir
+				,'somme_sup_coul' => $sommeCopieSupCouleur
 			)
 			,'financement'=>$TFinancement
 			,'financementLeaser'=>$TFinancementLeaser
@@ -1056,6 +1080,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				'mode'=>$mode
 				,'otherAffaire'=>$otherAffaire
 				,'userRight'=>((int)$user->rights->financement->affaire->write)
+				,'contrat'=>$dossier->TLien[0]->affaire->contrat
 			)
 			
 		)

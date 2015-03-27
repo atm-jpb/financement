@@ -6,8 +6,8 @@ class TFin_dossier extends TObjetStd {
 	function __construct() { /* declaration */
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
 		parent::add_champs('solde,soldeperso,montant,montant_solde','type=float;');
-		parent::add_champs('renta_previsionnelle,renta_attendue,renta_reelle,marge_previsionnelle,marge_attendue,marge_reelle','type=float;');
-		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne,display_solde,visa_renta,commentaire_visa','type=chaine;');
+		parent::add_champs('renta_previsionnelle,renta_attendue,renta_reelle,marge_previsionnelle,marge_attendue,marge_reelle,quote_part_couleur,quote_part_noir','type=float;');
+		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne,display_solde,visa_renta,commentaire_visa,soldepersodispo','type=chaine;');
 		parent::add_champs('date_relocation,date_solde,dateperso','type=date;');
 			
 		parent::start();
@@ -1003,6 +1003,74 @@ class TFin_dossier extends TObjetStd {
 		
 		return $date;
 	}
+	
+	//Retourne le volume (noir + couleur) réalisé, le volume noir engagé et le colument couleur engagé sur les 4 dernière échéances du dossier
+	function getSommesIntegrale(&$PDOdb,$copiesup=false){
+		$sommeRealise = $sommeNoir = $sommeCouleur = $sommeCopieSupNoir = $sommeCopieSupCouleur = 0;
+		$nbEcheance = count($this->TFacture) - 1 ; //-1 car échéance 1 = 0
+		
+		foreach($this->TFacture as $echeance => $Tfacture){
+			if($echeance == -1) $nbEcheance -= 1; //supression loyer intercalaire
+			
+			//Somme uniquement sur les 4 dernières échéances
+			if($echeance > ($nbEcheance - 4)){
+				//pre($Tfacture,true);exit;
+				if(is_array($Tfacture)){
+					foreach($Tfacture as $k => $facture){
+						$integrale = new TIntegrale;
+						$integrale->loadBy($PDOdb, $facture->ref, 'facnumber');
+
+						//Somme Réalisé = somme réalisé noir + somme réalisé couleur
+						$sommeRealise += $integrale->vol_noir_realise;
+						$sommeRealise += $integrale->vol_coul_realise;
+						
+						//Somme engagé Noir 
+						$sommEngageNoir += $integrale->vol_noir_engage;
+						
+						//Somme engagé Couleur
+						$sommeEngageCouleur += $integrale->vol_coul_engage;
+						
+						//Copie suplémantaire
+						$sommeCopieSupNoir += $integrale->vol_noir_facture - $integrale->vol_noir_engage;
+						$sommeCopieSupCouleur += $integrale->vol_coul_facture - $integrale->vol_coul_engage;
+					}
+				}
+				else{
+					$integrale = new TIntegrale;
+					$integrale->loadBy($PDOdb, $Tfacture->ref, 'facnumber');
+					//pre($integrale,true);exit;
+					//Somme Réalisé = somme réalisé noir + somme réalisé couleur
+					$sommeRealise += $integrale->vol_noir_realise;
+					$sommeRealise += $integrale->vol_coul_realise;
+					
+					//Somme engagé Noir 
+					$sommEngageNoir += $integrale->vol_noir_engage;
+					
+					//Somme engagé Couleur
+					$sommeEngageCouleur += $integrale->vol_coul_engage;
+					
+					//Copie suplémantaire
+					$sommeCopieSupNoir += $integrale->vol_noir_facture - $integrale->vol_noir_engage;
+					$sommeCopieSupCouleur += $integrale->vol_coul_facture - $integrale->vol_coul_engage;
+				}
+			}
+		}
+		
+		if($copiesup){
+			return array($sommeCopieSupNoir,$sommeCopieSupCouleur);
+		}
+		else{
+			//echo $sommeRealise." ".$sommeNoir." ".$sommeCouleur;exit;
+			return array($sommeRealise,$sommEngageNoir,$sommeEngageCouleur);
+		}
+	}
+
+	function getSoldePersoIntegrale(&$PDOdb){
+		$soldepersointegrale = 0;
+		
+		return $soldepersointegrale;
+	}
+
 }
 
 /*
