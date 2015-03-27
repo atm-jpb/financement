@@ -1061,7 +1061,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO')
 				,'soldeNRCPRO'=>$dossier->getSolde($PDOdb, 'SNRCPRO')
 				,'soldeperso'=>$soldeperso
-				,'soldepersodispo'=>$form->combo('', 'soldepersodispo', array('1' => 'Oui', '0' => 'Non'), $dossier->soldepersodispo)
+				,'soldepersodispo'=>$form->combo('', 'soldepersodispo', array('1' => 'Oui', '0' => 'Non'), ($dossier->soldepersodispo) ? $dossier->soldepersodispo : 1)
 				,'soldepersointegrale'=>$soldepersointegrale
 				,'dateperso'=>$dateperso
 				,'url_therefore'=>FIN_THEREFORE_DOSSIER_URL
