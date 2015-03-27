@@ -7,7 +7,7 @@ class TFin_dossier extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier');
 		parent::add_champs('solde,soldeperso,montant,montant_solde','type=float;');
 		parent::add_champs('renta_previsionnelle,renta_attendue,renta_reelle,marge_previsionnelle,marge_attendue,marge_reelle,quote_part_couleur,quote_part_noir','type=float;');
-		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne,display_solde,visa_renta,commentaire_visa,soldepersodispo','type=chaine;');
+		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne,display_solde,visa_renta,visa_renta_ndossier,commentaire_visa,soldepersodispo','type=chaine;');
 		parent::add_champs('date_relocation,date_solde,dateperso','type=date;');
 			
 		parent::start();
@@ -373,6 +373,18 @@ class TFin_dossier extends TObjetStd {
 							unset($this->TFacture[$echeance][$k]);
 						}
 					}
+					else{
+						$facidavoir=$facture->getListIdAvoirFromInvoice();
+						//$totalht = $fact->total_ht;
+						foreach ($facidavoir as $idAvoir) {
+							$avoir = new Facture($db);
+							$avoir->fetch($idAvoir);
+							
+							if(abs($avoir->total_ht) == $facture->total_ht){
+								unset($this->TFacture[$echeance][$k]);
+							}
+						}
+					}
 				}
 			}
 			
@@ -384,6 +396,7 @@ class TFin_dossier extends TObjetStd {
 	// Donne le numéro d'échéance correspondant à une date
 	function _get_num_echeance_from_date($date) {
 		//$echeance = date('m', $date - $this->financement->date_debut) / $this->financement->getiPeriode();
+		if(strpos($date,'-')) $date = strtotime($date);
 		if($date - ($this->financement->date_debut + $this->financement->calage) < 0){
 			return -1;
 		}
