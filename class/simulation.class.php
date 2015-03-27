@@ -5,7 +5,7 @@ class TSimulation extends TObjetStd {
 		global $langs;
 		
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation');
-		parent::add_champs('entity,fk_soc,fk_user_author,fk_leaser,accord_confirme','type=entier;');
+		parent::add_champs('entity,fk_soc,fk_user_author,fk_user_suivi,fk_leaser,accord_confirme','type=entier;');
 		parent::add_champs('duree,opt_administration,opt_creditbail,opt_adjonction,opt_no_case_to_settle','type=entier;');
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_rachete_autres_dossiers,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
 		parent::add_champs('date_simul,date_validite,date_accord,date_demarrage','type=date;');
@@ -19,6 +19,8 @@ class TSimulation extends TObjetStd {
 		$this->TStatut=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
+			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser')
+			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur')
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
@@ -94,6 +96,7 @@ class TSimulation extends TObjetStd {
 				$simulationSuivi->save($PDOdb);
 				
 				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+				$this->reordreSimulationSuivi($PDOdb);
 			}
 		}
 	}
@@ -180,6 +183,11 @@ class TSimulation extends TObjetStd {
 			$this->user->fetch($this->fk_user_author);
 		}
 		
+		if(!empty($this->fk_user_suivi)) {
+			$this->user_suivi = new User($doliDB);
+			$this->user_suivi->fetch($this->fk_user_suivi);
+		}
+		
 		//Récupération des suivis demande de financement leaser s'ils existent
 		//Sinon on les créé
 		$this->load_suivi_simulation($db);
@@ -192,13 +200,13 @@ class TSimulation extends TObjetStd {
 		//pre($TRowid,true);exit;
 		//Si les suivis existent déjà
 		if(count($TRowid) > 0){
+			
 			foreach($TRowid as $rowid){
 				$simulationSuivi = new TSimulationSuivi;
 				$simulationSuivi->load($PDOdb, $rowid);
 
 				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 			}
-			
 			//Réorganisation de l'ordre de la liste en fonction de la grille d'administration
 			$TLeaser = $this->reordreSimulationSuivi($PDOdb);
 		}
@@ -228,7 +236,7 @@ class TSimulation extends TObjetStd {
 		//Récupération de l'ordre par défaut pour les autres Leaser
 		$sql = "SELECT rowid, fk_leaser_solde, montantbase 
 				FROM ".MAIN_DB_PREFIX."fin_grille_suivi 
-				WHERE fk_type_contrat = 'DEFAUT'";
+				WHERE fk_type_contrat = 'DEFAUT_".$this->fk_type_contrat."'";
 		if($idLeaserPrio) $sql .= " AND fk_leaser_solde != ".$idLeaserPrio;	
 		$sql .= " ORDER BY montantbase ASC";
 		
@@ -258,6 +266,10 @@ class TSimulation extends TObjetStd {
 		//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 		$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
 		//Récupération de la catégorie du client : entreprise, administration ou association
+		// suivant sont code NAF
+		// entreprise = les autres
+		// association = 94
+		// administration = 84
 		$labelCategorie = $this->getLabelCategorieClient();
 		
 		//On récupère l'id du leaser prioritaire en fonction des règles de gestion
@@ -276,7 +288,7 @@ class TSimulation extends TObjetStd {
 		global $db;
 		
 		//Récupération de la catégorie du client : entreprise, administration ou association
-		$categorie = new Categorie($db);
+		/*$categorie = new Categorie($db);
 		$TCategories = $categorie->get_all_categories(2);
 		$labelCategorie = '';
 		if(count($TCategories)){
@@ -285,6 +297,19 @@ class TSimulation extends TObjetStd {
 					$labelCategorie = strtolower($categorie->label);
 				}
 			}
+		}*/
+		
+		switch (substr($this->societe->idprof3,0,2)) {
+			case '84':
+				$labelCategorie = 'administration';
+				break;
+			case '94':
+				$labelCategorie = 'association';
+				break;
+			
+			default:
+				$labelCategorie = 'entreprise';
+				break;
 		}
 		
 		return $labelCategorie;
@@ -293,12 +318,18 @@ class TSimulation extends TObjetStd {
 	//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 	function getIdLeaserDossierSolde(&$PDOdb){
 		
-		$idLeaserDossierSolde = 0;
+		$idLeaserDossierSolde = $montantDossierSole = 0;
 		$TDossierUsed = $this->get_list_dossier_used();
 		if(count($TDossierUsed)){
-			$dossier = new TFin_dossier;
-			$dossier->load($PDOdb, $TDossierUsed[0]);
-			$idLeaserDossierSolde = $dossier->TLien[0]->dossier->financementLeaser->fk_soc;
+			foreach($TDossierUsed as $k => $id_dossier){
+				$dossier = new TFin_dossier;
+				$dossier->load($PDOdb, $TDossierUsed[$k]);
+				//Si plusieurs dossiers soldé dans la simulation alors on prends le Leaser de celui ayant le plus gros montant
+				if($dossier->montant > $montantDossierSole){
+					$idLeaserDossierSolde = $dossier->TLien[$k]->dossier->financementLeaser->fk_soc;
+					$montantDossierSole = $dossier->montant;
+				}
+			}
 		}
 		
 		return $idLeaserDossierSolde;
@@ -306,6 +337,7 @@ class TSimulation extends TObjetStd {
 	
 	function get_suivi_simulation(&$PDOdb,&$form){
 		global $db;
+
 		$this->load_suivi_simulation($PDOdb);
 		//echo 'get<br>';
 		$TLignes = array();
@@ -822,7 +854,19 @@ class TSimulationSuivi extends TObjetStd {
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
 			,'KO'=>$langs->trans('Refus')
+			,'SS'=>$langs->trans('SansSuite')
+			,'MEL'=>$langs->trans('Mise En Loyé')
 		);
+		
+		$this->TLeaserAuto=array(
+			'3382' => 'BNP PARIBAS LEASE GROUP'
+			,'19553' => 'BNP PARIBAS LEASE GROUP (ADOSSE)'
+			,'20113' => 'BNP PARIBAS LEASE GROUP (MANDATE)'
+			,'7411' => 'GE CAPITAL EQUIPEMENT FINANCE'
+			,'21382' => 'GE CAPITAL EQUIPEMENT FINANCE (MANDATEE)'
+		);
+		
+		$this->simulation = new TSimulation;
 	}
 	
 	//Chargement du suivi simulation
@@ -833,12 +877,14 @@ class TSimulationSuivi extends TObjetStd {
 		$this->leaser = new Societe($db);
 		$this->leaser->fetch($this->fk_leaser);
 		
+		if(!empty($this->fk_simulation)){
+			$simulation = new TSimulation;
+			$simulation->load($PDOdb, $db, $this->fk_simulation, false);
+			$this->simulation = $simulation;
+		}
+		
 		$this->user = new User($db);
 		$this->user->fetch($this->fk_user_author);
-		
-		if($this->date_selection > 0){
-			$this->financementAlreadyAccepted = true;
-		}
 		
 		return $res;
 	}
@@ -858,7 +904,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$actions = '';
 
-		if(!$this->financementAlreadyAccepted){
+		if($simulation->accord != "OK"){
 			//Demander
 			if($this->statut_demande != 1){// && $this->date_demande < 0){
 				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Demande transmise au leaser"><img src="'.dol_buildpath('/financement/img/demander.png',1).'" /></a>&nbsp;';
@@ -872,6 +918,8 @@ class TSimulationSuivi extends TObjetStd {
 					if($this->statut !== 'KO'){	
 						//Envoyer
 						//$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=envoyer" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
+						//Enregistrer
+						$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
 						//Accepter
 						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter" title="Demande acceptée"><img src="'.dol_buildpath('/financement/img/accepter.png',1).'" /></a>&nbsp;';
 						//Refuser
@@ -885,32 +933,66 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	//Exécute une action et met en oeuvre les règles de gestion en conséquence
-	function doAction(&$PDOdb,$action){
+	function doAction(&$PDOdb,&$simulation,$action){
 		
-		switch ($action) {
-			case 'demander':
-				$this->doActionDemander($PDOdb);
-				break;
-			case 'envoyer':
-				$this->doActionEnvoyer($PDOdb);
-				break;
-			case 'accepter':
-				$this->doActionAccepter($PDOdb);
-				break;
-			case 'refuser':
-				$this->doActionRefuser($PDOdb);
-				break;
-			case 'selectionner':
-				$this->doActionSelectionner($PDOdb);
-				break;
-			default:
-				
-				break;
+		if($simulation->accord != "OK"){
+		
+			switch ($action) {
+				case 'demander':
+					//if(empty($this->statut)){ //Possibilité d'effectuer le demande une seule fois uniquement
+						$this->doActionDemander($PDOdb,$simulation);
+					//}
+					break;
+				case 'envoyer':
+					$this->doActionEnvoyer($PDOdb,$simulation);
+					break;
+				case 'accepter':
+					$this->doActionAccepter($PDOdb,$simulation);
+					break;
+				case 'refuser':
+					$this->doActionRefuser($PDOdb,$simulation);
+					break;
+				case 'selectionner':
+					$this->doActionSelectionner($PDOdb,$simulation);
+					break;
+				default:
+					
+					break;
+			}
 		}
 	}
 	
 	//Effectuer l'action de faire la demande de financement au leaser
-	function doActionDemander($PDOdb){
+	function doActionDemander(&$PDOdb,&$simulation){
+		global $db;
+
+		$simulation->accord = 'WAIT_LEASER';
+		$simulation->save($PDOdb, $db);
+		
+	    // Leaser ACECOM = demande BNP mandaté et BNP cession + Lixxbail mandaté et Lixxbail cession
+		if($this->fk_leaser == 18305){
+			// 20113 = BNP Mandatée // 3382 = BNP Cession (Location simple) // 19483 = Lixxbail Mandatée // 6065 = Lixxbail Cession (Location simple)
+			$sql = "SELECT rowid 
+					FROM ".MAIN_DB_PREFIX."fin_simulation_suivi 
+					WHERE fk_leaser = 20113 
+						OR fk_leaser = 3382 
+						OR fk_leaser = 19483
+						OR fk_leaser = 6065
+						AND fk_simulation = ".$this->fk_simulation;
+			$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+
+			foreach($TIds as $idSimulationSuivi){
+				$simulation_suivi = new TSimulationSuivi;
+				$simulation_suivi->load($PDOdb, $idSimulationSuivi);
+				$simulation_suivi->doAction($PDOdb, $simulation, 'demander');
+				$simulation_suivi->save($PDOdb);
+			}
+		}
+		
+		//Si leaser auto alors on envoye la demande par XML
+		if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
+			$this->_sendDemandeAuto($PDOdb);
+		}
 		
 		$this->statut_demande = 1;
 		$this->date_demande = time();
@@ -919,27 +1001,402 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	//Effectuer l'action d'envoyer au leaser la demande de financement
-	function doActionEnvoyer($PDOdb){
+	function doActionEnvoyer(&$PDOdb,&$simulation){
+		global $db;
+		
+		$simulation->accord = 'WAIT';
+		$simulation->save($PDOdb, $db);
+		
 		$this->statut = 'WAIT';
 		$this->save($PDOdb);
 	}
 	
 	//Effectue l'action de passer au statut accepter la demande de financement leaser
-	function doActionAccepter($PDOdb){
+	function doActionAccepter(&$PDOdb,&$simulation){
+		global $db;
+		
+		$simulation->accord = 'WAIT';
+		$simulation->save($PDOdb, $db);
+		
 		$this->statut = 'OK';
 		$this->save($PDOdb);
 	}
 	
 	//Effectue l'action de passer au statut refusé la demande de financement leaser
-	function doActionRefuser($PDOdb){
+	function doActionRefuser(&$PDOdb,&$simulation){
+		global $db;
+
+		/*$simulation->accord = 'KO';
+		$simulation->save($PDOdb, $db);*/
+		
 		$this->statut = 'KO';
 		$this->save($PDOdb);
 	}
 	
 	//Effectue l'action de choisir définitivement un leaser pour financer la simulation
-	function doActionSelectionner($PDOdb){
+	function doActionSelectionner(&$PDOdb,&$simulation){
+		global $db;
+		
+		if($simulation->type_financement != "ADOSSEE" && $simulation->type_financement != "MANDATEE"){
+			$simulation->coeff_final = $this->coeff_leaser;
+		}
+		
+		$simulation->accord = 'OK';
+		$simulation->numero_accord = $this->numero_accord_leaser;
+		$simulation->fk_leaser = $this->fk_leaser;
+		$simulation->save($PDOdb, $db);
+
 		$this->date_selection = time();
+
 		$this->save($PDOdb);
+	}
+	
+	function save(&$PDOdb){
+		global $db;
+		
+		$res = parent::save($PDOdb);
+		
+		if(!empty($this->fk_simulation)){
+			$simulation = new TSimulation;
+			$simulation->load($PDOdb, $db, $this->fk_simulation,false);
+			$this->simulation = $simulation;
+			
+			//Si Leaser possiblité demande auto alors on effectue directement l'action
+			/*if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
+				$this->doAction($PDOdb, $simulation, "demander");
+			}*/
+		}
+	}
+	
+	function _sendDemandeAuto(&$PDOdb){
+		
+		$this->simulation->societe = new Societe($db);
+		$this->simulation->societe->fetch($this->simulation->fk_soc);
+		
+		switch ($this->fk_leaser) {
+			//BNP PARIBAS LEASE GROUP
+			case '3382':
+			case '19553':
+			case '20113':
+				$this->_createDemandeBNP($PDOdb);
+				break;
+			//GE CAPITAL EQUIPEMENT FINANCE
+			case '7411':
+			case '21382':
+				$this->_createDemandeGE($PDOdb);
+				break;
+			default:
+				
+				break;
+		}
+	}
+	
+	function _createDemandeGE(&$PDOdb){
+		
+		$xml = new DOMDocument('1.0','UTF-8');
+		$xml->formatOutput = true;
+
+		$CreateDemFinRequest = $xml->createElement("CreateDemFinRequest");
+		$CreateDemFinRequest = $xml->appendChild($CreateDemFinRequest);
+
+		$APP_Infos_B2B = $xml->createElement("APP_Infos_B2B");
+		$APP_Infos_B2B->appendChild($xml->createElement("B2B_CLIENT",'')); //TODO en attente communication id by GE
+		$APP_Infos_B2B->appendChild($xml->createElement("B2B_TIMESTAMP",time()));
+
+		$CreateDemFinRequest->appendChild($APP_Infos_B2B);
+
+		$APP_CREA_Demande = $xml->createElement("APP_CREA_Demande");
+		$APP_CREA_Demande->appendChild($xml->createElement("B2B_ECTR_FLG",'FALSE'));
+		$APP_CREA_Demande->appendChild($xml->createElement("B2B_NATURE_DEMANDE",'S')); //TODO a vérifier
+		//$APP_CREA_Demande->appendChild($xml->createElement("B2B_TYPE_DEMANDE",'E')); //TODO spcéfié inactif sur le doc, a voir ce qu'il faut en faire en définitif
+		
+		$CreateDemFinRequest->appendChild($APP_CREA_Demande);
+
+		$Infos_Apporteur = $xml->createElement("Infos_Apporteur");
+		$Infos_Apporteur->appendChild($xml->createElement("B2B_APPORTEUR_ID",'')); //TODO voir lequel on met => identifiant
+		$Infos_Apporteur->appendChild($xml->createElement("B2B_PROT_ID",'')); //TODO voir lequel on met => identifiant
+		$Infos_Apporteur->appendChild($xml->createElement("B2B_VENDEUR_ID",'')); //TODO voir lequel on met => identifiant
+		
+		$CreateDemFinRequest->appendChild($Infos_Apporteur);
+		
+		$Infos_Client = $xml->createElement("Infos_Client");
+		$Infos_Client->appendChild($xml->createElement("B2B_SIREN",($this->simulation->societe->idprof1) ? $this->simulation->societe->idprof1 : $this->simulation->societe->array_options['options_other_siren'] ));
+		
+		$CreateDemFinRequest->appendChild($Infos_Client);
+		
+		$Infos_Financieres = $xml->createElement("Infos_Financieres");
+		if($this->simulation->opt_mode_reglement == 'PRE') $mode_reglement = 'AP';
+		else $mode_reglement = $this->simulation->opt_mode_reglement;
+		$Infos_Financieres->appendChild($xml->createElement("B2B_MODPAIE",$mode_reglement));
+		$Infos_Financieres->appendChild($xml->createElement("B2B_MINERVAFPID",'')); //TODO Transmis par GE
+		if($this->simulation->opt_terme == 0) $terme = '2';
+		else $terme = $this->simulation->opt_terme;
+		$Infos_Financieres->appendChild($xml->createElement("B2B_TERME",$terme));
+		
+		$CreateDemFinRequest->appendChild($Infos_Financieres);
+		
+		$Infos_Materiel = $xml->createElement("Infos_Materiel");
+		$Infos_Materiel->appendChild($xml->createElement("B2B_MARQMAT",'')); //TODO Transmis par GE
+		$Infos_Materiel->appendChild($xml->createElement("B2B_MT_UNIT",'')); //TODO je n'ai pas cette info dans LeaserBoard :/
+		$Infos_Materiel->appendChild($xml->createElement("B2B_QTE",'1')); //TODO vérifier au prêt de Damien
+		$Infos_Materiel->appendChild($xml->createElement("B2B_TYPMAT",'')); //TODO Transmis par GE
+		$Infos_Materiel->appendChild($xml->createElement("B2B_ETAT",'N')); //TODO vérifier au prêt de Damien
+		
+		$CreateDemFinRequest->appendChild($Infos_Materiel);
+
+		$APP_Reponse_B2B = $xml->createElement("APP_Reponse_B2B");
+		$APP_Reponse_B2B->appendChild($xml->createElement("B2B_CLIENT_ASYNC",'')); //TODO adresse d'appel auto pour MAJ statut simulation
+		
+		$CreateDemFinRequest->appendChild($APP_Reponse_B2B);
+
+		$chaine = $xml->saveXML();
+		dol_mkdir(DOL_DATA_ROOT.'/financement/XML/GE/');
+		file_put_contents(DOL_DATA_ROOT.'/financement/XML/GE/demandes/'.$name2.'.xml', $chaine);
+	}
+	
+	function _createDemandeBNP(&$PDOdb){
+		
+		$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+		$soap = new SoapClient($soapWSDL);
+		//pre($soap->__getFunctions(),true);exit;
+		
+		$TtransmettreDemandeFinancementRequest = $this->_getBNPDataTabForDemande($PDOdb);
+		
+		//pre($TtransmettreDemandeFinancementRequest,true);exit;
+		
+		$reponseDemandeFinancement = $soap->__call('transmettreDemandeFinancement',$TtransmettreDemandeFinancementRequest);
+		
+		$this->traiteBNPReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
+	}
+
+	function _consulterDemandeBNP(){
+		
+		$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+		$soap = new SoapClient($soapWSDL);
+
+		$TconsulterSuivisDemandesRequest = $this->_getBNPDataTabForConsultation();
+		
+		//pre($TconsulterSuivisDemandesRequest,true);exit;
+		
+		$TreponseSuivisDemandes = $soap->__call('transmettreDemandeFinancement',$TconsulterSuivisDemandesRequest);
+		
+		$this->traiteBNPReponseSuivisDemande($TreponseSuivisDemandes);
+	}
+	
+	function traiteBNPReponseDemandeFinancement(&$PDOdb,&$reponseDemandeFinancement){
+		
+		$this->numero_accord_leaser = $reponseDemandeFinancement->transmettreDemandeFinancementResponse->numeroDemandeProvisoire;
+		$this->save($PDOdb);
+	}
+	
+	function traiteBNPReponseSuivisDemande(&$PDOdb,&$TreponseSuivisDemandes){
+		
+		//Statut spécifique retourné par BNP
+		$TCodeStatut = array(
+			'E1' => 'OK'
+			,'E2' => 'KO'
+			,'E3' => 'WAIT'
+			,'E4' => 'SS'
+			,'E5' => 'MEL'
+		);
+		
+		foreach($TreponseSuivisDemandes->consulterSuivisDemandesResponse as $rapportSuivi){
+			if($rapportSuivi->suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
+				$this->statut = $TCodeStatut[$apportSuivi->suiviDemande->etat->codeStatutDemande];
+				$this->save($PDOdb);
+			}
+		}
+	}
+
+	function _getBNPDataTabForDemande(&$PDOdb){
+		
+		$TData = array();
+		
+		//Tableau Prescripteur
+		$TPrescripteur = array(
+			'prescripteur_id' => '' //TODO en attente de la communication par BNP
+		);
+
+		$TData['prescripteur'] = $TPrescripteur;
+		$TData['numeroDemandePartenaire'] = $this->simulation->reference;
+		//$TData['numeroDemandeProvisoire'] = '';
+		//$TData['codeFamilleMateriel'] = '';
+		
+		//Tableau Client
+		$TClient = $this->_getBNPDataTabClient($PDOdb);
+		$TData['Client'] = $TClient;
+		
+		//Tableau Matériel (Equipement)
+		/*$TMateriel = $this->_getBNPDataTabMateriel();
+		$TData['Materiel'] = $TMateriel;*/
+		
+		//Tableau Financement
+		$TFinancement = $this->_getBNPDataTabFinancement();
+		$TData['Financement'] = $TFinancement;
+		
+		/*$TPrestation = array(
+			'prestation' => array(
+				'codeTypePrestation' => ''
+				,'montantPrestation' => ''
+			)
+		);
+		$TData['Prestations'] = $TPrestation;*/
+
+		//$TData['commentairesPartenaire'] = '';
+		
+		return $TData;
+	}
+
+	function _getBNPDataTabClient(&$PDOdb){
+		global $db;
+
+		$typeClient = $this->simulation->getLabelCategorieClient();
+		if($typeClient == "administration") $codeTypeClient = 3;
+		elseif($typeClient == "entreprise") $codeTypeClient = 4;
+		else $codeTypeClient = 0; //Général
+		
+		$TClient = array(
+			'idNationalEntreprise' => $this->simulation->societe->idprof2
+			,'codeTypeClient' => $codeTypeClient
+			//,'codeFormeJuridique' => ''
+			//,'raisonSociale' => ''
+			//,'specificiteClientPays' => array(
+				//'specificiteClientFrance' => array(
+					//'dirigeant' => array(
+						//'codeCivilite' => ''
+						//,'nom' => ''
+						//,'prenom' => ''
+						//,'dateNaissance' => ''
+					//)
+				//)
+			//)
+			//,'adresse' => array(
+				//'adresse' => ''
+				//,'adresseComplement' => ''
+				//,'codePostal' => ''
+				//,'Ville' => ''
+			//)
+		);
+		
+		return $TClient;
+	}
+
+	function _getBNPDataTabMateriel(){
+		
+		$TMateriel = array(
+			'codeMateriel' => ''
+			,'codeEtatMateriel' => ''
+			,'prixDeVente' => ''
+			,'prixTarif' => ''
+			,'anneeFabrication' => ''
+			,'codeMarque' => ''
+			,'type' => ''
+			,'modele' => ''
+			,'dateDeMiseEnCirculation' => ''
+			,'nombreHeuresUtilisation' => ''
+			,'kilometrage' => ''
+		);
+		
+		return $TMateriel;
+	}
+
+	function _getBNPDataTabFinancement(){
+		
+		$TFinancement = array(
+			'codeTypeCalcul' => 'M' //TODO vérifier que c'est bien toujours 'Recherche montant financé'
+			//,'typeFinancement' => array(
+				//'codeProduitFinancier' => ''
+				//,'codeProduitCommercial' => ''
+			//)
+			,'codeBareme' => '' //TODO récupérer la grille de barême (8 barêmes différents)
+			//,'montantFinance' => ''
+			//,'codeTerme' => ''
+			//,'valeurResiduelle' => array(
+				//'montant'=> ''
+				//,'pourcentage'=>''
+				//,'periodicite'=>''
+			//)
+			//,'presenceFranchiseDeLoyer' => ''
+			//,'paliersDeLoyer' => array(
+				//'palierDeLoyer' => array(
+					//'nombreDeLoyers' => ''
+					//,'periodicite' => ''
+					//,'montantLoyers' => ''
+					//,'poidsDuPalier' => ''
+				//)
+			//)
+		);
+		
+		return $TFinancement;
+	}
+
+	function _getBNPDataTabForConsultation(){
+		
+		$TData = array();
+		
+		//Tableau Prescripteur
+		$TPrescripteur = array(
+			'prescripteur_id' => ''
+		);
+		
+		$TData['prescripteur'] = $TPrescripteur;
+		
+		//Tableau Numéro demande
+		$TNumerosDemande = array(
+			'numeroIdentifiantDemande' => array(
+				'numeroDemandeDefinitif' => ''
+				,'numeroDemandeProvisoire' => ''
+			)
+		);
+		
+		$TData['numerosDemande'] = $TNumerosDemande;
+		
+		//Tableau Rapport Suivi
+		$TRapportSuivi = $this->_getBNPDataTabRapportSuivi();
+
+		$TData['rapportSuivi'] = $TRapportSuivi;
+
+		return $TData;
+	}
+
+	function _getBNPDataTabRapportSuivi(){
+		
+		$TRapportSuivi = array(
+			'suiviDemande'=>$this->__getBNPDataTabSuiviDemande()
+			,'demandeNonTrouve' => array(
+				'numeroDemandeDefinitif' => ''
+				,'numeroDemandeDefinitif' => ''
+			)
+		);
+		
+		return $TRapportSuivi;
+	}
+	
+	function __getBNPDataTabSuiviDemande(){
+			
+		$TSuiviDemande = array(
+				'numeroDemandeProvisoire' => ''
+				,'numeroDemandeDefinitif' => ''
+				,'etat' => array(
+					'codeStatutDemande' => ''
+					,'libelleStatutDemande' => ''
+					//,'situationAu' => ''
+				)
+				,'client' => array(
+					'raisonSociale' => ''
+				)
+				//,'financement' => array(
+					//'montantFinance' => ''
+					//,'paliersDeLoyer' => array(
+						//'palierDeLoyer'=> array(
+							//'montantLoyers' => ''
+						//)
+					//)
+				//)
+				//,'demandeInformationComplementaires' => ''
+		);
+		
+		return $TSuiviDemande;
 	}
 }
 
