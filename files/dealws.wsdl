@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:sch="http://www.ge.com/capital/eef/france/extranet/service/wsdemande/document" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://www.ge.com/capital/eef/france/extranet/service/wsdemande/process" targetNamespace="http://www.ge.com/capital/eef/france/extranet/service/wsdemande/process">
+<wsdl:import location="b2b.xsd" namespace="http://www.ge.com/capital/eef/france/extranet/service/wsdemande/document"/>
+<wsdl:message name="ReturnRespDemFinResponse">
+<wsdl:part element="sch:ReturnRespDemFinResponse" name="ReturnRespDemFinResponse"/>
+</wsdl:message>
+<wsdl:message name="UpdateDemFinRequest">
+<wsdl:part element="sch:UpdateDemFinRequest" name="UpdateDemFinRequest"/>
+</wsdl:message>
+<wsdl:message name="GetListDemFinRequest">
+<wsdl:part element="sch:GetListDemFinRequest" name="GetListDemFinRequest"/>
+</wsdl:message>
+<wsdl:message name="FinalDemFinRequest">
+<wsdl:part element="sch:FinalDemFinRequest" name="FinalDemFinRequest"/>
+</wsdl:message>
+<wsdl:message name="PreCalculResponse">
+<wsdl:part element="sch:PreCalculResponse" name="PreCalculResponse"/>
+</wsdl:message>
+<wsdl:message name="PreCalculRequest">
+<wsdl:part element="sch:PreCalculRequest" name="PreCalculRequest"/>
+</wsdl:message>
+<wsdl:message name="ReturnRespDemFinRequest">
+<wsdl:part element="sch:ReturnRespDemFinRequest" name="ReturnRespDemFinRequest"/>
+</wsdl:message>
+<wsdl:message name="DeleteDemFinRequest">
+<wsdl:part element="sch:DeleteDemFinRequest" name="DeleteDemFinRequest"/>
+</wsdl:message>
+<wsdl:message name="CancelDemFinRequest">
+<wsdl:part element="sch:CancelDemFinRequest" name="CancelDemFinRequest"/>
+</wsdl:message>
+<wsdl:message name="CreateDemFinRequest">
+<wsdl:part element="sch:CreateDemFinRequest" name="CreateDemFinRequest"/>
+</wsdl:message>
+<wsdl:message name="GetSirenRequest">
+<wsdl:part element="sch:GetSirenRequest" name="GetSirenRequest"/>
+</wsdl:message>
+<wsdl:message name="GetSirenResponse">
+<wsdl:part element="sch:GetSirenResponse" name="GetSirenResponse"/>
+</wsdl:message>
+<wsdl:message name="UploadDocDemRequest">
+<wsdl:part element="sch:UploadDocDemRequest" name="UploadDocDemRequest"/>
+</wsdl:message>
+<wsdl:message name="GetCotationOARequest">
+<wsdl:part element="sch:GetCotationOARequest" name="GetCotationOARequest"/>
+</wsdl:message>
+<wsdl:message name="GetCotationOAResponse">
+<wsdl:part element="sch:GetCotationOAResponse" name="GetCotationOAResponse"/>
+</wsdl:message>
+<wsdl:message name="SetValidationOARequest">
+<wsdl:part element="sch:SetValidationOARequest" name="SetValidationOARequest"/>
+</wsdl:message>
+<wsdl:message name="SetValidationOAResponse">
+<wsdl:part element="sch:SetValidationOAResponse" name="SetValidationOAResponse"/>
+</wsdl:message>
+<wsdl:portType name="WSDemande">
+<!--
+
+		<wsdl:operation name="ReturnRespDemFin">
+			<wsdl:input message="tns:ReturnRespDemFinRequest" name="ReturnRespDemFinRequest" />
+			<wsdl:output message="tns:ReturnRespDemFinResponse" name="ReturnRespDemFinResponse" />
+		</wsdl:operation>
+		
+-->
+<wsdl:operation name="PreCalcul">
+<wsdl:input message="tns:PreCalculRequest" name="PreCalculRequest"/>
+<wsdl:output message="tns:PreCalculResponse" name="PreCalculResponse"/>
+</wsdl:operation>
+<wsdl:operation name="FinalDemFin">
+<wsdl:input message="tns:FinalDemFinRequest" name="FinalDemFinRequest"/>
+</wsdl:operation>
+<wsdl:operation name="GetListDemFin">
+<wsdl:input message="tns:GetListDemFinRequest" name="GetListDemFinRequest"/>
+</wsdl:operation>
+<wsdl:operation name="CreateDemFin">
+<wsdl:input message="tns:CreateDemFinRequest" name="CreateDemFinRequest"/>
+<wsdl:output message="tns:ReturnRespDemFinResponse" name="ReturnRespDemFinResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetSiren">
+<wsdl:input message="tns:GetSirenRequest" name="GetSirenRequest"/>
+<wsdl:output message="tns:GetSirenResponse" name="GetSirenResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UploadDocDem">
+<wsdl:input message="tns:UploadDocDemRequest" name="UploadDocDemRequest"/>
+</wsdl:operation>
+<wsdl:operation name="DeleteDemFin">
+<wsdl:input message="tns:DeleteDemFinRequest" name="DeleteDemFinRequest"/>
+<wsdl:output message="tns:ReturnRespDemFinResponse" name="DeleteDemFinResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CancelDemFin">
+<wsdl:input message="tns:CancelDemFinRequest" name="CancelDemFinRequest"/>
+</wsdl:operation>
+<wsdl:operation name="UpdateDemFin">
+<wsdl:input message="tns:UpdateDemFinRequest" name="UpdateDemFinRequest"/>
+<wsdl:output message="tns:ReturnRespDemFinResponse" name="UpdateDemFinResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetCotationOA">
+<wsdl:input message="tns:GetCotationOARequest" name="GetCotationOARequest"/>
+<wsdl:output message="tns:GetCotationOAResponse" name="GetCotationOAResponse"/>
+</wsdl:operation>
+<wsdl:operation name="SetValidationOA">
+<wsdl:input message="tns:SetValidationOARequest" name="SetValidationOARequest"/>
+<wsdl:output message="tns:SetValidationOAResponse" name="SetValidationOAResponse"/>
+</wsdl:operation>
+</wsdl:portType>
+<wsdl:binding name="WSDemandeSoap11" type="tns:WSDemande">
+<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+<!--
+
+		<wsdl:operation name="ReturnRespDemFin">
+			<soap:operation soapAction="" />
+			<wsdl:input name="ReturnRespDemFinRequest">
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output name="ReturnRespDemFinResponse">
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		
+-->
+<wsdl:operation name="PreCalcul">
+<soap:operation soapAction=""/>
+<wsdl:input name="PreCalculRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="PreCalculResponse">
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="FinalDemFin">
+<soap:operation soapAction=""/>
+<wsdl:input name="FinalDemFinRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+</wsdl:operation>
+<wsdl:operation name="GetListDemFin">
+<soap:operation soapAction=""/>
+<wsdl:input name="GetListDemFinRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+</wsdl:operation>
+<wsdl:operation name="CreateDemFin">
+<soap:operation soapAction=""/>
+<wsdl:input name="CreateDemFinRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ReturnRespDemFinResponse">
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetSiren">
+<soap:operation soapAction=""/>
+<wsdl:input name="GetSirenRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetSirenResponse">
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UploadDocDem">
+<soap:operation soapAction=""/>
+<wsdl:input name="UploadDocDemRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+</wsdl:operation>
+<wsdl:operation name="DeleteDemFin">
+<soap:operation soapAction=""/>
+<wsdl:input name="DeleteDemFinRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="DeleteDemFinResponse">
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CancelDemFin">
+<soap:operation soapAction=""/>
+<wsdl:input name="CancelDemFinRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+</wsdl:operation>
+<wsdl:operation name="UpdateDemFin">
+<soap:operation soapAction=""/>
+<wsdl:input name="UpdateDemFinRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UpdateDemFinResponse">
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetCotationOA">
+<soap:operation soapAction=""/>
+<wsdl:input name="GetCotationOARequest">
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetCotationOAResponse">
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="SetValidationOA">
+<soap:operation soapAction=""/>
+<wsdl:input name="SetValidationOARequest">
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="SetValidationOAResponse">
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:service name="WSDemandeService">
+<wsdl:port binding="tns:WSDemandeSoap11" name="WSDemandeSoap11">
+<soap:address location="https://minervademouat.fr/imanageB2B/ws/service/WSDemande"/>
+</wsdl:port>
+</wsdl:service>
+</wsdl:definitions>

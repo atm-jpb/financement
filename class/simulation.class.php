@@ -1225,7 +1225,7 @@ class TSimulationSuivi extends TObjetStd {
 		$TData['prescripteur'] = $TPrescripteur;
 		$TData['numeroDemandePartenaire'] = $this->simulation->reference;
 		//$TData['numeroDemandeProvisoire'] = '';
-		$TData['codeFamilleMateriel'] = 'H'; //TODO H = Bureautique OU T = Informatique, Comment on le détermine?
+		$TData['codeFamilleMateriel'] = 'H'; //H = Bureautique OU T = Informatique, BUREAUTIQUE par défaut car score uniquement pour du bureautique
 		
 		//Tableau Client
 		$TClient = $this->_getBNPDataTabClient($PDOdb);
@@ -1307,14 +1307,31 @@ class TSimulationSuivi extends TObjetStd {
 
 	function _getBNPDataTabFinancement(&$TData){
 		
-		$codeFinancier = '';
-		if($this->simulation->type_financement == 'FINANCIERE') $codeFinancier = '021';
-		if($this->simulation->type_financement == 'MANDATEE') $codeFinancier = '024';
-		
-		$codeCommercial = '02'; //TODO a déterminer 02 = ''; 23 = Top Full; 2Q = Secteur Public
+		$codeCommercial = '02'; //02 par défaut; 23 = Top Full; 2Q = Secteur Public
+		$codeFinancier = $codeTypeCalcul = '';
+		if($this->simulation->type_financement == 'FINANCIERE'){
+			$codeFinancier = '021';
+			$codeTypeCalcul = 'M';
+			if($this->simulation->getLabelCategorieClient() == 'administration'){
+				$codeCommercial = '2Q';
+			}
+			elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
+				$codeCommercial = '23';
+			}
+		}
+		if($this->simulation->type_financement == 'MANDATEE'){
+			$codeFinancier = '024';
+			$codeTypeCalcul = 'L';
+			if($this->simulation->getLabelCategorieClient() == 'administration'){
+				$codeCommercial = '2Q';
+			}
+			elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
+				$codeCommercial = '23';
+			}
+		}
 		
 		$TFinancement = array(
-			'codeTypeCalcul' => 'M' //TODO vérifier que c'est bien toujours 'Recherche montant financé'
+			'codeTypeCalcul' => $codeTypeCalcul
 			,'typeFinancement' => array(
 				'codeProduitFinancier' => $codeFinancier //021 = Location Financière ; 024 = Location mantadée
 				,'codeProduitCommercial' => $codeCommercial 
