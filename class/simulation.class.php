@@ -1225,7 +1225,7 @@ class TSimulationSuivi extends TObjetStd {
 		$TData['prescripteur'] = $TPrescripteur;
 		$TData['numeroDemandePartenaire'] = $this->simulation->reference;
 		//$TData['numeroDemandeProvisoire'] = '';
-		//$TData['codeFamilleMateriel'] = '';
+		$TData['codeFamilleMateriel'] = 'H'; //TODO H = Bureautique OU T = Informatique, Comment on le détermine?
 		
 		//Tableau Client
 		$TClient = $this->_getBNPDataTabClient($PDOdb);
@@ -1236,7 +1236,7 @@ class TSimulationSuivi extends TObjetStd {
 		$TData['Materiel'] = $TMateriel;*/
 		
 		//Tableau Financement
-		$TFinancement = $this->_getBNPDataTabFinancement();
+		$TFinancement = $this->_getBNPDataTabFinancement($TData);
 		$TData['Financement'] = $TFinancement;
 		
 		/*$TPrestation = array(
@@ -1305,16 +1305,22 @@ class TSimulationSuivi extends TObjetStd {
 		return $TMateriel;
 	}
 
-	function _getBNPDataTabFinancement(){
+	function _getBNPDataTabFinancement(&$TData){
+		
+		$codeFinancier = '';
+		if($this->simulation->type_financement == 'FINANCIERE') $codeFinancier = '021';
+		if($this->simulation->type_financement == 'MANDATEE') $codeFinancier = '024';
+		
+		$codeCommercial = '02'; //TODO a déterminer 02 = ''; 23 = Top Full; 2Q = Secteur Public
 		
 		$TFinancement = array(
 			'codeTypeCalcul' => 'M' //TODO vérifier que c'est bien toujours 'Recherche montant financé'
-			//,'typeFinancement' => array(
-				//'codeProduitFinancier' => ''
-				//,'codeProduitCommercial' => ''
-			//)
-			,'codeBareme' => '' //TODO récupérer la grille de barême (8 barêmes différents)
-			//,'montantFinance' => ''
+			,'typeFinancement' => array(
+				'codeProduitFinancier' => $codeFinancier //021 = Location Financière ; 024 = Location mantadée
+				,'codeProduitCommercial' => $codeCommercial 
+			)
+			,'codeBareme' => $this->_getBNPBareme($TData,$codeCommercial) //récupérer la grille de barême (8 barêmes différents)
+			,'montantFinance' => $this->simulation->montant
 			//,'codeTerme' => ''
 			//,'valeurResiduelle' => array(
 				//'montant'=> ''
@@ -1333,6 +1339,55 @@ class TSimulationSuivi extends TObjetStd {
 		);
 		
 		return $TFinancement;
+	}
+	
+	//CF drive -> Barème pour webservice CPRO.xlsx
+	function _getBNPBareme(&$TData,$codeCommercial){
+		$codeBareme = '';
+		
+		if($TData['codeFamilleMateriel'] == 'H'){ // => BUREAUTIQUE
+			if($this->simulation->type_financement == 'FINANCIERE'){
+				switch ($codeCommercial) {
+					case '02': // = ''
+							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
+								$codeBareme = 0828;
+							}
+							elseif($this->simulation->opt_periodicite == 'MOIS'){
+								$codeBareme = 4028;
+							}
+						break;
+					case '23': // = Top Full
+							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
+								$codeBareme = 4049;
+							}
+							elseif($this->simulation->opt_periodicite == 'MOIS'){
+								$codeBareme = 4050;
+							}
+						break;
+					case '2Q': // = Secteur Public
+							$codeBareme = 4051;
+						break;
+					default:
+						
+						break;
+				}
+			}
+			elseif($this->simulation->type_financement == 'MANDATEE'){
+				$codeBareme = 4046;
+			}
+		}
+		elseif($TData['codeFamilleMateriel'] == 'T'){ // => INFORMATIQUE
+			if($this->simulation->type_financement == 'FINANCIERE'){ //Uniquement FINANCIERE pour INFORMATIQUE
+				if($this->simulation->opt_periodicite == 'TRIMESTRE'){
+					$codeBareme = 4043;
+				}
+				elseif($this->simulation->opt_periodicite == 'MOIS'){
+					$codeBareme = 4048;
+				}
+			}
+		}
+		
+		return $codeBareme;
 	}
 
 	function _getBNPDataTabForConsultation(){
