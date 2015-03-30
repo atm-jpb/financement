@@ -1171,7 +1171,12 @@ class TSimulationSuivi extends TObjetStd {
 
 	function _consulterDemandeBNP(){
 		
-		$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+		if(BNP_TEST){
+			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+		}
+		else{
+			$soapWSDL = BNP_WSDL_URL;
+		}
 		$soap = new SoapClient($soapWSDL);
 
 		$TconsulterSuivisDemandesRequest = $this->_getBNPDataTabForConsultation();
@@ -1214,7 +1219,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		//Tableau Prescripteur
 		$TPrescripteur = array(
-			'prescripteur_id' => '' //TODO en attente de la communication par BNP
+			'prescripteur_id' => BNP_PRESCRIPTEUR_ID //en attente de la communication par BNP
 		);
 
 		$TData['prescripteur'] = $TPrescripteur;
@@ -1336,7 +1341,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		//Tableau Prescripteur
 		$TPrescripteur = array(
-			'prescripteur_id' => ''
+			'prescripteur_id' => BNP_PRESCRIPTEUR_ID
 		);
 		
 		$TData['prescripteur'] = $TPrescripteur;
