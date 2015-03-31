@@ -46,7 +46,7 @@ foreach($TData as $obj) {
 		
 		// Permet d'afficher la facture en face de la bonne échéance, le numéro de facture fournisseur finissant par /XX (XX est le numéro d'échéance)
 		$TTmp = explode('/', $fact->ref_supplier);
-		$echeance = array_pop($TTmp) - 1;
+		$echeance = array_pop($TTmp);
 		$fact->echeance = $echeance;
 
 		$dossier->TFactureFournisseur[] = $fact;
@@ -57,8 +57,8 @@ foreach($TData as $obj) {
 	//Objectif : peupler proprement les champs date_debut_periode et date_fin_periode
 	foreach($dossier->TFactureFournisseur as $facture){
 		
-		$date_debut_periode = $dossier->getDateDebutPeriode($facture->echeance,'LEASER');
-		$date_fin_periode = $dossier->getDateFinPeriode($facture->echeance);
+		$date_debut_periode = $dossier->getDateDebutPeriode($facture->echeance-1,'LEASER');
+		$date_fin_periode = $dossier->getDateFinPeriode($facture->echeance-1);
 		
 		/*echo date('d/m/Y',$dossier->date_debut)." ".$dossier->financementLeaser->calage.'<br>';
 		echo $echeance.'<br>';
