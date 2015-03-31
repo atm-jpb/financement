@@ -255,12 +255,12 @@
 				$dossier->load($PDOdb, $idDossier);
 				$dossier->financementLeaser->setEcheance(-1, false);
 				
-				$Techeance = explode('/', $fac->facnumber);
+				$Techeance = explode('/', $fact->facnumber);
 				$echeance = array_pop($Techeance);
 				
 				//MAJ dates période facture
-				$date_debut_periode = $dossier->getDateDebutPeriode($echeance,'LEASER');
-				$date_fin_periode = $dossier->getDateFinPeriode($echeance);
+				$date_debut_periode = $dossier->getDateDebutPeriode($echeance-1,'LEASER');
+				$date_fin_periode = $dossier->getDateFinPeriode($echeance-1);
 
 				$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$fact->id);
 				
