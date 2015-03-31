@@ -1409,7 +1409,7 @@ class TFin_financement extends TObjetStd {
 		$fact->validate($user);
 		
 		$echeance = explode('/',$origine->facnumber);
-		$echeance = $echeance[1];
+		$echeance = array_pop($echeance);
 		
 		//MAJ dates période facture
 		$dossier = new TFin_dossier;
