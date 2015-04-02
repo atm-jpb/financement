@@ -1411,6 +1411,8 @@ class TSimulationSuivi extends TObjetStd {
 			}
 		}
 		
+		$fin_temp = new TFin_financement;
+		
 		$TFinancement = array(
 			'codeTypeCalcul' => $codeTypeCalcul
 			,'typeFinancement' => array(
@@ -1426,14 +1428,14 @@ class TSimulationSuivi extends TObjetStd {
 				//,'periodicite'=>''
 			//)
 			//,'presenceFranchiseDeLoyer' => ''
-			//,'paliersDeLoyer' => array(
-				//'palierDeLoyer' => array(
-					//'nombreDeLoyers' => ''
-					//,'periodicite' => ''
+			,'paliersDeLoyer' => array(
+				'palierDeLoyer' => array(
+					'nombreDeLoyers' => $this->simulation->duree
+					,'periodicite' => $fin_temp->TPeriodicite[$this->simulation->opt_periodicite]
 					//,'montantLoyers' => ''
 					//,'poidsDuPalier' => ''
-				//)
-			//)
+				)
+			)
 		);
 		
 		return $TFinancement;
