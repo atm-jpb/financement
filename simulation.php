@@ -150,7 +150,7 @@ if(!empty($action)) {
 				}
 			}
 
-			_fiche($ATMdb, $simulation,'edit');
+			_fiche($ATMdb, $simulation,'view');
 			break;
 		
 		case 'save':

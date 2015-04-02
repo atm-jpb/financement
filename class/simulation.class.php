@@ -1241,7 +1241,7 @@ class TSimulationSuivi extends TObjetStd {
 		$soap = new SoapClient($soapWSDL);
 		//pre($soap->__getFunctions(),true);exit;
 		
-		$TtransmettreDemandeFinancementRequest = $this->_getBNPDataTabForDemande($PDOdb);
+		$TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] = $this->_getBNPDataTabForDemande($PDOdb);
 		
 		//pre($TtransmettreDemandeFinancementRequest,true);exit;
 		
@@ -1300,7 +1300,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		//Tableau Prescripteur
 		$TPrescripteur = array(
-			'prescripteur_id' => BNP_PRESCRIPTEUR_ID //en attente de la communication par BNP
+			'prescripteurId' => BNP_PRESCRIPTEUR_ID //en attente de la communication par BNP
 		);
 
 		$TData['prescripteur'] = $TPrescripteur;
@@ -1310,7 +1310,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		//Tableau Client
 		$TClient = $this->_getBNPDataTabClient($PDOdb);
-		$TData['Client'] = $TClient;
+		$TData['client'] = $TClient;
 		
 		//Tableau Matériel (Equipement)
 		/*$TMateriel = $this->_getBNPDataTabMateriel();
@@ -1318,7 +1318,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		//Tableau Financement
 		$TFinancement = $this->_getBNPDataTabFinancement($TData);
-		$TData['Financement'] = $TFinancement;
+		$TData['financement'] = $TFinancement;
 		
 		/*$TPrestation = array(
 			'prestation' => array(

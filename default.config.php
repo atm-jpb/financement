@@ -62,11 +62,11 @@
 	
 	define('BASE_TEST', 1);
 	
-	define('BNP_TEST',1);
+	define('BNP_TEST',0);
 	define('BNP_PRESCRIPTEUR_ID','FRAFT03559');
-	define('BNP_WSDL_URL','https://leaseoffersu.leasingsolutions.bnpparibas.fr:4444/ExtranetEuroWS/services/demandeDeFinancementService');
+	define('BNP_WSDL_URL','https://leaseoffersu.leasingsolutions.bnpparibas.fr:4444/ExtranetEuroWS/services/demandeDeFinancementService/demandeDeFinancementWSDLv1.wsdl');
 	
-	define('GE_TEST',1);
+	define('GE_TEST',0);
 	define('GE_WSDL_URL','https://minervademouat.fr/imanageB2B/ws/dealws.wsdl');
 	
 	
