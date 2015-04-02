@@ -1313,8 +1313,8 @@ class TSimulationSuivi extends TObjetStd {
 		$TData['client'] = $TClient;
 		
 		//Tableau Matériel (Equipement)
-		/*$TMateriel = $this->_getBNPDataTabMateriel();
-		$TData['Materiel'] = $TMateriel;*/
+		$TMateriel = $this->_getBNPDataTabMateriel();
+		$TData['materiel'] = $TMateriel;
 		
 		//Tableau Financement
 		$TFinancement = $this->_getBNPDataTabFinancement($TData);
