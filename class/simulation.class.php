@@ -1342,7 +1342,7 @@ class TSimulationSuivi extends TObjetStd {
 		else $codeTypeClient = 0; //Général
 		
 		$TClient = array(
-			'idNationalEntreprise' => $this->simulation->societe->idprof2
+			'idNationnalEntreprise' => $this->simulation->societe->idprof2
 			,'codeTypeClient' => $codeTypeClient
 			//,'codeFormeJuridique' => ''
 			//,'raisonSociale' => ''
