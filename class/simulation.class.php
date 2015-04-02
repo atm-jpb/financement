@@ -511,7 +511,8 @@ class TSimulation extends TObjetStd {
 		return true;
 	}
 	
-	// TODO : Revoir validation financement avec les règles finales
+	// TODO : Revoir validation financement avec les règles finales 
+	// Geoffrey to Maxime K => TOUJOURS D'ACTU ?
 	function demande_accord() {
 		global $conf;
 		
@@ -1069,6 +1070,7 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	function _sendDemandeAuto(&$PDOdb){
+		global $db;
 		
 		$this->simulation->societe = new Societe($db);
 		$this->simulation->societe->fetch($this->simulation->fk_soc);
@@ -1093,70 +1095,149 @@ class TSimulationSuivi extends TObjetStd {
 	
 	function _createDemandeGE(&$PDOdb){
 		
-		$xml = new DOMDocument('1.0','UTF-8');
-		$xml->formatOutput = true;
-
-		$CreateDemFinRequest = $xml->createElement("CreateDemFinRequest");
-		$CreateDemFinRequest = $xml->appendChild($CreateDemFinRequest);
-
-		$APP_Infos_B2B = $xml->createElement("APP_Infos_B2B");
-		$APP_Infos_B2B->appendChild($xml->createElement("B2B_CLIENT",'')); //TODO en attente communication id by GE
-		$APP_Infos_B2B->appendChild($xml->createElement("B2B_TIMESTAMP",time()));
-
-		$CreateDemFinRequest->appendChild($APP_Infos_B2B);
-
-		$APP_CREA_Demande = $xml->createElement("APP_CREA_Demande");
-		$APP_CREA_Demande->appendChild($xml->createElement("B2B_ECTR_FLG",'FALSE'));
-		$APP_CREA_Demande->appendChild($xml->createElement("B2B_NATURE_DEMANDE",'S')); //TODO a vérifier
-		//$APP_CREA_Demande->appendChild($xml->createElement("B2B_TYPE_DEMANDE",'E')); //TODO spcéfié inactif sur le doc, a voir ce qu'il faut en faire en définitif
+		if(GE_TEST){
+			$soapWSDL = dol_buildpath('/financement/files/dealws.wsdl',2);
+		}
+		else{
+			$soapWSDL = GE_WSDL_URL;
+		}
 		
-		$CreateDemFinRequest->appendChild($APP_CREA_Demande);
+		$soap = new SoapClient($soapWSDL);
+		pre($soap->__getTypes(),true);exit;
 
-		$Infos_Apporteur = $xml->createElement("Infos_Apporteur");
-		$Infos_Apporteur->appendChild($xml->createElement("B2B_APPORTEUR_ID",'')); //TODO voir lequel on met => identifiant
-		$Infos_Apporteur->appendChild($xml->createElement("B2B_PROT_ID",'')); //TODO voir lequel on met => identifiant
-		$Infos_Apporteur->appendChild($xml->createElement("B2B_VENDEUR_ID",'')); //TODO voir lequel on met => identifiant
+		$TtransmettreDemandeFinancementRequest = $this->_getGEDataTabForDemande($PDOdb);
+
+		$reponseDemandeFinancement = $soap->__call('CreateDemFin',$TtransmettreDemandeFinancementRequest);
 		
-		$CreateDemFinRequest->appendChild($Infos_Apporteur);
+		$this->traiteGEReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
+
+	}
+	
+	function traiteGEReponseDemandeFinancement(&$PDOdb,&$reponseDemandeFinancement){
+		//TODO
+	}
+
+	function _getGEDataTabForDemande(&$PDOdb){
 		
-		$Infos_Client = $xml->createElement("Infos_Client");
-		$Infos_Client->appendChild($xml->createElement("B2B_SIREN",($this->simulation->societe->idprof1) ? $this->simulation->societe->idprof1 : $this->simulation->societe->array_options['options_other_siren'] ));
+		$TData = array();
+
+		$TAPP_Infos_B2B = array(
+			'B2B_CLIENT' => 'CPRO0001' //communication id by GE
+			,'B2B_TIMESTAMP' => new date('c')
+		);
+
+		$TData['APP_Infos_B2B'] = $TAPP_Infos_B2B;
+
+		$TAPP_CREA_Demande = array(
+			'B2B_ECTR_FLG' => FALSE
+			,'B2B_NATURE_DEMANDE' => 'S' //TODO a vérifier => 'S pour standard, 'P' ou 'A'
+			,'B2B_TYPE_DEMANDE' => 'E' //TODO spcéfié inactif sur le doc, a voir ce qu'il faut en faire en définitif
+		);
+
+		$TData['APP_CREA_Demande'] = $TAPP_CREA_Demande;
 		
-		$CreateDemFinRequest->appendChild($Infos_Client);
 		
-		$Infos_Financieres = $xml->createElement("Infos_Financieres");
+		
+		$TInfos_Apporteur = array(
+			//voir lequel on met => TODO
+			//C'PRO VALENCE-C PRO - CESSION DE CONTRATS : 121326001 / 0251
+			//C'PRO VALENCE-LOCATION MANDATEE – CPRO : 121326001 / 0240
+			//CPRO TELECOM-C PRO - CESSION DE CONTRATS : 672730000 /0251
+			//C PRO INFORMATIQUE-C PRO - CESSION DE CONTRATS : 470943000 / 0251
+			'B2B_APPORTEUR_ID' => '121326001'
+			,'B2B_PROT_ID' => '0251'
+			//voir lequel on met => TODO
+			//DFERRAZZI / Test321test / A40967000 
+			//VCORBEAUX / Test321test / 959725000
+			,'B2B_VENDEUR_ID' => 'A40967000'
+		);
+
+		$TData['Infos_Apporteur'] = $TInfos_Apporteur;
+
+		$TInfos_Client = array(
+			'B2B_SIREN' => ($this->simulation->societe->idprof1) ? $this->simulation->societe->idprof1 : $this->simulation->societe->array_options['options_other_siren']
+		);
+
+		$TData['Infos_Client'] = $TInfos_Client;
+		
 		if($this->simulation->opt_mode_reglement == 'PRE') $mode_reglement = 'AP';
 		else $mode_reglement = $this->simulation->opt_mode_reglement;
-		$Infos_Financieres->appendChild($xml->createElement("B2B_MODPAIE",$mode_reglement));
-		$Infos_Financieres->appendChild($xml->createElement("B2B_MINERVAFPID",'')); //TODO Transmis par GE
-		if($this->simulation->opt_terme == 0) $terme = '2';
-		else $terme = $this->simulation->opt_terme;
-		$Infos_Financieres->appendChild($xml->createElement("B2B_TERME",$terme));
 		
-		$CreateDemFinRequest->appendChild($Infos_Financieres);
+		if($this->simulation->opt_terme == 0) $terme = 2;
+		else $terme = (int)$this->simulation->opt_terme;
 		
-		$Infos_Materiel = $xml->createElement("Infos_Materiel");
-		$Infos_Materiel->appendChild($xml->createElement("B2B_MARQMAT",'')); //TODO Transmis par GE
-		$Infos_Materiel->appendChild($xml->createElement("B2B_MT_UNIT",'')); //TODO je n'ai pas cette info dans LeaserBoard :/
-		$Infos_Materiel->appendChild($xml->createElement("B2B_QTE",'1')); //TODO vérifier au prêt de Damien
-		$Infos_Materiel->appendChild($xml->createElement("B2B_TYPMAT",'')); //TODO Transmis par GE
-		$Infos_Materiel->appendChild($xml->createElement("B2B_ETAT",'N')); //TODO vérifier au prêt de Damien
+		//TODO Transmis par GE => Voir lequel on met
+		//Crédit Bail (Hors protocole Location Mandatée): 975
+		//LOA(Hors protocole Location Mandatée) : 979
+		//Location Financière(Hors protocole Location Mandatée) : 983
+		//Location Evolutive(Hors protocole Location Mandatée) : 991
+		//Location Mandatée (pour Protocole Location Mandatée uniquement) : 4926
+		$minervaAFPid = '983';
+		if($this->simulation->type_financement == 'MANDATEE') $minervaAFPid = '4926';
 		
-		$CreateDemFinRequest->appendChild($Infos_Materiel);
+		$TInfos_Financieres = array(
+			'B2B_MODPAIE' => $mode_reglement
+			,'B2B_MINERVAFPID' => $minervaAFPid
+			,'B2B_TERME' => $terme
+		);
+		
+		$TData['Infos_Financieres'] = $TInfos_Financieres;
+		
+		$TMarqueMatGE=array(
+			'CANON' => 'CAN'
+			,'DELL' => 'DEL'
+			,'KONICA MINOLTA' => 'KM'
+			,'KYOCERA' => 'KYO'
+			,'LEXMARK' => 'LEX'
+			,'HEWLETT-PACKARD' => 'HP'
+			,'OCE' => 'OCE'
+			,'OKI' => 'OKI'
+			,'SAMSUNG' => 'SAM'
+			,'TOSHIBA' => 'TOS'
+		);
+		
+		$TTypeMatGE=array(
+			'PHOTOCOPIEUR' => 'PHOTOCO'
+			,'PLIEUSE' => 'PLIEUSE'
+			,'SERVEUR' => 'PHOTOCO'
+			,'TRACEUR DE PLAN' => 'TRACPLA'
+			,'ACCESSOIRES' => 'ACCESS'
+			,'CONFIGURATION INFORMATIQUE' => 'CONFINF'
+			,'IMPRIMANTES' => 'IMPRIM'
+			,'IMPRIMANTE + DE 20P/MN SF LASER' => 'IMPRIMA'
+		);
+		
+		//TODO => comment on définit quelle valeur prendre?
+		$marqueMat = $TMarqueMatGE[$this->simulation->type_materiel];
+		$typeMat = $TTypeMatGE[$this->simulation->type_materiel];
+		
+		$TInfos_Materiel = array(
+			'B2B_MARQMAT' => $marqueMat
+			,'B2B_MT_UNIT' => (double)$this->simulation->montant //TODO je n'ai pas cette info dans LeaserBoard :/
+			,'B2B_QTE' => (double)1 //TODO vérifier au prêt de Damien
+			,'B2B_TYPMAT' => $typeMat
+			,'B2B_ETAT' => 'N' //TODO vérifier au prêt de Damien => N = neuf, O = occasion
+		);
+		
+		$TData['TInfos_Materiel'] = $TInfos_Materiel;
 
-		$APP_Reponse_B2B = $xml->createElement("APP_Reponse_B2B");
-		$APP_Reponse_B2B->appendChild($xml->createElement("B2B_CLIENT_ASYNC",'')); //TODO adresse d'appel auto pour MAJ statut simulation
+		$TAPP_Reponse_B2B = array(
+			'B2B_CLIENT_ASYNC' => '' //TODO adresse d'appel auto pour MAJ statut simulation => attend un WSDL :/
+		);
 		
-		$CreateDemFinRequest->appendChild($APP_Reponse_B2B);
-
-		$chaine = $xml->saveXML();
-		dol_mkdir(DOL_DATA_ROOT.'/financement/XML/GE/');
-		file_put_contents(DOL_DATA_ROOT.'/financement/XML/GE/demandes/'.$name2.'.xml', $chaine);
+		$TData['APP_Reponse_B2B'] = $TAPP_Reponse_B2B;
+		
+		return $TData;
 	}
 	
 	function _createDemandeBNP(&$PDOdb){
 		
-		$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+		if(BNP_TEST){
+			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+		}
+		else{
+			$soapWSDL = BNP_WSDL_URL;
+		}
 		$soap = new SoapClient($soapWSDL);
 		//pre($soap->__getFunctions(),true);exit;
 		
@@ -1171,7 +1252,12 @@ class TSimulationSuivi extends TObjetStd {
 
 	function _consulterDemandeBNP(){
 		
-		$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+		if(BNP_TEST){
+			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+		}
+		else{
+			$soapWSDL = BNP_WSDL_URL;
+		}
 		$soap = new SoapClient($soapWSDL);
 
 		$TconsulterSuivisDemandesRequest = $this->_getBNPDataTabForConsultation();
@@ -1214,13 +1300,13 @@ class TSimulationSuivi extends TObjetStd {
 		
 		//Tableau Prescripteur
 		$TPrescripteur = array(
-			'prescripteur_id' => '' //TODO en attente de la communication par BNP
+			'prescripteur_id' => BNP_PRESCRIPTEUR_ID //en attente de la communication par BNP
 		);
 
 		$TData['prescripteur'] = $TPrescripteur;
 		$TData['numeroDemandePartenaire'] = $this->simulation->reference;
 		//$TData['numeroDemandeProvisoire'] = '';
-		//$TData['codeFamilleMateriel'] = '';
+		$TData['codeFamilleMateriel'] = 'H'; //H = Bureautique OU T = Informatique, BUREAUTIQUE par défaut car score uniquement pour du bureautique
 		
 		//Tableau Client
 		$TClient = $this->_getBNPDataTabClient($PDOdb);
@@ -1231,7 +1317,7 @@ class TSimulationSuivi extends TObjetStd {
 		$TData['Materiel'] = $TMateriel;*/
 		
 		//Tableau Financement
-		$TFinancement = $this->_getBNPDataTabFinancement();
+		$TFinancement = $this->_getBNPDataTabFinancement($TData);
 		$TData['Financement'] = $TFinancement;
 		
 		/*$TPrestation = array(
@@ -1300,16 +1386,39 @@ class TSimulationSuivi extends TObjetStd {
 		return $TMateriel;
 	}
 
-	function _getBNPDataTabFinancement(){
+	function _getBNPDataTabFinancement(&$TData){
+		
+		$codeCommercial = '02'; //02 par défaut; 23 = Top Full; 2Q = Secteur Public
+		$codeFinancier = $codeTypeCalcul = '';
+		if($this->simulation->type_financement == 'FINANCIERE'){
+			$codeFinancier = '021';
+			$codeTypeCalcul = 'M';
+			if($this->simulation->getLabelCategorieClient() == 'administration'){
+				$codeCommercial = '2Q';
+			}
+			elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
+				$codeCommercial = '23';
+			}
+		}
+		if($this->simulation->type_financement == 'MANDATEE'){
+			$codeFinancier = '024';
+			$codeTypeCalcul = 'L';
+			if($this->simulation->getLabelCategorieClient() == 'administration'){
+				$codeCommercial = '2Q';
+			}
+			elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
+				$codeCommercial = '23';
+			}
+		}
 		
 		$TFinancement = array(
-			'codeTypeCalcul' => 'M' //TODO vérifier que c'est bien toujours 'Recherche montant financé'
-			//,'typeFinancement' => array(
-				//'codeProduitFinancier' => ''
-				//,'codeProduitCommercial' => ''
-			//)
-			,'codeBareme' => '' //TODO récupérer la grille de barême (8 barêmes différents)
-			//,'montantFinance' => ''
+			'codeTypeCalcul' => $codeTypeCalcul
+			,'typeFinancement' => array(
+				'codeProduitFinancier' => $codeFinancier //021 = Location Financière ; 024 = Location mantadée
+				,'codeProduitCommercial' => $codeCommercial 
+			)
+			,'codeBareme' => $this->_getBNPBareme($TData,$codeCommercial) //récupérer la grille de barême (8 barêmes différents)
+			,'montantFinance' => $this->simulation->montant
 			//,'codeTerme' => ''
 			//,'valeurResiduelle' => array(
 				//'montant'=> ''
@@ -1329,6 +1438,55 @@ class TSimulationSuivi extends TObjetStd {
 		
 		return $TFinancement;
 	}
+	
+	//CF drive -> Barème pour webservice CPRO.xlsx
+	function _getBNPBareme(&$TData,$codeCommercial){
+		$codeBareme = '';
+		
+		if($TData['codeFamilleMateriel'] == 'H'){ // => BUREAUTIQUE
+			if($this->simulation->type_financement == 'FINANCIERE'){
+				switch ($codeCommercial) {
+					case '02': // = ''
+							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
+								$codeBareme = 0828;
+							}
+							elseif($this->simulation->opt_periodicite == 'MOIS'){
+								$codeBareme = 4028;
+							}
+						break;
+					case '23': // = Top Full
+							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
+								$codeBareme = 4049;
+							}
+							elseif($this->simulation->opt_periodicite == 'MOIS'){
+								$codeBareme = 4050;
+							}
+						break;
+					case '2Q': // = Secteur Public
+							$codeBareme = 4051;
+						break;
+					default:
+						
+						break;
+				}
+			}
+			elseif($this->simulation->type_financement == 'MANDATEE'){
+				$codeBareme = 4046;
+			}
+		}
+		elseif($TData['codeFamilleMateriel'] == 'T'){ // => INFORMATIQUE
+			if($this->simulation->type_financement == 'FINANCIERE'){ //Uniquement FINANCIERE pour INFORMATIQUE
+				if($this->simulation->opt_periodicite == 'TRIMESTRE'){
+					$codeBareme = 4043;
+				}
+				elseif($this->simulation->opt_periodicite == 'MOIS'){
+					$codeBareme = 4048;
+				}
+			}
+		}
+		
+		return $codeBareme;
+	}
 
 	function _getBNPDataTabForConsultation(){
 		
@@ -1336,7 +1494,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		//Tableau Prescripteur
 		$TPrescripteur = array(
-			'prescripteur_id' => ''
+			'prescripteur_id' => BNP_PRESCRIPTEUR_ID
 		);
 		
 		$TData['prescripteur'] = $TPrescripteur;
