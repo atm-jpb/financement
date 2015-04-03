@@ -1103,11 +1103,15 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		$soap = new SoapClient($soapWSDL);
-		pre($soap->__getTypes(),true);exit;
+		//pre($soap->__getTypes(),true);exit;
 
-		$TtransmettreDemandeFinancementRequest = $this->_getGEDataTabForDemande($PDOdb);
+		$TtransmettreDemandeFinancementRequest['CreateDemFinRequest'] = $this->_getGEDataTabForDemande($PDOdb);
 
+		//pre($TtransmettreDemandeFinancementRequest,true);exit;
+		
 		$reponseDemandeFinancement = $soap->__call('CreateDemFin',$TtransmettreDemandeFinancementRequest);
+		
+		pre($reponseDemandeFinancement,true);exit;
 		
 		$this->traiteGEReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
 
@@ -1123,13 +1127,13 @@ class TSimulationSuivi extends TObjetStd {
 
 		$TAPP_Infos_B2B = array(
 			'B2B_CLIENT' => 'CPRO0001' //communication id by GE
-			,'B2B_TIMESTAMP' => new date('c')
+			,'B2B_TIMESTAMP' => date('c')
 		);
 
 		$TData['APP_Infos_B2B'] = $TAPP_Infos_B2B;
 
 		$TAPP_CREA_Demande = array(
-			'B2B_ECTR_FLG' => FALSE
+			'B2B_ECTR_FLG' => "FALSE"
 			,'B2B_NATURE_DEMANDE' => 'S' //TODO a vérifier => 'S pour standard, 'P' ou 'A'
 			,'B2B_TYPE_DEMANDE' => 'E' //TODO spcéfié inactif sur le doc, a voir ce qu'il faut en faire en définitif
 		);
@@ -1209,7 +1213,9 @@ class TSimulationSuivi extends TObjetStd {
 		
 		//TODO => comment on définit quelle valeur prendre?
 		$marqueMat = $TMarqueMatGE[$this->simulation->type_materiel];
+		//$marqueMat = ($TMarqueMatGE[$this->simulation->type_materiel]) ? $TMarqueMatGE[$this->simulation->type_materiel] : 'CAN';
 		$typeMat = $TTypeMatGE[$this->simulation->type_materiel];
+		//$typeMat = ($TTypeMatGE[$this->simulation->type_materiel]) ? $TTypeMatGE[$this->simulation->type_materiel] : 'PHOTOCO';
 		
 		$TInfos_Materiel = array(
 			'B2B_MARQMAT' => $marqueMat
@@ -1223,6 +1229,8 @@ class TSimulationSuivi extends TObjetStd {
 
 		$TAPP_Reponse_B2B = array(
 			'B2B_CLIENT_ASYNC' => '' //TODO adresse d'appel auto pour MAJ statut simulation => attend un WSDL :/
+			,'B2B_INF_EXT' => $this->simulation->reference
+			,'B2B_MODE' => 'A'
 		);
 		
 		$TData['APP_Reponse_B2B'] = $TAPP_Reponse_B2B;
@@ -1258,7 +1266,7 @@ class TSimulationSuivi extends TObjetStd {
 		else{
 			$soapWSDL = BNP_WSDL_URL;
 		}
-		$soap = new SoapClient($soapWSDL);
+		$soap = new SoapClient($soapWSDL,array('local_cert'=>"/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt"));
 
 		$TconsulterSuivisDemandesRequest = $this->_getBNPDataTabForConsultation();
 		
@@ -1496,7 +1504,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		//Tableau Prescripteur
 		$TPrescripteur = array(
-			'prescripteur_id' => BNP_PRESCRIPTEUR_ID
+			'prescripteurId' => BNP_PRESCRIPTEUR_ID
 		);
 		
 		$TData['prescripteur'] = $TPrescripteur;
@@ -1512,9 +1520,9 @@ class TSimulationSuivi extends TObjetStd {
 		$TData['numerosDemande'] = $TNumerosDemande;
 		
 		//Tableau Rapport Suivi
-		$TRapportSuivi = $this->_getBNPDataTabRapportSuivi();
+		/*$TRapportSuivi = $this->_getBNPDataTabRapportSuivi();
 
-		$TData['rapportSuivi'] = $TRapportSuivi;
+		$TData['rapportSuivi'] = $TRapportSuivi;*/
 
 		return $TData;
 	}
@@ -1528,32 +1536,32 @@ class TSimulationSuivi extends TObjetStd {
 				,'numeroDemandeDefinitif' => ''
 			)
 		);
-		
+
 		return $TRapportSuivi;
 	}
 	
 	function __getBNPDataTabSuiviDemande(){
 			
 		$TSuiviDemande = array(
-				'numeroDemandeProvisoire' => ''
-				,'numeroDemandeDefinitif' => ''
-				,'etat' => array(
-					'codeStatutDemande' => ''
-					,'libelleStatutDemande' => ''
-					//,'situationAu' => ''
-				)
-				,'client' => array(
-					'raisonSociale' => ''
-				)
-				//,'financement' => array(
-					//'montantFinance' => ''
-					//,'paliersDeLoyer' => array(
-						//'palierDeLoyer'=> array(
-							//'montantLoyers' => ''
-						//)
+			'numeroDemandeProvisoire' => ''
+			,'numeroDemandeDefinitif' => ''
+			,'etat' => array(
+				'codeStatutDemande' => ''
+				,'libelleStatutDemande' => ''
+				//,'situationAu' => ''
+			)
+			,'client' => array(
+				'raisonSociale' => ''
+			)
+			//,'financement' => array(
+				//'montantFinance' => ''
+				//,'paliersDeLoyer' => array(
+					//'palierDeLoyer'=> array(
+						//'montantLoyers' => ''
 					//)
 				//)
-				//,'demandeInformationComplementaires' => ''
+			//)
+			//,'demandeInformationComplementaires' => ''
 		);
 		
 		return $TSuiviDemande;
