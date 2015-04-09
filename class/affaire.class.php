@@ -329,7 +329,10 @@ class TFin_affaire extends TObjetStd {
 			$affaire = new  TFin_affaire;
 			$affaire->load($ATMdb, $idAffaire);
 			
-			$TAffaires[] = $affaire;
+			//Seulement les dossiers avec bon pour transfert à 'Oui'
+			if($affaire->transfert == 1){
+				$TAffaires[] = $affaire;
+			}
 		}
 	
 		return $TAffaires;
