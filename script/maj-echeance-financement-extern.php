@@ -15,7 +15,7 @@
 
 	$sql="SELECT f.rowid as 'rowid'
 	FROM ".MAIN_DB_PREFIX."fin_dossier_financement f INNER JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (f.fk_fin_dossier=d.rowid)
-	WHERE f.date_solde='0000-00-00' AND f.type='LEASER AND (f.reference != '' OR f.reference IS NOT NULL)'
+	WHERE f.date_solde='0000-00-00' AND f.type='LEASER' AND (f.reference != '' OR f.reference IS NOT NULL)
 	";
 
 	
