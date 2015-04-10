@@ -1255,16 +1255,15 @@ class TSimulationSuivi extends TObjetStd {
 		else{
 			$soapWSDL = BNP_WSDL_URL;
 		}
-		
-		$context = stream_context_create(array(
-					    'ssl' => array(
-					        'verify_peer' => false,
-					        'allow_self_signed' => true
-					    )
-					));
+
 		$soap = new SoapClient($soapWSDL,array(
 								'local_cert'=>"/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt"
-								,'stream_context' => $context
+								,'stream_context' => stream_context_create(array(
+									    'ssl' => array(
+									        'verify_peer' => false,
+									        'allow_self_signed' => true
+									    )
+									))
 								));
 		//pre($soap->__getFunctions(),true);exit;
 		
