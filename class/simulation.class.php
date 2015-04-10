@@ -1103,11 +1103,11 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		$soap = new SoapClient($soapWSDL);
-		//pre($soap->__getTypes(),true);exit;
+		pre($soap->__getTypes(),true);
 
 		$TtransmettreDemandeFinancementRequest['CreateDemFinRequest'] = $this->_getGEDataTabForDemande($PDOdb);
 
-		//pre($TtransmettreDemandeFinancementRequest,true);exit;
+		pre($TtransmettreDemandeFinancementRequest,true);
 		
 		$reponseDemandeFinancement = $soap->__call('CreateDemFin',$TtransmettreDemandeFinancementRequest);
 		
@@ -1133,7 +1133,7 @@ class TSimulationSuivi extends TObjetStd {
 		$TData['APP_Infos_B2B'] = $TAPP_Infos_B2B;
 
 		$TAPP_CREA_Demande = array(
-			'B2B_ECTR_FLG' => "FALSE"
+			'B2B_ECTR_FLG' => 0
 			,'B2B_NATURE_DEMANDE' => 'S' //TODO a vérifier => 'S pour standard, 'P' ou 'A'
 			,'B2B_TYPE_DEMANDE' => 'E' //TODO spcéfié inactif sur le doc, a voir ce qu'il faut en faire en définitif
 		);
@@ -1178,9 +1178,18 @@ class TSimulationSuivi extends TObjetStd {
 		//Location Mandatée (pour Protocole Location Mandatée uniquement) : 4926
 		$minervaAFPid = '983';
 		if($this->simulation->type_financement == 'MANDATEE') $minervaAFPid = '4926';
+
+		if($this->simulation->opt_periodicite=='TRIMESTRE')$freq=3;
+		else if($this->simulation->opt_periodicite=='SEMESTRE')$freq=6;
+		else if($this->simulation->opt_periodicite=='ANNEE')$freq=12;
+		else $freq = 1;
 		
 		$TInfos_Financieres = array(
-			'B2B_MODPAIE' => $mode_reglement
+			'B2B_DUREE' => number_format($this->simulation->duree * $freq,2,'.','')
+			,'B2B_FREQ' => number_format($freq,2,'.','')
+			,'B2B_MODPAIE' => $mode_reglement
+			,'B2B_MT_DEMANDE' => number_format($this->simulation->montant,2,'.','')
+			,'B2B_NB_ECH' => number_format($this->simulation->duree,2,'.','')
 			,'B2B_MINERVAFPID' => $minervaAFPid
 			,'B2B_TERME' => $terme
 		);
@@ -1212,15 +1221,15 @@ class TSimulationSuivi extends TObjetStd {
 		);
 		
 		//TODO => comment on définit quelle valeur prendre?
-		$marqueMat = $TMarqueMatGE[$this->simulation->type_materiel];
-		//$marqueMat = ($TMarqueMatGE[$this->simulation->type_materiel]) ? $TMarqueMatGE[$this->simulation->type_materiel] : 'CAN';
-		$typeMat = $TTypeMatGE[$this->simulation->type_materiel];
-		//$typeMat = ($TTypeMatGE[$this->simulation->type_materiel]) ? $TTypeMatGE[$this->simulation->type_materiel] : 'PHOTOCO';
+		//$marqueMat = $TMarqueMatGE[$this->simulation->type_materiel];
+		$marqueMat = ($TMarqueMatGE[$this->simulation->type_materiel]) ? $TMarqueMatGE[$this->simulation->type_materiel] : 'CAN';
+		//$typeMat = $TTypeMatGE[$this->simulation->type_materiel];
+		$typeMat = ($TTypeMatGE[$this->simulation->type_materiel]) ? $TTypeMatGE[$this->simulation->type_materiel] : 'PHOTOCO';
 		
 		$TInfos_Materiel = array(
 			'B2B_MARQMAT' => $marqueMat
-			,'B2B_MT_UNIT' => (double)$this->simulation->montant //TODO je n'ai pas cette info dans LeaserBoard :/
-			,'B2B_QTE' => (double)1 //TODO vérifier au prêt de Damien
+			,'B2B_MT_UNIT' => number_format($this->simulation->montant,2,'.','') //TODO je n'ai pas cette info dans LeaserBoard :/
+			,'B2B_QTE' => number_format(1,2,'.','') //TODO vérifier au prêt de Damien
 			,'B2B_TYPMAT' => $typeMat
 			,'B2B_ETAT' => 'N' //TODO vérifier au prêt de Damien => N = neuf, O = occasion
 		);
