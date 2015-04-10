@@ -1256,15 +1256,23 @@ class TSimulationSuivi extends TObjetStd {
 			$soapWSDL = BNP_WSDL_URL;
 		}
 
-		$soap = new SoapClient($soapWSDL,array(
-								'local_cert'=>"/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt"
-								,'stream_context' => stream_context_create(array(
-									    'ssl' => array(
-									        'verify_peer' => false,
-									        'allow_self_signed' => true
-									    )
-									))
-								));
+		try{
+			$soap = new SoapClient($soapWSDL,array(
+									'local_cert'=>"/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt"
+									,'stream_context' => stream_context_create(array(
+										    'ssl' => array(
+										        'verify_peer' => false,
+										        'allow_self_signed' => true
+										    )
+										))
+									));
+			
+		}
+		catch(Exception $e) {
+			var_dump($e);
+			exit;
+			
+		}
 		//pre($soap->__getFunctions(),true);exit;
 		
 		$TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] = $this->_getBNPDataTabForDemande($PDOdb);
