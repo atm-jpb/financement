@@ -329,7 +329,10 @@ class TFin_affaire extends TObjetStd {
 			$affaire = new  TFin_affaire;
 			$affaire->load($ATMdb, $idAffaire);
 			
-			$TAffaires[] = $affaire;
+			//Seulement les dossiers avec bon pour transfert à 'Oui'
+			//if($affaire->transfert == 1){
+				$TAffaires[] = $affaire;
+			//}
 		}
 	
 		return $TAffaires;
@@ -404,14 +407,15 @@ class TFin_affaire extends TObjetStd {
 		
 		$affaire = $xml->createElement("affaire");
 
-		$affaire->appendChild($xml->createElement("dateSignature",date("Y-m-d",$Affaire->date_affaire)));
-		$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[0]->dossier->financementLeaser->reference));
-		$affaire->appendChild($xml->createElement("siretClient",(!empty($Affaire->societe->idprof2)) ? $Affaire->societe->idprof2 : $Affaire->societe->idprof1 ));
-
 		//pre($Affaire,true);exit;
 
 		foreach($Affaire->TLien as $i => $Tdata){
 			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert){
+				
+				$affaire->appendChild($xml->createElement("dateSignature",date("Y-m-d",$Affaire->date_affaire)));
+				$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[$i]->dossier->financementLeaser->reference));
+				$affaire->appendChild($xml->createElement("siretClient",(!empty($Affaire->societe->idprof2)) ? $Affaire->societe->idprof2 : $Affaire->societe->idprof1 ));
+				
 				$elements = $this->_getElementsXML($xml,$Tdata,$i,$Affaire);
 				$affaire->appendChild($elements);
 			}
