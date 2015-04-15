@@ -130,8 +130,12 @@
 			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
-			<td>dont montant rachat autres dossiers</td>
-			<td>[simulation.montant_rachete_autres_dossiers; strconv=no; frm=0 000,00] &euro;</td>
+			<td>montant décompte copies sup</td>
+			<td>[simulation.montant_decompte_copies_sup; strconv=no; frm=0 000,00] &euro;</td>
+		</tr>
+		<tr>
+			<td>montant rachat final</td>
+			<td>[simulation.montant_rachat_final; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
 			<td>dont montant rachat concurrence</td>
@@ -171,9 +175,9 @@
 			</td>
 			<td align="center" colspan="2">
 				[onshow;block=begin;when [view.type]=='simul']
-				[onshow;block=begin;when [view.calcul]==1]
-				[simulation.bt_save; strconv=no]
-				[onshow;block=end]
+					[onshow;block=begin;when [view.calcul]==1]
+						[simulation.bt_save; strconv=no]
+					[onshow;block=end]
 				[onshow;block=end]
 			</td>
 		</tr>

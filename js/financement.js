@@ -31,6 +31,10 @@ $(document).ready(function() {
 			calcul_montant_rachat();
 		}
 	});
+	
+	$('input[name="validate_simul"]').click(function(){
+		$(this).hide();
+	});
 });
 
 var get_grille = function() {
@@ -91,17 +95,23 @@ var get_periode = function() {
 };
 
 var calcul_montant_rachat = function() {
-	var montant_rachat = 0;
+	var montant_rachat = montant_decompte_copies = montant_rachat_final = 0;
 	var type_contrat = $('select[name="fk_type_contrat"]').val();
 	var type_solde = 'solde_nr';
 	$('input[name^="dossiers_rachetes"]:checked').each(function() {
 		//type_solde = ($(this).attr('contrat') == type_contrat) ? 'solde_r' : 'solde_nr';
 		//montant_rachat += parseFloat($(this).attr(type_solde));
 		montant_rachat += parseFloat($(this).attr('solde'));
+		montant_decompte_copies += parseFloat($('input[name^="dossiers_rachetes_perso['+$(this).val()+']"').attr('solde'));
+		montant_rachat_final = montant_rachat - montant_decompte_copies;
 	});
 	
 	montant_rachat = Math.round(montant_rachat*100)/100;
+	montant_decompte_copies = Math.round(montant_decompte_copies*100)/100;
+	montant_rachat_final = Math.round(montant_rachat_final*100)/100;
 	$('input[name="montant_rachete"]').val(montant_rachat);
+	$('input[name="montant_decompte_copies_sup"]').val(montant_decompte_copies);
+	$('input[name="montant_rachat_final"]').val(montant_rachat_final);
 };
 
 var prevent_dbl_select = function() {
