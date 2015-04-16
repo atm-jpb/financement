@@ -1280,7 +1280,7 @@ class TSimulationSuivi extends TObjetStd {
 		try{	
 			$reponseDemandeFinancement = $soap->__call('transmettreDemandeFinancement',$TtransmettreDemandeFinancementRequest);
 		}
-		catch(Exception $e) 
+		catch(Exception $e) {
 			var_dump($TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] );
 		}
 
