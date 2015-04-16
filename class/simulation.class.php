@@ -1415,18 +1415,31 @@ class TSimulationSuivi extends TObjetStd {
 
 	function _getBNPDataTabMateriel(){
 		
+		$TCodeMarque = array(
+			'CANON' => '335'
+			,'DELL' => '344'
+			,'KONICA MINOLTA' => '571'
+			,'KYOCERA' => '347'
+			,'LEXMARK' => '341'
+			,'HEWLETT-PACKARD' => '321'
+			,'OCE' => '336'
+			,'OKI' => '930'
+			,'SAMSUNG' => 'F80'
+			,'TOSHIBA' => '331'
+		);
+		
 		$TMateriel = array(
-			'codeMateriel' => ''
-			,'codeEtatMateriel' => ''
-			,'prixDeVente' => ''
-			,'prixTarif' => ''
-			,'anneeFabrication' => ''
-			,'codeMarque' => ''
-			,'type' => ''
-			,'modele' => ''
-			,'dateDeMiseEnCirculation' => ''
-			,'nombreHeuresUtilisation' => ''
-			,'kilometrage' => ''
+			'codeMateriel' => '300121' //Photocopieur
+			,'codeEtatMateriel' => 'N'
+			,'prixDeVente' => $this->simulation->montant
+			//,'prixTarif' => ''
+			//,'anneeFabrication' => ''
+			,'codeMarque' => ($TCodeMarque[$this->simulation->type_materiel]) ? $TCodeMarque[$this->simulation->type_materiel] : '909' //909 = Divers informatique
+			//,'type' => ''
+			//,'modele' => ''
+			//,'dateDeMiseEnCirculation' => ''
+			//,'nombreHeuresUtilisation' => ''
+			//,'kilometrage' => ''
 		);
 		
 		return $TMateriel;
