@@ -1471,6 +1471,7 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		$fin_temp = new TFin_financement;
+		$fin_temp->periodicite = $this->simulation->opt_periodicite;
 		
 		$TFinancement = array(
 			'codeTypeCalcul' => $codeTypeCalcul
@@ -1490,7 +1491,7 @@ class TSimulationSuivi extends TObjetStd {
 			,'paliersDeLoyer' => array(
 				'palierDeLoyer' => array(
 					'nombreDeLoyers' => $this->simulation->duree
-					,'periodicite' => $fin_temp->TPeriodicite[$this->simulation->opt_periodicite]
+					,'periodicite' => $fin_temp->getiPeriode()
 					//,'montantLoyers' => ''
 					//,'poidsDuPalier' => ''
 				)
