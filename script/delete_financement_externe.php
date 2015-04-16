@@ -5,6 +5,7 @@
 	require('../class/dossier.class.php');
 	require('../class/affaire.class.php');
 	require('../class/grille.class.php');
+	dol_include_once('/asset/class/asset.class.php');
 
 	set_time_limit(0);
 
