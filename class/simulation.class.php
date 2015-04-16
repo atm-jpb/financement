@@ -918,7 +918,7 @@ class TSimulationSuivi extends TObjetStd {
 				else{
 					if($this->statut !== 'KO'){	
 						//Envoyer
-						//$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=envoyer" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
+						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
 						//Enregistrer
 						$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
 						//Accepter
@@ -1271,17 +1271,27 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		catch(SoapFault $e) {
 			var_dump($e);
+			exit;
 		}
 		//pre($soap->__getFunctions(),true);exit;
-		
+//		echo "1<br>";
 		$TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] = $this->_getBNPDataTabForDemande($PDOdb);
 		
 		//pre($TtransmettreDemandeFinancementRequest,true);exit;
-		try{	
+		try{
+//		echo "2<br>";
+
 			$reponseDemandeFinancement = $soap->__call('transmettreDemandeFinancement',$TtransmettreDemandeFinancementRequest);
+			
+			//pre($reponseDemandeFinancement,true);exit;
 		}
-		catch(Exception $e) {
+		catch(SoapFault $reponseDemandeFinancement) {
+			echo '<pre>';
+			var_dump($reponseDemandeFinancement->detail);exit;
+			//var_dump($e);
+			//echo $e->getMessage();
 			var_dump($TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] );
+			exit;
 		}
 
 		$this->traiteBNPReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
@@ -1306,7 +1316,7 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	function traiteBNPReponseDemandeFinancement(&$PDOdb,&$reponseDemandeFinancement){
-		
+//		pre($reponseDemandeFinancemnent,true);exit;
 		$this->numero_accord_leaser = $reponseDemandeFinancement->transmettreDemandeFinancementResponse->numeroDemandeProvisoire;
 		$this->save($PDOdb);
 	}
