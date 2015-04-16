@@ -1102,16 +1102,17 @@ class TSimulationSuivi extends TObjetStd {
 			$soapWSDL = GE_WSDL_URL;
 		}
 		
-		$soap = new SoapClient($soapWSDL);
-		pre($soap->__getTypes(),true);
+		$soap = new SoapClient($soapWSDL,array('trace'=>TRUE));
+		//pre($soap->__getTypes(),true);
 
 		$TtransmettreDemandeFinancementRequest['CreateDemFinRequest'] = $this->_getGEDataTabForDemande($PDOdb);
 
-		pre($TtransmettreDemandeFinancementRequest,true);
+		//pre($TtransmettreDemandeFinancementRequest,true);
 		
 		$reponseDemandeFinancement = $soap->__call('CreateDemFin',$TtransmettreDemandeFinancementRequest);
 		
-		pre($reponseDemandeFinancement,true);exit;
+		//pre($reponseDemandeFinancement,true);exit;
+		pre($soap->__getLastRequest());exit;
 		
 		$this->traiteGEReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
 
