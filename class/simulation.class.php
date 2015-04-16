@@ -1259,40 +1259,31 @@ class TSimulationSuivi extends TObjetStd {
 		try{
 			$soap = new SoapClient($soapWSDL,array(
 									'local_cert'=>"/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt"
-,'trace'=>1
-//,'passphrase'=>'passphrase'
+									,'trace'=>1
 									,'stream_context' => stream_context_create(array(
 										    'ssl' => array(
 										        'verify_peer' => false,
 										        'allow_self_signed' => true
 										    )
-										))
-    									
+										))						
 			));
-			
+
 		}
 		catch(SoapFault $e) {
 			var_dump($e);
-			exit;
-			
 		}
-//exit('la');
 		//pre($soap->__getFunctions(),true);exit;
 		
 		$TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] = $this->_getBNPDataTabForDemande($PDOdb);
 		
 		//pre($TtransmettreDemandeFinancementRequest,true);exit;
-	print 1;	
-	try{	
-		$reponseDemandeFinancement = $soap->__call('transmettreDemandeFinancement',$TtransmettreDemandeFinancementRequest);
-	}
-	catch(Exception $e) {
-//		var_dump($e);
-	echo $e->getMessage();
-var_dump($TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] );
-	}
-	print 2;	
-		
+		try{	
+			$reponseDemandeFinancement = $soap->__call('transmettreDemandeFinancement',$TtransmettreDemandeFinancementRequest);
+		}
+		catch(Exception $e) 
+			var_dump($TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] );
+		}
+
 		$this->traiteBNPReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
 	}
 
