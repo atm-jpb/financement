@@ -258,7 +258,7 @@
 				
 				$Techeance = explode('/', $fact->facnumber);
 				$echeance = array_pop($Techeance);
-				
+
 				//MAJ dates période facture
 				$date_debut_periode = $dossier->getDateDebutPeriode($echeance-1,'LEASER');
 				$date_fin_periode = $dossier->getDateFinPeriode($echeance-1);
