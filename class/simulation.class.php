@@ -1510,22 +1510,22 @@ class TSimulationSuivi extends TObjetStd {
 				switch ($codeCommercial) {
 					case '02': // = ''
 							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-								$codeBareme = '0828';
+								$codeBareme = '00000828';
 							}
 							elseif($this->simulation->opt_periodicite == 'MOIS'){
-								$codeBareme = '4028';
+								$codeBareme = '00004028';
 							}
 						break;
 					case '23': // = Top Full
 							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-								$codeBareme = '4049';
+								$codeBareme = '00004049';
 							}
 							elseif($this->simulation->opt_periodicite == 'MOIS'){
-								$codeBareme = '4050';
+								$codeBareme = '00004050';
 							}
 						break;
 					case '2Q': // = Secteur Public
-							$codeBareme = '4051';
+							$codeBareme = '00004051';
 						break;
 					default:
 						
@@ -1533,16 +1533,16 @@ class TSimulationSuivi extends TObjetStd {
 				}
 			}
 			elseif($this->simulation->type_financement == 'MANDATEE'){
-				$codeBareme = '4046';
+				$codeBareme = '00004046';
 			}
 		}
 		elseif($TData['codeFamilleMateriel'] == 'T'){ // => INFORMATIQUE
 			if($this->simulation->type_financement == 'FINANCIERE'){ //Uniquement FINANCIERE pour INFORMATIQUE
 				if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-					$codeBareme = '4043';
+					$codeBareme = '00004043';
 				}
 				elseif($this->simulation->opt_periodicite == 'MOIS'){
-					$codeBareme = '4048';
+					$codeBareme = '00004048';
 				}
 			}
 		}
