@@ -1102,16 +1102,17 @@ class TSimulationSuivi extends TObjetStd {
 			$soapWSDL = GE_WSDL_URL;
 		}
 		
-		$soap = new SoapClient($soapWSDL);
-		pre($soap->__getTypes(),true);
+		$soap = new SoapClient($soapWSDL,array('trace'=>TRUE));
+		//pre($soap->__getTypes(),true);
 
 		$TtransmettreDemandeFinancementRequest['CreateDemFinRequest'] = $this->_getGEDataTabForDemande($PDOdb);
 
-		pre($TtransmettreDemandeFinancementRequest,true);
+		//pre($TtransmettreDemandeFinancementRequest,true);
 		
 		$reponseDemandeFinancement = $soap->__call('CreateDemFin',$TtransmettreDemandeFinancementRequest);
 		
-		pre($reponseDemandeFinancement,true);exit;
+		//pre($reponseDemandeFinancement,true);exit;
+		pre($soap->__getLastRequest());exit;
 		
 		$this->traiteGEReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
 
@@ -1415,18 +1416,31 @@ class TSimulationSuivi extends TObjetStd {
 
 	function _getBNPDataTabMateriel(){
 		
+		$TCodeMarque = array(
+			'CANON' => '335'
+			,'DELL' => '344'
+			,'KONICA MINOLTA' => '571'
+			,'KYOCERA' => '347'
+			,'LEXMARK' => '341'
+			,'HEWLETT-PACKARD' => '321'
+			,'OCE' => '336'
+			,'OKI' => '930'
+			,'SAMSUNG' => 'F80'
+			,'TOSHIBA' => '331'
+		);
+		
 		$TMateriel = array(
-			'codeMateriel' => ''
-			,'codeEtatMateriel' => ''
-			,'prixDeVente' => ''
-			,'prixTarif' => ''
-			,'anneeFabrication' => ''
-			,'codeMarque' => ''
-			,'type' => ''
-			,'modele' => ''
-			,'dateDeMiseEnCirculation' => ''
-			,'nombreHeuresUtilisation' => ''
-			,'kilometrage' => ''
+			'codeMateriel' => '300121' //Photocopieur
+			,'codeEtatMateriel' => 'N'
+			,'prixDeVente' => $this->simulation->montant
+			//,'prixTarif' => ''
+			//,'anneeFabrication' => ''
+			,'codeMarque' => ($TCodeMarque[$this->simulation->type_materiel]) ? $TCodeMarque[$this->simulation->type_materiel] : '909' //909 = Divers informatique
+			//,'type' => ''
+			//,'modele' => ''
+			//,'dateDeMiseEnCirculation' => ''
+			//,'nombreHeuresUtilisation' => ''
+			//,'kilometrage' => ''
 		);
 		
 		return $TMateriel;
@@ -1458,6 +1472,7 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		$fin_temp = new TFin_financement;
+		$fin_temp->periodicite = $this->simulation->opt_periodicite;
 		
 		$TFinancement = array(
 			'codeTypeCalcul' => $codeTypeCalcul
@@ -1477,7 +1492,7 @@ class TSimulationSuivi extends TObjetStd {
 			,'paliersDeLoyer' => array(
 				'palierDeLoyer' => array(
 					'nombreDeLoyers' => $this->simulation->duree
-					,'periodicite' => $fin_temp->TPeriodicite[$this->simulation->opt_periodicite]
+					,'periodicite' => $fin_temp->getiPeriode()
 					//,'montantLoyers' => ''
 					//,'poidsDuPalier' => ''
 				)
@@ -1496,22 +1511,22 @@ class TSimulationSuivi extends TObjetStd {
 				switch ($codeCommercial) {
 					case '02': // = ''
 							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-								$codeBareme = 0828;
+								$codeBareme = '00000828';
 							}
 							elseif($this->simulation->opt_periodicite == 'MOIS'){
-								$codeBareme = 4028;
+								$codeBareme = '00004028';
 							}
 						break;
 					case '23': // = Top Full
 							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-								$codeBareme = 4049;
+								$codeBareme = '00004049';
 							}
 							elseif($this->simulation->opt_periodicite == 'MOIS'){
-								$codeBareme = 4050;
+								$codeBareme = '00004050';
 							}
 						break;
 					case '2Q': // = Secteur Public
-							$codeBareme = 4051;
+							$codeBareme = '00004051';
 						break;
 					default:
 						
@@ -1519,16 +1534,16 @@ class TSimulationSuivi extends TObjetStd {
 				}
 			}
 			elseif($this->simulation->type_financement == 'MANDATEE'){
-				$codeBareme = 4046;
+				$codeBareme = '00004046';
 			}
 		}
 		elseif($TData['codeFamilleMateriel'] == 'T'){ // => INFORMATIQUE
 			if($this->simulation->type_financement == 'FINANCIERE'){ //Uniquement FINANCIERE pour INFORMATIQUE
 				if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-					$codeBareme = 4043;
+					$codeBareme = '00004043';
 				}
 				elseif($this->simulation->opt_periodicite == 'MOIS'){
-					$codeBareme = 4048;
+					$codeBareme = '00004048';
 				}
 			}
 		}
