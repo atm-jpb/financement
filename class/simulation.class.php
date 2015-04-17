@@ -1109,10 +1109,16 @@ class TSimulationSuivi extends TObjetStd {
 
 		//pre($TtransmettreDemandeFinancementRequest,true);
 		
-		$reponseDemandeFinancement = $soap->__call('CreateDemFin',$TtransmettreDemandeFinancementRequest);
-		
-		//pre($reponseDemandeFinancement,true);exit;
-		pre($soap->__getLastRequest());exit;
+		try{
+			$reponseDemandeFinancement = $soap->__call('CreateDemFin',$TtransmettreDemandeFinancementRequest);
+		}
+		catch(SoapFault $reponseDemandeFinancement) {
+			pre($reponseDemandeFinancement->detail,true);
+			//exit;
+		}
+		pre($reponseDemandeFinancement,true);
+		pre($soap->__getLastRequest());
+		pre($soap->__getLastResponse());exit;
 		
 		$this->traiteGEReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
 
@@ -1235,7 +1241,7 @@ class TSimulationSuivi extends TObjetStd {
 			,'B2B_ETAT' => 'N' //TODO vérifier au prêt de Damien => N = neuf, O = occasion
 		);
 		
-		$TData['TInfos_Materiel'] = $TInfos_Materiel;
+		$TData['Infos_Materiel'] = $TInfos_Materiel;
 
 		$TAPP_Reponse_B2B = array(
 			'B2B_CLIENT_ASYNC' => '' //TODO adresse d'appel auto pour MAJ statut simulation => attend un WSDL :/
