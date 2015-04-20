@@ -1317,9 +1317,14 @@ class TSimulationSuivi extends TObjetStd {
 		$errorLabel = '';
 		if(count($TObjError)){
 			$errorLabel = 'ERREUR SCORING BNP : <br>';
-		}
-		foreach($TObjError as $ObjError){
-			$errorLabel .= $ObjError->message.'<br>';
+			if(is_array($TObjError)){
+				foreach($TObjError as $ObjError){
+					$errorLabel .= $ObjError->message.'<br>';
+				}
+			}
+			else{
+				$errorLabel .= $TObjError->message;
+			}
 		}
 		
 		return $errorLabel;
