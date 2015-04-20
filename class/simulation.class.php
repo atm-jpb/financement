@@ -1301,6 +1301,10 @@ class TSimulationSuivi extends TObjetStd {
 	
 	function traiteErrorsDemandeBNP($TObjError){
 		
+		$errorLabel = '';
+		if(count($TObjError)){
+			$errorLabel = 'ERREUR SCORING BNP : <br>';
+		}
 		foreach($TObjError as $ObjError){
 			$errorLabel .= $ObjError->message.'<br>';
 		}
