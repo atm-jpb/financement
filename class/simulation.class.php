@@ -1459,7 +1459,7 @@ class TSimulationSuivi extends TObjetStd {
 		$TMateriel = array(
 			'codeMateriel' => '300121' //Photocopieur
 			,'codeEtatMateriel' => 'N'
-			,'prixDeVente' => $this->simulation->montant
+			//,'prixDeVente' => $this->simulation->montant
 			//,'prixTarif' => ''
 			//,'anneeFabrication' => ''
 			,'codeMarque' => ($TCodeMarque[$this->simulation->marque_materiel]) ? $TCodeMarque[$this->simulation->marque_materiel] : '909' //909 = Divers informatique
@@ -1508,7 +1508,7 @@ class TSimulationSuivi extends TObjetStd {
 				,'codeProduitCommercial' => $codeCommercial 
 			)
 			,'codeBareme' => $this->_getBNPBareme($TData,$codeCommercial) //récupérer la grille de barême (8 barêmes différents)
-			,'montantFinance' => $this->simulation->montant
+			//,'montantFinance' => $this->simulation->montant
 			//,'codeTerme' => ''
 			//,'valeurResiduelle' => array(
 				//'montant'=> ''
