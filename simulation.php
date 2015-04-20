@@ -251,6 +251,11 @@ if(!empty($action)) {
 			if($id_suivi){
 				$simulation->load($ATMdb, $db, $_REQUEST['id']);
 				$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$simulation,$action);
+				
+				if(!empty($simulation->TSimulationSuivi[$id_suivi]->errorLabel)){
+					setEventMessage($simulation->TSimulationSuivi[$id_suivi]->errorLabel,'errors');
+				}
+				
 				_fiche($ATMdb, $simulation, 'view');
 			}
 			

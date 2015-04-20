@@ -1293,17 +1293,24 @@ class TSimulationSuivi extends TObjetStd {
 			//pre($reponseDemandeFinancement,true);exit;
 		}
 		catch(SoapFault $reponseDemandeFinancement) {
-			echo '<pre>';
-			var_dump($reponseDemandeFinancement->detail);exit;
-			//var_dump($e);
-			//echo $e->getMessage();
-			var_dump($TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] );
-			exit;
+			//echo '<pre>';
+			//var_dump($reponseDemandeFinancement->detail);exit;
+			$this->errorLabel = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail->retourErreur->erreur);
+			return 0;
 		}
 
 		$this->traiteBNPReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
 	}
-
+	
+	function traiteErrorsDemandeBNP($TObjError){
+		
+		foreach($TObjError as $ObjError){
+			$errorLabel .= $ObjError->message.'<br>';
+		}
+		
+		return $errorLabel;
+	}
+	
 	function _consulterDemandeBNP(){
 		
 		if(BNP_TEST){
