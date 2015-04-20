@@ -252,6 +252,11 @@ if(!empty($action)) {
 				$simulation->load($ATMdb, $db, $_REQUEST['id']);
 				$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$simulation,$action);
 				
+				if($action == 'demander'){
+					$simulation->accord = 'WAIT_LEASER';
+					$simulation->save($ATMdb, $db);
+				}
+				
 				if(!empty($simulation->TSimulationSuivi[$id_suivi]->errorLabel)){
 					setEventMessage($simulation->TSimulationSuivi[$id_suivi]->errorLabel,'errors');
 				}

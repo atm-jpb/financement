@@ -966,9 +966,6 @@ class TSimulationSuivi extends TObjetStd {
 	//Effectuer l'action de faire la demande de financement au leaser
 	function doActionDemander(&$PDOdb,&$simulation){
 		global $db;
-
-		$simulation->accord = 'WAIT_LEASER';
-		$simulation->save($PDOdb, $db);
 		
 	    // Leaser ACECOM = demande BNP mandaté et BNP cession + Lixxbail mandaté et Lixxbail cession
 		if($this->fk_leaser == 18305){
