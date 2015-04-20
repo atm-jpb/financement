@@ -1517,7 +1517,7 @@ class TSimulationSuivi extends TObjetStd {
 				switch ($codeCommercial) {
 					case '02': // = ''
 							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-								$codeBareme = '00000828';
+								$codeBareme = '00000868';
 							}
 							elseif($this->simulation->opt_periodicite == 'MOIS'){
 								$codeBareme = '00004028';
