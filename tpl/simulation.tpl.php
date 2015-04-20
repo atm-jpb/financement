@@ -91,9 +91,15 @@
 		<tr>
 			<td>Mode de règlement</td>
 			<td>[simulation.opt_mode_reglement; strconv=no]</td>
+			<td></td>
+			<td></td>
+			
+		</tr>
+		<tr>
 			<td><span class="fieldrequired">Type de matériel financé</span></td>
 			<td>[simulation.type_materiel; strconv=no]</td>
-			
+			<td><span class="fieldrequired">Marque de matériel financé</span></td>
+			<td>[simulation.marque_materiel; strconv=no]</td>
 		</tr>
 		<tr>
 			<td>Terme</td>
