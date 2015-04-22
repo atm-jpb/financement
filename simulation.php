@@ -732,9 +732,20 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		if(empty($dossier->financementLeaser->reference)) continue;
 		
+		//Calcul du Solde Renouvelant et Non Renouvelant CPRO 
+		$dossier->financement->capital_restant = $dossier->financement->montant;
+		$dossier->financement->total_loyer = $dossier->financement->montant;
+		for($i=0; $i<$dossier->financement->numero_prochaine_echeance;$i++){
+			$capital_amortit = $dossier->financement->amortissement_echeance( $i+1 ,$dossier->financement->capital_restant);
+			$part_interet = $dossier->financement->echeance - $capital_amortit;
+			$dossier->financement->capital_restant-=$capital_amortit;
+			
+			$dossier->financement->total_loyer -= $dossier->financement->echeance;
+		}
+		
 		$soldeR = (!empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME'),2); //SRCPRO
-		$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME'),2); //SNRCPRO
-		$soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO', $fin->duree_passe + 1),2);
+		$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO'),2); //SNRCPRO
+		$soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME', $fin->duree_passe + 1),2);
 		$soldeNR1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO', $fin->duree_passe + 1),2);
 		$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 		
