@@ -1047,7 +1047,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	
 	$soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
 
-	$soldepersointegrale = ($soldepersointegrale * 0.8); //On enlève 20% conformément  la règle de gestion
+	$soldepersointegrale = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
 
 	//echo $soldepersointegrale;
 	//echo $sommeRealise." ".$sommeNoir." ".$sommeCouleur;

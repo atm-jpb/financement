@@ -31,6 +31,8 @@ opt_administration=Administration
 opt_creditbail=Crédit-bail
 opt_calage=Calage
 leaser=Grille de Leasers Suivi Simulation
+PercentRetribCopiesSup=Pourcentage de rétribution des copies suplémentaires
+PercentNbTrimCopiesSup=Nombre de trimestre pour calcul copies suplémentaires
 
 # SIMULATIONS
 Simulations=Simulations

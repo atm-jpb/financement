@@ -169,6 +169,32 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 
+// % rétribution copies sup N et C * quote part
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_PERCENT_RETRIB_COPIES_SUP" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("PercentRetribCopiesSup").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_PERCENT_RETRIB_COPIES_SUP" value="'.$conf->global->FINANCEMENT_PERCENT_RETRIB_COPIES_SUP.'" /> %';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+// nb trimestre pour lequel on fait la somme des copues sup N et C
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_NB_TRIM_COPIES_SUP" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("PercentNbTrimCopiesSup").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_NB_TRIM_COPIES_SUP" value="'.$conf->global->FINANCEMENT_NB_TRIM_COPIES_SUP.'" /> T';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
 print '</table>';
 
 print_titre($langs->trans("PenalitesForSimulation"));

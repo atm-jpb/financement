@@ -1026,7 +1026,7 @@ class TFin_dossier extends TObjetStd {
 			if($echeance == -1) $nbEcheance -= 1; //supression loyer intercalaire
 			
 			//Somme uniquement sur les 4 dernières échéances
-			if($echeance > ($nbEcheance - 4)){
+			if($echeance > ($nbEcheance - FINANCEMENT_NB_TRIM_COPIES_SUP)){
 				//pre($Tfacture,true);exit;
 				if(is_array($Tfacture)){
 					foreach($Tfacture as $k => $facture){
