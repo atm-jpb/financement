@@ -195,6 +195,19 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 
+// % augmentation Solde CRD client pour loc adossée ou mandatée
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_PERCENT_AUG_CRD" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("PercentAugCRD").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_PERCENT_AUG_CRD" value="'.$conf->global->FINANCEMENT_PERCENT_AUG_CRD.'" /> %';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
 print '</table>';
 
 print_titre($langs->trans("PenalitesForSimulation"));

@@ -1051,6 +1051,19 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 
 	//echo $soldepersointegrale;
 	//echo $sommeRealise." ".$sommeNoir." ".$sommeCouleur;
+	//pre($dossier->financement,true);exit;
+	//echo $dossier->getSolde($PDOdb, 'SRNRSAME');exit;
+	
+	//Calcul du Solde Renouvelant et Non Renouvelant CPRO 
+	$dossier->financement->capital_restant = $dossier->financement->montant;
+	$dossier->financement->total_loyer = $dossier->financement->montant;
+	for($i=0; $i<$dossier->financement->numero_prochaine_echeance;$i++){
+		$capital_amortit = $dossier->financement->amortissement_echeance( $i+1 ,$dossier->financement->capital_restant);
+		$part_interet = $dossier->financement->echeance - $capital_amortit;
+		$dossier->financement->capital_restant-=$capital_amortit;
+		
+		$dossier->financement->total_loyer -= $dossier->financement->echeance;
+	}
 	
 	//pre($TAffaire,true);exit;
 	print $TBS->render('./tpl/dossier.tpl.php'
@@ -1077,8 +1090,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'marge_reelle'=>$dossier->marge_reelle
 				,'soldeRBANK'=>$dossier->getSolde($PDOdb, 'SRBANK')
 				,'soldeNRBANK'=>$dossier->getSolde($PDOdb, 'SNRBANK')
-				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO')
-				,'soldeNRCPRO'=>$dossier->getSolde($PDOdb, 'SNRCPRO')
+				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRNRSAME') //SRCPRO
+				,'soldeNRCPRO'=>$dossier->getSolde($PDOdb, 'SRNRSAME') //SNRCPRO
 				,'soldeperso'=>$soldeperso
 				,'soldepersodispo'=>$form->combo('', 'soldepersodispo', array('1' => 'Oui', '0' => 'Non'), ($dossier->soldepersodispo) ? $dossier->soldepersodispo : 1)
 				,'soldepersointegrale'=>$soldepersointegrale

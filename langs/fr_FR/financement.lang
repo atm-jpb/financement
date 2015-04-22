@@ -33,6 +33,7 @@ opt_calage=Calage
 leaser=Grille de Leasers Suivi Simulation
 PercentRetribCopiesSup=Pourcentage de rétribution des copies suplémentaires
 PercentNbTrimCopiesSup=Nombre de trimestre pour calcul copies suplémentaires
+PercentAugCRD=Pourcentage d'augmentation du CRD pour calcul Solde Loc Addosée ou Mandatée
 
 # SIMULATIONS
 Simulations=Simulations
