@@ -103,7 +103,8 @@ var calcul_montant_rachat = function() {
 		//montant_rachat += parseFloat($(this).attr(type_solde));
 		montant_rachat += parseFloat($(this).attr('solde'));
 		montant_decompte_copies += parseFloat($('input[name^="dossiers_rachetes_perso['+$(this).val()+']"').attr('solde'));
-		montant_rachat_final = montant_rachat - montant_decompte_copies;
+		montant_rachat_concurrence = parseFloat($('#montant_rachete_concurrence').val());
+		montant_rachat_final = montant_rachat - montant_decompte_copies - montant_rachat_concurrence;
 	});
 	
 	montant_rachat = Math.round(montant_rachat*100)/100;

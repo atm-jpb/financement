@@ -140,12 +140,12 @@
 			[onshow;block=end]
 		</tr>
 		<tr>
-			<td>montant rachat final</td>
-			<td>[simulation.montant_rachat_final; strconv=no; frm=0 000,00] &euro;</td>
-		</tr>
-		<tr>
 			<td>dont montant rachat concurrence</td>
 			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
+		</tr>
+		<tr>
+			<td>montant rachat final</td>
+			<td>[simulation.montant_rachat_final; strconv=no; frm=0 000,00] &euro;</td>
 			<td colspan="2" align="center">
 				[simulation.date_validite]
 			</td>
