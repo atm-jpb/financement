@@ -666,7 +666,18 @@ class TFin_dossier extends TObjetStd {
 				break;
 			
 			case 'SRNRSAME':
-				
+					
+					//Calcul du Solde Renouvelant et Non Renouvelant CPRO 
+					$this->financement->capital_restant = $this->financement->montant;
+					$this->financement->total_loyer = $this->financement->montant;
+					for($i=0; $i<$iPeriode;$i++){
+						$capital_amortit = $this->financement->amortissement_echeance( $i+1 ,$this->financement->capital_restant);
+						$part_interet = $this->financement->echeance - $capital_amortit;
+						$this->financement->capital_restant-=$capital_amortit;
+						
+						$this->financement->total_loyer -= $this->financement->echeance;
+					}
+					
 					//pre($this->financement);
 					if($this->TLien[0]->affaire->type_financement == 'MANDATEE' || $this->TLien[0]->affaire->type_financement == 'ADOSSEE'){
 						return $this->financement->capital_restant * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
