@@ -120,6 +120,8 @@ if(!empty($action)) {
 			$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 
 			_calcul($simulation);
+			//C'est dégueu mais sa marche
+			$simulation->commentaire = utf8_decode($simulation->commentaire);
 			_fiche($ATMdb, $simulation,'edit');
 
 			break;	
