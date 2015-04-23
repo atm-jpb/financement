@@ -717,7 +717,7 @@ class TSimulation extends TObjetStd {
 					$datemax = $f->date_prochaine_echeance;
 				}
 				elseif($this->dossiers_rachetes_p1[$idDossier]['checked']){
-					$solde_r = $solde_nr = $this->dossiers_rachetes[$idDossier]['montant'];
+					$solde_r = $solde_nr = $this->dossiers_rachetes_p1[$idDossier]['montant'];
 					$solde = 'R';
 					$datemax = strtotime('+ '.$f->getiPeriode().' months', $f->date_prochaine_echeance);
 				}
@@ -734,46 +734,30 @@ class TSimulation extends TObjetStd {
 				}
 			}
 			else{
-				if(in_array($idDossier, $this->dossiers_rachetes) || in_array($idDossier, $this->dossiers_rachetes_nr)) {
-					$solde_r = $d->getSolde($ATMdb2, 'SRCPRO');
-					$solde_nr = $d->getSolde($ATMdb2, 'SNRCPRO');
-					$soldeperso = '' ;
-				}
-				elseif(in_array($idDossier, $this->dossiers_rachetes_p1) || in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
-					$solde_r = $d->getSolde($ATMdb2, 'SRCPRO',$f->duree_passe + 1);
-					$solde_nr = $d->getSolde($ATMdb2, 'SNRCPRO',$f->duree_passe + 1);
-					$soldeperso = '' ;
-				}
-				elseif(in_array($idDossier, $this->dossiers_rachetes_perso)) {
-					$solde_r = '';
-					$solde_nr = '';
-					$soldeperso = $d->getSolde($ATMdb2, 'perso');
-				}
-				else{
-					$solde_r = '';
-					$solde_nr = '';
-					$soldeperso = '' ;
-				}
-				
-				//echo $solde_r." ".$solde_nr;
-				
-				if(in_array($idDossier, $this->dossiers_rachetes)) {
+				if($this->dossiers_rachetes[$idDossier]['checked']){
+					$solde_r = $this->dossiers_rachetes[$idDossier]['montant'];
+					$solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
 					$solde = 'R';
 					$datemax = $f->date_prochaine_echeance;
-				} elseif(in_array($idDossier, $this->dossiers_rachetes_nr)) {
-					$solde = 'NR';
-					$datemax = $f->date_prochaine_echeance;
-				} elseif(in_array($idDossier, $this->dossiers_rachetes_p1)) {
+				}
+				elseif($this->dossiers_rachetes_p1[$idDossier]['checked']){
+					$solde_r = $this->dossiers_rachetes_p1[$idDossier]['montant'];
+					$solde_nr = $this->dossiers_rachetes_nr_p1[$idDossier]['montant'];
 					$solde = 'R';
 					$datemax = strtotime('+ '.$f->getiPeriode().' months', $f->date_prochaine_echeance);
-				} elseif(in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
+				}
+				
+				if($this->dossiers_rachetes_nr[$idDossier]['checked']){
+					$solde_r = $this->dossiers_rachetes[$idDossier]['montant'];
+					$solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
 					$solde = 'NR';
-					$datemax = strtotime('+ '.$f->getiPeriode().' months', $f->date_prochaine_echeance);
-				} elseif(in_array($idDossier, $this->dossiers_rachetes_perso)) {
-					$solde = 'personnalisé';
-					$datemax = $d->dateperso;
-				} else {
-					$solde = '';
+					$datemax = $f->date_prochaine_echeance;
+				}
+				elseif($this->dossiers_rachetes_nr_p1[$idDossier]['checked']){
+					$solde_r = $this->dossiers_rachetes_p1[$idDossier]['montant'];
+					$solde_nr = $this->dossiers_rachetes_nr_p1[$idDossier]['montant'];
+					$solde = 'NR';
+					$datemax = $datemax = strtotime('+ '.$f->getiPeriode().' months', $f->date_prochaine_echeance);
 				}
 			}
 			
