@@ -679,7 +679,11 @@ class TFin_dossier extends TObjetStd {
 					}
 					
 					//pre($this->financement);
-					if($this->TLien[0]->affaire->type_financement == 'MANDATEE' || $this->TLien[0]->affaire->type_financement == 'ADOSSEE'){
+					
+					if($iPeriode < 5){
+						return $this->financement->montant;
+					}
+					elseif($this->TLien[0]->affaire->type_financement == 'MANDATEE' || $this->TLien[0]->affaire->type_financement == 'ADOSSEE'){
 						return $this->financement->capital_restant * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
 					}
 					elseif($this->TLien[0]->affaire->type_financement == 'PURE'){
