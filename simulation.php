@@ -743,11 +743,26 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		if(empty($dossier->financementLeaser->reference)) continue;
 		
-		$soldeR = (!empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO'),2);
-		$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO'),2);
-		$soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO', $fin->duree_passe + 1),2);
+		//Calcul du Solde Renouvelant et Non Renouvelant CPRO 
+		/*$dossier->financement->capital_restant = $dossier->financement->montant;
+		$dossier->financement->total_loyer = $dossier->financement->montant;
+		for($i=0; $i<$dossier->financement->numero_prochaine_echeance;$i++){
+			$capital_amortit = $dossier->financement->amortissement_echeance( $i+1 ,$dossier->financement->capital_restant);
+			$part_interet = $dossier->financement->echeance - $capital_amortit;
+			$dossier->financement->capital_restant-=$capital_amortit;
+			
+			$dossier->financement->total_loyer -= $dossier->financement->echeance;
+		}*/
+		
+		$soldeR = (!empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time())+1),2); //SRCPRO
+		$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO'),2); //SNRCPRO
+		$soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time())+2),2);
 		$soldeNR1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO', $fin->duree_passe + 1),2);
 		$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
+		
+		//Suite PR1504-0764, Solde R et NR deviennent identique
+		$soldeNR = $soldeR;
+		$soldeNR1 = $soldeR1;
 		
 		if(empty($dossier->display_solde)) {
 			$soldeR = 0;
@@ -788,12 +803,15 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		$checkedperso = (is_array($simulation->dossiers_rachetes_perso) && in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes_perso)) ? true : false;
 		$checkbox_moreperso = 'solde="'.$soldeperso.'" style="display: none;"';
 		$checkbox_moreperso.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
-
-		if($ATMdb->Get_field('incident_paiement')=='OUI') $dossier->display_solde = 0;
-		if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
-		if($leaser->code_client == '024242') $dossier->display_solde = 0; // Ticket 447, suite
+		
+		/*
+		 * Mise en commentaire des ancienne règle d'afficahge des soldes suite PR1504-0764 avec gestion des soldes V2
+		 */
+		//if($ATMdb->Get_field('incident_paiement')=='OUI') $dossier->display_solde = 0;
+		//if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
+		//if($leaser->code_client == '024242') $dossier->display_solde = 0; // Ticket 447, suite
+		
 		if($dossier->montant >= 50000) $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
-		//$dossier->display_solde = 1;
 		
 		//Ne pas laissé disponible un dossier dont la dernière facture client est impayée
 		foreach ($dossier->TFacture as $echeance => $facture) {

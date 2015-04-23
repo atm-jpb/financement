@@ -696,13 +696,13 @@ class TSimulation extends TObjetStd {
 			}
 			
 			if(in_array($idDossier, $this->dossiers_rachetes) || in_array($idDossier, $this->dossiers_rachetes_nr)) {
-				$solde_r = $d->getSolde($ATMdb2, 'SRCPRO');
-				$solde_nr = $d->getSolde($ATMdb2, 'SNRCPRO');
+				$solde_r = $d->getSolde($ATMdb2, 'SRNRSAME'); //SRCPRO
+				$solde_nr = $d->getSolde($ATMdb2, 'SRNRSAME'); //SNRCPRO
 				$soldeperso = '' ;
 			}
 			elseif(in_array($idDossier, $this->dossiers_rachetes_p1) || in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
-				$solde_r = $d->getSolde($ATMdb2, 'SRCPRO',$f->duree_passe + 1);
-				$solde_nr = $d->getSolde($ATMdb2, 'SNRCPRO',$f->duree_passe + 1);
+				$solde_r = $d->getSolde($ATMdb2, 'SRNRSAME',$f->duree_passe + 1); //SRCPRO
+				$solde_nr = $d->getSolde($ATMdb2, 'SRNRSAME',$f->duree_passe + 1); //SNRCPRO
 				$soldeperso = '' ;
 			}
 			elseif(in_array($idDossier, $this->dossiers_rachetes_perso)) {

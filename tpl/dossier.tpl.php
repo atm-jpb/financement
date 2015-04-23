@@ -137,7 +137,7 @@
 		<tr><td>Renouvellant CPRO</td><td colspan="3">[dossier.soldeRCPRO; frm=0 000,00] &euro;</td></tr>
 		<tr><td>Non renouvellant CPRO</td><td colspan="3">[dossier.soldeNRCPRO; frm=0 000,00] &euro;</td></tr>
 		<tr>
-			<td>Solde personnalisé</td><td>[dossier.soldeperso; frm=0 000,00] &euro; [onshow;block=begin; when [view.contrat]==INTEGRAL] ([dossier.soldepersointegrale; frm=0 000,00] &euro;) [onshow;block=end]</td>
+			<td>Déduction copies sup BMF002</td><td>[dossier.soldeperso; frm=0 000,00] &euro; [onshow;block=begin; when [view.contrat]==INTEGRAL] ([dossier.soldepersointegrale; frm=0 000,00] &euro;) [onshow;block=end]</td>
 			<td>Disponibilité du solde</td><td>[dossier.soldepersodispo; strconv=no]</td>
 		</tr>
 		[onshow;block=begin; when [view.contrat]==INTEGRAL]
