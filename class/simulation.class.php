@@ -1153,6 +1153,7 @@ class TSimulationSuivi extends TObjetStd {
 			'B2B_ECTR_FLG' => 0
 			,'B2B_NATURE_DEMANDE' => 'S' //TODO a vérifier => 'S pour standard, 'P' ou 'A'
 			,'B2B_TYPE_DEMANDE' => 'E' //TODO spcéfié inactif sur le doc, a voir ce qu'il faut en faire en définitif
+			,'B2B_REF_EXT' => $this->simulation->reference
 		);
 
 		$TData['APP_CREA_Demande'] = $TAPP_CREA_Demande;
