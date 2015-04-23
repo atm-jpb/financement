@@ -659,6 +659,31 @@ class TSimulation extends TObjetStd {
 			$mailfile->sendfile();*/
 	}
 	
+	function _getDossierSelected(){
+		
+		$TDossier = array();
+		//pre($this,true);exit;
+		foreach($this->dossiers_rachetes as $idDossier => $TData){
+			if($this->dossiers_rachetes[$idDossier]['checked'])
+				$TDossier[$idDossier] = $idDossier;
+		}
+		
+		foreach($this->dossiers_rachetes_p1 as $idDossier => $TData){
+			if($this->dossiers_rachetes_p1[$idDossier]['checked'])
+				$TDossier[$idDossier] = $idDossier;
+		}
+		foreach($this->dossiers_rachetes_nr as $idDossier => $TData){
+			if($this->dossiers_rachetes_nr[$idDossier]['checked'])
+				$TDossier[$idDossier] = $idDossier;
+		}
+		foreach($this->dossiers_rachetes_nr_p1 as $idDossier => $TData){
+			if($this->dossiers_rachetes_nr_p1[$idDossier]['checked'])
+				$TDossier[$idDossier] = $idDossier;
+		}
+		
+		return $TDossier;
+	}
+	
 	function gen_simulation_pdf(&$ATMdb, &$doliDB) {
 		global $conf;
 		$a = new TFin_affaire;
@@ -685,7 +710,7 @@ class TSimulation extends TObjetStd {
 		$ATMdb2 = new TPDOdb; // #478 par contre je ne vois pas pourquoi il faut une connexion distincte :/
 		
 		//$TSimuDossier = array_merge($this->dossiers_rachetes, $this->dossiers_rachetes_p1,$this->dossiers_rachetes_nr,$this->dossiers_rachetes_nr_p1,$this->dossiers_rachetes_perso);
-		$TSimuDossier = $this->dossiers_rachetes;
+		$TSimuDossier = $this->_getDossierSelected();
 		//pre($TSimuDossier,true);exit;
 		foreach($TSimuDossier as $idDossier => $Tdata) {
 			$d = new TFin_dossier();
