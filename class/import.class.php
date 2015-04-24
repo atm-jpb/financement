@@ -468,9 +468,12 @@ class TImport extends TObjetStd {
 				
 				$addlink = true;
 				//Gestion des Adjonction
-				//Avant de faire la liaison, si un dossier "-adj" est déjà lié à l'affaire, alors on ne fait pas de lien
+				//Avant de faire la liaison
+				//- si un dossier "-adj" est déjà lié à l'affaire, alors on ne fait pas de lien
+				//- si un dossier initiale est déjà lié à l'affaire, on ne lie pas le dossier "-adj" à celle-ci
 				foreach($affaire->TLien as $i => $TFin_dossier_affaire){
 					if(strpos(strtoupper($TFin_dossier_affaire->dossier->reference),'ADJ') !== FALSE) $addlink = false;
+					if(strpos($TFin_dossier_affaire->dossier->reference,$data['reference_dossier_interne']) !== FALSE) $addlink = false;
 				}
 				
 				if($addlink) $dossier->addAffaire($ATMdb, $affaire->getId());
