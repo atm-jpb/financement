@@ -1037,7 +1037,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	$dossier_for_integral = new TFin_dossier;
 	$dossier_for_integral->load($PDOdb, $dossier->getId());
 	$dossier_for_integral->load_facture($PDOdb,true);
-	$dossier_for_integral->format_facture_integrale($PDOdb);
+	//$dossier_for_integral->format_facture_integrale($PDOdb);
+	//pre($dossier_for_integral->TFacture,true);
 	$sommeRealise = $sommeNoir = $sommeCouleur = $sommeCopieSupCouleur = $sommeCopieSupNoir = 0;
 	//list($sommeRealise,$sommeNoir,$sommeCouleur) = $dossier_for_integral->getSommesIntegrale($PDOdb);
 	list($sommeCopieSupNoir,$sommeCopieSupCouleur) = $dossier_for_integral->getSommesIntegrale($PDOdb,true);

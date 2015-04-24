@@ -293,7 +293,7 @@ class TFin_dossier extends TObjetStd {
 		$sql.= " AND targettype='facture'";
 		$sql.= " AND fk_source=".$this->getId();
 		$sql.= " ORDER BY f.facnumber ASC";
-
+		//echo $sql;
 		$ATMdb->Execute($sql);
 		
 		dol_include_once("/compta/facture/class/facture.class.php");
@@ -304,6 +304,7 @@ class TFin_dossier extends TObjetStd {
 			if($fact->socid == $this->financementLeaser->fk_soc) continue; // Facture matériel associée au leaser, ne pas prendre en compte comme une facture client au sens CPRO
 			
 			$datePeriode = strtotime(implode('-', array_reverse(explode('/', $fact->ref_client))));
+			//echo $fact->ref." ".$fact->ref_client." ".$datePeriode.'<br>';
 			$echeance = $this->_get_num_echeance_from_date($datePeriode);
 			//echo $echeance.'<br>';
 			if(!$all) {
@@ -338,13 +339,16 @@ class TFin_dossier extends TObjetStd {
 				//TODO si plusieurs facture même échéance alors modification affichage pour afficher tous les liens
 				if(!empty($this->TFacture[$echeance])){
 					if(is_array($this->TFacture[$echeance])){
+						//echo $fact->ref.'<br>';
 						$this->TFacture[$echeance] = array_merge($this->TFacture[$echeance],array($fact));
 					}
 					else{
+						//echo $fact->ref.'<br>';
 						$this->TFacture[$echeance] = array($this->TFacture[$echeance],$fact);
 					}
 				}
 				else{
+					//echo $fact->ref.'<br>';
 					$this->TFacture[$echeance] = $fact;
 				}
 				//$echeance++;
@@ -1054,6 +1058,8 @@ class TFin_dossier extends TObjetStd {
 		$sommeRealise = $sommeNoir = $sommeCouleur = $sommeCopieSupNoir = $sommeCopieSupCouleur = 0;
 		$nbEcheance = count($this->TFacture) - 1 ; //-1 car échéance 1 = 0
 		
+		//pre($this->TFacture,true);exit;
+		
 		foreach($this->TFacture as $echeance => $Tfacture){
 			if($echeance == -1) $nbEcheance -= 1; //supression loyer intercalaire
 			
@@ -1062,6 +1068,7 @@ class TFin_dossier extends TObjetStd {
 				//pre($Tfacture,true);exit;
 				if(is_array($Tfacture)){
 					foreach($Tfacture as $k => $facture){
+						//echo $facture->ref.'<br>';
 						$integrale = new TIntegrale;
 						$integrale->loadBy($PDOdb, $facture->ref, 'facnumber');
 
@@ -1081,6 +1088,7 @@ class TFin_dossier extends TObjetStd {
 					}
 				}
 				else{
+					//echo $Tfacture->ref.'<br>';
 					$integrale = new TIntegrale;
 					$integrale->loadBy($PDOdb, $Tfacture->ref, 'facnumber');
 					//pre($integrale,true);exit;
