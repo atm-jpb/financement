@@ -490,9 +490,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 															FROM ".MAIN_DB_PREFIX."user as u 
 																LEFT JOIN ".MAIN_DB_PREFIX."usergroup_user as ugu ON (ugu.fk_user = u.rowid)
 																LEFT JOIN ".MAIN_DB_PREFIX."usergroup as ug ON (ug.rowid = ugu.fk_usergroup)
-															WHERE ug.nom = 'GSL_DOLIBARR_FINANCEMENT_ADMIN' OR 
-																  ug.nom = 'GSL_DOLIBARR_FINANCEMENT_ADV' OR
-																  ug.nom = 'GSL_DOLIBARR_FINANCEMENT_COMMERCIAL'");
+															WHERE ug.nom = 'GSL_DOLIBARR_FINANCEMENT_ADMIN'");
 		
 		$link_user_suivi = $formdolibarr->select_dolusers($simulation->fk_user_suivi,'fk_user_suivi',1,'',0,$TUserInclude,'',$conf->entity);
 	}
