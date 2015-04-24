@@ -383,7 +383,7 @@ class TFin_dossier extends TObjetStd {
 							$avoir = new Facture($db);
 							$avoir->fetch($idAvoir);
 							
-							if(abs($avoir->total_ht) == $facture->total_ht){
+							if(abs($avoir->total_ht) == abs($facture->total_ht)){
 								unset($this->TFacture[$echeance][$k]);
 							}
 						}
