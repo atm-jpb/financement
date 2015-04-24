@@ -4,6 +4,7 @@ require('./class/simulation.class.php');
 require('./class/grille.class.php');
 require('./class/affaire.class.php');
 require('./class/dossier.class.php');
+require('./class/dossier_integrale.class.php');
 require('./class/score.class.php');
 
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
@@ -383,13 +384,14 @@ function _liste(&$ATMdb, &$simulation) {
 		,'title'=>array(
 			'rowid'=>'N°'
 			,'nom'=>'Client'
+			,'reference'=>'Ref.'
 			,'login'=>'Utilisateur'
-			,'fk_type_contrat'=> 'Type de contrat'
-			,'date_simul'=>'Date simulation'
+			,'fk_type_contrat'=> 'Type<br>de<br>contrat'
+			,'date_simul'=>'Date<br>simulation'
 			,'accord'=>'Statut'
-			,'type_financement'=>'Type financement'
+			,'type_financement'=>'Type<br>financement'
 			,'leaser'=>'Leaser'
-			,'suivi'=>'Accord Leaser'
+			,'suivi'=>'Accord<br>Leaser'
 		)
 		,'search'=>array(
 			'nom'=>array('recherche'=>true, 'table'=>'soc')
@@ -779,6 +781,22 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			$soldeNR1 = 0;
 			$soldeperso = 0;
 		}
+		
+		$dossier_for_integral = new TFin_dossier;
+		$dossier_for_integral->load($ATMdb2, $dossier->getId());
+		$dossier_for_integral->load_facture($ATMdb2,true);
+		//$dossier_for_integral->format_facture_integrale($PDOdb);
+		//pre($dossier_for_integral->TFacture,true);
+		$sommeRealise = $sommeNoir = $sommeCouleur = $sommeCopieSupCouleur = $sommeCopieSupNoir = 0;
+		//list($sommeRealise,$sommeNoir,$sommeCouleur) = $dossier_for_integral->getSommesIntegrale($PDOdb);
+		list($sommeCopieSupNoir,$sommeCopieSupCouleur) = $dossier_for_integral->getSommesIntegrale($ATMdb2,true);
+		
+		$decompteCopieSupNoir = $sommeCopieSupNoir * $dossier_for_integral->quote_part_noir;
+		$decompteCopieSupCouleur = $sommeCopieSupCouleur * $dossier_for_integral->quote_part_couleur;
+		
+		$soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
+	
+		$soldepersointegrale = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
 		
 		/*
 		$checked = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes) ? true : false;
