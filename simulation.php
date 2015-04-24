@@ -796,7 +796,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		
 		$soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
 	
-		$soldepersointegrale = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
+		$soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
 		
 		/*
 		$checked = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes) ? true : false;
