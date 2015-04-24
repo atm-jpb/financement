@@ -684,7 +684,7 @@ class TFin_dossier extends TObjetStd {
 					
 					//pre($this->financement);
 					
-					if($iPeriode < 5){
+					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH){
 						return $this->financement->montant;
 					}
 					elseif($this->TLien[0]->affaire->type_financement == 'MANDATEE' || $this->TLien[0]->affaire->type_financement == 'ADOSSEE'){
