@@ -293,7 +293,7 @@ class TFin_dossier extends TObjetStd {
 		$sql.= " AND targettype='facture'";
 		$sql.= " AND fk_source=".$this->getId();
 		$sql.= " ORDER BY f.facnumber ASC";
-		//echo $sql;
+		//echo $sql;exit;
 		$ATMdb->Execute($sql);
 		
 		dol_include_once("/compta/facture/class/facture.class.php");
@@ -367,13 +367,12 @@ class TFin_dossier extends TObjetStd {
 			if(is_array($Tfacture)){
 				
 				foreach($Tfacture as $k => $facture){
-					
+
 					//Si la facture est un avoir qui annule totalement la facture d'origine, on supprime l'avoir du tableau
 					if($facture->type == 2){
 						$facture_origine = new Facture($db);
 						$facture_origine->fetch($facture->fk_facture_source);
-						
-						if($facture_origine->total_ht == $facture->total_ht){
+						if(abs($facture_origine->total_ht) == abs($facture->total_ht)){
 							unset($this->TFacture[$echeance][$k]);
 						}
 					}
