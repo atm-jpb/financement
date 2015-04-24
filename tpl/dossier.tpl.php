@@ -146,8 +146,8 @@
 				<td>Quote-part COULEUR</td><td>[dossier.quote_part_couleur;; frm=0 000,00000]</td>
 			</tr>
 			<tr>
-				<td>Copies suplémentaire NOIR</td><td>[dossier.somme_sup_noir; strconv=no]</td>
-				<td>Copies suplémentaire COULEUR</td><td>[dossier.somme_sup_coul; strconv=no]</td>
+				<td>Copies suplémentaires NOIR</td><td>[dossier.somme_sup_noir; strconv=no]</td>
+				<td>Copies suplémentaires COULEUR</td><td>[dossier.somme_sup_coul; strconv=no]</td>
 			</tr>
 		[onshow;block=end]
 		[onshow;block=begin; when [view.userRight]==1]
