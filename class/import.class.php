@@ -471,11 +471,13 @@ class TImport extends TObjetStd {
 				//Avant de faire la liaison
 				//- si un dossier "-adj" est déjà lié à l'affaire, alors on ne fait pas de lien
 				//- si un dossier initiale est déjà lié à l'affaire, on ne lie pas le dossier "-adj" à celle-ci
-				foreach($affaire->TLien as $i => $TFin_dossier_affaire){
-					if(strpos(strtoupper($TFin_dossier_affaire->dossier->reference),'ADJ') !== FALSE) $addlink = false;
-					if(strpos($TFin_dossier_affaire->dossier->reference,$data['reference_dossier_interne']) !== FALSE) $addlink = false;
-				}
 				
+				//foreach($dossier->TLien as $i => $TFin_dossier_affaire){
+				if(strpos(strtoupper($dossier->reference),'ADJ') !== FALSE) $addlink = false;
+				if(strpos($dossier->reference,$data['reference_dossier_interne']) !== FALSE) $addlink = false;
+				//}
+				/*echo $data['reference_dossier_interne'].'<br>';
+				pre($dossier,true);exit;*/
 				if($addlink) $dossier->addAffaire($ATMdb, $affaire->getId());
 				$dossier->save($ATMdb);
 				//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
