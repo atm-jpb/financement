@@ -1093,7 +1093,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'soldeRCPRO'=>($dossier->nature_financement == 'INTERNE') ? $dossier->getSolde($PDOdb, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time()) +1) : $dossier->getSolde($PDOdb, 'SRCPRO')//SRCPRO
 				,'soldeNRCPRO'=>($dossier->nature_financement == 'INTERNE') ? $dossier->getSolde($PDOdb, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time()) +1) : $dossier->getSolde($PDOdb, 'SNRCPRO')//SNRCPRO
 				,'soldeperso'=>$soldeperso
-				,'soldepersodispo'=>$form->combo('', 'soldepersodispo', array('1' => 'Oui', '0' => 'Non'), ($dossier->soldepersodispo) ? $dossier->soldepersodispo : 1)
+				,'soldepersodispo'=>$form->combo('', 'soldepersodispo', array('1' => 'Oui', '2' => 'Non'), ($dossier->soldepersodispo) ? $dossier->soldepersodispo : 1)
 				,'soldepersointegrale'=>$soldepersointegrale
 				,'dateperso'=>$dateperso
 				,'url_therefore'=>FIN_THEREFORE_DOSSIER_URL

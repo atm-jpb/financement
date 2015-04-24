@@ -2,7 +2,7 @@
 	<tr class="liste_titre">
 		<td>N° contrat</td>
 		<td style="width: 130px;">Leaser</td>
-		<td>Type contrat</td>
+		<td align="center">Type contrat</td>
 		<td align="center">Montant</td>
 		<td align="center">Durée<br>Terme</td>
 		<td align="center">Loyer<br>Loyer act.</td>
