@@ -142,25 +142,7 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 	}
 	
 	$integrale->facnumber = $facture->getNomUrl();
-	
-	$facidavoir=$facture->getListIdAvoirFromInvoice();
-	
-	//$totalht = $fact->total_ht;
-	foreach ($facidavoir as $idAvoir) {
-		$avoir = new Facture($db);
-		$avoir->fetch($idAvoir);
-		
-		$integrale_avoir = new TIntegrale;
-		$integrale_avoir->loadBy($PDOdb, $avoir->ref, 'facnumber');
-		
-		$integrale->vol_noir_engage -= abs($integrale_avoir->vol_noir_engage);
-		$integrale->vol_noir_realise -= abs($integrale_avoir->vol_noir_realise);
-		$integrale->vol_noir_facture -= abs($integrale_avoir->vol_noir_facture);
-		//$integrale->vol_coul_engage -= $integrale_avoir->vol_coul_engage;
-		$integrale->vol_coul_realise -= abs($integrale_avoir->vol_coul_realise);
-		$integrale->vol_coul_facture -= $integrale_avoir->vol_coul_facture;
-	}
-	
+
 	if(!empty($TIntegrale[$integrale->date_periode])){
 			
 		//Pour certains champs on concatène
@@ -173,7 +155,9 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		if($TIntegrale[$integrale->date_periode]->vol_noir_engage < $integrale->vol_noir_engage){
 			$TIntegrale[$integrale->date_periode]->vol_noir_engage = $integrale->vol_noir_engage;
 		}
-		$TIntegrale[$integrale->date_periode]->vol_noir_realise += $integrale->vol_noir_realise;
+		if($integrale->vol_noir_engage < 0) $TIntegrale[$integrale->date_periode]->vol_noir_realise -= $integrale->vol_noir_realise;
+		else $TIntegrale[$integrale->date_periode]->vol_noir_realise += $integrale->vol_noir_realise;
+		
 		$TIntegrale[$integrale->date_periode]->vol_noir_facture += $integrale->vol_noir_facture;
 		
 		if($integrale->cout_unit_noir > $TIntegrale[$integrale->date_periode]->cout_unit_noir){
@@ -183,7 +167,10 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		if($TIntegrale[$integrale->date_periode]->vol_coul_engage < $integrale->vol_coul_engage){
 			$TIntegrale[$integrale->date_periode]->vol_coul_engage = $integrale->vol_coul_engage;
 		}
-		$TIntegrale[$integrale->date_periode]->vol_coul_realise += $integrale->vol_coul_realise;
+		
+		if($integrale->vol_coul_engage < 0) $TIntegrale[$integrale->date_periode]->vol_coul_realise -= $integrale->vol_coul_realise;
+		else $TIntegrale[$integrale->date_periode]->vol_coul_realise += $integrale->vol_coul_realise;
+		
 		$TIntegrale[$integrale->date_periode]->vol_coul_facture += $integrale->vol_coul_facture;
 		//echo $integrale->date_periode." ".$TIntegrale[$integrale->date_periode]->vol_coul_realise.' '.$integrale->facnumber.'<br>';
 		if($integrale->cout_unit_coul > $TIntegrale[$integrale->date_periode]->cout_unit_coul){
@@ -231,7 +218,6 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 	$fin->_affperiodicite = $fin->TPeriodicite[$fin->periodicite];
 	
 	//pre($dossier->TFacture[6],true);
-	
 	$TIntegrale = array();
 	foreach ($dossier->TFacture as $fac) {
 		
@@ -248,24 +234,26 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 	
 	//$dossier->load_facture($PDOdb,true);
 	$dossier->format_facture_integrale($PDOdb);
+	//pre($dossier->TFacture,true);
+	//pre($TIntegrale,true);
 	foreach($dossier->TFacture as $echeance => $facture){
-		
-		$TIntegrale[date('d/m/Y',strtotime($dossier->getDateDebutPeriode($echeance,'CLIENT')))]->date_facture = '';
-		$TIntegrale[date('d/m/Y',strtotime($dossier->getDateDebutPeriode($echeance,'CLIENT')))]->facnumber = '';
+		$date_periode = date('d/m/Y',strtotime($dossier->getDateDebutPeriode($echeance,'CLIENT')));
+		$TIntegrale[$date_periode]->date_facture = '';
+		$TIntegrale[$date_periode]->facnumber = '';
 		
 		if(is_array($facture)){
 			foreach($facture as $fact){
-				$TIntegrale[date('d/m/Y',strtotime($dossier->getDateDebutPeriode($echeance,'CLIENT')))]->date_facture .= $fact->ref_client."<br>";
-				$TIntegrale[date('d/m/Y',strtotime($dossier->getDateDebutPeriode($echeance,'CLIENT')))]->facnumber .= $fact->getNomUrl()."<br>";
+				$TIntegrale[$date_periode]->date_facture .= $fact->ref_client."<br>";
+				$TIntegrale[$date_periode]->facnumber .= $fact->getNomUrl()."<br>";
 			}
 		}
 		else{
-			$TIntegrale[date('d/m/Y',strtotime($dossier->getDateDebutPeriode($echeance,'CLIENT')))]->date_facture .= $facture->ref_client."<br>";
-			$TIntegrale[date('d/m/Y',strtotime($dossier->getDateDebutPeriode($echeance,'CLIENT')))]->facnumber .= $facture->getNomUrl()."<br>";
+			$TIntegrale[$date_periode]->date_facture .= $facture->ref_client."<br>";
+			$TIntegrale[$date_periode]->facnumber .= $facture->getNomUrl()."<br>";
 		}
 		//$TIntegrale[] = '';
 	}
-	
+	array_pop($TIntegrale); //TODO c'est moche mais sa marche
 	//pre($TIntegrale,true);
 	echo $TBS->render('./tpl/dossier_integrale.tpl.php'
 		,array(
