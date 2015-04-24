@@ -374,13 +374,14 @@ function _liste(&$ATMdb, &$simulation) {
 		,'title'=>array(
 			'rowid'=>'N°'
 			,'nom'=>'Client'
+			,'reference'=>'Ref.'
 			,'login'=>'Utilisateur'
-			,'fk_type_contrat'=> 'Type de contrat'
-			,'date_simul'=>'Date simulation'
+			,'fk_type_contrat'=> 'Type<br>de<br>contrat'
+			,'date_simul'=>'Date<br>simulation'
 			,'accord'=>'Statut'
-			,'type_financement'=>'Type financement'
+			,'type_financement'=>'Type<br>financement'
 			,'leaser'=>'Leaser'
-			,'suivi'=>'Accord Leaser'
+			,'suivi'=>'Accord<br>Leaser'
 		)
 		,'search'=>array(
 			'nom'=>array('recherche'=>true, 'table'=>'soc')
