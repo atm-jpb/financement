@@ -688,15 +688,17 @@ class TFin_dossier extends TObjetStd {
 					if($this->financement->periodicite == 'MOIS') $seuil_solde += 2;
 					
 					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= $seuil_solde){
-						return $this->financement->montant;
+						$solde = $this->financement->montant;
 					}
 					elseif($this->TLien[0]->affaire->type_financement == 'MANDATEE' || $this->TLien[0]->affaire->type_financement == 'ADOSSEE'){
-						return $this->financement->capital_restant * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
+						$solde = $this->financement->capital_restant * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
 					}
 					elseif($this->TLien[0]->affaire->type_financement == 'PURE'){
-						return $this->financement->total_loyer;
+						$solde = $this->financement->total_loyer;
 						//return $this->financement->echeance * ($this->financement->duree - ($this->financement->numero_prochaine_echeance-1));
 					}
+					
+					return ($solde>$LRD_Leaser)?$LRD_Leaser:$solde;
 				break;
 		}
 	}
