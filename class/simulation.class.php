@@ -9,7 +9,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('duree,opt_administration,opt_creditbail,opt_adjonction,opt_no_case_to_settle','type=entier;');
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_decompte_copies_sup,montant_rachat_final,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
 		parent::add_champs('date_simul,date_validite,date_accord,date_demarrage','type=date;');
-		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,numero_accord,reference,opt_calage','type=chaine;');
+		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,marque_materiel,numero_accord,reference,opt_calage','type=chaine;');
 		parent::add_champs('dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
 		parent::start();
 		parent::_init_vars();
@@ -30,6 +30,19 @@ class TSimulation extends TObjetStd {
 			,1=>'A Echoir'
 		);
 		
+		$this->TMarqueMateriel = array(
+			'CANON' => 'CANON'
+			,'DELL' => 'DELL'
+			,'KONICA MINOLTA' => 'KONICA MINOLTA'
+			,'KYOCERA' => 'KYOCERA'
+			,'LEXMARK' => 'LEXMARK'
+			,'HEWLETT-PACKARD' => 'HEWLETT-PACKARD'
+			,'OCE' => 'OCE'
+			,'OKI' => 'OKI'
+			,'SAMSUNG' => 'SAMSUNG'
+			,'TOSHIBA' => 'TOSHIBA'
+		);
+
 		$this->TSimulationSuivi = array();
 	}
 	
@@ -1045,9 +1058,6 @@ class TSimulationSuivi extends TObjetStd {
 	//Effectuer l'action de faire la demande de financement au leaser
 	function doActionDemander(&$PDOdb,&$simulation){
 		global $db;
-
-		$simulation->accord = 'WAIT_LEASER';
-		$simulation->save($PDOdb, $db);
 		
 	    // Leaser ACECOM = demande BNP mandaté et BNP cession + Lixxbail mandaté et Lixxbail cession
 		if($this->fk_leaser == 18305){
@@ -1222,6 +1232,7 @@ class TSimulationSuivi extends TObjetStd {
 			'B2B_ECTR_FLG' => 0
 			,'B2B_NATURE_DEMANDE' => 'S' //TODO a vérifier => 'S pour standard, 'P' ou 'A'
 			,'B2B_TYPE_DEMANDE' => 'E' //TODO spcéfié inactif sur le doc, a voir ce qu'il faut en faire en définitif
+			,'B2B_REF_EXT' => $this->simulation->reference
 		);
 
 		$TData['APP_CREA_Demande'] = $TAPP_CREA_Demande;
@@ -1308,7 +1319,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		//TODO => comment on définit quelle valeur prendre?
 		//$marqueMat = $TMarqueMatGE[$this->simulation->type_materiel];
-		$marqueMat = ($TMarqueMatGE[$this->simulation->type_materiel]) ? $TMarqueMatGE[$this->simulation->type_materiel] : 'CAN';
+		$marqueMat = ($TMarqueMatGE[$this->simulation->marque_materiel]) ? $TMarqueMatGE[$this->simulation->marque_materiel] : 'CAN';
 		//$typeMat = $TTypeMatGE[$this->simulation->type_materiel];
 		$typeMat = ($TTypeMatGE[$this->simulation->type_materiel]) ? $TTypeMatGE[$this->simulation->type_materiel] : 'PHOTOCO';
 		
@@ -1372,17 +1383,33 @@ class TSimulationSuivi extends TObjetStd {
 			//pre($reponseDemandeFinancement,true);exit;
 		}
 		catch(SoapFault $reponseDemandeFinancement) {
-			echo '<pre>';
-			var_dump($reponseDemandeFinancement->detail);exit;
-			//var_dump($e);
-			//echo $e->getMessage();
-			var_dump($TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] );
-			exit;
+			//echo '<pre>';
+			//var_dump($reponseDemandeFinancement->detail);exit;
+			$this->errorLabel = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail->retourErreur->erreur);
+			return 0;
 		}
 
 		$this->traiteBNPReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
 	}
-
+	
+	function traiteErrorsDemandeBNP($TObjError){
+		
+		$errorLabel = '';
+		if(count($TObjError)){
+			$errorLabel = 'ERREUR SCORING BNP : <br>';
+			if(is_array($TObjError)){
+				foreach($TObjError as $ObjError){
+					$errorLabel .= $ObjError->message.'<br>';
+				}
+			}
+			else{
+				$errorLabel .= $TObjError->message;
+			}
+		}
+		
+		return $errorLabel;
+	}
+	
 	function _consulterDemandeBNP(){
 		
 		if(BNP_TEST){
@@ -1517,10 +1544,10 @@ class TSimulationSuivi extends TObjetStd {
 		$TMateriel = array(
 			'codeMateriel' => '300121' //Photocopieur
 			,'codeEtatMateriel' => 'N'
-			,'prixDeVente' => $this->simulation->montant
+			//,'prixDeVente' => $this->simulation->montant
 			//,'prixTarif' => ''
 			//,'anneeFabrication' => ''
-			,'codeMarque' => ($TCodeMarque[$this->simulation->type_materiel]) ? $TCodeMarque[$this->simulation->type_materiel] : '909' //909 = Divers informatique
+			,'codeMarque' => ($TCodeMarque[$this->simulation->marque_materiel]) ? $TCodeMarque[$this->simulation->marque_materiel] : '909' //909 = Divers informatique
 			//,'type' => ''
 			//,'modele' => ''
 			//,'dateDeMiseEnCirculation' => ''
@@ -1566,7 +1593,7 @@ class TSimulationSuivi extends TObjetStd {
 				,'codeProduitCommercial' => $codeCommercial 
 			)
 			,'codeBareme' => $this->_getBNPBareme($TData,$codeCommercial) //récupérer la grille de barême (8 barêmes différents)
-			,'montantFinance' => $this->simulation->montant
+			//,'montantFinance' => $this->simulation->montant
 			//,'codeTerme' => ''
 			//,'valeurResiduelle' => array(
 				//'montant'=> ''
@@ -1596,7 +1623,7 @@ class TSimulationSuivi extends TObjetStd {
 				switch ($codeCommercial) {
 					case '02': // = ''
 							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-								$codeBareme = '00000828';
+								$codeBareme = '00000868';
 							}
 							elseif($this->simulation->opt_periodicite == 'MOIS'){
 								$codeBareme = '00004028';
