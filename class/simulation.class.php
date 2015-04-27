@@ -1430,7 +1430,7 @@ class TSimulationSuivi extends TObjetStd {
 	
 	function traiteBNPReponseDemandeFinancement(&$PDOdb,&$reponseDemandeFinancement){
 //		pre($reponseDemandeFinancemnent,true);exit;
-		$this->numero_accord_leaser = $reponseDemandeFinancement->transmettreDemandeFinancementResponse->numeroDemandeProvisoire;
+		$this->numero_accord_leaser = $reponseDemandeFinancement->numeroDemandeProvisoire;
 		$this->save($PDOdb);
 	}
 	
