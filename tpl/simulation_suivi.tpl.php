@@ -23,7 +23,7 @@
 			<!--<td>[ligne.demande;strconv=no]</td>-->
 			<td>[ligne.date_demande]</td>
 			<td>[ligne.resultat;strconv=no]</td>
-			<td>[ligne.numero_accord_leaser;strconv=no]</td>
+			<td style="text-align: right;">[ligne.numero_accord_leaser;strconv=no]</td>
 			<td>[ligne.coeff_leaser;strconv=no]</td>
 			<td>[ligne.date_selection]</td>
 			<td>[ligne.utilisateur;strconv=no]</td>
