@@ -2,7 +2,7 @@
 	<tr class="liste_titre">
 		<td>N° contrat</td>
 		<td style="width: 130px;">Leaser</td>
-		<td>Type contrat</td>
+		<td align="center">Type contrat</td>
 		<td align="center">Montant</td>
 		<td align="center">Durée<br>Terme</td>
 		<td align="center">Loyer<br>Loyer act.</td>
@@ -14,7 +14,7 @@
 		<td align="center">Solde NR.</td>
 		<td align="center">R. P+1</td>
 		<td align="center">NR. P+1</td>
-		<td align="center">Perso</td>
+		<td align="center">BMF002</td>
 	</tr>
 	<tr [champs.class; strconv=no]>
 		<td>[champs.num_contrat;block=tr; strconv=no]</td>

@@ -659,6 +659,31 @@ class TSimulation extends TObjetStd {
 			$mailfile->sendfile();*/
 	}
 	
+	function _getDossierSelected(){
+		
+		$TDossier = array();
+		//pre($this,true);exit;
+		foreach($this->dossiers_rachetes as $idDossier => $TData){
+			if($this->dossiers_rachetes[$idDossier]['checked'])
+				$TDossier[$idDossier] = $idDossier;
+		}
+		
+		foreach($this->dossiers_rachetes_p1 as $idDossier => $TData){
+			if($this->dossiers_rachetes_p1[$idDossier]['checked'])
+				$TDossier[$idDossier] = $idDossier;
+		}
+		foreach($this->dossiers_rachetes_nr as $idDossier => $TData){
+			if($this->dossiers_rachetes_nr[$idDossier]['checked'])
+				$TDossier[$idDossier] = $idDossier;
+		}
+		foreach($this->dossiers_rachetes_nr_p1 as $idDossier => $TData){
+			if($this->dossiers_rachetes_nr_p1[$idDossier]['checked'])
+				$TDossier[$idDossier] = $idDossier;
+		}
+		
+		return $TDossier;
+	}
+	
 	function gen_simulation_pdf(&$ATMdb, &$doliDB) {
 		global $conf;
 		$a = new TFin_affaire;
@@ -684,8 +709,10 @@ class TSimulation extends TObjetStd {
 		
 		$ATMdb2 = new TPDOdb; // #478 par contre je ne vois pas pourquoi il faut une connexion distincte :/
 		
-		$TSimuDossier = array_merge($this->dossiers_rachetes, $this->dossiers_rachetes_p1,$this->dossiers_rachetes_nr,$this->dossiers_rachetes_nr_p1,$this->dossiers_rachetes_perso);
-		foreach($TSimuDossier as $idDossier) {
+		//$TSimuDossier = array_merge($this->dossiers_rachetes, $this->dossiers_rachetes_p1,$this->dossiers_rachetes_nr,$this->dossiers_rachetes_nr_p1,$this->dossiers_rachetes_perso);
+		$TSimuDossier = $this->_getDossierSelected();
+		//pre($TSimuDossier,true);exit;
+		foreach($TSimuDossier as $idDossier => $Tdata) {
 			$d = new TFin_dossier();
 			$d->load($ATMdb, $idDossier);
 			
@@ -695,14 +722,66 @@ class TSimulation extends TObjetStd {
 				$f = &$d->financementLeaser;
 			}
 			
-			if(in_array($idDossier, $this->dossiers_rachetes) || in_array($idDossier, $this->dossiers_rachetes_nr)) {
-				$solde_r = $d->getSolde($ATMdb2, 'SRCPRO');
-				$solde_nr = $d->getSolde($ATMdb2, 'SNRCPRO');
+			//pre($this,true);exit;
+			if($d->nature_financement == 'INTERNE') {
+				if($this->dossiers_rachetes[$idDossier]['checked']){
+					$solde_r = $solde_nr = $this->dossiers_rachetes[$idDossier]['montant'];
+					$solde = 'R';
+					$datemax = $f->date_prochaine_echeance;
+				}
+				elseif($this->dossiers_rachetes_p1[$idDossier]['checked']){
+					$solde_r = $solde_nr = $this->dossiers_rachetes_p1[$idDossier]['montant'];
+					$solde = 'R';
+					$datemax = strtotime('+ '.$f->getiPeriode().' months', $f->date_prochaine_echeance);
+				}
+				
+				if($this->dossiers_rachetes_nr[$idDossier]['checked']){
+					$solde_r = $solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
+					$solde = 'NR';
+					$datemax = $f->date_prochaine_echeance;
+				}
+				elseif($this->dossiers_rachetes_nr_p1[$idDossier]['checked']){
+					$solde_r = $solde_nr = $this->dossiers_rachetes_nr_p1[$idDossier]['montant'];
+					$solde = 'NR';
+					$datemax = $datemax = strtotime('+ '.$f->getiPeriode().' months', $f->date_prochaine_echeance);
+				}
+			}
+			else{
+				if($this->dossiers_rachetes[$idDossier]['checked']){
+					$solde_r = $this->dossiers_rachetes[$idDossier]['montant'];
+					$solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
+					$solde = 'R';
+					$datemax = $f->date_prochaine_echeance;
+				}
+				elseif($this->dossiers_rachetes_p1[$idDossier]['checked']){
+					$solde_r = $this->dossiers_rachetes_p1[$idDossier]['montant'];
+					$solde_nr = $this->dossiers_rachetes_nr_p1[$idDossier]['montant'];
+					$solde = 'R';
+					$datemax = strtotime('+ '.$f->getiPeriode().' months', $f->date_prochaine_echeance);
+				}
+				
+				if($this->dossiers_rachetes_nr[$idDossier]['checked']){
+					$solde_r = $this->dossiers_rachetes[$idDossier]['montant'];
+					$solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
+					$solde = 'NR';
+					$datemax = $f->date_prochaine_echeance;
+				}
+				elseif($this->dossiers_rachetes_nr_p1[$idDossier]['checked']){
+					$solde_r = $this->dossiers_rachetes_p1[$idDossier]['montant'];
+					$solde_nr = $this->dossiers_rachetes_nr_p1[$idDossier]['montant'];
+					$solde = 'NR';
+					$datemax = $datemax = strtotime('+ '.$f->getiPeriode().' months', $f->date_prochaine_echeance);
+				}
+			}
+			
+			/*if(in_array($idDossier, $this->dossiers_rachetes) || in_array($idDossier, $this->dossiers_rachetes_nr)) {
+				$solde_r = $d->getSolde($ATMdb2, 'SRNRSAME'); //SRCPRO
+				$solde_nr = $d->getSolde($ATMdb2, 'SRNRSAME'); //SNRCPRO
 				$soldeperso = '' ;
 			}
 			elseif(in_array($idDossier, $this->dossiers_rachetes_p1) || in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
-				$solde_r = $d->getSolde($ATMdb2, 'SRCPRO',$f->duree_passe + 1);
-				$solde_nr = $d->getSolde($ATMdb2, 'SNRCPRO',$f->duree_passe + 1);
+				$solde_r = $d->getSolde($ATMdb2, 'SRNRSAME',$f->duree_passe + 1); //SRCPRO
+				$solde_nr = $d->getSolde($ATMdb2, 'SRNRSAME',$f->duree_passe + 1); //SNRCPRO
 				$soldeperso = '' ;
 			}
 			elseif(in_array($idDossier, $this->dossiers_rachetes_perso)) {
@@ -714,11 +793,11 @@ class TSimulation extends TObjetStd {
 				$solde_r = '';
 				$solde_nr = '';
 				$soldeperso = '' ;
-			}
+			}*/
 			
 			//echo $solde_r." ".$solde_nr;
 			
-			if(in_array($idDossier, $this->dossiers_rachetes)) {
+			/*if(in_array($idDossier, $this->dossiers_rachetes)) {
 				$solde = 'R';
 				$datemax = $f->date_prochaine_echeance;
 			} elseif(in_array($idDossier, $this->dossiers_rachetes_nr)) {
@@ -735,7 +814,7 @@ class TSimulation extends TObjetStd {
 				$datemax = $d->dateperso;
 			} else {
 				$solde = '';
-			}
+			}*/
 			
 			/*if($d->nature_financement == 'INTERNE') {
 				$f = &$d->financement;
@@ -783,7 +862,7 @@ class TSimulation extends TObjetStd {
 					,'datemax' => $datemax
 				);
 			}
-			else{
+			/*else{
 				$TDossierperso[] = array(
 					'referenceperso' => $f->reference
 					,'leaser' => $leaser->name
@@ -792,7 +871,7 @@ class TSimulation extends TObjetStd {
 					,'soldeperso' => $soldeperso
 					,'datemax' => $datemax
 				);
-			}
+			}*/
 		}
 		
 		$this->hasdossier = count($TDossier) + count($TDossierperso);
@@ -822,7 +901,7 @@ class TSimulation extends TObjetStd {
 		$file = $TBS->render('./tpl/doc/simulation.odt'
 			,array(
 				'dossier'=>$TDossier
-				,'dossierperso'=>$TDossierperso
+				//,'dossierperso'=>$TDossierperso
 			)
 			,array(
 				'simulation'=>$simu2

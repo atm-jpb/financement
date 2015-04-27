@@ -136,7 +136,7 @@
 			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
-			<td>montant décompte copies sup</td>
+			<td>déduction copies sup BMF002</td>
 			<td>[simulation.montant_decompte_copies_sup; strconv=no; frm=0 000,00] &euro;</td>
 			[onshow;block=begin;when [view.type]=='simul']
 				<td align="right">Service Financement</td>
@@ -146,12 +146,12 @@
 			[onshow;block=end]
 		</tr>
 		<tr>
-			<td>montant rachat final</td>
-			<td>[simulation.montant_rachat_final; strconv=no; frm=0 000,00] &euro;</td>
-		</tr>
-		<tr>
 			<td>dont montant rachat concurrence</td>
 			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
+		</tr>
+		<tr>
+			<td>montant rachat final</td>
+			<td>[simulation.montant_rachat_final; strconv=no; frm=0 000,00] &euro;</td>
 			<td colspan="2" align="center">
 				[simulation.date_validite]
 			</td>
