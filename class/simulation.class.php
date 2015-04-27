@@ -1544,7 +1544,7 @@ class TSimulationSuivi extends TObjetStd {
 		$TMateriel = array(
 			'codeMateriel' => '300121' //Photocopieur
 			,'codeEtatMateriel' => 'N'
-			//,'prixDeVente' => $this->simulation->montant
+			,'prixDeVente' => $this->simulation->montant
 			//,'prixTarif' => ''
 			//,'anneeFabrication' => ''
 			,'codeMarque' => ($TCodeMarque[$this->simulation->marque_materiel]) ? $TCodeMarque[$this->simulation->marque_materiel] : '909' //909 = Divers informatique
