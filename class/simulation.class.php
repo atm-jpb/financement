@@ -1564,7 +1564,7 @@ class TSimulationSuivi extends TObjetStd {
 		$codeFinancier = $codeTypeCalcul = '';
 		if($this->simulation->type_financement == 'FINANCIERE'){
 			$codeFinancier = '021';
-			$codeTypeCalcul = 'M';
+			$codeTypeCalcul = 'L';
 			if($this->simulation->getLabelCategorieClient() == 'administration'){
 				$codeCommercial = '2Q';
 			}
@@ -1593,7 +1593,7 @@ class TSimulationSuivi extends TObjetStd {
 				,'codeProduitCommercial' => $codeCommercial 
 			)
 			,'codeBareme' => $this->_getBNPBareme($TData,$codeCommercial) //récupérer la grille de barême (8 barêmes différents)
-			//,'montantFinance' => $this->simulation->montant
+			,'montantFinance' => $this->simulation->montant
 			//,'codeTerme' => ''
 			//,'valeurResiduelle' => array(
 				//'montant'=> ''
