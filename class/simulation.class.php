@@ -1351,7 +1351,7 @@ class TSimulationSuivi extends TObjetStd {
 	
 	function _createDemandeBNP(&$PDOdb){
 		
-		if(BNP_TEST){
+		/*if(BNP_TEST){
 			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
 		}
 		else{
@@ -1374,12 +1374,12 @@ class TSimulationSuivi extends TObjetStd {
 		catch(SoapFault $e) {
 			var_dump($e);
 			exit;
-		}
+		}*/
 		//pre($soap->__getFunctions(),true);exit;
 //		echo "1<br>";
 		$TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] = $this->_getBNPDataTabForDemande($PDOdb);
 		
-		//pre($TtransmettreDemandeFinancementRequest,true);exit;
+		pre($TtransmettreDemandeFinancementRequest,true);exit;
 		try{
 //		echo "2<br>";
 
@@ -1524,6 +1524,15 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$this->simulation->societe->fetch_optionals($this->simulation->societe->id);
 		
+		$arraySearch = array(
+			'  ',
+			'.'
+		);
+		$arrayToReplace = array(
+			' ',
+			''
+		);
+		
 		$TClient = array(
 			'idNationnalEntreprise' => $this->simulation->societe->idprof2
 			,'codeTypeClient' => $codeTypeClient
@@ -1540,7 +1549,7 @@ class TSimulationSuivi extends TObjetStd {
 				//)
 			//)
 			,'adresse' => array(
-				'adresse' => preg_replace("[ \f\n\r\t\v]", " ",$this->simulation->societe->address)
+				'adresse' => str_replace($arraySearch,$arrayToReplace,preg_replace("/\n|\ -\ |[\,\ ]{1}/", ' ', $this->simulation->societe->address))
 				//,'adresseComplement' => ''
 				,'codePostal' => $this->simulation->societe->zip
 				,'Ville' => $this->simulation->societe->town
