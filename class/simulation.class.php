@@ -1006,6 +1006,8 @@ class TSimulationSuivi extends TObjetStd {
 				//Sélectionner
 				if($this->statut === 'OK'){
 					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=selectionner" title="Sélectionner ce leaser"><img src="'.dol_buildpath('/financement/img/selectionner.png',1).'" /></a>&nbsp;';
+					//Enregistrer
+					$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
 				}
 				else{
 					if($this->statut !== 'KO'){
