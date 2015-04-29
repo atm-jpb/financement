@@ -1549,7 +1549,7 @@ class TSimulationSuivi extends TObjetStd {
 				//)
 			//)
 			,'adresse' => array(
-				'adresse' => str_replace($arraySearch,$arrayToReplace,preg_replace("/\n|\ -\ |[\,\ ]{1}/", ' ', $this->simulation->societe->address))
+				'adresse' => substr(str_replace($arraySearch,$arrayToReplace,preg_replace("/\n|\ -\ |[\,\ ]{1}/", ' ', $this->simulation->societe->address)),0,31)
 				//,'adresseComplement' => ''
 				,'codePostal' => $this->simulation->societe->zip
 				,'Ville' => $this->simulation->societe->town
