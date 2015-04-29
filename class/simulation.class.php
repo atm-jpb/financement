@@ -1536,7 +1536,7 @@ class TSimulationSuivi extends TObjetStd {
 		);
 		
 		$TClient = array(
-			'idNationnalEntreprise' => ($this->simulation->societe->idprof1) ? $this->simulation->societe->idprof1 : $this->simulation->societe->array_options['options_other_siren']
+			'idNationnalEntreprise' => $this->simulation->societe->idprof2//($this->simulation->societe->idprof1) ? $this->simulation->societe->idprof1 : $this->simulation->societe->array_options['options_other_siren']
 			,'codeTypeClient' => $codeTypeClient
 			//,'codeFormeJuridique' => ''
 			,'raisonSociale' => str_replace($arraySearch, $arrayToReplace, $this->simulation->societe->name)
