@@ -1586,7 +1586,7 @@ class TSimulationSuivi extends TObjetStd {
 			,'prixDeVente' => $this->simulation->montant
 			//,'prixTarif' => ''
 			//,'anneeFabrication' => ''
-			,'codeMarque' => ($TCodeMarque[$this->simulation->marque_materiel]) ? $TCodeMarque[$this->simulation->marque_materiel] : '335' //909 = Divers informatique
+			,'codeMarque' => ($TCodeMarque[$this->simulation->marque_materiel]) ? $TCodeMarque[$this->simulation->marque_materiel] : '335' //909 = Divers informatique TODO
 			//,'type' => ''
 			//,'modele' => ''
 			//,'dateDeMiseEnCirculation' => ''
