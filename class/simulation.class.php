@@ -1192,8 +1192,13 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		$soap = new SoapClient($soapWSDL,array('trace'=>TRUE));
-		//pre($soap->__getTypes(),true);
-
+		$headerbody = array('UsernameToken'=>array('Username'=>'DFERRAZZI',
+                                         'Password'=>'Test321test')); 
+		$header = new SoapHeader('wsse', 'Security', $headerbody);
+		$soap->__setSoapHeaders($header);
+		
+		pre($soap,true);
+		
 		$TtransmettreDemandeFinancementRequest['CreateDemFinRequest'] = $this->_getGEDataTabForDemande($PDOdb);
 
 		//pre($TtransmettreDemandeFinancementRequest,true);
@@ -1500,11 +1505,13 @@ class TSimulationSuivi extends TObjetStd {
 		elseif($typeClient == "entreprise") $codeTypeClient = 4;
 		else $codeTypeClient = 0; //Général
 		
+		$this->simulation->societe->fetch_optionals($this->simulation->societe->id);
+		
 		$TClient = array(
 			'idNationnalEntreprise' => $this->simulation->societe->idprof2
 			,'codeTypeClient' => $codeTypeClient
 			//,'codeFormeJuridique' => ''
-			//,'raisonSociale' => ''
+			,'raisonSociale' => $this->simulation->societe->name
 			//,'specificiteClientPays' => array(
 				//'specificiteClientFrance' => array(
 					//'dirigeant' => array(
@@ -1515,12 +1522,12 @@ class TSimulationSuivi extends TObjetStd {
 					//)
 				//)
 			//)
-			//,'adresse' => array(
-				//'adresse' => ''
+			,'adresse' => array(
+				'adresse' => $this->simulation->societe->address
 				//,'adresseComplement' => ''
-				//,'codePostal' => ''
-				//,'Ville' => ''
-			//)
+				,'codePostal' => $this->simulation->societe->zip
+				,'Ville' => $this->simulation->societe->town
+			)
 		);
 		
 		return $TClient;
