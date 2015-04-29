@@ -1526,18 +1526,20 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$arraySearch = array(
 			'  ',
-			'.'
+			'.',
+			"'",
 		);
 		$arrayToReplace = array(
 			' ',
-			''
+			'',
+			'',
 		);
 		
 		$TClient = array(
 			'idNationnalEntreprise' => ($this->simulation->societe->idprof1) ? $this->simulation->societe->idprof1 : $this->simulation->societe->array_options['options_other_siren']
 			,'codeTypeClient' => $codeTypeClient
 			//,'codeFormeJuridique' => ''
-			,'raisonSociale' => $this->simulation->societe->name
+			,'raisonSociale' => str_replace($arraySearch, $arrayToReplace, $this->simulation->societe->name)
 			//,'specificiteClientPays' => array(
 				//'specificiteClientFrance' => array(
 					//'dirigeant' => array(
@@ -1548,12 +1550,12 @@ class TSimulationSuivi extends TObjetStd {
 					//)
 				//)
 			//)
-			/*,'adresse' => array(
+			,'adresse' => array(
 				'adresse' => 'A'//substr(str_replace($arraySearch,$arrayToReplace,preg_replace("/\n|\ -\ |[\,\ ]{1}/", ' ', $this->simulation->societe->address)),0,31)
 				//,'adresseComplement' => ''
-				,'codePostal' => $this->simulation->societe->zip
-				,'Ville' => $this->simulation->societe->town
-			)*/
+				,'codePostal' => str_replace($arraySearch, $arrayToReplace, $this->simulation->societe->zip)
+				,'Ville' => str_replace($arraySearch, $arrayToReplace, $this->simulation->societe->town)
+			)
 		);
 		
 		return $TClient;
