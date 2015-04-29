@@ -1378,7 +1378,7 @@ class TSimulationSuivi extends TObjetStd {
 		//pre($soap->__getFunctions(),true);exit;
 //		echo "1<br>";
 		$TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] = $this->_getBNPDataTabForDemande($PDOdb);
-		
+		//pre(preg_match('/[\S\t ]*/', 'ZI 8 RUE JEAN CHARCOT BP 279'),true);
 		//pre($TtransmettreDemandeFinancementRequest,true);exit;
 		try{
 //		echo "2<br>";
@@ -1411,7 +1411,7 @@ class TSimulationSuivi extends TObjetStd {
 					}
 				}
 				else{
-					$errorLabel .= $TObjError->message;
+					$errorLabel .= $TObjError->retourErreur->erreur->message;
 				}
 			}
 		}
@@ -1534,7 +1534,7 @@ class TSimulationSuivi extends TObjetStd {
 		);
 		
 		$TClient = array(
-			'idNationnalEntreprise' => $this->simulation->societe->idprof2
+			'idNationnalEntreprise' => ($this->simulation->societe->idprof1) ? $this->simulation->societe->idprof1 : $this->simulation->societe->array_options['options_other_siren']
 			,'codeTypeClient' => $codeTypeClient
 			//,'codeFormeJuridique' => ''
 			,'raisonSociale' => $this->simulation->societe->name
@@ -1548,12 +1548,12 @@ class TSimulationSuivi extends TObjetStd {
 					//)
 				//)
 			//)
-			,'adresse' => array(
-				'adresse' => substr(str_replace($arraySearch,$arrayToReplace,preg_replace("/\n|\ -\ |[\,\ ]{1}/", ' ', $this->simulation->societe->address)),0,31)
+			/*,'adresse' => array(
+				'adresse' => 'A'//substr(str_replace($arraySearch,$arrayToReplace,preg_replace("/\n|\ -\ |[\,\ ]{1}/", ' ', $this->simulation->societe->address)),0,31)
 				//,'adresseComplement' => ''
 				,'codePostal' => $this->simulation->societe->zip
 				,'Ville' => $this->simulation->societe->town
-			)
+			)*/
 		);
 		
 		return $TClient;
