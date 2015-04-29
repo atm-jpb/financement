@@ -1390,7 +1390,7 @@ class TSimulationSuivi extends TObjetStd {
 		catch(SoapFault $reponseDemandeFinancement) {
 			//echo '<pre>';
 			//var_dump($reponseDemandeFinancement->detail);exit;
-			$this->errorLabel = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail->retourErreur->erreur);
+			$this->errorLabel = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail);
 			return 0;
 		}
 
@@ -1399,16 +1399,33 @@ class TSimulationSuivi extends TObjetStd {
 	
 	function traiteErrorsDemandeBNP($TObjError){
 		
+		//Erreur sur les données transmisent
 		$errorLabel = '';
-		if(count($TObjError)){
-			$errorLabel = 'ERREUR SCORING BNP : <br>';
-			if(is_array($TObjError)){
-				foreach($TObjError as $ObjError){
-					$errorLabel .= $ObjError->message.'<br>';
+		if($TObjError->retourErreur->erreur){
+			
+			if(count($TObjError->retourErreur->erreur)){
+				$errorLabel = 'ERREUR SCORING BNP : <br>';
+				if(is_array($TObjError->retourErreur->erreur)){
+					foreach($TObjError->retourErreur->erreur as $ObjError){
+						$errorLabel .= $ObjError->message.'<br>';
+					}
+				}
+				else{
+					$errorLabel .= $TObjError->message;
 				}
 			}
-			else{
-				$errorLabel .= $TObjError->message;
+		}
+		else{ //Erreur sur le formalisme envoyé
+			if(count($TObjError->ValidationError)){
+				$errorLabel = 'ERREUR FORMAT SCORING BNP : <br>';
+				if(is_array($TObjError->ValidationError)){
+					foreach($TObjError->ValidationError as $error){
+						$errorLabel .= $error.'<br>';
+					}
+				}
+				else{
+					$errorLabel .= $TObjError->ValidationError;
+				}
 			}
 		}
 		
