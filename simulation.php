@@ -258,6 +258,10 @@ if(!empty($action)) {
 				if(!empty($simulation->TSimulationSuivi[$id_suivi]->errorLabel)){
 					setEventMessage($simulation->TSimulationSuivi[$id_suivi]->errorLabel,'errors');
 				}
+				else{
+					$simulation->TSimulationSuivi[$id_suivi]->errorLabel = 'Scoring transmis N°'.$simulation->TSimulationSuivi[$id_suivi]->num_accord;
+					setEventMessage($simulation->TSimulationSuivi[$id_suivi]->errorLabel,'mesgs');
+				}
 				
 				if($action == 'demander'){
 					$simulation->accord = 'WAIT_LEASER';
