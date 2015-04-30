@@ -1196,12 +1196,20 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		$soap = new SoapClient($soapWSDL,array('trace'=>TRUE));
-		$headerbody = array('UsernameToken'=>array('Username'=>'DFERRAZZI',
-                                         'Password'=>'Test321test')); 
-		$header = new SoapHeader('wsse', 'Security', $headerbody);
-		$soap->__setSoapHeaders($header);
 		
-		pre($soap,true);
+		$username = 'DFERRAZZI';
+		$password = 'Test321test';
+		$header_part = '
+			<wsse:Security SOAP-ENV:mustUnderstand="0" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+				<wsse:UsernameToken wsu:Id="UsernameToken-21" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+					<wsse:Username>DFERRAZZI</wsse:Username>
+					<wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">Test321test</wsse:Password>
+				</wsse:UsernameToken>
+			</wsse:Security>
+		';
+		$soap_var_header = new SoapVar( $header_part, XSD_ANYXML, null, null, null );
+		$soap_header = new SoapHeader($soapWSDL, 'wsse', $soap_var_header );
+		$soap->__setSoapHeaders($soap_header);
 		
 		$TtransmettreDemandeFinancementRequest['CreateDemFinRequest'] = $this->_getGEDataTabForDemande($PDOdb);
 
@@ -1211,19 +1219,51 @@ class TSimulationSuivi extends TObjetStd {
 			$reponseDemandeFinancement = $soap->__call('CreateDemFin',$TtransmettreDemandeFinancementRequest);
 		}
 		catch(SoapFault $reponseDemandeFinancement) {
-			pre($reponseDemandeFinancement->detail,true);
+			pre($reponseDemandeFinancement,true);
 			//exit;
 		}
-		pre($reponseDemandeFinancement,true);
-		pre($soap->__getLastRequest());
-		pre($soap->__getLastResponse());exit;
+		pre($reponseDemandeFinancement,true);exit;
+		/*pre($soap->__getLastRequest());
+		pre($soap->__getLastResponse());exit;*/
 		
 		$this->traiteGEReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
 
 	}
+
+	function traiteErrorsDemandeGE(&$reponseDemandeFinancement){
+		
+		$this->errorLabel = "ERREUR SCORING GE : <br>";
+		switch ($reponseDemandeFinancement->ReponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_CDRET) {
+			case '1':
+				$this->errorLabel .= 'Format fichier XML demande incorrect';
+				break;
+			case '2':
+				$this->errorLabel .= 'Demande déjà existante';
+				break;
+			case '3':
+				$this->errorLabel .= 'Format fichier XSD demande incorrect';
+				break;
+			case '4':
+				$this->errorLabel .= 'Service non disponible';
+				break;
+			case '5':
+				$this->errorLabel .= 'Le contrôle de connées a identifié une incohérance';
+				break;
+			default:
+				$this->errorLabel .= 'Anomalie inconnue';
+				break;
+		}
+	}
 	
 	function traiteGEReponseDemandeFinancement(&$PDOdb,&$reponseDemandeFinancement){
-		//TODO
+		
+		if($reponseDemandeFinancement->ReponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_CDRET == '0'){
+			$this->numero_accord_leaser = $reponseDemandeFinancement->numeroDemandeProvisoire;
+			$this->save($PDOdb);
+		}
+		else{
+			$this->traiteErrorsDemandeGE($reponseDemandeFinancement);
+		}
 	}
 
 	function _getGEDataTabForDemande(&$PDOdb){
