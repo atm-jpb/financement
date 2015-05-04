@@ -14,7 +14,7 @@
 		<td align="center">Solde NR.</td>
 		<td align="center">R. P+1</td>
 		<td align="center">NR. P+1</td>
-		<td align="center">BMF002</td>
+		<td align="center">Retrait<br>copies</td>
 	</tr>
 	<tr [champs.class; strconv=no]>
 		<td>[champs.num_contrat;block=tr; strconv=no]</td>
