@@ -136,7 +136,7 @@
 			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
-			<td>déduction copies sup BMF002</td>
+			<td>Retrait copies sup.</td>
 			<td>[simulation.montant_decompte_copies_sup; strconv=no; frm=0 000,00] &euro;</td>
 			[onshow;block=begin;when [view.type]=='simul']
 				<td align="right">Service Financement</td>
