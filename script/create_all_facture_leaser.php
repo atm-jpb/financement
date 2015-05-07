@@ -23,7 +23,8 @@
 		  WHERE d.nature_financement = 'INTERNE' 
 		  	AND df.type = 'LEASER' 
 		  	AND (df.date_solde = '0000-00-00 00:00:00' OR df.date_solde IS NULL)
-		  	AND (df.reference IS NOT NULL AND df.reference != '')";
+		  	AND (df.reference IS NOT NULL AND df.reference != '')
+		  	AND df.okPourFacturation != 'NON'";
 
 	
 	$ATMdb->Execute($sql);
