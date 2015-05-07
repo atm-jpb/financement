@@ -943,7 +943,6 @@ class TFin_dossier extends TObjetStd {
 			// Demande du 28/02/14, mettre en impayé dorénavant, sauf ce qui est avant 2014
 			// @TODO : à finir
 			//$paid = $paid || date('Y', $f->date_prochaine_echeance) < 2014;
-			$this->financementLeaser->reference ='';
 			$facture = $this->create_facture_leaser($paid);
 			//pre($facture,true);exit;
 			$f->setEcheance(1,true);
