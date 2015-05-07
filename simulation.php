@@ -716,7 +716,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$var = true;
 	
 	$TDossierUsed = $simulation->get_list_dossier_used(true);
-	
+	//echo $sql;
 	while ($ATMdb->Get_line()) {
 		$affaire = new TFin_affaire;
 		$dossier=new TFin_Dossier;
@@ -738,7 +738,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			$soldeR1 = round($dossier->getSolde($ATMdb2, 'SRBANK', $fin->duree_passe + 1),2);
 			$soldeNR1 = round($dossier->getSolde($ATMdb2, 'SNRBANK', $fin->duree_passe + 1),2);*/
 		}
-
+		//echo $fin->reference.'<br>';
 		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		
 		if($fin->date_solde > 0) continue;
@@ -902,18 +902,16 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			
 			,'incident_paiement'=>$incident_paiement
 		);
-		
-		
-		
-		$TDossier[] = $row;
-		
+
+		$TDossier[$dossier->getId()] = $row;
+
 		$var = !$var;
 	}
 	
 	$THide = array('IDAff', 'IDDoss', 'fk_user', 'Type contrat');
 
-	/*pre($simulation,true);
-	pre($TDossier,true);exit;*/
+	//pre($simulation,true);
+	//pre($TDossier,true);exit;
 	return $r->renderArray($ATMdb, $TDossier, array(
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
