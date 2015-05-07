@@ -11,7 +11,7 @@
 	
 	$sql = "SELECT reference, count(*)
 			FROM `llx_fin_dossier_financement` 
-			WHERE type = 'CLIENT' AND reference != ''
+			WHERE type = '".$type."' AND reference != ''
 			GROUP BY reference
 			HAVING count(*) > 1
 			ORDER BY reference ASC";
