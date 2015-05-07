@@ -49,8 +49,11 @@
 			if(!array_key_exists($echeance-1, $dossier->TFactureFournisseur)){
 				/*echo $echeance.' '.$dossier->rowid.'<br>';
 				pre($dossier->TFactureFournisseur,true);exit;*/
-				$TError[$dossier->rowid] = $dossier->financement->reference." / ".$dossier->financementLeaser->reference;
-				$cpt ++;
+				$date = strtotime($dossier->getDateDebutPeriode($echeance));
+				if($date > strtotime('2015-01-01')){
+					$TError[$dossier->rowid] = $dossier->financement->reference." / ".$dossier->financementLeaser->reference;
+					$cpt ++;
+				}
 			}
 		}
 	}
