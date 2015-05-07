@@ -22,7 +22,8 @@
 		  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (d.rowid = df.fk_fin_dossier)
 		  WHERE d.nature_financement = 'INTERNE' 
 		  	AND df.type = 'LEASER' 
-		  	AND (df.date_solde = '0000-00-00 00:00:00' OR df.date_solde IS NULL)";
+		  	AND (df.date_solde = '0000-00-00 00:00:00' OR df.date_solde IS NULL)
+		  	AND (df.reference IS NOT NULL OR df.reference != '')";
 
 	
 	$ATMdb->Execute($sql);
