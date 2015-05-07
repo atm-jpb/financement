@@ -20,7 +20,12 @@ class TImport extends TObjetStd {
 			,'facture_lettree' => 'Fichier facture lettrée'
 			,'score' => 'Fichier score'
 		);
-		$this->TType_import = array('fichier_leaser' => 'Fichier leaser','dossier_init_adossee'=>'Import initial adosées','dossier_init_mandatee'=>'Import initial mandatées','dossier_init_all'=>'Import initial');
+		$this->TType_import = array(
+			'fichier_leaser' => 'Fichier leaser',
+			'dossier_init_adossee'=>'Import initial adosées',
+			'dossier_init_mandatee'=>'Import initial mandatées',
+			'dossier_init_all'=>'Import initial',
+			'dossier_init_loc_pure'=>'Import initial Loc Pures');
 		$this->current_line = array();
 	}
 
@@ -148,6 +153,10 @@ class TImport extends TObjetStd {
 				$this->importDossierInit($ATMdb, $data);
 				break;
 			
+			case 'dossier_init_loc_pure':
+				$this->importDossierInitLocPure($ATMdb, $data, $TInfosGlobale);
+				break;
+			
 			default:
 				
 				break;
@@ -187,7 +196,7 @@ class TImport extends TObjetStd {
 		}
 		
 		$dossier = new TFin_dossier();
-		if($dossier->load($ATMdb, $f->fk_fin_dossier)) { // Chargement du dossier correspondant
+		if($dossier->load($ATMdb, $f->fk_fin_dossier,true)) { // Chargement du dossier correspondant
 			
 			if($dossier->nature_financement == 'EXTERNE') { // Dossier externe => MAJ des informations
 				// Echéance à 0 dans le fichier, on classe le dossier a soldé
@@ -230,6 +239,29 @@ class TImport extends TObjetStd {
 			//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
 
 			$TInfosGlobale[] = $dossier->financementLeaser->getId();
+			
+			//Ajout traitement
+			//Si colonne biens renseigné alors on créé les equipements si inexistant
+			//Puis ajout de la liaison equipement -> affaire sans passer par la facture matériel
+			if(!empty($data['biens'])){
+				$TRefBiens = explode(';', $data['biens']);
+				
+				foreach($TRefBiens as $refBien){
+					$serial = trim($refBien);
+				
+					$asset=new TAsset;
+					if(!$asset->loadReference($ATMdb, $serial)) {
+						
+						$asset->fk_soc = $dossier->TLien[0]->affaire->fk_soc;
+						$asset->save($ATMdb);
+					}
+					
+					//Ajout du lien à l'affaire
+					$asset->add_link($dossier->TLien[0]->affaire->getId(),'affaire');
+
+					$asset->save($ATMdb);
+				}
+			}
 
 			return true;
 
@@ -1371,6 +1403,118 @@ class TImport extends TObjetStd {
 			
 			//print "Création facture fournisseur ($id) : ".$object->ref."<br/>";
 		}
+	}
+
+	function importDossierInitLocPure(&$ATMdb, $data, &$TInfosGlobale) {
+		global $user, $db;
+		
+		//$ATMdb->debug = true;
+		//if($this->nb_lines > 4) return false;
+		//if($data['reference_dossier_interne'] != '04062022') return false;
+		
+		$data['reference_dossier_interne'] = str_pad($data['reference_dossier_interne'], 8, '0', STR_PAD_LEFT);
+		
+		echo $data['reference_dossier_interne'].';';
+		//pre($data,true);
+		
+		$d = new TFin_dossier();
+		$d->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'], true);
+		if($d->getId() == 0) {
+		
+			$fin = new TFin_financement();
+			$fin->loadReference($ATMdb, $data['reference_dossier_interne'], 'CLIENT');
+			
+			if($fin->getId() == 0) {
+				echo 'ERR : dossier inconnu<br>';
+				//$this->addError($ATMdb, 'ErrorDossierClientNotFound', $data['reference_dossier_interne']);
+				return false;
+			} else {
+				$d->load($ATMdb, $fin->fk_fin_dossier, true);
+			}
+		}
+		//pre($data,true);
+		
+		$data['duree'] /= $d->financement->getiPeriode();
+		//echo date('d/m/Y H:i:s', $data['date_debut']).'<br>';
+		
+		$f1 = clone($d->financement);
+		
+		// Contrôle client
+		if(!empty($d->TLien[0]->affaire)) {
+			$a = &$d->TLien[0]->affaire;
+			if($a->fk_soc > 0 && $a->societe->code_client != $data['code_client']) { // client ne correspond pas
+				echo 'ERR : clients '.$data['code_client'].' / '.$a->societe->code_client.'<br>';
+				//$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_client']);
+				return false;
+			}
+		}
+		
+		// On remplit la donnée si vide dans LB et non vide dans le fichier
+		foreach ($data as $key => $value) {
+			if(!empty($value)) {
+				$d->financement->{$key} = $value;
+				$d->financementLeaser->{$key} = $value;
+			}
+		}
+		
+		// On va chercher montant, échéance et durée dans le 2ème fichier
+		if(!empty($a)) {
+			foreach($TInfosGlobale['locpure'] as $line) {
+				if(strpos($a->reference, $line[0]) !== false) {
+					if(!empty($line[1]) && empty($d->financement->echeance)) {
+						$d->financement->echeance = price2num($line[1]);
+						$d->financementLeaser->echeance = $d->financement->echeance;
+					}
+					// Vu avec Damien, la durée est juste dans le 1er fichier
+					/*if(!empty($line[2]) && empty($d->financement->duree)) {
+						$d->financement->duree = price2num($line[2]);
+						$d->financementLeaser->duree = $d->financement->duree;
+					}*/
+					if(!empty($line[4]) && empty($d->financement->montant)) {
+						$d->financement->montant = price2num($line[4]);
+						$d->financementLeaser->montant = $d->financement->montant;
+					}
+				}
+			}
+		}
+		
+		unset($d->financement->reference_dossier_interne);
+		unset($d->financement->code_client);
+		unset($d->financement->idLeaser);
+		$f2 = $d->financement;
+		
+		if($f1 == $f2) {
+			echo 'ERR : pas de changement<br>';
+			return false;
+		} else {
+			echo 'OK : maj;';
+			echo $f1->montant.' => '.$f2->montant.';';
+			echo $f1->duree.' => '.$f2->duree.';';
+			echo $f1->echeance.' => '.$f2->echeance.';';
+			echo $f1->periodicite.' => '.$f2->periodicite.';';
+			echo '<br>';
+			//return false;
+		}
+		
+		/*echo '<table><tr><td>';
+		pre($f1,true);
+		echo '</td><td>';
+		pre($f2,true);
+		echo '</td></tr></table>';*/
+		
+		$d->financementLeaser->reference = $d->financement->reference.'L';
+		$d->financementLeaser->okPourFacturation = 'NON';
+		$d->financementLeaser->fk_soc = 18495;
+		$d->display_solde = false;
+		//if($d->financement->reference == '04057118') pre($d, true);
+		$d->save($ATMdb);
+		
+		$a = &$d->TLien[0]->affaire;
+		$a->montant = $d->financement->montant;
+		$a->save($ATMdb);
+		$this->nb_update++;
+				
+		return true;
 	}
 
 	function checkData() {

@@ -91,9 +91,15 @@
 		<tr>
 			<td>Mode de règlement</td>
 			<td>[simulation.opt_mode_reglement; strconv=no]</td>
+			<td></td>
+			<td></td>
+			
+		</tr>
+		<tr>
 			<td><span class="fieldrequired">Type de matériel financé</span></td>
 			<td>[simulation.type_materiel; strconv=no]</td>
-			
+			<td><span class="fieldrequired">Marque de matériel financé</span></td>
+			<td>[simulation.marque_materiel; strconv=no]</td>
 		</tr>
 		<tr>
 			<td>Terme</td>
@@ -130,16 +136,22 @@
 			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
-			<td>montant décompte copies sup</td>
+			<td>Retrait copies sup.</td>
 			<td>[simulation.montant_decompte_copies_sup; strconv=no; frm=0 000,00] &euro;</td>
-		</tr>
-		<tr>
-			<td>montant rachat final</td>
-			<td>[simulation.montant_rachat_final; strconv=no; frm=0 000,00] &euro;</td>
+			[onshow;block=begin;when [view.type]=='simul']
+				<td align="right">Service Financement</td>
+				<td align="left">
+					<span style="font-size: 16px;">[simulation.user_suivi; strconv=no]</span><br />
+				</td>
+			[onshow;block=end]
 		</tr>
 		<tr>
 			<td>dont montant rachat concurrence</td>
 			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
+		</tr>
+		<tr>
+			<td>montant rachat final</td>
+			<td>[simulation.montant_rachat_final; strconv=no; frm=0 000,00] &euro;</td>
 			<td colspan="2" align="center">
 				[simulation.date_validite]
 			</td>
@@ -175,9 +187,9 @@
 			</td>
 			<td align="center" colspan="2">
 				[onshow;block=begin;when [view.type]=='simul']
-					[onshow;block=begin;when [view.calcul]==1]
-						[simulation.bt_save; strconv=no]
-					[onshow;block=end]
+				[onshow;block=begin;when [view.calcul]==1]
+				[simulation.bt_save; strconv=no]
+				[onshow;block=end]
 				[onshow;block=end]
 			</td>
 		</tr>

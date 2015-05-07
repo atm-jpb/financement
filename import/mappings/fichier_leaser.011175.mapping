@@ -15,6 +15,7 @@ nom_du_leaser=ge
 12=incident_paiement
 13=reloc
 14=assurance
+15=biens
 
 [format]
 date_debut=date

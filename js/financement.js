@@ -8,9 +8,9 @@ $(document).ready(function() {
 		get_periode();
 	}
 	
-	//$('input[name^="dossiers_rachetes"]').bind('click', calcul_montant_rachat);
-	//$('input[name^="dossiers_rachetes"]').bind('click', prevent_dbl_select);
-	//$('select[name="fk_type_contrat"]').bind('change', calcul_montant_rachat);
+	$('input[name^="dossiers_rachetes"]').bind('click', calcul_montant_rachat);
+	$('input[name^="dossiers_rachetes"]').bind('click', prevent_dbl_select);
+	$('select[name="fk_type_contrat"]').bind('change', calcul_montant_rachat);
 	
 	init_selected_dossier();
 	
@@ -102,8 +102,15 @@ var calcul_montant_rachat = function() {
 		//type_solde = ($(this).attr('contrat') == type_contrat) ? 'solde_r' : 'solde_nr';
 		//montant_rachat += parseFloat($(this).attr(type_solde));
 		montant_rachat += parseFloat($(this).attr('solde'));
-		montant_decompte_copies += parseFloat($('input[name^="dossiers_rachetes_perso['+$(this).val()+']"').attr('solde'));
-		montant_rachat_final = montant_rachat - montant_decompte_copies;
+		
+		//if($('#dossiers_rachetes_perso['+$(this).val()+']').attr('solde')){
+			montant_decompte_copies += parseFloat($('input[name="dossiers_rachetes_perso['+$(this).val()+']"]').attr('solde'));
+		/*}
+		else{
+			montant_decompte_copies += 0;
+		}*/
+		montant_rachat_concurrence = parseFloat($('#montant_rachete_concurrence').val());
+		montant_rachat_final = montant_rachat - montant_decompte_copies + montant_rachat_concurrence;
 	});
 	
 	montant_rachat = Math.round(montant_rachat*100)/100;

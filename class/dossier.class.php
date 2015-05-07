@@ -293,7 +293,7 @@ class TFin_dossier extends TObjetStd {
 		$sql.= " AND targettype='facture'";
 		$sql.= " AND fk_source=".$this->getId();
 		$sql.= " ORDER BY f.facnumber ASC";
-
+		//echo $sql;exit;
 		$ATMdb->Execute($sql);
 		
 		dol_include_once("/compta/facture/class/facture.class.php");
@@ -304,6 +304,7 @@ class TFin_dossier extends TObjetStd {
 			if($fact->socid == $this->financementLeaser->fk_soc) continue; // Facture matériel associée au leaser, ne pas prendre en compte comme une facture client au sens CPRO
 			
 			$datePeriode = strtotime(implode('-', array_reverse(explode('/', $fact->ref_client))));
+			//echo $fact->ref." ".$fact->ref_client." ".$datePeriode.'<br>';
 			$echeance = $this->_get_num_echeance_from_date($datePeriode);
 			//echo $echeance.'<br>';
 			if(!$all) {
@@ -338,13 +339,16 @@ class TFin_dossier extends TObjetStd {
 				//TODO si plusieurs facture même échéance alors modification affichage pour afficher tous les liens
 				if(!empty($this->TFacture[$echeance])){
 					if(is_array($this->TFacture[$echeance])){
+						//echo $fact->ref.'<br>';
 						$this->TFacture[$echeance] = array_merge($this->TFacture[$echeance],array($fact));
 					}
 					else{
+						//echo $fact->ref.'<br>';
 						$this->TFacture[$echeance] = array($this->TFacture[$echeance],$fact);
 					}
 				}
 				else{
+					//echo $fact->ref.'<br>';
 					$this->TFacture[$echeance] = $fact;
 				}
 				//$echeance++;
@@ -363,13 +367,12 @@ class TFin_dossier extends TObjetStd {
 			if(is_array($Tfacture)){
 				
 				foreach($Tfacture as $k => $facture){
-					
+
 					//Si la facture est un avoir qui annule totalement la facture d'origine, on supprime l'avoir du tableau
 					if($facture->type == 2){
 						$facture_origine = new Facture($db);
 						$facture_origine->fetch($facture->fk_facture_source);
-						
-						if($facture_origine->total_ht == $facture->total_ht){
+						if(abs($facture_origine->total_ht) == abs($facture->total_ht)){
 							unset($this->TFacture[$echeance][$k]);
 						}
 					}
@@ -380,7 +383,7 @@ class TFin_dossier extends TObjetStd {
 							$avoir = new Facture($db);
 							$avoir->fetch($idAvoir);
 							
-							if(abs($avoir->total_ht) == $facture->total_ht){
+							if(abs($avoir->total_ht) == abs($facture->total_ht)){
 								unset($this->TFacture[$echeance][$k]);
 							}
 						}
@@ -622,7 +625,7 @@ class TFin_dossier extends TObjetStd {
 					return $LRD_Leaser;
 				}
 				break;
-					
+
 			case 'SRCPRO': /* Vendeur renouvellant */
 				
 				if($this->nature_financement == 'INTERNE') {
@@ -662,6 +665,39 @@ class TFin_dossier extends TObjetStd {
 			case 'perso': /* solde personnalisé */
 				
 					return $this->soldeperso;
+
+				break;
+			
+			case 'SRNRSAME':
+					
+					//Calcul du Solde Renouvelant et Non Renouvelant CPRO 
+					$this->financement->capital_restant = $this->financement->montant;
+					$this->financement->total_loyer = $this->financement->montant;
+					for($i=0; $i<$iPeriode;$i++){
+						$capital_amortit = $this->financement->amortissement_echeance( $i+1 ,$this->financement->capital_restant);
+						$part_interet = $this->financement->echeance - $capital_amortit;
+						$this->financement->capital_restant-=$capital_amortit;
+						
+						$this->financement->total_loyer -= $this->financement->echeance;
+					}
+					
+					//pre($this->financement);
+					
+					$seuil_solde = SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH;
+					if($this->financement->periodicite == 'MOIS') $seuil_solde += 2;
+					
+					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= $seuil_solde){
+						$solde = $this->financement->montant;
+					}
+					elseif($this->TLien[0]->affaire->type_financement == 'MANDATEE' || $this->TLien[0]->affaire->type_financement == 'ADOSSEE'){
+						$solde = $this->financement->capital_restant * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
+					}
+					elseif($this->TLien[0]->affaire->type_financement == 'PURE'){
+						$solde = $this->financement->total_loyer;
+						//return $this->financement->echeance * ($this->financement->duree - ($this->financement->numero_prochaine_echeance-1));
+					}
+					
+					return ($solde>$LRD_Leaser)?$LRD_Leaser:$solde;
 				break;
 		}
 	}
@@ -711,6 +747,7 @@ class TFin_dossier extends TObjetStd {
 		$capital_restant_init = $f->montant;
 		$capital_restant = $capital_restant_init;
 		$f->capital_restant = $capital_restant; 
+		$f->total_loyer = $f->montant;
 		$TLigne=array();
 //var_dump($this->TFacture);		
 		for($i=($echeanceInit-1); $i<$f->duree; $i++) {
@@ -724,6 +761,9 @@ class TFin_dossier extends TObjetStd {
 			$capital_restant-=$capital_amortit;
 			$f->capital_restant = $capital_restant;
 			$total_loyer+=$f->echeance;
+			
+			$f->total_loyer -= $f->echeance;
+			
 			$total_assurance+=$f->assurance;
 			$total_capital_amortit+=$capital_amortit;
 			$total_part_interet+=$part_interet;
@@ -801,8 +841,8 @@ class TFin_dossier extends TObjetStd {
 				$htmlSoldes = '<table>';
 				if($type_echeancier == 'CLIENT') {
 					$htmlSoldes.= '<tr><td colspan="2" align="center">Apr&egrave;s l\'&eacute;ch&eacute;ance n&deg;'.($i+1).'</td></tr>';
-					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRCPRO', $i+1),2,',',' ').' &euro;</strong></td></tr>';
-					$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SNRCPRO', $i+1),2,',',' ').' &euro;</strong></td></tr>';
+					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRNRSAME', $i+1),2,',',' ').' &euro;</strong></td></tr>';
+					$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRNRSAME', $i+1),2,',',' ').' &euro;</strong></td></tr>';
 				} else {
 					$htmlSoldes.= '<tr><td colspan="2" align="center">Apr&egrave;s l\'&eacute;ch&eacute;ance n&deg;'.($i+1).'</td></tr>';
 					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRBANK', $i+1),2,',',' ').' &euro;</strong></td></tr>';
@@ -1022,14 +1062,17 @@ class TFin_dossier extends TObjetStd {
 		$sommeRealise = $sommeNoir = $sommeCouleur = $sommeCopieSupNoir = $sommeCopieSupCouleur = 0;
 		$nbEcheance = count($this->TFacture) - 1 ; //-1 car échéance 1 = 0
 		
+		//pre($this->TFacture,true);exit;
+		
 		foreach($this->TFacture as $echeance => $Tfacture){
 			if($echeance == -1) $nbEcheance -= 1; //supression loyer intercalaire
 			
 			//Somme uniquement sur les 4 dernières échéances
-			if($echeance > ($nbEcheance - 4)){
+			if($echeance > ($nbEcheance - FINANCEMENT_NB_TRIM_COPIES_SUP)){
 				//pre($Tfacture,true);exit;
 				if(is_array($Tfacture)){
 					foreach($Tfacture as $k => $facture){
+						//echo $facture->ref.'<br>';
 						$integrale = new TIntegrale;
 						$integrale->loadBy($PDOdb, $facture->ref, 'facnumber');
 
@@ -1049,6 +1092,7 @@ class TFin_dossier extends TObjetStd {
 					}
 				}
 				else{
+					//echo $Tfacture->ref.'<br>';
 					$integrale = new TIntegrale;
 					$integrale->loadBy($PDOdb, $Tfacture->ref, 'facnumber');
 					//pre($integrale,true);exit;

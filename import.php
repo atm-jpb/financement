@@ -76,6 +76,16 @@
 					}
 					
 					$TInfosGlobale = array();
+					
+					// Spécifique import Loc Pure
+					if($fileType == 'dossier_init_loc_pure') {
+						$fOther = file(FIN_IMPORT_FOLDER.'Base Projet.csv');
+						foreach($fOther as $line) {
+							$TInfosGlobale['locpure'][] = explode(";", $line);
+						}
+						unset($TInfosGlobale['locpure'][0]);
+					}
+					
 					while($dataline = fgetcsv($f1, 1024, $_REQUEST['delimiter'], empty($_REQUEST['enclosure']) ? FIN_IMPORT_FIELD_ENCLOSURE : $_REQUEST['enclosure'])) {
 						$dataline[9999] = $societe->id;
 						$imp->importLine($ATMdb, $dataline, $TInfosGlobale);
@@ -256,6 +266,7 @@ function _fiche(&$ATMdb, &$import, $mode) {
 	?><div class="tabsAction" style="text-align: left;"><a href="?action=export&id=<?=$import->getId()?>" class="butAction">Exporter les erreurs</a></div><br><br><?
 	
 	echo $form->end_form();
+	echo date('d/m/Y H:i:s', time());
 	
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));

@@ -1037,7 +1037,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	$dossier_for_integral = new TFin_dossier;
 	$dossier_for_integral->load($PDOdb, $dossier->getId());
 	$dossier_for_integral->load_facture($PDOdb,true);
-	$dossier_for_integral->format_facture_integrale($PDOdb);
+	//$dossier_for_integral->format_facture_integrale($PDOdb);
+	//pre($dossier_for_integral->TFacture,true);
 	$sommeRealise = $sommeNoir = $sommeCouleur = $sommeCopieSupCouleur = $sommeCopieSupNoir = 0;
 	//list($sommeRealise,$sommeNoir,$sommeCouleur) = $dossier_for_integral->getSommesIntegrale($PDOdb);
 	list($sommeCopieSupNoir,$sommeCopieSupCouleur) = $dossier_for_integral->getSommesIntegrale($PDOdb,true);
@@ -1047,10 +1048,23 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	
 	$soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
 
-	$soldepersointegrale = ($soldepersointegrale * 0.8); //On enlève 20% conformément  la règle de gestion
+	$soldepersointegrale = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
 
 	//echo $soldepersointegrale;
 	//echo $sommeRealise." ".$sommeNoir." ".$sommeCouleur;
+	//pre($dossier->financement,true);exit;
+	//echo $dossier->getSolde($PDOdb, 'SRNRSAME');exit;
+	
+	//Calcul du Solde Renouvelant et Non Renouvelant CPRO 
+	/*$dossier->financement->capital_restant = $dossier->financement->montant;
+	$dossier->financement->total_loyer = $dossier->financement->montant;
+	for($i=0; $i<$dossier->financement->numero_prochaine_echeance;$i++){
+		$capital_amortit = $dossier->financement->amortissement_echeance( $i+1 ,$dossier->financement->capital_restant);
+		$part_interet = $dossier->financement->echeance - $capital_amortit;
+		$dossier->financement->capital_restant-=$capital_amortit;
+		
+		$dossier->financement->total_loyer -= $dossier->financement->echeance;
+	}*/
 	
 	//pre($TAffaire,true);exit;
 	print $TBS->render('./tpl/dossier.tpl.php'
@@ -1077,10 +1091,10 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'marge_reelle'=>$dossier->marge_reelle
 				,'soldeRBANK'=>$dossier->getSolde($PDOdb, 'SRBANK')
 				,'soldeNRBANK'=>$dossier->getSolde($PDOdb, 'SNRBANK')
-				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO')
-				,'soldeNRCPRO'=>$dossier->getSolde($PDOdb, 'SNRCPRO')
+				,'soldeRCPRO'=>($dossier->nature_financement == 'INTERNE') ? $dossier->getSolde($PDOdb, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time()) +1) : $dossier->getSolde($PDOdb, 'SRCPRO')//SRCPRO
+				,'soldeNRCPRO'=>($dossier->nature_financement == 'INTERNE') ? $dossier->getSolde($PDOdb, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time()) +1) : $dossier->getSolde($PDOdb, 'SNRCPRO')//SNRCPRO
 				,'soldeperso'=>$soldeperso
-				,'soldepersodispo'=>$form->combo('', 'soldepersodispo', array('1' => 'Oui', '0' => 'Non'), ($dossier->soldepersodispo) ? $dossier->soldepersodispo : 1)
+				,'soldepersodispo'=>$form->combo('', 'soldepersodispo', array('1' => 'Oui', '2' => 'Non'), ($dossier->soldepersodispo) ? $dossier->soldepersodispo : 1)
 				,'soldepersointegrale'=>$soldepersointegrale
 				,'dateperso'=>$dateperso
 				,'url_therefore'=>FIN_THEREFORE_DOSSIER_URL
