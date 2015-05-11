@@ -693,11 +693,16 @@ class TFin_dossier extends TObjetStd {
 						$solde = $this->financement->capital_restant * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
 					}
 					elseif($this->TLien[0]->affaire->type_financement == 'PURE'){
-						$solde = $this->financement->total_loyer;
+						$solde = $LRD;
 						//return $this->financement->echeance * ($this->financement->duree - ($this->financement->numero_prochaine_echeance-1));
 					}
 					
-					return ($solde>$LRD_Leaser)?$LRD_Leaser:$solde;
+					if($this->nature_financement == 'INTERNE') {
+						return ($solde>$LRD)?$LRD:$solde;
+					}
+					else{
+						return ($solde>$LRD_leaser)?$LRD_leaser:$solde;
+					}
 				break;
 		}
 	}
