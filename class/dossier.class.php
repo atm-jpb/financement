@@ -950,6 +950,7 @@ class TFin_dossier extends TObjetStd {
 			//$paid = $paid || date('Y', $f->date_prochaine_echeance) < 2014;
 			$facture = $this->create_facture_leaser($paid);
 			//pre($facture,true);exit;
+			//pre($facture,true);exit;
 			$f->setEcheance(1,true);
 			
 			$cpt++;
@@ -958,7 +959,7 @@ class TFin_dossier extends TObjetStd {
 		if($cpt==50) print "Erreur cycle infini dans generate_factures_leaser()<br />";
 	}
 
-	private function create_facture_leaser_addline(&$echeance, &$f, &$d, &$object,&$res,&$user) {
+	private function create_facture_leaser_addline(&$echeance, &$f, &$d, &$object,&$res,&$user,$validate,$date) {
 		global $db;
 		
 		$tva = (FIN_TVA_DEFAUT-1)*100;
@@ -981,6 +982,7 @@ class TFin_dossier extends TObjetStd {
 		if($echeance == -1 && $f->loyer_intercalaire > 0) {
 			$result=$object->addline("Echéance de loyer intercalaire banque", $f->loyer_intercalaire, $tva, 0, 0, 1, $fk_product);
 		} else {
+			//var_dump($f->echeance,$tva,$fk_product);exit;
 			$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
 		}
 	
@@ -1039,7 +1041,7 @@ class TFin_dossier extends TObjetStd {
 			$id = $object->create($user);
 			
 			if($id > 0) {
-				$this->create_facture_leaser_addline($echeance, $f, $d, $object,$res,$user);
+				$this->create_facture_leaser_addline($echeance, $f, $d, $object,$res,$user,$validate,$date);
 			}
 		}
 		
