@@ -958,81 +958,92 @@ class TFin_dossier extends TObjetStd {
 		if($cpt==50) print "Erreur cycle infini dans generate_factures_leaser()<br />";
 	}
 
+	private function create_facture_leaser_addline(&$echeance, &$f, &$d, &$object,&$res,&$user) {
+		global $db;
+		
+		$tva = (FIN_TVA_DEFAUT-1)*100;
+		if($date < strtotime('2014-01-01')) $tva = 19.6;
+		
+		
+		if(($echeance==0 && $f->loyer_intercalaire == 0) || ($echeance == -1 && $f->loyer_intercalaire > 0)) {
+			/* Ajoute les frais de dossier uniquement sur la 1ère facture */
+			$res.= "Ajout des frais de dossier<br />";
+			$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
+		}
+		
+		/* Ajout la ligne de l'échéance	*/
+		$fk_product = 0;
+		if(!empty($d->TLien[0]->affaire)) {
+			if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
+			elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
+		}
+		
+		if($echeance == -1 && $f->loyer_intercalaire > 0) {
+			$result=$object->addline("Echéance de loyer intercalaire banque", $f->loyer_intercalaire, $tva, 0, 0, 1, $fk_product);
+		} else {
+			$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
+		}
+	
+		if($validate) {
+			$result=$object->validate($user,'',0);
+		}
+		
+		if($paid) {
+			$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
+		}
+		
+		$date_debut_periode = $this->getDateDebutPeriode($echeance-1,'LEASER');
+		$date_fin_periode = $this->getDateFinPeriode($echeance-1);
 
+		$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$object->id);
+		
+		$res.= "Création facture fournisseur ($id) : ".$object->ref."<br />";
+	
+		
+	}
 	function create_facture_leaser($paid = false, $validate = true, $echeance=0, $date=0) {
 		global $user, $db, $conf;
 
 		$d = & $this;
 		$f = & $this->financementLeaser;
-		$tva = (FIN_TVA_DEFAUT-1)*100;
+		
 		$res = '';
 		
 		// Ajout pour gérer création facture manuelle
 		if(empty($echeance)) $echeance = $f->duree_passe+1;
 		if(empty($date)) $date = $f->date_prochaine_echeance;
 		
-		if($date < strtotime('01/01/2014')) $tva = 19.6;
-		
 		$object = new FactureFournisseur($db);
 		
 		$reference = $f->reference.'/'.$echeance;
 		
-		$object->ref           = $reference;
-	    $object->socid         = $f->fk_soc;
-	    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".$echeance."/".$f->duree;
-	    $object->date          = $date;
-	    $object->date_echeance = $date;
-	    $object->note_public   = '';
-		$object->origin = 'dossier';
-		$object->origin_id = $d->getId();
-		$id = $object->create($user);
-		
-		if($id > 0) {
-			if(($echeance==0 && $f->loyer_intercalaire == 0) || ($echeance == -1 && $f->loyer_intercalaire > 0)) {
-				/* Ajoute les frais de dossier uniquement sur la 1ère facture */
-				$res.= "Ajout des frais de dossier<br />";
-				$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
-			}
-			
-			/* Ajout la ligne de l'échéance	*/
-			$fk_product = 0;
-			if(!empty($d->TLien[0]->affaire)) {
-				if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
-				elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
-			}
-			
-			if($echeance == -1 && $f->loyer_intercalaire > 0) {
-				$result=$object->addline("Echéance de loyer intercalaire banque", $f->loyer_intercalaire, $tva, 0, 0, 1, $fk_product);
-			} else {
-				$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
-			}
-		
-			if($validate) {
-				$result=$object->validate($user,'',0);
-			}
-			
-			if($paid) {
-				$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
-			}
-			
-			$date_debut_periode = $this->getDateDebutPeriode($echeance-1,'LEASER');
-			$date_fin_periode = $this->getDateFinPeriode($echeance-1);
-
-			$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$object->id);
-			
-			$res.= "Création facture fournisseur ($id) : ".$object->ref."<br />";
-		} else {
-			$object = new FactureFournisseur($db);
-			$object->fetch(null, $reference);
-			if($object->id>0) {
-				$object->origin = 'dossier';
-				$object->origin_id = $d->getId();
-				$object->deleteObjectLinked();
-				$object->add_object_linked(); // Ajout de la liaison éventuelle vers ce dossier
-			}
-			
-			$res.= "Erreur création facture fournisseur : ".$object->ref."<br />";
+		$object->fetch(null, $reference);
+		if($object->id>0) {
+			$object->origin = 'dossier';
+			$object->origin_id = $d->getId();
+			$object->deleteObjectLinked();
+			$object->add_object_linked(); // Ajout de la liaison éventuelle vers ce dossier
+			$res.= "Erreur facture fournisseur déjà existante : ".$object->ref."<br />";
 		}
+		else {
+			$object = new FactureFournisseur($db);
+			
+			$object->ref           = $reference;
+		    $object->socid         = $f->fk_soc;
+		    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".$echeance."/".$f->duree;
+		    $object->date          = $date;
+		    $object->date_echeance = $date;
+		    $object->note_public   = '';
+			$object->origin = 'dossier';
+			$object->origin_id = $d->getId();
+			$id = $object->create($user);
+			
+			if($id > 0) {
+				$this->create_facture_leaser_addline($echeance, $f, $d, $object,$res,$user);
+			}
+		}
+		
+		
 		
 		return $object;
 	}
