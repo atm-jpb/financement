@@ -1258,7 +1258,8 @@ class TFin_financement extends TObjetStd {
 			$dossier = new TFin_dossier;
 			$dossier->load($PDOdb, $this->fk_fin_dossier,false);
 			$dossier->load_factureFournisseur($PDOdb);
-			if(!in_array($this->numero_prochaine_echeance-1, array_keys($dossier->TFactureFournisseur))){
+			//if(!in_array($this->numero_prochaine_echeance-1, array_keys($dossier->TFactureFournisseur))){
+			if(isset($dossier->TFactureFournisseur[$this->numero_prochaine_echeance-1])){
 				return 'erreur';
 			}
 			
