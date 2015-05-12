@@ -1653,26 +1653,48 @@ class TImportHistorique extends TObjetStd {
 		parent::_init_vars();
 	}
 	
-	static function addHistory(&$db,$type_import,$filename,$type_object,$fk_object,$action='') {
+	static function addHistory(&$db,$type_import,$filename,$type_object,$fk_object,$action='', $data=array() , $mode_save = 'file') {
 		global $conf, $user;
 		
-		$h = new TImportHistorique;
-		
-		$h->fk_user_author = $user->id;
-		$h->entity = $conf->entity;
-		$h->date_import = time();
-		
-		$h->type_import = $type_import;
-		$h->filename = $filename;
-		$h->type_object = $type_object;
-		$h->fk_object = $fk_object;
-		$h->action = $action;
-		
-		$h->hash = md5($h->fk_object."?".$h->type_import."?".$h->filename."?".$h->type_object."?".$h->action."?".$h->date_import);
-		
-		if(!$h->loadBy($db,$h->hash, 'hash')){
-			$h->save($db);
+		if($mode_save == 'file') {
+			$dir = dol_buildpath('/financement/').'log/'.$type_object.'/'; 
+			@mkdir( $dir, 0777, true );
+			$f1 = fopen($dir.$fk_object.'.log','a');
+			fputs($f1, 
+				date('Y-m-d H:i:s')."\t"
+				.$user->id."\t"
+				.$conf->entity."\t"
+				.$type_import."\t"
+				.$filename."\t"
+				.$action."\t"
+				.serialize($data)."\t"
+				."\n"
+			);
+			
 		}
+		else {
+				
+			$h = new TImportHistorique;
+		
+			$h->fk_user_author = $user->id;
+			$h->entity = $conf->entity;
+			$h->date_import = time();
+			
+			$h->type_import = $type_import;
+			$h->filename = $filename;
+			$h->type_object = $type_object;
+			$h->fk_object = $fk_object;
+			$h->action = $action;
+			
+			$h->hash = md5($h->fk_object."?".$h->type_import."?".$h->filename."?".$h->type_object."?".$h->action."?".$h->date_import);
+			
+			if(!$h->loadBy($db,$h->hash, 'hash')){
+				$h->save($db);
+			}
+				
+		}			  
+	 
+	 
 	}
 }
 ?>

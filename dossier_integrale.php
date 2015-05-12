@@ -123,7 +123,7 @@ function _formatIntegrale(&$integrale){
 	return $integrale;
 	
 }
-
+// TODO à refaire, fonction nid à couillons 
 function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 	global $db;
 	
@@ -148,9 +148,9 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		//Pour certains champs on concatène
 		/*echo $facnumber.'<br>';
 		pre($facidavoir,true);*/
-		$TIntegrale[$integrale->date_periode]->date_facture .= "<br>".$integrale->get_date('date_facture','d/m/Y');
-		$TIntegrale[$integrale->date_periode]->facnumber .= "<br>".$integrale->facnumber;
-		
+		$TIntegrale[$integrale->date_periode]->date_facture .= "<br />".$integrale->get_date('date_facture','d/m/Y');
+		$TIntegrale[$integrale->date_periode]->facnumber .= "<br />".$integrale->facnumber;
+		$TIntegrale[$integrale->date_periode]->TIds[] = $integrale->getId();
 		//Addition des champs qui vont bien
 		if($TIntegrale[$integrale->date_periode]->vol_noir_engage < $integrale->vol_noir_engage){
 			$TIntegrale[$integrale->date_periode]->vol_noir_engage = $integrale->vol_noir_engage;
@@ -196,6 +196,7 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		$integrale->cout_unit_coul = $integrale->cout_unit_coul;
 		$TIntegrale[$integrale->date_periode] = $integrale;
 		$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
+		$TIntegrale[$integrale->date_periode]->TIds = array(0 => $integrale->getId());
 	}
 	
 	return $TIntegrale;
@@ -254,6 +255,11 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 		//$TIntegrale[] = '';
 	}
 	array_pop($TIntegrale); //TODO c'est moche mais sa marche
+	
+	foreach($TIntegrale as &$integrale) {
+		$integrale->facnumber.=' '.img_picto( implode(', ', $integrale->TIds) ,'help.png');
+	}
+	
 	//pre($TIntegrale,true);
 	echo $TBS->render('./tpl/dossier_integrale.tpl.php'
 		,array(
