@@ -758,7 +758,8 @@ class TImport extends TObjetStd {
 				
 				// 2014.12.05 : on ne charge les données intégrale que si affaire de type intégral
 				if(empty($dossier->TLien[0]->affaire) || $dossier->TLien[0]->affaire->contrat != 'INTEGRAL') {
-					exit('la2');
+					/*echo $facture_loc->id.'<br>';
+					exit('la2');*/
 					return false;
 				}
 				else{
