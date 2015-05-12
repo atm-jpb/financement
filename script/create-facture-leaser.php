@@ -44,7 +44,7 @@ foreach($Tab as $id) {
 	// Si le numéro de contrat leaser n'est pas rempli, on passe au dossier suivant
 	if(empty($f->reference)) continue;
 	
-	echo $d->generate_factures_leaser($paid);
+	if($d->nature_financement == 'INTERNE') echo $d->generate_factures_leaser($paid);
 	
 	if($f->okPourFacturation == 'OUI') $f->okPourFacturation='NON';
 	$f->save($ATMdb);
