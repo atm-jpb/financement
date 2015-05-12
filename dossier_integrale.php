@@ -239,25 +239,37 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 	//pre($TIntegrale,true);
 	foreach($dossier->TFacture as $echeance => $facture){
 		$date_periode = date('d/m/Y',strtotime($dossier->getDateDebutPeriode($echeance,'CLIENT')));
-		$TIntegrale[$date_periode]->date_facture = '';
-		$TIntegrale[$date_periode]->facnumber = '';
 		
-		if(is_array($facture)){
-			foreach($facture as $fact){
-				$TIntegrale[$date_periode]->date_facture .= $fact->ref_client."<br>";
-				$TIntegrale[$date_periode]->facnumber .= $fact->getNomUrl()."<br>";
+		if(isset($TIntegrale[$date_periode])) {
+			
+			$TIntegrale[$date_periode]->date_facture = '';
+			$TIntegrale[$date_periode]->facnumber = '';
+			
+			if(is_array($facture)){
+				foreach($facture as $fact){
+					$TIntegrale[$date_periode]->date_facture .= $fact->ref_client."<br>";
+					$TIntegrale[$date_periode]->facnumber .= $fact->getNomUrl()."<br>";
+				}
 			}
+			else{
+				$TIntegrale[$date_periode]->date_facture .= $facture->ref_client."<br>";
+				$TIntegrale[$date_periode]->facnumber .= $facture->getNomUrl()."<br>";
+			}
+			
 		}
-		else{
-			$TIntegrale[$date_periode]->date_facture .= $facture->ref_client."<br>";
-			$TIntegrale[$date_periode]->facnumber .= $facture->getNomUrl()."<br>";
-		}
+		
 		//$TIntegrale[] = '';
 	}
-	array_pop($TIntegrale); //TODO c'est moche mais sa marche
+	//pre($TIntegrale,true);
+	//array_pop($TIntegrale); //TODO c'est moche mais sa marche
 	
-	foreach($TIntegrale as &$integrale) {
-		$integrale->facnumber.=' '.img_picto( implode(', ', $integrale->TIds) ,'help.png');
+	if(isset($_REQUEST['TRACE'])){
+		foreach($TIntegrale as &$integrale) {
+			foreach($integrale->TIds as $id_integral) {
+				$integrale->facnumber.='<br /> log int. <a href="'.dol_buildpath('/financement/log/TIntegrale/'.$id_integral.'.log',1).'" target="_blank">'.$id_integral.'</a>';	
+			}
+			
+		}
 	}
 	
 	//pre($TIntegrale,true);
