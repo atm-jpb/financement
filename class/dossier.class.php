@@ -206,21 +206,28 @@ class TFin_dossier extends TObjetStd {
 			
 			$refClient = $this->financement->reference;
 			$id_fin = (int)$this->financement->getId();
-			
-			$db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
-			WHERE type='CLIENT' AND reference='".$refClient."' AND rowid!=".$id_fin);
-			$obj = $db->Get_line();
-			if($obj->nb>0) return false;
+
+			if(!empty($refClient)) {
+				$db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
+				WHERE type='CLIENT' AND reference='".$refClient."' AND rowid!=".$id_fin);
+				$obj = $db->Get_line();
+				if($obj->nb>0) return false;
+				
+			}
 			
 		}
 		
 		$refLeaser = $this->financementLeaser->reference;
 		$id_finLeaser = $this->financementLeaser->getId();
-		$db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
-		WHERE type='LEASER' AND reference='".$refLeaser."' AND rowid!=".$id_finLeaser);
-		$obj = $db->Get_line();
-		if($obj->nb>0) return false;
 		
+		if(!empty($refLeaser)) {
+			$db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
+			WHERE type='LEASER' AND reference='".$refLeaser."' AND rowid!=".$id_finLeaser);
+			$obj = $db->Get_line();
+			if($obj->nb>0) return false;
+		}
+		
+		return true;
 		
 	}
 	
