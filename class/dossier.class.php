@@ -199,7 +199,31 @@ class TFin_dossier extends TObjetStd {
 		}
 		
 	}
+	
+	function checkRef(&$db) {
 		
+		if($this->nature_financement == 'INTERNE') {
+			
+			$refClient = $this->financement->reference;
+			$id_fin = (int)$this->financement->getId();
+			
+			$db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
+			WHERE type='CLIENT' AND reference='".$refClient."' AND rowid!=".$id_fin);
+			$obj = $db->Get_line();
+			if($obj->nb>0) return false;
+			
+		}
+		
+		$refLeaser = $this->financementLeaser->reference;
+		$id_finLeaser = $this->financementLeaser->getId();
+		$db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
+		WHERE type='LEASER' AND reference='".$refLeaser."' AND rowid!=".$id_finLeaser);
+		$obj = $db->Get_line();
+		if($obj->nb>0) return false;
+		
+		
+	}
+	
 	function save(&$db) {
 		global $user;
 		
@@ -208,6 +232,11 @@ class TFin_dossier extends TObjetStd {
 		
 		$this->calculSolde();
 		$this->calculRenta($db);
+		
+		if(!$this->checkRef($db)) {
+			setEventMessage("Référence déjà utilisée","errors");
+			return false;
+		}
 		
 		parent::save($db);
 		
