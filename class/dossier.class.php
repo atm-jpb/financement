@@ -985,10 +985,11 @@ class TFin_dossier extends TObjetStd {
 			// @TODO : à finir
 			//$paid = $paid || date('Y', $f->date_prochaine_echeance) < 2014;
 			$facture = $this->create_facture_leaser($paid);
+			//exit;
 			//pre($facture,true);exit;
 			//pre($facture,true);exit;
 			$f->setEcheance(1,true);
-			
+			//echo $f->numero_prochaine_echeance." ".$f->date_prochaine_echeance.'<br>';
 			$cpt++;
 		}
 		
@@ -1312,7 +1313,7 @@ class TFin_financement extends TObjetStd {
 	 * Augmente de nb periode la date de prochaine échéance et de nb le numéro de prochaine échéance
 	 */
 	function setEcheance($nb=1, $script_auto=false) {
-		
+		echo $this->numero_prochaine_echeance.'<br>';
 		//On empêche de passer à l'échéance suivante les financements interne Leaser si il n'y a pas de facture
 		if($this->type == 'LEASER' && $script_auto){
 			//pre($this,true);exit;
@@ -1322,7 +1323,10 @@ class TFin_financement extends TObjetStd {
 			$dossier->load($PDOdb, $this->fk_fin_dossier,false);
 			$dossier->load_factureFournisseur($PDOdb);
 			//if(!in_array($this->numero_prochaine_echeance-1, array_keys($dossier->TFactureFournisseur))){
-			if(isset($dossier->TFactureFournisseur[$this->numero_prochaine_echeance-1])){
+			//echo " ==> ".$dossier->TFactureFournisseur[$this->numero_prochaine_echeance].'<br>';
+			//pre($dossier->TFactureFournisseur,true);
+			//pre($dossier->TFactureFournisseur,true);
+			if(!isset($dossier->TFactureFournisseur[$this->numero_prochaine_echeance-1])){
 				return 'erreur';
 			}
 			
@@ -1332,7 +1336,6 @@ class TFin_financement extends TObjetStd {
 		$this->numero_prochaine_echeance += $nb;
 		$this->duree_passe = $this->numero_prochaine_echeance-1;
 		$this->duree_restante = $this->duree - $this->duree_passe;
-		
 		
 		$nb_month = ($this->duree_passe * $this->getiPeriode());
 		if($nb_month==0) {

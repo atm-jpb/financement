@@ -43,6 +43,7 @@ foreach($Tab as $id) {
 	$paid = $f->okPourFacturation == 'MANUEL' ? true : false;
 	// Si le numéro de contrat leaser n'est pas rempli, on passe au dossier suivant
 	if(empty($f->reference)) continue;
+	if(empty($f->echeance)) continue;
 	
 	if($d->nature_financement == 'INTERNE') echo $d->generate_factures_leaser($paid);
 	
