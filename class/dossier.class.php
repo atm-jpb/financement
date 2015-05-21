@@ -1055,15 +1055,29 @@ class TFin_dossier extends TObjetStd {
 		
 		$reference = $f->reference.'/'.$echeance;
 		
+		$createFacture = true;
 		$object->fetch(null, $reference);
-		if($object->id>0) {
-			$object->origin = 'dossier';
-			$object->origin_id = $d->getId();
-			$object->deleteObjectLinked();
-			$object->add_object_linked(); // Ajout de la liaison éventuelle vers ce dossier
-			$res.= "Erreur facture fournisseur déjà existante : ".$object->ref."<br />";
+		if($object->id > 0) {
+			
+			$object->fetchObjectLinked();
+			//pre($object,true);exit;
+			
+			if($this->rowid == $object->linkedObjectsIds['dossier'][0]){
+				
+				$createFacture = false;
+				$object->origin = 'dossier';
+				$object->origin_id = $d->getId();
+				$object->deleteObjectLinked();
+				$object->add_object_linked(); // Ajout de la liaison éventuelle vers ce dossier
+				$res.= "Erreur facture fournisseur déjà existante : ".$object->ref."<br />";
+			}
+			else{
+				$createFacture = true;
+			}
 		}
-		else {
+		
+		if($createFacture){
+			
 			$object = new FactureFournisseur($db);
 			
 			$object->ref           = $reference;
