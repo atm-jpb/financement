@@ -77,7 +77,7 @@ foreach($TData as $data){
 	$date_echeance = $dossier->getDateDebutPeriode($echeance,'CLIENT');
 	$date_echeance = date('d/m/Y',strtotime($date_echeance));
 	
-	if($echeance != 1 ) $echeance ++;
+	$echeance ++;
 	
 	$dossier->financement->numero_prochaine_echeance = $echeance;
 	$dossier->financement->set_date('date_prochaine_echeance', $date_echeance);

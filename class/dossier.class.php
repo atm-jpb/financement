@@ -1314,7 +1314,7 @@ class TFin_financement extends TObjetStd {
 	 * Augmente de nb periode la date de prochaine échéance et de nb le numéro de prochaine échéance
 	 */
 	function setEcheance($nb=1, $script_auto=false) {
-		echo $this->numero_prochaine_echeance.'<br>';
+		//echo $this->numero_prochaine_echeance.'<br>';
 		//On empêche de passer à l'échéance suivante les financements interne Leaser si il n'y a pas de facture
 		if($this->type == 'LEASER' && $script_auto){
 			//pre($this,true);exit;
@@ -1355,6 +1355,26 @@ class TFin_financement extends TObjetStd {
 		
 		$this->duree_passe = $this->numero_prochaine_echeance-1;
 		$this->duree_restante = $this->duree - $this->duree_passe;*/
+	}
+
+	function setProchaineEcheanceClient(&$PDOdb,&$dossier){
+		$dossier->load_facture($PDOdb);
+		//pre($dossier,true);
+		
+		//On récupère le numéro de la dernière échéance facturée +1
+		$echeance = array_pop(array_keys($dossier->TFacture));
+		$echeance++;
+		
+		//On récupère la date de prochaine échéance
+		$date_echeance = $dossier->getDateDebutPeriode($echeance,'CLIENT');
+		$date_echeance = date('d/m/Y',strtotime($date_echeance));
+		
+		$echeance ++;
+		
+		$this->numero_prochaine_echeance = $echeance;
+		$this->set_date('date_prochaine_echeance', $date_echeance);
+		
+		$this->save($PDOdb);
 	}
 	
 	/*
