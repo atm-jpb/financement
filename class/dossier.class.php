@@ -1061,9 +1061,10 @@ class TFin_dossier extends TObjetStd {
 		if($object->id > 0) {
 			
 			$object->fetchObjectLinked();
+			$TIdAvoir = $object->getListIdAvoirFromInvoice();
 			//pre($object,true);exit;
 			
-			if($this->rowid == $object->linkedObjectsIds['dossier'][0]){
+			if($this->rowid == $object->linkedObjectsIds['dossier'][0] && empty($TIdAvoir)){
 				
 				$createFacture = false;
 				$object->origin = 'dossier';
