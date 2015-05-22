@@ -1359,8 +1359,7 @@ class TFin_financement extends TObjetStd {
 
 	function setProchaineEcheanceClient(&$PDOdb,&$dossier){
 		$dossier->load_facture($PDOdb);
-		//pre($dossier,true);
-		
+
 		//On récupère le numéro de la dernière échéance facturée +1
 		$echeance = array_pop(array_keys($dossier->TFacture));
 		$echeance++;
@@ -1370,11 +1369,12 @@ class TFin_financement extends TObjetStd {
 		$date_echeance = date('d/m/Y',strtotime($date_echeance));
 		
 		$echeance ++;
-		
+
 		$this->numero_prochaine_echeance = $echeance;
-		$this->set_date('date_prochaine_echeance', $date_echeance);
+		$this->set_date('date_prochaine_echeance',$date_echeance);
 		
-		$this->save($PDOdb);
+		$this->save($PDOdb,false);
+		//pre($this,true);
 	}
 	
 	/*
@@ -1579,12 +1579,14 @@ class TFin_financement extends TObjetStd {
 			$this->calage = 0;
 		}
 	}
-	function save(&$ATMdb) {
+	function save(&$ATMdb,$donotcalculdatefin = true) {
 		global $db, $user;
 		
 		if(!$user->rights->financement->affaire->write) return false;
 		
-		$this->calculDateFin();
+		if($donotcalculdatefin){
+			$this->calculDateFin();
+		}
 		
 		//$this->taux = 1 - (($this->montant * 100 / $this->echeance * $this->duree) - $this->reste);
 		$this->calculTaux();

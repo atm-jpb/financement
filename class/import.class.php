@@ -216,12 +216,17 @@ class TImport extends TObjetStd {
 			if($financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
 				$nb = ($facture_loc->type == 2) ? -1 : 1;
 				// On ne va changer l'échéance que si c'est la première fois que cette facture est intégrée dans Dolibarr
+
 				if(empty($facid)) {
-					$financement->setEcheance($nb);
+					$dossier = new TFin_dossier;
+					$dossier->load($ATMdb, $financement->fk_fin_dossier,false);
+					$financement->setProchaineEcheanceClient($ATMdb,$dossier);
 				}
-				$financement->save($ATMdb);
+				//echo date('d/m/Y',$financement->date_prochaine_echeance).'<br>';
+				$financement->save($ATMdb,false);
+
 				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($financement), $financement->getId(),'update',$data);
-				
+				//echo date('d/m/Y',$financement->date_prochaine_echeance).'<br>';
 				// Création du lien entre dossier et facture
 				$facture_loc->linked_objects['dossier'] = $financement->fk_fin_dossier;
 			} else {
