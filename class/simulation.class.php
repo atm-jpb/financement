@@ -584,7 +584,17 @@ class TSimulation extends TObjetStd {
 		if(!empty($this->societe->TSimulations)) {
 			foreach ($this->societe->TSimulations as $simu) {
 				if($except_current && $simu->{OBJETSTD_MASTERKEY} == $this->{OBJETSTD_MASTERKEY}) continue;
-				$TDossier = array_merge($TDossier, $simu->dossiers_rachetes, $simu->dossiers_rachetes_p1);
+				foreach($simu->dossiers_rachetes as $k => $TDossiers_rachetes){
+					if(array_key_exists('checked', $TDossiers_rachetes)){
+						$TDossier[] = $TDossiers_rachetes['checked'];
+					}
+				}
+				foreach($simu->dossiers_rachetes_p1 as $k => $TDossiers_rachetes){
+					if(array_key_exists('checked', $TDossiers_rachetes)){
+						$TDossier[] = $TDossiers_rachetes['checked'];
+					}
+				}
+				//$TDossier = array_merge($TDossier, $simu->dossiers_rachetes, $simu->dossiers_rachetes_p1);
 			}
 		}
 		return $TDossier;

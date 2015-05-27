@@ -199,7 +199,38 @@ class TFin_dossier extends TObjetStd {
 		}
 		
 	}
+	
+	function checkRef(&$db) {
 		
+		if($this->nature_financement == 'INTERNE') {
+			
+			$refClient = $this->financement->reference;
+			$id_fin = (int)$this->financement->getId();
+
+			if(!empty($refClient)) {
+				$db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
+				WHERE type='CLIENT' AND reference='".$refClient."' AND rowid!=".$id_fin);
+				$obj = $db->Get_line();
+				if($obj->nb>0) return false;
+				
+			}
+			
+		}
+		
+		$refLeaser = $this->financementLeaser->reference;
+		$id_finLeaser = $this->financementLeaser->getId();
+		
+		if(!empty($refLeaser)) {
+			$db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
+			WHERE type='LEASER' AND reference='".$refLeaser."' AND rowid!=".$id_finLeaser);
+			$obj = $db->Get_line();
+			if($obj->nb>0) return false;
+		}
+		
+		return true;
+		
+	}
+	
 	function save(&$db) {
 		global $user;
 		
@@ -208,6 +239,11 @@ class TFin_dossier extends TObjetStd {
 		
 		$this->calculSolde();
 		$this->calculRenta($db);
+		
+		if(!$this->checkRef($db)) {
+			setEventMessage("Référence déjà utilisée","errors");
+			return false;
+		}
 		
 		parent::save($db);
 		
@@ -354,7 +390,7 @@ class TFin_dossier extends TObjetStd {
 				//$echeance++;
 			}
 		}
-
+		ksort($this->TFacture);
 		//pre($this->TFacture,true);
 	}
 	
@@ -693,11 +729,16 @@ class TFin_dossier extends TObjetStd {
 						$solde = $this->financement->capital_restant * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
 					}
 					elseif($this->TLien[0]->affaire->type_financement == 'PURE'){
-						$solde = $this->financement->total_loyer;
+						$solde = $LRD;
 						//return $this->financement->echeance * ($this->financement->duree - ($this->financement->numero_prochaine_echeance-1));
 					}
 					
-					return ($solde>$LRD_Leaser)?$LRD_Leaser:$solde;
+					if($this->nature_financement == 'INTERNE') {
+						return ($solde>$LRD)?$LRD:$solde;
+					}
+					else{
+						return ($solde>$LRD_leaser)?$LRD_leaser:$solde;
+					}
 				break;
 		}
 	}
@@ -749,7 +790,10 @@ class TFin_dossier extends TObjetStd {
 		$f->capital_restant = $capital_restant; 
 		$f->total_loyer = $f->montant;
 		$TLigne=array();
-//var_dump($this->TFacture);		
+//re($this->TFacture,true);
+
+		//if($type_echeancier=='CLIENT') $this->load_facture($ATMdb,true);
+				
 		for($i=($echeanceInit-1); $i<$f->duree; $i++) {
 			
 			//$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut + $f->calage);
@@ -794,7 +838,7 @@ class TFin_dossier extends TObjetStd {
 			}
 			else if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[$iFacture])) $fact = $this->TFactureFournisseur[$iFacture];
 //var_dump($fa);
-			
+			//if($type_echeancier == 'CLIENT') pre($fact,true);
 			
 			//pre($this->TFacture,true);exit;
 			
@@ -901,6 +945,8 @@ class TFin_dossier extends TObjetStd {
 			$autre['loyer_intercalaire_facture_bg'] = '';
 		}
 		
+		//pre($TLigne,true);exit;
+		
 		if($return) {
 			
 			return array(
@@ -943,91 +989,120 @@ class TFin_dossier extends TObjetStd {
 			// Demande du 28/02/14, mettre en impayé dorénavant, sauf ce qui est avant 2014
 			// @TODO : à finir
 			//$paid = $paid || date('Y', $f->date_prochaine_echeance) < 2014;
-			
-			$this->create_facture_leaser($paid);
-			$f->setEcheance();
-			
+			$facture = $this->create_facture_leaser($paid);
+			//exit;
+			//pre($facture,true);exit;
+			//pre($facture,true);exit;
+			$f->setEcheance(1,true);
+			//echo $f->numero_prochaine_echeance." ".$f->date_prochaine_echeance.'<br>';
 			$cpt++;
 		}
 		
 		if($cpt==50) print "Erreur cycle infini dans generate_factures_leaser()<br />";
 	}
 
+	private function create_facture_leaser_addline(&$echeance, &$f, &$d, &$object,&$res,&$user,$validate,$date) {
+		global $db;
+		
+		$tva = (FIN_TVA_DEFAUT-1)*100;
+		if($date < strtotime('2014-01-01')) $tva = 19.6;
+		
+		
+		if(($echeance==0 && $f->loyer_intercalaire == 0) || ($echeance == -1 && $f->loyer_intercalaire > 0)) {
+			/* Ajoute les frais de dossier uniquement sur la 1ère facture */
+			$res.= "Ajout des frais de dossier<br />";
+			$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
+		}
+		
+		/* Ajout la ligne de l'échéance	*/
+		$fk_product = 0;
+		if(!empty($d->TLien[0]->affaire)) {
+			if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
+			elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
+		}
+		
+		if($echeance == -1 && $f->loyer_intercalaire > 0) {
+			$result=$object->addline("Echéance de loyer intercalaire banque", $f->loyer_intercalaire, $tva, 0, 0, 1, $fk_product);
+		} else {
+			//var_dump($f->echeance,$tva,$fk_product);exit;
+			$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
+		}
+	
+		if($validate) {
+			$result=$object->validate($user,'',0);
+		}
+		
+		if($paid) {
+			$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
+		}
+		
+		$date_debut_periode = $this->getDateDebutPeriode($echeance-1,'LEASER');
+		$date_fin_periode = $this->getDateFinPeriode($echeance-1);
 
+		$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$object->id);
+		
+		$res.= "Création facture fournisseur ($id) : ".$object->ref."<br />";
+	
+		
+	}
 	function create_facture_leaser($paid = false, $validate = true, $echeance=0, $date=0) {
 		global $user, $db, $conf;
 
 		$d = & $this;
 		$f = & $this->financementLeaser;
-		$tva = (FIN_TVA_DEFAUT-1)*100;
+		
 		$res = '';
 		
 		// Ajout pour gérer création facture manuelle
 		if(empty($echeance)) $echeance = $f->duree_passe+1;
 		if(empty($date)) $date = $f->date_prochaine_echeance;
 		
-		if($date < strtotime('01/01/2014')) $tva = 19.6;
-		
 		$object = new FactureFournisseur($db);
 		
 		$reference = $f->reference.'/'.$echeance;
 		
-		$object->ref           = $reference;
-	    $object->socid         = $f->fk_soc;
-	    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".$echeance."/".$f->duree;
-	    $object->date          = $date;
-	    $object->date_echeance = $date;
-	    $object->note_public   = '';
-		$object->origin = 'dossier';
-		$object->origin_id = $d->getId();
-		$id = $object->create($user);
-		
-		if($id > 0) {
-			if(($echeance==0 && $f->loyer_intercalaire == 0) || ($echeance == -1 && $f->loyer_intercalaire > 0)) {
-				/* Ajoute les frais de dossier uniquement sur la 1ère facture */
-				$res.= "Ajout des frais de dossier<br />";
-				$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
-			}
+		$createFacture = true;
+		$object->fetch(null, $reference);
+		if($object->id > 0) {
 			
-			/* Ajout la ligne de l'échéance	*/
-			$fk_product = 0;
-			if(!empty($d->TLien[0]->affaire)) {
-				if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
-				elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
-			}
+			$object->fetchObjectLinked();
+			$TIdAvoir = $object->getListIdAvoirFromInvoice();
+			//pre($object,true);exit;
 			
-			if($echeance == -1 && $f->loyer_intercalaire > 0) {
-				$result=$object->addline("Echéance de loyer intercalaire banque", $f->loyer_intercalaire, $tva, 0, 0, 1, $fk_product);
-			} else {
-				$result=$object->addline("Echéance de loyer banque", $f->echeance, $tva, 0, 0, 1, $fk_product);
-			}
-		
-			if($validate) {
-				$result=$object->validate($user,'',0);
-			}
-			
-			if($paid) {
-				$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
-			}
-			
-			$date_debut_periode = $this->getDateDebutPeriode($echeance-1,'LEASER');
-			$date_fin_periode = $this->getDateFinPeriode($echeance-1);
-
-			$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$object->id);
-			
-			$res.= "Création facture fournisseur ($id) : ".$object->ref."<br />";
-		} else {
-			$object = new FactureFournisseur($db);
-			$object->fetch(null, $reference);
-			if($object->id>0) {
+			if($this->rowid == $object->linkedObjectsIds['dossier'][0] && empty($TIdAvoir)){
+				
+				$createFacture = false;
 				$object->origin = 'dossier';
 				$object->origin_id = $d->getId();
 				$object->deleteObjectLinked();
 				$object->add_object_linked(); // Ajout de la liaison éventuelle vers ce dossier
+				$res.= "Erreur facture fournisseur déjà existante : ".$object->ref."<br />";
 			}
-			
-			$res.= "Erreur création facture fournisseur : ".$object->ref."<br />";
+			else{
+				$createFacture = true;
+			}
 		}
+		
+		if($createFacture){
+			
+			$object = new FactureFournisseur($db);
+			
+			$object->ref           = $reference;
+		    $object->socid         = $f->fk_soc;
+		    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".$echeance."/".$f->duree;
+		    $object->date          = $date;
+		    $object->date_echeance = $date;
+		    $object->note_public   = '';
+			$object->origin = 'dossier';
+			$object->origin_id = $d->getId();
+			$id = $object->create($user);
+			
+			if($id > 0) {
+				$this->create_facture_leaser_addline($echeance, $f, $d, $object,$res,$user,$validate,$date);
+			}
+		}
+		
+		
 		
 		return $object;
 	}
@@ -1243,11 +1318,30 @@ class TFin_financement extends TObjetStd {
 	 * Définie la date de prochaine échéance et le numéro d'échéance en fonction de nb
 	 * Augmente de nb periode la date de prochaine échéance et de nb le numéro de prochaine échéance
 	 */
-	function setEcheance($nb=1, $try_to_correct_last_echeance=true) {
+	function setEcheance($nb=1, $script_auto=false) {
+		//echo $this->numero_prochaine_echeance.'<br>';
+		//On empêche de passer à l'échéance suivante les financements interne Leaser si il n'y a pas de facture
+		if($this->type == 'LEASER' && $script_auto){
+			//pre($this,true);exit;
+			$PDOdb = new TPDOdb;
+			
+			$dossier = new TFin_dossier;
+			$dossier->load($PDOdb, $this->fk_fin_dossier,false);
+			$dossier->load_factureFournisseur($PDOdb);
+			//if(!in_array($this->numero_prochaine_echeance-1, array_keys($dossier->TFactureFournisseur))){
+			//echo " ==> ".$dossier->TFactureFournisseur[$this->numero_prochaine_echeance].'<br>';
+			//pre($dossier->TFactureFournisseur,true);
+			//pre($dossier->TFactureFournisseur,true);
+			if(!isset($dossier->TFactureFournisseur[$this->numero_prochaine_echeance-1])){
+				return 'erreur';
+			}
+			
+			$PDOdb->close();
+		}
+		
 		$this->numero_prochaine_echeance += $nb;
 		$this->duree_passe = $this->numero_prochaine_echeance-1;
 		$this->duree_restante = $this->duree - $this->duree_passe;
-		
 		
 		$nb_month = ($this->duree_passe * $this->getiPeriode());
 		if($nb_month==0) {
@@ -1266,6 +1360,26 @@ class TFin_financement extends TObjetStd {
 		
 		$this->duree_passe = $this->numero_prochaine_echeance-1;
 		$this->duree_restante = $this->duree - $this->duree_passe;*/
+	}
+
+	function setProchaineEcheanceClient(&$PDOdb,&$dossier){
+		$dossier->load_facture($PDOdb);
+
+		//On récupère le numéro de la dernière échéance facturée +1
+		$echeance = array_pop(array_keys($dossier->TFacture));
+		$echeance++;
+		
+		//On récupère la date de prochaine échéance
+		$date_echeance = $dossier->getDateDebutPeriode($echeance,'CLIENT');
+		$date_echeance = date('d/m/Y',strtotime($date_echeance));
+		
+		$echeance ++;
+
+		$this->numero_prochaine_echeance = $echeance;
+		$this->set_date('date_prochaine_echeance',$date_echeance);
+		
+		$this->save($PDOdb,false);
+		//pre($this,true);
 	}
 	
 	/*
@@ -1470,12 +1584,14 @@ class TFin_financement extends TObjetStd {
 			$this->calage = 0;
 		}
 	}
-	function save(&$ATMdb) {
+	function save(&$ATMdb,$donotcalculdatefin = true) {
 		global $db, $user;
 		
 		if(!$user->rights->financement->affaire->write) return false;
 		
-		$this->calculDateFin();
+		if($donotcalculdatefin){
+			$this->calculDateFin();
+		}
 		
 		//$this->taux = 1 - (($this->montant * 100 / $this->echeance * $this->duree) - $this->reste);
 		$this->calculTaux();

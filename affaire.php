@@ -427,6 +427,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 				,'otherFactureMat'=>$otherFactureMat
 				,'userRight'=>((int)$user->rights->financement->affaire->write)
 				,'financement_verouille'=>($affaire->TLien[0]->dossier->financementLeaser->okPourFacturation === 'AUTO' && $user->rights->financement->admin->write) ? 'verrouille' : ''
+				,'creer_affaire' => ($affaire->nature_financement && $affaire->montant && $affaire->type_financement && $affaire->contrat) ? 'ok' : 'ko'
 			)
 			
 		)
