@@ -82,7 +82,7 @@ foreach($TData as $data){
 	$dossier->financement->numero_prochaine_echeance = $echeance;
 	$dossier->financement->set_date('date_prochaine_echeance', $date_echeance);
 	
-	$dossier->financement->save($PDOdb);
+	$dossier->financement->save($PDOdb,false);
 	echo $dossier->financement->reference." ==> ".$echeance." ==> ".$date_echeance.'<br>';
 	$cpt ++;
 }
