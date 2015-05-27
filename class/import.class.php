@@ -126,6 +126,7 @@ class TImport extends TObjetStd {
 				$this->importLineFactureMateriel($ATMdb, $data, $TInfosGlobale);
 				break;
 			case 'facture_location':
+				$this->createFacture($ATMdb, $data,$TInfosGlobale);
 				$this->importLineFactureLocation($ATMdb, $data, $TInfosGlobale);
 				$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
 				break;
@@ -163,6 +164,125 @@ class TImport extends TObjetStd {
 		}
 		
 		$db->commit();
+	}
+
+	function createFacture(&$ATMdb,&$data,&$TInfosGlobale){
+		global $db,$user;
+		// Recherche si facture existante dans la base
+		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
+		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
+		//echo $facid.'<br>';
+		//Si existe pas alors on la créé
+		if(!$facid && $socid){
+			//echo '-'.$socid.'<br>';
+			$data['socid'] = $socid;
+			$facture_loc = new Facture($db);
+			//pre($facture_loc,true);
+			foreach ($data as $key => $value) {
+				$facture_loc->{$key} = $value;
+			}
+	
+			// Gestion des avoirs
+			if(!empty($data['facture_annulee'])) {
+				// Recherche de la facture annulee par l'avoir
+				$avoirid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']]);
+				if($avoirid === false) return false;
+				
+				$facture_loc->type = 2;
+				$facture_loc->fk_facture_source = $avoirid;
+			}
+			
+			$res = $facture_loc->create($user);
+			//echo $res.'<br>';
+			// Erreur : la création n'a pas marché
+			if($res < 0) {
+				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_loc->error);
+				return false;
+			} else {
+				$this->nb_create++;
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_loc), $facture_loc->id,'create',$data);
+			}
+			
+			// Force la validation avec numéro de facture
+			$facture_loc->validate($user, $data[$this->mapping['search_key']]);
+			
+			// La validation entraine le recalcul de la date d'échéance de la facture, on remet celle fournie
+			$facture_loc->date_lim_reglement = $data['date_lim_reglement'];
+			$facture_loc->update($user, 0);
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_loc), $facture_loc->id,'update',$data);
+
+			// Création des liens
+			$financement=new TFin_financement;
+			if($financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
+				$nb = ($facture_loc->type == 2) ? -1 : 1;
+				// On ne va changer l'échéance que si c'est la première fois que cette facture est intégrée dans Dolibarr
+
+				if(empty($facid)) {
+					$dossier = new TFin_dossier;
+					$dossier->load($ATMdb, $financement->fk_fin_dossier,false);
+					$financement->setProchaineEcheanceClient($ATMdb,$dossier);
+				}
+				//echo date('d/m/Y',$financement->date_prochaine_echeance).'<br>';
+				$financement->save($ATMdb,false);
+
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($financement), $financement->getId(),'update',$data);
+				//echo date('d/m/Y',$financement->date_prochaine_echeance).'<br>';
+				// Création du lien entre dossier et facture
+				$facture_loc->linked_objects['dossier'] = $financement->fk_fin_dossier;
+			} else {
+				$dossier = new TFin_dossier;
+				if($dossier->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'])) { // Dossier trouvé, financement non => erreur de qualification (EXTERNE) 
+					$dossier->nature_financement = 'INTERNE';
+					$dossier->financement->reference = $data['reference_dossier_interne'];
+					$nb = ($facture_loc->type == 2) ? -1 : 1;
+					//$dossier->financement->setEcheance($nb);
+					
+					//Cacul de la date et du numéro de prochaine échéance
+					$sql = "SELECT f.reference, COUNT(i.rowid) as nbFact, SUM(CASE WHEN i.type = 0 THEN 1 ELSE -1 END) as echeance_passee
+							FROM ".MAIN_DB_PREFIX."fin_dossier_financement f
+							LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON ee.fk_source = f.fk_fin_dossier AND ee.sourcetype = 'dossier' AND ee.targettype = 'facture'
+							LEFT JOIN ".MAIN_DB_PREFIX."facture i ON i.rowid = ee.fk_target
+							WHERE f.reference = '".$dossier->financement->reference."'";
+
+					$ATMdb->Execute($sql);
+					$TData = $ATMdb->Get_All();
+					
+					foreach($TData as $tdata) {
+						$fin = new TFin_financement();
+						if($fin->loadReference($ATMdb, $tdata->reference, 'CLIENT')) {
+							$fin->initEcheance();
+							$fin->setEcheance($tdata->echeance_passee);
+							$fin->save($ATMdb);
+						}
+					}
+					
+					$dossier->save($ATMdb);
+					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update',$data);
+					$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['reference_dossier_interne'], 'WARNING');
+				} else {
+					/* PAS OK */
+					$this->addError($ATMdb, 'ErrorWhereIsFinancement', $data['reference_dossier_interne']);
+				}
+			}
+		
+			// Mise à jour
+			$res = $facture_loc->update($facid, $user);
+			// Erreur : la mise à jour n'a pas marché
+			if($res < 0) {
+				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_loc->error);
+				return false;
+			} else {
+				$this->nb_update++;
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_loc), $facture_loc->id,'update',$data);
+				
+				// Ajout objet lié
+				if(!empty($facture_loc->linked_objects['dossier'])) {
+					$facture_loc->add_object_linked('dossier', $facture_loc->linked_objects['dossier']);
+				}
+			}
+			
+			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facture_loc->id;
+		}
 	}
 
 	function importFichierLeaser(&$ATMdb, $data, &$TInfosGlobale) {
@@ -236,7 +356,7 @@ class TImport extends TObjetStd {
 			
 			$dossier->save($ATMdb);
 			$this->nb_update++;
-			//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update',$data);
 
 			$TInfosGlobale[] = $dossier->financementLeaser->getId();
 			
@@ -325,7 +445,7 @@ class TImport extends TObjetStd {
 				return false;
 			} else {
 				
-				//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($societe), $societe->id,'update');
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($societe), $societe->id,'update',$data);
 				$this->nb_update++;
 			}			
 		} else {
@@ -337,7 +457,7 @@ class TImport extends TObjetStd {
 				return false;
 			} else {
 				$this->nb_create++;
-				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($societe), $societe->id,'create');
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($societe), $societe->id,'create',$data);
 			}
 		}
 		
@@ -400,7 +520,7 @@ class TImport extends TObjetStd {
 					return false;
 				} else {
 					$this->nb_update++;
-					//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_mat), $facture_mat->id,'update');
+					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_mat), $facture_mat->id,'update',$data);
 				}			
 			} else {
 				$res = $facture_mat->create($user);
@@ -410,7 +530,7 @@ class TImport extends TObjetStd {
 					return false;
 				} else {
 					$this->nb_create++;
-					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_mat), $facture_mat->id,'create');
+					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_mat), $facture_mat->id,'create',$data);
 				}
 			}
 			
@@ -418,7 +538,7 @@ class TImport extends TObjetStd {
 			// Mise à jour de l'affaire
 			$affaire->montant = $this->validateValue('total_ht',$data['total_ht']);	
 			$affaire->save($ATMdb);
-			//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($affaire), $affaire->getId(),'update');
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($affaire), $affaire->getId(),'update',$data);
 			
 			// Création des liens entre affaire et matériel
 			$TSerial = explode(' - ',$data['matricule']);
@@ -434,7 +554,7 @@ class TImport extends TObjetStd {
 					$asset->add_link($facture_mat->id,'facture');
 					
 					$asset->save($ATMdb);
-					//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($asset), $asset->getId(),'update');
+					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($asset), $asset->getId(),'update',$data);
 				}
 				else {
 					$this->addError($ATMdb, 'ErrorMaterielNotFound', $serial);
@@ -457,7 +577,7 @@ class TImport extends TObjetStd {
 							unset($dossier->financement);
 						}
 						$dossier->save($ATMdb);
-						TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'create');
+						TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'create',$data);
 					} else {
 						$this->addError($ATMdb, 'ErrorCreatingDossierOnThisAffaire', $data['code_affaire'], 'ERROR');
 					}
@@ -480,7 +600,7 @@ class TImport extends TObjetStd {
 				pre($dossier,true);exit;*/
 				if($addlink) $dossier->addAffaire($ATMdb, $affaire->getId());
 				$dossier->save($ATMdb);
-				//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update',$data);
 			}
 
 			// On repasse en brouillon pour supprimer les ligne
@@ -528,7 +648,7 @@ class TImport extends TObjetStd {
 		// La validation entraine le recalcul de la date d'échéance de la facture, on remet celle fournie
 		$facture_mat->date_lim_reglement = $data['date_lim_reglement'];
 		$facture_mat->update($user, 0);
-		//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_mat), $facture_mat->id,'update');
+		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_mat), $facture_mat->id,'update',$data);
 		
 		return true;
 	}
@@ -542,204 +662,87 @@ class TImport extends TObjetStd {
 			return false;
 		}
 		
-		$firstLine = false;
-		
-		if(empty($TInfosGlobale[$data[$this->mapping['search_key']]])) {
-			$firstLine = true;
-			
-			// Recherche si facture existante dans la base
-			$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-			if($facid === false) return false;
-			
-			// Recherche tiers associé à la facture existant dans la base
-			$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
-			if(!$socid) return false;
-			
-			$data['socid'] = $socid;
-			
-			// Construction de l'objet final
-			$facture_loc = new Facture($db);
-			if($facid > 0) {
-				$facture_loc->fetch($facid);
-			}
-	
-			foreach ($data as $key => $value) {
-				$facture_loc->{$key} = $value;
-			}
-	
-			// Gestion des avoirs
-			if(!empty($data['facture_annulee'])) {
-				// Recherche de la facture annulee par l'avoir
-				$avoirid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']]);
-				if($avoirid === false) return false;
-				
-				$facture_loc->type = 2;
-				$facture_loc->fk_facture_source = $avoirid;
-			}
-		
-			// Création des liens
-			$financement=new TFin_financement;
-			if($financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
-				$nb = ($facture_loc->type == 2) ? -1 : 1;
-				// On ne va changer l'échéance que si c'est la première fois que cette facture est intégrée dans Dolibarr
-				if(empty($facid)) {
-					$financement->setEcheance($nb);
-				}
-				$financement->save($ATMdb);
-				//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($financement), $financement->getId(),'update');
-				
-				// Création du lien entre dossier et facture
-				$facture_loc->linked_objects['dossier'] = $financement->fk_fin_dossier;
-			} else {
-				$dossier = new TFin_dossier;
-				if($dossier->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'])) { // Dossier trouvé, financement non => erreur de qualification (EXTERNE) 
-					$dossier->nature_financement = 'INTERNE';
-					$dossier->financement->reference = $data['reference_dossier_interne'];
-					$nb = ($facture_loc->type == 2) ? -1 : 1;
-					//$dossier->financement->setEcheance($nb);
-					
-					//Cacul de la date et du numéro de prochaine échéance
-					$sql = "SELECT f.reference, COUNT(i.rowid) as nbFact, SUM(CASE WHEN i.type = 0 THEN 1 ELSE -1 END) as echeance_passee
-							FROM ".MAIN_DB_PREFIX."fin_dossier_financement f
-							LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON ee.fk_source = f.fk_fin_dossier AND ee.sourcetype = 'dossier' AND ee.targettype = 'facture'
-							LEFT JOIN ".MAIN_DB_PREFIX."facture i ON i.rowid = ee.fk_target
-							WHERE f.reference = '".$dossier->financement->reference."'";
+		$firstLine = true;
 
-					$ATMdb->Execute($sql);
-					$TData = $ATMdb->Get_All();
+		$facid = &$TInfosGlobale[$data[$this->mapping['search_key']]];
+		
+		if($facid){
+			$facture_loc = new Facture($db);
+			$facture_loc->fetch($facid);
+	
+			// On repasse en brouillon pour ajouter la ligne
+			$facture_loc->set_draft($user);
+			
+			/*
+			 * Création du service
+			 */
+			$fk_service = $this->createProduct(
+				array(
+					'ref_produit'=>$data['ref_service']
+					,'libelle_produit'=>$data['libelle_ligne']
+					,'prix_ttc'=> 0/*$data['pu']*FIN_TVA_DEFAUT*/
+					,'marque'=> 'Service'
+				)
+			,1);
+			// print "Création du service($fk_service)";
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, 'Service', $fk_service,'create');
+			
+			//On choisis le taux de tva en fonction de la date limite de règlement : 19.6% avant 2014, 20% après 2014
+			if($data['date_lim_reglement'] < strtotime("2014-01-01"))
+				$taux_tva = 19.6;
+			else
+				$taux_tva = 20;
+			
+			// On ajoute la ligne
+			$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], $taux_tva,0,0,$fk_service, 0, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, $data['libelle_ligne']);
+			// Force la validation avec numéro de facture
+			$facture_loc->validate($user, $data[$this->mapping['search_key']]);
+			
+			// La validation entraine le recalcul de la date d'échéance de la facture, on remet celle fournie
+			$facture_loc->date_lim_reglement = $data['date_lim_reglement'];
+			$facture_loc->update($user, 0);
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_loc), $facture_loc->id,'update',$data);
+			
+			// 2014.10.30 : Evolution pour stocker assurance, maintenance et loyer actualisé
+			$facture_loc->fetchObjectLinked('','dossier');
+			if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
+				$dossier = new TFin_dossier;
+				$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0], false);
+				if(!empty($dossier->TLien[0]->affaire) && ($dossier->TLien[0]->affaire->contrat == 'FORFAITGLOBAL' || $dossier->TLien[0]->affaire->contrat == 'INTEGRAL')) {
+					if($data['ref_service'] == '037004') {
+						$dossier->financement->assurance_actualise = $data['total_ht'];
+					}
 					
-					foreach($TData as $tdata) {
-						$fin = new TFin_financement();
-						if($fin->loadReference($ATMdb, $tdata->reference, 'CLIENT')) {
-							$fin->initEcheance();
-							$fin->setEcheance($tdata->echeance_passee);
-							$fin->save($ATMdb);
+					// Addition de différents SSC pour le calcul du montant prestation
+					// Addition de différents SSC pour le calcul du loyer actualisé
+					if(in_array($data['ref_service'], array('SSC124','SSC105','SSC054','SSC05','SSC015','SSC010',
+															'SSC114','SSC004','SSC121','SSC014','SSC118','SSC008',
+															))) {
+						if($firstLine) {
+							$dossier->financement->montant_prestation = $data['pu'];
+							$firstLine = false;
+						} else {
+							$dossier->financement->montant_prestation+= $data['pu'];
+						}
+					}
+				
+					// Addition de différents SSC pour le calcul du loyer actualisé
+					if(in_array($data['ref_service'], array('18528','20021','SSC101','SSC102','SSC106','33741'
+															,'SSC104'))) {
+						if($firstLine) {
+							$dossier->financement->loyer_actualise = $data['pu'];
+							$firstLine = false;
+						} else {
+							$dossier->financement->loyer_actualise+= $data['pu'];
 						}
 					}
 					
 					$dossier->save($ATMdb);
-					//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update');
-					$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['reference_dossier_interne'], 'WARNING');
-				} else {
-					/* PAS OK */
-					$this->addError($ATMdb, 'ErrorWhereIsFinancement', $data['reference_dossier_interne']);
 				}
 			}
-		
-			// Mise à jour ou création
-			if($facid > 0) {
-				$res = $facture_loc->update($facid, $user);
-				// Erreur : la mise à jour n'a pas marché
-				if($res < 0) {
-					$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_loc->error);
-					return false;
-				} else {
-					$this->nb_update++;
-					//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_loc), $facture_loc->id,'update');
-					
-					// Ajout objet lié
-					if(!empty($facture_loc->linked_objects['dossier'])) {
-						$facture_loc->add_object_linked('dossier', $facture_loc->linked_objects['dossier']);
-					}
-				}
-			} else {
-				$res = $facture_loc->create($user);
-				// Erreur : la création n'a pas marché
-				if($res < 0) {
-					$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_loc->error);
-					return false;
-				} else {
-					$this->nb_create++;
-					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_loc), $facture_loc->id,'create');
-				}
-			}
-			
-			// On repasse en brouillon pour supprimer les lignes
-			$facture_loc->set_draft($user);
-			
-			// On supprime les lignes (pour ne pas créer de ligne en double)
-			foreach ($facture_loc->lines as $line) {
-				$facture_loc->deleteline($line->rowid);
-			}
-			
-			// Permet d'éviter de faire plusieurs fois les même actions sur une même facture
-			// Le fichier facture contient les lignes de factures
-			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facture_loc->id;
-		} else {
-			$facid = &$TInfosGlobale[$data[$this->mapping['search_key']]];
-			$facture_loc = new Facture($db);
-			$facture_loc->fetch($facid);
 		}
-		
-		// Actions spécifiques
-
-		// On repasse en brouillon pour ajouter la ligne
-		$facture_loc->set_draft($user);
-		
-		/*
-		 * Création du service
-		 */
-		$fk_service = $this->createProduct(
-			array(
-				'ref_produit'=>$data['ref_service']
-				,'libelle_produit'=>$data['libelle_ligne']
-				,'prix_ttc'=> 0/*$data['pu']*FIN_TVA_DEFAUT*/
-				,'marque'=> 'Service'
-			)
-		,1);
-		// print "Création du service($fk_service)";
-		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, 'Service', $fk_service,'create');
-		
-		//On choisis le taux de tva en fonction de la date limite de règlement : 19.6% avant 2014, 20% après 2014
-		if($data['date_lim_reglement'] < strtotime("2014-01-01"))
-			$taux_tva = 19.6;
-		else
-			$taux_tva = 20;
-		
-		// On ajoute la ligne
-		$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], $taux_tva,0,0,$fk_service, 0, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, $data['libelle_ligne']);
-		// Force la validation avec numéro de facture
-		$facture_loc->validate($user, $data[$this->mapping['search_key']]);
-		
-		// La validation entraine le recalcul de la date d'échéance de la facture, on remet celle fournie
-		$facture_loc->date_lim_reglement = $data['date_lim_reglement'];
-		$facture_loc->update($user, 0);
-		//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_loc), $facture_loc->id,'update');
-		
-		// 2014.10.30 : Evolution pour stocker assurance, maintenance et loyer actualisé
-		$facture_loc->fetchObjectLinked('','dossier');
-		if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
-			$dossier = new TFin_dossier;
-			$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0], false);
-			if(!empty($dossier->TLien[0]->affaire) && ($dossier->TLien[0]->affaire->contrat == 'FORFAITGLOBAL' || $dossier->TLien[0]->affaire->contrat == 'INTEGRAL')) {
-				if($data['ref_service'] == '037004') {
-					$dossier->financement->assurance_actualise = $data['total_ht'];
-				}
-				
-				// Addition de différents SSC pour le calcul du montant prestation
-				// Addition de différents SSC pour le calcul du loyer actualisé
-				if(in_array($data['ref_service'], array('SSC124','SSC105','SSC054','SSC05','SSC015','SSC010',
-														'SSC114','SSC004','SSC121','SSC014','SSC118','SSC008',
-														))) {
-					if($firstLine) {
-						$dossier->financement->montant_prestation = $data['pu'];
-					} else {
-						$dossier->financement->montant_prestation+= $data['pu'];
-					}
-				}
-			
-				// Addition de différents SSC pour le calcul du loyer actualisé
-				if(in_array($data['ref_service'], array('18528','20021','SSC101','SSC102','SSC106','33741'
-														,'SSC104'))) {
-					if($firstLine) {
-						$dossier->financement->loyer_actualise = $data['pu'];
-					} else {
-						$dossier->financement->loyer_actualise+= $data['pu'];
-					}
-				}
-				
-				$dossier->save($ATMdb);
-			}
+		else{
+			return false;
 		}
 		
 		return true;
@@ -747,29 +750,54 @@ class TImport extends TObjetStd {
 
 	function importLineFactureIntegrale(&$ATMdb, $data, &$TInfosGlobale) {
 		global $user, $db;
-		
-		$facture_loc = new Facture($db);
-		$facture_loc->fetch('',$data[$this->mapping['search_key']]);
-		$facture_loc->fetchObjectLinked('','dossier');
-		if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
-			$dossier = new TFin_dossier;
-			$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0]);
-			
-			// 2014.12.05 : on ne charge les données intégrale que si affaire de type intégral
-			if(empty($dossier->TLien[0]->affaire) || $dossier->TLien[0]->affaire->contrat != 'INTEGRAL') {
+		//pre($data,true);
+		if(empty($TInfosGlobale['integrale'][$data[$this->mapping['search_key']]])) {
+			$facture_loc = new Facture($db);
+			$facture_loc->fetch('',$data[$this->mapping['search_key']]);
+			$facture_loc->fetchObjectLinked('','dossier');
+			if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
+				//pre($facture_loc, true);
+				$dossier = new TFin_dossier;
+				$dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0],false);
+				$dossier->load_affaire($ATMdb);
+				
+				// 2014.12.05 : on ne charge les données intégrale que si affaire de type intégral
+				if(empty($dossier->TLien[0]->affaire) || $dossier->TLien[0]->affaire->contrat != 'INTEGRAL') {
+					/*echo $facture_loc->id.'<br>';
+					exit('la2');*/
+					return false;
+				}
+				else{
+					$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]] = new TIntegrale();
+					$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]]->loadBy($ATMdb, $data[$this->mapping['search_key']], $this->mapping['search_key']);
+					//$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]]->truc="llll".$data[$this->mapping['search_key']];
+				}
+				
+			} else {
 				return false;
 			}
-		} else {
-			return false;
-		}
-		
-		if(empty($TInfosGlobale['integrale'][$data[$this->mapping['search_key']]])) {
-			$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]] = new TIntegrale();
-			$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]]->loadBy($ATMdb, $data[$this->mapping['search_key']], $this->mapping['search_key']);
 		}
 		
 		$integrale = &$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]];
+		//pre($integrale,true);exit("la");
+		
 		$integrale->facnumber = $data[$this->mapping['search_key']];
+		
+		//Gère les frais de gestion lié à l'intégrale
+		$this->importILFI_gestion($data,$integrale);
+		
+		//Gère les copies NOIR
+		$this->importILFI_noir($data,$integrale);
+		
+		//Gère les copies COULEUR
+		$this->importILFI_couleur($data,$integrale);
+		
+		$integrale->save($ATMdb);
+		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($integrale), $integrale->getId(),'update',$data);
+	}
+	
+	//Gère les frais de gestion lié à l'intégrale
+	private function importILFI_gestion(&$data,&$integrale){
 		
 		// Gestion des frais divers
 		// FASS
@@ -807,7 +835,10 @@ class TImport extends TObjetStd {
 		if($data['libelle_ligne'] == 'FRAIS DE FACTURATION') {
 			$integrale->frais_facturation	= $data['total_ht'];
 		}
-		
+	} 
+	
+	//Gère les copies NOIR
+	private function importILFI_noir(&$data,&$integrale){
 		// ENGAGEMENT NOIR
 		if($data['ref_service'] == 'SSC015') {
 			if(empty($integrale->materiel_noir)) {
@@ -835,7 +866,10 @@ class TImport extends TObjetStd {
 			
 			$integrale->cout_unit_noir = $data['pu'];
 		}
-		
+	}
+
+	//Gère les copies COULEUR
+	private function importILFI_couleur(&$data,&$integrale){
 		// ENGAGEMENT COULEUR
 		if($data['ref_service'] == 'SSC010') {
 			if(empty($integrale->materiel_coul)) {
@@ -863,12 +897,9 @@ class TImport extends TObjetStd {
 			
 			$integrale->cout_unit_coul = $data['pu'];
 		}
-		
-		$integrale->save($ATMdb);
-		//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($integrale), $integrale->getId(),'update');
 	}
 
-	function sendAlertEmailIntegrale($ATMdb, $TInfosGlobale) {
+	function sendAlertEmailIntegrale(&$ATMdb, &$TInfosGlobale) { //TODO delete ??
 		global $conf, $db, $langs;
 		
 		$TMailToSend = array();
@@ -1009,7 +1040,7 @@ class TImport extends TObjetStd {
 			return false;
 		} else {
 			$this->nb_update++;
-			//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture), $facture->id,'update');
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture), $facture->id,'update',$data);
 		}
 
 		return true;
@@ -1056,10 +1087,10 @@ class TImport extends TObjetStd {
 		
 		if($a->getId() > 0) {
 			$this->nb_update++;
-			//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($a), $a->getId(),'update');
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($a), $a->getId(),'update',$data);
 		} else {
 			$this->nb_create++;
-			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($a), $a->getId(),'create');
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($a), $a->getId(),'create',$data);
 		}
 		
 		$a->save($ATMdb);
@@ -1138,10 +1169,10 @@ class TImport extends TObjetStd {
 			
 			if($asset->getId() > 0) {
 				$this->nb_update++;
-				//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($asset), $asset->getId(),'update');
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($asset), $asset->getId(),'update',$data);
 			} else {
 				$this->nb_create++;
-				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($asset), $asset->getId(),'create');
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($asset), $asset->getId(),'create',$data);
 			}
 			
 			$asset->entity = $conf->entity;
@@ -1184,10 +1215,10 @@ class TImport extends TObjetStd {
 		
 		if($c->getId() > 0) {
 			$this->nb_update++;
-			//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($c), $c->getId(),'update');
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($c), $c->getId(),'update',$data);
 		} else {
 			$this->nb_create++;
-			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($c), $c->getId(),'create');
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($c), $c->getId(),'create',$data);
 		}
 		
 		$c->save($ATMdb);
@@ -1225,7 +1256,7 @@ class TImport extends TObjetStd {
 				return false;
 			} else {
 				$this->nb_create++;
-				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($score), $score->getId(),'create');
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($score), $score->getId(),'create',$data);
 			}
 			
 			// Mise à jour de la fiche tiers
@@ -1287,7 +1318,7 @@ class TImport extends TObjetStd {
 			}
 			
 			$this->nb_update++;
-			//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($affaire), $affaire->getId(),'update');
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($affaire), $affaire->getId(),'update',$data);
 		} else {
 			$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['code_affaire'], 'WARNING');
 		}
@@ -1302,7 +1333,7 @@ class TImport extends TObjetStd {
 					$this->_save_dossier_init($ATMdb, $doss, $affaire, $data);
 					$found = true;
 					$this->nb_update++;
-					//TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($affaire), $affaire->getId(),'update');
+					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($affaire), $affaire->getId(),'update',$data);
 				}
 			}
 		}
@@ -1653,26 +1684,49 @@ class TImportHistorique extends TObjetStd {
 		parent::_init_vars();
 	}
 	
-	static function addHistory(&$db,$type_import,$filename,$type_object,$fk_object,$action='') {
+	static function addHistory(&$db,$type_import,$filename,$type_object,$fk_object,$action='', $data=array() , $mode_save = 'file') {
 		global $conf, $user;
 		
-		$h = new TImportHistorique;
-		
-		$h->fk_user_author = $user->id;
-		$h->entity = $conf->entity;
-		$h->date_import = time();
-		
-		$h->type_import = $type_import;
-		$h->filename = $filename;
-		$h->type_object = $type_object;
-		$h->fk_object = $fk_object;
-		$h->action = $action;
-		
-		$h->hash = md5($h->fk_object."?".$h->type_import."?".$h->filename."?".$h->type_object."?".$h->action."?".$h->date_import);
-		
-		if(!$h->loadBy($db,$h->hash, 'hash')){
-			$h->save($db);
+		if($mode_save == 'file') {
+			if($type_object == 'Service') return false;
+			$dir = dol_buildpath('/financement/').'log/'.$type_object.'/'; 
+			@mkdir( $dir, 0777, true );
+			$f1 = fopen($dir.$fk_object.'.log','a');
+			fputs($f1, 
+				date('Y-m-d H:i:s')."\t"
+				.$user->id."\t"
+				.$conf->entity."\t"
+				.$type_import."\t"
+				.$filename."\t"
+				.$action."\t"
+				.serialize($data)."\t"
+				."\n"
+			);
+			
 		}
+		else {
+				
+			$h = new TImportHistorique;
+		
+			$h->fk_user_author = $user->id;
+			$h->entity = $conf->entity;
+			$h->date_import = time();
+			
+			$h->type_import = $type_import;
+			$h->filename = $filename;
+			$h->type_object = $type_object;
+			$h->fk_object = $fk_object;
+			$h->action = $action;
+			
+			$h->hash = md5($h->fk_object."?".$h->type_import."?".$h->filename."?".$h->type_object."?".$h->action."?".$h->date_import);
+			
+			if(!$h->loadBy($db,$h->hash, 'hash')){
+				$h->save($db);
+			}
+				
+		}			  
+	 
+	 
 	}
 }
 ?>

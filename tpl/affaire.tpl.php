@@ -75,7 +75,9 @@
 			[onshow; block=div; when [view.userRight]==1]	
 		<input type="button" id="action-delete" value="Supprimer" name="delete" class="butActionDelete" onclick="delete_elem([affaire.id],'affaire');">
 		&nbsp; &nbsp; <a href="?id=[affaire.id]&action=edit" class="butAction">Modifier</a>
-		&nbsp; &nbsp; <a href="dossier.php?action=new&fk_fin_affaire=[affaire.id]&montant=[affaire.montant_val]&nature_financement=[affaire.nature_financement_val]" class="butAction">[onshow; block=a; when [affaire.addDossierButton]==1]Créer un dossier de financement Client</a>
+		[onshow;block=begin;when [view.creer_affaire]=='ok']
+			&nbsp; &nbsp; <a href="dossier.php?action=new&fk_fin_affaire=[affaire.id]&montant=[affaire.montant_val]&nature_financement=[affaire.nature_financement_val]" class="butAction">[onshow; block=a; when [affaire.addDossierButton]==1]Créer un dossier de financement Client</a>
+		[onshow;block=end]
 		</div>
 [onshow;block=end]	
 [onshow;block=begin;when [view.mode]!='view']

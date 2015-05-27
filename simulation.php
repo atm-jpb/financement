@@ -716,7 +716,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$var = true;
 	
 	$TDossierUsed = $simulation->get_list_dossier_used(true);
-	
+	//pre($ATMdb->Get_field('IDDoss'),true);
+	//echo $sql;
 	while ($ATMdb->Get_line()) {
 		$affaire = new TFin_affaire;
 		$dossier=new TFin_Dossier;
@@ -738,7 +739,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			$soldeR1 = round($dossier->getSolde($ATMdb2, 'SRBANK', $fin->duree_passe + 1),2);
 			$soldeNR1 = round($dossier->getSolde($ATMdb2, 'SNRBANK', $fin->duree_passe + 1),2);*/
 		}
-
+		//echo $fin->reference.'<br>';
 		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		
 		if($fin->date_solde > 0) continue;
@@ -811,24 +812,25 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		$checkbox_more1.= ' contrat="'.$ATMdb->Get_field('Type contrat').'"';
 		$checkbox_more1.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		*/
+		//echo $ATMdb->Get_field('IDDoss')." ";
 		// Changement du 13.09.02 : les 4 soldes sont "cochables"
 		$checkedr = (!empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['checked'])) ? true : false;
 		$checkednr = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['checked'])) ? true : false;
 		$checkbox_moreR = 'solde="'.$soldeR.'" style="display: none;"';
-		$checkbox_moreR.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
+		$checkbox_moreR.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		$checkbox_moreNR = ' solde="'.$soldeNR.'" style="display: none;"';
-		$checkbox_moreNR.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
+		$checkbox_moreNR.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		
 		$checkedr1 = (!empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['checked'])) ? true : false;
 		$checkednr1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['checked'])) ? true : false;
 		$checkbox_moreR1 = 'solde="'.$soldeR1.'" style="display: none;"';
-		$checkbox_moreR1.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
+		$checkbox_moreR1.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		$checkbox_moreNR1 = ' solde="'.$soldeNR1.'" style="display: none;"';
-		$checkbox_moreNR1.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
+		$checkbox_moreNR1.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		
 		$checkedperso = (is_array($simulation->dossiers_rachetes_perso) && in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes_perso)) ? true : false;
 		$checkbox_moreperso = 'solde="'.$soldeperso.'" style="display: none;"';
-		$checkbox_moreperso.= in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
+		$checkbox_moreperso.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		
 		/*
 		 * Mise en commentaire des ancienne règle d'afficahge des soldes suite PR1504-0764 avec gestion des soldes V2
@@ -836,12 +838,12 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		//if($ATMdb->Get_field('incident_paiement')=='OUI') $dossier->display_solde = 0;
 		//if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
 		//if($leaser->code_client == '024242') $dossier->display_solde = 0; // Ticket 447, suite
-		
 		if($dossier->montant >= 50000) $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
 		if($dossier->soldepersodispo == 2) $dossier->display_solde = 0;
 		
 		//Ne pas laissé disponible un dossier dont la dernière facture client est impayée
-		foreach ($dossier->TFacture as $echeance => $facture) {
+		$TFactures = array_reverse($dossier->TFacture,true);
+		foreach ($TFactures as $echeance => $facture) {
 			if(is_array($facture)){
 				foreach ($facture as $key => $fact) {
 					if($fact->paye == 0) $dossier->display_solde = 0;
@@ -850,6 +852,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			else{
 				if($facture->paye == 0) $dossier->display_solde = 0;
 			}
+			break;
 		}
 		
 		$row = array(
@@ -901,18 +904,16 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			
 			,'incident_paiement'=>$incident_paiement
 		);
-		
-		
-		
-		$TDossier[] = $row;
-		
+
+		$TDossier[$dossier->getId()] = $row;
+
 		$var = !$var;
 	}
 	
 	$THide = array('IDAff', 'IDDoss', 'fk_user', 'Type contrat');
 
-	/*pre($simulation,true);
-	pre($TDossier,true);exit;*/
+	//pre($simulation,true);
+	//pre($TDossier,true);exit;
 	return $r->renderArray($ATMdb, $TDossier, array(
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)

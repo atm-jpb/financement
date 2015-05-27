@@ -123,7 +123,7 @@ function _formatIntegrale(&$integrale){
 	return $integrale;
 	
 }
-
+// TODO à refaire, fonction nid à couillons 
 function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 	global $db;
 	
@@ -148,9 +148,9 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		//Pour certains champs on concatène
 		/*echo $facnumber.'<br>';
 		pre($facidavoir,true);*/
-		$TIntegrale[$integrale->date_periode]->date_facture .= "<br>".$integrale->get_date('date_facture','d/m/Y');
-		$TIntegrale[$integrale->date_periode]->facnumber .= "<br>".$integrale->facnumber;
-		
+		$TIntegrale[$integrale->date_periode]->date_facture .= "<br />".$integrale->get_date('date_facture','d/m/Y');
+		$TIntegrale[$integrale->date_periode]->facnumber .= "<br />".$integrale->facnumber;
+		$TIntegrale[$integrale->date_periode]->TIds[] = $integrale->getId();
 		//Addition des champs qui vont bien
 		if($TIntegrale[$integrale->date_periode]->vol_noir_engage < $integrale->vol_noir_engage){
 			$TIntegrale[$integrale->date_periode]->vol_noir_engage = $integrale->vol_noir_engage;
@@ -196,6 +196,7 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		$integrale->cout_unit_coul = $integrale->cout_unit_coul;
 		$TIntegrale[$integrale->date_periode] = $integrale;
 		$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
+		$TIntegrale[$integrale->date_periode]->TIds = array(0 => $integrale->getId());
 	}
 	
 	return $TIntegrale;
@@ -238,22 +239,39 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 	//pre($TIntegrale,true);
 	foreach($dossier->TFacture as $echeance => $facture){
 		$date_periode = date('d/m/Y',strtotime($dossier->getDateDebutPeriode($echeance,'CLIENT')));
-		$TIntegrale[$date_periode]->date_facture = '';
-		$TIntegrale[$date_periode]->facnumber = '';
 		
-		if(is_array($facture)){
-			foreach($facture as $fact){
-				$TIntegrale[$date_periode]->date_facture .= $fact->ref_client."<br>";
-				$TIntegrale[$date_periode]->facnumber .= $fact->getNomUrl()."<br>";
+		if(isset($TIntegrale[$date_periode])) {
+			
+			$TIntegrale[$date_periode]->date_facture = '';
+			$TIntegrale[$date_periode]->facnumber = '';
+			
+			if(is_array($facture)){
+				foreach($facture as $fact){
+					$TIntegrale[$date_periode]->date_facture .= $fact->ref_client."<br>";
+					$TIntegrale[$date_periode]->facnumber .= $fact->getNomUrl()."<br>";
+				}
 			}
+			else{
+				$TIntegrale[$date_periode]->date_facture .= $facture->ref_client."<br>";
+				$TIntegrale[$date_periode]->facnumber .= $facture->getNomUrl()."<br>";
+			}
+			
 		}
-		else{
-			$TIntegrale[$date_periode]->date_facture .= $facture->ref_client."<br>";
-			$TIntegrale[$date_periode]->facnumber .= $facture->getNomUrl()."<br>";
-		}
+		
 		//$TIntegrale[] = '';
 	}
-	array_pop($TIntegrale); //TODO c'est moche mais sa marche
+	//pre($TIntegrale,true);
+	//array_pop($TIntegrale); //TODO c'est moche mais sa marche
+	
+	if(isset($_REQUEST['TRACE'])){
+		foreach($TIntegrale as &$integrale) {
+			foreach($integrale->TIds as $id_integral) {
+				$integrale->facnumber.='<br /> log int. <a href="'.dol_buildpath('/financement/log/TIntegrale/'.$id_integral.'.log',1).'" target="_blank">'.$id_integral.'</a>';	
+			}
+			
+		}
+	}
+	
 	//pre($TIntegrale,true);
 	echo $TBS->render('./tpl/dossier_integrale.tpl.php'
 		,array(

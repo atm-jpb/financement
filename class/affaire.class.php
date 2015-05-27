@@ -606,6 +606,7 @@ class TFin_affaire extends TObjetStd {
 		    $designation = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $designation);
 		    $designation = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $designation); // pour les ligatures e.g. '&oelig;'
 		    $designation = preg_replace('#&[^;]+;#', '', $designation); // supprime les autres caractères
+		    $designation = strtoupper($designation);
 		    
 		    $TDesignation[$k] = substr($designation,0,30);
 		}
@@ -616,7 +617,7 @@ class TFin_affaire extends TObjetStd {
 			$bien->appendChild($xml->createElement("designation1",$TDesignation[0]));
 		}
 		else{
-			$bien->appendChild($xml->createElement("designation1","ensemble de copieurs"));
+			$bien->appendChild($xml->createElement("designation1","ENSEMBLE DE COPIEURS"));
 			$bien->appendChild($xml->createElement("designation1B",$TDesignation[0]));
 			$bien->appendChild($xml->createElement("designation1C",$TDesignation[1]));
 		}
@@ -624,7 +625,7 @@ class TFin_affaire extends TObjetStd {
 		$des->appendChild($xml->createCDATASection(substr($product->label,0,30)));*/
 		
 		//$bien->appendChild($xml->createElement("noSerie",$assetLink->asset->serial_number));
-		$bien->appendChild($xml->createElement("noSerie",substr($serial_numbers,0,30)));
+		$bien->appendChild($xml->createElement("noSerie",strtoupper(substr($serial_numbers,0,30))));
 		$bien->appendChild($xml->createElement("immatriculable","NON"));
 		$bien->appendChild($xml->createElement("codeAssietteTheorique","U03C"));
 		
@@ -703,7 +704,7 @@ class TFin_affaire extends TObjetStd {
 
 		//pre($TAsset[0]->asset->serial_number);exit;
 		//$commande->appendChild($xml->createElement("noCommande",((count($TAsset) > 1) ? date('dmY') : $TAsset[0]->asset->serial_number)));
-		$commande->appendChild($xml->createElement("noCommande",substr($Affaire->reference,0,10)));
+		$commande->appendChild($xml->createElement("noCommande",strtoupper(substr($Affaire->reference,0,10))));
 		$commande->appendChild($xml->createElement("fournisseur","M000355961"));
 
 		//foreach($TAsset as $a=>$assetLink){

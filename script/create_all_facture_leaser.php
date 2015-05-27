@@ -22,7 +22,10 @@
 		  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (d.rowid = df.fk_fin_dossier)
 		  WHERE d.nature_financement = 'INTERNE' 
 		  	AND df.type = 'LEASER' 
-		  	AND (df.date_solde = '0000-00-00 00:00:00' OR df.date_solde IS NULL)";
+		  	AND (df.date_solde = '0000-00-00 00:00:00' OR df.date_solde IS NULL)
+		  	AND (df.reference IS NOT NULL AND df.reference != '')
+		  	AND df.okPourFacturation != 'NON'
+		  	AND df.date_prochaine_echeance BETWEEN '2015-01-01 00:00:00' AND '2099-01-01 00:00:00'";
 
 	
 	$ATMdb->Execute($sql);
@@ -46,8 +49,11 @@
 			if(!array_key_exists($echeance-1, $dossier->TFactureFournisseur)){
 				/*echo $echeance.' '.$dossier->rowid.'<br>';
 				pre($dossier->TFactureFournisseur,true);exit;*/
-				$TError[$dossier->rowid] = $dossier->financement->reference." / ".$dossier->financementLeaser->reference;
-				$cpt ++;
+				$date = strtotime($dossier->getDateDebutPeriode($echeance));
+				if($date > strtotime('2015-01-01')){
+					$TError[$dossier->rowid] = $dossier->financement->reference." / ".$dossier->financementLeaser->reference;
+					$cpt ++;
+				}
 			}
 		}
 	}

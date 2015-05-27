@@ -50,6 +50,7 @@ $langs->load("main");				// To load language file for default language
 $langs->load("financement@financement");
 @set_time_limit(0);					// No timeout for this script
 ini_set('display_errors', true);
+ini_set('memory_limit','1024M');
 
 // Load user and its permissions
 $result=$user->fetch('',DOL_ADMIN_USER);	// Load user for login 'admin'. Comment line to run as anonymous user.
@@ -110,7 +111,7 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		
 		$fileHandler = fopen($importFolder.$fileName, 'r');
 		$TInfosGlobale = array();
-		while($dataline = fgetcsv($fileHandler, 1024, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
+		while($dataline = fgetcsv($fileHandler, 4096, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
 			$imp->importLine($ATMdb, $dataline, $TInfosGlobale);
 		}
 		fclose($fileHandler);
