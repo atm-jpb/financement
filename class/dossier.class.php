@@ -390,7 +390,7 @@ class TFin_dossier extends TObjetStd {
 				//$echeance++;
 			}
 		}
-
+		ksort($this->TFacture);
 		//pre($this->TFacture,true);
 	}
 	
@@ -790,7 +790,10 @@ class TFin_dossier extends TObjetStd {
 		$f->capital_restant = $capital_restant; 
 		$f->total_loyer = $f->montant;
 		$TLigne=array();
-//var_dump($this->TFacture);		
+//re($this->TFacture,true);
+
+		//if($type_echeancier=='CLIENT') $this->load_facture($ATMdb,true);
+				
 		for($i=($echeanceInit-1); $i<$f->duree; $i++) {
 			
 			//$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut + $f->calage);
@@ -835,7 +838,7 @@ class TFin_dossier extends TObjetStd {
 			}
 			else if($type_echeancier == 'LEASER' && !empty($this->TFactureFournisseur[$iFacture])) $fact = $this->TFactureFournisseur[$iFacture];
 //var_dump($fa);
-			
+			//if($type_echeancier == 'CLIENT') pre($fact,true);
 			
 			//pre($this->TFacture,true);exit;
 			
@@ -941,6 +944,8 @@ class TFin_dossier extends TObjetStd {
 			$autre['loyer_intercalaire_facture_link'] = '';
 			$autre['loyer_intercalaire_facture_bg'] = '';
 		}
+		
+		//pre($TLigne,true);exit;
 		
 		if($return) {
 			
