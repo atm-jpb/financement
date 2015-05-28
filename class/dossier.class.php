@@ -737,10 +737,10 @@ class TFin_dossier extends TObjetStd {
 					
 					if($this->nature_financement == 'INTERNE') {
 						//echo $solde." > ". $LRD .'<br>';
-						return ($solde<$LRD)?$LRD:$solde;
+						return ($solde<$LRD && $LRD < $this->financement->montant)?$LRD:$solde;
 					}
 					else{
-						return ($solde<$LRD_leaser)?$LRD_leaser:$solde;
+						return ($solde<$LRD_leaser && $LRD_leaser < $this->financementLeaser->montant)?$LRD_leaser:$solde;
 					}
 				break;
 		}
