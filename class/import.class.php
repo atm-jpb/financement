@@ -1210,7 +1210,7 @@ class TImport extends TObjetStd {
 		
 		$c->fk_soc = $fk_soc;
 		$c->fk_user = $fk_user;
-		
+
 		$c->type_activite_cpro = $data['type_activite_cpro'];
 		
 		if($c->getId() > 0) {
@@ -1222,7 +1222,9 @@ class TImport extends TObjetStd {
 		}
 		
 		$c->save($ATMdb);
-		
+
+		$TInfosGlobales['commerciauxLinksId'][$c->getId()] = $c->getId();
+
 		return true;
 	}
 
@@ -1672,6 +1674,26 @@ class TImport extends TObjetStd {
 		
 		return $rowid;
 	}
+	
+	function deleteCommerciauxLinks(&$PDOdb,&$TInfosGlobale){
+		
+		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe_commerciaux";
+		//echo $sql;
+		$TIds = TRequeteCore::get_id_from_what_you_want($PDOdb, MAIN_DB_PREFIX."societe_commerciaux");
+		//$TIds = $PDOdb->Get_All();
+		//pre($TInfosGlobale['commerciauxLinksId'],true);exit;
+		foreach($TIds as $id){
+			
+			if(!in_array($id,$TInfosGlobale['commerciauxLinksId'])){
+				$TCommercialCpro = new TCommercialCpro;
+				$TCommercialCpro->load($PDOdb, $id);
+				
+				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($TCommercialCpro), $TCommercialCpro->getId(),'delete',array('Commercial'=>$TCommercialCpro->fk_user,'Societe'=>$TCommercialCpro->fk_soc));
+				
+				$TCommercialCpro->delete($PDOdb);
+			}
+		}
+	}
 }
 
 class TImportHistorique extends TObjetStd {
@@ -1728,5 +1750,7 @@ class TImportHistorique extends TObjetStd {
 	 
 	 
 	}
+	
+	
 }
 ?>
