@@ -116,10 +116,10 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		}
 		fclose($fileHandler);
 		//echo $imp->type_import;exit;
-		if($imp->type_import === 'commercial' && !empty($TInfosGlobale['commerciauxLinksId'])){
+		/*if($imp->type_import === 'commercial' && !empty($TInfosGlobale['commerciauxLinksId'])){
 			//Si un fichier fin_commercial vient de passer alors on vire les commerciaux qui ne sont plus attribuer aux tiers
 			$imp->deleteCommerciauxLinks($ATMdb,$TInfosGlobale);
-		}
+		}*/
 		
 		$imp->save($ATMdb); // Mise à jour pour nombre de lignes et nombre d'erreurs
 		
