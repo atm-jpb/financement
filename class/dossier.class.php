@@ -722,6 +722,8 @@ class TFin_dossier extends TObjetStd {
 					$seuil_solde = SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH;
 					if($this->financement->periodicite == 'MOIS') $seuil_solde += 2;
 					
+					//echo $this->financement->duree-$duree_restante_client." * ".$this->financement->getiPeriode()." <= ".$seuil_solde.'<br>';
+					
 					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= $seuil_solde){
 						$solde = $this->financement->montant;
 					}
@@ -734,10 +736,11 @@ class TFin_dossier extends TObjetStd {
 					}
 					
 					if($this->nature_financement == 'INTERNE') {
-						return ($solde>$LRD)?$LRD:$solde;
+						//echo $solde." > ". $LRD .'<br>';
+						return ($solde<$LRD && $LRD < $this->financement->montant)?$LRD:$solde;
 					}
 					else{
-						return ($solde>$LRD_leaser)?$LRD_leaser:$solde;
+						return ($solde<$LRD_leaser && $LRD_leaser < $this->financementLeaser->montant)?$LRD_leaser:$solde;
 					}
 				break;
 		}
@@ -884,6 +887,7 @@ class TFin_dossier extends TObjetStd {
 				$form = new Form($db);
 				$htmlSoldes = '<table>';
 				if($type_echeancier == 'CLIENT') {
+					//echo "solde affiché => ".$this->getSolde($ATMdb, 'SRNRSAME', $i+1).'<br>';
 					$htmlSoldes.= '<tr><td colspan="2" align="center">Apr&egrave;s l\'&eacute;ch&eacute;ance n&deg;'.($i+1).'</td></tr>';
 					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRNRSAME', $i+1),2,',',' ').' &euro;</strong></td></tr>';
 					$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRNRSAME', $i+1),2,',',' ').' &euro;</strong></td></tr>';
