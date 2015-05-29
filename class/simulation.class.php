@@ -1450,6 +1450,55 @@ class TSimulationSuivi extends TObjetStd {
 
 		$this->traiteBNPReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
 	}
+
+	function _consulterDemandeBNP(){
+		
+		if(BNP_TEST){
+			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+		}
+		else{
+			$soapWSDL = BNP_WSDL_URL;
+		}
+
+		try{
+			$soap = new SoapClient($soapWSDL,array(
+									'local_cert'=>"/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt"
+									,'trace'=>1
+									,'stream_context' => stream_context_create(array(
+										    'ssl' => array(
+										        'verify_peer' => false,
+										        'allow_self_signed' => true
+										    )
+										))						
+			));
+
+		}
+		catch(SoapFault $e) {
+			var_dump($e);
+			exit;
+		}
+		
+		$TconsulterSuivisDemandesRequest = $this->_getBNPDataTabForConsultation();
+		
+		//pre($TconsulterSuivisDemandesRequest,true);exit;
+		try{
+			$TreponseSuivisDemandes = $soap->__call('transmettreDemandeFinancement',$TconsulterSuivisDemandesRequest);
+		}
+		catch(SoapFault $TreponseSuivisDemandes) {
+			//echo '<pre>';
+			//var_dump($reponseDemandeFinancement->detail);exit;
+			$this->errorLabel = $this->traiteErrorsDemandeBNP($TreponseSuivisDemandes->detail);
+			return 0;
+		}
+
+		$this->traiteBNPReponseSuivisDemande($TreponseSuivisDemandes);
+	}
+	
+	function traiteBNPReponseDemandeFinancement(&$PDOdb,&$reponseDemandeFinancement){
+//		pre($reponseDemandeFinancemnent,true);exit;
+		$this->numero_accord_leaser = $reponseDemandeFinancement->numeroDemandeProvisoire;
+		$this->save($PDOdb);
+	}
 	
 	function traiteErrorsDemandeBNP($TObjError){
 		
@@ -1484,30 +1533,6 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		return $errorLabel;
-	}
-	
-	function _consulterDemandeBNP(){
-		
-		if(BNP_TEST){
-			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
-		}
-		else{
-			$soapWSDL = BNP_WSDL_URL;
-		}
-		$soap = new SoapClient($soapWSDL,array('local_cert'=>"/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt"));
-
-		$TconsulterSuivisDemandesRequest = $this->_getBNPDataTabForConsultation();
-		
-		//pre($TconsulterSuivisDemandesRequest,true);exit;
-		$TreponseSuivisDemandes = $soap->__call('transmettreDemandeFinancement',$TconsulterSuivisDemandesRequest);
-		
-		$this->traiteBNPReponseSuivisDemande($TreponseSuivisDemandes);
-	}
-	
-	function traiteBNPReponseDemandeFinancement(&$PDOdb,&$reponseDemandeFinancement){
-//		pre($reponseDemandeFinancemnent,true);exit;
-		$this->numero_accord_leaser = $reponseDemandeFinancement->numeroDemandeProvisoire;
-		$this->save($PDOdb);
 	}
 	
 	function traiteBNPReponseSuivisDemande(&$PDOdb,&$TreponseSuivisDemandes){
