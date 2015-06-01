@@ -63,7 +63,7 @@ class TSimulation extends TObjetStd {
 		$this->dossiers_rachetes_nr_p1 = array();
 		$this->dossiers_rachetes_perso = array();
 	}
-
+ 
 	function getRef() {
 		if($this->getId() > 0) return 'S'.str_pad($this->getId(), 6, '0', STR_PAD_LEFT);
 		else return 'DRAFT';
@@ -235,7 +235,7 @@ class TSimulation extends TObjetStd {
 		
 		//Récupération du leaser prioritaire pour affichage en premier dans le tableau
 		$idLeaserPrio = $this->getIdLeaserPrioritaire($PDOdb);
-		
+		//echo $idLeaserPrio;
 		if($idLeaserPrio){
 			//Récupération Id suivi simulation correspondant au leaser
 			$idSimulationSuiviLeaserPrio = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId(),'fk_leaser'=>$idLeaserPrio));
@@ -278,6 +278,7 @@ class TSimulation extends TObjetStd {
 		
 		//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 		$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
+		//echo $idLeaserDossierSolde;
 		//Récupération de la catégorie du client : entreprise, administration ou association
 		// suivant sont code NAF
 		// entreprise = les autres
@@ -285,11 +286,32 @@ class TSimulation extends TObjetStd {
 		// administration = 84
 		$labelCategorie = $this->getLabelCategorieClient();
 		
+		//pre($grille,true);
+		
 		//On récupère l'id du leaser prioritaire en fonction des règles de gestion
 		foreach($grille as $TElement){
 			$TMontant = explode(';',$TElement['montant']);
-			if($TMontant[0] < $this->montant_total_finance && $TMontant[1] > $this->montant_total_finance && !empty($TElement[$labelCategorie]) && $idLeaserDossierSolde == $TElement['solde']){
-				$idLeaserPrioritaire = $TElement[$labelCategorie];
+			//echo $TElement['solde'].'<br>';
+			//echo $TElement[$labelCategorie];exit;
+			if($TMontant[0] < $this->montant_total_finance && $TMontant[1] >= $this->montant_total_finance && !empty($TElement[$labelCategorie])){
+				//Si aucun solde sélectionné alors on on prends l'un des deux premier élément de la grille "Pas de solde / Refus du leaser en place"
+				if($this->opt_no_case_to_settle){
+					$idLeaserPrioritaire = $TElement[$labelCategorie];
+					return $idLeaserPrioritaire;
+				}
+				elseif($idLeaserDossierSolde){
+					//Si dossier sélectionner à soldé, alors on prends la ligne concernée
+					$cat = new Categorie($db);
+					$TCats = $cat->containing($idLeaserDossierSolde, 1);
+					//pre($TCats,true);exit;
+					foreach ($TCats as $categorie) {
+						if($categorie->id == $TElement['solde']){
+							$idLeaserPrioritaire = $TElement[$labelCategorie];
+							return $idLeaserPrioritaire;
+						}
+					}
+				}
+				
 			}
 		}
 
@@ -333,13 +355,15 @@ class TSimulation extends TObjetStd {
 		
 		$idLeaserDossierSolde = $montantDossierSole = 0;
 		$TDossierUsed = $this->get_list_dossier_used();
+		//pre($TDossierUsed,true);
 		if(count($TDossierUsed)){
 			foreach($TDossierUsed as $k => $id_dossier){
 				$dossier = new TFin_dossier;
-				$dossier->load($PDOdb, $TDossierUsed[$k]);
+				$dossier->load($PDOdb, $id_dossier);
+				//pre($dossier,true);
 				//Si plusieurs dossiers soldé dans la simulation alors on prends le Leaser de celui ayant le plus gros montant
 				if($dossier->montant > $montantDossierSole){
-					$idLeaserDossierSolde = $dossier->TLien[$k]->dossier->financementLeaser->fk_soc;
+					$idLeaserDossierSolde = $dossier->financementLeaser->fk_soc;
 					$montantDossierSole = $dossier->montant;
 				}
 			}
@@ -584,7 +608,9 @@ class TSimulation extends TObjetStd {
 		if(!empty($this->societe->TSimulations)) {
 			foreach ($this->societe->TSimulations as $simu) {
 				if($except_current && $simu->{OBJETSTD_MASTERKEY} == $this->{OBJETSTD_MASTERKEY}) continue;
+				//pre($simu->dossiers_rachetes,true);
 				foreach($simu->dossiers_rachetes as $k => $TDossiers_rachetes){
+					//pre($TDossiers_rachetes,true);
 					if(array_key_exists('checked', $TDossiers_rachetes)){
 						$TDossier[] = $TDossiers_rachetes['checked'];
 					}
