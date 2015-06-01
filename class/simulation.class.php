@@ -295,11 +295,7 @@ class TSimulation extends TObjetStd {
 			//echo $TElement[$labelCategorie];exit;
 			if($TMontant[0] < $this->montant_total_finance && $TMontant[1] >= $this->montant_total_finance && !empty($TElement[$labelCategorie])){
 				//Si aucun solde sélectionné alors on on prends l'un des deux premier élément de la grille "Pas de solde / Refus du leaser en place"
-				if($this->opt_no_case_to_settle){
-					$idLeaserPrioritaire = $TElement[$labelCategorie];
-					return $idLeaserPrioritaire;
-				}
-				elseif($idLeaserDossierSolde){
+				if($idLeaserDossierSolde){
 					//Si dossier sélectionner à soldé, alors on prends la ligne concernée
 					$cat = new Categorie($db);
 					$TCats = $cat->containing($idLeaserDossierSolde, 1);
@@ -310,6 +306,10 @@ class TSimulation extends TObjetStd {
 							return $idLeaserPrioritaire;
 						}
 					}
+				}
+				else{
+					$idLeaserPrioritaire = $TElement[$labelCategorie];
+					return $idLeaserPrioritaire;
 				}
 				
 			}
