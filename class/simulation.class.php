@@ -1719,12 +1719,7 @@ class TSimulationSuivi extends TObjetStd {
 			elseif(strtoupper($categorie->label) == 'MANDATEE'){
 				$codeFinancier = '024';
 				$codeTypeCalcul = 'L';
-				if($this->simulation->getLabelCategorieClient() == 'administration'){
-					$codeCommercial = '2Q';
-				}
-				elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
-					$codeCommercial = '23';
-				}
+				$codeCommercial = '02';
 			}
 		}
 		
@@ -1737,7 +1732,7 @@ class TSimulationSuivi extends TObjetStd {
 				'codeProduitFinancier' => $codeFinancier //021 = Location Financière ; 024 = Location mantadée
 				,'codeProduitCommercial' => $codeCommercial 
 			)
-			,'codeBareme' => $this->_getBNPBareme($TData,$codeCommercial) //récupérer la grille de barême (8 barêmes différents)
+			,'codeBareme' => $this->_getBNPBareme($TData,$codeCommercial)
 			,'montantFinance' => $this->simulation->montant
 			//,'codeTerme' => ''
 			//,'valeurResiduelle' => array(
