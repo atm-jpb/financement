@@ -1699,27 +1699,32 @@ class TSimulationSuivi extends TObjetStd {
 	}
 
 	function _getBNPDataTabFinancement(&$TData){
-		
+		global $db;
 		$codeCommercial = '02'; //02 par défaut; 23 = Top Full; 2Q = Secteur Public
 		$codeFinancier = $codeTypeCalcul = '';
-		if($this->simulation->type_financement == 'FINANCIERE'){
-			$codeFinancier = '021';
-			$codeTypeCalcul = 'L';
-			if($this->simulation->getLabelCategorieClient() == 'administration'){
-				$codeCommercial = '2Q';
+		
+		$cat = new Categorie($db);
+		$TCats = $cat->containing($this->fk_leaser, 1);
+		foreach($TCats as $categorie){
+			if(strtoupper($categorie->label) == 'CESSION'){
+				$codeFinancier = '021';
+				$codeTypeCalcul = 'L';
+				if($this->simulation->getLabelCategorieClient() == 'administration'){
+					$codeCommercial = '2Q';
+				}
+				elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
+					$codeCommercial = '23';
+				}
 			}
-			elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
-				$codeCommercial = '23';
-			}
-		}
-		if($this->simulation->type_financement == 'MANDATEE'){
-			$codeFinancier = '024';
-			$codeTypeCalcul = 'L';
-			if($this->simulation->getLabelCategorieClient() == 'administration'){
-				$codeCommercial = '2Q';
-			}
-			elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
-				$codeCommercial = '23';
+			elseif(strtoupper($categorie->label) == 'MANDATEE'){
+				$codeFinancier = '024';
+				$codeTypeCalcul = 'L';
+				if($this->simulation->getLabelCategorieClient() == 'administration'){
+					$codeCommercial = '2Q';
+				}
+				elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
+					$codeCommercial = '23';
+				}
 			}
 		}
 		
