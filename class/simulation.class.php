@@ -1104,10 +1104,10 @@ class TSimulationSuivi extends TObjetStd {
 			// 20113 = BNP Mandatée // 3382 = BNP Cession (Location simple) // 19483 = Lixxbail Mandatée // 6065 = Lixxbail Cession (Location simple)
 			$sql = "SELECT rowid 
 					FROM ".MAIN_DB_PREFIX."fin_simulation_suivi 
-					WHERE fk_leaser = 20113 
+					WHERE (fk_leaser = 20113 
 						OR fk_leaser = 3382 
 						OR fk_leaser = 19483
-						OR fk_leaser = 6065
+						OR fk_leaser = 6065)
 						AND fk_simulation = ".$this->fk_simulation;
 			$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 
@@ -1756,46 +1756,52 @@ class TSimulationSuivi extends TObjetStd {
 	
 	//CF drive -> Barème pour webservice CPRO.xlsx
 	function _getBNPBareme(&$TData,$codeCommercial){
+		global $db;
 		$codeBareme = '';
 		
-		if($TData['codeFamilleMateriel'] == 'H'){ // => BUREAUTIQUE
-			if($this->simulation->type_financement == 'FINANCIERE'){
-				switch ($codeCommercial) {
-					case '02': // = ''
-							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-								$codeBareme = '00000868';
-							}
-							elseif($this->simulation->opt_periodicite == 'MOIS'){
-								$codeBareme = '00004028';
-							}
-						break;
-					case '23': // = Top Full
-							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-								$codeBareme = '00004049';
-							}
-							elseif($this->simulation->opt_periodicite == 'MOIS'){
-								$codeBareme = '00004050';
-							}
-						break;
-					case '2Q': // = Secteur Public
-							$codeBareme = '00004051';
-						break;
-					default:
-						
-						break;
+		$cat = new Categorie($db);
+		$TCats = $cat->containing($this->fk_leaser, 1);
+		
+		foreach($TCats as $categorie){
+			if($TData['codeFamilleMateriel'] == 'H'){ // => BUREAUTIQUE
+				if(strtoupper($categorie->label) == 'MANDATEE'){
+					$codeBareme = '00004046';
+				}
+				elseif(strtoupper($categorie->label) == 'CESSION'){
+					switch ($codeCommercial) {
+						case '02': // = ''
+								if($this->simulation->opt_periodicite == 'TRIMESTRE'){
+									$codeBareme = '00000868';
+								}
+								elseif($this->simulation->opt_periodicite == 'MOIS'){
+									$codeBareme = '00004028';
+								}
+							break;
+						case '23': // = Top Full
+								if($this->simulation->opt_periodicite == 'TRIMESTRE'){
+									$codeBareme = '00004049';
+								}
+								elseif($this->simulation->opt_periodicite == 'MOIS'){
+									$codeBareme = '00004050';
+								}
+							break;
+						case '2Q': // = Secteur Public
+								$codeBareme = '00004051';
+							break;
+						default:
+							
+							break;
+					}
 				}
 			}
-			elseif($this->simulation->type_financement == 'MANDATEE'){
-				$codeBareme = '00004046';
-			}
-		}
-		elseif($TData['codeFamilleMateriel'] == 'T'){ // => INFORMATIQUE
-			if($this->simulation->type_financement == 'FINANCIERE'){ //Uniquement FINANCIERE pour INFORMATIQUE
-				if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-					$codeBareme = '00004043';
-				}
-				elseif($this->simulation->opt_periodicite == 'MOIS'){
-					$codeBareme = '00004048';
+			elseif($TData['codeFamilleMateriel'] == 'T'){ // => INFORMATIQUE
+				if(strtoupper($categorie->label) == 'CESSION'){ //Uniquement FINANCIERE pour INFORMATIQUE
+					if($this->simulation->opt_periodicite == 'TRIMESTRE'){
+						$codeBareme = '00004043';
+					}
+					elseif($this->simulation->opt_periodicite == 'MOIS'){
+						$codeBareme = '00004048';
+					}
 				}
 			}
 		}
