@@ -776,6 +776,9 @@ class TImport extends TObjetStd {
 			} else {
 				return false;
 			}
+
+			//La première fois qu'on charge la facture, on reset les données intégrale
+			$this->resetIntegrale($TInfosGlobale['integrale'][$data[$this->mapping['search_key']]]);
 		}
 		
 		$integrale = &$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]];
@@ -794,6 +797,31 @@ class TImport extends TObjetStd {
 		
 		$integrale->save($ATMdb);
 		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($integrale), $integrale->getId(),'update',$data);
+	}
+
+	function resetIntegrale(&$integrale){
+		
+		$integrale->vol_noir_engage = 0;
+		$integrale->vol_noir_realise = 0;
+		$integrale->vol_noir_facture = 0;
+		$integrale->vol_coul_engage = 0;
+		$integrale->vol_coul_realise = 0;
+		$integrale->vol_coul_facture = 0;
+		$integrale->cout_unit_noir = 0;
+		$integrale->cout_unit_coul = 0;
+		$integrale->fas = 0;
+		$integrale->fass = 0;
+		$integrale->frais_dossier = 0;
+		$integrale->frais_bris_machine = 0;
+		$integrale->frais_facturation = 0;
+		$integrale->frais_dossier = 0;
+		$integrale->frais_bris_machine = 0;
+		$integrale->frais_facturation = 0;
+		$integrale->total_ht_engage = 0;
+		$integrale->total_ht_realise = 0;
+		$integrale->total_frais = 0;
+		$integrale->ecart = 0;
+		
 	}
 	
 	//Gère les frais de gestion lié à l'intégrale
