@@ -862,16 +862,8 @@ class TImport extends TObjetStd {
 		}
 		// COPIE ECHUES NOIR
 		if($data['ref_service'] == 'SSC017') {
-			//Si on a un montant engagé alors on cummule
-			if($integrale->vol_noir_engage > 0){
-				$integrale->vol_noir_realise+= $data['quantite_integrale'];
-				$integrale->vol_noir_facture+= $data['quantite'];
-			}
-			else {
-				$integrale->vol_noir_realise = $data['quantite_integrale'];
-				$integrale->vol_noir_facture = $data['quantite'];
-			}
-			
+			$integrale->vol_noir_realise += $data['quantite_integrale'];
+			$integrale->vol_noir_facture += $data['quantite'];			
 			$integrale->cout_unit_noir = $data['pu'];
 		}
 	}
@@ -900,16 +892,9 @@ class TImport extends TObjetStd {
 		}
 		// COPIE ECHUES COULEUR
 		if($data['ref_service'] == 'SSC012') {
-			//Si on a un montant engagé alors on cummule
-			if($integrale->vol_coul_engage > 0){
-				$integrale->vol_coul_realise+= $data['quantite_integrale'];
-				$integrale->vol_coul_facture+= $data['quantite'];
-			}
-			else {
-				$integrale->vol_coul_realise = $data['quantite_integrale'];
-				$integrale->vol_coul_facture = $data['quantite'];
-			}
-			
+			$integrale->vol_coul_realise+= $data['quantite_integrale'];
+			$integrale->vol_coul_facture+= $data['quantite'];
+
 			$integrale->cout_unit_coul = $data['pu'];
 		}
 	}
