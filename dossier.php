@@ -281,12 +281,21 @@
 				$dossier = new TFin_dossier();
 				$dossier->load($PDOdb, $idDossier);
 				$fact = $dossier->create_facture_leaser(false, true, $echeance, time());
-				$dossier->financementLeaser->setEcheanceExterne();
-				$dossier->save($PDOdb);
 				
-				$urlback = dol_buildpath('/fourn/facture/fiche.php?facid='.$fact->id, 1);
-				header("Location: ".$urlback);
-				exit;
+				if($fact->id){
+					$dossier->financementLeaser->setEcheanceExterne();
+					$dossier->save($PDOdb);
+					
+					$urlback = dol_buildpath('/fourn/facture/fiche.php?facid='.$fact->id, 1);
+					header("Location: ".$urlback);
+					exit;
+				}
+				else{
+					setEventMessage('Création facture impossible, dossier incomplet','errors');
+					$urlback = dol_buildpath('/financement/dossier.php?id='.$dossier->rowid, 1);
+					header("Location: ".$urlback);
+					exit;
+				}
 				
 				break;
 			

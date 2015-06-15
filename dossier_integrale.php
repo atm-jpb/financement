@@ -260,6 +260,12 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 		
 		//$TIntegrale[] = '';
 	}
+	
+	foreach($TIntegrale as $date_periode => $integrale){
+		if(empty($TIntegrale[$date_periode]->facnumber)){
+			unset($TIntegrale[$date_periode]);
+		}
+	}
 	//pre($TIntegrale,true);
 	//array_pop($TIntegrale); //TODO c'est moche mais sa marche
 	
