@@ -1050,7 +1050,7 @@ class TFin_dossier extends TObjetStd {
 		
 	}
 	function create_facture_leaser($paid = false, $validate = true, $echeance=0, $date=0) {
-		global $user, $db, $conf;
+		global $user, $db, $conf,$PDOdb;
 
 		$d = & $this;
 		$f = & $this->financementLeaser;
@@ -1068,11 +1068,10 @@ class TFin_dossier extends TObjetStd {
 		$createFacture = true;
 		$object->fetch(null, $reference);
 		if($object->id > 0) {
-			
+				
 			$object->fetchObjectLinked();
 			$TIdAvoir = $object->getListIdAvoirFromInvoice();
-			//pre($object,true);exit;
-			
+
 			if($this->rowid == $object->linkedObjectsIds['dossier'][0] && empty($TIdAvoir)){
 				
 				$createFacture = false;
@@ -1087,7 +1086,7 @@ class TFin_dossier extends TObjetStd {
 			}
 		}
 		
-		if($createFacture){
+		if($createFacture && $this->financementLeaser->echeance > 0){
 			
 			$object = new FactureFournisseur($db);
 			
@@ -1104,9 +1103,8 @@ class TFin_dossier extends TObjetStd {
 			if($id > 0) {
 				$this->create_facture_leaser_addline($echeance, $f, $d, $object,$res,$user,$validate,$date);
 			}
+
 		}
-		
-		
 		
 		return $object;
 	}
@@ -1607,6 +1605,18 @@ class TFin_financement extends TObjetStd {
 		$g->calcul_financement($this->montant, $this->duree, $this->echeance, $this->reste, $this->taux);
 		*/
 		
+		//Gestion des cas ou on créé un solde partiel donc on renomme l'ancien dossier en "-OLD"
+		if(strpos(strtoupper($this->reference),"-OLD") > 0 && $this->type == 'LEASER'){
+			$dossier = new TFin_dossier;
+			$dossier->load($ATMdb, $this->fk_fin_dossier);
+			$dossier->load_factureFournisseur($ATMdb);
+			//pre($dossier->TFactureFournisseur,true);
+			foreach($dossier->TFactureFournisseur as $echeance => $facturefourn){
+				//echo $this->reference."/".($echeance+1).'<br>';
+				$facturefourn->set_ref_supplier($user,$this->reference."/".($echeance+1));
+			}
+		}
+
 		//Dans le cas d'un financement LEASER, si la date du sole est renseignée, alors on créé les avoirs correspondant au factures fournisseur
 		//qui existe pour les échéances situées après cette date
 		if($this->type == 'LEASER' && (!empty($this->date_solde) && $this->date_solde > 0)){
@@ -1615,6 +1625,7 @@ class TFin_financement extends TObjetStd {
 			$dossier->load_factureFournisseur($ATMdb);
 			
 			foreach($dossier->TFactureFournisseur as $echeance => $facturefourn){
+				
 				$date_debut_echeance = $dossier->getDateDebutPeriode($echeance);
 
 				if(strtotime($date_debut_echeance) >= $this->date_solde){
