@@ -167,18 +167,23 @@ class TFin_dossier extends TObjetStd {
 		}
 		
 	}
-	function delete(&$db) {
+	function delete(&$db,$affaire=true,$factures_fournisseur=true,$factures_client=true) {
 		parent::delete($db);
-		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_affaire', $this->getId(), 'fk_fin_dossier');
+		if($affaire)$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_affaire', $this->getId(), 'fk_fin_dossier');
 		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_financement', $this->getId(), 'fk_fin_dossier');
 		$db->dbdelete(MAIN_DB_PREFIX.'element_element', array('fk_source'=>$this->getId(),'sourcetype'=>'dossier'), array('fk_source','sourcetype'));
-		foreach ($this->TFactureFournisseur as $fact) {
-			$fact->delete($fact->rowid);
-			$fact->deleteObjectLinked();
+		
+		if($factures_fournisseur){
+			foreach ($this->TFactureFournisseur as $fact) {
+				$fact->delete($fact->rowid);
+				$fact->deleteObjectLinked();
+			}
 		}
-		foreach ($this->TFacture as $fact) {
-			$fact->delete($fact->rowid);
-			$fact->deleteObjectLinked();
+		if($factures_client){
+			foreach ($this->TFacture as $fact) {
+				$fact->delete($fact->rowid);
+				$fact->deleteObjectLinked();
+			}
 		}
 	}
 	

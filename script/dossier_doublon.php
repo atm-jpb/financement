@@ -18,7 +18,9 @@
 			ORDER BY reference ASC";
 
 	$TRes = $PDOdb->ExecuteAsArray($sql);
-
+	
+	echo $sql.'<br>';
+	
 	foreach ($TRes as $res) {
 		
 		$sql = "SELECT d.rowid, d.reference
