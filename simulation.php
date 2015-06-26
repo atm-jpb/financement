@@ -838,7 +838,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		//if($ATMdb->Get_field('incident_paiement')=='OUI') $dossier->display_solde = 0;
 		//if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
 		//if($leaser->code_client == '024242') $dossier->display_solde = 0; // Ticket 447, suite
-		if($dossier->montant >= 50000) $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
+		if($dossier->montant >= 50000 && $dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
 		if($dossier->soldepersodispo == 2) $dossier->display_solde = 0;
 		
 		//Ne pas laissé disponible un dossier dont la dernière facture client est impayée
