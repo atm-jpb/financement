@@ -1475,7 +1475,7 @@ class TFin_financement extends TObjetStd {
 		$sql.= "AND (df.reference = '' OR df.reference IS NULL) ";
 		$sql.= "AND a.montant >= ".($montant - 0.01)." ";
 		$sql.= "AND a.montant <= ".($montant + 0.01)." ";
-		
+
 		//echo $sql;
 		$db->Execute($sql); // Recherche d'un dossier leaser en cours sans référence et dont le montant de l'affaire correspond
 		$TRes = $db->Get_All();
@@ -1504,6 +1504,7 @@ class TFin_financement extends TObjetStd {
 				$a->nature_financement = 'EXTERNE';
 				$a->addDossier($db, $d->getId());
 				$a->save($db);
+				//echo $a->getId().'<br>';
 				return true;
 			} else if(count($TRes) == 0) { // Création d'une affaire pour création dossier fin externe
 				$sql = "SELECT s.rowid ";
@@ -1525,6 +1526,7 @@ class TFin_financement extends TObjetStd {
 					$a->nature_financement = 'EXTERNE';
 					$a->addDossier($db, $d->getId());
 					$a->save($db);
+					//echo $a->getId().'<br>';
 					return true;
 				} else {
 					return false;
