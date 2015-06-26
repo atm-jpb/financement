@@ -1476,8 +1476,10 @@ class TFin_financement extends TObjetStd {
 		$sql.= "AND a.montant >= ".($montant - 0.01)." ";
 		$sql.= "AND a.montant <= ".($montant + 0.01)." ";
 		
+		//echo $sql;
 		$db->Execute($sql); // Recherche d'un dossier leaser en cours sans référence et dont le montant de l'affaire correspond
-		if($db->Get_Recordcount() == 0) { // Aucun dossier trouvé, on essaye de le créer
+		$TRes = $db->Get_All();
+		if(count($TRes) == 0) { // Aucun dossier trouvé, on essaye de le créer
 			 // Création d'une affaire pour création dossier fin externe
 			$sql = "SELECT s.rowid ";
 			$sql.= "FROM ".MAIN_DB_PREFIX."societe s ";
@@ -1503,7 +1505,7 @@ class TFin_financement extends TObjetStd {
 				$a->addDossier($db, $d->getId());
 				$a->save($db);
 				return true;
-			} else if($db->Get_Recordcount() == 0) { // Création d'une affaire pour création dossier fin externe
+			} else if(count($TRes) == 0) { // Création d'une affaire pour création dossier fin externe
 				$sql = "SELECT s.rowid ";
 				$sql.= "FROM ".MAIN_DB_PREFIX."societe s ";
 				$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
@@ -1531,7 +1533,7 @@ class TFin_financement extends TObjetStd {
 				return false;
 			}
 			
-		} else if($db->Get_Recordcount() == 1) { // Un seul dossier trouvé, load
+		} else if(count($TRes) == 1) { // Un seul dossier trouvé, load
 			$db->Get_line();
 			$idDossierFin = $db->Get_field('idDossierLeaser');
 			$this->load($db, $idDossierFin);

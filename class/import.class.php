@@ -297,7 +297,7 @@ class TImport extends TObjetStd {
 		if(empty($data['reference'])) {
 			return false;
 		}
-	
+		
 		$f=new TFin_financement;
 		if($f->loadReference($ATMdb, $data['reference'], 'LEASER')) { // Recherche du financement leaser par référence
 			// Le financement leaser a été trouvé avec la référence contrat leaser
@@ -376,8 +376,11 @@ class TImport extends TObjetStd {
 						$asset->save($ATMdb);
 					}
 					
+					//pre($dossier,true);
 					//Ajout du lien à l'affaire
-					$asset->add_link($dossier->TLien[0]->affaire->getId(),'affaire');
+					if($dossier->TLien[0]->affaire){
+						$asset->add_link($dossier->TLien[0]->affaire->getId(),'affaire');
+					}
 
 					$asset->save($ATMdb);
 				}
