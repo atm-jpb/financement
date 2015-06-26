@@ -142,7 +142,7 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 	}
 	
 	$integrale->facnumber = $facture->getNomUrl();
-
+	
 	if(!empty($TIntegrale[$integrale->date_periode])){
 			
 		//Pour certains champs on concatène
@@ -151,49 +151,72 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		$TIntegrale[$integrale->date_periode]->date_facture .= "<br />".$integrale->get_date('date_facture','d/m/Y');
 		$TIntegrale[$integrale->date_periode]->facnumber .= "<br />".$integrale->facnumber;
 		$TIntegrale[$integrale->date_periode]->TIds[] = $integrale->getId();
-		//Addition des champs qui vont bien
-		if($TIntegrale[$integrale->date_periode]->vol_noir_engage < $integrale->vol_noir_engage){
-			$TIntegrale[$integrale->date_periode]->vol_noir_engage = $integrale->vol_noir_engage;
+		
+		//Cas avoir PARTIEL
+		if($facture->type == 2){
+			//re($TIntegrale[$integrale->date_periode],true);exit;
+			foreach($TIntegrale[$integrale->date_periode]->TChamps as $key => $val){
+				if($key != "total_ht_facture" && $key != "ecart"){
+					if(!strpos($key, 'coul') && !strpos($key, 'noir')) $TIntegrale[$integrale->date_periode]->{$key} .=" €";
+					$TIntegrale[$integrale->date_periode]->{$key} .= '<br>0';
+				}
+			}
+			$TIntegrale[$integrale->date_periode]->total_ht_facture .= ' €<br>'.number_format($integrale->total_ht_facture,2);
+			
 		}
-		if($integrale->vol_noir_engage < 0) $TIntegrale[$integrale->date_periode]->vol_noir_realise -= $integrale->vol_noir_realise;
-		else $TIntegrale[$integrale->date_periode]->vol_noir_realise += $integrale->vol_noir_realise;
-		
-		$TIntegrale[$integrale->date_periode]->vol_noir_facture += $integrale->vol_noir_facture;
-		
-		if($integrale->cout_unit_noir > $TIntegrale[$integrale->date_periode]->cout_unit_noir){
-			$TIntegrale[$integrale->date_periode]->cout_unit_noir = $integrale->cout_unit_noir;
+		else{
+			//Addition des champs qui vont bien
+			if($TIntegrale[$integrale->date_periode]->vol_noir_engage < $integrale->vol_noir_engage){
+				$TIntegrale[$integrale->date_periode]->vol_noir_engage = $integrale->vol_noir_engage;
+			}
+			if($integrale->vol_noir_engage < 0) $TIntegrale[$integrale->date_periode]->vol_noir_realise -= $integrale->vol_noir_realise;
+			else $TIntegrale[$integrale->date_periode]->vol_noir_realise += $integrale->vol_noir_realise;
+			
+			$TIntegrale[$integrale->date_periode]->vol_noir_facture += $integrale->vol_noir_facture;
+			
+			if($integrale->cout_unit_noir > $TIntegrale[$integrale->date_periode]->cout_unit_noir){
+				$TIntegrale[$integrale->date_periode]->cout_unit_noir = $integrale->cout_unit_noir;
+			}
+			
+			if($TIntegrale[$integrale->date_periode]->vol_coul_engage < $integrale->vol_coul_engage){
+				$TIntegrale[$integrale->date_periode]->vol_coul_engage = $integrale->vol_coul_engage;
+			}
+			
+			if($integrale->vol_coul_engage < 0) $TIntegrale[$integrale->date_periode]->vol_coul_realise -= $integrale->vol_coul_realise;
+			else $TIntegrale[$integrale->date_periode]->vol_coul_realise += $integrale->vol_coul_realise;
+			
+			$TIntegrale[$integrale->date_periode]->vol_coul_facture += $integrale->vol_coul_facture;
+			//echo $integrale->date_periode." ".$TIntegrale[$integrale->date_periode]->vol_coul_realise.' '.$integrale->facnumber.'<br>';
+			if($integrale->cout_unit_coul > $TIntegrale[$integrale->date_periode]->cout_unit_coul){
+				$TIntegrale[$integrale->date_periode]->cout_unit_coul = $integrale->cout_unit_coul;
+			}
+			
+			$TIntegrale[$integrale->date_periode]->fas += $integrale->fas;
+			$TIntegrale[$integrale->date_periode]->fass += $integrale->fass;
+			$TIntegrale[$integrale->date_periode]->frais_dossier += $integrale->frais_dossier;
+			$TIntegrale[$integrale->date_periode]->frais_bris_machine += $integrale->frais_bris_machine;
+			$TIntegrale[$integrale->date_periode]->frais_facturation += $integrale->frais_facturation;
+			$TIntegrale[$integrale->date_periode]->total_ht_engage += $integrale->total_ht_engage;
+			$TIntegrale[$integrale->date_periode]->total_ht_realise += $integrale->total_ht_realise;
+			$TIntegrale[$integrale->date_periode]->total_ht_facture += $integrale->total_ht_facture;
+	
+			$TIntegrale[$integrale->date_periode]->ecart += $integrale->ecart;
+			$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
 		}
-		
-		if($TIntegrale[$integrale->date_periode]->vol_coul_engage < $integrale->vol_coul_engage){
-			$TIntegrale[$integrale->date_periode]->vol_coul_engage = $integrale->vol_coul_engage;
-		}
-		
-		if($integrale->vol_coul_engage < 0) $TIntegrale[$integrale->date_periode]->vol_coul_realise -= $integrale->vol_coul_realise;
-		else $TIntegrale[$integrale->date_periode]->vol_coul_realise += $integrale->vol_coul_realise;
-		
-		$TIntegrale[$integrale->date_periode]->vol_coul_facture += $integrale->vol_coul_facture;
-		//echo $integrale->date_periode." ".$TIntegrale[$integrale->date_periode]->vol_coul_realise.' '.$integrale->facnumber.'<br>';
-		if($integrale->cout_unit_coul > $TIntegrale[$integrale->date_periode]->cout_unit_coul){
-			$TIntegrale[$integrale->date_periode]->cout_unit_coul = $integrale->cout_unit_coul;
-		}
-		
-		$TIntegrale[$integrale->date_periode]->fas += $integrale->fas;
-		$TIntegrale[$integrale->date_periode]->fass += $integrale->fass;
-		$TIntegrale[$integrale->date_periode]->frais_dossier += $integrale->frais_dossier;
-		$TIntegrale[$integrale->date_periode]->frais_bris_machine += $integrale->frais_bris_machine;
-		$TIntegrale[$integrale->date_periode]->frais_facturation += $integrale->frais_facturation;
-		$TIntegrale[$integrale->date_periode]->total_ht_engage += $integrale->total_ht_engage;
-		$TIntegrale[$integrale->date_periode]->total_ht_realise += $integrale->total_ht_realise;
-		$TIntegrale[$integrale->date_periode]->total_ht_facture += $integrale->total_ht_facture;
-
-		$TIntegrale[$integrale->date_periode]->ecart += $integrale->ecart;
-		$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
-
 	}
 	else{
 		$integrale->date_facture = $integrale->get_date('date_facture','d/m/Y');
-		$integrale->cout_unit_noir = $integrale->cout_unit_noir;
-		$integrale->cout_unit_coul = $integrale->cout_unit_coul;
+		$integrale->cout_unit_noir = number_format($integrale->cout_unit_noir,5);
+		$integrale->cout_unit_coul = number_format($integrale->cout_unit_coul,5);
+		$integrale->fas = number_format($integrale->fas,2);
+		$integrale->fass = number_format($integrale->fass,2);
+		$integrale->frais_dossier = number_format($integrale->frais_dossier,2);
+		$integrale->frais_bris_machine = number_format($integrale->frais_bris_machine,2);
+		$integrale->frais_facturation = number_format($integrale->frais_facturation,2);
+		$integrale->total_ht_engage = number_format($integrale->total_ht_engage,2);
+		$integrale->total_ht_realise = number_format($integrale->total_ht_realise,2);
+		$integrale->total_ht_facture = number_format($integrale->total_ht_facture,2);
+		
 		$TIntegrale[$integrale->date_periode] = $integrale;
 		$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
 		$TIntegrale[$integrale->date_periode]->TIds = array(0 => $integrale->getId());
