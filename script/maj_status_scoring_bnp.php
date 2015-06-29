@@ -8,4 +8,6 @@
 	$PDOdb = new TPDOdb;
 	
 	$TSimulationSuivi = new TSimulationSuivi;
-	pre($TSimulationSuivi->_consulterDemandeBNP($PDOdb));
+	$TreponseDemandes  = $TSimulationSuivi->_consulterDemandeBNP($PDOdb);
+	
+	pre($TreponseDemandes,true);exit;
