@@ -1826,20 +1826,20 @@ class TSimulationSuivi extends TObjetStd {
 				WHERE (fk_leaser = 3382 OR fk_leaser = 19553 OR fk_leaser = 20113)
 					AND numero_accord_leaser != '' AND numero_accord_leaser IS NOT NULL
 					AND  statut = 'WAIT' ";
-		echo $sql;exit;
+		//echo $sql;exit;
 		$PDOdb->Execute($sql);
 
 		while ($PDOdb->Get_line()) {
 			
 			//Tableau Numéro demande
-			$TNumerosDemande = array_merge( $TNumerosDemande, array(
+			$TNumerosDemande[] = array(
 				'numeroIdentifiantDemande' => array(
 					'numeroDemandeProvisoire' => $PDOdb->Get_field('numero_accord_leaser')
 				)
-			));
+			);
 		}
 		
-		$TData['numerosDemande'][] = $TNumerosDemande;
+		$TData['numerosDemande'] = $TNumerosDemande;
 		
 		//Tableau Rapport Suivi
 		/*$TRapportSuivi = $this->_getBNPDataTabRapportSuivi();
