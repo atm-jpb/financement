@@ -1509,6 +1509,7 @@ class TSimulationSuivi extends TObjetStd {
 		//pre($TconsulterSuivisDemandesRequest,true);exit;
 		try{
 			$TreponseSuivisDemandes = $soap->__call('transmettreDemandeFinancement',$TconsulterSuivisDemandesRequest);
+			return $TreponseSuivisDemandes;
 		}
 		catch(SoapFault $TreponseSuivisDemandes) {
 			//echo '<pre>';
