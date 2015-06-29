@@ -1477,7 +1477,7 @@ class TSimulationSuivi extends TObjetStd {
 		$this->traiteBNPReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
 	}
 
-	function _consulterDemandeBNP(){
+	function _consulterDemandeBNP(&$PDOdb){
 		
 		if(BNP_TEST){
 			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
@@ -1504,11 +1504,11 @@ class TSimulationSuivi extends TObjetStd {
 			exit;
 		}
 		
-		$TconsulterSuivisDemandesRequest = $this->_getBNPDataTabForConsultation();
+		$TconsulterSuivisDemandesRequest = $this->_getBNPDataTabForConsultation($PDOdb);
 		
 		//pre($TconsulterSuivisDemandesRequest,true);exit;
 		try{
-			$TreponseSuivisDemandes = $soap->__call('transmettreDemandeFinancement',$TconsulterSuivisDemandesRequest);
+			$TreponseSuivisDemandes = $soap->__call('consulterSuivisDemandes',$TconsulterSuivisDemandesRequest);
 			return $TreponseSuivisDemandes;
 		}
 		catch(SoapFault $TreponseSuivisDemandes) {
@@ -1810,7 +1810,7 @@ class TSimulationSuivi extends TObjetStd {
 		return $codeBareme;
 	}
 
-	function _getBNPDataTabForConsultation(){
+	function _getBNPDataTabForConsultation(&$PDOdb){
 		
 		$TData = array();
 		
@@ -1818,18 +1818,28 @@ class TSimulationSuivi extends TObjetStd {
 		$TPrescripteur = array(
 			'prescripteurId' => BNP_PRESCRIPTEUR_ID
 		);
-		
+
 		$TData['prescripteur'] = $TPrescripteur;
+
+		$sql = "SELECT numero_accord_leaser 
+				FROM ".MAIN_DB_PREFIX."fin_simulation_suivi 
+				WHERE (fk_leaser = 3382 OR fk_leaser = 19553 OR fk_leaser = 20113)
+					AND numero_accord_leaser != '' AND numero_accord_leaser IS NOT NULL
+					AND  statut = 'WAIT' ";
+		echo $sql;exit;
+		$PDOdb->Execute($sql);
+
+		while ($PDOdb->Get_line()) {
+			
+			//Tableau Numéro demande
+			$TNumerosDemande = array_merge( $TNumerosDemande, array(
+				'numeroIdentifiantDemande' => array(
+					'numeroDemandeProvisoire' => $PDOdb->Get_field('numero_accord_leaser')
+				)
+			));
+		}
 		
-		//Tableau Numéro demande
-		$TNumerosDemande = array(
-			'numeroIdentifiantDemande' => array(
-				'numeroDemandeDefinitif' => ''
-				,'numeroDemandeProvisoire' => ''
-			)
-		);
-		
-		$TData['numerosDemande'] = $TNumerosDemande;
+		$TData['numerosDemande'][] = $TNumerosDemande;
 		
 		//Tableau Rapport Suivi
 		/*$TRapportSuivi = $this->_getBNPDataTabRapportSuivi();
