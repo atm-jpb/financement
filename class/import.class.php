@@ -297,7 +297,7 @@ class TImport extends TObjetStd {
 		if(empty($data['reference'])) {
 			return false;
 		}
-	
+		
 		$f=new TFin_financement;
 		if($f->loadReference($ATMdb, $data['reference'], 'LEASER')) { // Recherche du financement leaser par référence
 			// Le financement leaser a été trouvé avec la référence contrat leaser
@@ -375,9 +375,14 @@ class TImport extends TObjetStd {
 						$asset->fk_soc = $dossier->TLien[0]->affaire->fk_soc;
 						$asset->save($ATMdb);
 					}
+					else{
 					
-					//Ajout du lien à l'affaire
-					$asset->add_link($dossier->TLien[0]->affaire->getId(),'affaire');
+						//pre($dossier,true);
+						//Ajout du lien à l'affaire
+						if($dossier->TLien[0]->affaire){
+							$asset->add_link($dossier->TLien[0]->affaire->getId(),'affaire');
+						}
+					}
 
 					$asset->save($ATMdb);
 				}
@@ -796,6 +801,7 @@ class TImport extends TObjetStd {
 		$this->importILFI_couleur($data,$integrale);
 		
 		$integrale->save($ATMdb);
+		//pre($integrale,true);
 		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($integrale), $integrale->getId(),'update',$data);
 	}
 
@@ -842,7 +848,8 @@ class TImport extends TObjetStd {
 		//$TFAS = array('SSC101', 'SSC102', 'SSC106');
 		//if(in_array($data['ref_service'], $TFAS)) {
 		if(strpos($data['label_integrale'], '(FAS)') !== false || substr($data['label_integrale'], -3) === 'FAS'
-			|| $data['label_integrale'] == 'Forfait d\'Accès au Service') {
+			|| (strpos($data['label_integrale'],utf8_encode('Frais d\'Accès au Service')) !== FALSE 
+			|| strpos($data['label_integrale'],utf8_encode('Forfait d\'Accès au Service')) !== FALSE)) {
 			if(empty($integrale->fas_somme)) { // Gestion FAS sur plusieurs lignes
 				$integrale->fas	= $data['total_ht'];
 				$integrale->fas_somme = true;
@@ -851,6 +858,7 @@ class TImport extends TObjetStd {
 			}
 			
 		}
+		
 		// Frais dossier
 		if($data['ref_service'] == '037003') {
 			$integrale->frais_dossier = $data['total_ht'];
@@ -869,20 +877,21 @@ class TImport extends TObjetStd {
 	private function importILFI_noir(&$data,&$integrale){
 		
 		// ENGAGEMENT NOIR
-		if($data['ref_service'] == 'SSC015') {
+		if($data['ref_service'] == 'SSC015' && $data['total_ht'] > 0) {
 			if(empty($integrale->materiel_noir)) {
 				$integrale->materiel_noir = $data['matricule'];
 				$integrale->vol_noir_engage = $data['quantite'];
 				$integrale->vol_noir_realise = $data['quantite_integrale'];
 				$integrale->vol_noir_facture = $data['quantite'];
-			} else if($integrale->materiel_noir != $data['matricule']) {
+			} else if($integrale->materiel_noir != $data['matricule'] && $data['total_ht'] > 0) {
 				$integrale->materiel_noir = $data['matricule'];
 				$integrale->vol_noir_engage+= $data['quantite'];
 				$integrale->vol_noir_realise+= $data['quantite_integrale'];
 				$integrale->vol_noir_facture+= $data['quantite'];
 			}
 			
-			$integrale->cout_unit_noir = $data['cout_integrale'];
+			if($data['total_ht'] > 0)
+				$integrale->cout_unit_noir = $data['cout_integrale'];
 		}
 		// COPIE SUP NOIR
 		if($data['ref_service'] == 'SSC016') {
@@ -891,28 +900,31 @@ class TImport extends TObjetStd {
 		// COPIE ECHUES NOIR
 		if($data['ref_service'] == 'SSC017') {
 			$integrale->vol_noir_realise += $data['quantite_integrale'];
-			$integrale->vol_noir_facture += $data['quantite'];			
-			$integrale->cout_unit_noir = $data['pu'];
+			$integrale->vol_noir_facture += $data['quantite'];
+			
+			if($data['total_ht'] > 0)
+				$integrale->cout_unit_noir = $data['pu'];
 		}
 	}
 
 	//Gère les copies COULEUR
 	private function importILFI_couleur(&$data,&$integrale){
 		// ENGAGEMENT COULEUR
-		if($data['ref_service'] == 'SSC010') {
+		if($data['ref_service'] == 'SSC010' && $data['total_ht'] > 0) {
 			if(empty($integrale->materiel_coul)) {
 				$integrale->materiel_coul = $data['matricule'];
 				$integrale->vol_coul_engage = $data['quantite'];
 				$integrale->vol_coul_realise = $data['quantite_integrale'];
 				$integrale->vol_coul_facture = $data['quantite'];
-			} else if($integrale->materiel_coul != $data['matricule']) {
+			} else if($integrale->materiel_coul != $data['matricule'] && $data['total_ht'] > 0) {
 				$integrale->materiel_coul = $data['matricule'];
 				$integrale->vol_coul_engage+= $data['quantite'];
 				$integrale->vol_coul_realise+= $data['quantite_integrale'];
 				$integrale->vol_coul_facture+= $data['quantite'];
 			}
 			
-			$integrale->cout_unit_coul = $data['cout_integrale'];
+			if($data['total_ht'] > 0)
+				$integrale->cout_unit_coul = $data['cout_integrale'];
 		}
 		// COPIE SUP COULEUR
 		if($data['ref_service'] == 'SSC011') {
@@ -922,8 +934,9 @@ class TImport extends TObjetStd {
 		if($data['ref_service'] == 'SSC012') {
 			$integrale->vol_coul_realise+= $data['quantite_integrale'];
 			$integrale->vol_coul_facture+= $data['quantite'];
-
-			$integrale->cout_unit_coul = $data['pu'];
+			
+			if($data['total_ht'] > 0)
+				$integrale->cout_unit_coul = $data['pu'];
 		}
 	}
 
