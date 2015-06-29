@@ -1831,7 +1831,7 @@ class TSimulationSuivi extends TObjetStd {
 		while ($PDOdb->Get_line()) {
 			
 			//Tableau Numéro demande
-			$TNumerosDemande[] = array(
+			$TNumerosDemande = array(
 				'numeroIdentifiantDemande' => array(
 					'numeroDemandeProvisoire' => $PDOdb->Get_field('numero_accord_leaser')
 				)
