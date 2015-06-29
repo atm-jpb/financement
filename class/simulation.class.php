@@ -1504,7 +1504,7 @@ class TSimulationSuivi extends TObjetStd {
 			exit;
 		}
 		
-		$TconsulterSuivisDemandesRequest = $this->_getBNPDataTabForConsultation($PDOdb);
+		$TconsulterSuivisDemandesRequest['consulterSuivisDemandesRequest'] = $this->_getBNPDataTabForConsultation($PDOdb);
 		
 		//pre($TconsulterSuivisDemandesRequest,true);exit;
 		try{
