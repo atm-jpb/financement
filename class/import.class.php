@@ -801,6 +801,7 @@ class TImport extends TObjetStd {
 		$this->importILFI_couleur($data,$integrale);
 		
 		$integrale->save($ATMdb);
+		//pre($integrale,true);
 		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($integrale), $integrale->getId(),'update',$data);
 	}
 
@@ -847,7 +848,8 @@ class TImport extends TObjetStd {
 		//$TFAS = array('SSC101', 'SSC102', 'SSC106');
 		//if(in_array($data['ref_service'], $TFAS)) {
 		if(strpos($data['label_integrale'], '(FAS)') !== false || substr($data['label_integrale'], -3) === 'FAS'
-			|| strpos($data['label_integrale'],utf8_encode('Frais d\'Accès au Service')) !== FALSE) {
+			|| (strpos($data['label_integrale'],utf8_encode('Frais d\'Accès au Service')) !== FALSE 
+			|| strpos($data['label_integrale'],utf8_encode('Forfait d\'Accès au Service')) !== FALSE)) {
 			if(empty($integrale->fas_somme)) { // Gestion FAS sur plusieurs lignes
 				$integrale->fas	= $data['total_ht'];
 				$integrale->fas_somme = true;
@@ -856,6 +858,7 @@ class TImport extends TObjetStd {
 			}
 			
 		}
+		
 		// Frais dossier
 		if($data['ref_service'] == '037003') {
 			$integrale->frais_dossier = $data['total_ht'];

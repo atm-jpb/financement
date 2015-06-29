@@ -65,7 +65,7 @@ class TIntegrale extends TObjetStd {
 	
 	function save(&$db) {
 		$this->calcule_totaux();
-		if(!empty($this->vol_noir_engage) || !empty($this->vol_noir_realise) || !empty($this->vol_coul_engage) || !empty($this->vol_coul_realise)) parent::save($db);
+		parent::save($db);
 	}
 	
 	function calcule_totaux() {
