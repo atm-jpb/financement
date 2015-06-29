@@ -1477,7 +1477,7 @@ class TSimulationSuivi extends TObjetStd {
 		$this->traiteBNPReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
 	}
 
-	function _consulterDemandeBNP(&$PDOdb){
+	function _consulterDemandeBNP($num_accord_leaser){
 		
 		if(BNP_TEST){
 			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
@@ -1504,7 +1504,7 @@ class TSimulationSuivi extends TObjetStd {
 			exit;
 		}
 		
-		$TconsulterSuivisDemandesRequest['consulterSuivisDemandesRequest'] = $this->_getBNPDataTabForConsultation($PDOdb);
+		$TconsulterSuivisDemandesRequest['consulterSuivisDemandesRequest'] = $this->_getBNPDataTabForConsultation($num_accord_leaser);
 		
 		//pre($TconsulterSuivisDemandesRequest,true);exit;
 		try{
@@ -1810,7 +1810,7 @@ class TSimulationSuivi extends TObjetStd {
 		return $codeBareme;
 	}
 
-	function _getBNPDataTabForConsultation(&$PDOdb){
+	function _getBNPDataTabForConsultation($num_accord_leaser){
 		
 		$TData = array();
 		
@@ -1820,24 +1820,13 @@ class TSimulationSuivi extends TObjetStd {
 		);
 
 		$TData['prescripteur'] = $TPrescripteur;
-
-		$sql = "SELECT numero_accord_leaser 
-				FROM ".MAIN_DB_PREFIX."fin_simulation_suivi 
-				WHERE (fk_leaser = 3382 OR fk_leaser = 19553 OR fk_leaser = 20113)
-					AND numero_accord_leaser != '' AND numero_accord_leaser IS NOT NULL
-					AND  statut = 'WAIT' ";
-		//echo $sql;exit;
-		$PDOdb->Execute($sql);
-
-		while ($PDOdb->Get_line()) {
-			
-			//Tableau Numéro demande
-			$TNumerosDemande = array(
-				'numeroIdentifiantDemande' => array(
-					'numeroDemandeProvisoire' => $PDOdb->Get_field('numero_accord_leaser')
-				)
-			);
-		}
+		
+		//Tableau Numéro demande
+		$TNumerosDemande = array(
+			'numeroIdentifiantDemande' => array(
+				'numeroDemandeProvisoire' => $num_accord_leaser
+			)
+		);
 		
 		$TData['numerosDemande'] = $TNumerosDemande;
 		
