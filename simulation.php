@@ -742,7 +742,10 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		//echo $fin->reference.'<br>';
 		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		
-		//if($fin->date_solde > 0) continue;
+		if($fin->date_solde > 0 && empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['checked'])
+		&& empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['checked'])
+		&& empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['checked'])
+		&& empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['checked'])) continue;
 		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		if(empty($dossier->financementLeaser->reference)) continue;
 		
@@ -756,6 +759,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			
 			$dossier->financement->total_loyer -= $dossier->financement->echeance;
 		}*/
+		
+		//pre($simulation,true);
 		if($dossier->nature_financement == 'INTERNE') {
 			$soldeR = (!empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time())+1),2); //SRCPRO
 			$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time())+1),2); //SNRCPRO
