@@ -21,8 +21,8 @@
 	$sql="SELECT df . * 
 		  FROM `".MAIN_DB_PREFIX."fin_dossier_financement` AS df
 			LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier AS d ON d.rowid = df.fk_fin_dossier
-		  WHERE df.`date_debut` <= '".$date_echeance." 00:00:00'
-			AND df.date_fin >= '".$date_echeance." 23:59:59'
+		  WHERE df.`date_debut` BETWEEN '2000-01-01 00:00:00' AND '".$date_echeance." 23:59:59'
+			AND df.date_fin BETWEEN '".$date_echeance." 00:00:00' AND '2200-01-01 00:00:00'
 			AND df.type = 'LEASER'
 			AND df.date_solde = '0000-00-00 00:00:00'
 			AND d.nature_financement = 'INTERNE'
@@ -35,6 +35,7 @@
 			AND df.reference IS NOT NULL 
 			AND df.reference != ''";
 
+	echo '<br>'.$sql.'<br>';
 	
 	$ATMdb->Execute($sql);
 	$Tab = $ATMdb->Get_all();
