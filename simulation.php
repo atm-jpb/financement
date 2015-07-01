@@ -742,7 +742,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		//echo $fin->reference.'<br>';
 		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		
-		if($fin->date_solde > 0) continue;
+		//if($fin->date_solde > 0) continue;
 		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		if(empty($dossier->financementLeaser->reference)) continue;
 		
