@@ -610,6 +610,7 @@ class TSimulation extends TObjetStd {
 				if($except_current && $simu->{OBJETSTD_MASTERKEY} == $this->{OBJETSTD_MASTERKEY}) continue;
 				//pre($simu->dossiers_rachetes,true);
 				foreach($simu->dossiers_rachetes as $k => $TDossiers_rachetes){
+					if(!is_array($TDossiers_rachetes)) $TDossiers_rachetes = array();
 					//pre($TDossiers_rachetes,true);
 					if(array_key_exists('checked', $TDossiers_rachetes)){
 						$TDossier[] = $TDossiers_rachetes['checked'];
