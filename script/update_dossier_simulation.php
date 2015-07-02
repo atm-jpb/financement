@@ -33,6 +33,7 @@
 								 	OR INSTR("'.$line[0].'",dossiers_rachetes_p1)
 									OR INSTR("'.$line[0].'",dossiers_rachetes_nr)
 									OR INSTR("'.$line[0].'",dossiers_rachetes_nr_p1)');
+				echo "MAJ simulations contenant le dossier ".$line[0]." => ".$financement->fk_fin_dossier."<br>";
 			}
 		}
 	}
