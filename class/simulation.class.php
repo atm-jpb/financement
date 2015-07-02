@@ -616,6 +616,7 @@ class TSimulation extends TObjetStd {
 					}
 				}
 				foreach($simu->dossiers_rachetes_p1 as $k => $TDossiers_rachetes){
+					if(!is_array($TDossiers_rachetes)) $TDossiers_rachetes = array();
 					if(array_key_exists('checked', $TDossiers_rachetes)){
 						$TDossier[] = $TDossiers_rachetes['checked'];
 					}
