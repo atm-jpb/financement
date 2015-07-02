@@ -851,11 +851,21 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		foreach ($TFactures as $echeance => $facture) {
 			if(is_array($facture)){
 				foreach ($facture as $key => $fact) {
-					if($fact->paye == 0) $dossier->display_solde = 0;
+					if($fact->paye == 0){
+						$cpt ++;
+						if($cpt > FINANCEMENT_NB_INVOICE_UNPAID){
+							$dossier->display_solde = 0;
+						}
+					}
 				}
 			}
 			else{
-				if($facture->paye == 0) $dossier->display_solde = 0;
+				if($fact->paye == 0){
+					$cpt ++;
+					if($cpt > FINANCEMENT_NB_INVOICE_UNPAID){
+						$dossier->display_solde = 0;
+					}
+				}
 			}
 			break;
 		}
