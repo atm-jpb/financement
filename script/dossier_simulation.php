@@ -21,6 +21,7 @@
 	$TidSimulations = TRequeteCore::get_id_from_what_you_want($PDOdb, MAIN_DB_PREFIX."fin_simulation");
 	
 	foreach($TidSimulations as $idSimulation){
+		//$cpt ++;
 		$simulation = new TSimulation;
 		$simulation->load($PDOdb, $db, $idSimulation);
 		
@@ -86,6 +87,8 @@
 				}
 			}
 		}
+		
+		//if($cpt > 100) break;
 	}
 	
 	$fp = fopen('dossiers_simulation.csv', 'w');
