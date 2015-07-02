@@ -87,21 +87,14 @@
 			}
 		}
 	}
-		
-	header("Content-disposition: attachment; filename=dossiers_simulation.csv");
-	header("Content-Type: application/force-download");
-	header("Content-Transfer-Encoding: application/octet-stream");
-	header("Pragma: no-cache");
-	header("Cache-Control: must-revalidate, post-check=0, pre-check=0, public");
-	header("Expires: 0");
-		
-	print '"Id";';
-	print "\"Référence dossier\r\n\"";
+	
+	$fp = fopen('dossiers_simulation.csv', 'w');
 	
 	foreach($TDossierAssoc as $idDossier => $reference){
-	
-		print '"'.$idDossier.'";';
-		print '"'.$reference."\";\r\n";
+		
+		fputcsv($fp,array($idDossier,$reference),';','"');
 	}
+	
+	fclose($fp);
 	
 	//pre($TDossierAssoc,true);	
