@@ -847,6 +847,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		if($dossier->soldepersodispo == 2) $dossier->display_solde = 0;
 		
 		//Ne pas laissé disponible un dossier dont la dernière facture client est impayée
+		$cpt = 0;
 		$TFactures = array_reverse($dossier->TFacture,true);
 		foreach ($TFactures as $echeance => $facture) {
 			if(is_array($facture)){
