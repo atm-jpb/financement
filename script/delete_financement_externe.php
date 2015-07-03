@@ -23,7 +23,7 @@
 			FROM ".MAIN_DB_PREFIX."fin_affaire as a
 				LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire as da ON (da.fk_fin_affaire = a.rowid)
 				LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as df ON (da.fk_fin_dossier = df.fk_fin_dossier)
-			WHERE a.nature_financement = 'EXTERNE' AND (df.fk_soc = 3382 OR df.fk_soc = 7411 OR df.fk_soc = 4440 OR df.fk_soc = 6065 OR df.fk_soc = 3306 )";
+			WHERE a.nature_financement = 'EXTERNE' AND ((df.fk_soc = 3382 OR df.fk_soc = 7411 OR df.fk_soc = 4440 OR df.fk_soc = 6065 OR df.fk_soc = 3306 OR df.fk_soc = 0) OR (df.reference IS NULL OR df.reference = ''))";
 	
 	echo "<br><br>".$sql.'<br>';
 	
@@ -37,7 +37,7 @@
 		$dossier->load($ATMdb, $row->rowid);
 		
 		//pre($dossier,true);
-		$dossier->delete($ATMdb,false,false,false);
+		$dossier->delete($ATMdb,true,false,false);
 		echo " --- dossier : ".$dossier->reference." supprimé<br>";
 	}
 	

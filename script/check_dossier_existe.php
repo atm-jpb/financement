@@ -24,8 +24,12 @@
 			$financement = new TFin_financement;
 			$financement->loadBy($PDOdb, $line[1], 'reference');
 
-			if(!$financement->getId()) echo "Erreur -> financement ".$line[1]." n'existe pas.<br><hr>";
+			if(!$financement->getId()){
+				echo "Erreur -> financement ".$line[1]." n'existe pas.<br><hr>";
+				$cpt++;
+			}
 		}
+		echo $cpt;
 	}
 	
 	//pre($TDossierAssoc,true);	

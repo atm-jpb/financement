@@ -332,7 +332,7 @@ class TImport extends TObjetStd {
 				$dossier->financementLeaser->fk_soc = $data['idLeaser'];
 				
 				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
-				
+				//pre($dossier->financementLeaser,true);echo '<hr>';flush();
 			} else { // Dossier interne => Vérification des informations
 				$echeance = $data['echeance'];
 				$montant = $data['montant'];
