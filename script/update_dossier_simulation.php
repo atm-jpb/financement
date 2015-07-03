@@ -30,10 +30,10 @@
 									, dossiers_rachetes_p1 = REPLACE(dossiers_rachetes_p1,"'.$line[0].'","'.$financement->fk_fin_dossier.'")
 									, dossiers_rachetes_nr = REPLACE(dossiers_rachetes_nr,"'.$line[0].'","'.$financement->fk_fin_dossier.'")
 									, dossiers_rachetes_nr_p1 = REPLACE(dossiers_rachetes_nr_p1,"'.$line[0].'","'.$financement->fk_fin_dossier.'")
-								 WHERE INSTR("'.$line[0].'",dossiers_rachetes)
-								 	OR INSTR("'.$line[0].'",dossiers_rachetes_p1)
-									OR INSTR("'.$line[0].'",dossiers_rachetes_nr)
-									OR INSTR("'.$line[0].'",dossiers_rachetes_nr_p1)');
+								 WHERE INSTR(dossiers_rachetes,"'.$line[0].'") > 0
+								 	OR INSTR(dossiers_rachetes_p1,"'.$line[0].'") > 0
+									OR INSTR(dossiers_rachetes_nr,"'.$line[0].'") > 0
+									OR INSTR(dossiers_rachetes_nr_p1,"'.$line[0].'") > 0');
 				echo "MAJ simulations contenant le dossier ".$line[0]." => ".$financement->fk_fin_dossier."<br>";
 				echo '<hr>';
 				flush();
