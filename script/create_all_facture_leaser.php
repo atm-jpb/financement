@@ -59,10 +59,10 @@
 				/*echo $echeance.' '.$dossier->rowid.'<br>';
 				pre($dossier->TFactureFournisseur,true);exit;*/
 				$date = strtotime($dossier->getDateDebutPeriode($echeance));
-				if($date > strtotime($date_echeance)){
+				//if($date > strtotime($date_echeance)){
 					$TError[$dossier->rowid] = $dossier->financement->reference." / ".$dossier->financementLeaser->reference;
 					$cpt ++;
-				}
+				//}
 			}
 		}
 	}

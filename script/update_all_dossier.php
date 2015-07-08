@@ -29,12 +29,14 @@
 	$ATMdb->Execute($sql);
 	$Tab = $ATMdb->Get_all();
 	
+$cpt = 0;
 	foreach($Tab as $row) {
-		
+		$cpt++;
 		$d=new TFin_dossier;
 		$d->load($ATMdb, $row->rowid);
 		$d->save($ATMdb);
-		echo "dossier : ".$d->reference." sauvegardé<br><hr>";
+		echo "dossier : ".$d->getId()." ".$d->financementLeaser->reference." sauvegardé<br><hr>";
+// if($cpt>5)break;
 	}
 
 	
