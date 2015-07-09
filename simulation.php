@@ -31,7 +31,7 @@ if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive 
 	} else if(!empty($_REQUEST['code_wb'])) { // Prospect
 		$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe', array('code_client'=>$_REQUEST['code_wb'],'client'=>2));
 		if(!empty($TId[0])) { header('Location: ?action=new&fk_soc='.$TId[0]); exit; }
-		pre($_REQUEST);
+		//pre($_REQUEST);
 		// Création du prospect s'il n'existe pas
 		$societe = new Societe($db);
 		$societe->code_client = $_REQUEST['code_wb'];
@@ -775,7 +775,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			$soldeNR1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO', $fin->duree_passe + 1),2);
 			$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 		}
-		
+
 		//Suite PR1504-0764, Solde R et NR deviennent identique
 		/*$soldeNR = $soldeR;
 		$soldeNR1 = $soldeR1;*/
@@ -801,8 +801,10 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		$decompteCopieSupCouleur = $sommeCopieSupCouleur * $dossier_for_integral->quote_part_couleur;
 		
 		$soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
-	
-		$soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
+		
+		if(!$dossier->getSolde($ATMdb2, 'perso')){
+			$soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
+		}
 		
 		/*
 		$checked = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes) ? true : false;
@@ -870,7 +872,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			}
 			break;
 		}
-		
+
 		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
 			,'num_affaire' => $ATMdb->Get_field('N° affaire')
@@ -920,7 +922,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			
 			,'incident_paiement'=>$incident_paiement
 		);
-
+		//pre($row,true);
 		$TDossier[$dossier->getId()] = $row;
 
 		$var = !$var;
