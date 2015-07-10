@@ -216,7 +216,7 @@ class TFin_dossier extends TObjetStd {
 				$db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
 				WHERE type='CLIENT' AND reference='".$refClient."' AND rowid!=".$id_fin);
 				$obj = $db->Get_line();
-				if($obj->nb>0) return false;
+				if($obj->nb>0) return -1;
 				
 			}
 			
@@ -229,7 +229,7 @@ class TFin_dossier extends TObjetStd {
 			$db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
 			WHERE type='LEASER' AND reference='".$refLeaser."' AND rowid!=".$id_finLeaser);
 			$obj = $db->Get_line();
-			if($obj->nb>0) return false;
+			if($obj->nb>0) return -2;
 		}
 		
 		return true;
@@ -245,8 +245,13 @@ class TFin_dossier extends TObjetStd {
 		$this->calculSolde();
 		$this->calculRenta($db);
 		
-		if(!$this->checkRef($db)) {
-			setEventMessage("Référence déjà utilisée","errors");
+		$res = $this->checkRef($db);
+		if($res == -1 ) {
+			setEventMessage("Référence Client déjà utilisée ou en doublon","errors");
+			return false;
+		}
+		elseif($res == -2){
+			setEventMessage("Référence Leaser déjà utilisée ou en doublon","errors");
 			return false;
 		}
 		
