@@ -1723,8 +1723,8 @@ class TImport extends TObjetStd {
 	
 	function deleteSocieteCommerciauxLinks(&$PDOdb,&$TCommercialCpro){
 		
-		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe_commerciaux WHERE fk_soc = ".$TCommercialCpro->fk_soc." AND fk_user != ".$TCommercialCpro->fk_user." AND type_activite_cpro = ".$TCommercialCpro->type_activite_cpro;
-		echo $sql.'<br>';
+		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe_commerciaux WHERE fk_soc = ".$TCommercialCpro->fk_soc." AND fk_user != ".$TCommercialCpro->fk_user." AND type_activite_cpro = '".$TCommercialCpro->type_activite_cpro."'";
+		//echo $sql.'<br>';
 		$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 		//$TIds = $PDOdb->Get_All();
 		//pre($TInfosGlobale['commerciauxLinksId'],true);exit;
