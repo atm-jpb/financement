@@ -213,6 +213,8 @@ class TFin_dossier extends TObjetStd {
 			$id_fin = (int)$this->financement->getId();
 
 			if(!empty($refClient)) {
+				/*echo "SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
+				WHERE type='CLIENT' AND reference='".$refClient."' AND rowid!=".$id_fin.'<br>';*/
 				$db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
 				WHERE type='CLIENT' AND reference='".$refClient."' AND rowid!=".$id_fin);
 				$obj = $db->Get_line();
@@ -232,7 +234,7 @@ class TFin_dossier extends TObjetStd {
 			if($obj->nb>0) return -2;
 		}
 		
-		return true;
+		return TRUE;
 		
 	}
 	
@@ -246,11 +248,14 @@ class TFin_dossier extends TObjetStd {
 		$this->calculRenta($db);
 		
 		$res = $this->checkRef($db);
-		if($res == -1 ) {
+		//echo $res.'<br>';
+		//echo "$res == -1<br>";
+		if($res == -1 && $res !== TRUE) {
+			echo 'ok';
 			setEventMessage("Référence Client déjà utilisée ou en doublon","errors");
 			return false;
 		}
-		elseif($res == -2){
+		elseif($res == -2 && $res !== TRUE){
 			setEventMessage("Référence Leaser déjà utilisée ou en doublon","errors");
 			return false;
 		}
@@ -1647,6 +1652,16 @@ class TFin_financement extends TObjetStd {
 				}
 			}
 		}
+		
+		/*if($this->type == 'CLIENT'){
+			$dossier = new TFin_dossier;
+			$dossier->load($ATMdb, $this->fk_fin_dossier,false);
+			
+			$echeance = $dossier->_get_num_echeance_from_date(time());
+			$echeance ++;
+			$this->numero_prochaine_echeance = $echeance;
+			$this->date_prochaine_echeance = $dossier->getDateDebutPeriode($echeance+1);
+		}*/
 		
 		parent::save($ATMdb);
 		
