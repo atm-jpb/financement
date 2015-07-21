@@ -1653,15 +1653,16 @@ class TFin_financement extends TObjetStd {
 			}
 		}
 		
-		/*if($this->type == 'CLIENT'){
+		if($this->type == 'CLIENT'){
 			$dossier = new TFin_dossier;
 			$dossier->load($ATMdb, $this->fk_fin_dossier,false);
 			
 			$echeance = $dossier->_get_num_echeance_from_date(time());
-			$echeance ++;
+			$echeance = $echeance +2;
 			$this->numero_prochaine_echeance = $echeance;
-			$this->date_prochaine_echeance = $dossier->getDateDebutPeriode($echeance+1);
-		}*/
+			//echo $dossier->getDateDebutPeriode($echeance);
+			$this->set_date('date_prochaine_echeance', $dossier->getDateDebutPeriode($echeance-1));
+		}
 		
 		parent::save($ATMdb);
 		
