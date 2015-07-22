@@ -14,17 +14,28 @@
 	$user->fetch('', DOL_ADMIN_USER);
 	$user->getrights();
 	print $user->lastname.'<br />';
+	$type = GETPOST('type');
+	if(!$type){
+		$type = 'CLIENT';
+	}
 
 	$ATMdb=new TPDOdb;
 
 	$sql="SELECT DISTINCT(d.rowid) as 'rowid'
 		  FROM ".MAIN_DB_PREFIX."fin_dossier_financement f 
-			INNER JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (f.fk_fin_dossier=d.rowid)
-		  WHERE f.type='LEASER' 
+			INNER JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (f.fk_fin_dossier=d.rowid)";
+	if($type == 'LEASER '){
+		$sql .= " WHERE f.type='LEASER' 
 			AND (f.fk_soc = 3382 OR f.fk_soc = 19553 OR f.fk_soc = 20113)
 			AND d.nature_financement = 'EXTERNE'";
+	}
+	if($type == 'CLIENT'){
+		$sql .= " WHERE f.type='CLIENT' 
+			AND d.nature_financement = 'INTERNE'";
+	}
+		 
 	
-	echo $sql.'<br>';
+	//echo $sql.'<br>';
 	
 	$ATMdb->Execute($sql);
 	$Tab = $ATMdb->Get_all();
