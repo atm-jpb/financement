@@ -885,6 +885,9 @@ class TSimulation extends TObjetStd {
 					}
 				}
 			}*/
+			if($d->nature_financement == 'INTERNE') {
+				$f->reference .= ' / '.$d->financementLeaser->reference;
+			}
 			
 			$leaser = new Societe($doliDB);
 			$leaser->fetch($d->financementLeaser->fk_soc);
