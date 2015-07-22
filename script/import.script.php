@@ -130,7 +130,7 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		
 		//pre($TInfosGlobale,true);exit;
 		if($fileType == 'commercial') {
-			$imp->deleteCommerciauxLinks($PDOdb, $TInfosGlobale);
+			$imp->deleteCommerciauxLinks($ATMdb, $TInfosGlobale);
 		}
 		
 		print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;

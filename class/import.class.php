@@ -1751,7 +1751,7 @@ class TImport extends TObjetStd {
 				$TCommercialCpro = new TCommercialCpro;
 				$TCommercialCpro->load($PDOdb, $id);
 				
-				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($TCommercialCpro), $TCommercialCpro->getId(),'delete',array('Commercial'=>$TCommercialCpro->fk_user,'Societe'=>$TCommercialCpro->fk_soc));
+				TImportHistorique::addHistory($PDOdb, $this->type_import, $this->filename, get_class($TCommercialCpro), $TCommercialCpro->getId(),'delete',array('Commercial'=>$TCommercialCpro->fk_user,'Societe'=>$TCommercialCpro->fk_soc));
 				
 				$TCommercialCpro->delete($PDOdb);
 			}
