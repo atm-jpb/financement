@@ -699,7 +699,21 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
 	$sql.= " WHERE a.entity = ".$conf->entity;
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
-	$sql.= " AND a.fk_soc IN (SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE siren = (SELECT siren from ".MAIN_DB_PREFIX."societe WHERE rowid = ".$simulation->fk_soc.") AND siren != '')";
+	$sql.= " AND a.fk_soc IN (
+				SELECT rowid 
+				FROM ".MAIN_DB_PREFIX."societe as s
+					LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
+				WHERE (s.siren = (
+							SELECT siren 
+							from ".MAIN_DB_PREFIX."societe 
+							WHERE rowid = ".$simulation->fk_soc."
+							) 
+					   AND siren != '') 
+					   OR (se.other_siren = (
+					   		SELECT other_siren 
+					   		FROM ".MAIN_DB_PREFIX."societe_extrafields 
+					   		WHERE fk_object = ".$simulation->fk_soc."
+					   		) AND se.other_siren != ''))";
 	//$sql.= " AND s.rowid = ".$simulation->fk_soc;
 	//$sql.= " AND f.type = 'CLIENT'";
 	
