@@ -700,7 +700,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$sql.= " WHERE a.entity = ".$conf->entity;
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
 	$sql.= " AND a.fk_soc IN (
-				SELECT rowid 
+				SELECT s.rowid 
 				FROM ".MAIN_DB_PREFIX."societe as s
 					LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
 				WHERE (s.siren = (
@@ -708,7 +708,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 							from ".MAIN_DB_PREFIX."societe 
 							WHERE rowid = ".$simulation->fk_soc."
 							) 
-					   AND siren != '') 
+					   AND s.siren != '') 
 					   OR (se.other_siren = (
 					   		SELECT other_siren 
 					   		FROM ".MAIN_DB_PREFIX."societe_extrafields 
