@@ -800,6 +800,8 @@ class TImport extends TObjetStd {
 		//Gère les copies COULEUR
 		$this->importILFI_couleur($data,$integrale);
 		
+		//pre($integrale,true);exit;
+		
 		$integrale->save($ATMdb);
 		//pre($integrale,true);
 		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($integrale), $integrale->getId(),'update',$data);
@@ -893,6 +895,10 @@ class TImport extends TObjetStd {
 			if($data['total_ht'] > 0)
 				$integrale->cout_unit_noir = $data['cout_integrale'];
 		}
+		else{ // CAS DES AVOIRS, ON GARDE QUE LE TOTAL HT
+			$integrale->total_ht_facture += $data['total_ht'];
+		}
+		
 		// COPIE SUP NOIR
 		if($data['ref_service'] == 'SSC016') {
 			$integrale->vol_noir_facture+= $data['quantite'];
