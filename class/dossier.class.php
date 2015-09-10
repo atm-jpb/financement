@@ -213,10 +213,12 @@ class TFin_dossier extends TObjetStd {
 			$id_fin = (int)$this->financement->getId();
 
 			if(!empty($refClient)) {
+				/*echo "SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
+				WHERE type='CLIENT' AND reference='".$refClient."' AND rowid!=".$id_fin.'<br>';*/
 				$db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
 				WHERE type='CLIENT' AND reference='".$refClient."' AND rowid!=".$id_fin);
 				$obj = $db->Get_line();
-				if($obj->nb>0) return false;
+				if($obj->nb>0) return -1;
 				
 			}
 			
@@ -229,10 +231,10 @@ class TFin_dossier extends TObjetStd {
 			$db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
 			WHERE type='LEASER' AND reference='".$refLeaser."' AND rowid!=".$id_finLeaser);
 			$obj = $db->Get_line();
-			if($obj->nb>0) return false;
+			if($obj->nb>0) return -2;
 		}
 		
-		return true;
+		return TRUE;
 		
 	}
 	
@@ -245,8 +247,16 @@ class TFin_dossier extends TObjetStd {
 		$this->calculSolde();
 		$this->calculRenta($db);
 		
-		if(!$this->checkRef($db)) {
-			setEventMessage("Référence déjà utilisée","errors");
+		$res = $this->checkRef($db);
+		//echo $res.'<br>';
+		//echo "$res == -1<br>";
+		if($res == -1 && $res !== TRUE) {
+			echo 'ok';
+			setEventMessage("Référence Client déjà utilisée ou en doublon","errors");
+			return false;
+		}
+		elseif($res == -2 && $res !== TRUE){
+			setEventMessage("Référence Leaser déjà utilisée ou en doublon","errors");
 			return false;
 		}
 		
@@ -1641,6 +1651,17 @@ class TFin_financement extends TObjetStd {
 					$this->createAvoirLeaserFromFacture($ATMdb,$facturefourn->id,$dossier->rowid);
 				}
 			}
+		}
+		
+		if($this->type == 'CLIENT'){
+			$dossier = new TFin_dossier;
+			$dossier->load($ATMdb, $this->fk_fin_dossier,false);
+			
+			$echeance = $dossier->_get_num_echeance_from_date(time());
+			$echeance = $echeance +2;
+			$this->numero_prochaine_echeance = $echeance;
+			//echo $dossier->getDateDebutPeriode($echeance);
+			$this->set_date('date_prochaine_echeance', $dossier->getDateDebutPeriode($echeance-1));
 		}
 		
 		parent::save($ATMdb);
