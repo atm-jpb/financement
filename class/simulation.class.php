@@ -1834,6 +1834,7 @@ class TSimulationSuivi extends TObjetStd {
 		);
 		
 		$TData['numerosDemande'] = $TNumerosDemande;
+//		pre($TData,true);exit;
 		
 		//Tableau Rapport Suivi
 		/*$TRapportSuivi = $this->_getBNPDataTabRapportSuivi();
