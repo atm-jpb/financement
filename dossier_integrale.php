@@ -47,7 +47,7 @@ function _liste(&$PDOdb, &$dossier) {
 	$sql.=" LEFT OUTER JOIN llx_societe c ON (a.fk_soc=c.rowid)) ";
 	$sql.=" LEFT OUTER JOIN llx_societe l ON (fl.fk_soc=l.rowid)) ";
 	
-	if (!$user->rights->societe->client->voir) {
+	if (!$user->rights->financement->alldossier->read && $user->rights->financement->mydossier->read) {
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON sc.fk_soc = c.rowid";
 	}
 		
@@ -57,13 +57,14 @@ function _liste(&$PDOdb, &$dossier) {
 	$sql.=" AND fc.echeance > 0 ";
 	$sql.=" AND fc.date_solde = '0000-00-00 00:00:00' ";
 	
-	if (!$user->rights->societe->client->voir) //restriction
+	if (!$user->rights->financement->alldossier->read && $user->rights->financement->mydossier->read) //restriction
 	{
 		$sql.= " AND sc.fk_user = " .$user->id;
 	}
 	
 	$sql.=" ";
 	
+	//echo $sql;
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	$aff = new TFin_affaire;
 	
@@ -158,7 +159,9 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 			foreach($TIntegrale[$integrale->date_periode]->TChamps as $key => $val){
 				if($key != "total_ht_facture" && $key != "ecart"){
 					if(!strpos($key, 'coul') && !strpos($key, 'noir')) $TIntegrale[$integrale->date_periode]->{$key} .=" €";
-					$TIntegrale[$integrale->date_periode]->{$key} .= '<br>0';
+					//pre($integrale->facnumber,true);
+					//_factureAnnuleParAvoir($integrale->facnumber);
+					if(!_factureAnnuleParAvoir($facture->ref))$TIntegrale[$integrale->date_periode]->{$key} .= '<br>0';
 				}
 			}
 			$TIntegrale[$integrale->date_periode]->total_ht_facture .= ' €<br>'.number_format($integrale->total_ht_facture,2);
@@ -224,6 +227,23 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 	
 	return $TIntegrale;
 	
+}
+
+function _factureAnnuleParAvoir($facnumber){
+	global $db;
+	//echo $facnumber.'<br>';
+	$avoir = new Facture($db);
+	$avoir->fetch('',$facnumber);
+	//pre($facnumber,true);
+	if($avoir->type == 2){ //avoir
+		//$facture->fetchObjectLinked();
+		$facture = new Facture($db);
+		$facture->fetch($avoir->fk_facture_source);
+		//echo $facture->total_ht." ".$avoir->total_ht;
+		if($facture->total_ht == -$avoir->total_ht) return true;
+		else return false;
+		//pre($facture,true);
+	}
 }
 
 function _fiche(&$PDOdb, &$doliDB, &$dossier) {

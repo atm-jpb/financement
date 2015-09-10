@@ -31,7 +31,7 @@ if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive 
 	} else if(!empty($_REQUEST['code_wb'])) { // Prospect
 		$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe', array('code_client'=>$_REQUEST['code_wb'],'client'=>2));
 		if(!empty($TId[0])) { header('Location: ?action=new&fk_soc='.$TId[0]); exit; }
-		pre($_REQUEST);
+		//pre($_REQUEST);
 		// Création du prospect s'il n'existe pas
 		$societe = new Societe($db);
 		$societe->code_client = $_REQUEST['code_wb'];
@@ -699,7 +699,21 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
 	$sql.= " WHERE a.entity = ".$conf->entity;
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
-	$sql.= " AND a.fk_soc IN (SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE siren = (SELECT siren from ".MAIN_DB_PREFIX."societe WHERE rowid = ".$simulation->fk_soc.") AND siren != '')";
+	$sql.= " AND a.fk_soc IN (
+				SELECT s.rowid 
+				FROM ".MAIN_DB_PREFIX."societe as s
+					LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
+				WHERE (s.siren = (
+							SELECT siren 
+							from ".MAIN_DB_PREFIX."societe 
+							WHERE rowid = ".$simulation->fk_soc."
+							) 
+					   AND s.siren != '') 
+					   OR (se.other_siren = (
+					   		SELECT other_siren 
+					   		FROM ".MAIN_DB_PREFIX."societe_extrafields 
+					   		WHERE fk_object = ".$simulation->fk_soc."
+					   		) AND se.other_siren != ''))";
 	//$sql.= " AND s.rowid = ".$simulation->fk_soc;
 	//$sql.= " AND f.type = 'CLIENT'";
 	
@@ -742,7 +756,10 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		//echo $fin->reference.'<br>';
 		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		
-		if($fin->date_solde > 0) continue;
+		if($fin->date_solde > 0 && empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['checked'])
+		&& empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['checked'])
+		&& empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['checked'])
+		&& empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['checked'])) continue;
 		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		if(empty($dossier->financementLeaser->reference)) continue;
 		
@@ -756,6 +773,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			
 			$dossier->financement->total_loyer -= $dossier->financement->echeance;
 		}*/
+		
+		//pre($simulation,true);
 		if($dossier->nature_financement == 'INTERNE') {
 			$soldeR = (!empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time())+1),2); //SRCPRO
 			$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time())+1),2); //SNRCPRO
@@ -770,7 +789,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			$soldeNR1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO', $fin->duree_passe + 1),2);
 			$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 		}
-		
+
 		//Suite PR1504-0764, Solde R et NR deviennent identique
 		/*$soldeNR = $soldeR;
 		$soldeNR1 = $soldeR1;*/
@@ -796,8 +815,10 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		$decompteCopieSupCouleur = $sommeCopieSupCouleur * $dossier_for_integral->quote_part_couleur;
 		
 		$soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
-	
-		$soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
+		
+		if(!$dossier->getSolde($ATMdb2, 'perso')){
+			$soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
+		}
 		
 		/*
 		$checked = in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes) ? true : false;
@@ -842,19 +863,30 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		if($dossier->soldepersodispo == 2) $dossier->display_solde = 0;
 		
 		//Ne pas laissé disponible un dossier dont la dernière facture client est impayée
+		$cpt = 0;
 		$TFactures = array_reverse($dossier->TFacture,true);
 		foreach ($TFactures as $echeance => $facture) {
 			if(is_array($facture)){
 				foreach ($facture as $key => $fact) {
-					if($fact->paye == 0) $dossier->display_solde = 0;
+					if($fact->paye == 0){
+						$cpt ++;
+						if($cpt > FINANCEMENT_NB_INVOICE_UNPAID){
+							$dossier->display_solde = 0;
+						}
+					}
 				}
 			}
 			else{
-				if($facture->paye == 0) $dossier->display_solde = 0;
+				if($fact->paye == 0){
+					$cpt ++;
+					if($cpt > FINANCEMENT_NB_INVOICE_UNPAID){
+						$dossier->display_solde = 0;
+					}
+				}
 			}
 			break;
 		}
-		
+
 		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
 			,'num_affaire' => $ATMdb->Get_field('N° affaire')
@@ -904,7 +936,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			
 			,'incident_paiement'=>$incident_paiement
 		);
-
+		//pre($row,true);
 		$TDossier[$dossier->getId()] = $row;
 
 		$var = !$var;

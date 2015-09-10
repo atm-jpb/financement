@@ -76,17 +76,23 @@ class TIntegrale extends TObjetStd {
 		$this->total_frais+= $this->frais_bris_machine;
 		$this->total_frais+= $this->frais_facturation;
 		
-		$this->total_ht_engage = $this->vol_noir_engage * $this->cout_unit_noir;
-		$this->total_ht_engage+= (!empty($this->vol_coul_engage) ? $this->vol_coul_engage : $this->vol_coul_realise) * $this->cout_unit_coul;
-		$this->total_ht_engage+= $this->total_frais;
+		if(($this->vol_noir_engage > 0 && $this->cout_unit_noir > 0) || ($this->vol_coul_engage > 0 && $this->cout_unit_coul > 0)){
+			$this->total_ht_engage = $this->vol_noir_engage * $this->cout_unit_noir;
+			$this->total_ht_engage+= (!empty($this->vol_coul_engage) ? $this->vol_coul_engage : $this->vol_coul_realise) * $this->cout_unit_coul;
+			$this->total_ht_engage+= $this->total_frais;
+		}
 		
-		$this->total_ht_realise = $this->vol_noir_realise * $this->cout_unit_noir;
-		$this->total_ht_realise+= $this->vol_coul_realise * $this->cout_unit_coul;
-		$this->total_ht_realise+= $this->total_frais;
+		if(($this->vol_noir_realise > 0 && $this->cout_unit_noir > 0) || ($this->vol_coul_realise > 0 && $this->cout_unit_coul > 0)){
+			$this->total_ht_realise = $this->vol_noir_realise * $this->cout_unit_noir;
+			$this->total_ht_realise+= $this->vol_coul_realise * $this->cout_unit_coul;
+			$this->total_ht_realise+= $this->total_frais;
+		}
 		
-		$this->total_ht_facture = $this->vol_noir_facture * $this->cout_unit_noir;
-		$this->total_ht_facture+= $this->vol_coul_facture * $this->cout_unit_coul;
-		$this->total_ht_facture+= $this->total_frais;
+		if(($this->vol_noir_facture > 0 && $this->cout_unit_noir > 0) || ($this->vol_coul_facture > 0 && $this->cout_unit_coul > 0)){
+			$this->total_ht_facture = $this->vol_noir_facture * $this->cout_unit_noir;
+			$this->total_ht_facture+= $this->vol_coul_facture * $this->cout_unit_coul;
+			$this->total_ht_facture+= $this->total_frais;
+		}
 		
 		if($this->total_ht_engage > 0) {
 			$this->ecart = ($this->total_ht_facture - $this->total_ht_engage) * 100 / $this->total_ht_engage;

@@ -208,6 +208,19 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 
+// indisponibilité du solde dans la simulation si X factures non payées
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_NB_INVOICE_UNPAID" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("NbInvoiceUnpaid").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_NB_INVOICE_UNPAID" value="'.$conf->global->FINANCEMENT_NB_INVOICE_UNPAID.'" /> factures';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
 print '</table>';
 
 print_titre($langs->trans("PenalitesForSimulation"));

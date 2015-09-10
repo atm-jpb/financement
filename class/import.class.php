@@ -332,7 +332,7 @@ class TImport extends TObjetStd {
 				$dossier->financementLeaser->fk_soc = $data['idLeaser'];
 				
 				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
-				
+				//pre($dossier->financementLeaser,true);echo '<hr>';flush();
 			} else { // Dossier interne => Vérification des informations
 				$echeance = $data['echeance'];
 				$montant = $data['montant'];
@@ -800,6 +800,8 @@ class TImport extends TObjetStd {
 		//Gère les copies COULEUR
 		$this->importILFI_couleur($data,$integrale);
 		
+		//pre($integrale,true);exit;
+		
 		$integrale->save($ATMdb);
 		//pre($integrale,true);
 		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($integrale), $integrale->getId(),'update',$data);
@@ -848,8 +850,8 @@ class TImport extends TObjetStd {
 		//$TFAS = array('SSC101', 'SSC102', 'SSC106');
 		//if(in_array($data['ref_service'], $TFAS)) {
 		if(strpos($data['label_integrale'], '(FAS)') !== false || substr($data['label_integrale'], -3) === 'FAS'
-			|| (strpos($data['label_integrale'],utf8_encode('Frais d\'Accès au Service')) !== FALSE 
-			|| strpos($data['label_integrale'],utf8_encode('Forfait d\'Accès au Service')) !== FALSE)) {
+			|| (strpos($data['label_integrale'],'Frais d\'Accès au Service') !== FALSE 
+			|| strpos($data['label_integrale'],'Forfait d\'Accès au Service') !== FALSE)) {
 			if(empty($integrale->fas_somme)) { // Gestion FAS sur plusieurs lignes
 				$integrale->fas	= $data['total_ht'];
 				$integrale->fas_somme = true;
@@ -893,6 +895,10 @@ class TImport extends TObjetStd {
 			if($data['total_ht'] > 0)
 				$integrale->cout_unit_noir = $data['cout_integrale'];
 		}
+		else{ // CAS DES AVOIRS, ON GARDE QUE LE TOTAL HT
+			$integrale->total_ht_facture += $data['total_ht'];
+		}
+		
 		// COPIE SUP NOIR
 		if($data['ref_service'] == 'SSC016') {
 			$integrale->vol_noir_facture+= $data['quantite'];
@@ -1723,8 +1729,8 @@ class TImport extends TObjetStd {
 	
 	function deleteSocieteCommerciauxLinks(&$PDOdb,&$TCommercialCpro){
 		
-		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe_commerciaux WHERE fk_soc = ".$TCommercialCpro->fk_soc." AND fk_user != ".$TCommercialCpro->fk_user." AND type_activite_cpro = ".$TCommercialCpro->type_activite_cpro;
-		echo $sql.'<br>';
+		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe_commerciaux WHERE fk_soc = ".$TCommercialCpro->fk_soc." AND fk_user != ".$TCommercialCpro->fk_user." AND type_activite_cpro = '".$TCommercialCpro->type_activite_cpro."'";
+		//echo $sql.'<br>';
 		$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 		//$TIds = $PDOdb->Get_All();
 		//pre($TInfosGlobale['commerciauxLinksId'],true);exit;
@@ -1751,7 +1757,7 @@ class TImport extends TObjetStd {
 				$TCommercialCpro = new TCommercialCpro;
 				$TCommercialCpro->load($PDOdb, $id);
 				
-				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($TCommercialCpro), $TCommercialCpro->getId(),'delete',array('Commercial'=>$TCommercialCpro->fk_user,'Societe'=>$TCommercialCpro->fk_soc));
+				TImportHistorique::addHistory($PDOdb, $this->type_import, $this->filename, get_class($TCommercialCpro), $TCommercialCpro->getId(),'delete',array('Commercial'=>$TCommercialCpro->fk_user,'Societe'=>$TCommercialCpro->fk_soc));
 				
 				$TCommercialCpro->delete($PDOdb);
 			}
