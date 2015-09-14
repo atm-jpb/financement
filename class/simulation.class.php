@@ -10,7 +10,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_decompte_copies_sup,montant_rachat_final,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
 		parent::add_champs('date_simul,date_validite,date_accord,date_demarrage','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,marque_materiel,numero_accord,reference,opt_calage','type=chaine;');
-		parent::add_champs('dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
+		parent::add_champs('dossiers,dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
 		parent::start();
 		parent::_init_vars();
 		
@@ -57,6 +57,7 @@ class TSimulation extends TObjetStd {
 		$this->coeff = 0;
 		$this->fk_user_author = $user->id;
 		$this->user = $user;
+		$this->dossiers = array();
 		$this->dossiers_rachetes = array();
 		$this->dossiers_rachetes_nr = array();
 		$this->dossiers_rachetes_p1 = array();
@@ -82,6 +83,39 @@ class TSimulation extends TObjetStd {
 		//pre($this,true);exit;
 		$this->gen_simulation_pdf($db, $doliDB);
 		$this->reference = $this->getRef();
+		
+		if(empty($this->dossiers)){
+			foreach($this->dossiers_rachetes as $k=>$TDossiers){
+				$dossier =  new TFin_dossier;
+				$dossier->load($db, $k);
+				if($dossier->nature_financement == 'INTERNE') {
+					$fin = &$dossier->financement;
+				}
+				else{
+					$fin = &$dossier->financementLeaser;
+				}
+				//pre($dossier,true);exit;
+				
+				/*echo $dossier->affaire->contrat.'<br>';
+				pre($dossier->TLien[0]->affaire->contrat,true);*/
+				$this->dossiers[$k]['num_contrat'] = $fin->reference;
+				$this->dossiers[$k]['type_contrat'] = $dossier->TLien[0]->affaire->contrat;
+				$this->dossiers[$k]['duree'] = $fin->duree.' '.substr($fin->periodicite,0,1);
+				$this->dossiers[$k]['echeance'] = $fin->echeance;
+				$this->dossiers[$k]['loyer_actualise'] = $fin->loyer_actualise;
+				$this->dossiers[$k]['date_debut'] = $fin->date_debut;
+				$this->dossiers[$k]['date_fin'] = $fin->date_fin;
+				$this->dossiers[$k]['date_prochaine_echeance'] = $fin->date_prochaine_echeance;
+				$this->dossiers[$k]['numero_prochaine_echeance'] = $fin->numero_prochaine_echeance.'/'.$fin->duree;
+				$this->dossiers[$k]['terme'] = $fin->TTerme[$fin->terme];
+				$this->dossiers[$k]['reloc'] = $fin->reloc;
+				$this->dossiers[$k]['maintenance'] = $fin->montant_prestation;
+				$this->dossiers[$k]['assurance'] = $fin->assurance;
+				$this->dossiers[$k]['assurance_actualise'] = $fin->assurance_actualise;
+				$this->dossiers[$k]['montant'] = $fin->montant;
+			}
+		}
+		
 		parent::save($db);
 		
 		//Création du suivi simulation leaser s'il n'existe pas
@@ -604,28 +638,53 @@ class TSimulation extends TObjetStd {
 	}
 	
 	function get_list_dossier_used($except_current=false) {
+		
+		global $conf;
 		$TDossier = array();
 		if(!empty($this->societe->TSimulations)) {
 			foreach ($this->societe->TSimulations as $simu) {
 				if($except_current && $simu->{OBJETSTD_MASTERKEY} == $this->{OBJETSTD_MASTERKEY}) continue;
 				//pre($simu->dossiers_rachetes,true);
+				
+				$datetimesimul = strtotime($simu->get_date('date_simul','Y-m-d'));
+				$datetimenow = time();
+				$nb_jour_diff = ($datetimenow - $datetimesimul)/86400;
+				//pre($simu,true);
 				foreach($simu->dossiers_rachetes as $k => $TDossiers_rachetes){
-					if(!is_array($TDossiers_rachetes)) $TDossiers_rachetes = array();
-					//pre($TDossiers_rachetes,true);
-					if(array_key_exists('checked', $TDossiers_rachetes)){
-						$TDossier[] = $TDossiers_rachetes['checked'];
+					if($this->dossier_used($simu,$TDossiers_rachetes,$nb_jour_diff) && !in_array($k, array_keys($TDossier))){
+						$TDossier[$k] = $TDossiers_rachetes['checked'];
+					}
+				}
+				foreach($simu->dossiers_rachetes_nr as $k => $TDossiers_rachetes){
+					if($this->dossier_used($simu,$TDossiers_rachetes,$nb_jour_diff) && !in_array($k, array_keys($TDossier))){
+						$TDossier[$k] = $TDossiers_rachetes['checked'];
 					}
 				}
 				foreach($simu->dossiers_rachetes_p1 as $k => $TDossiers_rachetes){
-					if(!is_array($TDossiers_rachetes)) $TDossiers_rachetes = array();
-					if(array_key_exists('checked', $TDossiers_rachetes)){
-						$TDossier[] = $TDossiers_rachetes['checked'];
+					if($this->dossier_used($simu,$TDossiers_rachetes,$nb_jour_diff) && !in_array($k, array_keys($TDossier))){
+						$TDossier[$k] = $TDossiers_rachetes['checked'];
+					}
+				}
+				foreach($simu->dossiers_rachetes_nr_p1 as $k => $TDossiers_rachetes){
+					if($this->dossier_used($simu,$TDossiers_rachetes,$nb_jour_diff) && !in_array($k, array_keys($TDossier))){
+						$TDossier[$k] = $TDossiers_rachetes['checked'];
 					}
 				}
 				//$TDossier = array_merge($TDossier, $simu->dossiers_rachetes, $simu->dossiers_rachetes_p1);
 			}
 		}
 		return $TDossier;
+	}
+
+	function dossier_used(&$simu,&$TDossiers_rachetes,$nb_jour_diff){
+		global $conf;
+		if(!is_array($TDossiers_rachetes)) $TDossiers_rachetes = array();
+		if(array_key_exists('checked', $TDossiers_rachetes) 
+			//&& ($fin->accord == 'KO' || $fin->accord == 'SS' )
+			&& $nb_jour_diff <= $conf->global->FINANCEMENT_SIMU_NB_JOUR_DOSSIER_INDISPO){
+				return true;
+		}
+		return false;
 	}
 	
 	function send_mail_vendeur($auto=false, $mailto='') {
