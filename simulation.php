@@ -110,6 +110,7 @@ if(!empty($action)) {
 			$simulation->set_values($_REQUEST);
 			
 			// On vérifie que les dossiers sélectionnés n'ont pas été décochés
+			if(empty($_REQUEST['dossiers'])) $simulation->dossiers = array();
 			if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
 			if(empty($_REQUEST['dossiers_rachetes_p1'])) $simulation->dossiers_rachetes_p1 = array();
 			if(empty($_REQUEST['dossiers_rachetes_nr'])) $simulation->dossiers_rachetes_nr = array();
@@ -193,6 +194,7 @@ if(!empty($action)) {
 			}
 			
 			// On vérifie que les dossiers sélectionnés n'ont pas été décochés
+			if(empty($_REQUEST['dossiers'])) $simulation->dossiers = array();
 			if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
 			if(empty($_REQUEST['dossiers_rachetes_p1'])) $simulation->dossiers_rachetes_p1 = array();
 			if(empty($_REQUEST['dossiers_rachetes_nr'])) $simulation->dossiers_rachetes_nr = array();
@@ -682,6 +684,8 @@ function _calcul(&$simulation, $mode='calcul') {
 function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	//if(!empty($simulation->date_accord) && $simulation->date_accord < strtotime('-15 days')) return ''; // Ticket 916 -15 jours
 	
+	//pre($simulation,true);
+	
 	global $langs,$conf, $db, $bc;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 
@@ -891,17 +895,17 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			'id_affaire' => $ATMdb->Get_field('IDAff')
 			,'num_affaire' => $ATMdb->Get_field('N° affaire')
 			,'id_dossier' => $dossier->getId()
-			,'num_contrat' => $fin->reference
-			,'type_contrat' => $affaire->TContrat[$ATMdb->Get_field('Type contrat')]
-			,'duree' => $fin->duree.' '.substr($fin->periodicite,0,1)
-			,'echeance' => $fin->echeance
-			,'loyer_actualise' => ($dossier->nature_financement == 'INTERNE') ? $fin->loyer_actualise : ''
-			,'debut' => $fin->date_debut
-			,'fin' => $fin->date_fin
-			,'prochaine_echeance' => $fin->date_prochaine_echeance
-			,'avancement' => $fin->numero_prochaine_echeance.'/'.$fin->duree
-			,'terme' => $fin->TTerme[$fin->terme]
-			,'reloc' => $fin->reloc
+			,'num_contrat' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['num_contrat']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['num_contrat'] :$fin->reference
+			,'type_contrat' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['type_contrat']) ? $affaire->TContrat[$simulation->dossiers[$ATMdb->Get_field('IDDoss')]['type_contrat']] : $affaire->TContrat[$ATMdb->Get_field('Type contrat')]
+			,'duree' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['duree']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['duree'] :$fin->duree.' '.substr($fin->periodicite,0,1)
+			,'echeance' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['echeance']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['echeance'] : $fin->echeance
+			,'loyer_actualise' => ($dossier->nature_financement == 'INTERNE') ? ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['loyer_actualise']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['loyer_actualise'] : $fin->loyer_actualise : ''
+			,'debut' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_debut']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_debut'] :$fin->date_debut
+			,'fin' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_fin']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_fin'] : $fin->date_fin
+			,'prochaine_echeance' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_prochaine_echeance']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_prochaine_echeance'] : $fin->date_prochaine_echeance
+			,'avancement' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['numero_prochaine_echeance']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['numero_prochaine_echeance'] : $fin->numero_prochaine_echeance.'/'.$fin->duree
+			,'terme' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['terme']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['terme'] : $fin->TTerme[$fin->terme]
+			,'reloc' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['reloc']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['reloc'] : $fin->reloc
 			,'solde_r' => $soldeR
 			,'solde_nr' => $soldeNR
 			,'solde_r1' => $soldeR1
@@ -927,10 +931,10 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'checkedr1'=>$checkedr1
 			,'checkednr1'=>$checkednr1
 			
-			,'maintenance' => $fin->montant_prestation
-			,'assurance' => $fin->assurance
-			,'assurance_actualise' => $fin->assurance_actualise
-			,'montant' => $fin->montant
+			,'maintenance' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['maintenance']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['maintenance'] : $fin->montant_prestation
+			,'assurance' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['assurance']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['assurance'] :$fin->assurance
+			,'assurance_actualise' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['assurance_actualise']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['assurance_actualise'] :$fin->assurance_actualise
+			,'montant' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['montant']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['montant'] : $fin->montant
 			
 			,'class' => $bc[$var]
 			
