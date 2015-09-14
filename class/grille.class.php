@@ -430,7 +430,7 @@ class TFin_grille_suivi extends TObjetStd {
 				$this->TLeaser[$categorieFille->id] = $categorieFille->label;
 			}
 			else{
-				$TLeaser = $categorieFille->get_type("societe","Fournisseur","fournisseur");
+				$TLeaser = $categorieFille->getObjectsInCateg("supplier");
 				
 				$this->TLeaserByCategories[-1]='';
 				//Pour chaque leaser, ajout dans le tableau qui va bien
