@@ -604,28 +604,53 @@ class TSimulation extends TObjetStd {
 	}
 	
 	function get_list_dossier_used($except_current=false) {
+		
+		global $conf;
 		$TDossier = array();
 		if(!empty($this->societe->TSimulations)) {
 			foreach ($this->societe->TSimulations as $simu) {
 				if($except_current && $simu->{OBJETSTD_MASTERKEY} == $this->{OBJETSTD_MASTERKEY}) continue;
 				//pre($simu->dossiers_rachetes,true);
+				
+				$datetimesimul = strtotime($simu->get_date('date_simul','Y-m-d'));
+				$datetimenow = time();
+				$nb_jour_diff = ($datetimenow - $datetimesimul)/86400;
+				//pre($simu,true);
 				foreach($simu->dossiers_rachetes as $k => $TDossiers_rachetes){
-					if(!is_array($TDossiers_rachetes)) $TDossiers_rachetes = array();
-					//pre($TDossiers_rachetes,true);
-					if(array_key_exists('checked', $TDossiers_rachetes)){
-						$TDossier[] = $TDossiers_rachetes['checked'];
+					if($this->dossier_used($simu,$TDossiers_rachetes,$nb_jour_diff) && !in_array($k, array_keys($TDossier))){
+						$TDossier[$k] = $TDossiers_rachetes['checked'];
+					}
+				}
+				foreach($simu->dossiers_rachetes_nr as $k => $TDossiers_rachetes){
+					if($this->dossier_used($simu,$TDossiers_rachetes,$nb_jour_diff) && !in_array($k, array_keys($TDossier))){
+						$TDossier[$k] = $TDossiers_rachetes['checked'];
 					}
 				}
 				foreach($simu->dossiers_rachetes_p1 as $k => $TDossiers_rachetes){
-					if(!is_array($TDossiers_rachetes)) $TDossiers_rachetes = array();
-					if(array_key_exists('checked', $TDossiers_rachetes)){
-						$TDossier[] = $TDossiers_rachetes['checked'];
+					if($this->dossier_used($simu,$TDossiers_rachetes,$nb_jour_diff) && !in_array($k, array_keys($TDossier))){
+						$TDossier[$k] = $TDossiers_rachetes['checked'];
+					}
+				}
+				foreach($simu->dossiers_rachetes_nr_p1 as $k => $TDossiers_rachetes){
+					if($this->dossier_used($simu,$TDossiers_rachetes,$nb_jour_diff) && !in_array($k, array_keys($TDossier))){
+						$TDossier[$k] = $TDossiers_rachetes['checked'];
 					}
 				}
 				//$TDossier = array_merge($TDossier, $simu->dossiers_rachetes, $simu->dossiers_rachetes_p1);
 			}
 		}
 		return $TDossier;
+	}
+
+	function dossier_used(&$simu,&$TDossiers_rachetes,$nb_jour_diff){
+		global $conf;
+		if(!is_array($TDossiers_rachetes)) $TDossiers_rachetes = array();
+		if(array_key_exists('checked', $TDossiers_rachetes) 
+			//&& ($fin->accord == 'KO' || $fin->accord == 'SS' )
+			&& $nb_jour_diff <= $conf->global->FINANCEMENT_SIMU_NB_JOUR_DOSSIER_INDISPO){
+				return true;
+		}
+		return false;
 	}
 	
 	function send_mail_vendeur($auto=false, $mailto='') {

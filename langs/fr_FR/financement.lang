@@ -35,6 +35,7 @@ PercentRetribCopiesSup=Pourcentage de rétribution des copies suplémentaires
 PercentNbTrimCopiesSup=Nombre de trimestre pour calcul copies suplémentaires
 PercentAugCRD=Pourcentage d'augmentation du CRD pour calcul Solde Loc Addosée ou Mandatée
 NbInvoiceUnpaid=Indisponibilité du solde dans la simulation si X factures non payées
+NbDayDossierIndispo=Nombre de jour avant disponibilité d'un dossier dans une simulation s'il est déjà sélectionné dans une simulation antérieure
 
 # SIMULATIONS
 Simulations=Simulations
