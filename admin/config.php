@@ -221,6 +221,19 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 
+// NB jours avant disponibilité des dossiers dans les simulation si dossier déjà sélectionné
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_SIMU_NB_JOUR_DOSSIER_INDISPO" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("NbDayDossierIndispo").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_SIMU_NB_JOUR_DOSSIER_INDISPO" value="'.$conf->global->FINANCEMENT_SIMU_NB_JOUR_DOSSIER_INDISPO.'" /> jours';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
 print '</table>';
 
 print_titre($langs->trans("PenalitesForSimulation"));
