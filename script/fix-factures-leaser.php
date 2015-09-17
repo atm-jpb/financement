@@ -19,7 +19,7 @@ if (! $result > 0) { dol_print_error('',$user->error); exit; }
 $user->getrights();
 
 
-$ATMdb=new Tdb;
+$ATMdb=new TPDOdb;
 $tva = (FIN_TVA_DEFAUT-1)*100;
 
 $sql = "SELECT rowid

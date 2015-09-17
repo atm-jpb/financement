@@ -21,7 +21,7 @@ if(empty($user->id)) {
 }
 
 
-$ATMdb=new Tdb;
+$ATMdb=new TPDOdb;
 
 /*
  * Création des factures bon pour facturation

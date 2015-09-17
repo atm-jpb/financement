@@ -45,7 +45,7 @@ $typePenalite = empty($_REQUEST['type']) ? 'R': $_REQUEST['type'];
 
 llxHeader('',$langs->trans("PenaliteSetup"));
 
-$ATMdb=new Tdb;
+$ATMdb=new TPDOdb;
 $idLeaser = $socid;
 $affaire = new TFin_affaire();
 $liste_type_contrat = $affaire->TContrat;

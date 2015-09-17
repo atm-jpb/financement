@@ -6,7 +6,7 @@
 	include_once(DOL_DOCUMENT_ROOT."/product/class/product.class.php");
 	global $db;
 	
-	$ATMdb = new Tdb;
+	$ATMdb = new TPDOdb;
 	
 	/******************************
 	 * FACTURE

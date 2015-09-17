@@ -16,7 +16,7 @@
 	if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
 	
 	$affaire=new TFin_Affaire;
-	$ATMdb = new Tdb;
+	$ATMdb = new TPDOdb;
 	$tbs = new TTemplateTBS;
 	
 	$mesg = '';
@@ -348,7 +348,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 	 */
 	$otherDossier=$otherFactureMat='';
 	if($mode=='edit') {
-		$ATMdb=new Tdb;
+		$ATMdb=new TPDOdb;
 		//$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,'llx_fin_dossier', " solde>0 AND reference!='' " ,'reference');
 		
 		$sql = "SELECT DISTINCT(f.reference) as reference 

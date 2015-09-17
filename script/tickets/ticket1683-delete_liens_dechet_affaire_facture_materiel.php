@@ -1,7 +1,7 @@
 <?php
 	require("../../config.php");
 	
-	$ATMdb = new Tdb;
+	$ATMdb = new TPDOdb;
 	
 	//Récupération de tous les liens affaire => facture matériel
 	$sql = "SELECT rowid, fk_source FROM ".MAIN_DB_PREFIX."element_element WHERE sourcetype = 'affaire' AND targettype = 'facture'";

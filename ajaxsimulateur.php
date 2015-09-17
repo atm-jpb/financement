@@ -37,7 +37,7 @@ require_once(DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php');
 $langs->load("main");
 $langs->load('financement@financement');
 
-$ATMdb = new Tdb();
+$ATMdb = new TPDOdb;
 //$ATMdb->db->debug = true;
 
 /*

@@ -16,7 +16,7 @@
 	require('../class/import_error.class.php');
 	require('../class/grille.class.php');
 
-	$ATMdb=new Tdb;
+	$ATMdb=new TPDOdb;
 	$ATMdb->db->debug=true;
 
 	$o=new TCommercialCpro;

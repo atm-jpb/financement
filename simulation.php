@@ -473,7 +473,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	echo $form->hidden('idLeaser', FIN_LEASER_DEFAULT);
 
 	$TBS=new TTemplateTBS();
-	$ATMdb=new Tdb;
+	$ATMdb=new TPDOdb;
 	
 	dol_include_once('/core/class/html.formfile.class.php');
 	$formfile = new FormFile($db);
@@ -726,7 +726,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$form=new TFormCore;
 	$form->Set_typeaff($mode);
 	$ATMdb->Execute($sql);
-	$ATMdb2 = new Tdb;
+	$ATMdb2 = new TPDOdb;
 	$var = true;
 	
 	$TDossierUsed = $simulation->get_list_dossier_used(true);

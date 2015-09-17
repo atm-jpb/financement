@@ -41,7 +41,7 @@ dol_htmloutput_mesg($mesg);
  * ACTIONS
  */
 
-$ATMdb=new Tdb;
+$ATMdb=new TPDOdb;
 $idLeaser = isset($_REQUEST['socid']) ? $_REQUEST['socid'] : FIN_LEASER_DEFAULT; // Identifiant de la société associée à la grille (C'PRO ici, sera l'identifiant leaser pour les grilles leaser)
 $affaire = new TFin_affaire();
 $liste_type_contrat = $affaire->TContrat;

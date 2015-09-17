@@ -16,7 +16,7 @@ if (! $result > 0) { dol_print_error('',$user->error); exit; }
 $user->getrights();
 
 
-$ATMdb=new Tdb;
+$ATMdb=new TPDOdb;
 $importFolder = FIN_IMPORT_FOLDER.'todo/';
 $importFolderOK = FIN_IMPORT_FOLDER.'done/';
 $fileName = 'new_dossier.csv';

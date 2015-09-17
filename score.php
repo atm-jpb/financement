@@ -36,7 +36,7 @@ if (!($user->rights->financement->score->read))
 
 $langs->load('financement@financement');
 $score=new TScore;
-$ATMdb = new Tdb;
+$ATMdb = new TPDOdb;
 $tbs = new TTemplateTBS;
 
 $mesg = '';

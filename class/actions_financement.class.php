@@ -97,10 +97,10 @@ class ActionsFinancement
 			if($resql=$db->query($sql)) {
 				$obj = $db->fetch_object($resql);
 				if($obj->sourcetype == 'affaire') {
-					$link = '<a href="'.DOL_URL_ROOT_ALT.'/financement/affaire.php?id='.$obj->fk_source.'">Voir l\'affaire</a>';
+					$link = '<a href="'.dol_buildpath('/financement/affaire.php?id='.$obj->fk_source, 1).'">Voir l\'affaire</a>';
 					echo '<tr><td >Facture de matériel</td><td'.$parameters['colspan'].'>'.$link.'</td></tr>';
 				} else if($obj->sourcetype == 'dossier') {
-					$link = '<a href="'.DOL_URL_ROOT_ALT.'/financement/dossier.php?id='.$obj->fk_source.'">Voir le dossier de financement</a>';
+					$link = '<a href="'.dol_buildpath('/financement/dossier.php?id='.$obj->fk_source, 1).'">Voir le dossier de financement</a>';
 					echo '<tr><td >Facture de location</td><td'.$parameters['colspan'].'>'.$link.'</td></tr>';
 				}
 			}

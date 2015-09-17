@@ -35,7 +35,7 @@ $langs->load("errors");
 $langs->load('other');
 
 $action = GETPOST('action','alpha');
-$ATMdb = new Tdb;
+$ATMdb = new TPDOdb;
 
 /*
  * Actions
