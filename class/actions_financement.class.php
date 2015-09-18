@@ -53,7 +53,7 @@ class ActionsFinancement
 						$(document).ready(function(){
 							
 							$('a').each(function(){
-								if($(this).html()=="<?=$commercial['firstname'].' '.$commercial['name'] ?>") {
+								if($(this).html()=="<?=$commercial['firstname'].' '.$commercial['lastname'] ?>") {
 									$(this).append(" [<?=$obj->type_activite_cpro ?>]");
 								}
 							});
