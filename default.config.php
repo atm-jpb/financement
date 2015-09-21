@@ -32,7 +32,7 @@
 	define('FIN_LEASER_DEFAULT', 1);
 	define('FIN_TVA_DEFAUT', 1.196);
 	define('DOL_ADMIN_USER', 'admin');
-	define('FIN_IMPORT_FOLDER', ROOT.'custom/financement/import/');
+	define('FIN_IMPORT_FOLDER', dol_buildpath('/financement/import/'));
 	define('FIN_IMPORT_FIELD_DELIMITER', ';');
 	define('FIN_IMPORT_FIELD_ENCLOSURE', '"');
 	

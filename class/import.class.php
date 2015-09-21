@@ -646,7 +646,7 @@ class TImport extends TObjetStd {
 			$taux_tva = 20;
 		
 		// On ajoute la ligne
-		$facture_mat->addline($facture_mat->id, 'Matricule(s) '.$data['matricule'], $data['total_ht'], 1, $taux_tva);
+		$facture_mat->addline('Matricule(s) '.$data['matricule'], $data['total_ht'], 1, $taux_tva);
 		// Force la validation avec numéro de facture
 		$facture_mat->validate($user, $data[$this->mapping['search_key']]); // Force la validation avec numéro de facture
 		
