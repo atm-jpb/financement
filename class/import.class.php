@@ -518,7 +518,7 @@ class TImport extends TObjetStd {
 		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
 			// Mise à jour ou création de la facture
 			if($facid > 0) {
-				$res = $facture_mat->update($facid, $user);
+				$res = $facture_mat->update($user);
 				// Erreur : la mise à jour n'a pas marché
 				if($res < 0) {
 					$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_mat->error);
