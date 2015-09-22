@@ -266,7 +266,7 @@ class TImport extends TObjetStd {
 			}
 		
 			// Mise à jour
-			$res = $facture_loc->update($facid, $user);
+			$res = $facture_loc->update($user);
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
 				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_loc->error);
