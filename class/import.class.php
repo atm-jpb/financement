@@ -699,7 +699,7 @@ class TImport extends TObjetStd {
 				$taux_tva = 20;
 			
 			// On ajoute la ligne
-			$facture_loc->addline($facture_loc->id, $data['libelle_ligne'], $data['pu'], $data['quantite'], $taux_tva,0,0,$fk_service, 0, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, $data['libelle_ligne']);
+			$facture_loc->addline($data['libelle_ligne'], $data['pu'], $data['quantite'], $taux_tva,0,0,$fk_service, 0, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, $data['libelle_ligne']);
 			// Force la validation avec numéro de facture
 			$facture_loc->validate($user, $data[$this->mapping['search_key']]);
 			
