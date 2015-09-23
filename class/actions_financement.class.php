@@ -137,7 +137,7 @@ class ActionsFinancement
 				$obj = $db->fetch_object($resql);
 				
 				if($obj->sourcetype == 'dossier') {
-					$link = '<a href="'.DOL_URL_ROOT_ALT.'/financement/dossier.php?id='.$obj->fk_source.'">Voir le dossier de financement</a>';
+					$link = '<a href="'.dol_buildpath('/financement/dossier.php?id='.$obj->fk_source, 1).'">Voir le dossier de financement</a>';
 					echo '<tr><td >Facture de loyer leaser</td><td'.$parameters['colspan'].'>'.$link.'</td></tr>';
 					
 					// Affichage bouton permettant de créer un avoir directement

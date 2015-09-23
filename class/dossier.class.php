@@ -863,7 +863,7 @@ class TFin_dossier extends TObjetStd {
 			if(is_object($fact)) { // Financement Client avec une seule facture
 				$data['facture_total_ht'] = $fact->total_ht;
 				$data['facture_multiple'] = '0';
-				$data['facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
+				$data['facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/card.php?facid=';
 				$data['facture_link'] .= $fact->id;
 			//	print $iFacture.' '.$fact->id.'<br />';
 				$data['facture_bg'] = ($fact->paye == 1) ? '#00FF00' : '#FF0000';
@@ -948,7 +948,7 @@ class TFin_dossier extends TObjetStd {
 //echo $fact->paye;
 			if(is_object($fact)) {
 				$autre['loyer_intercalaire_facture_total_ht'] = $fact->total_ht;
-				$autre['loyer_intercalaire_facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
+				$autre['loyer_intercalaire_facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/card.php?facid=';
 				$autre['loyer_intercalaire_facture_link'] .= $fact->id;
 				$autre['loyer_intercalaire_facture_bg'] = ($fact->paye == 1) ? '#00FF00' : '#FF0000';
 				$autre['total_facture'] += $fact->total_ht;

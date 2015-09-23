@@ -265,7 +265,7 @@
 
 				$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$fact->id);
 				
-				$urlback = dol_buildpath('/fourn/facture/fiche.php?facid='.$fact->id, 1);
+				$urlback = dol_buildpath('/fourn/facture/card.php?facid='.$fact->id, 1);
 				header("Location: ".$urlback);
 				exit;
 				
@@ -286,7 +286,7 @@
 					$dossier->financementLeaser->setEcheanceExterne();
 					$dossier->save($PDOdb);
 					
-					$urlback = dol_buildpath('/fourn/facture/fiche.php?facid='.$fact->id, 1);
+					$urlback = dol_buildpath('/fourn/facture/card.php?facid='.$fact->id, 1);
 					header("Location: ".$urlback);
 					exit;
 				}
