@@ -1105,6 +1105,7 @@ class TFin_dossier extends TObjetStd {
 			
 			$object = new FactureFournisseur($db);
 			
+			$object->ref_fourn = $reference;
 			$object->ref           = $reference;
 		    $object->socid         = $f->fk_soc;
 		    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".$echeance."/".$f->duree;
@@ -1632,7 +1633,9 @@ class TFin_financement extends TObjetStd {
 			//pre($dossier->TFactureFournisseur,true);
 			foreach($dossier->TFactureFournisseur as $echeance => $facturefourn){
 				//echo $this->reference."/".($echeance+1).'<br>';
-				$facturefourn->set_ref_supplier($user,$this->reference."/".($echeance+1));
+				//$facturefourn->set_ref_supplier($user,$this->reference."/".($echeance+1));
+				$facturefourn->ref_supplier = $this->reference."/".($echeance+1);
+				$facturefourn->update($user);
 			}
 		}
 
