@@ -1105,7 +1105,7 @@ class TFin_dossier extends TObjetStd {
 			
 			$object = new FactureFournisseur($db);
 			
-			$object->ref_fourn = $reference;
+			$object->ref_supplier = $reference;
 			$object->ref           = $reference;
 		    $object->socid         = $f->fk_soc;
 		    $object->libelle       = "ECH DOS. ".$d->reference_contrat_interne." ".$echeance."/".$f->duree;
