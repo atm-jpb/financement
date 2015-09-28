@@ -9,6 +9,7 @@ class TFin_dossier extends TObjetStd {
 		parent::add_champs('renta_previsionnelle,renta_attendue,renta_reelle,marge_previsionnelle,marge_attendue,marge_reelle,quote_part_couleur,quote_part_noir','type=float;');
 		parent::add_champs('reference,nature_financement,commentaire,reference_contrat_interne,display_solde,visa_renta,visa_renta_ndossier,commentaire_visa,soldepersodispo','type=chaine;');
 		parent::add_champs('date_relocation,date_solde,dateperso','type=date;');
+		parent::add_champs('entity',array('type'=>'int', 'index'=>true));
 			
 		parent::start();
 		parent::_init_vars();

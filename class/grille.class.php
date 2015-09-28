@@ -9,6 +9,7 @@ class TFin_grille_leaser extends TObjetStd {
 		parent::add_champs('fk_soc','type=entier;index;');//fk_soc_leaser
 		parent::add_champs('periode','type=entier;');
 		parent::add_champs('montant,coeff','type=float;');
+		parent::add_champs('entity',array('type'=>'int', 'index'=>true));
 		
 		parent::_init_vars();
 		parent::start();
@@ -357,6 +358,7 @@ class TFin_grille_suivi extends TObjetStd {
 		parent::add_champs('fk_type_contrat','type=chaine;');
 		parent::add_champs('fk_leaser_solde,fk_leaser_entreprise,fk_leaser_administration,fk_leaser_association','type=entier;');
 		parent::add_champs('montantbase,montantfin','type=float;');
+		parent::add_champs('entity',array('type'=>'int', 'index'=>true));
 		
 		parent::_init_vars();
 		parent::start();
