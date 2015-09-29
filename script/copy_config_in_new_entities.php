@@ -1,5 +1,7 @@
 <?php
- 
+set_time_limit(0);
+ini_set('memory_limit','1024M');
+
 require('../config.php');
 dol_include_once('/financement/class/grille.class.php');
 
@@ -21,76 +23,100 @@ if(empty($TEntities)) {
 }
 
 
-// Copie des conf de la page "options globales"
-$sql = "SELECT * FROM ".MAIN_DB_PREFIX."const WHERE name LIKE 'FINANCEMENT_%' AND entity = 1";
-$resql = $db->query($sql);
-while($res = $db->fetch_object($resql)) {
-	foreach ($TEntities as $id_entity) {
-		$db->query("REPLACE INTO ".MAIN_DB_PREFIX."const(name, entity, value, type, visible, note, tms) VALUES ('".$res->name."', ".$id_entity.", '".$res->value."', '".$res->type."', '".$res->visible."', '".$res->note."', '".date('Y-m-d H:i:s')."')");
-		echo 'constante : '.$res->name.' ajoutee/modifiee sur entity '.$id_entity.'<br>';
+if(isset($_REQUEST['conf']) || isset($_REQUEST['all'])) {
+	
+	// Copie des conf de la page "options globales"
+	$sql = "SELECT * FROM ".MAIN_DB_PREFIX."const WHERE name LIKE 'FINANCEMENT_%' AND entity = 1";
+	$resql = $db->query($sql);
+	while($res = $db->fetch_object($resql)) {
+		foreach ($TEntities as $id_entity) {
+			$db->query("REPLACE INTO ".MAIN_DB_PREFIX."const(name, entity, value, type, visible, note, tms) VALUES ('".$res->name."', ".$id_entity.", '".$res->value."', '".$res->type."', '".$res->visible."', '".$res->note."', '".date('Y-m-d H:i:s')."')");
+			echo 'constante : '.$res->name.' ajoutee/modifiee sur entity '.$id_entity.'<br>';
+		}
 	}
 }
 
 
+
 /***************************"Grille de coefficients"********************************/
-// Passage des conf de la page "Grille de coefficients" de l'entité 0 vers l'entité 1
-$sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_grille_leaser SET entity = 1 WHERE entity = 0';
-$db->query($sql);
-echo '<br>Configurations de la table '.MAIN_DB_PREFIX.'fin_grille_leaser passees dans l\'entite 1';
-
-// Copie des conf de la page "Grille de coefficients" vers les nouvelles entités
-$sql = 'SELECT MAX(rowid) as max_rowid FROM '.MAIN_DB_PREFIX.'fin_grille_leaser';
-$resql = $db->query($sql);
-$res = $db->fetch_object($resql);
-$max_rowid = $res->max_rowid + 1;
-
-//$sql = 'SELECT fk_soc, fk_type_contrat, montant, periode, coeff, fk_user, type FROM '.MAIN_DB_PREFIX.'fin_grille_leaser WHERE entity = 1';
-$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'fin_grille_leaser WHERE entity = 1';
-$resql = $db->query($sql);
-while($res = $db->fetch_object($resql)) {
-	$grille = new TFin_grille_leaser;
-	$grille->load($ATMdb, $res->rowid);
-	foreach ($TEntities as $id_entity) {
-		if($grille->rowid > 0) {
-			$grille->rowid = null;
-			$grille->date_cre = strtotime(date('Y-m-d H:i:s'));
-			$grille->date_maj = null;
-			$grille->entity = $id_entity;
-			$grille->save($ATMdb);
+if(isset($_REQUEST['coef']) || isset($_REQUEST['all'])) {
+	// Passage des conf de la page "Grille de coefficients" de l'entité 0 vers l'entité 1
+	$sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_grille_leaser SET entity = 1 WHERE entity = 0';
+	$db->query($sql);
+	
+	// Copie des conf de la page "Grille de coefficients" vers les nouvelles entités
+	$sql = 'SELECT MAX(rowid) as max_rowid FROM '.MAIN_DB_PREFIX.'fin_grille_leaser';
+	$resql = $db->query($sql);
+	$res = $db->fetch_object($resql);
+	$max_rowid = $res->max_rowid + 1;
+	
+	//$sql = 'SELECT fk_soc, fk_type_contrat, montant, periode, coeff, fk_user, type FROM '.MAIN_DB_PREFIX.'fin_grille_leaser WHERE entity = 1';
+	$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'fin_grille_leaser WHERE entity = 1';
+	$resql = $db->query($sql);
+	while($res = $db->fetch_object($resql)) {
+		$grille = new TFin_grille_leaser;
+		$grille->load($ATMdb, $res->rowid);
+		foreach ($TEntities as $id_entity) {
+			if($grille->rowid > 0) {
+				$grille->rowid = null;
+				$grille->date_cre = strtotime(date('Y-m-d H:i:s'));
+				$grille->date_maj = null;
+				$grille->entity = $id_entity;
+				$grille->save($ATMdb);
+			}
 		}
 	}
+	echo '<br>Configurations de la table '.MAIN_DB_PREFIX.'fin_grille_leaser copiees dans les nouvelles entites';
 }
 /***************************"Grille de coefficients"********************************/
 
 
 
 /***************************"Grille suivi"********************************/
-// Passage des conf de la table "Grille suivi" de l'entité 0 vers l'entité 1
-$sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_grille_suivi SET entity = 1 WHERE entity = 0';
-$db->query($sql);
-echo '<br>Configurations de la table '.MAIN_DB_PREFIX.'fin_grille_suivi passees dans l\'entite 1';
-
-// Copie des conf de la page "Grille de coefficients" vers les nouvelles entités
-$sql = 'SELECT MAX(rowid) as max_rowid FROM '.MAIN_DB_PREFIX.'fin_grille_suivi';
-$resql = $db->query($sql);
-$res = $db->fetch_object($resql);
-$max_rowid = $res->max_rowid + 1;
-
-//$sql = 'SELECT fk_soc, fk_type_contrat, montant, periode, coeff, fk_user, type FROM '.MAIN_DB_PREFIX.'fin_grille_leaser WHERE entity = 1';
-$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'fin_grille_suivi WHERE entity = 1';
-$resql = $db->query($sql);
-while($res = $db->fetch_object($resql)) {
-	$grille = new TFin_grille_suivi;
-	$grille->load($ATMdb, $res->rowid);
-	foreach ($TEntities as $id_entity) {
-		if($grille->rowid > 0) {
-			$grille->rowid = null;
-			$grille->date_cre = strtotime(date('Y-m-d H:i:s'));
-			$grille->date_maj = null;
-			$grille->entity = $id_entity;
-			$grille->save($ATMdb);
+if(isset($_REQUEST['suivi']) || isset($_REQUEST['all'])) {
+	// Passage des conf de la table "Grille suivi" de l'entité 0 vers l'entité 1
+	$sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_grille_suivi SET entity = 1 WHERE entity = 0';
+	$db->query($sql);
+	
+	// Copie des conf de la page "Grille de coefficients" vers les nouvelles entités
+	$sql = 'SELECT MAX(rowid) as max_rowid FROM '.MAIN_DB_PREFIX.'fin_grille_suivi';
+	$resql = $db->query($sql);
+	$res = $db->fetch_object($resql);
+	$max_rowid = $res->max_rowid + 1;
+	
+	//$sql = 'SELECT fk_soc, fk_type_contrat, montant, periode, coeff, fk_user, type FROM '.MAIN_DB_PREFIX.'fin_grille_leaser WHERE entity = 1';
+	$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'fin_grille_suivi WHERE entity = 1';
+	$resql = $db->query($sql);
+	while($res = $db->fetch_object($resql)) {
+		$grille = new TFin_grille_suivi;
+		$grille->load($ATMdb, $res->rowid);
+		foreach ($TEntities as $id_entity) {
+			if($grille->rowid > 0) {
+				$grille->rowid = null;
+				$grille->date_cre = strtotime(date('Y-m-d H:i:s'));
+				$grille->date_maj = null;
+				$grille->entity = $id_entity;
+				$grille->save($ATMdb);
+			}
 		}
 	}
+	echo '<br>Configurations de la table '.MAIN_DB_PREFIX.'fin_grille_suivi copiees dans les nouvelles entites';
 }
 /***************************"Grille suivi"********************************/
 
+
+/***************************"Grille pénalités"****************************/
+if(isset($_REQUEST['penalite']) || isset($_REQUEST['all'])) {
+	// Pénalités :
+	$db->query('ALTER TABLE '.MAIN_DB_PREFIX.'fin_grille_penalite ADD COLUMN entity int');
+	$db->query('UPDATE '.MAIN_DB_PREFIX.'fin_grille_penalite SET entity = 1 WHERE entity IS NULL');
+	$sql = 'SELECT opt_name, opt_value, penalite FROM '.MAIN_DB_PREFIX.'fin_grille_penalite WHERE entity = 1';
+	$resql = $db->query($sql);
+	while($res = $db->fetch_object($resql)) {
+		foreach ($TEntities as $id_entity) {
+			$db->query('REPLACE INTO '.MAIN_DB_PREFIX.'fin_grille_penalite(opt_name, opt_value, penalite, entity) VALUES("'.$res->opt_name.'", "'.$res->opt_value.'", '.$res->penalite.', '.$id_entity.')');
+		}
+	}
+	echo '<br>Configurations de la table '.MAIN_DB_PREFIX.'fin_grille_penalite copiees dans les nouvelles entites';
+}
+/***************************"Grille pénalités"****************************/

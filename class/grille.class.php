@@ -388,6 +388,7 @@ class TFin_grille_suivi extends TObjetStd {
     	$sql = "SELECT rowid, fk_leaser_solde, montantbase, montantfin, fk_leaser_entreprise,fk_leaser_administration,fk_leaser_association
         	 	FROM ".MAIN_DB_PREFIX."fin_grille_suivi
         	 	WHERE fk_type_contrat = '".$fk_type_contrat."'
+        	 	AND entity IN(".getEntity().")
         	 	ORDER BY fk_leaser_solde,montantbase ASC";
 
 		$PDOdb->Execute($sql);
@@ -467,4 +468,10 @@ class TFin_grille_suivi extends TObjetStd {
 		
 		return true;
 	}
+	
+	function save(&$ATMdb) {
+		$this->entity = getEntity();
+		parent::save($ATMdb);
+	}
+	
 }
