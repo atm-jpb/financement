@@ -37,6 +37,7 @@ class TFin_grille_leaser extends TObjetStd {
     	$sql = "SELECT rowid, periode, montant,coeff
         	 	FROM ".MAIN_DB_PREFIX."fin_grille_leaser
         	 	WHERE fk_soc = ".$idLeaser. " AND type='".$this->type."' AND fk_type_contrat = '".$idTypeContrat."'
+        	 	AND entity = ".getEntity()."
         	 	ORDER BY periode, montant ASC";
 
 		$ATMdb->Execute($sql);
@@ -192,7 +193,7 @@ class TFin_grille_leaser extends TObjetStd {
 			$grilleLigne->periode=(int)$periode;
 			$grilleLigne->fk_soc = $idLeaser;
 			$grilleLigne->fk_type_contrat = $idTypeContrat;
-			
+			$grilleLigne->entity = getEntity();
 			$grilleLigne->type = $this->type;
 			
 			$grilleLigne->save($ATMdb);
