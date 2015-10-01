@@ -62,7 +62,7 @@ if($action == 'save') {
 		$TNewLine = GETPOST('newline');
 		foreach($TNewLine as $typeLine => $Tline){
 
-			if($typeLine == 'DEFAUT_LOCATION' || $typeLine == 'DEFAUT_FORFAIT' || $typeLine == 'DEFAUT_INTEGRAL'){
+			if($typeLine == 'DEFAUT_LOCSIMPLE' || $typeLine == 'DEFAUT_FORFAITGLOBAL' || $typeLine == 'DEFAUT_INTEGRAL'){
 				$Tline = array(
 					"solde" => ($Tline['leaser'] == 0) ? -1 : $Tline['leaser']
 					,"montantbase" => $Tline['ordre']
