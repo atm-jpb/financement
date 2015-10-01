@@ -90,7 +90,7 @@ if($action == 'save') {
 			
 			foreach($grille_temp as $rowid => $linegrille){				
 				
-				if($typeLine == 'DEFAUT_LOCATION' || $typeLine == 'DEFAUT_FORFAIT' || $typeLine == 'DEFAUT_INTEGRAL'){
+				if($typeLine == 'DEFAUT_LOCSIMPLE' || $typeLine == 'DEFAUT_FORFAITGLOBAL' || $typeLine == 'DEFAUT_INTEGRAL'){
 					$linegrille = array(
 						"solde" => ($linegrille['leaser'] == 0) ? -1 : $linegrille['leaser']
 						,"montantbase" => $linegrille['ordre']
