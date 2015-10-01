@@ -50,20 +50,16 @@ if(isset($_REQUEST['coef']) || isset($_REQUEST['all'])) {
 	$res = $db->fetch_object($resql);
 	$max_rowid = $res->max_rowid + 1;
 	
-	//$sql = 'SELECT fk_soc, fk_type_contrat, montant, periode, coeff, fk_user, type FROM '.MAIN_DB_PREFIX.'fin_grille_leaser WHERE entity = 1';
-	$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'fin_grille_leaser WHERE entity = 1';
+	$sql = 'SELECT fk_soc, fk_type_contrat, montant, periode, coeff, fk_user, type FROM '.MAIN_DB_PREFIX.'fin_grille_leaser WHERE entity = 1';
 	$resql = $db->query($sql);
 	while($res = $db->fetch_object($resql)) {
-		$grille = new TFin_grille_leaser;
-		$grille->load($ATMdb, $res->rowid);
 		foreach ($TEntities as $id_entity) {
-			if($grille->rowid > 0) {
-				$grille->rowid = null;
-				$grille->date_cre = strtotime(date('Y-m-d H:i:s'));
-				$grille->date_maj = null;
-				$grille->entity = $id_entity;
-				$grille->save($ATMdb);
-			}
+			// En sql et non par objet parce que sinon la fonction save de l'objet std va remettre le champ entity à getEntity()
+			$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'fin_grille_leaser(rowid, fk_soc, fk_type_contrat, montant, periode, coeff, fk_user, tms, type, date_cre, date_maj, entity)
+					VALUES ('.$max_rowid.', '.$res->fk_soc.', "'.$res->fk_type_contrat.'", '.$res->montant.', '.$res->periode.', '.$res->coeff.', '.$res->fk_user.', "'.date('Y-m-d H:i:s').'", "'.$res->type.'", "'.date('Y-m-d H:i:s').'", "'.date('Y-m-d H:i:s').'", '.$id_entity.')';
+					
+			$db->query($sql);
+			$max_rowid++;
 		}
 	}
 	echo '<br>Configurations de la table '.MAIN_DB_PREFIX.'fin_grille_leaser copiees dans les nouvelles entites';
@@ -85,19 +81,14 @@ if(isset($_REQUEST['suivi']) || isset($_REQUEST['all'])) {
 	$max_rowid = $res->max_rowid + 1;
 	
 	//$sql = 'SELECT fk_soc, fk_type_contrat, montant, periode, coeff, fk_user, type FROM '.MAIN_DB_PREFIX.'fin_grille_leaser WHERE entity = 1';
-	$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'fin_grille_suivi WHERE entity = 1';
+	$sql = 'SELECT fk_type_contrat, fk_leaser_solde, fk_leaser_entreprise, fk_leaser_administration, fk_leaser_association, montantbase, montantfin FROM '.MAIN_DB_PREFIX.'fin_grille_suivi WHERE entity = 1';
 	$resql = $db->query($sql);
 	while($res = $db->fetch_object($resql)) {
-		$grille = new TFin_grille_suivi;
-		$grille->load($ATMdb, $res->rowid);
 		foreach ($TEntities as $id_entity) {
-			if($grille->rowid > 0) {
-				$grille->rowid = null;
-				$grille->date_cre = strtotime(date('Y-m-d H:i:s'));
-				$grille->date_maj = null;
-				$grille->entity = $id_entity;
-				$grille->save($ATMdb);
-			}
+			$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'fin_grille_suivi(rowid, date_cre, date_maj, fk_type_contrat, fk_leaser_solde, fk_leaser_entreprise, fk_leaser_administration, fk_leaser_association, montantbase, montantfin, entity)
+					VALUES ('.$max_rowid.', "'.date('Y-m-d H:i:s').'", "'.date('Y-m-d H:i:s').'", "'.$res->fk_type_contrat.'", '.$res->fk_leaser_solde.', '.$res->fk_leaser_entreprise.', '.$res->fk_leaser_administration.', '.$res->fk_leaser_association.', '.$res->montantbase.', '.$res->montantfin.', '.$id_entity.')';
+			$db->query($sql);
+			$max_rowid++;
 		}
 	}
 	echo '<br>Configurations de la table '.MAIN_DB_PREFIX.'fin_grille_suivi copiees dans les nouvelles entites';
