@@ -306,7 +306,8 @@ function _liste(&$ATMdb, &$simulation) {
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON sc.fk_soc = soc.rowid";
 	}
 	
-	$sql.= " WHERE s.entity = ".$conf->entity;
+	//$sql.= " WHERE s.entity = ".$conf->entity;
+	$sql.= " WHERE 1=1 ";
 	
 	if (!$user->rights->societe->client->voir && !$_REQUEST['socid']) //restriction
 	{
@@ -344,6 +345,8 @@ function _liste(&$ATMdb, &$simulation) {
 		
 		$THide[] = 'Client';
 	}
+	
+	$sql.= ' AND s.entity IN('.getEntity('fin_simulation', 1).')';
 	
 	if(!$user->rights->financement->allsimul->suivi_leaser){
 		$THide[] = 'suivi';

@@ -203,7 +203,7 @@ function _affOrdreLeaser(&$ATMdb,&$TBS,&$TFin_grille_suivi,$mode,$typeContrat){
 	echo $form->hidden('action', 'save');
 	echo $form->hidden('typeContrat', $typeContrat );
 	
-	$ATMdb->Execute("SELECT rowid, fk_leaser_solde, montantbase FROM ".MAIN_DB_PREFIX."fin_grille_suivi WHERE fk_type_contrat = '".$typeContrat."' ORDER BY montantbase ASC");
+	$ATMdb->Execute("SELECT rowid, fk_leaser_solde, montantbase FROM ".MAIN_DB_PREFIX."fin_grille_suivi WHERE fk_type_contrat = '".$typeContrat."' AND entity = ".getEntity()." ORDER BY montantbase ASC");
 	$ordre = 1;
 	$grille = array();
 	while ($ATMdb->Get_line()) {
