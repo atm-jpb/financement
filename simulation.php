@@ -953,7 +953,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	return $r->renderArray($ATMdb, $TDossier, array(
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
-			,'nbLine'=>'10'
+			,'nbLine'=>'150'
 		)
 		,'orderBy'=>array(
 			'num_affaire' => 'DESC'
@@ -983,7 +983,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	return $r->render($ATMdb, $sql, array(
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 0)
-			,'nbLine'=>'10'
+			,'nbLine'=>'150'
 		)
 		,'orderBy'=>array(
 			'N° affaire' => 'DESC'
