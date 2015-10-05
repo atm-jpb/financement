@@ -6,6 +6,7 @@ require('./class/affaire.class.php');
 require('./class/dossier.class.php');
 require('./class/dossier_integrale.class.php');
 require('./class/score.class.php');
+require('./lib/financement.lib.php');
 
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
@@ -346,7 +347,7 @@ function _liste(&$ATMdb, &$simulation) {
 		$THide[] = 'Client';
 	}
 	
-	$sql.= ' AND s.entity IN('.getEntity('fin_simulation', 1).')';
+	$sql.= ' AND s.entity IN('.getEntity('fin_simulation', TFinancementTools::user_courant_est_admin_financement()).')';
 	
 	if(!$user->rights->financement->allsimul->suivi_leaser){
 		$THide[] = 'suivi';

@@ -6,6 +6,7 @@
 	require('./class/dossier.class.php');
 	require('./class/dossier_integrale.class.php');
 	require('./class/grille.class.php');
+	require('./lib/financement.lib.php');
 	
 	dol_include_once("/core/lib/company.lib.php");
 	dol_include_once('/asset/class/asset.class.php');
@@ -357,8 +358,9 @@ function _liste(&$PDOdb, &$dossier) {
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe l ON (fl.fk_soc=l.rowid)))) ";
 	//$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_source=a.rowid AND ee.sourcetype = 'affaire' AND ee.targettype = 'facture')) ";
 	//$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."facture f ON (f.rowid=ee.fk_target)) ";
-
-	$sql.=" WHERE a.entity=".$conf->entity;
+	
+	//$sql.=" WHERE a.entity=".$conf->entity;
+	$sql.=" WHERE a.entity IN(".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
 	
 	//Filtrage sur leaser et uniquement dossier avec "Bon pour transfert" = 1 (Oui)
 	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
