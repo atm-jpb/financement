@@ -111,3 +111,10 @@ if(isset($_REQUEST['penalite']) || isset($_REQUEST['all'])) {
 	echo '<br>Configurations de la table '.MAIN_DB_PREFIX.'fin_grille_penalite copiees dans les nouvelles entites';
 }
 /***************************"Grille pénalités"****************************/
+
+
+/****************************Entité des dossiers de financement***********/
+if(isset($_REQUEST['dossier']) || isset($_REQUEST['all'])) {
+	$db->query('UPDATE '.MAIN_DB_PREFIX.'fin_dossier SET entity = 1 WHERE entity = 0');
+}
+/****************************Entité des dossiers de financement***********/
