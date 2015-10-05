@@ -452,6 +452,8 @@ function getStatutSuivi($idSimulation){
 function _fiche(&$ATMdb, &$simulation, $mode) {
 	global $db, $langs, $user, $conf;
 	
+	TFinancementTools::check_user_rights($simulation);
+	
 	if( $simulation->getId() == 0) {
 			
 		$simulation->duree = __get('duree', $simulation->duree, 'integer');

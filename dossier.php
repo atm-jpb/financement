@@ -854,6 +854,8 @@ function _get_facture_mat($fk_source,$withlink=true){
 function _fiche(&$PDOdb, &$dossier, $mode) {
 	global $user,$db;
 	
+	TFinancementTools::check_user_rights($dossier);
+	
 	$html=new Form($db);
 	/*
 	 * Liste des affaires rattachés à ce dossier

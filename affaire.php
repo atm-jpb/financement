@@ -290,6 +290,8 @@ function _liste(&$ATMdb, &$affaire) {
 function _fiche(&$ATMdb, &$affaire, $mode) {
 	global $db,$user;
 	
+	TFinancementTools::check_user_rights($affaire);
+	
 	if(empty($affaire->societe) || empty($affaire->societe->id)) {
 		$affaire->societe = new Societe($db);
 		$affaire->societe->fetch($affaire->fk_soc);

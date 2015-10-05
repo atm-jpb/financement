@@ -21,4 +21,14 @@ class TFinancementTools {
 		
 	}
 	
+	function check_user_rights(&$object) {
+		
+		global $user, $conf;
+		
+		dol_include_once('/core/lib/security.lib.php');
+
+		if(!TFinancementTools::user_courant_est_admin_financement() && $object->rowid > 0 && $object->entity != getEntity()) accessforbidden();
+		
+	}
+	
 }
