@@ -134,7 +134,8 @@ class TSimulation extends TObjetStd {
 		$TCategoriesFille = $categorieParent->get_filles();
 		
 		foreach ($TCategoriesFille as $categorieFille) {
-			$TLeaser = $categorieFille->get_type("societe","Fournisseur","fournisseur");
+			//$TLeaser = $categorieFille->get_type("societe","Fournisseur","fournisseur");
+			$TLeaser = $categorieFille->getObjectsInCateg("supplier");
 			
 			//Pour chaque leaser, ajout d'une ligne de suivi
 			foreach($TLeaser as $leaser){

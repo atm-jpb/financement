@@ -10,6 +10,7 @@
 	
 	dol_include_once("/core/lib/company.lib.php");
 	dol_include_once('/asset/class/asset.class.php');
+	dol_include_once('/multicompany/class/dao_multicompany.class.php');
 	
 	$langs->load('financement@financement');
 	
@@ -1081,7 +1082,12 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 		
 		$dossier->financement->total_loyer -= $dossier->financement->echeance;
 	}*/
-	
+
+	$e = new DaoMulticompany($db);
+	$e->getEntities();
+	$TEntities = array();
+	foreach($e->entities as $obj_entity) $TEntities[$obj_entity->id] = $obj_entity->label;
+
 	//pre($TAffaire,true);exit;
 	print $TBS->render('./tpl/dossier.tpl.php'
 		,array(
@@ -1090,6 +1096,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 		,array(
 			'dossier'=>array(
 				'id'=>$dossier->rowid
+				,'entity'=>$form->combo('', 'entity', $TEntities, empty($dossier->entity) ? getEntity('fin_dossier') : $dossier->entity)
+				//combo($pLib,$pName,$pListe,$pDefault,$pTaille=1,$onChange='',$plus='',$class='flat',$id='',$multiple='false'){
 				/*,'reference'=>$form->texte('', 'reference', $dossier->reference, 100,255,'','','à saisir')*/ 
 				,'date_relocation'=>$form->calendrier('', 'date_relocation', $dossier->get_date('date_relocation'),10)
 				,'commentaire'=>$form->zonetexte('', 'commentaire', $dossier->commentaire,100,5,'')

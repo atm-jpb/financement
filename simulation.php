@@ -7,6 +7,7 @@ require('./class/dossier.class.php');
 require('./class/dossier_integrale.class.php');
 require('./class/score.class.php');
 require('./lib/financement.lib.php');
+dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
@@ -520,6 +521,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$link_user_suivi = '<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_suivi.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user_suivi->login.'</a>';
 	}
 	
+	$e = new DaoMulticompany($db);
+	$e->getEntities();
+	$TEntities = array();
+	foreach($e->entities as $obj_entity) $TEntities[$obj_entity->id] = $obj_entity->label;
+	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
@@ -531,6 +537,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'titre_dossier'=>load_fiche_titre($langs->trans("DossierList"),'','object_financementico.png@financement')
 				
 				,'id'=>$simulation->rowid
+				,'entity'=>$form->combo('', 'entity', $TEntities, empty($simulation->entity) ? getEntity('fin_dossier') : $simulation->entity)
 				,'ref'=>$simulation->reference
 				,'doc'=>$formfile->getDocumentsLink('financement', $filename, $filedir)
 				,'fk_soc'=>$simulation->fk_soc

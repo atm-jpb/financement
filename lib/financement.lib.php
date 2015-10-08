@@ -27,7 +27,7 @@ class TFinancementTools {
 		
 		dol_include_once('/core/lib/security.lib.php');
 
-		if(!TFinancementTools::user_courant_est_admin_financement() && $object->rowid > 0 && $object->entity != getEntity()) accessforbidden();
+		if(!TFinancementTools::user_courant_est_admin_financement() && GETPOST('action') != 'new' && $object->entity != getEntity()) accessforbidden();
 		
 	}
 	

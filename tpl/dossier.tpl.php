@@ -10,11 +10,21 @@
 			<div class="tabBar">
 				
 [onshow;block=end]
-				
+		
+		<table width="100%"  class="border">
+		</table>
+		
 		<table width="100%" class="border">
 		<tr>
 			<td colspan="4">
 				<table width="100%">
+					
+				<tr class="liste_titre">
+					<td colspan="2" width="50%" valign="top">
+						Environnement : [dossier.entity; strconv=no]
+					</td>
+				</tr>
+				
 				<tr>
 					<td width="50%" valign="top">
 						<table width="100%"  class="border">	

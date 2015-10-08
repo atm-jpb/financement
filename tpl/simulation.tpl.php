@@ -7,6 +7,17 @@
 	<div style="float:right;"><a href="mailto:financement@cpro.fr?subject=Demande d'infos : [user.firstname] [user.lastname] - [client.siren] - [client.nom]">[view.pictoMail;strconv=no] Demande d'infos</a></div>
 		[simulation.titre_simul; strconv=no]
 	<br />
+	
+	<table width="100%"  class="border">
+		<tr class="liste_titre">
+			<td width="50%" valign="top">
+				Environnement : [simulation.entity; strconv=no]
+			</td>
+		</tr>
+	</table>
+	
+	<br />
+	
 	<table class="border" width="100%">
 		<tr class="liste_titre">
 			<td colspan="4">Informations client</td>
