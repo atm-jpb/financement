@@ -296,13 +296,14 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$THide = array('fk_soc', 'fk_user_author', 'rowid');
 	
-	$sql = "SELECT DISTINCT s.rowid, s.reference, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
+	$sql = "SELECT DISTINCT s.rowid, s.reference, e.label as 'entitySimulation', s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'mois' WHEN s.opt_periodicite = 'ANNEE' THEN 'années' ELSE 'trimestres' END) as 'Durée',";
 	$sql.= " s.date_simul, u.login, s.accord, s.type_financement, lea.nom as leaser, '' as suivi";
 	$sql.= " FROM @table@ s ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON s.fk_user_author = u.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc ON s.fk_soc = soc.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as lea ON s.fk_leaser = lea.rowid ";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX.'entity e ON (e.rowid = s.entity) ';
 	
 	if (!$user->rights->societe->client->voir && !$_REQUEST['socid']) {
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON sc.fk_soc = soc.rowid";
@@ -392,6 +393,7 @@ function _liste(&$ATMdb, &$simulation) {
 			'rowid'=>'N°'
 			,'nom'=>'Client'
 			,'reference'=>'Ref.'
+			,'entitySimulation'=>'Environnement simulation'
 			,'login'=>'Utilisateur'
 			,'fk_type_contrat'=> 'Type<br>de<br>contrat'
 			,'date_simul'=>'Date<br>simulation'
@@ -702,7 +704,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	global $langs,$conf, $db, $bc;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 
-	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', a.contrat as 'Type contrat'";
+	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', e.label as 'entityDossier', a.contrat as 'Type contrat'";
 	$sql.= " , d.rowid as 'IDDoss', f.incident_paiement";
 	//$sql.= " , f.reference as 'N° contrat', f.date_debut as 'Début', f.date_fin as 'Fin'";
 	//$sql.= " , ac.fk_user";
@@ -711,10 +713,12 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_affaire = a.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON d.rowid = da.fk_fin_dossier";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement f ON (f.fk_fin_dossier = d.rowid AND type='LEASER')";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX.'entity e ON (e.rowid = d.entity) ';
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s ON (s.rowid = a.fk_soc)";
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire_commercial ac ON ac.fk_fin_affaire = a.rowid";
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
-	$sql.= " WHERE a.entity = ".$conf->entity;
+	//$sql.= " WHERE a.entity = ".$conf->entity;
+	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')';
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
 	$sql.= " AND a.fk_soc IN (
 				SELECT s.rowid 
@@ -907,6 +911,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
 			,'num_affaire' => $ATMdb->Get_field('N° affaire')
+			,'entityDossier' => $ATMdb->Get_field('entityDossier')
 			,'id_dossier' => $dossier->getId()
 			,'num_contrat' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['num_contrat']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['num_contrat'] :$fin->reference
 			,'type_contrat' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['type_contrat']) ? $affaire->TContrat[$simulation->dossiers[$ATMdb->Get_field('IDDoss')]['type_contrat']] : $affaire->TContrat[$ATMdb->Get_field('Type contrat')]

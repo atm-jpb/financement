@@ -341,7 +341,7 @@ function _liste(&$PDOdb, &$dossier) {
 	}
 	
 	$r = new TSSRenderControler($dossier);
-	$sql ="SELECT d.rowid as 'ID', fc.reference as refDosCli, fl.reference as refDosLea, a.rowid as 'ID affaire', a.reference as 'Affaire', ";
+	$sql ="SELECT d.rowid as 'ID', fc.reference as refDosCli, e.label as 'entityDossier', fl.reference as refDosLea, a.rowid as 'ID affaire', a.reference as 'Affaire', ";
 	$sql.="a.nature_financement, a.fk_soc, c.nom as nomCli, l.nom as nomLea, ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.duree ELSE fl.duree END as 'Durée', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.montant ELSE fl.montant END as 'Montant', ";
@@ -357,6 +357,7 @@ function _liste(&$PDOdb, &$dossier) {
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_financement fl ON (d.rowid=fl.fk_fin_dossier AND fl.type='LEASER')) ";
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe c ON (a.fk_soc=c.rowid)) ";
 	$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe l ON (fl.fk_soc=l.rowid)))) ";
+	$sql.="LEFT JOIN ".MAIN_DB_PREFIX.'entity e ON (e.rowid = d.entity) ';
 	//$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_source=a.rowid AND ee.sourcetype = 'affaire' AND ee.targettype = 'facture')) ";
 	//$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."facture f ON (f.rowid=ee.fk_target)) ";
 	
@@ -406,6 +407,7 @@ function _liste(&$PDOdb, &$dossier) {
 		,'title'=>array(
 			'refDosCli'=>'Contrat'
 			,'refDosLea'=>'Contrat Leaser'
+			,'entityDossier'=>'Environnement dossier'
 			,'nomCli'=>'Client'
 			,'nomLea'=>'Leaser'
 			,'nature_financement'=>'Nature'
