@@ -11,6 +11,7 @@
 [onshow;block=end]
 				
 			<table width="100%" class="border">
+			<tr><td width="20%">Environnement affaire</td><td>[affaire.entity; strconv=no]</td></tr>
 			<tr><td width="20%">Numéro d'affaire Artis</td><td>[affaire.reference; strconv=no]</td></tr>
 			<tr><td width="20%">Client</td><td>[affaire.societe; strconv=no]</td></tr>
 			

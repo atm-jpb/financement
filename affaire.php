@@ -399,6 +399,19 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 	//require('./tpl/affaire.tpl.php');
 	$TBS=new TTemplateTBS();
 	
+	$e = new DaoMulticompany($db);
+	$e->getEntities();
+	$TEntities = array();
+	foreach($e->entities as $obj_entity) $TEntities[$obj_entity->id] = $obj_entity->label;
+	
+	$entity = empty($affaire->entity) ? getEntity('fin_dossier') : $affaire->entity;
+	
+	if(TFinancementTools::user_courant_est_admin_financement()){
+		$entity_field = $form->combo('', 'entity', $TEntities, $entity);
+	} else {
+		$entity_field = $TEntities[$entity].$form->hidden('entity', $entity);
+	}
+	
 	print $TBS->render('./tpl/affaire.tpl.php'
 		,array(
 			'dossier'=>$TDossier
@@ -408,6 +421,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 			'affaire'=>array(
 				'id'=>$affaire->rowid
 				,'ref'=>$affaire->reference
+				,'entity'=>$entity_field
 				,'reference'=>$formRestricted->texte('', 'reference', $affaire->reference, 100,255,'','','à saisir') 
 				,'nature_financement'=>$formRestricted->combo('', 'nature_financement', $affaire->TNatureFinancement , $affaire->nature_financement)
 				,'type_financement'=>$formRestricted->combo('', 'type_financement', $affaire->TTypeFinancement , $affaire->type_financement)

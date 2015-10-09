@@ -529,6 +529,14 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	$TEntities = array();
 	foreach($e->entities as $obj_entity) $TEntities[$obj_entity->id] = $obj_entity->label;
 	
+	$entity = empty($simulation->entity) ? getEntity('fin_dossier') : $simulation->entity;
+	
+	if(TFinancementTools::user_courant_est_admin_financement()){
+		$entity_field = $form->combo('', 'entity', $TEntities, $entity);
+	} else {
+		$entity_field = $TEntities[$entity].$form->hidden('entity', $entity);
+	}
+	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
@@ -540,7 +548,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'titre_dossier'=>load_fiche_titre($langs->trans("DossierList"),'','object_financementico.png@financement')
 				
 				,'id'=>$simulation->rowid
-				,'entity'=>$form->combo('', 'entity', $TEntities, empty($simulation->entity) ? getEntity('fin_dossier') : $simulation->entity)
+				,'entity'=>$entity_field
 				,'ref'=>$simulation->reference
 				,'doc'=>$formfile->getDocumentsLink('financement', $filename, $filedir)
 				,'fk_soc'=>$simulation->fk_soc

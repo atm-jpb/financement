@@ -120,7 +120,6 @@ class TFin_affaire extends TObjetStd {
 		if(!$user->rights->financement->affaire->write) return false;
 		
 		$this->calculSolde();
-		$this->entity = $conf->entity;
 
 		//Si dossier financement verrouillé, seule une action humaine doit permettre la modification de la classif
 		if($this->TLien[0]->dossier->financementLeaser->okPourFacturation === 'AUTO'){
