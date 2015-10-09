@@ -169,19 +169,21 @@ function _liste(&$ATMdb, &$affaire) {
 	$errone = GETPOST('errone');
 	
 	$r = new TSSRenderControler($affaire);
-	$sql="SELECT a.rowid as 'ID', a.reference, a.montant as 'Montant', a.fk_soc, s.nom
+	$sql="SELECT a.rowid as 'ID', a.reference, e.label, a.montant as 'Montant', a.fk_soc, s.nom
 	, a.nature_financement, a.type_financement, a.contrat, a.date_affaire
 		FROM @table@ a LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid)
+		LEFT JOIN ".MAIN_DB_PREFIX."entity e ON (a.entity = e.rowid)
 		WHERE a.entity IN(".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
 	//echo $sql; exit;
 	
 	if($errone){
-		$sql="SELECT a.rowid as 'ID', a.reference, a.montant as 'Montant Affaire', SUM(df.montant) as 'Montant Financé', df.fk_fin_dossier, a.fk_soc, s.nom , a.nature_financement, a.type_financement, a.contrat, a.date_affaire 
+		$sql="SELECT a.rowid as 'ID', a.reference, e.label, a.montant as 'Montant Affaire', SUM(df.montant) as 'Montant Financé', df.fk_fin_dossier, a.fk_soc, s.nom , a.nature_financement, a.type_financement, a.contrat, a.date_affaire 
 			  FROM llx_fin_affaire a 
 			  	LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid) 
 			  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) 
 			  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (d.rowid = da.fk_fin_dossier) 
-			  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid) 
+			  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid)
+				LEFT JOIN ".MAIN_DB_PREFIX."entity e ON (a.entity = e.rowid) 
 			  WHERE a.entity IN(".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")
 			  	AND df.type = 'LEASER' 
 			  	AND df.montant != a.montant";
@@ -261,6 +263,7 @@ function _liste(&$ATMdb, &$affaire) {
 		,'title'=>array(
 			'reference'=>'Numéro d\'affaire'
 			,'nom'=>'Société'
+			,'label'=>'Environnement affaire'
 			,'nature_financement'=>'Nature'
 			,'type_financement'=> 'Type'
 			,'contrat'=> 'Type de contrat'
@@ -271,6 +274,7 @@ function _liste(&$ATMdb, &$affaire) {
 			'reference'=>true
 			,'nom'=>array('recherche'=>true,'table'=>'s')
 			,'nature_financement'=>$affaire->TNatureFinancement
+			,'label'=>array('recherche'=>true, 'table'=>'e')
 			,'type_financement'=>$affaire->TTypeFinancement
 			,'contrat'=>$affaire->TContrat
 			,'date_affaire'=>'calendar'

@@ -296,7 +296,7 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$THide = array('fk_soc', 'fk_user_author', 'rowid');
 	
-	$sql = "SELECT DISTINCT s.rowid, s.reference, e.label as 'entitySimulation', s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
+	$sql = "SELECT DISTINCT s.rowid, s.reference, e.label, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'mois' WHEN s.opt_periodicite = 'ANNEE' THEN 'années' ELSE 'trimestres' END) as 'Durée',";
 	$sql.= " s.date_simul, u.login, s.accord, s.type_financement, lea.nom as leaser, '' as suivi";
 	$sql.= " FROM @table@ s ";
@@ -393,7 +393,7 @@ function _liste(&$ATMdb, &$simulation) {
 			'rowid'=>'N°'
 			,'nom'=>'Client'
 			,'reference'=>'Ref.'
-			,'entitySimulation'=>'Environnement simulation'
+			,'label'=>'Environnement simulation'
 			,'login'=>'Utilisateur'
 			,'fk_type_contrat'=> 'Type<br>de<br>contrat'
 			,'date_simul'=>'Date<br>simulation'
@@ -405,6 +405,7 @@ function _liste(&$ATMdb, &$simulation) {
 		,'search'=>array(
 			'nom'=>array('recherche'=>true, 'table'=>'soc')
 			,'login'=>array('recherche'=>true, 'table'=>'u')
+			,'label'=>array('recherche'=>true, 'table'=>'e')
 			,'fk_type_contrat'=>$affaire->TContrat
 			,'type_financement'=>$affaire->TTypeFinancement
 			,'date_simul'=>'calendar'
