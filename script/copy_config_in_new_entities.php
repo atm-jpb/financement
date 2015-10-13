@@ -41,7 +41,7 @@ if(isset($_REQUEST['conf']) || isset($_REQUEST['all'])) {
 /***************************"Grille de coefficients"********************************/
 if(isset($_REQUEST['coef']) || isset($_REQUEST['all'])) {
 	// Passage des conf de la page "Grille de coefficients" de l'entité 0 vers l'entité 1
-	$sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_grille_leaser SET entity = 1 WHERE entity = 0';
+	$sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_grille_leaser SET entity = 1 WHERE entity = 0 OR entity IS NULL';
 	$db->query($sql);
 	
 	// Copie des conf de la page "Grille de coefficients" vers les nouvelles entités
@@ -71,7 +71,7 @@ if(isset($_REQUEST['coef']) || isset($_REQUEST['all'])) {
 /***************************"Grille suivi"********************************/
 if(isset($_REQUEST['suivi']) || isset($_REQUEST['all'])) {
 	// Passage des conf de la table "Grille suivi" de l'entité 0 vers l'entité 1
-	$sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_grille_suivi SET entity = 1 WHERE entity = 0';
+	$sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_grille_suivi SET entity = 1 WHERE entity = 0 OR entity IS NULL';
 	$db->query($sql);
 	
 	// Copie des conf de la page "Grille de coefficients" vers les nouvelles entités
