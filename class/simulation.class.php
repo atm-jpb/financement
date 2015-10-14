@@ -329,11 +329,7 @@ class TSimulation extends TObjetStd {
 			//echo $TElement[$labelCategorie];exit;
 			if($TMontant[0] < $this->montant_total_finance && $TMontant[1] >= $this->montant_total_finance && !empty($TElement[$labelCategorie])){
 				//Si aucun solde sélectionné alors on on prends l'un des deux premier élément de la grille "Pas de solde / Refus du leaser en place"
-				if($this->opt_no_case_to_settle){
-					$idLeaserPrioritaire = $TElement[$labelCategorie];
-					return $idLeaserPrioritaire;
-				}
-				elseif($idLeaserDossierSolde){
+				if($idLeaserDossierSolde){
 					//Si dossier sélectionner à soldé, alors on prends la ligne concernée
 					$cat = new Categorie($db);
 					$TCats = $cat->containing($idLeaserDossierSolde, 1);
@@ -344,6 +340,10 @@ class TSimulation extends TObjetStd {
 							return $idLeaserPrioritaire;
 						}
 					}
+				}
+				else{
+					$idLeaserPrioritaire = $TElement[$labelCategorie];
+					return $idLeaserPrioritaire;
 				}
 				
 			}
@@ -412,7 +412,7 @@ class TSimulation extends TObjetStd {
 		$this->load_suivi_simulation($PDOdb);
 		//echo 'get<br>';
 		$TLignes = array();
-		
+		if ($this->accord == "OK" ) $form->type_aff = 'view';
 		//pre($this->TSimulationSuivi,true);
 		//Construction d'un tableau de ligne pour futur affichage TBS
 		foreach($this->TSimulationSuivi as $simulationSuivi){
@@ -427,12 +427,12 @@ class TSimulation extends TObjetStd {
 			$ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png',1).'" />' : '' ;
 			$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande') : '' ;
 			$ligne['resultat'] = ($simulationSuivi->statut) ? '<img title="'.$simulationSuivi->TStatut[$simulationSuivi->statut].'" src="'.dol_buildpath('/financement/img/'.$simulationSuivi->statut.'.png',1).'" />' : '';
-			$ligne['numero_accord_leaser'] = ($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][num_accord]', $simulationSuivi->numero_accord_leaser, 15) : '';
+			$ligne['numero_accord_leaser'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][num_accord]', $simulationSuivi->numero_accord_leaser, 25,0,'style="text-align:right;"') : $simulationSuivi->numero_accord_leaser;
 			
 			$ligne['date_selection'] = ($simulationSuivi->get_Date('date_selection')) ? $simulationSuivi->get_Date('date_selection') : '' ;
 			$ligne['utilisateur'] = ($simulationSuivi->fk_user_author && $simulationSuivi->date_cre != $simulationSuivi->date_maj) ? $link_user : '' ;
 			
-			$ligne['coeff_leaser'] = ($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][coeff_accord]', $simulationSuivi->coeff_leaser, 5) : '';
+			$ligne['coeff_leaser'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][coeff_accord]', $simulationSuivi->coeff_leaser, 5,0,'style="text-align:right;"') : (($simulationSuivi->coeff_leaser>0) ? $simulationSuivi->coeff_leaser : '');
 			$ligne['actions'] = $simulationSuivi->getAction($this);
 			
 			$TLignes[] = $ligne;
@@ -1106,11 +1106,15 @@ class TSimulationSuivi extends TObjetStd {
 				//Sélectionner
 				if($this->statut === 'OK'){
 					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=selectionner" title="Sélectionner ce leaser"><img src="'.dol_buildpath('/financement/img/selectionner.png',1).'" /></a>&nbsp;';
+					//Enregistrer
+					$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
 				}
 				else{
-					if($this->statut !== 'KO'){	
-						//Envoyer
-						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
+					if($this->statut !== 'KO'){
+						if($this->TLeaserAuto[$this->fk_leaser]){	
+							//Envoyer
+							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
+						}
 						//Enregistrer
 						$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
 						//Accepter
@@ -1164,10 +1168,10 @@ class TSimulationSuivi extends TObjetStd {
 			// 20113 = BNP Mandatée // 3382 = BNP Cession (Location simple) // 19483 = Lixxbail Mandatée // 6065 = Lixxbail Cession (Location simple)
 			$sql = "SELECT rowid 
 					FROM ".MAIN_DB_PREFIX."fin_simulation_suivi 
-					WHERE fk_leaser = 20113 
+					WHERE (fk_leaser = 20113 
 						OR fk_leaser = 3382 
 						OR fk_leaser = 19483
-						OR fk_leaser = 6065
+						OR fk_leaser = 6065)
 						AND fk_simulation = ".$this->fk_simulation;
 			$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 
@@ -1292,8 +1296,21 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		$soap = new SoapClient($soapWSDL,array('trace'=>TRUE));
-		//pre($soap->__getTypes(),true);
-
+		
+		$username = 'DFERRAZZI';
+		$password = 'Test321test';
+		$header_part = '
+			<wsse:Security SOAP-ENV:mustUnderstand="0" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+				<wsse:UsernameToken wsu:Id="UsernameToken-21" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+					<wsse:Username>DFERRAZZI</wsse:Username>
+					<wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">Test321test</wsse:Password>
+				</wsse:UsernameToken>
+			</wsse:Security>
+		';
+		$soap_var_header = new SoapVar( $header_part, XSD_ANYXML, null, null, null );
+		$soap_header = new SoapHeader($soapWSDL, 'wsse', $soap_var_header );
+		$soap->__setSoapHeaders($soap_header);
+		
 		$TtransmettreDemandeFinancementRequest['CreateDemFinRequest'] = $this->_getGEDataTabForDemande($PDOdb);
 
 		//pre($TtransmettreDemandeFinancementRequest,true);
@@ -1302,19 +1319,51 @@ class TSimulationSuivi extends TObjetStd {
 			$reponseDemandeFinancement = $soap->__call('CreateDemFin',$TtransmettreDemandeFinancementRequest);
 		}
 		catch(SoapFault $reponseDemandeFinancement) {
-			pre($reponseDemandeFinancement->detail,true);
+			pre($reponseDemandeFinancement,true);
 			//exit;
 		}
-		pre($reponseDemandeFinancement,true);
-		pre($soap->__getLastRequest());
-		pre($soap->__getLastResponse());exit;
+		pre($reponseDemandeFinancement,true);exit;
+		/*pre($soap->__getLastRequest());
+		pre($soap->__getLastResponse());exit;*/
 		
 		$this->traiteGEReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
 
 	}
+
+	function traiteErrorsDemandeGE(&$reponseDemandeFinancement){
+		
+		$this->errorLabel = "ERREUR SCORING GE : <br>";
+		switch ($reponseDemandeFinancement->ReponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_CDRET) {
+			case '1':
+				$this->errorLabel .= 'Format fichier XML demande incorrect';
+				break;
+			case '2':
+				$this->errorLabel .= 'Demande déjà existante';
+				break;
+			case '3':
+				$this->errorLabel .= 'Format fichier XSD demande incorrect';
+				break;
+			case '4':
+				$this->errorLabel .= 'Service non disponible';
+				break;
+			case '5':
+				$this->errorLabel .= 'Le contrôle de connées a identifié une incohérance';
+				break;
+			default:
+				$this->errorLabel .= 'Anomalie inconnue';
+				break;
+		}
+	}
 	
 	function traiteGEReponseDemandeFinancement(&$PDOdb,&$reponseDemandeFinancement){
-		//TODO
+		
+		if($reponseDemandeFinancement->ReponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_CDRET == '0'){
+			$this->numero_accord_leaser = $reponseDemandeFinancement->numeroDemandeProvisoire;
+			$this->save($PDOdb);
+		}
+		else{
+			$this->traiteErrorsDemandeGE($reponseDemandeFinancement);
+		}
 	}
 
 	function _getGEDataTabForDemande(&$PDOdb){
@@ -1473,7 +1522,7 @@ class TSimulationSuivi extends TObjetStd {
 		//pre($soap->__getFunctions(),true);exit;
 //		echo "1<br>";
 		$TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] = $this->_getBNPDataTabForDemande($PDOdb);
-		
+		//pre(preg_match('/[\S\t ]*/', 'ZI 8 RUE JEAN CHARCOT BP 279'),true);
 		//pre($TtransmettreDemandeFinancementRequest,true);exit;
 		try{
 //		echo "2<br>";
@@ -1485,32 +1534,14 @@ class TSimulationSuivi extends TObjetStd {
 		catch(SoapFault $reponseDemandeFinancement) {
 			//echo '<pre>';
 			//var_dump($reponseDemandeFinancement->detail);exit;
-			$this->errorLabel = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail->retourErreur->erreur);
+			$this->errorLabel = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail);
 			return 0;
 		}
 
 		$this->traiteBNPReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
 	}
-	
-	function traiteErrorsDemandeBNP($TObjError){
-		
-		$errorLabel = '';
-		if(count($TObjError)){
-			$errorLabel = 'ERREUR SCORING BNP : <br>';
-			if(is_array($TObjError)){
-				foreach($TObjError as $ObjError){
-					$errorLabel .= $ObjError->message.'<br>';
-				}
-			}
-			else{
-				$errorLabel .= $TObjError->message;
-			}
-		}
-		
-		return $errorLabel;
-	}
-	
-	function _consulterDemandeBNP(){
+
+	function _consulterDemandeBNP($num_accord_leaser){
 		
 		if(BNP_TEST){
 			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
@@ -1518,20 +1549,81 @@ class TSimulationSuivi extends TObjetStd {
 		else{
 			$soapWSDL = BNP_WSDL_URL;
 		}
-		$soap = new SoapClient($soapWSDL,array('local_cert'=>"/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt"));
 
-		$TconsulterSuivisDemandesRequest = $this->_getBNPDataTabForConsultation();
+		try{
+			$soap = new SoapClient($soapWSDL,array(
+									'local_cert'=>"/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt"
+									,'trace'=>1
+									,'stream_context' => stream_context_create(array(
+										    'ssl' => array(
+										        'verify_peer' => false,
+										        'allow_self_signed' => true
+										    )
+										))						
+			));
+
+		}
+		catch(SoapFault $e) {
+			var_dump($e);
+			exit;
+		}
+		
+		$TconsulterSuivisDemandesRequest['consulterSuivisDemandesRequest'] = $this->_getBNPDataTabForConsultation($num_accord_leaser);
 		
 		//pre($TconsulterSuivisDemandesRequest,true);exit;
-		$TreponseSuivisDemandes = $soap->__call('transmettreDemandeFinancement',$TconsulterSuivisDemandesRequest);
-		
+		try{
+			$TreponseSuivisDemandes = $soap->__call('consulterSuivisDemandes',$TconsulterSuivisDemandesRequest);
+			return $TreponseSuivisDemandes;
+		}
+		catch(SoapFault $TreponseSuivisDemandes) {
+			//echo '<pre>';
+			//var_dump($reponseDemandeFinancement->detail);exit;
+			$this->errorLabel = $this->traiteErrorsDemandeBNP($TreponseSuivisDemandes->detail);
+			return 0;
+		}
+
 		$this->traiteBNPReponseSuivisDemande($TreponseSuivisDemandes);
 	}
 	
 	function traiteBNPReponseDemandeFinancement(&$PDOdb,&$reponseDemandeFinancement){
 //		pre($reponseDemandeFinancemnent,true);exit;
-		$this->numero_accord_leaser = $reponseDemandeFinancement->transmettreDemandeFinancementResponse->numeroDemandeProvisoire;
+		$this->numero_accord_leaser = $reponseDemandeFinancement->numeroDemandeProvisoire;
 		$this->save($PDOdb);
+	}
+	
+	function traiteErrorsDemandeBNP($TObjError){
+		
+		//Erreur sur les données transmisent
+		$errorLabel = '';
+		if($TObjError->retourErreur->erreur){
+			
+			if(count($TObjError->retourErreur->erreur)){
+				$errorLabel = 'ERREUR SCORING BNP : <br>';
+				if(is_array($TObjError->retourErreur->erreur)){
+					foreach($TObjError->retourErreur->erreur as $ObjError){
+						$errorLabel .= $ObjError->message.'<br>';
+					}
+				}
+				else{
+					$errorLabel .= $TObjError->retourErreur->erreur->message;
+				}
+			}
+		}
+		else{ //Erreur sur le formalisme envoyé
+			if(count($TObjError->ValidationError)){
+				$errorLabel = 'ERREUR FORMAT SCORING BNP : <br>';
+				if(is_array($TObjError->ValidationError)){
+					foreach($TObjError->ValidationError as $error){
+						$errorLabel .= $error.'<br>';
+					}
+				}
+				else{
+					$errorLabel .= $TObjError->ValidationError;
+				}
+			}
+		}
+		
+		return $errorLabel;
 	}
 	
 	function traiteBNPReponseSuivisDemande(&$PDOdb,&$TreponseSuivisDemandes){
@@ -1600,11 +1692,24 @@ class TSimulationSuivi extends TObjetStd {
 		elseif($typeClient == "entreprise") $codeTypeClient = 4;
 		else $codeTypeClient = 0; //Général
 		
+		$this->simulation->societe->fetch_optionals($this->simulation->societe->id);
+		
+		$arraySearch = array(
+			'  ',
+			'.',
+			"'",
+		);
+		$arrayToReplace = array(
+			' ',
+			'',
+			'',
+		);
+		
 		$TClient = array(
-			'idNationnalEntreprise' => $this->simulation->societe->idprof2
+			'idNationnalEntreprise' => $this->simulation->societe->idprof2//($this->simulation->societe->idprof1) ? $this->simulation->societe->idprof1 : $this->simulation->societe->array_options['options_other_siren']
 			,'codeTypeClient' => $codeTypeClient
-			//,'codeFormeJuridique' => ''
-			//,'raisonSociale' => ''
+			,'codeFormeJuridique' => '5499' //TODO
+			,'raisonSociale' => str_replace($arraySearch, $arrayToReplace, $this->simulation->societe->name)
 			//,'specificiteClientPays' => array(
 				//'specificiteClientFrance' => array(
 					//'dirigeant' => array(
@@ -1615,12 +1720,12 @@ class TSimulationSuivi extends TObjetStd {
 					//)
 				//)
 			//)
-			//,'adresse' => array(
-				//'adresse' => ''
+			,'adresse' => array(
+				'adresse' => 'A'//substr(str_replace($arraySearch,$arrayToReplace,preg_replace("/\n|\ -\ |[\,\ ]{1}/", ' ', $this->simulation->societe->address)),0,31)
 				//,'adresseComplement' => ''
-				//,'codePostal' => ''
-				//,'Ville' => ''
-			//)
+				,'codePostal' => str_replace($arraySearch, $arrayToReplace, $this->simulation->societe->zip)
+				,'ville' => str_replace($arraySearch, $arrayToReplace, $this->simulation->societe->town)
+			)
 		);
 		
 		return $TClient;
@@ -1644,10 +1749,10 @@ class TSimulationSuivi extends TObjetStd {
 		$TMateriel = array(
 			'codeMateriel' => '300121' //Photocopieur
 			,'codeEtatMateriel' => 'N'
-			//,'prixDeVente' => $this->simulation->montant
+			,'prixDeVente' => $this->simulation->montant
 			//,'prixTarif' => ''
 			//,'anneeFabrication' => ''
-			,'codeMarque' => ($TCodeMarque[$this->simulation->marque_materiel]) ? $TCodeMarque[$this->simulation->marque_materiel] : '909' //909 = Divers informatique
+			,'codeMarque' => ($TCodeMarque[$this->simulation->marque_materiel]) ? $TCodeMarque[$this->simulation->marque_materiel] : '335' //909 = Divers informatique TODO
 			//,'type' => ''
 			//,'modele' => ''
 			//,'dateDeMiseEnCirculation' => ''
@@ -1659,27 +1764,27 @@ class TSimulationSuivi extends TObjetStd {
 	}
 
 	function _getBNPDataTabFinancement(&$TData){
-		
+		global $db;
 		$codeCommercial = '02'; //02 par défaut; 23 = Top Full; 2Q = Secteur Public
 		$codeFinancier = $codeTypeCalcul = '';
-		if($this->simulation->type_financement == 'FINANCIERE'){
-			$codeFinancier = '021';
-			$codeTypeCalcul = 'M';
-			if($this->simulation->getLabelCategorieClient() == 'administration'){
-				$codeCommercial = '2Q';
+		
+		$cat = new Categorie($db);
+		$TCats = $cat->containing($this->fk_leaser, 1);
+		foreach($TCats as $categorie){
+			if(strtoupper($categorie->label) == 'CESSION'){
+				$codeFinancier = '021';
+				$codeTypeCalcul = 'L';
+				if($this->simulation->getLabelCategorieClient() == 'administration'){
+					$codeCommercial = '2Q';
+				}
+				elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
+					$codeCommercial = '23';
+				}
 			}
-			elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
-				$codeCommercial = '23';
-			}
-		}
-		if($this->simulation->type_financement == 'MANDATEE'){
-			$codeFinancier = '024';
-			$codeTypeCalcul = 'L';
-			if($this->simulation->getLabelCategorieClient() == 'administration'){
-				$codeCommercial = '2Q';
-			}
-			elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
-				$codeCommercial = '23';
+			elseif(strtoupper($categorie->label) == 'MANDATEE'){
+				$codeFinancier = '024';
+				$codeTypeCalcul = 'L';
+				$codeCommercial = '02';
 			}
 		}
 		
@@ -1692,8 +1797,8 @@ class TSimulationSuivi extends TObjetStd {
 				'codeProduitFinancier' => $codeFinancier //021 = Location Financière ; 024 = Location mantadée
 				,'codeProduitCommercial' => $codeCommercial 
 			)
-			,'codeBareme' => $this->_getBNPBareme($TData,$codeCommercial) //récupérer la grille de barême (8 barêmes différents)
-			//,'montantFinance' => $this->simulation->montant
+			,'codeBareme' => $this->_getBNPBareme($TData,$codeCommercial)
+			,'montantFinance' => $this->simulation->montant
 			//,'codeTerme' => ''
 			//,'valeurResiduelle' => array(
 				//'montant'=> ''
@@ -1716,46 +1821,52 @@ class TSimulationSuivi extends TObjetStd {
 	
 	//CF drive -> Barème pour webservice CPRO.xlsx
 	function _getBNPBareme(&$TData,$codeCommercial){
+		global $db;
 		$codeBareme = '';
 		
-		if($TData['codeFamilleMateriel'] == 'H'){ // => BUREAUTIQUE
-			if($this->simulation->type_financement == 'FINANCIERE'){
-				switch ($codeCommercial) {
-					case '02': // = ''
-							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-								$codeBareme = '00000868';
-							}
-							elseif($this->simulation->opt_periodicite == 'MOIS'){
-								$codeBareme = '00004028';
-							}
-						break;
-					case '23': // = Top Full
-							if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-								$codeBareme = '00004049';
-							}
-							elseif($this->simulation->opt_periodicite == 'MOIS'){
-								$codeBareme = '00004050';
-							}
-						break;
-					case '2Q': // = Secteur Public
-							$codeBareme = '00004051';
-						break;
-					default:
-						
-						break;
+		$cat = new Categorie($db);
+		$TCats = $cat->containing($this->fk_leaser, 1);
+		
+		foreach($TCats as $categorie){
+			if($TData['codeFamilleMateriel'] == 'H'){ // => BUREAUTIQUE
+				if(strtoupper($categorie->label) == 'MANDATEE'){
+					$codeBareme = '00004046';
+				}
+				elseif(strtoupper($categorie->label) == 'CESSION'){
+					switch ($codeCommercial) {
+						case '02': // = ''
+								if($this->simulation->opt_periodicite == 'TRIMESTRE'){
+									$codeBareme = '00000868';
+								}
+								elseif($this->simulation->opt_periodicite == 'MOIS'){
+									$codeBareme = '00004028';
+								}
+							break;
+						case '23': // = Top Full
+								if($this->simulation->opt_periodicite == 'TRIMESTRE'){
+									$codeBareme = '00004049';
+								}
+								elseif($this->simulation->opt_periodicite == 'MOIS'){
+									$codeBareme = '00004050';
+								}
+							break;
+						case '2Q': // = Secteur Public
+								$codeBareme = '00004051';
+							break;
+						default:
+							
+							break;
+					}
 				}
 			}
-			elseif($this->simulation->type_financement == 'MANDATEE'){
-				$codeBareme = '00004046';
-			}
-		}
-		elseif($TData['codeFamilleMateriel'] == 'T'){ // => INFORMATIQUE
-			if($this->simulation->type_financement == 'FINANCIERE'){ //Uniquement FINANCIERE pour INFORMATIQUE
-				if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-					$codeBareme = '00004043';
-				}
-				elseif($this->simulation->opt_periodicite == 'MOIS'){
-					$codeBareme = '00004048';
+			elseif($TData['codeFamilleMateriel'] == 'T'){ // => INFORMATIQUE
+				if(strtoupper($categorie->label) == 'CESSION'){ //Uniquement FINANCIERE pour INFORMATIQUE
+					if($this->simulation->opt_periodicite == 'TRIMESTRE'){
+						$codeBareme = '00004043';
+					}
+					elseif($this->simulation->opt_periodicite == 'MOIS'){
+						$codeBareme = '00004048';
+					}
 				}
 			}
 		}
@@ -1763,7 +1874,7 @@ class TSimulationSuivi extends TObjetStd {
 		return $codeBareme;
 	}
 
-	function _getBNPDataTabForConsultation(){
+	function _getBNPDataTabForConsultation($num_accord_leaser){
 		
 		$TData = array();
 		
@@ -1771,18 +1882,18 @@ class TSimulationSuivi extends TObjetStd {
 		$TPrescripteur = array(
 			'prescripteurId' => BNP_PRESCRIPTEUR_ID
 		);
-		
+
 		$TData['prescripteur'] = $TPrescripteur;
 		
 		//Tableau Numéro demande
 		$TNumerosDemande = array(
 			'numeroIdentifiantDemande' => array(
-				'numeroDemandeDefinitif' => ''
-				,'numeroDemandeProvisoire' => ''
+				'numeroDemandeProvisoire' => $num_accord_leaser
 			)
 		);
 		
 		$TData['numerosDemande'] = $TNumerosDemande;
+//		pre($TData,true);exit;
 		
 		//Tableau Rapport Suivi
 		/*$TRapportSuivi = $this->_getBNPDataTabRapportSuivi();
