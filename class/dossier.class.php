@@ -1663,7 +1663,7 @@ class TFin_financement extends TObjetStd {
 			//echo $echeance.'<br>';
 			$this->numero_prochaine_echeance = $echeance;
 			//echo $dossier->getDateDebutPeriode($echeance);
-			$this->set_date('date_prochaine_echeance', $dossier->getDateDebutPeriode($echeance-1));
+			$this->set_date('date_prochaine_echeance', $dossier->getDateDebutPeriode($echeance));
 		}
 		
 		parent::save($ATMdb);
