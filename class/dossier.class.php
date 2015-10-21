@@ -1134,10 +1134,13 @@ class TFin_dossier extends TObjetStd {
 		}
 		else{
 			$date = date('Y-m-d',$this->financement->date_debut + $this->financement->calage);
+			//echo $date.'<br>';
 			//$date = date('Y-m-d',strtotime('+'.($echeance * $this->financement->getiPeriode()).' month',strtotime($date)));
+			//echo $echeance * $this->financement->getiPeriode()." ".$echeance." ".$date.'<br>';
 			$date = date('Y-m-d',$this->_add_month($echeance * $this->financement->getiPeriode(),  strtotime($date)));
+			
 		}
-
+		
 		return $date;
 	}
 	
@@ -1663,7 +1666,7 @@ class TFin_financement extends TObjetStd {
 			//echo $echeance.'<br>';
 			$this->numero_prochaine_echeance = $echeance;
 			//echo $dossier->getDateDebutPeriode($echeance);
-			$this->set_date('date_prochaine_echeance', $dossier->getDateDebutPeriode($echeance));
+			$this->set_date('date_prochaine_echeance', $dossier->getDateDebutPeriode($echeance-1,'CLIENT'));
 		}
 		
 		parent::save($ATMdb);
