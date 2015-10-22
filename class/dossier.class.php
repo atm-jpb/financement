@@ -540,7 +540,7 @@ class TFin_dossier extends TObjetStd {
 	 * Si INTERNE => utilisation de la penalité configurée sur la fiche tiers CPRO
 	 * Si EXTERNE => utilisation de la penalite configurée sur la fiche leaser
 	 */
-	function getPenalite(&$ATMdb, $type, $nature_financement='INTERNE') {
+	function getPenalite(&$ATMdb, $type, $nature_financement='INTERNE',$iPeriode=0) {
 		/*
 		 * TODO
 		 * à vérifier
@@ -554,7 +554,11 @@ class TFin_dossier extends TObjetStd {
 		$fk_soc = ($nature_financement == 'INTERNE') ? FIN_LEASER_DEFAULT : $f->fk_soc;
 
 		$g->get_grille($ATMdb,$f->fk_soc,$this->contrat);	
-		$coeff = (double)$g->get_coeff($ATMdb, $fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree);
+		$coeff = (double)$g->get_coeff($ATMdb, $fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree, $iPeriode);
+		
+		//pre($g,true);
+		echo $coeff.'<br>';
+		
 		return $coeff > 0 ? $coeff : 0;
 	}
 	function getMontantCommission() {
@@ -576,7 +580,7 @@ class TFin_dossier extends TObjetStd {
 		return $coeff > 0 ? $coeff : 0;*/
 		
 		$g=new TFin_grille_leaser('RENTABILITE');
-		$coeff = (double)$g->get_coeff($ATMdb, $this->financement->fk_soc, $this->contrat, 'TRIMESTRE', $this->financement->montant, 5);
+		$coeff = (double)$g->get_coeff($ATMdb, $this->financement->fk_soc, $this->contrat, 'TRIMESTRE', $this->financement->montant, 5,0);
 		return $coeff > 0 ? $coeff : 0;
 	}
 	function getRentabilitePrevisionnelle() {
@@ -611,7 +615,25 @@ class TFin_dossier extends TObjetStd {
 		
 	}
 	
+	function getCRDandLRD($type,$iPeriode=0){
+		
+		if($type=='LEASER'){
+			$financement = &$this->financementLeaser;
+		}
+		else {
+			$financement = &$this->financement;
+		}
+		
+		$duree_restante = ($iPeriode == 0) ? $financement->duree_restante : $financement->duree - $iPeriode;
+		//exit("$iPeriode");
+		$CRD = $financement->valeur_actuelle($duree_restante);
+		$LRD = $financement->echeance * $duree_restante + $financement->reste;
+		
+		return array($CRD,$LRD);
+	}
+	
 	function getSolde($ATMdb, $type='SRBANK', $iPeriode=0) {
+		global $conf;
 		
 		$duree_restante_leaser = ($iPeriode == 0) ? $this->financementLeaser->duree_restante : $this->financementLeaser->duree - $iPeriode;
 		//exit("$iPeriode");
@@ -632,38 +654,44 @@ class TFin_dossier extends TObjetStd {
 		
 		switch($type) {
 			case 'SRBANK':/* réel renouvellant */
-				if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH ) return $this->financementLeaser->montant;
+				if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH ) return $this->financementLeaser->montant;
 				if($this->financementLeaser->duree < $iPeriode) return 0;
 				
+				echo '***'.$baseCalcul.'<br>';
+				
 				if($this->nature_financement == 'INTERNE') {
-					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
+					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100);
 				
 				}
 				else {
-					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
+					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100);
 					
 				}
 
 				break;
 			case 'SNRBANK': /* réel non renouvellant */
-				if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+				if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
 				if($this->financementLeaser->duree < $iPeriode) return 0;
 				
+				echo '***'.$baseCalcul.'<br>';
+				
 				if($this->nature_financement == 'INTERNE') {
-					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100);
+					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE',$iPeriode) / 100);
 				}
 				else {
-					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100);
+					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE',$iPeriode) / 100);
 				}
 				break;
-				
+			/* ******************************************************************************************************
+			 * TODO ne sert actuellement plus mais par sécurité on conserve
+			 * *****************************************************************************************************/
 			case 'SNRCPRO': /* Vendeur non renouvellant */
 			
 				if($this->nature_financement == 'INTERNE') {
-					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
 					if($this->financement->duree < $iPeriode) return 0;
 				} else {
-					if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+					if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
 					if($this->financementLeaser->duree < $iPeriode) return 0;
 					
 				}
@@ -672,7 +700,7 @@ class TFin_dossier extends TObjetStd {
 					return $LRD;
 				}
 				else {
-					//return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'NR', 'INTERNE') / 100);
+					//return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE',$iPeriode) / 100) * (1 + $this->getPenalite($ATMdb,'NR', 'INTERNE',$iPeriode) / 100);
 					return $LRD_Leaser;
 				}
 				break;
@@ -680,18 +708,18 @@ class TFin_dossier extends TObjetStd {
 			case 'SRCPRO': /* Vendeur renouvellant */
 				
 				if($this->nature_financement == 'INTERNE') {
-					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
 					if($this->financement->duree < $iPeriode) return 0;
 				} else {
-					//echo ($this->financementLeaser->duree." - ".$duree_restante_leaser)." * ".$this->financementLeaser->getiPeriode()." <= ".SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH;exit;
-					if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+					//echo ($this->financementLeaser->duree." - ".$duree_restante_leaser)." * ".$this->financementLeaser->getiPeriode()." <= ".$conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH;exit;
+					if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
 					if($this->financementLeaser->duree < $iPeriode) return 0;
 				}
 					
 				if($this->nature_financement == 'INTERNE') {
 					
 					$rentabiliteReste = $this->getRentabiliteReste($ATMdb);
-					//(1 + $this->getPenalite($ATMdb,'R','INTERNE') / 100)
+					//(1 + $this->getPenalite($ATMdb,'R','INTERNE',$iPeriode) / 100)
 					$solde = $CRD + ($rentabiliteReste>($CRD * CRD_COEF_RENTA_ATTEINTE) ? $rentabiliteReste : $CRD * CRD_COEF_RENTA_ATTEINTE  )  + $this->getMontantCommission();
 					
 					return ($solde>$LRD)?$LRD:$solde;
@@ -702,23 +730,26 @@ class TFin_dossier extends TObjetStd {
 					$nb_month = (($nb_periode_passe-1) * $this->financementLeaser->getiPeriode());
 					$dateProchaine = strtotime('+'.$nb_month.' month', $this->date_debut + $this->calage);
 					
-					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
-					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE') / 100);
+					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100);
+					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100);
 					if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382
 						|| $dateProchaine > strtotime('2014-08-15')) { // Ticket 939
-						$solde *= (1 + $this->getPenalite($ATMdb,'R', 'INTERNE') / 100);
+						$solde *= (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100);
 					}
 					//exit($LRD_Leaser);
 					return ($solde>$LRD_Leaser)?$LRD_Leaser:$solde;
 				}
 				
 				break;
+				
+			/**********************************************************************************************************************
+			 * TODO FIN ne sert actuellement plus
+			 * ********************************************************************************************************************/
 			case 'perso': /* solde personnalisé */
 				
 					return $this->soldeperso;
 
 				break;
-			
 			case 'SRNRSAME':
 					
 					//Calcul du Solde Renouvelant et Non Renouvelant CPRO 
@@ -734,7 +765,7 @@ class TFin_dossier extends TObjetStd {
 					
 					//pre($this->financement);
 					
-					$seuil_solde = SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH;
+					$seuil_solde = $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH;
 					if($this->financement->periodicite == 'MOIS') $seuil_solde += 2;
 					
 					//echo $this->financement->duree-$duree_restante_client." * ".$this->financement->getiPeriode()." <= ".$seuil_solde.'<br>';
@@ -902,14 +933,35 @@ class TFin_dossier extends TObjetStd {
 				$form = new Form($db);
 				$htmlSoldes = '<table>';
 				if($type_echeancier == 'CLIENT') {
-					//echo "solde affiché => ".$this->getSolde($ATMdb, 'SRNRSAME', $i+1).'<br>';
+					
+					//Ticket 3049
+					$SR = $this->getSolde($ATMdb, 'SRNRSAME', $i+1);
+					$SNR = $this->getSolde($ATMdb, 'SRNRSAME', $i+1);
+					
+					list($CRD_client,$LRD_client) = $this->getCRDandLRD('CLIENT',$i+1);
+					
+					if($SR > $LRD_client) $SR = $LRD_client;
+					if($SNR > $LRD_client) $SNR = $LRD_client;
+					//FIN Ticket 3049
+					
 					$htmlSoldes.= '<tr><td colspan="2" align="center">Apr&egrave;s l\'&eacute;ch&eacute;ance n&deg;'.($i+1).'</td></tr>';
-					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRNRSAME', $i+1),2,',',' ').' &euro;</strong></td></tr>';
-					$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRNRSAME', $i+1),2,',',' ').' &euro;</strong></td></tr>';
+					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($SR,2,',',' ').' &euro;</strong></td></tr>';
+					$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($SNR,2,',',' ').' &euro;</strong></td></tr>';
 				} else {
+					
+					//Ticket 3049
+					$SR = $this->getSolde($ATMdb, 'SRBANK', $i+1);
+					$SNR = $this->getSolde($ATMdb, 'SNRBANK', $i+1);
+					
+					list($CRD_leaser,$LRD_leaser) = $this->getCRDandLRD('LEASER',$i+1);
+					
+					if($SR > $LRD_leaser) $SR = $LRD_leaser;
+					if($SNR > $LRD_leaser) $SNR = $LRD_leaser;
+					//FIN Ticket 3049
+					
 					$htmlSoldes.= '<tr><td colspan="2" align="center">Apr&egrave;s l\'&eacute;ch&eacute;ance n&deg;'.($i+1).'</td></tr>';
-					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SRBANK', $i+1),2,',',' ').' &euro;</strong></td></tr>';
-					$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($this->getSolde($ATMdb, 'SNRBANK', $i+1),2,',',' ').' &euro;</strong></td></tr>';
+					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($SR,2,',',' ').' &euro;</strong></td></tr>';
+					$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($SNR,2,',',' ').' &euro;</strong></td></tr>';
 				}
 				$htmlSoldes.= '</table>';
 				$data['soldes'] = htmlentities($htmlSoldes);

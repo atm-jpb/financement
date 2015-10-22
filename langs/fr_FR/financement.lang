@@ -36,6 +36,8 @@ PercentNbTrimCopiesSup=Nombre de trimestre pour calcul copies suplémentaires
 PercentAugCRD=Pourcentage d'augmentation du CRD pour calcul Solde Loc Addosée ou Mandatée
 NbInvoiceUnpaid=Indisponibilité du solde dans la simulation si X factures non payées
 NbDayDossierIndispo=Nombre de jour avant disponibilité d'un dossier dans une simulation s'il est déjà sélectionné dans une simulation antérieure
+NbMoisSoldeCPRO=Nombre de mois avant avant application des règles de calcule des soldes sur échéancier CLIENT
+NbMoisSoldeBANK=Nombre de mois avant avant application des règles de calcule des soldes sur échéancier LEASER
 
 # SIMULATIONS
 Simulations=Simulations

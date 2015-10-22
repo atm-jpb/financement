@@ -275,7 +275,7 @@ class TFin_grille_leaser extends TObjetStd {
 		}
 	}
 
-	function get_coeff(&$ATMdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE', $montant, $duree, $options=array()) {
+	function get_coeff(&$ATMdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE', $montant, $duree, $iPeriode =0 ,$options=array()) {
 		
     	if(empty($idLeaser) || empty($idTypeContrat)) return -1;
 		
@@ -290,10 +290,16 @@ class TFin_grille_leaser extends TObjetStd {
 		
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
         $sql.= " WHERE t.fk_soc = ".$idLeaser;
-		$sql.= " AND t.fk_type_contrat = '".$idTypeContrat."'
-		 AND t.periode <= ".$duree." AND t.type='".$this->type."' AND t.montant>=".$montant;
-		$sql.= " ORDER BY t.periode DESC, t.montant ASC LIMIT 1";
-
+		$sql.= " AND t.fk_type_contrat = '".$idTypeContrat."' ";
+		if(!$iPeriode){
+			$sql.= " AND t.periode <= ".$duree;
+		}
+		else{
+			$sql.= " AND t.periode = ".$iPeriode;
+		}
+		$sql.= " AND t.type='".$this->type."' AND t.montant>=".$montant;
+		$sql.= " ORDER BY t.periode ASC, t.montant ASC LIMIT 1";
+		//echo "**** ".$sql." *****<br>";
 		$ATMdb->Execute($sql);
 		if($ATMdb->Get_recordCount()>0) {
 		/*	while($db->Get_line()) {
