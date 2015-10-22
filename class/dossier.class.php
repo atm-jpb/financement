@@ -557,7 +557,7 @@ class TFin_dossier extends TObjetStd {
 		$coeff = (double)$g->get_coeff($ATMdb, $fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree, $iPeriode);
 		
 		//pre($g,true);
-		echo $coeff.'<br>';
+		//echo $coeff.'<br>';
 		
 		return $coeff > 0 ? $coeff : 0;
 	}
@@ -657,7 +657,7 @@ class TFin_dossier extends TObjetStd {
 				if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH ) return $this->financementLeaser->montant;
 				if($this->financementLeaser->duree < $iPeriode) return 0;
 				
-				echo '***'.$baseCalcul.'<br>';
+				//echo '***'.$baseCalcul.'<br>';
 				
 				if($this->nature_financement == 'INTERNE') {
 					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100);
@@ -673,7 +673,7 @@ class TFin_dossier extends TObjetStd {
 				if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
 				if($this->financementLeaser->duree < $iPeriode) return 0;
 				
-				echo '***'.$baseCalcul.'<br>';
+				//echo '***'.$baseCalcul.'<br>';
 				
 				if($this->nature_financement == 'INTERNE') {
 					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE',$iPeriode) / 100);
