@@ -322,7 +322,7 @@ class TFin_affaire extends TObjetStd {
 					AND s.rowid = '.$fk_leaser.'
 					AND df.transfert = 1';
 		
-		echo $sql;exit;
+		//echo $sql;exit;
 		
 		$TIdAffaire = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 		
