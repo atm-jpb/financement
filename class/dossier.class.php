@@ -766,7 +766,9 @@ class TFin_dossier extends TObjetStd {
 					//pre($this->financement);
 					
 					$seuil_solde = $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH;
-					if($this->financement->periodicite == 'MOIS') $seuil_solde += 2;
+					//if($this->financement->periodicite == 'MOIS') $seuil_solde += 2;
+					
+					//echo $seuil_solde.'<br>';
 					
 					//echo $this->financement->duree-$duree_restante_client." * ".$this->financement->getiPeriode()." <= ".$seuil_solde.'<br>';
 					
@@ -781,8 +783,9 @@ class TFin_dossier extends TObjetStd {
 						//return $this->financement->echeance * ($this->financement->duree - ($this->financement->numero_prochaine_echeance-1));
 					}
 					
+					//echo $solde.'<br>';
 					if($this->nature_financement == 'INTERNE') {
-						//echo $solde." > ". $LRD .'<br>';
+						//echo $solde." > ". $LRD .' > '.$this->financement->montant.'<br>';
 						return ($solde>$LRD && $LRD > $this->financement->montant)?$LRD:$solde;
 					}
 					else{
@@ -938,11 +941,16 @@ class TFin_dossier extends TObjetStd {
 					$SR = $this->getSolde($ATMdb, 'SRNRSAME', $i+1);
 					$SNR = $this->getSolde($ATMdb, 'SRNRSAME', $i+1);
 					
+					//echo " ***** ".($i+1)." *****<br>";
+					//echo "avant : ".$SR." ".$SNR.'<br>';
+					
 					list($CRD_client,$LRD_client) = $this->getCRDandLRD('CLIENT',$i+1);
 					
 					if($SR > $LRD_client) $SR = $LRD_client;
 					if($SNR > $LRD_client) $SNR = $LRD_client;
 					//FIN Ticket 3049
+					
+					//echo "après : ".$SR." ".$SNR.'<br>';
 					
 					$htmlSoldes.= '<tr><td colspan="2" align="center">Apr&egrave;s l\'&eacute;ch&eacute;ance n&deg;'.($i+1).'</td></tr>';
 					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($SR,2,',',' ').' &euro;</strong></td></tr>';
