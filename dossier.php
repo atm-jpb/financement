@@ -222,6 +222,11 @@
 				$TAffaires = $affaire->getAffairesForXML($PDOdb);
 				$affaire->resetAllDossiersInXML($PDOdb,$TAffaires);
 				
+				?>
+				<script language="javascript">
+					document.location.href="?fk_leaser=<?php echo $fk_leaser; ?>";
+				</script>
+				<?php 
 				break;
 				
 			case 'create_avoir':
@@ -431,7 +436,7 @@ function _liste(&$PDOdb, &$dossier) {
 				<a href="?action=exportXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Exporter</a>
 				<a href="?action=generateXML" class="butAction">Générer le XML Lixxbail</a>
 				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Générer le XML Lixxbail et envoyer au Leaser</a>
-				<a href="?action=setnottransfer" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
+				<a href="?action=setnottransfer&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
 		</div>
 		<?php
 	}
@@ -720,7 +725,7 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 				<a href="?action=exportXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Exporter</a>
 				<a href="?action=generateXML" class="butAction">Générer le XML Lixxbail</a>
 				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Générer le XML Lixxbail et envoyer au Leaser</a>
-				<a href="?action=setnottransfer" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
+				<a href="?action=setnottransfer&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
 		</div>
 		<?php
 	}
