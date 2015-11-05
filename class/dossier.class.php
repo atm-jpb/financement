@@ -813,6 +813,7 @@ class TFin_dossier extends TObjetStd {
 	}
 	
 	function echeancier(&$ATMdb,$type_echeancier='CLIENT', $echeanceInit = 1 ,$return = false, $withSolde = true) {
+		global $conf;
 		if($type_echeancier == 'CLIENT') $f = &$this->financement;
 		else $f = &$this->financementLeaser;
 
@@ -935,6 +936,9 @@ class TFin_dossier extends TObjetStd {
 				global $db;
 				$form = new Form($db);
 				$htmlSoldes = '<table>';
+				
+				$seuil_solde = $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH;
+				
 				if($type_echeancier == 'CLIENT') {
 					
 					//Ticket 3049
@@ -944,13 +948,17 @@ class TFin_dossier extends TObjetStd {
 					//echo " ***** ".($i+1)." *****<br>";
 					//echo "avant : ".$SR." ".$SNR.'<br>';
 					
-					list($CRD_client,$LRD_client) = $this->getCRDandLRD('CLIENT',$i+1);
+					$duree_restante_client = ($this->financement->getiPeriode() == 0) ? $this->financement->duree_restante : $this->financement->duree - $this->financement->getiPeriode();
+					if ((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) > $seuil_solde){
 					
-					if($SR > $LRD_client) $SR = $LRD_client;
-					if($SNR > $LRD_client) $SNR = $LRD_client;
-					//FIN Ticket 3049
-					
-					//echo "après : ".$SR." ".$SNR.'<br>';
+						list($CRD_client,$LRD_client) = $this->getCRDandLRD('CLIENT',$i+1);
+						
+						if($SR > $LRD_client) $SR = $LRD_client;
+						if($SNR > $LRD_client) $SNR = $LRD_client;
+						//FIN Ticket 3049
+						
+						//echo "après : ".$SR." ".$SNR.'<br>';
+					}
 					
 					$htmlSoldes.= '<tr><td colspan="2" align="center">Apr&egrave;s l\'&eacute;ch&eacute;ance n&deg;'.($i+1).'</td></tr>';
 					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($SR,2,',',' ').' &euro;</strong></td></tr>';
@@ -961,12 +969,15 @@ class TFin_dossier extends TObjetStd {
 					$SR = $this->getSolde($ATMdb, 'SRBANK', $i+1);
 					$SNR = $this->getSolde($ATMdb, 'SNRBANK', $i+1);
 					
-					list($CRD_leaser,$LRD_leaser) = $this->getCRDandLRD('LEASER',$i+1);
-					
-					if($SR > $LRD_leaser) $SR = $LRD_leaser;
-					if($SNR > $LRD_leaser) $SNR = $LRD_leaser;
-					//FIN Ticket 3049
-					
+					$duree_restante_client = ($this->financementLeaser->getiPeriode() == 0) ? $this->financementLeaser->duree_restante : $this->financementLeaser->duree - $this->financementLeaser->getiPeriode();
+					if ((($this->financementLeaser->duree - $duree_restante_client) * $this->financementLeaser->getiPeriode()) > $seuil_solde){
+
+						list($CRD_leaser,$LRD_leaser) = $this->getCRDandLRD('LEASER',$i+1);
+						
+						if($SR > $LRD_leaser) $SR = $LRD_leaser;
+						if($SNR > $LRD_leaser) $SNR = $LRD_leaser;
+						//FIN Ticket 3049
+					}
 					$htmlSoldes.= '<tr><td colspan="2" align="center">Apr&egrave;s l\'&eacute;ch&eacute;ance n&deg;'.($i+1).'</td></tr>';
 					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($SR,2,',',' ').' &euro;</strong></td></tr>';
 					$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($SNR,2,',',' ').' &euro;</strong></td></tr>';
