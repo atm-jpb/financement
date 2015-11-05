@@ -655,7 +655,7 @@ class TFin_dossier extends TObjetStd {
 		switch($type) {
 			case 'SRBANK':/* réel renouvellant */
 				if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH ) return $this->financementLeaser->montant;
-				if($this->financementLeaser->duree < $iPeriode) return 0;
+				if($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste;
 				
 				//echo '***'.$baseCalcul.'<br>';
 				
@@ -671,7 +671,7 @@ class TFin_dossier extends TObjetStd {
 				break;
 			case 'SNRBANK': /* réel non renouvellant */
 				if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
-				if($this->financementLeaser->duree < $iPeriode) return 0;
+				if($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste;
 				
 				//echo '***'.$baseCalcul.'<br>';
 				
@@ -689,10 +689,10 @@ class TFin_dossier extends TObjetStd {
 			
 				if($this->nature_financement == 'INTERNE') {
 					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
-					if($this->financement->duree < $iPeriode) return 0;
+					if($this->financement->duree < $iPeriode) return $this->financement->reste;
 				} else {
 					if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
-					if($this->financementLeaser->duree < $iPeriode) return 0;
+					if($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste;
 					
 				}
 				
@@ -709,13 +709,13 @@ class TFin_dossier extends TObjetStd {
 				
 				if($this->nature_financement == 'INTERNE') {
 					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
-					if($this->financement->duree < $iPeriode) return 0;
+					if($this->financement->duree < $iPeriode) return $this->financement->reste;
 				} else {
 					//echo ($this->financementLeaser->duree." - ".$duree_restante_leaser)." * ".$this->financementLeaser->getiPeriode()." <= ".$conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH;exit;
 					if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
-					if($this->financementLeaser->duree < $iPeriode) return 0;
+					if($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste;
 				}
-					
+				
 				if($this->nature_financement == 'INTERNE') {
 					
 					$rentabiliteReste = $this->getRentabiliteReste($ATMdb);
@@ -730,13 +730,14 @@ class TFin_dossier extends TObjetStd {
 					$nb_month = (($nb_periode_passe-1) * $this->financementLeaser->getiPeriode());
 					$dateProchaine = strtotime('+'.$nb_month.' month', $this->date_debut + $this->calage);
 					
-					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100);
-					$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100);
+					$solde = ($baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100)) + $this->financementLeaser->reste;
+					//$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100);
 					if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382
 						|| $dateProchaine > strtotime('2014-08-15')) { // Ticket 939
 						$solde *= (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100);
 					}
 					//exit($LRD_Leaser);
+					//echo ' /***-** '.$solde;
 					return ($solde>$LRD_Leaser)?$LRD_Leaser:$solde;
 				}
 				
@@ -783,7 +784,7 @@ class TFin_dossier extends TObjetStd {
 						//return $this->financement->echeance * ($this->financement->duree - ($this->financement->numero_prochaine_echeance-1));
 					}
 					
-					//echo $solde.'<br>';
+					//echo "****".$solde.'<br>';exit;
 					if($this->nature_financement == 'INTERNE') {
 						//echo $solde." > ". $LRD .' > '.$this->financement->montant.'<br>';
 						return ($solde>$LRD && $LRD > $this->financement->montant)?$LRD:$solde;
