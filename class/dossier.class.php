@@ -655,7 +655,7 @@ class TFin_dossier extends TObjetStd {
 		switch($type) {
 			case 'SRBANK':/* réel renouvellant */
 				if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH ) return $this->financementLeaser->montant;
-				if($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste;
+				if($this->financementLeaser->duree <= $iPeriode) return $this->financementLeaser->reste;
 				
 				//echo '***'.$baseCalcul.'<br>';
 				
@@ -671,7 +671,7 @@ class TFin_dossier extends TObjetStd {
 				break;
 			case 'SNRBANK': /* réel non renouvellant */
 				if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
-				if($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste;
+				if($this->financementLeaser->duree <= $iPeriode) return $this->financementLeaser->reste;
 				
 				//echo '***'.$baseCalcul.'<br>';
 				
@@ -722,7 +722,7 @@ class TFin_dossier extends TObjetStd {
 					//(1 + $this->getPenalite($ATMdb,'R','INTERNE',$iPeriode) / 100)
 					$solde = $CRD + ($rentabiliteReste>($CRD * CRD_COEF_RENTA_ATTEINTE) ? $rentabiliteReste : $CRD * CRD_COEF_RENTA_ATTEINTE  )  + $this->getMontantCommission();
 					
-					return ($solde>$LRD)?$LRD:$solde;
+					return ( $solde > $LRD && $solde != $this->financement->montant ) ? $LRD : $solde;
 				}
 				else {
 					$nb_periode_passe = $this->financementLeaser->duree_passe;
@@ -738,7 +738,7 @@ class TFin_dossier extends TObjetStd {
 					}
 					//exit($LRD_Leaser);
 					//echo ' /***-** '.$solde;
-					return ($solde>$LRD_Leaser)?$LRD_Leaser:$solde;
+					return ( $solde > $LRD_leaser && $solde != $this->financementLeaser->montant ) ? $LRD_leaser : $solde;
 				}
 				
 				break;
@@ -787,10 +787,10 @@ class TFin_dossier extends TObjetStd {
 					//echo "****".$solde.'<br>';exit;
 					if($this->nature_financement == 'INTERNE') {
 						//echo $solde." > ". $LRD .' > '.$this->financement->montant.'<br>';
-						return ($solde>$LRD && $LRD > $this->financement->montant)?$LRD:$solde;
+						return ($solde > $LRD && $solde != $this->financement->montant) ? $LRD : $solde;
 					}
 					else{
-						return ($solde>$LRD_leaser && $LRD_leaser > $this->financementLeaser->montant)?$LRD_leaser:$solde;
+						return ($solde > $LRD_leaser && $solde != $this->financementLeaser->montant) ? $LRD_leaser : $solde;
 					}
 				break;
 		}
