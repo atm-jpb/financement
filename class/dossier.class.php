@@ -656,9 +656,9 @@ class TFin_dossier extends TObjetStd {
 			case 'SRBANK':/* réel renouvellant */
 				if((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH ) return $this->financementLeaser->montant;
 				if($this->financementLeaser->duree <= $iPeriode) return $this->financementLeaser->reste;
-				
-				//echo '***'.$baseCalcul.'<br>';
-				
+					
+				/*echo '***'.$baseCalcul.'<br>';
+				echo " ***** OK *****";*/
 				if($this->nature_financement == 'INTERNE') {
 					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100);
 				
@@ -681,6 +681,7 @@ class TFin_dossier extends TObjetStd {
 				else {
 					return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE',$iPeriode) / 100);
 				}
+				
 				break;
 			/* ******************************************************************************************************
 			 * TODO ne sert actuellement plus mais par sécurité on conserve
@@ -949,7 +950,7 @@ class TFin_dossier extends TObjetStd {
 					//echo " ***** ".($i+1)." *****<br>";
 					//echo "avant : ".$SR." ".$SNR.'<br>';
 					
-					$duree_restante_client = ($this->financement->getiPeriode() == 0) ? $this->financement->duree_restante : $this->financement->duree - $this->financement->getiPeriode();
+					$duree_restante_client = ($i == 0) ? $this->financement->duree_restante : $this->financement->duree - $i;
 					if ((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) > $seuil_solde){
 					
 						list($CRD_client,$LRD_client) = $this->getCRDandLRD('CLIENT',$i+1);
@@ -969,9 +970,9 @@ class TFin_dossier extends TObjetStd {
 					//Ticket 3049
 					$SR = $this->getSolde($ATMdb, 'SRBANK', $i+1);
 					$SNR = $this->getSolde($ATMdb, 'SNRBANK', $i+1);
-					
-					$duree_restante_client = ($this->financementLeaser->getiPeriode() == 0) ? $this->financementLeaser->duree_restante : $this->financementLeaser->duree - $this->financementLeaser->getiPeriode();
-					if ((($this->financementLeaser->duree - $duree_restante_client) * $this->financementLeaser->getiPeriode()) > $seuil_solde){
+
+					$duree_restante_leaser = ($i == 0) ? $this->financement->duree_restante : $this->financement->duree - $i;
+					if ((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) > $seuil_solde){
 
 						list($CRD_leaser,$LRD_leaser) = $this->getCRDandLRD('LEASER',$i+1);
 						
