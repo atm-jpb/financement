@@ -79,11 +79,8 @@ class TSimulation extends TObjetStd {
 	}
 	
 	function save(&$db, &$doliDB) {
-		parent::save($db);
+		//parent::save($db);
 		//pre($this,true);exit;
-		$this->gen_simulation_pdf($db, $doliDB);
-		$this->reference = $this->getRef();
-		
 		if(empty($this->dossiers)){
 			foreach($this->dossiers_rachetes as $k=>$TDossiers){
 				$dossier =  new TFin_dossier;
@@ -115,6 +112,8 @@ class TSimulation extends TObjetStd {
 				$this->dossiers[$k]['montant'] = $fin->montant;
 			}
 		}
+		$this->gen_simulation_pdf($db, $doliDB);
+		$this->reference = $this->getRef();
 		
 		parent::save($db);
 		
@@ -821,7 +820,9 @@ class TSimulation extends TObjetStd {
 				$type = 'LEASER';
 			}
 			
-			$echeance = $d->_get_num_echeance_from_date(time());
+			//$date_prochaine_echeance = $this[]
+			
+			$echeance = $d->_get_num_echeance_from_date($this->dossiers[$idDossier]['date_prochaine_echeance']);
 			$date_debut_periode = $d->getDateDebutPeriode($echeance,$type);
 			$date_fin_periode = $d->getDateFinPeriode($echeance,$type);
 			$date_debut_periode_p1 = date('Y-m-d',strtotime('+ '.$f->getiPeriode().' months', strtotime($date_debut_periode)));

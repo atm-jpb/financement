@@ -110,7 +110,7 @@ if(!empty($action)) {
 			$simulation->set_values($_REQUEST);
 			
 			// On vérifie que les dossiers sélectionnés n'ont pas été décochés
-			if(empty($_REQUEST['dossiers'])) $simulation->dossiers = array();
+			//if(empty($_REQUEST['dossiers'])) $simulation->dossiers = array();
 			if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
 			if(empty($_REQUEST['dossiers_rachetes_p1'])) $simulation->dossiers_rachetes_p1 = array();
 			if(empty($_REQUEST['dossiers_rachetes_nr'])) $simulation->dossiers_rachetes_nr = array();
@@ -193,8 +193,10 @@ if(!empty($action)) {
 				$simulation->accord_confirme = 1;
 			}
 			
+			//pre($_REQUEST,true);
+			
 			// On vérifie que les dossiers sélectionnés n'ont pas été décochés
-			if(empty($_REQUEST['dossiers'])) $simulation->dossiers = array();
+			//if(empty($_REQUEST['dossiers'])) $simulation->dossiers = array();
 			if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
 			if(empty($_REQUEST['dossiers_rachetes_p1'])) $simulation->dossiers_rachetes_p1 = array();
 			if(empty($_REQUEST['dossiers_rachetes_nr'])) $simulation->dossiers_rachetes_nr = array();
@@ -447,6 +449,9 @@ function getStatutSuivi($idSimulation){
 	
 function _fiche(&$ATMdb, &$simulation, $mode) {
 	global $db, $langs, $user, $conf;
+	
+	/*pre($_REQUEST,true);
+	pre($simulation->dossiers,true);*/
 	
 	if( $simulation->getId() == 0) {
 			
