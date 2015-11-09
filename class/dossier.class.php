@@ -450,8 +450,15 @@ class TFin_dossier extends TObjetStd {
 	// Donne le numéro d'échéance correspondant à une date
 	function _get_num_echeance_from_date($date) {
 		//$echeance = date('m', $date - $this->financement->date_debut) / $this->financement->getiPeriode();
+		if($this->nature_financement == 'EXTERNE'){
+			$f = &$this->financementLeaser;
+		}
+		else{
+			$f = &$this->financement;
+		}
+		
 		if(strpos($date,'-')) $date = strtotime($date);
-		if($date - ($this->financement->date_debut + $this->financement->calage) < 0){
+		if($date - ($f->date_debut + $this->financement->calage) < 0){
 			return -1;
 		}
 		
@@ -460,11 +467,11 @@ class TFin_dossier extends TObjetStd {
 		$date = strtotime('+3 day',$date);
 		
 		$flag = true; $cpt = 0; 
-		$t = $this->financement->date_debut + $this->financement->calage; 
+		$t = $f->date_debut + $f->calage; 
 		$iEcheance = 0;
 		while($flag && $cpt<100) {
 			
-			$t = strtotime('+'.$this->financement->getiPeriode().'month', $t);
+			$t = strtotime('+'.$f->getiPeriode().'month', $t);
 			if($t>$date) break;
 
 			$iEcheance++;
@@ -707,7 +714,7 @@ class TFin_dossier extends TObjetStd {
 				break;
 
 			case 'SRCPRO': /* Vendeur renouvellant */
-				
+
 				if($this->nature_financement == 'INTERNE') {
 					if((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
 					if($this->financement->duree < $iPeriode) return $this->financement->reste;
@@ -726,20 +733,22 @@ class TFin_dossier extends TObjetStd {
 					return ( $solde > $LRD && $solde != $this->financement->montant ) ? $LRD : $solde;
 				}
 				else {
+					
 					$nb_periode_passe = $this->financementLeaser->duree_passe;
 					if($iPeriode > 0) $nb_periode_passe++;
 					$nb_month = (($nb_periode_passe-1) * $this->financementLeaser->getiPeriode());
 					$dateProchaine = strtotime('+'.$nb_month.' month', $this->date_debut + $this->calage);
 					
 					$solde = ($baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100)) + $this->financementLeaser->reste;
+					//echo $solde."<br>";
 					//$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100);
 					if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382
 						|| $dateProchaine > strtotime('2014-08-15')) { // Ticket 939
 						$solde *= (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100);
 					}
 					//exit($LRD_Leaser);
-					//echo ' /***-** '.$solde;
-					return ( $solde > $LRD_leaser && $solde != $this->financementLeaser->montant ) ? $LRD_leaser : $solde;
+
+					return ( $solde > $LRD_Leaser && $solde != $this->financementLeaser->montant ) ? $LRD_Leaser : $solde;
 				}
 				
 				break;
