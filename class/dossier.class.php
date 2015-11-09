@@ -1472,7 +1472,7 @@ class TFin_financement extends TObjetStd {
 
 		return false;
 	}
-	function loadOrCreateSirenMontant(&$db, $siren, $montant, $reference) {
+	function loadOrCreateSirenMontant(&$db, $data) {
 		$sql = "SELECT a.rowid, a.nature_financement, a.montant, df.rowid as idDossierLeaser, df.reference as refDossierLeaser ";
 		$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
@@ -1480,13 +1480,13 @@ class TFin_financement extends TObjetStd {
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (da.fk_fin_dossier = d.rowid) ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid) ";
-		if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
-		else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
+		if(strlen($data['siren']) == 14) $sql.= "WHERE (s.siret = '".$data['siren']."' OR s.siren = '".substr($data['siren'], 0, 9)."' OR se.other_siren LIKE '%".substr($data['siren'], 0, 9)."%') ";
+		else $sql.= "WHERE (s.siren = '".$data['siren']."' OR se.other_siren LIKE '%".$data['siren']."%') ";
 		$sql.= "AND df.type = 'LEASER' ";
 		//$sql.= "AND df.date_solde = '0000-00-00 00:00:00'";
 		$sql.= "AND (df.reference = '' OR df.reference IS NULL) ";
-		$sql.= "AND a.montant >= ".($montant - 0.01)." ";
-		$sql.= "AND a.montant <= ".($montant + 0.01)." ";
+		$sql.= "AND a.montant >= ".($data['montant'] - 0.01)." ";
+		$sql.= "AND a.montant <= ".($data['montant'] + 0.01)." ";
 
 		//echo $sql;
 		$db->Execute($sql); // Recherche d'un dossier leaser en cours sans référence et dont le montant de l'affaire correspond
@@ -1496,22 +1496,24 @@ class TFin_financement extends TObjetStd {
 			$sql = "SELECT s.rowid ";
 			$sql.= "FROM ".MAIN_DB_PREFIX."societe s ";
 			$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
-			if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
-			else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
-			$sql.= "AND a.solde >= ".($montant - 0.01)." ";
-			$sql.= "AND a.solde <= ".($montant + 0.01)." ";
+			if(strlen($data['siren']) == 14) $sql.= "WHERE (s.siret = '".$data['siren']."' OR s.siren = '".substr($data['siren'], 0, 9)."' OR se.other_siren LIKE '%".substr($data['siren'], 0, 9)."%') ";
+			else $sql.= "WHERE (s.siren = '".$data['siren']."' OR se.other_siren LIKE '%".$data['siren']."%') ";
+			$sql.= "AND a.solde >= ".($data['montant'] - 0.01)." ";
+			$sql.= "AND a.solde <= ".($data['montant'] + 0.01)." ";
 			
 			$TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
 			
 			if(!empty($TIdClient[0])) {
 				$d=new TFin_dossier;
+				$d->entity = $data['entity'];
 				$d->financementLeaser = $this;
 				$d->save($db);
 				
 				$idClient = $TIdClient[0];
 				$a=new TFin_affaire();
-				$a->reference = 'EXT-'.date('ymd').'-'.$reference;
-				$a->montant = $montant;
+				$a->entity = $data['entity'];
+				$a->reference = 'EXT-'.date('ymd').'-'.$data['reference'];
+				$a->montant = $data['montant'];
 				$a->fk_soc = $idClient;
 				$a->nature_financement = 'EXTERNE';
 				$a->addDossier($db, $d->getId());
@@ -1522,18 +1524,20 @@ class TFin_financement extends TObjetStd {
 				$sql = "SELECT s.rowid ";
 				$sql.= "FROM ".MAIN_DB_PREFIX."societe s ";
 				$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
-				if(strlen($siren) == 14) $sql.= "WHERE (s.siret = '".$siren."' OR s.siren = '".substr($siren, 0, 9)."' OR se.other_siren LIKE '%".substr($siren, 0, 9)."%') ";
-				else $sql.= "WHERE (s.siren = '".$siren."' OR se.other_siren LIKE '%".$siren."%') ";
+				if(strlen($data['siren']) == 14) $sql.= "WHERE (s.siret = '".$data['siren']."' OR s.siren = '".substr($data['siren'], 0, 9)."' OR se.other_siren LIKE '%".substr($data['siren'], 0, 9)."%') ";
+				else $sql.= "WHERE (s.siren = '".$data['siren']."' OR se.other_siren LIKE '%".$data['siren']."%') ";
 				$TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
 				if(!empty($TIdClient[0])) {
 					$d=new TFin_dossier;
+					$d->entity = $data['entity'];
 					$d->financementLeaser = $this;
 					$d->save($db);
 					
 					$idClient = $TIdClient[0];
 					$a=new TFin_affaire();
+					$a->entity = $data['entity'];
 					$a->reference = 'EXT-'.date('ymd').'-'.$idClient;
-					$a->montant = $montant;
+					$a->montant = $data['montant'];
 					$a->fk_soc = $idClient;
 					$a->nature_financement = 'EXTERNE';
 					$a->addDossier($db, $d->getId());

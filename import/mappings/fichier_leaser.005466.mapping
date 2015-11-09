@@ -16,6 +16,7 @@ nom_du_leaser=locam
 13=reloc
 14=assurance
 15=biens
+16=entity
 
 [format]
 date_debut=date
