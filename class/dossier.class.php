@@ -747,8 +747,11 @@ class TFin_dossier extends TObjetStd {
 						$solde *= (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100);
 					}
 					//exit($LRD_Leaser);
-
-					return ( $solde > $LRD_Leaser && $solde != $this->financementLeaser->montant ) ? $LRD_Leaser : $solde;
+					
+					//echo $solde.' '.$LRD_Leaser.'<br>';
+					
+					$solde = ( $solde > $LRD_Leaser && $solde != $this->financementLeaser->montant ) ? $LRD_Leaser : $solde;
+					return ($solde > 0 ) ? $solde : 0;
 				}
 				
 				break;
