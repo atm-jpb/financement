@@ -709,6 +709,7 @@ class TFin_dossier extends TObjetStd {
 				}
 				else {
 					//return $baseCalcul * (1 + $this->getPenalite($ATMdb,'NR', 'EXTERNE',$iPeriode) / 100) * (1 + $this->getPenalite($ATMdb,'NR', 'INTERNE',$iPeriode) / 100);
+					//echo $LRD_Leaser.'<br>';
 					return $LRD_Leaser;
 				}
 				break;
@@ -739,7 +740,7 @@ class TFin_dossier extends TObjetStd {
 					$nb_month = (($nb_periode_passe-1) * $this->financementLeaser->getiPeriode());
 					$dateProchaine = strtotime('+'.$nb_month.' month', $this->date_debut + $this->calage);
 					
-					$solde = ($baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100) * (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100)) + $this->financementLeaser->reste;
+					$solde = ($baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100)) + $this->financementLeaser->reste;
 					//echo $solde."<br>";
 					//$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100);
 					if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382
@@ -751,6 +752,7 @@ class TFin_dossier extends TObjetStd {
 					//echo $solde.' '.$LRD_Leaser.'<br>';
 					
 					$solde = ( $solde > $LRD_Leaser && $solde != $this->financementLeaser->montant ) ? $LRD_Leaser : $solde;
+					//echo $solde.'<br>';
 					return ($solde > 0 ) ? $solde : 0;
 				}
 				
