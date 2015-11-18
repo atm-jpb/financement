@@ -783,19 +783,21 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			$dossier->financement->total_loyer -= $dossier->financement->echeance;
 		}*/
 		
+		//echo $dossier->financementLeaser->numero_prochaine_echeance.'<br>';
+		
 		//pre($simulation,true);
 		if($dossier->nature_financement == 'INTERNE') {
-			$soldeR = (!empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time())+1),2); //SRCPRO
-			$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time())+1),2); //SNRCPRO
-			$soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time())+2),2); //SRCPRO
-			$soldeNR1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time())+2),2); //SNRCPRO
+			$soldeR = (!empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->financement->numero_prochaine_echeance - 1),2); //SRCPRO
+			$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->financement->numero_prochaine_echeance - 1),2); //SNRCPRO
+			$soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->financement->numero_prochaine_echeance),2); //SRCPRO
+			$soldeNR1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRNRSAME',$dossier->financement->numero_prochaine_echeance),2); //SNRCPRO
 			$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 		}
 		else{
-			$soldeR = (!empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->_get_num_echeance_from_date(time())+1),2);
-			$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO',$dossier->_get_num_echeance_from_date(time())+1),2);
-			$soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->_get_num_echeance_from_date(time()) + 2),2);
-			$soldeNR1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO', $dossier->_get_num_echeance_from_date(time()) + 2),2);
+			$soldeR = (!empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financementLeaser->numero_prochaine_echeance - 1),2);
+			$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO',$dossier->financementLeaser->numero_prochaine_echeance -1 ),2);
+			$soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financementLeaser->numero_prochaine_echeance ),2);
+			$soldeNR1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO', $dossier->financementLeaser->numero_prochaine_echeance ),2);
 			$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 		}
 
