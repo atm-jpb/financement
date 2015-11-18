@@ -745,7 +745,8 @@ class TFin_dossier extends TObjetStd {
 					//echo ' + 3% '.$solde."<br>";
 					//$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100);
 					if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382
-						&& $dateProchaine > strtotime('2014-08-15')) { // Ticket 939
+						|| $dateProchaine > strtotime('2014-08-15')) { // Ticket 939
+						//echo (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100).'<br>';
 						$solde *= (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100);
 					}
 					//exit($LRD_Leaser);
