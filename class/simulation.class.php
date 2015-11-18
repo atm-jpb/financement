@@ -81,7 +81,7 @@ class TSimulation extends TObjetStd {
 	function save(&$db, &$doliDB) {
 		//parent::save($db);
 		//pre($this,true);exit;
-		if(empty($this->dossiers)){
+		if(empty($this->dossiers) || count($this->dossiers) != count($this->dossiers_rachetes)){
 			foreach($this->dossiers_rachetes as $k=>$TDossiers){
 				$dossier =  new TFin_dossier;
 				$dossier->load($db, $k);
