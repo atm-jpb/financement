@@ -81,6 +81,11 @@ class TSimulation extends TObjetStd {
 	function save(&$db, &$doliDB) {
 		//parent::save($db);
 		//pre($this,true);exit;
+		
+		parent::save($db);
+		
+		$this->reference = $this->getRef();
+		
 		if(empty($this->dossiers) || count($this->dossiers) != count($this->dossiers_rachetes)){
 			foreach($this->dossiers_rachetes as $k=>$TDossiers){
 				$dossier =  new TFin_dossier;
@@ -112,8 +117,8 @@ class TSimulation extends TObjetStd {
 				$this->dossiers[$k]['montant'] = $fin->montant;
 			}
 		}
+
 		$this->gen_simulation_pdf($db, $doliDB);
-		$this->reference = $this->getRef();
 		
 		parent::save($db);
 		
