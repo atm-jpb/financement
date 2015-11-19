@@ -729,21 +729,26 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	//$sql.= " WHERE a.entity = ".$conf->entity;
 	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')';
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
-	$sql.= " AND a.fk_soc IN (
-				SELECT s.rowid 
-				FROM ".MAIN_DB_PREFIX."societe as s
-					LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
-				WHERE (s.siren = (
-							SELECT siren 
-							from ".MAIN_DB_PREFIX."societe 
-							WHERE rowid = ".$simulation->fk_soc."
-							) 
-					   AND s.siren != '') 
-					   OR (se.other_siren = (
-					   		SELECT other_siren 
-					   		FROM ".MAIN_DB_PREFIX."societe_extrafields 
-					   		WHERE fk_object = ".$simulation->fk_soc."
-					   		) AND se.other_siren != ''))";
+	$sql.= " AND (a.fk_soc = ".$simulation->fk_soc;
+	if(!empty($simulation->societe->siren)) {
+		$sql.= " OR a.fk_soc IN
+					(
+						SELECT s.rowid 
+						FROM ".MAIN_DB_PREFIX."societe as s
+							LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
+						WHERE
+						(
+							s.siren = '".$simulation->societe->siren."'
+							AND s.siren != ''
+						) 
+						OR
+						(
+							se.other_siren LIKE '%".$simulation->societe->siren."%'
+							AND se.other_siren != ''
+						)
+					)";
+	}
+	$sql .=" )";
 	//$sql.= " AND s.rowid = ".$simulation->fk_soc;
 	//$sql.= " AND f.type = 'CLIENT'";
 	
