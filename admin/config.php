@@ -234,6 +234,30 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("NbMoisSoldeBANK").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH" value="'.$conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH.'" /> mois';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("NbMoisSoldeCPRO").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH" value="'.$conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH.'" /> mois';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
 print '</table>';
 
 print_titre($langs->trans("PenalitesForSimulation"));

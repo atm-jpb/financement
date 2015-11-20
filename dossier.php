@@ -1,4 +1,5 @@
 <?php
+	set_time_limit(0);
 	ini_set("display_errors", 1);
 	error_reporting(E_ALL);
 	require('config.php');
@@ -223,6 +224,11 @@
 				$TAffaires = $affaire->getAffairesForXML($PDOdb);
 				$affaire->resetAllDossiersInXML($PDOdb,$TAffaires);
 				
+				?>
+				<script language="javascript">
+					document.location.href="?fk_leaser=<?php echo $fk_leaser; ?>";
+				</script>
+				<?php 
 				break;
 				
 			case 'create_avoir':
@@ -436,7 +442,7 @@ function _liste(&$PDOdb, &$dossier) {
 				<a href="?action=exportXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Exporter</a>
 				<a href="?action=generateXML" class="butAction">Générer le XML Lixxbail</a>
 				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Générer le XML Lixxbail et envoyer au Leaser</a>
-				<a href="?action=setnottransfer" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
+				<a href="?action=setnottransfer&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
 		</div>
 		<?php
 	}
@@ -728,7 +734,7 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 				<a href="?action=exportXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Exporter</a>
 				<a href="?action=generateXML" class="butAction">Générer le XML Lixxbail</a>
 				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Générer le XML Lixxbail et envoyer au Leaser</a>
-				<a href="?action=setnottransfer" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
+				<a href="?action=setnottransfer&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
 		</div>
 		<?php
 	}
@@ -1124,8 +1130,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'marge_previsionnelle'=>$dossier->marge_previsionnelle
 				,'marge_attendue'=>$dossier->marge_attendue
 				,'marge_reelle'=>$dossier->marge_reelle
-				,'soldeRBANK'=>$dossier->getSolde($PDOdb, 'SRBANK')
-				,'soldeNRBANK'=>$dossier->getSolde($PDOdb, 'SNRBANK')
+				,'soldeRBANK'=>$dossier->getSolde($PDOdb, 'SRBANK',$dossier->financementLeaser->numero_prochaine_echeance-1)
+				,'soldeNRBANK'=>$dossier->getSolde($PDOdb, 'SNRBANK',$dossier->financementLeaser->numero_prochaine_echeance-1)
 				,'soldeRCPRO'=>($dossier->nature_financement == 'INTERNE') ? $dossier->getSolde($PDOdb, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time()) +1) : $dossier->getSolde($PDOdb, 'SRCPRO')//SRCPRO
 				,'soldeNRCPRO'=>($dossier->nature_financement == 'INTERNE') ? $dossier->getSolde($PDOdb, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time()) +1) : $dossier->getSolde($PDOdb, 'SNRCPRO')//SNRCPRO
 				,'soldeperso'=>$soldeperso

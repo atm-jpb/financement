@@ -847,9 +847,9 @@ class TImport extends TObjetStd {
 			}
 		}
 		// FAS
-		$TFAS = array('SSC101', 'SSC102', 'SSC106', 'SSC128');
-		if(in_array($data['ref_service'], $TFAS) 
-			|| $data['label_integrale'] == 'Frais d\'Accès au Service' 
+		//$TFAS = array('SSC101', 'SSC102', 'SSC106', 'SSC128');
+		//if(in_array($data['ref_service'], $TFAS) 
+		if ( $data['label_integrale'] == 'Frais d\'Accès au Service' 
 			|| $data['label_integrale'] == 'Forfait d\'Accès au Service'
 			|| strpos($data['label_integrale'], '(FAS)') !== false 
 			|| substr($data['label_integrale'], -3) === 'FAS')

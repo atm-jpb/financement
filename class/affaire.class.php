@@ -307,7 +307,7 @@ class TFin_affaire extends TObjetStd {
 		
 	}
 	
-	function getAffairesForXML(&$ATMdb,$leasername = 'LIXXBAIL (MANDATE)'){
+	function getAffairesForXML(&$ATMdb,$fk_leaser = 19483){
 		
 		$TAffaires = array();
 		
@@ -318,8 +318,10 @@ class TFin_affaire extends TObjetStd {
 					LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = df.fk_soc)
 				WHERE fa.type_financement = "MANDATEE"
 					AND df.type = "LEASER"
-					AND s.nom = "'.$leasername.'"
+					AND s.rowid = '.$fk_leaser.'
 					AND df.transfert = 1';
+		
+		//echo $sql;exit;
 		
 		$TIdAffaire = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 		
