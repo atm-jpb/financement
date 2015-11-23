@@ -862,7 +862,7 @@ function _get_facture_mat($fk_source,$withlink=true){
 }
 
 function _fiche(&$PDOdb, &$dossier, $mode) {
-	global $user,$db;
+	global $user,$db,$conf;
 	
 	TFinancementTools::check_user_rights($dossier);
 	
@@ -1099,7 +1099,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	
 	$entity = empty($dossier->entity) ? getEntity('fin_dossier') : $dossier->entity;
 	
-	if(TFinancementTools::user_courant_est_admin_financement()){
+	if(TFinancementTools::user_courant_est_admin_financement() && empty($conf->global->FINANCEMENT_DISABLE_SELECT_ENTITY)){
 		$entity_field = $form->combo('', 'entity', $TEntities, $entity);
 	} else {
 		$entity_field = $TEntities[$entity].$form->hidden('entity', $entity);

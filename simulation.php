@@ -536,7 +536,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$entity = empty($simulation->entity) ? getEntity('fin_dossier') : $simulation->entity;
 	
-	if(TFinancementTools::user_courant_est_admin_financement()){
+	if(TFinancementTools::user_courant_est_admin_financement() && empty($conf->global->FINANCEMENT_DISABLE_SELECT_ENTITY)){
 		$entity_field = $form->combo('', 'entity', $TEntities, $entity);
 	} else {
 		$entity_field = $TEntities[$entity].$form->hidden('entity', $entity);
