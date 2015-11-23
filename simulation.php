@@ -497,7 +497,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	$filename = dol_sanitizeFileName($simulation->getRef());
 	$filedir = $conf->financement->dir_output . '/' . dol_sanitizeFileName($simulation->getRef());
 	
-	$TDuree = $grille->get_duree($ATMdb,FIN_LEASER_DEFAULT,$simulation->fk_type_contrat,$simulation->opt_periodicite);
+	$TDuree = $grille->get_duree($ATMdb,FIN_LEASER_DEFAULT,$simulation->fk_type_contrat,$simulation->opt_periodicite,$simulation->entity);
 	//var_dump($TDuree);
 	$can_preco = ($user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0) ? 1 : 0;
 	

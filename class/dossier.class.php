@@ -561,8 +561,9 @@ class TFin_dossier extends TObjetStd {
 		
 		$fk_soc = ($nature_financement == 'INTERNE') ? FIN_LEASER_DEFAULT : $f->fk_soc;
 
-		$g->get_grille($ATMdb,$f->fk_soc,$this->contrat);	
-		$coeff = (double)$g->get_coeff($ATMdb, $fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree, $iPeriode);
+		$g->get_grille($ATMdb,$f->fk_soc,$this->contrat, '', array(), $this->entity);	
+		$coeff = (double)$g->get_coeff($ATMdb, $fk_soc, $this->contrat, $f->periodicite, $f->montant, $f->duree, $iPeriode, array(), $this->entity);
+		
 		
 		//pre($g,true);
 		//echo $coeff.'<br>';
@@ -588,7 +589,8 @@ class TFin_dossier extends TObjetStd {
 		return $coeff > 0 ? $coeff : 0;*/
 		
 		$g=new TFin_grille_leaser('RENTABILITE');
-		$coeff = (double)$g->get_coeff($ATMdb, $this->financement->fk_soc, $this->contrat, 'TRIMESTRE', $this->financement->montant, 5,0);
+		$coeff = (double)$g->get_coeff($ATMdb, $this->financement->fk_soc, $this->contrat, 'TRIMESTRE', $this->financement->montant, 5,0, array(), $this->entity);
+		
 		return $coeff > 0 ? $coeff : 0;
 	}
 	function getRentabilitePrevisionnelle() {

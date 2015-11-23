@@ -28,16 +28,17 @@ class TFin_grille_leaser extends TObjetStd {
 	 *  @param	int		$idTypeContrat  Id type contrat
      *  @return array   Tableau contenant les grilles de coeff, false si vide
      */
-    function get_grille(&$ATMdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE' , $options=array())
+    function get_grille(&$ATMdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE' , $options=array(), $entity=0)
     {
     	if(empty($idLeaser)) $idLeaser = FIN_LEASER_DEFAULT;
-
+		if(empty($entity)) $entity = getEntity();
+		
 		$this->fk_soc = $idLeaser;
 
     	$sql = "SELECT rowid, periode, montant,coeff
         	 	FROM ".MAIN_DB_PREFIX."fin_grille_leaser
         	 	WHERE fk_soc = ".$idLeaser. " AND type='".$this->type."' AND fk_type_contrat = '".$idTypeContrat."'
-        	 	AND entity = ".getEntity()."
+        	 	AND entity = ".$entity."
         	 	ORDER BY periode, montant ASC";
 
 		$ATMdb->Execute($sql);
@@ -66,7 +67,7 @@ class TFin_grille_leaser extends TObjetStd {
 			$periode *= 3 / $this->getiPeriode($periodicite);
 			
 			$montant = floatval($ligne_grille['montant']);
-			$coeff = $this->_calculate_coeff($ATMdb, $ligne_grille['coeff'], $options);
+			$coeff = $this->_calculate_coeff($ATMdb, $ligne_grille['coeff'], $options, $entity);
 			
 			$result[strval($periode)][$montant]=array(
 				'rowid' => $ligne_grille['rowid']
@@ -236,8 +237,9 @@ class TFin_grille_leaser extends TObjetStd {
 	/**
 	 * Récupération de la liste des durée possible pour un type de contrat et pour un leaser
 	 */
-	function get_duree(&$ATMdb,$idLeaser, $idTypeContrat=0, $periodicite='TRIMESTRE') {
+	function get_duree(&$ATMdb,$idLeaser, $idTypeContrat=0, $periodicite='TRIMESTRE', $entity=0) {
 		if(empty($idLeaser)) return -1;
+		if(empty($entity)) $entity = getEntity();
 		global $langs;
 
 		$sql = "SELECT";
@@ -245,6 +247,7 @@ class TFin_grille_leaser extends TObjetStd {
 		$sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
 		$sql.= " WHERE t.fk_soc = ".$idLeaser. " AND t.type='".$this->type."'";
 		if(!empty($idTypeContrat)) $sql.= " AND t.fk_type_contrat = '".$idTypeContrat."'";
+		$sql.= " AND t.entity = ".$entity;
 		$sql.= " ORDER BY t.periode ASC";
 //$ATMdb->db->debug = true;
 		$ATMdb->Execute($sql);
@@ -277,9 +280,10 @@ class TFin_grille_leaser extends TObjetStd {
 		}
 	}
 
-	function get_coeff(&$ATMdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE', $montant, $duree, $iPeriode =0 ,$options=array()) {
+	function get_coeff(&$ATMdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE', $montant, $duree, $iPeriode =0 ,$options=array(), $entity=0) {
 		
     	if(empty($idLeaser) || empty($idTypeContrat)) return -1;
+		if(empty($entity)) $entity = getEntity();
 		
 		//if($periodicite == 'MOIS') $duree /= 3 * $this->getiPeriode($periodicite);
 		
@@ -308,7 +312,7 @@ class TFin_grille_leaser extends TObjetStd {
 				if($montant <= $db->Get_field('montant')) {*/
 					$ATMdb->Get_line();
 					$coeff = $ATMdb->Get_field('coeff');
-					$coeff = $this->_calculate_coeff($ATMdb, $coeff, $options);
+					$coeff = $this->_calculate_coeff($ATMdb, $coeff, $options, $entity);
 					return $coeff;
 				//}	
 		//	}	
@@ -320,11 +324,14 @@ class TFin_grille_leaser extends TObjetStd {
 		}
 	}
 
-	private function _calculate_coeff(&$ATMdb, $coeff, $options) {
+	private function _calculate_coeff(&$ATMdb, $coeff, $options, $entity=0) {
+		
+		if(empty($entity)) $entity = getEntity();
+		
 		if(!empty($options)) {
 			$penaliteTotale = 0;
 			foreach($options as $name => $value) {
-				$penalite = $this->_get_penalite($ATMdb, $name, $value);
+				$penalite = $this->_get_penalite($ATMdb, $name, $value, $entity);
 				if($penalite < 0) continue;
 				$penaliteTotale += $penalite;
 			}
@@ -333,10 +340,14 @@ class TFin_grille_leaser extends TObjetStd {
 		return round($coeff, 3);
 	}
 	
-	private function _get_penalite(&$ATMdb, $name, $value) {
+	private function _get_penalite(&$ATMdb, $name, $value, $entity=0) {
+		
+		if(empty($entity)) $entity = getEntity();
+		
 		$sql = "SELECT penalite FROM ".MAIN_DB_PREFIX."fin_grille_penalite";
 		$sql.= " WHERE opt_name = '".$name."'";
 		$sql.= " AND opt_value = '".$value."'";
+		$sql.= " AND entity = ".$entity;
 		
 		$ATMdb->Execute($sql);
 		if($ATMdb->Get_line()) {

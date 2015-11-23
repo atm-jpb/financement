@@ -512,7 +512,7 @@ class TSimulation extends TObjetStd {
 		
 		// Récupération de la grille pour les paramètres donnés
 		$grille = new TFin_grille_leaser;
-		$grille->get_grille($ATMdb, $idLeaser, $this->fk_type_contrat, $this->opt_periodicite, $options);
+		$grille->get_grille($ATMdb, $idLeaser, $this->fk_type_contrat, $this->opt_periodicite, $options, $this->entity);
 		
 		if(empty($grille->TGrille)) { // Pas de grille chargée, pas de calcul
 			$this->error = 'ErrorNoGrilleSelected';

@@ -75,7 +75,7 @@ function get_duree(&$ATMdb) {
 	$idTypeContrat = GETPOST('fk_type_contrat');
 	$opt_periodicite = GETPOST('opt_periodicite');
 
-	$htmlresult = $form->combo('','duree', $grille->get_duree($ATMdb, FIN_LEASER_DEFAULT, $idTypeContrat, $opt_periodicite), '');
+	$htmlresult = $form->combo('','duree', $grille->get_duree($ATMdb, FIN_LEASER_DEFAULT, $idTypeContrat, $opt_periodicite, getEntity()), '');
 	
 	$db->close();
 	
