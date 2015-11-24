@@ -973,7 +973,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			
 			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			
-			,'detail_fact' => dol_buildpath('/fourn/facture/index.php?search_ref_supplier='.$financementLeaser->reference,2)
+			,'detail_fact' => dol_buildpath('/fourn/facture/list.php?search_ref_supplier='.$financementLeaser->reference,2)
 			
 			
 	);
