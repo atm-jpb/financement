@@ -30,15 +30,15 @@
 	define('USE_TBS', true);
 	
 	define('FIN_LEASER_DEFAULT', 1);
-	define('FIN_TVA_DEFAUT', 1.196);
+	define('FIN_TVA_DEFAUT', 1.2);
 	define('DOL_ADMIN_USER', 'admin');
 	define('FIN_IMPORT_FOLDER', dol_buildpath('/financement/import/'));
 	define('FIN_IMPORT_FIELD_DELIMITER', ';');
 	define('FIN_IMPORT_FIELD_ENCLOSURE', '"');
 	
-	define('FIN_PRODUCT_FRAIS_DOSSIER', '0');
-	define('FIN_PRODUCT_LOC_ADOSSEE', '0');
-	define('FIN_PRODUCT_LOC_MANDATEE', '0');
+	define('FIN_PRODUCT_FRAIS_DOSSIER', '3');
+	define('FIN_PRODUCT_LOC_ADOSSEE', '1');
+	define('FIN_PRODUCT_LOC_MANDATEE', '2');
 	
 	define('FIN_THEREFORE_AFFAIRE_URL','http://srvtherefore/TWA/TheGetDoc.aspx?CtgryNo=4&N_Affaire=');
 	define('FIN_THEREFORE_DOSSIER_URL','http://srvtherefore/TWA/TheGetDoc.aspx?CtgryNo=4&N_Affaire=');
@@ -51,19 +51,19 @@
 		,20113	=> 'CRD' // BNP M
 		,3214	=> 'CRD' // CM-CIC A
 		,7411	=> 'CRD' // GE
+		,21382	=> 'CRD' // GE M
 		,4440	=> 'CRD' // GRENKE
 		,1210	=> 'CRD' // KBC
 		,6065	=> 'CRD' // LIXXBAIL
 		,19068	=> 'CRD' // LIXXBAIL A
 		,19483	=> 'CRD' // LIXXBAIL M
-		,18495	=> 'CRD' // LOC PURE
-		,3306	=> 'CRD' // LOCAM
+		//,3306	=> 'CRD' // LOCAM
 	);
 
 	
-	define('CRD_COEF_RENTA_ATTEINTE', 0.01);
+	define('CRD_COEF_RENTA_ATTEINTE', 0.03);
 	define('SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH', 12);
-	define('SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH', 12);
+	define('SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH', 14);
 	define('FK_SOC_LOCAM', 3306);
 	
 	define('BASE_TEST', 1);
