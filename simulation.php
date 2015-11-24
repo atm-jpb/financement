@@ -417,6 +417,12 @@ function _liste(&$ATMdb, &$simulation) {
 		,'eval'=>array(
 			'suivi' => 'getStatutSuivi(@rowid@);'
 		)
+		,'size'=>array(
+			'width'=>array(
+				'label'=>'100px'
+				,'login'=>'100px'
+			)
+		)
 	));
 	
 	$form->end();
