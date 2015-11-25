@@ -727,7 +727,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	global $langs,$conf, $db, $bc;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 
-	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', e.label as 'entityDossier', a.contrat as 'Type contrat'";
+	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', e.rowid as 'entityDossier', a.contrat as 'Type contrat'";
 	$sql.= " , d.rowid as 'IDDoss', f.incident_paiement";
 	//$sql.= " , f.reference as 'N° contrat', f.date_debut as 'Début', f.date_fin as 'Fin'";
 	//$sql.= " , ac.fk_user";
@@ -1023,6 +1023,9 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'order_down'=>img_picto('','1downarrow.png', '', 0)
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
 			
+		)
+		,'eval'=>array(
+			'entityDossier' => 'TFinancementTools::get_entity_translation(@entityDossier@)'
 		)
 	));
 	

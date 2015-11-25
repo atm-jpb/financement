@@ -47,7 +47,8 @@ class TScore extends TObjetStd {
 		if(!empty($this->nom_externe)) $TInfos[] = $this->nom_externe;
 		if(!empty($this->fonction_externe)) $TInfos[] = '('.$this->fonction_externe.')'; 
 		
-		return utf8_encode(implode(' ', $TInfos));
+		//return utf8_encode(implode(' ', $TInfos));
+		return implode(' ', $TInfos);
 	}
 }
 
