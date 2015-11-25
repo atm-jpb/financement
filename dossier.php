@@ -413,7 +413,7 @@ function _liste(&$PDOdb, &$dossier) {
 		,'title'=>array(
 			'refDosCli'=>'Contrat'
 			,'refDosLea'=>'Contrat Leaser'
-			,'label'=>'Environnement dossier'
+			,'label'=>'Partenaire'
 			,'nomCli'=>'Client'
 			,'nomLea'=>'Leaser'
 			,'nature_financement'=>'Nature'

@@ -21,7 +21,7 @@
 					
 				<tr class="liste_titre">
 					<td colspan="2" width="50%" valign="top">
-						Environnement : [dossier.entity; strconv=no]
+						Partenaire : [dossier.entity; strconv=no]
 					</td>
 				</tr>
 				

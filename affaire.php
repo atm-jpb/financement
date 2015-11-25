@@ -263,7 +263,7 @@ function _liste(&$ATMdb, &$affaire) {
 		,'title'=>array(
 			'reference'=>'Numéro d\'affaire'
 			,'nom'=>'Société'
-			,'label'=>'Environnement affaire'
+			,'label'=>'Partenaire'
 			,'nature_financement'=>'Nature'
 			,'type_financement'=> 'Type'
 			,'contrat'=> 'Type de contrat'

@@ -395,7 +395,7 @@ function _liste(&$ATMdb, &$simulation) {
 			'rowid'=>'N°'
 			,'nom'=>'Client'
 			,'reference'=>'Ref.'
-			,'label'=>'Environnement simulation'
+			,'label'=>'Partenaire'
 			,'login'=>'Utilisateur'
 			,'fk_type_contrat'=> 'Type<br>de<br>contrat'
 			,'date_simul'=>'Date<br>simulation'

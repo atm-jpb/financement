@@ -1,7 +1,7 @@
 <table id="[liste.id]" class="liste" width="100%">
 	<tr class="liste_titre">
 		<td>N° contrat</td>
-		<td style="width: 130px;">Environnement dossier</td>
+		<td style="width: 130px;">Partenaire</td>
 		<td style="width: 130px;">Leaser</td>
 		<td align="center">Type contrat</td>
 		<td align="center">Montant</td>

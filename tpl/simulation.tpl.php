@@ -11,7 +11,7 @@
 	<table width="100%"  class="border">
 		<tr class="liste_titre">
 			<td width="50%" valign="top">
-				Environnement : [simulation.entity; strconv=no]
+				Partenaire : [simulation.entity; strconv=no]
 			</td>
 		</tr>
 	</table>
