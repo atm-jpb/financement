@@ -1042,6 +1042,8 @@ class TSimulation extends TObjetStd {
 			,array('outFile' => $filePath.'/'.$fileName)
 		);
 		
+		// Nécessaire sinon n'affiche pas les caractères accentués
+		$simu2->commentaire = utf8_encode($simu2->commentaire);
 		
 		$simu->opt_adjonction = $back_opt_adjonction;
 		$simu->opt_calage = $back_opt_calage;
