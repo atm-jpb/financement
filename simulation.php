@@ -298,17 +298,17 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$THide = array('fk_soc', 'fk_user_author', 'rowid');
 	
-	$sql = "SELECT DISTINCT s.rowid, s.reference, e.label, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
+	$sql = "SELECT DISTINCT s.rowid, s.reference, e.rowid as entity_id, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'M' WHEN s.opt_periodicite = 'ANNEE' THEN 'A' WHEN s.opt_periodicite = 'SEMESTRE' THEN 'S' ELSE 'T' END) as 'Durée',";
 	$sql.= " s.date_simul, u.login, s.accord, s.type_financement, lea.nom as leaser, '' as suivi";
 	$sql.= " FROM @table@ s ";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON s.fk_user_author = u.rowid";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc ON s.fk_soc = soc.rowid";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as lea ON s.fk_leaser = lea.rowid ";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX.'entity e ON (e.rowid = s.entity) ';
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON (s.fk_user_author = u.rowid)";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc ON (s.fk_soc = soc.rowid)";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as lea ON (s.fk_leaser = lea.rowid) ";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX.'entity as e ON (e.rowid = s.entity) ';
 	
 	if (!$user->rights->societe->client->voir && !$_REQUEST['socid']) {
-		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON sc.fk_soc = soc.rowid";
+		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON (sc.fk_soc = soc.rowid)";
 	}
 	
 	//$sql.= " WHERE s.entity = ".$conf->entity;
@@ -363,6 +363,8 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formSimulation', 'GET');
 	
+	$TEntityName = TFinancementTools::build_array_entities();
+	
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
@@ -395,7 +397,7 @@ function _liste(&$ATMdb, &$simulation) {
 			'rowid'=>'N°'
 			,'nom'=>'Client'
 			,'reference'=>'Ref.'
-			,'label'=>'Partenaire'
+			,'entity_id'=>'Partenaire'
 			,'login'=>'Utilisateur'
 			,'fk_type_contrat'=> 'Type<br>de<br>contrat'
 			,'date_simul'=>'Date<br>simulation'
@@ -407,7 +409,7 @@ function _liste(&$ATMdb, &$simulation) {
 		,'search'=>array(
 			'nom'=>array('recherche'=>true, 'table'=>'soc')
 			,'login'=>array('recherche'=>true, 'table'=>'u')
-			,'label'=>array('recherche'=>true, 'table'=>'e')
+			,'entity_id'=>array( 'recherche'=>$TEntityName, 'table'=>'e', 'field'=>'rowid')
 			,'fk_type_contrat'=>$affaire->TContrat
 			,'type_financement'=>$affaire->TTypeFinancement
 			,'date_simul'=>'calendar'
@@ -416,10 +418,11 @@ function _liste(&$ATMdb, &$simulation) {
 		)
 		,'eval'=>array(
 			'suivi' => 'getStatutSuivi(@rowid@);'
+			,'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
 		)
 		,'size'=>array(
 			'width'=>array(
-				'label'=>'100px'
+				'entity_id'=>'100px'
 				,'login'=>'100px'
 			)
 		)

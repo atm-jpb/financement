@@ -347,7 +347,7 @@ function _liste(&$PDOdb, &$dossier) {
 	}
 	
 	$r = new TSSRenderControler($dossier);
-	$sql ="SELECT d.rowid as 'ID', fc.reference as refDosCli, e.label, fl.reference as refDosLea, a.rowid as 'ID affaire', a.reference as 'Affaire', ";
+	$sql ="SELECT d.rowid as 'ID', fc.reference as refDosCli, e.rowid as entity_id, fl.reference as refDosLea, a.rowid as 'ID affaire', a.reference as 'Affaire', ";
 	$sql.="a.nature_financement, a.fk_soc, c.nom as nomCli, l.nom as nomLea, ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.duree ELSE fl.duree END as 'Durée', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.montant ELSE fl.montant END as 'Montant', ";
@@ -379,6 +379,8 @@ function _liste(&$PDOdb, &$dossier) {
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	$aff = new TFin_affaire;
+	
+	$TEntityName = TFinancementTools::build_array_entities();
 	
 	//echo $sql;
 	$r->liste($PDOdb, $sql, array(
@@ -413,7 +415,7 @@ function _liste(&$PDOdb, &$dossier) {
 		,'title'=>array(
 			'refDosCli'=>'Contrat'
 			,'refDosLea'=>'Contrat Leaser'
-			,'label'=>'Partenaire'
+			,'entity_id'=>'Partenaire'
 			,'nomCli'=>'Client'
 			,'nomLea'=>'Leaser'
 			,'nature_financement'=>'Nature'
@@ -424,13 +426,16 @@ function _liste(&$PDOdb, &$dossier) {
 		,'search'=>array(
 			'refDosCli'=>array('recherche'=>true, 'table'=>'fc', 'field'=>'reference')
 			,'refDosLea'=>array('recherche'=>true, 'table'=>'fl', 'field'=>'reference')
-			,'label'=>array('recherche'=>true, 'table'=>'e')
+			,'entity_id'=>array('recherche'=>$TEntityName, 'table'=>'e', 'field'=>'rowid')
 			,'nomCli'=>array('recherche'=>true, 'table'=>'c', 'field'=>'nom')
 			,'nomLea'=>array('recherche'=>true, 'table'=>'l', 'field'=>'nom')
 			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
 			//,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
 		)
-		,'eval'=>array('fact_materiel'=>'_get_facture_mat(@ID affaire@);')
+		,'eval'=>array(
+			'fact_materiel'=>'_get_facture_mat(@ID affaire@);'
+			,'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
+		)
 		
 	));
 	$form->end();

@@ -169,7 +169,7 @@ function _liste(&$ATMdb, &$affaire) {
 	$errone = GETPOST('errone');
 	
 	$r = new TSSRenderControler($affaire);
-	$sql="SELECT a.rowid as 'ID', a.reference, e.label, a.montant as 'Montant', a.fk_soc, s.nom
+	$sql="SELECT a.rowid as 'ID', a.reference, e.rowid as entity_id, a.montant as 'Montant', a.fk_soc, s.nom
 	, a.nature_financement, a.type_financement, a.contrat, a.date_affaire
 		FROM @table@ a LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid)
 		LEFT JOIN ".MAIN_DB_PREFIX."entity e ON (a.entity = e.rowid)
@@ -177,7 +177,7 @@ function _liste(&$ATMdb, &$affaire) {
 	//echo $sql; exit;
 	
 	if($errone){
-		$sql="SELECT a.rowid as 'ID', a.reference, e.label, a.montant as 'Montant Affaire', SUM(df.montant) as 'Montant Financé', df.fk_fin_dossier, a.fk_soc, s.nom , a.nature_financement, a.type_financement, a.contrat, a.date_affaire 
+		$sql="SELECT a.rowid as 'ID', a.reference, e.rowid as entity_id, a.montant as 'Montant Affaire', SUM(df.montant) as 'Montant Financé', df.fk_fin_dossier, a.fk_soc, s.nom , a.nature_financement, a.type_financement, a.contrat, a.date_affaire 
 			  FROM llx_fin_affaire a 
 			  	LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid) 
 			  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) 
@@ -232,7 +232,9 @@ function _liste(&$ATMdb, &$affaire) {
 	if($errone) $sql .= " GROUP BY a.rowid";
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formAffaire', 'GET');
-	//echo $sql;
+	
+	$TEntityName = TFinancementTools::build_array_entities();
+
 	$r->liste($ATMdb, $sql, array(
 		'limit'=>array(
 			'page'=>1
@@ -263,7 +265,7 @@ function _liste(&$ATMdb, &$affaire) {
 		,'title'=>array(
 			'reference'=>'Numéro d\'affaire'
 			,'nom'=>'Société'
-			,'label'=>'Partenaire'
+			,'entity_id'=>'Partenaire'
 			,'nature_financement'=>'Nature'
 			,'type_financement'=> 'Type'
 			,'contrat'=> 'Type de contrat'
@@ -274,12 +276,14 @@ function _liste(&$ATMdb, &$affaire) {
 			'reference'=>true
 			,'nom'=>array('recherche'=>true,'table'=>'s')
 			,'nature_financement'=>$affaire->TNatureFinancement
-			,'label'=>array('recherche'=>true, 'table'=>'e')
+			,'entity_id'=>array('recherche'=>$TEntityName, 'table'=>'e', 'field'=>'rowid')
 			,'type_financement'=>$affaire->TTypeFinancement
 			,'contrat'=>$affaire->TContrat
 			,'date_affaire'=>'calendar'
 		)
-		
+		,'eval'=>array(
+			'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
+		)
 	));
 	
 	$form->end();

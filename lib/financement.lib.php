@@ -31,4 +31,48 @@ class TFinancementTools {
 		
 	}
 	
+	static function build_array_entities() {
+		
+		global $db;
+		
+		$obj_entity = new DaoMulticompany($db);
+		$obj_entity->getEntities();
+		
+		$TEntityName = self::get_entity_translation();
+		
+		$TEntities = array();
+		foreach($obj_entity->entities as $ent) {
+			if(!empty($TEntityName[$ent->label]))
+				$TEntities[$ent->id] = $TEntityName[$ent->label];
+			else {
+				$TEntities[$ent->id] = $ent->label;
+			}
+		}
+		
+		return $TEntities;
+	}
+	
+	static function get_entity_translation($entity_id=false) {
+		global $db, $conf;
+		
+		$TEntityAlternativeName = $conf->global->FINANCEMENT_TAB_ENTITY_ALTERNATIVE_NAME;
+		// Constante de la forme : 1,Impression,C'PRO;2,Informatique,C'PRO info;3,Télécom,C'PRO Télécom
+		if(empty($TEntityAlternativeName)) return $entity_id;
+		$TEntityAlternativeName = explode(';', $TEntityAlternativeName);
+		
+		$TEntityName = array();
+		
+		foreach ($TEntityAlternativeName as $TData) {
+			$tab_temp = explode(',', $TData);
+			//var_dump($tab_temp);exit;
+			if(empty($entity_id)) $TEntityName[$tab_temp[1]] = $tab_temp[2];
+			else $TEntityName[$tab_temp[0]] = $tab_temp[2];
+		}
+
+		if(!empty($entity_id)) return $TEntityName[$entity_id];
+		
+		return $TEntityName;
+		
+	}
+	
 }
