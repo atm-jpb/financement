@@ -959,6 +959,9 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			break;
 		}
 
+		$numcontrat_entity_leaser = ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['num_contrat']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['num_contrat'] :$fin->reference;
+		$numcontrat_entity_leaser = '<a href="dossier.php?id='.$ATMdb->Get_field('IDDoss').'">'.$numcontrat_entity_leaser.'</a> / '.TFinancementTools::get_entity_translation($ATMdb->Get_field('entityDossier'));
+		$numcontrat_entity_leaser.= '<br>'.$leaser->getNomUrl(0);
 		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
 			,'num_affaire' => $ATMdb->Get_field('N° affaire')
@@ -1008,6 +1011,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'class' => $bc[$var]
 			
 			,'incident_paiement'=>$incident_paiement
+			,'numcontrat_entity_leaser'=>$numcontrat_entity_leaser
 		);
 		//pre($row,true);
 		$TDossier[$dossier->getId()] = $row;
@@ -1046,9 +1050,6 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'order_down'=>img_picto('','1downarrow.png', '', 0)
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
 			
-		)
-		,'eval'=>array(
-			'entityDossier' => 'TFinancementTools::get_entity_translation(@entityDossier@)'
 		)
 	));
 	

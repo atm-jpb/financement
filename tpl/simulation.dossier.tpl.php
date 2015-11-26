@@ -1,8 +1,6 @@
 <table id="[liste.id]" class="liste" width="100%">
 	<tr class="liste_titre">
-		<td>N° contrat</td>
-		<td style="width: 130px;">Partenaire</td>
-		<td style="width: 130px;">Leaser</td>
+		<td align="center">N° contrat / Partenaire<br>Leaser</td>
 		<td align="center">Type contrat</td>
 		<td align="center">Montant</td>
 		<td align="center">Durée<br>Terme</td>
@@ -18,9 +16,7 @@
 		<td align="center">Retrait<br>copies</td>
 	</tr>
 	<tr [champs.class; strconv=no]>
-		<td id="num_contrat">[champs.num_contrat;block=tr; strconv=no]</td>
-		<td id="entity_dossier">[champs.entityDossier;block=tr; strconv=no]</td>
-		<td id="leaser">[champs.leaser; strconv=no]</td>
+		<td id="numcontrat_entity_leaser">[champs.numcontrat_entity_leaser;block=tr; strconv=no]</td>
 		<td id="type_contrat">[champs.type_contrat; strconv=no]</td>
 		<td id="Montant" align="right" nowrap="nowrap">[champs.montant; strconv=no; frm=0 000,00] &euro;</td>
 		<td id="duree" align="center">

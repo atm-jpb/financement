@@ -116,6 +116,7 @@ class TFinancementTools {
 				td[id="solde_r1"] {text-align:center;}
 				td[id="solde_nr1"] {text-align:center;}
 				td[id="solde_perso"] {text-align:center;}
+				td[id="numcontrat_entity_leaser"] {text-align:center;}
 				
 				tr.liste_titre input{width:60%}
 				
