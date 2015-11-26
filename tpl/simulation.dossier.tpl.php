@@ -18,45 +18,45 @@
 		<td align="center">Retrait<br>copies</td>
 	</tr>
 	<tr [champs.class; strconv=no]>
-		<td>[champs.num_contrat;block=tr; strconv=no]</td>
-		<td>[champs.entityDossier;block=tr; strconv=no]</td>
-		<td>[champs.leaser; strconv=no]</td>
-		<td>[champs.type_contrat; strconv=no]</td>
-		<td align="right" nowrap="nowrap">[champs.montant; strconv=no; frm=0 000,00] &euro;</td>
-		<td align="center">
+		<td id="num_contrat">[champs.num_contrat;block=tr; strconv=no]</td>
+		<td id="entity_dossier">[champs.entityDossier;block=tr; strconv=no]</td>
+		<td id="leaser">[champs.leaser; strconv=no]</td>
+		<td id="type_contrat">[champs.type_contrat; strconv=no]</td>
+		<td id="Montant" align="right" nowrap="nowrap">[champs.montant; strconv=no; frm=0 000,00] &euro;</td>
+		<td id="duree" align="center">
 			[champs.duree; strconv=no]<br>
 			[champs.terme; strconv=no]
 		</td>
-		<td align="right" nowrap="nowrap">
+		<td id="echeance" align="right" nowrap="nowrap">
 			[champs.echeance; strconv=no; frm=0 000,00] &euro;<br>
 			[champs.loyer_actualise; strconv=no; frm=0 000,00] &euro;
 		
 		</td>
-		<td align="center">
+		<td id="debut_fin" align="center">
 			[champs.debut; strconv=no; frm=dd/mm/yy]<br>
 			[champs.fin; strconv=no; frm=dd/mm/yy]
 		</td>
-		<td align="center">
+		<td id="prochaine_echeance" align="center">
 			[champs.prochaine_echeance; strconv=no; frm=dd/mm/yy]<br>
 			[champs.avancement; strconv=no]
 			[onshow;block=begin;when [champs.reloc]=='OUI']
 			<span style="color: #FF0000; font-weight: bold;">Rel</span>
 			[onshow;block=end]
 		</td>
-		<td align="right" nowrap="nowrap">
+		<td id="assurance" align="right" nowrap="nowrap">
 			[champs.assurance; strconv=no; frm=0 000,00] &euro;<br>
 			[champs.assurance_actualise; strconv=no; frm=0 000,00] &euro;
 		</td>
-		<td align="right" nowrap="nowrap">[champs.maintenance; strconv=no; frm=0 000,00] &euro;</td>
+		<td id="maintenance" align="right" nowrap="nowrap">[champs.maintenance; strconv=no; frm=0 000,00] &euro;</td>
 		[onshow;block=begin;when [champs.display_solde]=='0']
 		<td colspan="4" align="center">Soldes non disponibles. Contactez le service financement</td>
 		[onshow;block=end]
 		[onshow;block=begin;when [champs.display_solde]=='1']
-		<td align="right" nowrap="nowrap" class="solde"[champs.checkedr;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxr; strconv=no] [champs.solde_r; strconv=no; frm=0 000,00] &euro; [champs.montantr; strconv=no; frm=0 000,00]</td>
-		<td align="right" nowrap="nowrap" class="solde"[champs.checkednr;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxnr; strconv=no] [champs.solde_nr; strconv=no; frm=0 000,00] &euro; [champs.montantnr; strconv=no; frm=0 000,00]</td>
-		<td align="right" nowrap="nowrap" class="solde"[champs.checkedr1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxr1; strconv=no] [champs.solde_r1; strconv=no; frm=0 000,00] &euro; [champs.montantr1; strconv=no; frm=0 000,00]</td>
-		<td align="right" nowrap="nowrap" class="solde"[champs.checkednr1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxnr1; strconv=no] [champs.solde_nr1; strconv=no; frm=0 000,00] &euro; [champs.montantnr1; strconv=no; frm=0 000,00]</td>
+		<td id="solde_r" align="right" nowrap="nowrap" class="solde"[champs.checkedr;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxr; strconv=no] [champs.solde_r; strconv=no; frm=0 000,00] &euro; [champs.montantr; strconv=no; frm=0 000,00]</td>
+		<td id="solde_nr" align="right" nowrap="nowrap" class="solde"[champs.checkednr;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxnr; strconv=no] [champs.solde_nr; strconv=no; frm=0 000,00] &euro; [champs.montantnr; strconv=no; frm=0 000,00]</td>
+		<td id="solde_r1" align="right" nowrap="nowrap" class="solde"[champs.checkedr1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxr1; strconv=no] [champs.solde_r1; strconv=no; frm=0 000,00] &euro; [champs.montantr1; strconv=no; frm=0 000,00]</td>
+		<td id="solde_nr1" align="right" nowrap="nowrap" class="solde"[champs.checkednr1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxnr1; strconv=no] [champs.solde_nr1; strconv=no; frm=0 000,00] &euro; [champs.montantnr1; strconv=no; frm=0 000,00]</td>
 		[onshow;block=end]
-		<td align="right" nowrap="nowrap" class="solde">[champs.checkboxperso; strconv=no] [champs.soldeperso; strconv=no; frm=0 000,00] &euro;</td>
+		<td id="solde_perso" align="right" nowrap="nowrap" class="solde">[champs.checkboxperso; strconv=no] [champs.soldeperso; strconv=no; frm=0 000,00] &euro;</td>
 	</tr>
 </table>

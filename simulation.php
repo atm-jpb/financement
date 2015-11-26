@@ -997,7 +997,9 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	}
 	
 	$THide = array('IDAff', 'IDDoss', 'fk_user', 'Type contrat');
-
+	
+	TFinancementTools::add_css();
+	
 	//pre($simulation,true);
 	//pre($TDossier,true);exit;
 	return $r->renderArray($ATMdb, $TDossier, array(

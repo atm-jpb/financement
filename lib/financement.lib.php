@@ -85,6 +85,23 @@ class TFinancementTools {
 				td[field="login"] {text-align:center;}
 				td[field="accord"] {text-align:center;}
 				td[field="type_financement"] {text-align:center;}
+				
+				td[id="num_contrat"] {text-align:center;}
+				td[id="entity_dossier"] {text-align:center;}
+				td[id="leaser"] {text-align:center;}
+				td[id="type_contrat"] {text-align:center;}
+				td[id="Montant"] {text-align:center;}
+				td[id="duree"] {text-align:center;}
+				td[id="echeance"] {text-align:center;}
+				td[id="debut_fin"] {text-align:center;}
+				td[id="prochaine_echeance"] {text-align:center;}
+				td[id="assurance"] {text-align:center;}
+				td[id="maintenance"] {text-align:center;}
+				td[id="solde_r"] {text-align:center;}
+				td[id="solde_nr"] {text-align:center;}
+				td[id="solde_r1"] {text-align:center;}
+				td[id="solde_nr1"] {text-align:center;}
+				td[id="solde_perso"] {text-align:center;}
 			</style>
 		<?php
 		
