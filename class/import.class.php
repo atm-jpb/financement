@@ -1123,6 +1123,7 @@ class TImport extends TObjetStd {
 		}
 		
 		$a=new TFin_affaire;
+		$a->entity = 1;
 		$a->loadReference($ATMdb, $data[$this->mapping['search_key']]);
 		
 		if($a->fk_soc > 0 && $a->fk_soc != $fk_soc) { // client ne correspond pas
