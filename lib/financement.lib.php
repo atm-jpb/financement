@@ -81,10 +81,24 @@ class TFinancementTools {
 			<style type="text/css">
 				td[field="Montant"] {white-space:nowrap;}
 				td[field="reference"] {text-align:center;}
+				td[field="duree"] {text-align:center;}
 				td[field="date_simul"] {text-align:center;}
 				td[field="login"] {text-align:center;}
 				td[field="accord"] {text-align:center;}
 				td[field="type_financement"] {text-align:center;}
+				
+				td[field="refDosCli"] {text-align:center;}
+				td[field="entity_id"] {text-align:center;}
+				td[field="refDosLea"] {text-align:center;}
+				td[field="Affaire"] {text-align:center;}
+				td[field="nature_financement"] {text-align:center;}
+				td[field="Montant"] {text-align:center;}
+				td[field="duree"] {text-align:center;}
+				td[field="echeance"] {text-align:center;}
+				td[field="Prochaine"] {text-align:center;}
+				td[field="date_debut"] {text-align:center;}
+				td[field="Fin"] {text-align:center;}
+				td[field="fact_materiel"] {text-align:center;}
 				
 				td[id="num_contrat"] {text-align:center;}
 				td[id="entity_dossier"] {text-align:center;}

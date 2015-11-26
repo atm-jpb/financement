@@ -349,9 +349,9 @@ function _liste(&$PDOdb, &$dossier) {
 	$r = new TSSRenderControler($dossier);
 	$sql ="SELECT d.rowid as 'ID', fc.reference as refDosCli, e.rowid as entity_id, fl.reference as refDosLea, a.rowid as 'ID affaire', a.reference as 'Affaire', ";
 	$sql.="a.nature_financement, a.fk_soc, c.nom as nomCli, l.nom as nomLea, ";
-	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.duree ELSE fl.duree END as 'Durée', ";
+	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.duree ELSE fl.duree END as 'duree', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.montant ELSE fl.montant END as 'Montant', ";
-	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.echeance ELSE fl.echeance END as 'Echéance', ";
+	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.echeance ELSE fl.echeance END as 'echeance', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END as 'Prochaine', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END as 'date_debut', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END as 'Fin' ";
@@ -416,6 +416,8 @@ function _liste(&$PDOdb, &$dossier) {
 		,'title'=>array(
 			'refDosCli'=>'Contrat'
 			,'refDosLea'=>'Contrat Leaser'
+			,'duree'=>'Durée'
+			,'echeance'=>'Echéance'
 			,'entity_id'=>'Partenaire'
 			,'nomCli'=>'Client'
 			,'nomLea'=>'Leaser'
@@ -436,6 +438,23 @@ function _liste(&$PDOdb, &$dossier) {
 		,'eval'=>array(
 			'fact_materiel'=>'_get_facture_mat(@ID affaire@);'
 			,'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
+		)
+		,'position'=>array(
+			'text-align'=>array(
+				'refDosCli'=>'center'
+				,'entity_id'=>'center'
+				,'refDosLea'=>'center'
+				,'Affaire'=>'center'
+				,'nature_financement'=>'center'
+				,'nomCli'=>'center'
+				,'nomLea'=>'center'
+				,'duree'=>'center'
+				,'Montant'=>'center'
+				,'echeance'=>'center'
+				,'date'=>'center'
+				,'Fin'=>'center'
+				,'fact_materiel'=>'center'
+			)
 		)
 		
 	));

@@ -284,6 +284,17 @@ function _liste(&$ATMdb, &$affaire) {
 		,'eval'=>array(
 			'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
 		)
+		,'position'=>array(
+			'text-align'=>array(
+				'reference'=>'center'
+				,'entity_id'=>'center'
+				,'nature_financement'=>'center'
+				,'type_financement'=>'center'
+				,'nom'=>'center'
+				,'contrat'=>'center'
+				,'date_affaire'=>'center'
+			)
+		)
 	));
 	
 	$form->end();

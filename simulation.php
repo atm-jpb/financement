@@ -429,6 +429,22 @@ function _liste(&$ATMdb, &$simulation) {
 				,'login'=>'100px'
 			)
 		)
+		,'position'=>array(
+			'text-align'=>array(
+				'rowid'=>'center'
+				,'nom'=>'center'
+				,'reference'=>'center'
+				,'entity_id'=>'center'
+				,'duree'=>'center'
+				,'login'=>'center'
+				,'fk_type_contrat'=>'center'
+				,'date_simul'=>'center'
+				,'accord'=>'center'
+				,'type_financement'=>'center'
+				,'leaser'=>'center'
+				,'suivi'=>'center'
+			)
+		)
 	));
 	
 	$form->end();
