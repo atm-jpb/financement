@@ -79,9 +79,12 @@ class TFinancementTools {
 		
 		?>
 			<style type="text/css">
-				td[field="Montant"] {
-					white-space:nowrap;
-				}
+				td[field="Montant"] {white-space:nowrap;}
+				td[field="reference"] {text-align:center;}
+				td[field="date_simul"] {text-align:center;}
+				td[field="login"] {text-align:center;}
+				td[field="accord"] {text-align:center;}
+				td[field="type_financement"] {text-align:center;}
 			</style>
 		<?php
 		

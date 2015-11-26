@@ -374,7 +374,7 @@ function _liste(&$ATMdb, &$simulation) {
 		,'link'=>array(
 			'reference'=>'<a href="?id=@rowid@">@val@</a>'
 			,'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
-			,'login'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user_author@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
+			,'login'=>'<a href="'.DOL_URL_ROOT.'/user/card.php?id=@fk_user_author@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
 		)
 		,'translate'=>array(
 			'fk_type_contrat'=>$affaire->TContrat
