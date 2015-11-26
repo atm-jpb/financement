@@ -16,7 +16,7 @@
 		<td align="center">Retrait<br>copies</td>
 	</tr>
 	<tr [champs.class; strconv=no]>
-		<td id="numcontrat_entity_leaser">[champs.numcontrat_entity_leaser;block=tr; strconv=no]</td>
+		<td id="numcontrat_entity_leaser" style="width:150px">[champs.numcontrat_entity_leaser;block=tr; strconv=no]</td>
 		<td id="type_contrat">[champs.type_contrat; strconv=no]</td>
 		<td id="Montant" align="right" nowrap="nowrap">[champs.montant; strconv=no; frm=0 000,00] &euro;</td>
 		<td id="duree" align="center">
