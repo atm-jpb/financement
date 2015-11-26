@@ -75,4 +75,16 @@ class TFinancementTools {
 		
 	}
 	
+	static function add_css() {
+		
+		?>
+			<style type="text/css">
+				td[field="Montant"] {
+					white-space:nowrap;
+				}
+			</style>
+		<?php
+		
+	}
+	
 }

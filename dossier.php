@@ -381,6 +381,7 @@ function _liste(&$PDOdb, &$dossier) {
 	$aff = new TFin_affaire;
 	
 	$TEntityName = TFinancementTools::build_array_entities();
+	TFinancementTools::add_css();
 	
 	//echo $sql;
 	$r->liste($PDOdb, $sql, array(
