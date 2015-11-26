@@ -231,6 +231,7 @@ class TImport extends TObjetStd {
 				$facture_loc->linked_objects['dossier'] = $financement->fk_fin_dossier;
 			} else {
 				$dossier = new TFin_dossier;
+				$dossier->entity = 1;
 				if($dossier->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'])) { // Dossier trouvé, financement non => erreur de qualification (EXTERNE) 
 					$dossier->nature_financement = 'INTERNE';
 					$dossier->financement->reference = $data['reference_dossier_interne'];
@@ -572,6 +573,7 @@ class TImport extends TObjetStd {
 				$dossier = new TFin_dossier;
 				if(!$dossier->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'])) {
 					if($dossier->addAffaire($ATMdb, $affaire->getId())) {
+						$dossier->entity = 1;
 						$dossier->montant = $data['total_ht'];
 						$dossier->nature_financement = $affaire->nature_financement;
 						$dossier->reference_contrat_interne = $data['reference_dossier_interne'];
