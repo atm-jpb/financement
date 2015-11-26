@@ -29,6 +29,12 @@ class TFin_affaire extends TObjetStd {
 			,'MANDATEE'=>'Location mandatée'
 			,'FINANCIERE'=>'Location financière'
 		);
+		$this->TTypeFinancementShort=array(
+			'PURE'=>'Loc. Pure'
+			,'ADOSSEE'=>'Loc. adossée'
+			,'MANDATEE'=>'Loc. mandatée'
+			,'FINANCIERE'=>'Loc. financière'
+		);
 		
 		$this->TTypeMateriel=array(); 
 		$this->TNatureFinancement=array(

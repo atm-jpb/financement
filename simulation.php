@@ -414,7 +414,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'login'=>array('recherche'=>true, 'table'=>'u')
 			,'entity_id'=>array( 'recherche'=>$TEntityName, 'table'=>'e', 'field'=>'rowid')
 			,'fk_type_contrat'=>$affaire->TContrat
-			,'type_financement'=>$affaire->TTypeFinancement
+			,'type_financement'=>$affaire->TTypeFinancementShort
 			,'date_simul'=>'calendar'
 			,'accord'=>$simulation->TStatut
 			,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
@@ -426,7 +426,9 @@ function _liste(&$ATMdb, &$simulation) {
 		,'size'=>array(
 			'width'=>array(
 				'entity_id'=>'100px'
-				,'login'=>'100px'
+				,'login'=>'50px'
+				,'type_financement'=>'100px'
+				,'leaser'=>'270px'
 			)
 		)
 		,'position'=>array(
