@@ -1106,9 +1106,9 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	$entity = empty($dossier->entity) ? getEntity('fin_dossier') : $dossier->entity;
 	
 	if(TFinancementTools::user_courant_est_admin_financement() && empty($conf->global->FINANCEMENT_DISABLE_SELECT_ENTITY)){
-		$entity_field = $form->combo('', 'entity', $TEntities, $entity);
+		$entity_field = $form->combo('', 'entity', TFinancementTools::build_array_entities(), $entity);
 	} else {
-		$entity_field = $TEntities[$entity].$form->hidden('entity', $entity);
+		$entity_field = TFinancementTools::get_entity_translation($entity).$form->hidden('entity', $entity);
 	}
 
 	//pre($TAffaire,true);exit;
