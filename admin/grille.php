@@ -146,7 +146,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	print '</pre>';*/
 	$TBS=new TTemplateTBS;
 	
-	print $TBS->render('../tpl/fingrille.tpl.php'
+	print $TBS->render(dol_buildpath('/financement/tpl/fingrille.tpl.php')
 		,array(
 			'palier'=>$TPalier
 			,'coefficient'=>$TCoeff
