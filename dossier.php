@@ -246,8 +246,8 @@
 				
 				$fact->type = 2;
 				$fact->fk_facture_source = $origine->id;
-				$fact->facnumber = 'AV'.$origine->facnumber;
-				$fact->ref_supplier = 'AV'.$origine->facnumber;
+				$fact->facnumber = 'AV'.$origine->ref_supplier;
+				$fact->ref_supplier = 'AV'.$origine->ref_supplier;
 				$fact->update($user);
 				foreach($fact->lines as $line) {
 					$line->pu_ht *= -1;
@@ -264,7 +264,7 @@
 				$dossier->load($PDOdb, $idDossier);
 				$dossier->financementLeaser->setEcheance(-1, false);
 				
-				$Techeance = explode('/', $fact->facnumber);
+				$Techeance = explode('/', $fact->ref_supplier);
 				$echeance = array_pop($Techeance);
 
 				//MAJ dates période facture

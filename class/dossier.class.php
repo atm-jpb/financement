@@ -1788,8 +1788,8 @@ class TFin_financement extends TObjetStd {
 		
 		$fact->type = 2;
 		$fact->fk_facture_source = $origine->id;
-		$fact->facnumber = 'AV'.$origine->facnumber;
-		$fact->ref_supplier = 'AV'.$origine->facnumber;
+		$fact->facnumber = 'AV'.$origine->ref_supplier;
+		$fact->ref_supplier = 'AV'.$origine->ref_supplier;
 		$fact->update($user);
 		foreach($fact->lines as $line) {
 			$line->pu_ht *= -1;
@@ -1798,7 +1798,7 @@ class TFin_financement extends TObjetStd {
 		
 		$fact->validate($user);
 		
-		$echeance = explode('/',$origine->facnumber);
+		$echeance = explode('/',$origine->ref_supplier);
 		$echeance = array_pop($echeance);
 		
 		//MAJ dates période facture
