@@ -102,7 +102,7 @@ $formDoli = new Form($db);
 
 $TBS=new TTemplateTBS();
 
-print $TBS->render('../tpl/client_entete.tpl.php'
+print $TBS->render(dol_buildpath('/financement/tpl/client_entete.tpl.php')
 	,array(
 		
 	)
@@ -154,7 +154,7 @@ if($societe->fournisseur == 0) {
 		
 		$TBS=new TTemplateTBS;
 		
-		print $TBS->render('../tpl/fingrille.penalite.tpl.php'
+		print $TBS->render(dol_buildpath('/financement/tpl/fingrille.penalite.tpl.php')
 			,array(
 				'palier'=>$TPalier
 				,'coefficient'=>$TCoeff

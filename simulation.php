@@ -604,8 +604,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'duree'=>$form->combo('', 'duree', $TDuree, $simulation->duree)
 				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
 				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
-				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 5)
-				,'coeff_final'=>$can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 5) : $simulation->coeff_final
+				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 6)
+				,'coeff_final'=>$can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 6) : $simulation->coeff_final
 				,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10)
 				,'cout_financement'=>$simulation->cout_financement
 				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
@@ -638,7 +638,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->societe->nom.'</a>'
 				,'autres_simul'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/simulation.php?socid='.$simulation->fk_soc.'">(autres simulations)</a>'
 				,'adresse'=>$simulation->societe->address
-				,'cpville'=>$simulation->societe->cp.' / '.$simulation->societe->ville
+				,'cpville'=>$simulation->societe->zip.' / '.$simulation->societe->town
 				,'siret'=>$simulation->societe->idprof2
 				,'naf'=>$simulation->societe->idprof3
 				,'code_client'=>$simulation->societe->code_client

@@ -150,7 +150,7 @@ foreach ($liste_type_contrat as $typeContrat => $label) {
 	
 	//pre($grille,true);
 	
-	print $TBS->render('../tpl/fingrille.suivi.tpl.php'
+	print $TBS->render(dol_buildpath('/financement/tpl/fingrille.suivi.tpl.php')
 		,array(
 			'grille'=>$grille
 		)
@@ -217,7 +217,7 @@ function _affOrdreLeaser(&$ATMdb,&$TBS,&$TFin_grille_suivi,$mode,$typeContrat){
 	
 	//pre($TFin_grille_suivi->TLeaserByCategories,true);exit;
 	
-	print $TBS->render('../tpl/findefaut.suivi.tpl.php'
+	print $TBS->render(dol_buildpath('/financement/tpl/findefaut.suivi.tpl.php')
 		,array(
 			'grille'=>$grille
 		)
