@@ -627,9 +627,12 @@ class TSimulation extends TObjetStd {
 	}
 	
 	function load_by_soc(&$db, &$doliDB, $fk_soc) {
+		global $conf;
+		
 		$sql = "SELECT ".OBJETSTD_MASTERKEY;
 		$sql.= " FROM ".$this->get_table();
 		$sql.= " WHERE fk_soc = ".$fk_soc;
+		$sql.= " AND entity = ".$conf->entity;
 		
 		$TIdSimu = TRequeteCore::_get_id_by_sql($db, $sql, OBJETSTD_MASTERKEY);
 		$TResult = array();
