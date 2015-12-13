@@ -762,7 +762,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire_commercial ac ON ac.fk_fin_affaire = a.rowid";
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
 	//$sql.= " WHERE a.entity = ".$conf->entity;
-	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')';
+	$sql.= ' WHERE a.entity = '.$conf->entity;
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
 	$sql.= " AND (a.fk_soc = ".$simulation->fk_soc;
 	if(!empty($simulation->societe->siren)) {
