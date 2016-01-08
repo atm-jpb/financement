@@ -307,14 +307,14 @@ function _liste(&$ATMdb, &$simulation) {
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as lea ON (s.fk_leaser = lea.rowid) ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX.'entity as e ON (e.rowid = s.entity) ';
 	
-	if (!$user->rights->societe->client->voir && !$_REQUEST['socid']) {
+	if (!$user->rights->societe->client->voir || !$_REQUEST['socid']) {
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON (sc.fk_soc = soc.rowid)";
 	}
 	
 	//$sql.= " WHERE s.entity = ".$conf->entity;
 	$sql.= " WHERE 1=1 ";
 	
-	if (!$user->rights->societe->client->voir && !$_REQUEST['socid']) //restriction
+	if ((!$user->rights->societe->client->voir || !$_REQUEST['socid']) && !$user->rights->financement->allsimul->simul_list) //restriction
 	{
 		$sql.= " AND sc.fk_user = " .$user->id;
 	}
