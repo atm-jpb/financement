@@ -2,7 +2,7 @@
 	define('INC_FROM_CRON_SCRIPT',true);
 
 	require('../config.php');
-	require('../class/dossier.class.php');
+	dol_include_once('/financement/class/dossier.class.php');
 
 	set_time_limit(0);
 
@@ -20,7 +20,7 @@
 		AND f.type='LEASER' 
 		AND (f.reference != '' OR f.reference IS NOT NULL)
 		AND d.nature_financement = 'EXTERNE'";
-
+	//echo $sql;exit;
 	$ATMdb->Execute($sql);
 	$Tab = $ATMdb->Get_all();
 	
@@ -43,7 +43,8 @@
 				if(!$f->save($ATMdb)) print "user sans droit !<br/>";
 			}
 //$ATMdb->debug=false;
-		}		
+		}
+		//echo $f->rowid.'<br>';exit;
 	}
 
 	

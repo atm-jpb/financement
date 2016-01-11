@@ -66,7 +66,7 @@
 	define('SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH', 14);
 	define('FK_SOC_LOCAM', 3306);
 	
-	define('BASE_TEST', 1);
+	define('BASE_TEST', 0);
 	
 	define('BNP_TEST',0);
 	define('BNP_PRESCRIPTEUR_ID','FRAFT03559');
