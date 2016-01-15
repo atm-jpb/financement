@@ -8,6 +8,7 @@ require('./class/dossier_integrale.class.php');
 require('./class/score.class.php');
 require('./lib/financement.lib.php');
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
+dol_include_once('/user/class/usergroup.class.php');
 
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
@@ -531,17 +532,30 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	//var_dump($TDuree);
 	$can_preco = ($user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0) ? 1 : 0;
 	
+	// Chargement des groupes configurés dans multi entité
+	$TGroupEntity = unserialize($conf->global->MULTICOMPANY_USER_GROUP_ENTITY);
+	$TGroupEntities = array();
+	foreach($TGroupEntity as $tab) {
+		$g = new UserGroup($db);
+		if(!in_array($tab['group_id'], array_keys($TGroupEntities))) {
+			$g->fetch($tab['group_id']);
+			if($g->id > 0) $TGroupEntities[$tab['group_id']] = "'".$g->name."'";
+		}
+	}
+	//var_dump($TGroupEntity, $TGroupEntities);
 	if($user->rights->financement->admin->write && ($mode == "add" || $mode == "new" || $mode == "edit")){
 		$formdolibarr = new Form($db);
 		$rachat_autres = "texte";
 		$TUserInclude = array();
-		$TUserInclude = TRequeteCore::_get_id_by_sql($ATMdb, "SELECT u.rowid 
-															FROM ".MAIN_DB_PREFIX."user as u 
-																LEFT JOIN ".MAIN_DB_PREFIX."usergroup_user as ugu ON (ugu.fk_user = u.rowid)
-																LEFT JOIN ".MAIN_DB_PREFIX."usergroup as ug ON (ug.rowid = ugu.fk_usergroup)
-															WHERE ug.nom = 'GSL_DOLIBARR_FINANCEMENT_ADMIN' OR 
-																  ug.nom = 'GSL_DOLIBARR_FINANCEMENT_ADV' OR
-																  ug.nom = 'GSL_DOLIBARR_FINANCEMENT_COMMERCIAL'");
+		
+		$sql ="SELECT u.rowid 
+				FROM ".MAIN_DB_PREFIX."user as u 
+					LEFT JOIN ".MAIN_DB_PREFIX."usergroup_user as ugu ON (ugu.fk_user = u.rowid)
+					LEFT JOIN ".MAIN_DB_PREFIX."usergroup as ug ON (ug.rowid = ugu.fk_usergroup)
+				WHERE ug.nom IN (".implode(',', $TGroupEntities).") ";
+					  
+		$TUserInclude = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
+
 		//pre($TUserExculde,true); exit;
 		$link_user = $formdolibarr->select_dolusers($simulation->fk_user_author,'fk_user_author',1,'',0,$TUserInclude,'',$conf->entity);
 		
