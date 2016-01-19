@@ -92,26 +92,43 @@ class TSimulation extends TObjetStd {
 				$dossier =  new TFin_dossier;
 				$dossier->load($db, $k);
 				
+				// Renouvelant, renouvellant + 1, non renouvellant ou non renouvellant + 1
+				$periode = 0;
+				if(!empty($this->dossiers_rachetes[$dossier->rowid]['checked']) || !empty($this->dossiers_rachetes_nr[$dossier->rowid]['checked'])) $periode = 0;
+				elseif(!empty($this->dossiers_rachetes_p1[$dossier->rowid]['checked']) || !empty($this->dossiers_rachetes_nr_p1[$dossier->rowid]['checked'])) $periode = 1;
+				
 				if($dossier->nature_financement == 'INTERNE') {
 					$fin = &$dossier->financement;
 					$fin_leaser = &$dossier->financementLeaser;
-					$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
+					$echeance = $dossier->_get_num_echeance_from_date($dossier->financement->date_prochaine_echeance);
+					$date_debut_periode_client = $dossier->getDateDebutPeriode(($echeance-1) + $periode,'CLIENT');
+					$date_fin_periode_client = $dossier->getDateFinPeriode(($echeance-1) + $periode,'CLIENT');
+					$echeance = $dossier->_get_num_echeance_from_date($dossier->financementLeaser->date_prochaine_echeance);
+					$date_debut_periode_leaser = $dossier->getDateDebutPeriode(($echeance-1) + $periode);
+					$date_fin_periode_leaser = $dossier->getDateFinPeriode(($echeance-1) + $periode);
 				}
 				else{
 					$fin = &$dossier->financementLeaser;
 					$fin_leaser = &$dossier->financementLeaser;
-					$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
+					$echeance = $dossier->_get_num_echeance_from_date($dossier->financementLeaser->date_prochaine_echeance);
+					$date_debut_periode_client = $date_debut_periode_leaser = $dossier->getDateDebutPeriode(($echeance-1) + $periode);
+					$date_fin_periode_client = $date_fin_periode_leaser = $dossier->getDateFinPeriode(($echeance-1) + $periode);
 				}
 				
+				/*echo $dossier->rowid.' : '.$dossier->financementLeaser->date_prochaine_echeance.' : '.$date_debut_periode_client.' : '.$date_fin_periode_client;
+				echo '<br>';*/
+				
+				$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 				if(empty($dossier->display_solde)) $soldeperso = 0;
 				if(!$dossier->getSolde($ATMdb2, 'perso')) $soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100));
-				//pre($dossier,true);exit;
 				
-				/*echo $dossier->affaire->contrat.'<br>';
-				pre($dossier->TLien[0]->affaire->contrat,true);*/
 				$this->dossiers[$k]['ref_simulation'] = $this->reference;
 				$this->dossiers[$k]['num_contrat'] = $fin->reference;
 				$this->dossiers[$k]['num_contrat_leaser'] = $fin_leaser->reference;
+				$this->dossiers[$k]['date_debut_periode_client'] = $date_debut_periode_client;
+				$this->dossiers[$k]['date_fin_periode_client'] = $date_fin_periode_client;
+				$this->dossiers[$k]['date_debut_periode_leaser'] = $date_debut_periode_leaser;
+				$this->dossiers[$k]['date_fin_periode_leaser'] = $date_fin_periode_leaser;
 				$this->dossiers[$k]['decompte_copies_sup'] = $soldeperso;
 				$this->dossiers[$k]['type_contrat'] = $dossier->TLien[0]->affaire->contrat;
 				$this->dossiers[$k]['duree'] = $fin->duree.' '.substr($fin->periodicite,0,1);
