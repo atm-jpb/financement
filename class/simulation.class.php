@@ -81,26 +81,38 @@ class TSimulation extends TObjetStd {
 	function save(&$db, &$doliDB) {
 		//parent::save($db);
 		//pre($this,true);exit;
-		
+	//	var_dump($this->dossiers_rachetes, $_REQUEST);exit;
 		parent::save($db);
 		
 		$this->reference = $this->getRef();
 		
 		if(empty($this->dossiers) || count($this->dossiers) != count($this->dossiers_rachetes)){
+			
 			foreach($this->dossiers_rachetes as $k=>$TDossiers){
 				$dossier =  new TFin_dossier;
 				$dossier->load($db, $k);
+				
 				if($dossier->nature_financement == 'INTERNE') {
 					$fin = &$dossier->financement;
+					$fin_leaser = &$dossier->financementLeaser;
+					$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 				}
 				else{
 					$fin = &$dossier->financementLeaser;
+					$fin_leaser = &$dossier->financementLeaser;
+					$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 				}
+				
+				if(empty($dossier->display_solde)) $soldeperso = 0;
+				if(!$dossier->getSolde($ATMdb2, 'perso')) $soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100));
 				//pre($dossier,true);exit;
 				
 				/*echo $dossier->affaire->contrat.'<br>';
 				pre($dossier->TLien[0]->affaire->contrat,true);*/
+				$this->dossiers[$k]['ref_simulation'] = $this->reference;
 				$this->dossiers[$k]['num_contrat'] = $fin->reference;
+				$this->dossiers[$k]['num_contrat_leaser'] = $fin_leaser->reference;
+				$this->dossiers[$k]['decompte_copies_sup'] = $soldeperso;
 				$this->dossiers[$k]['type_contrat'] = $dossier->TLien[0]->affaire->contrat;
 				$this->dossiers[$k]['duree'] = $fin->duree.' '.substr($fin->periodicite,0,1);
 				$this->dossiers[$k]['echeance'] = $fin->echeance;
@@ -118,6 +130,8 @@ class TSimulation extends TObjetStd {
 			}
 		}
 
+		//var_dump($this->dossiers);exit;
+		
 		$this->gen_simulation_pdf($db, $doliDB);
 		
 		parent::save($db);
