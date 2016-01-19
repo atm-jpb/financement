@@ -94,8 +94,23 @@ class TSimulation extends TObjetStd {
 				
 				// Renouvelant, renouvellant + 1, non renouvellant ou non renouvellant + 1
 				$periode = 0;
-				if(!empty($this->dossiers_rachetes[$dossier->rowid]['checked']) || !empty($this->dossiers_rachetes_nr[$dossier->rowid]['checked'])) $periode = 0;
-				elseif(!empty($this->dossiers_rachetes_p1[$dossier->rowid]['checked']) || !empty($this->dossiers_rachetes_nr_p1[$dossier->rowid]['checked'])) $periode = 1;
+				if(!empty($this->dossiers_rachetes[$dossier->rowid]['checked'])) {
+					$type = 'SRBANK';
+					$periode = 0;
+				} elseif(!empty($this->dossiers_rachetes_nr[$dossier->rowid]['checked'])) {
+					$type = 'SNRBANK';
+					$periode = 0;
+				} elseif(!empty($this->dossiers_rachetes_p1[$dossier->rowid]['checked'])) {
+					$type = 'SRBANK';
+					$periode = 1;
+				} elseif(!empty($this->dossiers_rachetes_nr_p1[$dossier->rowid]['checked'])) {
+					$type = 'SNRBANK';
+					$periode = 1;
+				}
+				
+				$echeance = $dossier->_get_num_echeance_from_date($dossier->financementLeaser->date_prochaine_echeance);
+				//echo '*'.$type.' : '.$periode.' : '.($echeance + $periode).'*';
+				$solde = $dossier->getSolde($db, $type, $echeance + $periode);
 				
 				if($dossier->nature_financement == 'INTERNE') {
 					$fin = &$dossier->financement;
@@ -117,10 +132,10 @@ class TSimulation extends TObjetStd {
 				
 				/*echo $dossier->rowid.' : '.$dossier->financementLeaser->date_prochaine_echeance.' : '.$date_debut_periode_client.' : '.$date_fin_periode_client;
 				echo '<br>';*/
-				
-				$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
+				//pre($this, true);
+				$soldeperso = round($dossier->getSolde($db, 'perso'),2);
 				if(empty($dossier->display_solde)) $soldeperso = 0;
-				if(!$dossier->getSolde($ATMdb2, 'perso')) $soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100));
+				if(!$dossier->getSolde($db, 'perso')) $soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100));
 				
 				$this->dossiers[$k]['ref_simulation'] = $this->reference;
 				$this->dossiers[$k]['num_contrat'] = $fin->reference;
@@ -130,6 +145,7 @@ class TSimulation extends TObjetStd {
 				$this->dossiers[$k]['date_debut_periode_leaser'] = $date_debut_periode_leaser;
 				$this->dossiers[$k]['date_fin_periode_leaser'] = $date_fin_periode_leaser;
 				$this->dossiers[$k]['decompte_copies_sup'] = $soldeperso;
+				$this->dossiers[$k]['solde_banque_a_periode_identique'] = $solde;
 				$this->dossiers[$k]['type_contrat'] = $dossier->TLien[0]->affaire->contrat;
 				$this->dossiers[$k]['duree'] = $fin->duree.' '.substr($fin->periodicite,0,1);
 				$this->dossiers[$k]['echeance'] = $fin->echeance;
@@ -147,7 +163,7 @@ class TSimulation extends TObjetStd {
 			}
 		}
 
-		//var_dump($this->dossiers);exit;
+		//pre($this, true);exit;
 		
 		$this->gen_simulation_pdf($db, $doliDB);
 		
