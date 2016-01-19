@@ -751,8 +751,10 @@ class TFin_dossier extends TObjetStd {
 						//|| $dateProchaine > strtotime('2014-08-15')) { // Ticket 939
 						//|| ($dateProchaine > strtotime('2016-07-01') && $this->entity != 4 && $this->entity != 4 &&)) { // Bougogne Copie uniquement aplication 3% C'PRO uniquement à partir de Juillet
 						//echo (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100).'<br>';
-						if($dateProchaine > strtotime('2016-07-01') || $this->entity == 1)
+						if($dateProchaine > strtotime('2016-07-01') || $conf->entity == 1){
 							$solde *= (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100);
+							//exit(1);
+						}
 					}
 					//exit($LRD_Leaser);
 					
