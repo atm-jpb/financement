@@ -747,7 +747,7 @@ class TFin_dossier extends TObjetStd {
 					$solde = ($baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100)) + $this->financementLeaser->reste;
 					//echo ' + 3% '.$solde."<br>";
 					//$solde = $baseCalcul * (1 + $this->getPenalite($ATMdb,'R', 'EXTERNE',$iPeriode) / 100);
-					if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382) {
+					//if($this->financementLeaser->fk_soc != 6065 && $this->financementLeaser->fk_soc != 3382) {
 						//|| $dateProchaine > strtotime('2014-08-15')) { // Ticket 939
 						//|| ($dateProchaine > strtotime('2016-07-01') && $this->entity != 4 && $this->entity != 4 &&)) { // Bougogne Copie uniquement aplication 3% C'PRO uniquement à partir de Juillet
 						//echo (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100).'<br>';
@@ -755,7 +755,7 @@ class TFin_dossier extends TObjetStd {
 							$solde *= (1 + $this->getPenalite($ATMdb,'R', 'INTERNE',$iPeriode) / 100);
 							//exit(1);
 						}
-					}
+					//}
 					//exit($LRD_Leaser);
 					
 					//echo $solde.' '.$LRD_Leaser.'<br>';
