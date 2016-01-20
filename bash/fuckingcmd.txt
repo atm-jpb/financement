@@ -1,0 +1,3 @@
+cd OUT 
+ put /var/www/dolibarr-fin/documents/financement/XML/Lixxbail/FP_207_MA01_CPRO_20160120.xml
+
