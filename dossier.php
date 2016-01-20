@@ -546,7 +546,8 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 		'error_1' => "Echéance Client <br>< Echéance Leaser",
 		'error_2' => "Echéance client <br>non facturée",
 		'error_3' => "Facture Client <br>< Facture leaser",
-		'error_4' => "Facture Client <br>impayée"
+		'error_4' => "Facture Client <br>impayée",
+		'error_5' => "Facture Client <br>< Loyer client"
 	);
 	
 	$TTemplateTBS = new TTemplateTBS;
@@ -613,7 +614,7 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			}
 			
 			//if($dossier_temp->rowid == 1315){ pre($TError,true); }
-			
+			//var_dump($TFactures);
 			foreach($TFactures as $echeanceClient => $Tfacture){
 				
 				$date_fact_client  = explode("/",$Tfacture['ref_client']);
@@ -626,10 +627,18 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 					$TError[$res['iddossier']]['error_3'] = "FactureClientFactureLeaser";
 					$renta_negative = true;
 				}
+				
 				//Renta négative si une facture échéance client STATUS NON PAYE
 				if($Tfacture['paye'] == 0){
 					$TError[$res['iddossier']]['error_4'] = "FactureClientUnpaid";
 					$renta_negative = true;break;
+				}
+				
+				//Renta négative si une facture échéance client < facture échéance leaser (dossierfinleaser->echeance)
+				//echo $Tfacture['total_ht'] .' : '. $dossier_temp->financement->echeance.'<br>';
+				if($Tfacture['total_ht'] < $dossier_temp->financement->echeance && $Tfacture['ref_client']){
+					$TError[$res['iddossier']]['error_5'] = "FactureClientLoyerClient";
+					$renta_negative = true;
 				}
 			}
 			
@@ -637,7 +646,7 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			
 			if($renta_negative){
 				
-				$error_1 = $error_2 = $error_3 = $error_4 = "Non";
+				$error_1 = $error_2 = $error_3 = $error_4 = $error_5 = "Non";
 	
 				foreach ($TError as $iddossier => $TLabel) {
 					foreach($TLabel as $key => $label){
@@ -670,6 +679,7 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 						'status_2' => $error_2,
 						'status_3' => $error_3,
 						'status_4' => $error_4,
+						'status_5' => $error_5,
 						'Durée' => $dossier_temp->financement->duree,
 						'Montant' => $dossier_temp->financement->montant,
 						'Echéance' => $dossier_temp->financement->echeance,
@@ -734,6 +744,7 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 			,'status_2'=>$TErrorStatus['error_2']
 			,'status_3'=>$TErrorStatus['error_3']
 			,'status_4'=>$TErrorStatus['error_4']
+			,'status_5'=>$TErrorStatus['error_5']
 			,'fact_materiel'=>'Facture matériel'
 			,'visa_renta'=>'Visa Rentabilité'
 		)
