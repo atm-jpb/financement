@@ -16,7 +16,7 @@ class TCommercialCpro extends TObjetStd {
 	function loadUserClient(&$db, $fk_user, $fk_soc,$type_activite_cpro='') {
 		
 		$sql = "SELECT rowid FROM ".$this->get_table()." WHERE fk_soc=".$fk_soc." AND fk_user=".$fk_user;
-		if($type){
+		if($type_activite_cpro){
 			$sql .= " AND type_activite_cpro = '".$type_activite_cpro."'";
 		}
 		
