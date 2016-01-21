@@ -491,8 +491,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	TFinancementTools::check_user_rights($simulation);
 
-	/*pre($_REQUEST,true);
-	pre($simulation->dossiers,true);*/
+	//pre($_REQUEST,true);
+	//pre($simulation,true);
 	
 	if( $simulation->getId() == 0) {
 			
@@ -586,6 +586,10 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$entity_field = TFinancementTools::get_entity_translation($entity).$form->hidden('entity', $entity);
 	}
 	
+	$id_dossier = _getIDDossierByNumAccord($simulation->numero_accord);
+	if(empty($id_dossier)) $link_dossier = $simulation->numero_accord;
+	else $link_dossier = '<a href="'.dol_buildpath('/financement/dossier.php?id='.$id_dossier, 2).'" >'.$simulation->numero_accord.'</a>';
+	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
@@ -630,7 +634,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'total_financement'=>$simulation->montant_total_finance
 				,'type_materiel'=>$form->texte('','type_materiel',$simulation->type_materiel, 50)
 				,'marque_materiel'=>$form->combo('','marque_materiel',$simulation->TMarqueMateriel,$simulation->marque_materiel)
-				,'numero_accord'=>$can_preco ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $simulation->numero_accord
+				,'numero_accord'=>($can_preco && GETPOST('action') == 'edit') ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $link_dossier
 				
 				,'no_case_to_settle'=>$form->checkbox1('', 'opt_no_case_to_settle', 1, $simulation->opt_no_case_to_settle) 
 				
@@ -693,6 +697,27 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 	llxFooter();
 }
+
+function _getIDDossierByNumAccord($num_accord) {
+	
+	global $db;
+	
+	$num_accord = trim($num_accord);
+	if(empty($num_accord)) return 0;
+	
+	$sql = 'SELECT fk_fin_dossier
+			FROM '.MAIN_DB_PREFIX.'fin_dossier_financement
+			WHERE type = "LEASER"
+			AND reference = "'.$num_accord.'"';
+	
+	$resql = $db->query($sql);
+	$res = $db->fetch_object($resql);
+	
+	return $res->fk_fin_dossier;
+	
+}
+	
+
 
 function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	global $conf, $db, $langs;

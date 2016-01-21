@@ -968,10 +968,13 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	else $mode_aff_fLeaser='view';
 	
 	$formRestricted->Set_typeaff( $mode_aff_fLeaser );
-
+	
+	$id_simu = _getIDSimuByReferenceDossierLeaser($financementLeaser->reference);
+	if(!empty($id_simu)) $link_simu = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$id_simu, 2).'" >'.$financementLeaser->reference.'</a>';
+	
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()
-			,'reference'=>$formRestricted->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir')
+			,'reference'=>(empty($link_simu) || GETPOST('action') == 'edit') ? $formRestricted->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir') : $link_simu
 			,'montant'=>$formRestricted->texte('', 'leaser[montant]', $financementLeaser->montant, 10,255,'','','à saisir')
 			,'taux'=> $financementLeaser->taux
 			
@@ -1206,6 +1209,25 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	
 }
 
+
+
+function _getIDSimuByReferenceDossierLeaser($num_dossier_leaser) {
+	
+	global $db;
+	
+	$num_dossier_leaser = trim($num_dossier_leaser);
+	if(empty($num_dossier_leaser)) return 0;
+	
+	$sql = 'SELECT rowid
+			FROM '.MAIN_DB_PREFIX.'fin_simulation
+			WHERE numero_accord = "'.$num_dossier_leaser.'"';
+	
+	$resql = $db->query($sql);
+	$res = $db->fetch_object($resql);
+	
+	return $res->rowid;
+	
+}
 
 /*
  * LISTE SPECIFIQUE
