@@ -80,7 +80,7 @@ class ActionsFinancement
 		  
 		  $id = isset($object->rowid) ? $object->rowid : $object->id;
 		  
-		  $sql = "SELECT type_activite_cpro FROM ".MAIN_DB_PREFIX."societe_commerciaux WHERE fk_soc=".$parameters['socid']." AND fk_user=".$id;
+		  $sql = "SELECT type_activite_cpro FROM ".MAIN_DB_PREFIX."societe_commerciaux WHERE fk_soc=".$parameters['socid']." AND fk_user=".$id." AND rowid = ".$object->id_link;
 		  
 		  if( $resql=$db->query($sql)) {
 			  $obj = $db->fetch_object($resql);

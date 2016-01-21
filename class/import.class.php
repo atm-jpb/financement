@@ -1272,7 +1272,7 @@ class TImport extends TObjetStd {
 		}
 		
 		$c=new TCommercialCpro;
-		$c->loadUserClient($ATMdb, $fk_user, $fk_soc); // charge l'objet si existant
+		$c->loadUserClient($ATMdb, $fk_user, $fk_soc,$data['type_activite_cpro']); // charge l'objet si existant
 		
 		$c->fk_soc = $fk_soc;
 		$c->fk_user = $fk_user;
