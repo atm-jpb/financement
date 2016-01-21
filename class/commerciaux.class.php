@@ -13,9 +13,14 @@ class TCommercialCpro extends TObjetStd {
 		parent::_init_vars();
 		
 	}
-	function loadUserClient(&$db, $fk_user, $fk_soc) {
+	function loadUserClient(&$db, $fk_user, $fk_soc,$type_activite_cpro='') {
 		
-		$db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE fk_soc=".$fk_soc." AND fk_user=".$fk_user);
+		$sql = "SELECT rowid FROM ".$this->get_table()." WHERE fk_soc=".$fk_soc." AND fk_user=".$fk_user;
+		if($type){
+			$sql .= " AND type_activite_cpro = '".$type_activite_cpro."'";
+		}
+		
+		$db->Execute($sql);
 		if($db->Get_line()) {
 			return $this->load($db, $db->Get_field('rowid'));
 		}
