@@ -355,6 +355,17 @@ class TImport extends TObjetStd {
 				}
 			}
 			
+			if($dossier->entity != $data['entity']) {
+				$dossier->entity = $data['entity'];
+				$dossier->load_affaire($ATMdb);
+				foreach ($dossier->TLien as $i => $TData) {
+					$a = &$TData->affaire;
+					$a->entity = $data['entity'];
+					if($a->rowid > 0) $a->save($ATMdb);
+				}
+				
+			}
+			
 			$dossier->save($ATMdb);
 			$this->nb_update++;
 			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update',$data);
