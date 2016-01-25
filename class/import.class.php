@@ -355,7 +355,7 @@ class TImport extends TObjetStd {
 				}
 			}
 			
-			if($dossier->entity != $data['entity']) {
+			/*if($dossier->entity != $data['entity']) {
 				$dossier->entity = $data['entity'];
 				$dossier->load_affaire($ATMdb);
 				foreach ($dossier->TLien as $i => $TData) {
@@ -364,7 +364,7 @@ class TImport extends TObjetStd {
 					if($a->rowid > 0) $a->save($ATMdb);
 				}
 				
-			}
+			}*/
 			
 			$dossier->save($ATMdb);
 			$this->nb_update++;
