@@ -132,3 +132,6 @@ ErrorDossierClientNotFound=Dossier non trouvé
 ErrorClientDifferent=Dossier rattaché à un autre client
 leaserNotAllgood=Leaser du dossier différent
 ErrorCreatingLinkAffaireFactureMaterielAlreidyExist=Facture matériel déjà rattaché à une affaire
+
+# IHM
+DataSaved=Données enregistrées avec succès

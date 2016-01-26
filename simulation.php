@@ -157,7 +157,7 @@ if(!empty($action)) {
 					}
 				}
 			}
-			setEventMessage('Données enregistrées avec succès');
+			setEventMessage($langs->trans('DataSaved'));
 			_fiche($ATMdb, $simulation,'view');
 			break;
 		
