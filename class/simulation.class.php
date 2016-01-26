@@ -487,6 +487,7 @@ class TSimulation extends TObjetStd {
 			$ligne['utilisateur'] = ($simulationSuivi->fk_user_author && $simulationSuivi->date_cre != $simulationSuivi->date_maj) ? $link_user : '' ;
 			
 			$ligne['coeff_leaser'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][coeff_accord]', $simulationSuivi->coeff_leaser, 5,0,'style="text-align:right;"') : (($simulationSuivi->coeff_leaser>0) ? $simulationSuivi->coeff_leaser : '');
+			$ligne['commentaire'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->zonetexte('', 'TSuivi['.$simulationSuivi->rowid.'][commentaire]', $simulationSuivi->commentaire, 25,0,'style="text-align:right;"') : $simulationSuivi->commentaire;
 			$ligne['actions'] = $simulationSuivi->getAction($this);
 			
 			$TLignes[] = $ligne;
@@ -1119,6 +1120,7 @@ class TSimulationSuivi extends TObjetStd {
 		parent::add_champs('coeff_leaser','type=float;');
 		parent::add_champs('date_demande,date_accord,date_selection','type=date;');
 		parent::add_champs('numero_accord_leaser,statut','type=chaine;');
+		parent::add_champs('commentaire','type=text;');
 		parent::start();
 		parent::_init_vars();
 		

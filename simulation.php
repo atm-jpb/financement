@@ -151,6 +151,7 @@ if(!empty($action)) {
 						
 						$Tab['numero_accord_leaser'] = $Tval['num_accord'];
 						$Tab['coeff_leaser'] = $Tval['coeff_accord'];
+						$Tab['commentaire'] = $Tval['commentaire'];
 						$simulation_suivi->set_values($Tab);
 						$simulation_suivi->save($ATMdb);	
 					}
@@ -472,7 +473,7 @@ function getStatutSuivi($idSimulation){
 	$res = '';
 	while($ATMdb->Get_line()){
 		if($ATMdb->Get_field('statut') == 'OK' && $ATMdb->Get_field('date_selection') != '0000-00-00 00:00:00'){
-			return $res =  '<img title="Accord" src="'.dol_buildpath('/financement/img/OK.png',1).'" />';
+			return $res =  '<img title="Accord" src="'.dol_buildpath('/financement/img/happy_couronne.png',1).'" />';
 		}
 		else if($ATMdb->Get_field('statut') == 'WAIT'){
 			$res =  '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';

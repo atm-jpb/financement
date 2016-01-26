@@ -15,6 +15,7 @@
 			<td>Coeff.<br>Leaser</td>
 			<td>Date sélection<br>Leaser</td>
 			<td>Utilisateur</td>
+			<td>Commentaire</td>
 			<td>Actions</td>
 		</tr>
 		
@@ -27,6 +28,7 @@
 			<td>[ligne.coeff_leaser;strconv=no]</td>
 			<td>[ligne.date_selection]</td>
 			<td>[ligne.utilisateur;strconv=no]</td>
+			<td>[ligne.commentaire;strconv=no]</td>
 			<td>[ligne.actions;strconv=no]</td>
 		</tr>
 		
