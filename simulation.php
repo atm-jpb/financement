@@ -722,7 +722,7 @@ function _getIDDossierByNumAccord($num_accord) {
 function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	global $conf, $db, $langs;
 	
-	$form=new TFormCore($_SERVER['PHP_SELF'],'form_suivi_simulation','POST');
+	$form=new TFormCore($_SERVER['PHP_SELF'].'#suivi_leaser','form_suivi_simulation','POST');
 	$form->Set_typeaff('edit');
 	
 	echo $form->hidden('action', 'save_suivi');

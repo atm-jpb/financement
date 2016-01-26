@@ -1,4 +1,4 @@
-
+<div id="suivi_leaser"></div>
 [onshow;block=begin;when [view.type]=='simul']
 	
 	[view.titre; strconv=no]
@@ -34,3 +34,4 @@
 	<br /><br />
 	
 [onshow;block=end]
+</div>
