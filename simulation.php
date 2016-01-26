@@ -157,7 +157,7 @@ if(!empty($action)) {
 					}
 				}
 			}
-
+			setEventMessage('Données enregistrées avec succès');
 			_fiche($ATMdb, $simulation,'view');
 			break;
 		
