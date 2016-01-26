@@ -478,7 +478,9 @@ class TSimulation extends TObjetStd {
 			$ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
 			$ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png',1).'" />' : '' ;
 			$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande') : '' ;
-			$ligne['resultat'] = ($simulationSuivi->statut) ? '<img title="'.$simulationSuivi->TStatut[$simulationSuivi->statut].'" src="'.dol_buildpath('/financement/img/'.$simulationSuivi->statut.'.png',1).'" />' : '';
+			$img = $simulationSuivi->statut;
+			if(!empty($simulationSuivi->date_selection)) $img = 'happy_couronne';
+			$ligne['resultat'] = ($simulationSuivi->statut) ? '<img title="'.$simulationSuivi->TStatut[$simulationSuivi->statut].'" src="'.dol_buildpath('/financement/img/'.$img.'.png',1).'" />' : '';
 			$ligne['numero_accord_leaser'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][num_accord]', $simulationSuivi->numero_accord_leaser, 25,0,'style="text-align:right;"') : $simulationSuivi->numero_accord_leaser;
 			
 			$ligne['date_selection'] = ($simulationSuivi->get_Date('date_selection')) ? $simulationSuivi->get_Date('date_selection') : '' ;
@@ -1193,22 +1195,25 @@ class TSimulationSuivi extends TObjetStd {
 				}
 				else{
 					if($this->statut !== 'KO'){
-						if($this->TLeaserAuto[$this->fk_leaser]){	
+						/*if($this->TLeaserAuto[$this->fk_leaser]){	
 							//Envoyer
 							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
-						}
+						}*/
 						//Accepter
 						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter" title="Demande acceptée"><img src="'.dol_buildpath('/financement/img/OK.png',1).'" /></a>&nbsp;';
 						//Refuser
 						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser" title="Demande refusée"><img src="'.dol_buildpath('/financement/img/KO.png',1).'" /></a>&nbsp;';
 						//Enregistrer
 						$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
-					} elseif($simulation->accord != "KO"){
+					} elseif($simulation->accord != "KO") {
 						//Reset
 						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Annuler"><img src="'.dol_buildpath('/financement/img/WAIT.png',1).'" /></a>&nbsp;';
 					}
 				}
 			}
+		} elseif($simulation->accord == "OK" && !empty($this->date_selection)) {
+			//Reset
+			$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter" title="Annuler"><img src="'.dol_buildpath('/financement/img/WAIT.png',1).'" /></a>&nbsp;';
 		}
 		
 		return $actions;
@@ -1217,7 +1222,7 @@ class TSimulationSuivi extends TObjetStd {
 	//Exécute une action et met en oeuvre les règles de gestion en conséquence
 	function doAction(&$PDOdb,&$simulation,$action){
 		
-		if($simulation->accord != "OK"){
+		//if($simulation->accord != "OK"){
 		
 			switch ($action) {
 				case 'demander':
@@ -1241,7 +1246,7 @@ class TSimulationSuivi extends TObjetStd {
 					
 					break;
 			}
-		}
+		//}
 	}
 	
 	//Effectuer l'action de faire la demande de financement au leaser
@@ -1269,13 +1274,14 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		//Si leaser auto alors on envoye la demande par XML
-		if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
+		/*if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
 			$this->_sendDemandeAuto($PDOdb);
-		}
+		}*/
 		
 		$this->statut_demande = 1;
 		$this->date_demande = time();
 		$this->statut = 'WAIT';
+		$this->date_selection = 0;
 		$this->save($PDOdb);
 	}
 	
@@ -1295,9 +1301,13 @@ class TSimulationSuivi extends TObjetStd {
 		global $db;
 		
 		$simulation->accord = 'WAIT';
+		$simulation->coeff_final = '';
+		$simulation->fk_leaser = 0;
+		$simulation->numero_accord = '';
 		$simulation->save($PDOdb, $db);
 		
 		$this->statut = 'OK';
+		$this->date_selection = 0;
 		$this->save($PDOdb);
 	}
 	
