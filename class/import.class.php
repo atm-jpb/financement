@@ -359,6 +359,17 @@ class TImport extends TObjetStd {
 				}
 			}
 			
+			/*if($dossier->entity != $data['entity']) {
+				$dossier->entity = $data['entity'];
+				$dossier->load_affaire($ATMdb);
+				foreach ($dossier->TLien as $i => $TData) {
+					$a = &$TData->affaire;
+					$a->entity = $data['entity'];
+					if($a->rowid > 0) $a->save($ATMdb);
+				}
+				
+			}*/
+			
 			$dossier->save($ATMdb);
 			$this->nb_update++;
 			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update',$data);
@@ -1287,7 +1298,7 @@ class TImport extends TObjetStd {
 		}
 		
 		$c=new TCommercialCpro;
-		$c->loadUserClient($ATMdb, $fk_user, $fk_soc); // charge l'objet si existant
+		$c->loadUserClient($ATMdb, $fk_user, $fk_soc,$data['type_activite_cpro']); // charge l'objet si existant
 		
 		$c->fk_soc = $fk_soc;
 		$c->fk_user = $fk_user;
