@@ -469,7 +469,7 @@ class TSimulation extends TObjetStd {
 		//Construction d'un tableau de ligne pour futur affichage TBS
 		foreach($this->TSimulationSuivi as $simulationSuivi){
 			//echo $simulationSuivi->rowid.'<br>';
-			$link_user = '<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulationSuivi->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulationSuivi->user->login.'</a>';
+			$link_user = '<a href="'.DOL_URL_ROOT.'/user/card.php?id='.$simulationSuivi->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulationSuivi->user->login.'</a>';
 			
 			$ligne = array();
 			//echo $simulationSuivi->get_Date('date_demande').'<br>';
@@ -1329,7 +1329,15 @@ class TSimulationSuivi extends TObjetStd {
 	function doActionSelectionner(&$PDOdb,&$simulation){
 		global $db;
 		
-		if($simulation->type_financement != "ADOSSEE" && $simulation->type_financement != "MANDATEE"){
+		if(!empty($this->fk_leaser)) {
+			// fk_categorie 5 pour "Cession"
+			$sql = 'SELECT fk_societe FROM '.MAIN_DB_PREFIX.'categorie_fournisseur WHERE fk_categorie = 5 and fk_societe = '.$this->fk_leaser;
+			$resql = $db->query($sql);
+			$res = $db->fetch_object($resql);
+			$tiers_est_dans_categ_cession = $res->fk_societe;
+		}
+		
+		if($simulation->type_financement != "ADOSSEE" && $simulation->type_financement != "MANDATEE" && !$tiers_est_dans_categ_cession){
 			$simulation->coeff_final = $this->coeff_leaser;
 		}
 		
