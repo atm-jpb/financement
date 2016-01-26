@@ -1185,7 +1185,9 @@ class TSimulationSuivi extends TObjetStd {
 			else{
 				//Sélectionner
 				if($this->statut === 'OK'){
-					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=selectionner" title="Sélectionner ce leaser"><img src="'.dol_buildpath('/financement/img/selectionner.png',1).'" /></a>&nbsp;';
+					//Reset
+					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Annuler"><img src="'.dol_buildpath('/financement/img/WAIT.png',1).'" /></a>&nbsp;';
+					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=selectionner" title="Sélectionner ce leaser"><img src="'.dol_buildpath('/financement/img/happy_couronne.png',1).'" /></a>&nbsp;';
 					//Enregistrer
 					$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
 				}
@@ -1195,12 +1197,15 @@ class TSimulationSuivi extends TObjetStd {
 							//Envoyer
 							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
 						}
+						//Accepter
+						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter" title="Demande acceptée"><img src="'.dol_buildpath('/financement/img/OK.png',1).'" /></a>&nbsp;';
+						//Refuser
+						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser" title="Demande refusée"><img src="'.dol_buildpath('/financement/img/KO.png',1).'" /></a>&nbsp;';
 						//Enregistrer
 						$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
-						//Accepter
-						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter" title="Demande acceptée"><img src="'.dol_buildpath('/financement/img/accepter.png',1).'" /></a>&nbsp;';
-						//Refuser
-						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser" title="Demande refusée"><img src="'.dol_buildpath('/financement/img/refuser.png',1).'" /></a>&nbsp;';
+					} elseif($simulation->accord != "KO"){
+						//Reset
+						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Annuler"><img src="'.dol_buildpath('/financement/img/WAIT.png',1).'" /></a>&nbsp;';
 					}
 				}
 			}
