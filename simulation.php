@@ -370,7 +370,7 @@ function _liste(&$ATMdb, &$simulation) {
 	$TEntityName = TFinancementTools::build_array_entities();
 	TFinancementTools::add_css();
 	
-	$r->liste($ATMdb, $sql, array(
+	$tab = array(
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
 			,'nbLine'=>'30'
@@ -410,7 +410,6 @@ function _liste(&$ATMdb, &$simulation) {
 			,'accord'=>'Statut'
 			,'type_financement'=>'Type<br>financement'
 			,'leaser'=>'Leaser'
-			,'suivi'=>'Accord<br>Leaser'
 			,'loupe'=>''
 		)
 		,'search'=>array(
@@ -424,8 +423,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
 		)
 		,'eval'=>array(
-			'suivi' => 'getStatutSuivi(@rowid@);'
-			,'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
+			'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
 		)
 		,'size'=>array(
 			'width'=>array(
@@ -451,7 +449,14 @@ function _liste(&$ATMdb, &$simulation) {
 				,'suivi'=>'center'
 			)
 		)
-	));
+	);
+	
+	if($user->rights->financement->allsimul->suivi_leaser) {
+		$tab['title']['suivi'] = 'Accord<br>Leaser';
+		$tab['eval']['suivi'] = 'getStatutSuivi(@rowid@);';
+	}
+
+	$r->liste($ATMdb, $sql, $tab);
 	
 	$form->end();
 	
