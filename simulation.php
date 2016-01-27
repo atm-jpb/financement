@@ -96,6 +96,8 @@ if(!empty($_REQUEST['fk_soc'])) {
 	$result = restrictedArea($user, 'societe', $simulation->societe->id, '&societe', '', 'fk_soc', 'rowid', $objcanvas);
 }
 
+$TStatutSuivi = getAllStatutSuivi(); // Défini ici pour optimiser l'affichage des simulations
+
 if(!empty($action)) {
 	switch($action) {
 		case 'list':
@@ -460,7 +462,7 @@ function _liste(&$ATMdb, &$simulation) {
 	llxFooter();
 }
 
-function getStatutSuivi($idSimulation){
+/*function getStatutSuivi($idSimulation){
 	global $db;
 
 	$ATMdb = new TPDOdb;
@@ -473,7 +475,7 @@ function getStatutSuivi($idSimulation){
 	$res = '';
 	while($ATMdb->Get_line()){
 		if($ATMdb->Get_field('statut') == 'OK' && $ATMdb->Get_field('date_selection') != '0000-00-00 00:00:00'){
-			return $res =  '<img title="Accord" src="'.dol_buildpath('/financement/img/happy_couronne.png',1).'" />';
+			return $res =  '<img title="Accord" src="'.dol_buildpath('/financement/img/OK.png',1).'" />';
 		}
 		else if($ATMdb->Get_field('statut') == 'WAIT'){
 			$res =  '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
@@ -485,6 +487,50 @@ function getStatutSuivi($idSimulation){
 	$ATMdb->close();
 
 	return $res;
+}*/
+
+function getStatutSuivi($idSimulation) {
+	
+	global $TStatutSuivi;
+	
+	return $TStatutSuivi[$idSimulation];
+
+}
+
+function getAllStatutSuivi() {
+	global $db;
+
+	$ATMdb = new TPDOdb;
+
+	$sql = "SELECT fk_simulation, statut, date_selection 
+			FROM ".MAIN_DB_PREFIX."fin_simulation_suivi";
+			//"WHERE fk_simulation = ".$idSimulation;
+	$ATMdb->Execute($sql);
+	
+	$TStatutSuivi = array();
+	$TStatutSuiviFinal = array();
+	
+	$res = '';
+	while($ATMdb->Get_line()) $TStatutSuivi[$ATMdb->Get_field('fk_simulation')][] = array('statut'=>$ATMdb->Get_field('statut'), 'date_selection'=>$ATMdb->Get_field('date_selection'));
+	
+	foreach ($TStatutSuivi as $fk_simulation => $TStatut) {
+		
+		foreach($TStatut as $TData) {
+			
+			if($TData['statut'] == 'OK' && $TData['date_selection'] != '0000-00-00 00:00:00'){
+				$TStatutSuiviFinal[$fk_simulation] = '<img title="Accord" src="'.dol_buildpath('/financement/img/happy_couronne.png',1).'" />';
+				break;
+				//return $res =  '<img title="Accord" src="'.dol_buildpath('/financement/img/happy_couronne.png',1).'" />';
+			}
+			else if($TData['statut'] == 'WAIT'){
+				$TStatutSuiviFinal[$fk_simulation] = '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
+				//$res =  '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
+			}
+		
+		}
+	}
+	
+	return $TStatutSuiviFinal;
 }
 	
 function _fiche(&$ATMdb, &$simulation, $mode) {
@@ -492,8 +538,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	TFinancementTools::check_user_rights($simulation);
 
-	//pre($_REQUEST,true);
-	//pre($simulation,true);
+	/*pre($_REQUEST,true);
+	pre($simulation->dossiers,true);*/
 	
 	if( $simulation->getId() == 0) {
 			
