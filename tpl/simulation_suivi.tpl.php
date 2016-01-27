@@ -11,7 +11,7 @@
 			<!--<td>Demande</td> -->
 			<td>Date<br>demande</td>
 			<td>Résultat</td>
-			<td>N° accord<br>Leaser</td>
+			<td>N° étude / Accord Leaser</td>
 			<td>Coeff.<br>Leaser</td>
 			<td>Date sélection<br>Leaser</td>
 			<td>Utilisateur</td>
