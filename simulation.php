@@ -96,10 +96,11 @@ if(!empty($_REQUEST['fk_soc'])) {
 	$result = restrictedArea($user, 'societe', $simulation->societe->id, '&societe', '', 'fk_soc', 'rowid', $objcanvas);
 }
 
+$TStatutSuivi = getAllStatutSuivi(); // Défini ici pour optimiser l'affichage des simulations
+
 if(!empty($action)) {
 	switch($action) {
 		case 'list':
-			$TStatutSuivi = getAllStatutSuivi(); // Défini ici pour optimiser l'affichage des simulations
 			_liste($ATMdb, $simulation);
 			break;
 		case 'add':
