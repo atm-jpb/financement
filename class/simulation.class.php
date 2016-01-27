@@ -1329,21 +1329,34 @@ class TSimulationSuivi extends TObjetStd {
 	function doActionSelectionner(&$PDOdb,&$simulation){
 		global $db;
 		
+		$TTypeFinancement = array(3=>'ADOSSEE', 4=>'MANDATEE', 18=>'PURE'); // En cléf : id categorie, en valeur, type financement associé
+		$TCateg_tiers = array();
+		
 		if(!empty($this->fk_leaser)) {
-			// fk_categorie 5 pour "Cession"
-			$sql = 'SELECT fk_societe FROM '.MAIN_DB_PREFIX.'categorie_fournisseur WHERE fk_categorie = 5 and fk_societe = '.$this->fk_leaser;
+			// Récupération des catégories du leaser. fk_categorie : 5 pour "Cession", 3 pour "Adossee", 18 pour Loc Pure, 4 pour Mandatee
+			$sql = 'SELECT fk_categorie FROM '.MAIN_DB_PREFIX.'categorie_fournisseur WHERE fk_categorie IN (3, 4, 5, 18) and fk_societe = '.$this->fk_leaser;
 			$resql = $db->query($sql);
-			$res = $db->fetch_object($resql);
-			$tiers_est_dans_categ_cession = $res->fk_societe;
+			while($res = $db->fetch_object($resql)) {
+				$TCateg_tiers[] = (int)$res->fk_categorie;
+			}
 		}
 		
-		if($simulation->type_financement != "ADOSSEE" && $simulation->type_financement != "MANDATEE" && !$tiers_est_dans_categ_cession){
+		if($simulation->type_financement != "ADOSSEE" && $simulation->type_financement != "MANDATEE" && !in_array(5, $TCateg_tiers)){
 			$simulation->coeff_final = $this->coeff_leaser;
 		}
+		// Une fois le test précédent effectué, on ne garde dans le tableau que les id des groupes qui nous intéressent (3 4 ou 18).
+		if(!empty($TCateg_tiers)) {
+			$TTemp = $TCateg_tiers;
+			$TCateg_tiers = array();
+			foreach ($TTemp as $id_categ) {
+				if($id_categ == 3 || $id_categ == 4 || $id_categ == 18) $TCateg_tiers[] = $id_categ;
+			}
+		} 
 		
 		$simulation->accord = 'OK';
 		$simulation->numero_accord = $this->numero_accord_leaser;
 		$simulation->fk_leaser = $this->fk_leaser;
+		if(!empty($TTypeFinancement[$TCateg_tiers[0]])) $simulation->type_financement = $TTypeFinancement[$TCateg_tiers[0]];
 		$simulation->save($PDOdb, $db);
 
 		$this->date_selection = time();
