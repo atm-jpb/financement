@@ -168,8 +168,14 @@ class TFin_grille_leaser extends TObjetStd {
 		$grilleLigne = new TFin_grille_leaser;
 		if($idCoeff>0) $grilleLigne->load($ATMdb, $idCoeff);
 		
+		// Cette variable permet d'indiquer qu'il faut recharger les grilles avant l'affichage car sinon affichage non mis à jour lors d'une suppression de ligne.
+		$at_least_on_delete = false;
+		
 		if(empty($coeff)) {
-			if($idCoeff>0) $grilleLigne->delete($ATMdb);
+			if($idCoeff>0) {
+				$grilleLigne->delete($ATMdb);
+				$at_least_on_delete = true;
+			}
 			
 			/*print "$periode, $montant<br>"; 
 			print_r($this->TGrille[$periode][$montant]);
@@ -210,6 +216,7 @@ class TFin_grille_leaser extends TObjetStd {
 			//}
 		}
 		
+		return $at_least_on_delete;
 		
 	}
 	function addPeriode($periode) {
