@@ -186,7 +186,8 @@ function _liste(&$ATMdb, &$affaire) {
 				LEFT JOIN ".MAIN_DB_PREFIX."entity e ON (a.entity = e.rowid) 
 			  WHERE a.entity IN(".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")
 			  	AND df.type = 'LEASER' 
-			  	AND df.montant != a.montant";
+			  	AND df.montant != a.montant
+			  	AND ABS(df.montant - a.montant) > 0.01";
 	}
 	
 	$THide = array('fk_soc', 'ID', 'fk_fin_dossier');
