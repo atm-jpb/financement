@@ -203,6 +203,8 @@ if(!empty($action)) {
 			
 			// On vérifie que les dossiers sélectionnés n'ont pas été décochés
 			//if(empty($_REQUEST['dossiers'])) $simulation->dossiers = array();
+			if(empty($_REQUEST['dossiers_rachetes_m1'])) $simulation->dossiers_rachetes_m1 = array();
+			if(empty($_REQUEST['dossiers_rachetes_nr_m1'])) $simulation->dossiers_rachetes_nr_m1 = array();
 			if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
 			if(empty($_REQUEST['dossiers_rachetes_p1'])) $simulation->dossiers_rachetes_p1 = array();
 			if(empty($_REQUEST['dossiers_rachetes_nr'])) $simulation->dossiers_rachetes_nr = array();
