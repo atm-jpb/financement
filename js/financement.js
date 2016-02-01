@@ -15,13 +15,23 @@ $(document).ready(function() {
 	init_selected_dossier();
 	
 	// Calage
-	$('select[name="opt_calage"]').bind('change', select_calage);
+	/*$('select[name="opt_calage"]').bind('change', select_calage);
 	if($('select[name="opt_calage"]').val() == '') {
 		$('input[name="date_demarrage"]').attr('disabled', true);
 		$('input[name="date_demarrage"]').val('');
 	} else {
 		$('input[name="date_demarrage"]').attr('disabled', false);
-	}
+	}*/
+	
+	$('#date_demarrage').bind('change', function() {
+		var date_d = $('#date_demarrage').val();
+		date_d = date_d.split("/");
+		date_d.reverse();
+		date_d = date_d.join("/");
+		var date_demarrage = new Date(date_d);
+		var today = new Date();
+		$('#opt_calage').val((date_demarrage.getMonth()-today.getMonth())+'M');
+	});
 	
 	// Rachat dossier ou case aucun
 	$('#opt_no_case_to_settle').bind('click', function() {
