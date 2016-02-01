@@ -94,7 +94,13 @@ class TSimulation extends TObjetStd {
 				
 				// Renouvelant, renouvellant + 1, non renouvellant ou non renouvellant + 1
 				$periode = 0;
-				if(!empty($this->dossiers_rachetes[$dossier->rowid]['checked'])) {
+				if(!empty($this->dossiers_rachetes_m1[$dossier->rowid]['checked'])) {
+					$type = 'SRBANK';
+					$periode = -1;
+				} elseif(!empty($this->dossiers_rachetes_nr_m1[$dossier->rowid]['checked'])) {
+					$type = 'SNRBANK';
+					$periode = -1;
+				} elseif(!empty($this->dossiers_rachetes[$dossier->rowid]['checked'])) {
 					$type = 'SRBANK';
 					$periode = 0;
 				} elseif(!empty($this->dossiers_rachetes_nr[$dossier->rowid]['checked'])) {
