@@ -25,6 +25,15 @@ class TSimulation extends TObjetStd {
 			,'SS'=>$langs->trans('SansSuite')
 		);
 		
+		$this->TStatutShort=array(
+			'OK'=>$langs->trans('Accord')
+			,'WAIT'=>$langs->trans('Etude')
+			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser_Short')
+			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur_Short')
+			,'KO'=>$langs->trans('Refus')
+			,'SS'=>$langs->trans('SansSuite')
+		);
+		
 		$this->TTerme = array(
 			0=>'Echu'
 			,1=>'A Echoir'
