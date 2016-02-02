@@ -30,7 +30,13 @@ $(document).ready(function() {
 		date_d = date_d.join("/");
 		var date_demarrage = new Date(date_d);
 		var today = new Date();
-		$('#opt_calage').val((date_demarrage.getMonth()-today.getMonth())+'M');
+		var diff_time = date_demarrage.getTime()-today.getTime();
+		var diff_jours = Math.ceil(diff_time/(1000*60*60*24));
+		if(diff_jours > 30 && diff_jours < 125) {
+			$('#opt_calage').val(Math.floor(diff_jours/31)+'M');
+		} else {
+			$('#opt_calage').val('');
+		}
 	});
 	
 	// Rachat dossier ou case aucun
