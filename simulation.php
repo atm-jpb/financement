@@ -455,7 +455,7 @@ function _liste(&$ATMdb, &$simulation) {
 	);
 	
 	if($user->rights->financement->allsimul->suivi_leaser) {
-		$tab['title']['suivi'] = 'Accord<br>Leaser';
+		$tab['title']['suivi'] = 'Statut<br>Leaser';
 		$tab['eval']['suivi'] = 'getStatutSuivi(@rowid@);';
 	}
 
