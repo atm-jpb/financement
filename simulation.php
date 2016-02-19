@@ -526,12 +526,16 @@ function getAllStatutSuivi() {
 		foreach($TStatut as $TData) {
 			
 			if($TData['statut'] == 'OK' && $TData['date_selection'] != '0000-00-00 00:00:00'){
-				$TStatutSuiviFinal[$fk_simulation] = '<img title="Accord" src="'.dol_buildpath('/financement/img/super_ok.png',1).'" />';
+				$TStatutSuiviFinal[$fk_simulation] = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$fk_simulation, 1).'#suivi_leaser">';
+				$TStatutSuiviFinal[$fk_simulation].= '<img title="Accord" src="'.dol_buildpath('/financement/img/super_ok.png',1).'" />';
+				$TStatutSuiviFinal[$fk_simulation].= '</a>';
 				break;
 				//return $res =  '<img title="Accord" src="'.dol_buildpath('/financement/img/super_ok.png',1).'" />';
 			}
 			else if($TData['statut'] == 'WAIT'){
-				$TStatutSuiviFinal[$fk_simulation] = '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
+				$TStatutSuiviFinal[$fk_simulation] = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$fk_simulation, 1).'#suivi_leaser">';
+				$TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
+				$TStatutSuiviFinal[$fk_simulation].= '</a>';
 				//$res =  '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
 			}
 		
