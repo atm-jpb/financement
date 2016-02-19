@@ -645,6 +645,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	if(empty($id_dossier)) $link_dossier = $simulation->numero_accord;
 	else $link_dossier = '<a href="'.dol_buildpath('/financement/dossier.php?id='.$id_dossier, 2).'" >'.$simulation->numero_accord.'</a>';
 	
+	$TOptCalageLabel = array('1M'=>'1 mois', '2M'=>'2 mois', '3M'=>'3 mois');
+	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
@@ -666,7 +668,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $financement->TPeriodicite, $simulation->opt_periodicite) 
 				//,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 1, $simulation->opt_creditbail)
 				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement)
-				,'opt_calage'=>$form->combo('', 'opt_calage', $financement->TCalage, $simulation->opt_calage)
+				,'opt_calage_label'=>$form->texte('', 'opt_calage_label', $TOptCalageLabel[$simulation->opt_calage], 5, 0, 'readonly')
+				,'opt_calage'=>$form->hidden('opt_calage', $simulation->opt_calage)
 				,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme)
 				,'date_demarrage'=>$form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12)
 				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)

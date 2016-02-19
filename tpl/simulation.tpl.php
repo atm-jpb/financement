@@ -120,7 +120,7 @@
 		</tr>
 		<tr>
 			<td>Calage</td>
-			<td>[simulation.opt_calage; strconv=no]</td>
+			<td>[simulation.opt_calage; strconv=no][simulation.opt_calage_label; strconv=no]</td>
 			<td>Date démarrage</td>
 			<td>[simulation.date_demarrage; strconv=no]</td>
 		</tr>
