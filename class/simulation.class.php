@@ -834,13 +834,20 @@ class TSimulation extends TObjetStd {
 		
 		$TDossier = array();
 		//pre($this,true);exit;
+		foreach($this->dossiers_rachetes_m1 as $idDossier => $TData){
+			if($this->dossiers_rachetes_m1[$idDossier]['checked'])
+				$TDossier[$idDossier] = $idDossier;
+		}
 		foreach($this->dossiers_rachetes as $idDossier => $TData){
 			if($this->dossiers_rachetes[$idDossier]['checked'])
 				$TDossier[$idDossier] = $idDossier;
 		}
-		
 		foreach($this->dossiers_rachetes_p1 as $idDossier => $TData){
 			if($this->dossiers_rachetes_p1[$idDossier]['checked'])
+				$TDossier[$idDossier] = $idDossier;
+		}
+		foreach($this->dossiers_rachetes_nr_m1 as $idDossier => $TData){
+			if($this->dossiers_rachetes_nr_m1[$idDossier]['checked'])
 				$TDossier[$idDossier] = $idDossier;
 		}
 		foreach($this->dossiers_rachetes_nr as $idDossier => $TData){
@@ -898,6 +905,8 @@ class TSimulation extends TObjetStd {
 			//$date_prochaine_echeance = $this[]
 			
 			$echeance = $d->_get_num_echeance_from_date($this->dossiers[$idDossier]['date_prochaine_echeance']);
+			$date_debut_periode_m1 = $d->getDateDebutPeriode($echeance-2,$type);
+			$date_fin_periode_m1 = $d->getDateFinPeriode($echeance-2,$type);
 			$date_debut_periode = $d->getDateDebutPeriode($echeance-1,$type);
 			$date_fin_periode = $d->getDateFinPeriode($echeance-1,$type);
 			$date_debut_periode_p1 = $d->getDateDebutPeriode($echeance,$type);
@@ -915,7 +924,13 @@ class TSimulation extends TObjetStd {
 			
 			//pre($this,true);exit;
 			if($d->nature_financement == 'INTERNE') {
-				if($this->dossiers_rachetes[$idDossier]['checked']){
+				if($this->dossiers_rachetes_m1[$idDossier]['checked']){
+					$solde_r = $solde_nr = $this->dossiers_rachetes_m1[$idDossier]['montant'];
+					$solde = 'R';
+					$datemax_deb = $date_debut_periode_m1;
+					$datemax_fin = $date_fin_periode_m1;
+				}
+				elseif($this->dossiers_rachetes[$idDossier]['checked']){
 					$solde_r = $solde_nr = $this->dossiers_rachetes[$idDossier]['montant'];
 					$solde = 'R';
 				}
@@ -926,7 +941,13 @@ class TSimulation extends TObjetStd {
 					$datemax_fin = $date_fin_periode_p1;
 				}
 				
-				if($this->dossiers_rachetes_nr[$idDossier]['checked']){
+				if($this->dossiers_rachetes_nr_m1[$idDossier]['checked']){
+					$solde_r = $solde_nr = $this->dossiers_rachetes_nr_m1[$idDossier]['montant'];
+					$solde = 'NR';
+					$datemax_deb = $date_debut_periode_m1;
+					$datemax_fin = $date_fin_periode_m1;
+				}
+				elseif($this->dossiers_rachetes_nr[$idDossier]['checked']){
 					$solde_r = $solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
 					$solde = 'NR';
 				}
@@ -938,7 +959,14 @@ class TSimulation extends TObjetStd {
 				}
 			}
 			else{
-				if($this->dossiers_rachetes[$idDossier]['checked']){
+				if($this->dossiers_rachetes_m1[$idDossier]['checked']){
+					$solde_r = $this->dossiers_rachetes_m1[$idDossier]['montant'];
+					$solde_nr = $this->dossiers_rachetes_nr_m1[$idDossier]['montant'];
+					$solde = 'R';
+					$datemax_deb = $date_debut_periode_m1;
+					$datemax_fin = $date_fin_periode_m1;
+				}
+				elseif($this->dossiers_rachetes[$idDossier]['checked']){
 					$solde_r = $this->dossiers_rachetes[$idDossier]['montant'];
 					$solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
 					$solde = 'R';
@@ -951,7 +979,14 @@ class TSimulation extends TObjetStd {
 					$datemax_fin = $date_fin_periode_p1;
 				}
 				
-				if($this->dossiers_rachetes_nr[$idDossier]['checked']){
+				if($this->dossiers_rachetes_nr_m1[$idDossier]['checked']){
+					$solde_r = $this->dossiers_rachetes_m1[$idDossier]['montant'];
+					$solde_nr = $this->dossiers_rachetes_nr_m1[$idDossier]['montant'];
+					$solde = 'NR';
+					$datemax_deb = $date_debut_periode_m1;
+					$datemax_fin = $date_fin_periode_m1;
+				}
+				elseif($this->dossiers_rachetes_nr[$idDossier]['checked']){
 					$solde_r = $this->dossiers_rachetes[$idDossier]['montant'];
 					$solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
 					$solde = 'NR';
