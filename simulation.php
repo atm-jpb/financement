@@ -126,7 +126,7 @@ if(!empty($action)) {
 			$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
 			$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 
-			_calcul($simulation);
+			$simulation->_calcul($ATMdb);
 			//C'est dégueu mais sa marche
 			$simulation->commentaire = utf8_decode($simulation->commentaire);
 			_fiche($ATMdb, $simulation,'edit');
@@ -214,7 +214,7 @@ if(!empty($action)) {
 			
 			
 			// On refait le calcul avant d'enregistrer
-			_calcul($simulation, 'save');
+			$simulation->_calcul($ATMdb, 'save');
 			if($error) {
 				_fiche($ATMdb, $simulation,'edit');
 			} else {
@@ -811,36 +811,6 @@ function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	);
 	
 	$form->end_form();
-}
-
-
-function _calcul(&$simulation, $mode='calcul') {
-	global $mesg, $error, $langs, $db;
-
-	$options = array();
-	foreach($_POST as $k => $v) {
-		if(substr($k, 0, 4) == 'opt_') {
-			$options[$k] = $v;
-		}
-	}
-	
-	$ATMdb=new TPDOdb;
-	$calcul = $simulation->calcul_financement($ATMdb, FIN_LEASER_DEFAULT, $options); // Calcul du financement
-		
-	if(!$calcul) { // Si calcul non correct
-		$simulation->montant_total_finance = 0;
-		$mesg = $langs->trans($simulation->error);
-		$error = true;
-	} else if($simulation->accord_confirme == 0) { // Sinon, vérification accord à partir du calcul
-		$simulation->demande_accord();
-		if($simulation->accord == 'OK') {
-			$simulation->date_accord = time();
-			$simulation->date_validite = strtotime('+ 3 months');
-		}
-		if($mode == 'save' && ($simulation->accord == 'OK' || $simulation->accord == 'KO')) { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
-			$simulation->send_mail_vendeur(true);
-		}
-	}
 }
 
 function _liste_dossier(&$ATMdb, &$simulation, $mode) {

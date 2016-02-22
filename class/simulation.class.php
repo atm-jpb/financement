@@ -1159,6 +1159,37 @@ class TSimulation extends TObjetStd {
 		system($cmd);
 		$res = ob_get_clean();
 	}
+
+	function _calcul(&$ATMdb, $mode='calcul', $options=array()) {
+		global $mesg, $error, $langs, $db;
+		
+		if(empty($options)) {
+			foreach($_POST as $k => $v) {
+				if(substr($k, 0, 4) == 'opt_') {
+					$options[$k] = $v;
+				}
+			}
+		}
+		
+		$calcul = $this->calcul_financement($ATMdb, FIN_LEASER_DEFAULT, $options); // Calcul du financement
+			
+		if(!$calcul) { // Si calcul non correct
+			$this->montant_total_finance = 0;
+			$mesg = $langs->trans($this->error);
+			$error = true;
+		} else if($this->accord_confirme == 0) { // Sinon, vérification accord à partir du calcul
+			$this->demande_accord();
+			if($this->accord == 'OK') {
+				$this->date_accord = time();
+				$this->date_validite = strtotime('+ 3 months');
+			}
+			if($mode == 'save' && ($this->accord == 'OK' || $this->accord == 'KO')) { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
+				$this->send_mail_vendeur(true);
+			}
+		}
+		
+	}
+
 }
 
 
@@ -1406,8 +1437,18 @@ class TSimulationSuivi extends TObjetStd {
 			}
 		}
 		
-		if($simulation->type_financement != "ADOSSEE" && $simulation->type_financement != "MANDATEE" && !in_array(5, $TCateg_tiers)){
+		if($simulation->type_financement != "ADOSSEE" && $simulation->type_financement != "MANDATEE" && in_array(5, $TCateg_tiers)){
 			$simulation->coeff_final = $this->coeff_leaser;
+			$simulation->montant = 0;
+			$options = array(
+							'opt_periodicite'=>$simulation->opt_periodicite
+							,'opt_mode_reglement'=>$simulation->opt_mode_reglement
+							,'opt_terme'=>$simulation->opt_terme
+							,'opt_calage'=>$simulation->opt_calage
+							,'opt_no_case_to_settle'=>$simulation->opt_no_case_to_settle
+						);
+			
+			$simulation->_calcul($PDOdb, 'calcul', $options);
 		}
 		// Une fois le test précédent effectué, on ne garde dans le tableau que les id des groupes qui nous intéressent (3 4 ou 18).
 		if(!empty($TCateg_tiers)) {
