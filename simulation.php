@@ -272,7 +272,9 @@ if(!empty($action)) {
 				}
 				
 				if($action == 'demander'){
-					$simulation->accord = 'WAIT_LEASER';
+					//$simulation->accord = 'WAIT_LEASER';
+					// Suite retours PR1512_1187, on ne garde plus que le statut WAIT (En étude)
+					$simulation->accord = 'WAIT';
 					$simulation->save($ATMdb, $db);
 				}
 				

@@ -19,8 +19,8 @@ class TSimulation extends TObjetStd {
 		$this->TStatut=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
-			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser')
-			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur')
+			/*,'WAIT_LEASER'=>$langs->trans('Etude_Leaser')
+			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur')*/
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
@@ -28,8 +28,8 @@ class TSimulation extends TObjetStd {
 		$this->TStatutShort=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
-			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser_Short')
-			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur_Short')
+			/*,'WAIT_LEASER'=>$langs->trans('Etude_Leaser_Short')
+			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur_Short')*/
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
