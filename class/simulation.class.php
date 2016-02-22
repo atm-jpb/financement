@@ -1245,7 +1245,7 @@ class TSimulationSuivi extends TObjetStd {
 		} elseif($simulation->accord == "OK" && !empty($this->date_selection)) {
 			if(!$just_save) {
 				//Reset
-				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Annuler"><img src="'.dol_buildpath('/financement/img/WAIT.png',1).'" /></a>&nbsp;';
+				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Annuler"><img src="'.dol_buildpath('/financement/img/OK.png',1).'" /></a>&nbsp;';
 			}
 		}
 		
