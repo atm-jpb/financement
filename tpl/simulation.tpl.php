@@ -119,10 +119,10 @@
 			<td width="25%">[simulation.opt_administration; strconv=no]</td>
 		</tr>
 		<tr>
-			<td>Calage</td>
-			<td>[simulation.opt_calage; strconv=no][simulation.opt_calage_label; strconv=no]</td>
-			<td>Date démarrage</td>
+			<td>Date de démarrage si calage</td>
 			<td>[simulation.date_demarrage; strconv=no]</td>
+			<td>Règle de calage</td>
+			<td>[simulation.opt_calage; strconv=no][simulation.opt_calage_label; strconv=no]</td>
 		</tr>
 		<tr>
 			<td>Adjonction</td>
