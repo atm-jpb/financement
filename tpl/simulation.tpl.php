@@ -247,3 +247,9 @@
 </center>
 <br />
 [onshow;block=end]
+
+<script>
+	$(document).ready(function() {
+		$("#date_demarrage" ).datepicker( "option", "maxDate", "+4m");
+	});
+</script>
