@@ -11,6 +11,9 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('date_simul,date_validite,date_accord,date_demarrage','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,marque_materiel,numero_accord,reference,opt_calage','type=chaine;');
 		parent::add_champs('dossiers,dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
+
+		parent::add_champs('thirdparty_address,thirdparty_zip,thirdparty_town,thirdparty_code_client,thirdparty_idprof2_siret, thirdparty_idprof3_naf','type=chaine;');
+
 		parent::start();
 		parent::_init_vars();
 		
@@ -134,6 +137,19 @@ class TSimulation extends TObjetStd {
 		//Création du suivi simulation leaser s'il n'existe pas
 		//Sinon chargement du suivi
 		$this->load_suivi_simulation($db);
+	}
+	
+	function setThirparty()
+	{
+		if (!empty($this->societe->id))
+		{
+			$this->thirdparty_address = $this->societe->address;
+			$this->thirdparty_zip = $this->societe->zip;
+			$this->thirdparty_town = $this->societe->town;
+			$this->thirdparty_code_client = $this->societe->code_client;
+			$this->thirdparty_idprof2_siret = $this->societe->idprof2;
+			$this->thirdparty_idprof3_naf = $this->societe->idprof3;
+		}
 	}
 	
 	function create_suivi_simulation(&$PDOdb){
@@ -1037,6 +1053,15 @@ class TSimulation extends TObjetStd {
 		print_r($TDossier);
 		echo '</pre>';exit;*/
 		// Génération en ODT
+		
+		if (!empty($this->thirdparty_address)) $this->societe->address = $this->thirdparty_address;
+		if (!empty($this->thirdparty_zip)) $this->societe->zip = $this->thirdparty_zip;
+		if (!empty($this->thirdparty_town)) $this->societe->town = $this->thirdparty_town;
+		
+		if (!empty($this->thirdparty_code_client)) $this->societe->code_client = $this->thirdparty_code_client;
+		if (!empty($this->thirdparty_idprof2_siret)) $this->societe->idprof2 = $this->thirdparty_idprof2_siret;
+		if (!empty($this->thirdparty_idprof3_naf)) $this->societe->idprof3 = $this->thirdparty_idprof3_naf;
+		
 		$TBS = new TTemplateTBS;
 		$file = $TBS->render('./tpl/doc/simulation.odt'
 			,array(

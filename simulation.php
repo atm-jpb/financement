@@ -184,6 +184,7 @@ if(!empty($action)) {
 				$simulation->date_validite = strtotime('+ 2 months');
 				$simulation->date_accord = time();
 				$simulation->accord_confirme = 1;
+				$simulation->setThirparty();
 			} 
 			else if($simulation->accord == 'KO' && $simulation->accord != $oldAccord) {
 				$simulation->accord_confirme = 1;
@@ -697,11 +698,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 			,'client'=>array(
 				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->societe->nom.'</a>'
 				,'autres_simul'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/simulation.php?socid='.$simulation->fk_soc.'">(autres simulations)</a>'
-				,'adresse'=>$simulation->societe->address
-				,'cpville'=>$simulation->societe->zip.' / '.$simulation->societe->town
-				,'siret'=>$simulation->societe->idprof2
-				,'naf'=>$simulation->societe->idprof3
-				,'code_client'=>$simulation->societe->code_client
+				,'adresse'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_address)) ? $simulation->thirdparty_address : $simulation->societe->address
+				,'cpville'=>( ($simulation->accord == 'OK' && !empty($simulation->thirdparty_zip)) ? $simulation->thirdparty_zip : $simulation->societe->zip ) .' / '. ( ($simulation->accord == 'OK' && !empty($simulation->thirdparty_town)) ? $simulation->thirdparty_town : $simulation->societe->town )
+				,'siret'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_idprof2_siret)) ? $simulation->thirdparty_idprof2_siret : $simulation->societe->idprof2
+				,'naf'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_idprof3_naf)) ? $simulation->thirdparty_idprof3_naf : $simulation->societe->idprof3
+				,'code_client'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_code_client)) ? $simulation->thirdparty_code_client : $simulation->societe->code_client
 				,'display_score'=>$user->rights->financement->score->read ? 1 : 0
 				,'score_date'=>empty($simulation->societe) ? '' : $simulation->societe->score->get_date('date_score')
 				,'score'=>empty($simulation->societe) ? '' : $simulation->societe->score->score
