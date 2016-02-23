@@ -96,6 +96,7 @@ if(!empty($_REQUEST['fk_soc'])) {
 	$result = restrictedArea($user, 'societe', $simulation->societe->id, '&societe', '', 'fk_soc', 'rowid', $objcanvas);
 }
 
+if($action == 'list') $TDossierLink = _getListIDDossierByNumAccord();
 $TStatutSuivi = getAllStatutSuivi(); // Défini ici pour optimiser l'affichage des simulations
 
 if(!empty($action)) {
@@ -508,7 +509,7 @@ function getStatutSuivi($idSimulation) {
 }
 
 function getAllStatutSuivi() {
-	global $db;
+	global $db, $TDossierLink;
 
 	$ATMdb = new TPDOdb;
 
@@ -532,7 +533,14 @@ function getAllStatutSuivi() {
 		
 		foreach($TStatut as $TData) {
 			
-			if($TData['statut'] == 'OK' && $TData['date_selection'] != '0000-00-00 00:00:00'){
+			if(!empty($TDossierLink[$fk_simulation])) {
+				$TStatutSuiviFinal[$fk_simulation] = '<a href="'.$TDossierLink[$fk_simulation].'#suivi_leaser">';
+				$TStatutSuiviFinal[$fk_simulation].= '<FONT size="4">€</FONT>';
+				$TStatutSuiviFinal[$fk_simulation].= '</a>';
+				$super_ok = true;
+				break;
+			}
+			elseif($TData['statut'] == 'OK' && $TData['date_selection'] != '0000-00-00 00:00:00'){
 				$TStatutSuiviFinal[$fk_simulation] = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$fk_simulation, 1).'#suivi_leaser">';
 				$TStatutSuiviFinal[$fk_simulation].= '<img title="Accord" src="'.dol_buildpath('/financement/img/super_ok.png',1).'" />';
 				$TStatutSuiviFinal[$fk_simulation].= '</a>';
@@ -791,6 +799,30 @@ function _getIDDossierByNumAccord($num_accord) {
 	$res = $db->fetch_object($resql);
 	
 	return $res->fk_fin_dossier;
+	
+}
+
+/**
+ * Retourne un tableau avec en clef l'id de la simu et en valeur le lien vers le dossier associé
+ */
+function _getListIDDossierByNumAccord() {
+	
+	global $db;
+	
+	$TDossierLink = array();
+	
+	$sql = 'SELECT s.rowid, d.fk_fin_dossier
+			FROM '.MAIN_DB_PREFIX.'fin_dossier_financement d
+			INNER JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON(d.reference = s.numero_accord)
+			WHERE d.reference <> ""
+			AND d.reference IS NOT NULL';
+	//echo $sql;exit;
+	$resql = $db->query($sql);
+	$res = $db->fetch_object($resql);
+	
+	while($res = $db->fetch_object($resql)) $TDossierLink[$res->rowid] = dol_buildpath('/financement/dossier.php?id='.$res->fk_fin_dossier, 2);
+	
+	return $TDossierLink;
 	
 }
 	
