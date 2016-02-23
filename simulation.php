@@ -525,23 +525,36 @@ function getAllStatutSuivi() {
 	
 	foreach ($TStatutSuivi as $fk_simulation => $TStatut) {
 		
+		$super_ok = false;
+		$nb_ok = 0;
+		$nb_wait = 0;
+		$nb_refus = 0;
+		
 		foreach($TStatut as $TData) {
 			
 			if($TData['statut'] == 'OK' && $TData['date_selection'] != '0000-00-00 00:00:00'){
 				$TStatutSuiviFinal[$fk_simulation] = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$fk_simulation, 1).'#suivi_leaser">';
 				$TStatutSuiviFinal[$fk_simulation].= '<img title="Accord" src="'.dol_buildpath('/financement/img/super_ok.png',1).'" />';
 				$TStatutSuiviFinal[$fk_simulation].= '</a>';
+				$super_ok = true;
 				break;
-				//return $res =  '<img title="Accord" src="'.dol_buildpath('/financement/img/super_ok.png',1).'" />';
 			}
-			else if($TData['statut'] == 'WAIT'){
-				$TStatutSuiviFinal[$fk_simulation] = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$fk_simulation, 1).'#suivi_leaser">';
-				$TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
-				$TStatutSuiviFinal[$fk_simulation].= '</a>';
-				//$res =  '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
-			}
+			elseif($TData['statut'] == 'OK') $nb_ok++;
+			elseif($TData['statut'] == 'WAIT') $nb_wait++;
+			elseif($TData['statut'] == 'KO') $nb_refus++;
 		
 		}
+
+		if(!$super_ok) {
+			if($nb_ok > 0 || $nb_wait > 0 || $nb_refus == count($TStatut)) {
+				$TStatutSuiviFinal[$fk_simulation] = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$fk_simulation, 1).'#suivi_leaser">';
+				if($nb_ok > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/OK.png',1).'" />';
+				elseif($nb_wait > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
+				else $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/KO.png',1).'" />';
+				$TStatutSuiviFinal[$fk_simulation].= '</a>';
+			}
+		}
+
 	}
 	
 	return $TStatutSuiviFinal;
