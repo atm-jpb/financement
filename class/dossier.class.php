@@ -1571,6 +1571,8 @@ class TFin_financement extends TObjetStd {
 		return false;
 	}
 	function loadOrCreateSirenMontant(&$db, $data) {
+		global $conf;
+		
 		$sql = "SELECT a.rowid, a.nature_financement, a.montant, df.rowid as idDossierLeaser, df.reference as refDossierLeaser ";
 		$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
@@ -1614,6 +1616,7 @@ class TFin_financement extends TObjetStd {
 				$a->montant = $data['montant'];
 				$a->fk_soc = $idClient;
 				$a->nature_financement = 'EXTERNE';
+				if (!empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE) && in_array($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE, $a->TContrat)) $a->contrat = $conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE;
 				$a->addDossier($db, $d->getId());
 				$a->save($db);
 				//echo $a->getId().'<br>';
