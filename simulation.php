@@ -547,7 +547,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		
 	}
 
-	if(empty($simulation->fk_soc)) $simulation->opt_no_case_to_settle = 1;
+	$simulation->opt_no_case_to_settle = 1;
 	
 	$extrajs = array('/financement/js/financement.js', '/financement/js/dossier.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
