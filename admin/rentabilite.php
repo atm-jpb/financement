@@ -86,7 +86,7 @@ if($action == 'save') {
 							
 			foreach($TLigne as $j=>$coeff) {
 			//$ATMdb->db->debug=true;
-				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, MONTANT_PALIER_DEFAUT, $coeff['coeff'], $coeff['coeff_interne']);
+				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, MONTANT_PALIER_DEFAUT, $coeff['coeff']);
 				
 			}
 		}

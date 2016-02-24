@@ -50,12 +50,16 @@ $idLeaser = $socid;
 $affaire = new TFin_affaire();
 $liste_type_contrat = $affaire->TContrat;
 $TGrille=array();
+$TDatePenalite=array();
 
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$grille = new TFin_grille_leaser('PENALITE_'.$_REQUEST['type']);
 	$grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
 
 	$TGrille[$idTypeContrat] = $grille;
+	
+	$TDatePenalite[$idTypeContrat] = new TFin_grille_leaser_date;
+	$TDatePenalite[$idTypeContrat]->loadByFkSocAndTypeContrat($ATMdb, $societe->id, $idTypeContrat);
 }
 
 /**
@@ -72,8 +76,19 @@ if($action == 'save') {
 	
 	$idTypeContrat = GETPOST('idTypeContrat');
 	$idLeaser = GETPOST('idLeaser');
-
+	
 	$newPeriode 	= GETPOST('newPeriode');
+	
+	$date_pen = GETPOST('date_pen');
+	if (!empty($TDatePenalite[$idTypeContrat]) && !empty($societe->id))
+	{
+		if ($typePenalite == 'R') $TDatePenalite[$idTypeContrat]->set_date('date_start_pr', $date_pen);
+		else $TDatePenalite[$idTypeContrat]->set_date('date_start_pnr', $date_pen);
+		
+		$TDatePenalite[$idTypeContrat]->fk_soc = $societe->id;
+		$TDatePenalite[$idTypeContrat]->type_contrat = $idTypeContrat;
+		$TDatePenalite[$idTypeContrat]->save($ATMdb);
+	}
 	
 	$grille = & $TGrille[$idTypeContrat];
 	
@@ -131,6 +146,7 @@ if($societe->fournisseur == 0) {
 		$grille = & $TGrille[$idTypeContrat];
 		
 		$TCoeff = $grille->TGrille;
+		$datePen = &$TDatePenalite[$idTypeContrat];
 		
 		print_fiche_titre($label);
 		
@@ -153,6 +169,7 @@ if($societe->fournisseur == 0) {
 		echo $form->hidden('type', $typePenalite);
 		
 		$TBS=new TTemplateTBS;
+		$date_start = $typePenalite == 'R' ? $datePen->date_start_pr : $datePen->date_start_pnr;
 		
 		print $TBS->render(dol_buildpath('/financement/tpl/fingrille.penalite.tpl.php')
 			,array(
@@ -160,7 +177,13 @@ if($societe->fournisseur == 0) {
 				,'coefficient'=>$TCoeff
 			)
 			,array(
-				'view'=>array('mode'=>$mode, 'MONTANT_PALIER_DEFAUT'=>MONTANT_PALIER_DEFAUT)
+				'view'=>array(
+					'mode'=>$mode
+					,'MONTANT_PALIER_DEFAUT'=>MONTANT_PALIER_DEFAUT
+					,'show_pen_interne'=>1
+					,'selectDate'=>$form->calendrier('', 'date_pen', $date_start)
+				)
+				,'datePen'=>$datePen
 			)
 		);
 		
