@@ -8,7 +8,7 @@ class TFin_grille_leaser extends TObjetStd {
 		parent::add_champs('fk_type_contrat,type');
 		parent::add_champs('fk_soc','type=entier;index;');//fk_soc_leaser
 		parent::add_champs('periode','type=entier;');
-		parent::add_champs('montant,coeff','type=float;');
+		parent::add_champs('montant,coeff,coeff_interne','type=float;');
 		parent::add_champs('entity',array('type'=>'int', 'index'=>true));
 		
 		parent::_init_vars();
@@ -28,20 +28,20 @@ class TFin_grille_leaser extends TObjetStd {
 	 *  @param	int		$idTypeContrat  Id type contrat
      *  @return array   Tableau contenant les grilles de coeff, false si vide
      */
-    function get_grille(&$ATMdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE' , $options=array(), $entity=0)
+    function get_grille(&$PDOdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE' , $options=array(), $entity=0)
     {
     	if(empty($idLeaser)) $idLeaser = FIN_LEASER_DEFAULT;
 		if(empty($entity)) $entity = getEntity();
 		
 		$this->fk_soc = $idLeaser;
 
-    	$sql = "SELECT rowid, periode, montant,coeff
+    	$sql = "SELECT rowid, periode, montant,coeff, coeff_interne
         	 	FROM ".MAIN_DB_PREFIX."fin_grille_leaser
         	 	WHERE fk_soc = ".$idLeaser. " AND type='".$this->type."' AND fk_type_contrat = '".$idTypeContrat."'
         	 	AND entity = ".$entity."
         	 	ORDER BY periode, montant ASC";
 
-		$ATMdb->Execute($sql);
+		$PDOdb->Execute($sql);
 		
 		$this->TPeriode=array();
 		
@@ -51,15 +51,16 @@ class TFin_grille_leaser extends TObjetStd {
 		
 		$TResult=array();
 		
-		while($ATMdb->get_line()) {
+		while($line = $PDOdb->get_line()) {
 			$TResult[] = array(
-				'rowid' => $ATMdb->Get_field('rowid')
-				,'periode' => $ATMdb->Get_field('periode')
-				,'montant' => $ATMdb->Get_field('montant')
-				,'coeff' => $ATMdb->Get_field('coeff')
+				'rowid' => $line->rowid
+				,'periode' => $line->periode
+				,'montant' => $line->montant
+				,'coeff' => $line->coeff
+				,'coeff_interne' => $line->coeff_interne
 			);
 		}
-		
+	
 		foreach($TResult as $ligne_grille) {
 			
 			$periode = floatval($ligne_grille['periode']);
@@ -67,11 +68,12 @@ class TFin_grille_leaser extends TObjetStd {
 			$periode *= 3 / $this->getiPeriode($periodicite);
 			
 			$montant = floatval($ligne_grille['montant']);
-			$coeff = $this->_calculate_coeff($ATMdb, $ligne_grille['coeff'], $options, $entity);
+			$coeff = $this->_calculate_coeff($PDOdb, $ligne_grille['coeff'], $options, $entity);
 			
 			$result[strval($periode)][$montant]=array(
 				'rowid' => $ligne_grille['rowid']
 				,'coeff' => $coeff
+				,'coeff_interne' => $ligne_grille['coeff_interne']
 				,'echeance' => ( ($periode==0) ? 0 : $montant / $periode * (1 + $coeff / 100) )
 				,'montant' => $montant
 				,'periode' => $periode
@@ -122,6 +124,7 @@ class TFin_grille_leaser extends TObjetStd {
 						$row[$palier['montant']]=array(
 							'rowid'=>0
 							,'coeff'=>0
+							,'coeff_interne'=>0
 							,'echeance'=>0
 							,'periode'=>$periode
 							,'montant'=>$palier['montant']
@@ -160,7 +163,7 @@ class TFin_grille_leaser extends TObjetStd {
 		
 		return true;
 	}
-	function setCoef(&$ATMdb, $idCoeff ,$idLeaser, $idTypeContrat, $periode, $montant, $coeff) {
+	function setCoef(&$ATMdb, $idCoeff ,$idLeaser, $idTypeContrat, $periode, $montant, $coeff, $coeff_interne=0) {
 		
 		$periode=(int)$periode;
 		$montant=(int)$montant;
@@ -171,7 +174,7 @@ class TFin_grille_leaser extends TObjetStd {
 		// Cette variable permet d'indiquer qu'il faut recharger les grilles avant l'affichage car sinon affichage non mis à jour lors d'une suppression de ligne.
 		$at_least_on_delete = false;
 		
-		if(empty($coeff)) {
+		if(empty($periode)) {
 			if($idCoeff>0) {
 				$grilleLigne->delete($ATMdb);
 				$at_least_on_delete = true;
@@ -196,6 +199,7 @@ class TFin_grille_leaser extends TObjetStd {
 			$tabStrConversion = array(',' => '.', ' ' => ''); // Permet de transformer les valeurs en nombres
 			
 			$grilleLigne->coeff=(double)strtr($coeff, $tabStrConversion);
+			$grilleLigne->coeff_interne=(double)strtr($coeff_interne, $tabStrConversion);
 			$grilleLigne->montant=(double)strtr($montant, $tabStrConversion);
 			$grilleLigne->periode=(int)$periode;
 			$grilleLigne->fk_soc = $idLeaser;
@@ -209,6 +213,7 @@ class TFin_grille_leaser extends TObjetStd {
 				$this->TGrille[$periode][$montant]=array(
 					'rowid'=>$grilleLigne->getId()
 					,'coeff'=>$coeff
+					,'coeff_interne'=>$coeff_interne
 					,'echeance'=>0
 					,'periode'=>$periode
 					,'montant'=>$montant
@@ -234,7 +239,7 @@ class TFin_grille_leaser extends TObjetStd {
 				$this->TGrille[$periode]=array();
 			//}	
 			
-			foreach($this->TGrille[$periode] as &$palier) $palier['rowid']=0;
+			foreach($this->TGrille[$periode] as &$palier) $palier['rowid']=0; // TODO ça sert à quoi ?
 		}
 		
 		$this->normalizeGrille();
@@ -335,14 +340,15 @@ class TFin_grille_leaser extends TObjetStd {
 		
 		if(empty($entity)) $entity = getEntity();
 		
+		$penaliteTotale = 0;
 		if(!empty($options)) {
-			$penaliteTotale = 0;
 			foreach($options as $name => $value) {
 				$penalite = $this->_get_penalite($ATMdb, $name, $value, $entity);
 				if($penalite < 0) continue;
 				$penaliteTotale += $penalite;
 			}
 		}
+
 		$coeff += $coeff * $penaliteTotale / 100;
 		return round($coeff, 3);
 	}

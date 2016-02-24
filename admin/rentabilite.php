@@ -86,7 +86,7 @@ if($action == 'save') {
 							
 			foreach($TLigne as $j=>$coeff) {
 			//$ATMdb->db->debug=true;
-				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, MONTANT_PALIER_DEFAUT, $coeff['coeff'] );
+				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, MONTANT_PALIER_DEFAUT, $coeff['coeff'], $coeff['coeff_interne']);
 				
 			}
 		}
@@ -112,7 +112,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	
 	$TCoeff = $grille->TGrille;
 	
-	print_titre($label);
+	print_fiche_titre($label);
 	
 	//include '../tpl/admin.grille.tpl.php';
 	

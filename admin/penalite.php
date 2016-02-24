@@ -73,7 +73,7 @@ if($action == 'save') {
 	$idTypeContrat = GETPOST('idTypeContrat');
 	$idLeaser = GETPOST('idLeaser');
 
-	$newPeriode = GETPOST('newPeriode');	
+	$newPeriode 	= GETPOST('newPeriode');
 	
 	$grille = & $TGrille[$idTypeContrat];
 	
@@ -85,7 +85,7 @@ if($action == 'save') {
 			$periode = $TPeriode[$i];
 							
 			foreach($TLigne as $j=>$coeff) {
-				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, MONTANT_PALIER_DEFAUT, $coeff['coeff'] );
+				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, MONTANT_PALIER_DEFAUT, $coeff['coeff'], $coeff['coeff_interne']);
 			}
 		}
 		
@@ -132,7 +132,7 @@ if($societe->fournisseur == 0) {
 		
 		$TCoeff = $grille->TGrille;
 		
-		print_titre($label);
+		print_fiche_titre($label);
 		
 		$form=new TFormCore($_SERVER['PHP_SELF'],'formGrille'.$idTypeContrat,'POST');
 		$form->Set_typeaff($mode);

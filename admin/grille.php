@@ -119,7 +119,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	
 	$TCoeff = $grille->TGrille;
 	
-	print_titre($label);
+	print_fiche_titre($label);
 	
 	//include '../tpl/admin.grille.tpl.php';
 	
@@ -155,7 +155,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 		)
 		,array(
 			'view'=>array('mode'=>$mode, 'contrat'=>$idTypeContrat)
-			
+			,'colspan'=>count($TCoeff[current(array_keys($TCoeff))])+2
 		)
 	);
 	
