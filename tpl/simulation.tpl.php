@@ -172,7 +172,7 @@
 			<td>[simulation.duree; strconv=no]</td>
 			<td colspan="2" rowspan="4" align="center">
 				[onshow;block=begin;when [view.type]=='simul']
-				<span style="font-size: 14px;">[simulation.commentaire; strconv=utf8]</span>
+				<span style="font-size: 14px;">[simulation.commentaire; strconv=no]</span>
 				[onshow;block=end]
 			</td>
 		</tr>

@@ -671,7 +671,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
 				,'can_resend_accord'=>$simulation->accord
 				,'date_validite'=>$simulation->accord == 'OK' ? 'Validité : '.$simulation->get_date('date_validite') : ''
-				,'commentaire'=>$form->zonetexte('', 'commentaire', utf8_decode($simulation->commentaire), 50,3)
+				,'commentaire'=>$form->zonetexte('', 'commentaire', $simulation->commentaire, 50,3)
 				,'accord_confirme'=>$simulation->accord_confirme
 				,'total_financement'=>$simulation->montant_total_finance
 				,'type_materiel'=>$form->texte('','type_materiel',$simulation->type_materiel, 50)
@@ -725,7 +725,9 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 			
 			,'user'=>$user
 			
-		)
+		),
+		array(),
+		array('charset'=>OPENTBS_ALREADY_UTF8)
 	);
 	
 	echo $form->end_form();

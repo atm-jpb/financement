@@ -1031,8 +1031,8 @@ class TSimulation extends TObjetStd {
 		$simu2 = $simu;
 		//exit(htmlentities($simu->type_contrat));
 		$simu2->type_contrat = html_entity_decode($simu2->type_contrat,ENT_QUOTES,'ISO-8859-1');
-		$simu2->commentaire = utf8_decode($simu2->commentaire);
-		$simu2->numero_accord = utf8_decode($simu2->numero_accord);
+		//$simu2->commentaire = utf8_decode($simu2->commentaire);
+		//$simu2->numero_accord = utf8_decode($simu2->numero_accord);
 		/*echo '<pre>';
 		print_r($TDossier);
 		echo '</pre>';exit;*/
@@ -1051,11 +1051,14 @@ class TSimulation extends TObjetStd {
 								,'type'=>($solde == 'R' || $solde == 'NR') ? 1 : 0)
 			)
 			,array()
-			,array('outFile' => $filePath.'/'.$fileName)
+			,array(
+				'outFile' => $filePath.'/'.$fileName
+				,'charset'=>OPENTBS_ALREADY_UTF8
+			)
 		);
 		
 		// Nécessaire sinon n'affiche pas les caractères accentués
-		$simu2->commentaire = utf8_encode($simu2->commentaire);
+		//$simu2->commentaire = utf8_encode($simu2->commentaire);
 		
 		$simu->opt_adjonction = $back_opt_adjonction;
 		$simu->opt_calage = $back_opt_calage;
