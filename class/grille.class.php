@@ -304,7 +304,7 @@ class TFin_grille_leaser extends TObjetStd {
 		
     	global $langs;
         $sql = "SELECT";
-		$sql.= " t.montant, t.coeff";
+		$sql.= " t.montant, t.coeff, t.coeff_interne";
 		
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
         $sql.= " WHERE t.fk_soc = ".$idLeaser;
@@ -324,8 +324,9 @@ class TFin_grille_leaser extends TObjetStd {
 				if($montant <= $db->Get_field('montant')) {*/
 					$ATMdb->Get_line();
 					$coeff = $ATMdb->Get_field('coeff');
+					$coeff_interne = $ATMdb->Get_field('coeff_interne');
 					$coeff = $this->_calculate_coeff($ATMdb, $coeff, $options, $entity);
-					return $coeff;
+					return array($coeff, $coeff_interne);
 				//}	
 		//	}	
 				
