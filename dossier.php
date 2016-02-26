@@ -38,7 +38,13 @@
 				WHERE df.reference LIKE '%".GETPOST('searchdossier')."%'";
 		$Tid = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 		if(!empty($Tid)){
-			$id = $Tid[0];
+			if(count($Tid)>1)
+			{
+				$_REQUEST['TListTBS[list_llx_fin_dossier][search][refDosCli]']=GETPOST('searchdossier');
+			}else{
+				$dossier->load($PDOdb, $Tid[0]);
+				_fiche($PDOdb,$dossier, 'view');
+			}
 		}
 	}
 	
@@ -312,10 +318,6 @@
 			break;
 		}
 		
-	}
-	elseif($id) {
-		$dossier->load($PDOdb, $id);
-		_fiche($PDOdb,$dossier, 'view');
 	}
 	else {
 		/*
