@@ -327,6 +327,10 @@
 		}
 		
 	}
+	elseif($id && !isset($Tid)) {
+		$dossier->load($PDOdb, $id);
+		_fiche($PDOdb,$dossier, 'view');
+	}
 	else {
 		/*
 		 * Liste
