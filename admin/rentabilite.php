@@ -110,6 +110,8 @@ $mode = 'edit';
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$grille = & $TGrille[$idTypeContrat];
 	
+	$grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
+	
 	$TCoeff = $grille->TGrille;
 	
 	print_titre($label);

@@ -169,12 +169,13 @@ class TFin_grille_leaser extends TObjetStd {
 		if($idCoeff>0) $grilleLigne->load($ATMdb, $idCoeff);
 		
 		// Cette variable permet d'indiquer qu'il faut recharger les grilles avant l'affichage car sinon affichage non mis à jour lors d'une suppression de ligne.
-		$at_least_on_delete = false;
+		// En fait c'est de la merde, on va recharger systématiquement les tableaux à l'affichage ça évitera les problèmes, et c'est pas très couteux (4 ou 5 tableaux)
+		//$at_least_on_delete = false;
 		
 		if(empty($coeff)) {
 			if($idCoeff>0) {
 				$grilleLigne->delete($ATMdb);
-				$at_least_on_delete = true;
+				//$at_least_on_delete = true;
 			}
 			
 			/*print "$periode, $montant<br>"; 
@@ -216,7 +217,7 @@ class TFin_grille_leaser extends TObjetStd {
 			//}
 		}
 		
-		return $at_least_on_delete;
+		return 1;
 		
 	}
 	function addPeriode($periode) {
