@@ -86,7 +86,8 @@ if($action == 'save') {
 							
 			foreach($TLigne as $j=>$coeff) {
 			//$ATMdb->db->debug=true;
-				$grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, MONTANT_PALIER_DEFAUT, $coeff['coeff'] );
+				$res = $grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, MONTANT_PALIER_DEFAUT, $coeff['coeff'] );
+				if(!empty($res)) $at_least_on_delete = true;
 				
 			}
 		}
@@ -110,7 +111,7 @@ $mode = 'edit';
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$grille = & $TGrille[$idTypeContrat];
 	
-	$grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
+	if(!empty($at_least_on_delete)) $grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
 	
 	$TCoeff = $grille->TGrille;
 	
