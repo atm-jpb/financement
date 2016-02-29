@@ -32,14 +32,28 @@
 	
 	$id = GETPOST('id');
 	if(!$id && GETPOST('searchdossier')){
-		$sql = "SELECT d.rowid 
-				FROM ".MAIN_DB_PREFIX."fin_dossier as d
-					LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as df ON (df.fk_fin_dossier = d.rowid)
-				WHERE df.reference LIKE '%".GETPOST('searchdossier')."%'";
-		$Tid = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
-		if(!empty($Tid)){
-			$id = $Tid[0];
-		}
+        $sql = "SELECT d.rowid
+                FROM ".MAIN_DB_PREFIX."fin_dossier as d
+                LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as df ON (df.fk_fin_dossier = d.rowid)
+                WHERE df.reference LIKE '%".GETPOST('searchdossier')."%'
+                ORDER BY rowid DESC";
+        $Tid = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+        if(!empty($Tid)){
+            $dossier->load($PDOdb, $Tid[0]);
+            _fiche($PDOdb,$dossier, 'view');
+			
+            // TODO réaliser la séparation liste si plusieurs ou fiche si 1.
+            /*
+            if(count($Tid)>1)
+            {
+				// IL faut forcer la recherche de la list TBS (ne fonctionne pas)
+                $_REQUEST['TListTBS[list_llx_fin_dossier][search][refDosCli]']=GETPOST('searchdossier');
+            }else{
+                // UN seul on change pas le processus d'avant
+	            $dossier->load($PDOdb, $Tid[0]);
+	            _fiche($PDOdb,$dossier, 'view');
+            }*/
+        }
 	}
 	
 	if(isset($_REQUEST['action'])) {
@@ -313,7 +327,7 @@
 		}
 		
 	}
-	elseif($id) {
+	elseif($id && !isset($Tid)) {
 		$dossier->load($PDOdb, $id);
 		_fiche($PDOdb,$dossier, 'view');
 	}
