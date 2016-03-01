@@ -1,7 +1,7 @@
 <table class="noborder" width="100%">
 	<tr class="liste_titre">
 		<td>Périodes / Paliers</td>
-		<td align="center">de [palier.lastMontant; block=td] &euro; à [palier.montant;strconv=no] &euro;</td>
+		<td align="center">de [palier.lastMontant; block=td] &euro; à [palier.montant;strconv=no] &euro; [palier.toDelete;strconv=no]</td>
 		<td><input type="text" name="newPalier[[view.contrat]]" value="" size="10" /> &euro;[onshow;block=td;when [view.mode]=='edit']</td>
 	</tr>
 	<tr >
