@@ -1360,9 +1360,7 @@ class TSimulationSuivi extends TObjetStd {
 			// 20113 = BNP Mandatée // 3382 = BNP Cession (Location simple) // 19483 = Lixxbail Mandatée // 6065 = Lixxbail Cession (Location simple)
 			$sql = "SELECT rowid 
 					FROM ".MAIN_DB_PREFIX."fin_simulation_suivi 
-					WHERE (fk_leaser = 20113 
-						OR fk_leaser = 3382 
-						OR fk_leaser = 19483
+					WHERE (fk_leaser = 3382 
 						OR fk_leaser = 6065)
 						AND fk_simulation = ".$this->fk_simulation;
 			$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
