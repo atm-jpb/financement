@@ -199,12 +199,20 @@ class TSimulation extends TObjetStd {
 		$categorieParent->fetch('','Type de financement');
 		$TCategoriesFille = $categorieParent->get_filles();
 		
+		// Chargement du tableau des leaser par type de contrat
+		$TFinGrilleSuivi = new TFin_grille_suivi;
+		$grille = $TFinGrilleSuivi->get_grille($PDOdb, 'DEFAUT_'.$this->fk_type_contrat,false);
+		$TGrille = array();
+		foreach($grille as $TData) $TGrille[$TData['fk_leaser']] = $TData['fk_leaser'];
+
 		foreach ($TCategoriesFille as $categorieFille) {
 			//$TLeaser = $categorieFille->get_type("societe","Fournisseur","fournisseur");
 			$TLeaser = $categorieFille->getObjectsInCateg("supplier");
 			
 			//Pour chaque leaser, ajout d'une ligne de suivi
 			foreach($TLeaser as $leaser){
+				// On n'ajoute que les leaser qui sont en conf
+				if(!in_array($leaser->id, $TGrille)) continue;
 				$simulationSuivi = new TSimulationSuivi;
 				$simulationSuivi->init($PDOdb,$leaser,$this->getId());
 				$simulationSuivi->save($PDOdb);
