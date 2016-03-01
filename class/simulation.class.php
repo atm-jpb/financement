@@ -332,7 +332,7 @@ class TSimulation extends TObjetStd {
 			//Réorganisation de l'ordre de la liste en fonction de la grille d'administration
 			$TLeaser = $this->reordreSimulationSuivi($PDOdb);
 		}
-		else{
+		elseif($this->rowid > 0){
 			$this->create_suivi_simulation($PDOdb);
 		}
 	}
@@ -352,7 +352,8 @@ class TSimulation extends TObjetStd {
 			$simulationSuiviLeaserPrio = new TSimulationSuivi;
 			$simulationSuiviLeaserPrio->load($PDOdb,$idSimulationSuiviLeaserPrio[0]);
 			//Ajout du suivi simulation associé dans le tableau à la première place
-			$TSimulationSuiviTemp[$simulationSuiviLeaserPrio->getId()] = $simulationSuiviLeaserPrio;
+			$id = $simulationSuiviLeaserPrio->getId();
+			if(!empty($id)) $TSimulationSuiviTemp[$id] = $simulationSuiviLeaserPrio;
 		}
 		
 		//Récupération de l'ordre par défaut pour les autres Leaser
@@ -361,7 +362,7 @@ class TSimulation extends TObjetStd {
 				WHERE fk_type_contrat = 'DEFAUT_".$this->fk_type_contrat."'";
 		if($idLeaserPrio) $sql .= " AND fk_leaser_solde != ".$idLeaserPrio;	
 		$sql .= " ORDER BY montantbase ASC";
-		
+	
 		$PDOdb->Execute($sql);
 
 		while($PDOdb->Get_line()){
@@ -371,7 +372,6 @@ class TSimulation extends TObjetStd {
 				}
 			}
 		}
-		
 		$this->TSimulationSuivi = $TSimulationSuiviTemp;
 	}
 	
