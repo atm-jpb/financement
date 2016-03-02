@@ -143,7 +143,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 			'montant'=>$form->texte('','TPalier['.$idTypeContrat.']['.($i+1).']', $palier['montant'],10,255)
 			,'lastMontant'=>$palier['lastMontant']
 		);
-		$a = '<a href="'.$_SERVER['PHP_SELF'].'?action=delete';
+		$a = '<a onclick="if(!window.confirm(\'Etes vous sûr de vouloir supprimer cette tranche ?\')) return false;" href="'.$_SERVER['PHP_SELF'].'?action=delete';
 		foreach($TCoeff as $periode => $TData) {
 			if(!empty($TData[$palier['montant']]['rowid'])) $a.= '&tabToDelete[]='.$TData[$palier['montant']]['rowid'];
 		}
