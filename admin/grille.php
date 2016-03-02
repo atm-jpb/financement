@@ -128,6 +128,8 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	if(!empty($at_least_on_delete)) $res = $grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
 	$TCoeff = $grille->TGrille;
 	
+	foreach($TCoeff as &$t) ksort($t);
+	
 	print_titre($label);
 	
 	//include '../tpl/admin.grille.tpl.php';
