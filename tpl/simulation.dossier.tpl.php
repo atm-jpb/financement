@@ -9,8 +9,8 @@
 		<td align="center">Prochaine<br>&eacute;ch&eacute;ance</td>
 		<td align="center">Ass.<br>Ass. act</td>
 		<td align="center">Maint.</td>
-		<td align="center">Solde RM1.</td>
-		<td align="center">Solde NRM1.</td>
+		<td align="center">R.P-1</td>
+		<td align="center">NR.P-1</td>
 		<td align="center">Solde R.</td>
 		<td align="center">Solde NR.</td>
 		<td align="center">R. P+1</td>

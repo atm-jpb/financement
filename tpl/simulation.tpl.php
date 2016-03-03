@@ -185,7 +185,7 @@
 			<td>[simulation.echeance; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
-			<td>Montant trimestriel prestation</td>
+			<td>Montant périodique prestation</td>
 			<td>[simulation.montant_presta_trim; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		[onshow;block=begin;when [view.mode]=='edit']
