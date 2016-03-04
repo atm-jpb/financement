@@ -1474,6 +1474,8 @@ class TSimulationSuivi extends TObjetStd {
 		if(!empty($TTypeFinancement[$TCateg_tiers[0]])) $simulation->type_financement = $TTypeFinancement[$TCateg_tiers[0]];
 		$simulation->save($PDOdb, $db);
 
+		$simulation->send_mail_vendeur();
+
 		$this->date_selection = time();
 
 		$this->save($PDOdb);
