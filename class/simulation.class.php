@@ -204,18 +204,24 @@ class TSimulation extends TObjetStd {
 		$grille = $TFinGrilleSuivi->get_grille($PDOdb, 'DEFAUT_'.$this->fk_type_contrat,false);
 		$TGrille = array();
 		foreach($grille as $TData) $TGrille[$TData['fk_leaser']] = $TData['fk_leaser'];
-
+		
+		$TLeasersDejaAjoutes = array();
+		
 		foreach ($TCategoriesFille as $categorieFille) {
 			//$TLeaser = $categorieFille->get_type("societe","Fournisseur","fournisseur");
 			$TLeaser = $categorieFille->getObjectsInCateg("supplier");
 			
 			//Pour chaque leaser, ajout d'une ligne de suivi
 			foreach($TLeaser as $leaser){
+				
 				// On n'ajoute que les leaser qui sont en conf
-				if(!in_array($leaser->id, $TGrille)) continue;
+				if(!in_array($leaser->id, $TGrille) || isset($TLeasersDejaAjoutes[$leaser->id])) continue;
 				$simulationSuivi = new TSimulationSuivi;
 				$simulationSuivi->init($PDOdb,$leaser,$this->getId());
 				$simulationSuivi->save($PDOdb);
+				
+				// Ajout du leaser dans le tableau
+				$TLeasersDejaAjoutes[$leaser->id] = $leaser->id;
 				
 				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 				$this->reordreSimulationSuivi($PDOdb);
