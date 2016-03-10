@@ -2,6 +2,9 @@
 Financement=Financement
 ListOfDossierFinancement=Dossiers de financement
 
+#WARNING
+CareAboutExportMayBeTakeLongTime=Attention l'export peut prendre du temps, %s factures doivent être vérifiées
+
 # ADMIN
 FinancementSetup=Configuration du module financement
 Admin=Administration
