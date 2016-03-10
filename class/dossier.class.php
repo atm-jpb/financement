@@ -59,10 +59,10 @@ class TFin_dossier extends TObjetStd {
 		}
 		
 	}
-	function load(&$db, $id, $annexe=true) {
+	function load(&$db, $id, $annexe=true, $annexe_fin = true) {
 		
 		$res = parent::load($db, $id);
-		$this->load_financement($db);
+		if($annexe_fin) $this->load_financement($db);
 		$this->reference_contrat_interne = (!empty($this->financement)) ? $this->financement->reference : '';
 		
 		if($annexe) {
@@ -70,9 +70,11 @@ class TFin_dossier extends TObjetStd {
 			$this->load_facture($db);
 			$this->load_factureFournisseur($db);
 		}
-		
-		$this->calculSolde();
-		$this->calculRenta($db);
+		if($annexe_fin)  {
+			$this->calculSolde();
+			$this->calculRenta($db);
+			
+		}
 		
 		return $res;
 	}
