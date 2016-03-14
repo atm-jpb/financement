@@ -184,15 +184,15 @@
 			[onshow;block=end]	
 			
 			<table width="100%" class="border" style="margin-top:20px;">
-			<tr><td width="20%">Affaire numéro <!-- [affaire.id; block=table;] --></td><td><a href="affaire.php?id=[affaire.id]">[affaire.reference]</a></td></tr>
-			<tr><td width="20%">Client <!-- [affaire.id; block=table;] --></td><td>[affaire.client; strconv=no]</td></tr>
-			<tr><td width="20%">Montant de l'affaire</td><td>[affaire.montant; strconv=no; frm=0 000,00] &euro;</td></tr>
-			<tr><td width="20%">Nature du financement</td><td>[affaire.nature_financement; strconv=no]</td></tr>
-			<tr><td width="20%">Type de financement</td><td>[affaire.type_financement; strconv=no]</td></tr>
-			<tr><td width="20%">Type de contrat</td><td>[affaire.contrat; strconv=no]</td></tr>
-			<tr><td width="20%">Date</td><td>[affaire.date_affaire; strconv=no]</td></tr>
+			<tr><td width="20%">Affaire numéro <!-- [affaire.id; block=table;] --></td><td><a href="affaire.php?id=[affaire.id]">[affaire.reference]</a></td><td width="20%">Entité du dossier</td><td>[dossier.entity_label]</td></tr>
+			<tr><td width="20%">Client <!-- [affaire.id; block=table;] --></td><td colspan="3">[affaire.client; strconv=no]</td></tr>
+			<tr><td width="20%">Montant de l'affaire</td><td colspan="3">[affaire.montant; strconv=no; frm=0 000,00] &euro;</td></tr>
+			<tr><td width="20%">Nature du financement</td><td colspan="3">[affaire.nature_financement; strconv=no]</td></tr>
+			<tr><td width="20%">Type de financement</td><td colspan="3">[affaire.type_financement; strconv=no]</td></tr>
+			<tr><td width="20%">Type de contrat</td><td colspan="3">[affaire.contrat; strconv=no]</td></tr>
+			<tr><td width="20%">Date</td><td colspan="3">[affaire.date_affaire; strconv=no]</td></tr>
 			[onshow;block=begin;when [view.mode]!='view']
-			<tr><td colspan="2" align="right">
+			<tr><td colspan="4" align="right">
 				<input type="button" id="action-delete-dossier" value="Supprimer" name="cancel" class="button" onclick="document.location.href='?action=delete_affaire&id=[dossier.id]&id_affaire=[affaire.id]'">
 			</td></tr>
 			[onshow;block=end]	

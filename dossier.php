@@ -1232,6 +1232,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			'dossier'=>array(
 				'id'=>$dossier->rowid
 				,'entity'=>$entity_field
+				,'entity_label'=>$TEntities[$dossier->entity]
 				//combo($pLib,$pName,$pListe,$pDefault,$pTaille=1,$onChange='',$plus='',$class='flat',$id='',$multiple='false'){
 				/*,'reference'=>$form->texte('', 'reference', $dossier->reference, 100,255,'','','à saisir')*/ 
 				,'date_relocation'=>$form->calendrier('', 'date_relocation', $dossier->get_date('date_relocation'),10)
