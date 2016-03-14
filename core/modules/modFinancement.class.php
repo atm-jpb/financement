@@ -140,7 +140,11 @@ class modFinancement extends DolibarrModules
  		
 
         // Dictionnaries
-        if (! isset($conf->financement->enabled)) $conf->financement->enabled=0;
+        if (! isset($conf->financement->enabled)) 
+        {
+        	$conf->financement=new stdClass();
+        	$conf->financement->enabled=0;
+		}
 		$this->dictionnaries=array();
         /* Example:
         if (! isset($conf->financement->enabled)) $conf->financement->enabled=0;	// This is to avoid warnings
@@ -662,10 +666,12 @@ class modFinancement extends DolibarrModules
 
 		$result=$this->load_tables();
 
-		$url = 'http://'.$_SERVER['SERVER_NAME'].DOL_URL_ROOT_ALT.'/financement/script/create-maj-base.php';
-
-		file_get_contents($url);
-
+		//$url = 'http://'.$_SERVER['SERVER_NAME'].'/'.DOL_URL_ROOT_ALT.'/financement/script/create-maj-base.php';
+		//file_get_contents($url);
+		define('INC_FROM_DOLIBARR',true);
+		dol_include_once('/financement/config.php');
+		dol_include_once('/financement/script/create-maj-base.php');
+		
 		return $this->_init($sql, $options);
 	}
 

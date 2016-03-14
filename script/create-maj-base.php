@@ -3,9 +3,9 @@
  * Script créant et vérifiant que les champs requis s'ajoutent bien
  * 
  */
- 	define('INC_FROM_CRON_SCRIPT', true);
+ 	//define('INC_FROM_CRON_SCRIPT', true);
  
-	require('../config.php');
+	//require('../config.php');
 	dol_include_once('/financement/class/commerciaux.class.php');
 	dol_include_once('/financement/class/affaire.class.php');
 	dol_include_once('/financement/class/dossier.class.php');
