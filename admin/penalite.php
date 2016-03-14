@@ -59,7 +59,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$TGrille[$idTypeContrat] = $grille;
 	
 	$TDatePenalite[$idTypeContrat] = new TFin_grille_leaser_date;
-	$TDatePenalite[$idTypeContrat]->loadByFkSocAndTypeContrat($ATMdb, $societe->id, $idTypeContrat);
+	$TDatePenalite[$idTypeContrat]->loadByFkSocAndTypeContratAndEntity($ATMdb, $societe->id, $idTypeContrat, $conf->entity);
 }
 
 /**

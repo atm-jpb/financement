@@ -512,24 +512,26 @@ class TFin_grille_leaser_date extends TObjetStd
 {
 	function __construct()
 	{
-		global $langs;
+		global $conf,$langs;
 
 		parent::set_table(MAIN_DB_PREFIX.'fin_grille_leaser_date');
-		parent::add_champs('fk_soc', array('type'=>'integer', 'index'=>true));
+		parent::add_champs('fk_soc,entity', array('type'=>'integer', 'index'=>true));
 		parent::add_champs('type_contrat',array('type'=>'varchar'));
 		parent::add_champs('date_start_pr,date_start_pnr', array('type'=>'date'));
 		
 		parent::_init_vars();
 		parent::start();
 		
+		$this->entity = $conf->entity;
 		$this->date_start_pr = null;
 		$this->date_start_pnr = null;
 	}
 	
-	function loadByFkSocAndTypeContrat($PDOdb, $fk_soc, $type_contrat)
+	function loadByFkSocAndTypeContratAndEntity($PDOdb, $fk_soc, $type_contrat, $fk_entity)
 	{
 		$PDOdb->Execute('SELECT rowid FROM '.$this->get_table().'
 				WHERE fk_soc = '.$fk_soc.'
+				AND entity = '.$fk_entity.'
 				AND type_contrat = '.$PDOdb->quote($type_contrat));
 		
 		if($PDOdb->Get_line()) return $this->load($PDOdb, $PDOdb->Get_field('rowid'));

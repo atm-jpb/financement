@@ -581,7 +581,7 @@ class TFin_dossier extends TObjetStd {
 		{
 			$coeff = $TCoeff[0];
 																		// TODO à vérifier si on remplace par ">=" 
-			if ($add_coef_cpro && !empty($dateProchaine) && strtotime($dateProchaine) > $this->getDateApplicationPenInterne($PDOdb, $grille, $type, $this->financementLeaser->fk_soc, $this->contrat)) $coeff += $TCoeff[1]; // Ajout de la pénalité interne
+			if ($add_coef_cpro && !empty($dateProchaine) && strtotime($dateProchaine) > $this->getDateApplicationPenInterne($PDOdb, $grille, $type, $this->financementLeaser->fk_soc, $this->contrat, $this->entity)) $coeff += $TCoeff[1]; // Ajout de la pénalité interne
 			
 		}
 		
@@ -660,10 +660,10 @@ class TFin_dossier extends TObjetStd {
 		return array($CRD,$LRD);
 	}
 	
-	function getDateApplicationPenInterne(&$PDOdb, &$grille, $type, $fk_soc, $type_contrat)
+	function getDateApplicationPenInterne(&$PDOdb, &$grille, $type, $fk_soc, $type_contrat, $fk_entity)
 	{
 		$grille_date = new TFin_grille_leaser_date;
-		$grille_date->loadByFkSocAndTypeContrat($PDOdb, $fk_soc, $type_contrat);
+		$grille_date->loadByFkSocAndTypeContratAndEntity($PDOdb, $fk_soc, $type_contrat, $fk_entity);
 		
 		if ($type == 'R') return $grille_date->date_start_pr;
 		else return $grille_date->date_start_pnr; // $type == NR
