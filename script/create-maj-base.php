@@ -46,6 +46,9 @@
 	$o=new TFin_grille_leaser;
 	$o->init_db_by_vars($ATMdb);
 	
+	$o=new TFin_grille_leaser_date;
+	$o->init_db_by_vars($ATMdb);
+	
 	$o=new TFin_grille_suivi;
 	$o->init_db_by_vars($ATMdb);
 	
