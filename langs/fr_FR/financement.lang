@@ -2,6 +2,9 @@
 Financement=Financement
 ListOfDossierFinancement=Dossiers de financement
 
+#WARNING
+CareAboutExportMayBeTakeLongTime=Attention l'export peut prendre du temps, %s factures doivent être vérifiées
+
 # ADMIN
 FinancementSetup=Configuration du module financement
 Admin=Administration
@@ -66,6 +69,7 @@ TypeContrat=Type de contrat
 LocSimple=Location simple
 ForfaitGlobal=Forfait global
 Integral=Intégral
+GrandCompte=Grand compte
 CustomerInfos=Informations client
 CustomerDossierFinancement=Dossiers du client
 NoDossierFound=Aucun dossier trouvé
@@ -85,7 +89,7 @@ Etude_Vendeur=En étude - Elements Vendeur
 Etude_Leaser_Short=Étude-Elts Leaser
 Etude_Vendeur_Short=Étude-Elts Vendeur
 Accord=Accord
-Refus=Financement refusé
+Refus=Refus
 SansSuite=Sans suite
 ErrorNoTypeContratSelected=Merci de sélectionner un type de contrat
 ErrorPeriodiciteRequired=Merci de sélectionner une périodicité
@@ -134,3 +138,6 @@ ErrorDossierClientNotFound=Dossier non trouvé
 ErrorClientDifferent=Dossier rattaché à un autre client
 leaserNotAllgood=Leaser du dossier différent
 ErrorCreatingLinkAffaireFactureMaterielAlreidyExist=Facture matériel déjà rattaché à une affaire
+
+# IHM
+DataSaved=Données enregistrées avec succès

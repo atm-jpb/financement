@@ -10,8 +10,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_decompte_copies_sup,montant_rachat_final,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
 		parent::add_champs('date_simul,date_validite,date_accord,date_demarrage','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,marque_materiel,numero_accord,reference,opt_calage','type=chaine;');
-		parent::add_champs('dossiers,dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
-
+		parent::add_champs('dossiers,dossiers_rachetes_m1,dossiers_rachetes_nr_m1,dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
 		parent::add_champs('thirdparty_address,thirdparty_zip,thirdparty_town,thirdparty_code_client,thirdparty_idprof2_siret, thirdparty_idprof3_naf','type=chaine;');
 
 		parent::start();
@@ -22,8 +21,8 @@ class TSimulation extends TObjetStd {
 		$this->TStatut=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
-			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser')
-			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur')
+			/*,'WAIT_LEASER'=>$langs->trans('Etude_Leaser')
+			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur')*/
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
@@ -31,8 +30,8 @@ class TSimulation extends TObjetStd {
 		$this->TStatutShort=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
-			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser_Short')
-			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur_Short')
+			/*,'WAIT_LEASER'=>$langs->trans('Etude_Leaser_Short')
+			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur_Short')*/
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
@@ -65,6 +64,7 @@ class TSimulation extends TObjetStd {
 		$this->opt_mode_reglement = 'PRE';
 		$this->opt_terme = '1';
 		$this->opt_calage = '';
+		$this->date_demarrage = '';
 		$this->vr = 0;
 		$this->coeff = 0;
 		$this->fk_user_author = $user->id;
@@ -93,26 +93,77 @@ class TSimulation extends TObjetStd {
 	function save(&$db, &$doliDB) {
 		//parent::save($db);
 		//pre($this,true);exit;
-		
+	//	var_dump($this->dossiers_rachetes, $_REQUEST);exit;
 		parent::save($db);
 		
 		$this->reference = $this->getRef();
 		
 		if(empty($this->dossiers) || count($this->dossiers) != count($this->dossiers_rachetes)){
+			
 			foreach($this->dossiers_rachetes as $k=>$TDossiers){
 				$dossier =  new TFin_dossier;
 				$dossier->load($db, $k);
+				
+				// Renouvelant, renouvellant + 1, non renouvellant ou non renouvellant + 1
+				$periode = 0;
+				if(!empty($this->dossiers_rachetes_m1[$dossier->rowid]['checked'])) {
+					$type = 'SRBANK';
+					$periode = -1;
+				} elseif(!empty($this->dossiers_rachetes_nr_m1[$dossier->rowid]['checked'])) {
+					$type = 'SNRBANK';
+					$periode = -1;
+				} elseif(!empty($this->dossiers_rachetes[$dossier->rowid]['checked'])) {
+					$type = 'SRBANK';
+					$periode = 0;
+				} elseif(!empty($this->dossiers_rachetes_nr[$dossier->rowid]['checked'])) {
+					$type = 'SNRBANK';
+					$periode = 0;
+				} elseif(!empty($this->dossiers_rachetes_p1[$dossier->rowid]['checked'])) {
+					$type = 'SRBANK';
+					$periode = 1;
+				} elseif(!empty($this->dossiers_rachetes_nr_p1[$dossier->rowid]['checked'])) {
+					$type = 'SNRBANK';
+					$periode = 1;
+				}
+				
+				$echeance = $dossier->_get_num_echeance_from_date($dossier->financementLeaser->date_prochaine_echeance);
+				//echo '*'.$type.' : '.$periode.' : '.($echeance + $periode).'*';
+				$solde = $dossier->getSolde($db, $type, $echeance + $periode);
+				
 				if($dossier->nature_financement == 'INTERNE') {
 					$fin = &$dossier->financement;
+					$fin_leaser = &$dossier->financementLeaser;
+					$echeance = $dossier->_get_num_echeance_from_date($dossier->financement->date_prochaine_echeance);
+					$date_debut_periode_client = $dossier->getDateDebutPeriode(($echeance-1) + $periode,'CLIENT');
+					$date_fin_periode_client = $dossier->getDateFinPeriode(($echeance-1) + $periode,'CLIENT');
+					$echeance = $dossier->_get_num_echeance_from_date($dossier->financementLeaser->date_prochaine_echeance);
+					$date_debut_periode_leaser = $dossier->getDateDebutPeriode(($echeance-1) + $periode);
+					$date_fin_periode_leaser = $dossier->getDateFinPeriode(($echeance-1) + $periode);
 				}
 				else{
 					$fin = &$dossier->financementLeaser;
+					$fin_leaser = &$dossier->financementLeaser;
+					$echeance = $dossier->_get_num_echeance_from_date($dossier->financementLeaser->date_prochaine_echeance);
+					$date_debut_periode_client = $date_debut_periode_leaser = $dossier->getDateDebutPeriode(($echeance-1) + $periode);
+					$date_fin_periode_client = $date_fin_periode_leaser = $dossier->getDateFinPeriode(($echeance-1) + $periode);
 				}
-				//pre($dossier,true);exit;
 				
-				/*echo $dossier->affaire->contrat.'<br>';
-				pre($dossier->TLien[0]->affaire->contrat,true);*/
+				/*echo $dossier->rowid.' : '.$dossier->financementLeaser->date_prochaine_echeance.' : '.$date_debut_periode_client.' : '.$date_fin_periode_client;
+				echo '<br>';*/
+				//pre($this, true);
+				$soldeperso = round($dossier->getSolde($db, 'perso'),2);
+				if(empty($dossier->display_solde)) $soldeperso = 0;
+				if(!$dossier->getSolde($db, 'perso')) $soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100));
+				
+				$this->dossiers[$k]['ref_simulation'] = $this->reference;
 				$this->dossiers[$k]['num_contrat'] = $fin->reference;
+				$this->dossiers[$k]['num_contrat_leaser'] = $fin_leaser->reference;
+				$this->dossiers[$k]['date_debut_periode_client'] = $date_debut_periode_client;
+				$this->dossiers[$k]['date_fin_periode_client'] = $date_fin_periode_client;
+				$this->dossiers[$k]['date_debut_periode_leaser'] = $date_debut_periode_leaser;
+				$this->dossiers[$k]['date_fin_periode_leaser'] = $date_fin_periode_leaser;
+				$this->dossiers[$k]['decompte_copies_sup'] = $soldeperso;
+				$this->dossiers[$k]['solde_banque_a_periode_identique'] = $solde;
 				$this->dossiers[$k]['type_contrat'] = $dossier->TLien[0]->affaire->contrat;
 				$this->dossiers[$k]['duree'] = $fin->duree.' '.substr($fin->periodicite,0,1);
 				$this->dossiers[$k]['echeance'] = $fin->echeance;
@@ -130,6 +181,8 @@ class TSimulation extends TObjetStd {
 			}
 		}
 
+		//pre($this, true);exit;
+		
 		$this->gen_simulation_pdf($db, $doliDB);
 		
 		parent::save($db);
@@ -162,15 +215,29 @@ class TSimulation extends TObjetStd {
 		$categorieParent->fetch('','Type de financement');
 		$TCategoriesFille = $categorieParent->get_filles();
 		
+		// Chargement du tableau des leaser par type de contrat
+		$TFinGrilleSuivi = new TFin_grille_suivi;
+		$grille = $TFinGrilleSuivi->get_grille($PDOdb, 'DEFAUT_'.$this->fk_type_contrat,false);
+		$TGrille = array();
+		foreach($grille as $TData) $TGrille[$TData['fk_leaser']] = $TData['fk_leaser'];
+		
+		$TLeasersDejaAjoutes = array();
+		
 		foreach ($TCategoriesFille as $categorieFille) {
 			//$TLeaser = $categorieFille->get_type("societe","Fournisseur","fournisseur");
 			$TLeaser = $categorieFille->getObjectsInCateg("supplier");
 			
 			//Pour chaque leaser, ajout d'une ligne de suivi
 			foreach($TLeaser as $leaser){
+				
+				// On n'ajoute que les leaser qui sont en conf
+				if(!in_array($leaser->id, $TGrille) || isset($TLeasersDejaAjoutes[$leaser->id])) continue;
 				$simulationSuivi = new TSimulationSuivi;
 				$simulationSuivi->init($PDOdb,$leaser,$this->getId());
 				$simulationSuivi->save($PDOdb);
+				
+				// Ajout du leaser dans le tableau
+				$TLeasersDejaAjoutes[$leaser->id] = $leaser->id;
 				
 				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 				$this->reordreSimulationSuivi($PDOdb);
@@ -287,7 +354,7 @@ class TSimulation extends TObjetStd {
 			//Réorganisation de l'ordre de la liste en fonction de la grille d'administration
 			$TLeaser = $this->reordreSimulationSuivi($PDOdb);
 		}
-		else{
+		elseif($this->rowid > 0){
 			$this->create_suivi_simulation($PDOdb);
 		}
 	}
@@ -307,7 +374,8 @@ class TSimulation extends TObjetStd {
 			$simulationSuiviLeaserPrio = new TSimulationSuivi;
 			$simulationSuiviLeaserPrio->load($PDOdb,$idSimulationSuiviLeaserPrio[0]);
 			//Ajout du suivi simulation associé dans le tableau à la première place
-			$TSimulationSuiviTemp[$simulationSuiviLeaserPrio->getId()] = $simulationSuiviLeaserPrio;
+			$id = $simulationSuiviLeaserPrio->getId();
+			if(!empty($id)) $TSimulationSuiviTemp[$id] = $simulationSuiviLeaserPrio;
 		}
 		
 		//Récupération de l'ordre par défaut pour les autres Leaser
@@ -316,7 +384,7 @@ class TSimulation extends TObjetStd {
 				WHERE fk_type_contrat = 'DEFAUT_".$this->fk_type_contrat."'";
 		if($idLeaserPrio) $sql .= " AND fk_leaser_solde != ".$idLeaserPrio;	
 		$sql .= " ORDER BY montantbase ASC";
-		
+	
 		$PDOdb->Execute($sql);
 
 		while($PDOdb->Get_line()){
@@ -326,7 +394,6 @@ class TSimulation extends TObjetStd {
 				}
 			}
 		}
-		
 		$this->TSimulationSuivi = $TSimulationSuiviTemp;
 	}
 	
@@ -447,7 +514,7 @@ class TSimulation extends TObjetStd {
 		//Construction d'un tableau de ligne pour futur affichage TBS
 		foreach($this->TSimulationSuivi as $simulationSuivi){
 			//echo $simulationSuivi->rowid.'<br>';
-			$link_user = '<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulationSuivi->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulationSuivi->user->login.'</a>';
+			$link_user = '<a href="'.DOL_URL_ROOT.'/user/card.php?id='.$simulationSuivi->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulationSuivi->user->login.'</a>';
 			
 			$ligne = array();
 			//echo $simulationSuivi->get_Date('date_demande').'<br>';
@@ -456,14 +523,18 @@ class TSimulation extends TObjetStd {
 			$ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
 			$ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png',1).'" />' : '' ;
 			$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande') : '' ;
-			$ligne['resultat'] = ($simulationSuivi->statut) ? '<img title="'.$simulationSuivi->TStatut[$simulationSuivi->statut].'" src="'.dol_buildpath('/financement/img/'.$simulationSuivi->statut.'.png',1).'" />' : '';
+			$img = $simulationSuivi->statut;
+			if(!empty($simulationSuivi->date_selection)) $img = 'super_ok';
+			$ligne['resultat'] = ($simulationSuivi->statut) ? '<img title="'.$simulationSuivi->TStatut[$simulationSuivi->statut].'" src="'.dol_buildpath('/financement/img/'.$img.'.png',1).'" />' : '';
 			$ligne['numero_accord_leaser'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][num_accord]', $simulationSuivi->numero_accord_leaser, 25,0,'style="text-align:right;"') : $simulationSuivi->numero_accord_leaser;
 			
 			$ligne['date_selection'] = ($simulationSuivi->get_Date('date_selection')) ? $simulationSuivi->get_Date('date_selection') : '' ;
 			$ligne['utilisateur'] = ($simulationSuivi->fk_user_author && $simulationSuivi->date_cre != $simulationSuivi->date_maj) ? $link_user : '' ;
 			
-			$ligne['coeff_leaser'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][coeff_accord]', $simulationSuivi->coeff_leaser, 5,0,'style="text-align:right;"') : (($simulationSuivi->coeff_leaser>0) ? $simulationSuivi->coeff_leaser : '');
+			$ligne['coeff_leaser'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][coeff_accord]', $simulationSuivi->coeff_leaser, 6,0,'style="text-align:right;"') : (($simulationSuivi->coeff_leaser>0) ? $simulationSuivi->coeff_leaser : '');
+			$ligne['commentaire'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->zonetexte('', 'TSuivi['.$simulationSuivi->rowid.'][commentaire]', $simulationSuivi->commentaire, 25,0) : nl2br($simulationSuivi->commentaire);
 			$ligne['actions'] = $simulationSuivi->getAction($this);
+			$ligne['action_save'] = $simulationSuivi->getAction($this, true);
 			
 			$TLignes[] = $ligne;
 		}
@@ -793,13 +864,20 @@ class TSimulation extends TObjetStd {
 		
 		$TDossier = array();
 		//pre($this,true);exit;
+		foreach($this->dossiers_rachetes_m1 as $idDossier => $TData){
+			if($this->dossiers_rachetes_m1[$idDossier]['checked'])
+				$TDossier[$idDossier] = $idDossier;
+		}
 		foreach($this->dossiers_rachetes as $idDossier => $TData){
 			if($this->dossiers_rachetes[$idDossier]['checked'])
 				$TDossier[$idDossier] = $idDossier;
 		}
-		
 		foreach($this->dossiers_rachetes_p1 as $idDossier => $TData){
 			if($this->dossiers_rachetes_p1[$idDossier]['checked'])
+				$TDossier[$idDossier] = $idDossier;
+		}
+		foreach($this->dossiers_rachetes_nr_m1 as $idDossier => $TData){
+			if($this->dossiers_rachetes_nr_m1[$idDossier]['checked'])
 				$TDossier[$idDossier] = $idDossier;
 		}
 		foreach($this->dossiers_rachetes_nr as $idDossier => $TData){
@@ -857,6 +935,8 @@ class TSimulation extends TObjetStd {
 			//$date_prochaine_echeance = $this[]
 			
 			$echeance = $d->_get_num_echeance_from_date($this->dossiers[$idDossier]['date_prochaine_echeance']);
+			$date_debut_periode_m1 = $d->getDateDebutPeriode($echeance-2,$type);
+			$date_fin_periode_m1 = $d->getDateFinPeriode($echeance-2,$type);
 			$date_debut_periode = $d->getDateDebutPeriode($echeance-1,$type);
 			$date_fin_periode = $d->getDateFinPeriode($echeance-1,$type);
 			$date_debut_periode_p1 = $d->getDateDebutPeriode($echeance,$type);
@@ -874,7 +954,13 @@ class TSimulation extends TObjetStd {
 			
 			//pre($this,true);exit;
 			if($d->nature_financement == 'INTERNE') {
-				if($this->dossiers_rachetes[$idDossier]['checked']){
+				if($this->dossiers_rachetes_m1[$idDossier]['checked']){
+					$solde_r = $solde_nr = $this->dossiers_rachetes_m1[$idDossier]['montant'];
+					$solde = 'R';
+					$datemax_deb = $date_debut_periode_m1;
+					$datemax_fin = $date_fin_periode_m1;
+				}
+				elseif($this->dossiers_rachetes[$idDossier]['checked']){
 					$solde_r = $solde_nr = $this->dossiers_rachetes[$idDossier]['montant'];
 					$solde = 'R';
 				}
@@ -885,7 +971,13 @@ class TSimulation extends TObjetStd {
 					$datemax_fin = $date_fin_periode_p1;
 				}
 				
-				if($this->dossiers_rachetes_nr[$idDossier]['checked']){
+				if($this->dossiers_rachetes_nr_m1[$idDossier]['checked']){
+					$solde_r = $solde_nr = $this->dossiers_rachetes_nr_m1[$idDossier]['montant'];
+					$solde = 'NR';
+					$datemax_deb = $date_debut_periode_m1;
+					$datemax_fin = $date_fin_periode_m1;
+				}
+				elseif($this->dossiers_rachetes_nr[$idDossier]['checked']){
 					$solde_r = $solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
 					$solde = 'NR';
 				}
@@ -897,7 +989,14 @@ class TSimulation extends TObjetStd {
 				}
 			}
 			else{
-				if($this->dossiers_rachetes[$idDossier]['checked']){
+				if($this->dossiers_rachetes_m1[$idDossier]['checked']){
+					$solde_r = $this->dossiers_rachetes_m1[$idDossier]['montant'];
+					$solde_nr = $this->dossiers_rachetes_nr_m1[$idDossier]['montant'];
+					$solde = 'R';
+					$datemax_deb = $date_debut_periode_m1;
+					$datemax_fin = $date_fin_periode_m1;
+				}
+				elseif($this->dossiers_rachetes[$idDossier]['checked']){
 					$solde_r = $this->dossiers_rachetes[$idDossier]['montant'];
 					$solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
 					$solde = 'R';
@@ -910,7 +1009,14 @@ class TSimulation extends TObjetStd {
 					$datemax_fin = $date_fin_periode_p1;
 				}
 				
-				if($this->dossiers_rachetes_nr[$idDossier]['checked']){
+				if($this->dossiers_rachetes_nr_m1[$idDossier]['checked']){
+					$solde_r = $this->dossiers_rachetes_m1[$idDossier]['montant'];
+					$solde_nr = $this->dossiers_rachetes_nr_m1[$idDossier]['montant'];
+					$solde = 'NR';
+					$datemax_deb = $date_debut_periode_m1;
+					$datemax_fin = $date_fin_periode_m1;
+				}
+				elseif($this->dossiers_rachetes_nr[$idDossier]['checked']){
 					$solde_r = $this->dossiers_rachetes[$idDossier]['montant'];
 					$solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
 					$solde = 'NR';
@@ -1047,8 +1153,8 @@ class TSimulation extends TObjetStd {
 		$simu2 = $simu;
 		//exit(htmlentities($simu->type_contrat));
 		$simu2->type_contrat = html_entity_decode($simu2->type_contrat,ENT_QUOTES,'ISO-8859-1');
-		$simu2->commentaire = utf8_decode($simu2->commentaire);
-		$simu2->numero_accord = utf8_decode($simu2->numero_accord);
+		//$simu2->commentaire = utf8_decode($simu2->commentaire);
+		//$simu2->numero_accord = utf8_decode($simu2->numero_accord);
 		/*echo '<pre>';
 		print_r($TDossier);
 		echo '</pre>';exit;*/
@@ -1076,11 +1182,14 @@ class TSimulation extends TObjetStd {
 								,'type'=>($solde == 'R' || $solde == 'NR') ? 1 : 0)
 			)
 			,array()
-			,array('outFile' => $filePath.'/'.$fileName)
+			,array(
+				'outFile' => $filePath.'/'.$fileName
+				,'charset'=>OPENTBS_ALREADY_UTF8
+			)
 		);
 		
 		// Nécessaire sinon n'affiche pas les caractères accentués
-		$simu2->commentaire = utf8_encode($simu2->commentaire);
+		//$simu2->commentaire = utf8_encode($simu2->commentaire);
 		
 		$simu->opt_adjonction = $back_opt_adjonction;
 		$simu->opt_calage = $back_opt_calage;
@@ -1092,6 +1201,37 @@ class TSimulation extends TObjetStd {
 		system($cmd);
 		$res = ob_get_clean();
 	}
+
+	function _calcul(&$ATMdb, $mode='calcul', $options=array()) {
+		global $mesg, $error, $langs, $db;
+		
+		if(empty($options)) {
+			foreach($_POST as $k => $v) {
+				if(substr($k, 0, 4) == 'opt_') {
+					$options[$k] = $v;
+				}
+			}
+		}
+		
+		$calcul = $this->calcul_financement($ATMdb, FIN_LEASER_DEFAULT, $options); // Calcul du financement
+			
+		if(!$calcul) { // Si calcul non correct
+			$this->montant_total_finance = 0;
+			$mesg = $langs->trans($this->error);
+			$error = true;
+		} else if($this->accord_confirme == 0) { // Sinon, vérification accord à partir du calcul
+			$this->demande_accord();
+			if($this->accord == 'OK') {
+				$this->date_accord = time();
+				$this->date_validite = strtotime('+ 3 months');
+			}
+			if($mode == 'save' && ($this->accord == 'OK' || $this->accord == 'KO')) { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
+				$this->send_mail_vendeur(true);
+			}
+		}
+		
+	}
+
 }
 
 
@@ -1104,6 +1244,7 @@ class TSimulationSuivi extends TObjetStd {
 		parent::add_champs('coeff_leaser','type=float;');
 		parent::add_champs('date_demande,date_accord,date_selection','type=date;');
 		parent::add_champs('numero_accord_leaser,statut','type=chaine;');
+		parent::add_champs('commentaire','type=text;');
 		parent::start();
 		parent::_init_vars();
 		
@@ -1160,36 +1301,59 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	//Retourne les actions possible pour ce suivi suivant les règles de gestion
-	function getAction(&$simulation){
+	function getAction(&$simulation, $just_save=false){
 		
 		$actions = '';
-
+		$ancre = '#suivi_leaser';
+		
 		if($simulation->accord != "OK"){
 			//Demander
 			if($this->statut_demande != 1){// && $this->date_demande < 0){
-				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Demande transmise au leaser"><img src="'.dol_buildpath('/financement/img/demander.png',1).'" /></a>&nbsp;';
+				if(!$just_save)
+					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Demande transmise au leaser"><img src="'.dol_buildpath('/financement/img/demander.png',1).'" /></a>&nbsp;';
 			}
 			else{
 				//Sélectionner
 				if($this->statut === 'OK'){
-					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=selectionner" title="Sélectionner ce leaser"><img src="'.dol_buildpath('/financement/img/selectionner.png',1).'" /></a>&nbsp;';
-					//Enregistrer
-					$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
+					if($just_save) {
+						//Enregistrer
+						$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
+					} else {
+						//Reset
+						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler"><img src="'.dol_buildpath('/financement/img/WAIT.png',1).'" /></a>&nbsp;';
+						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=selectionner'.$ancre.'" title="Sélectionner ce leaser"><img src="'.dol_buildpath('/financement/img/super_ok.png',1).'" /></a>&nbsp;';
+					}
 				}
 				else{
 					if($this->statut !== 'KO'){
-						if($this->TLeaserAuto[$this->fk_leaser]){	
+						/*if($this->TLeaserAuto[$this->fk_leaser]){	
 							//Envoyer
 							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
+						}*/
+						if($just_save) {
+							//Enregistrer
+							$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
+
 						}
-						//Enregistrer
-						$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
-						//Accepter
-						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter" title="Demande acceptée"><img src="'.dol_buildpath('/financement/img/accepter.png',1).'" /></a>&nbsp;';
-						//Refuser
-						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser" title="Demande refusée"><img src="'.dol_buildpath('/financement/img/refuser.png',1).'" /></a>&nbsp;';
+						else {
+							//Accepter
+							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Demande acceptée"><img src="'.dol_buildpath('/financement/img/OK.png',1).'" /></a>&nbsp;';
+							//Refuser
+							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser'.$ancre.'" title="Demande refusée"><img src="'.dol_buildpath('/financement/img/KO.png',1).'" /></a>&nbsp;';
+						}
+					
+					} elseif($simulation->accord != "KO") {
+						if(!$just_save) {
+							//Reset
+							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler"><img src="'.dol_buildpath('/financement/img/WAIT.png',1).'" /></a>&nbsp;';
+						}
 					}
 				}
+			}
+		} elseif($simulation->accord == "OK" && !empty($this->date_selection)) {
+			if(!$just_save) {
+				//Reset
+				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Annuler"><img src="'.dol_buildpath('/financement/img/OK.png',1).'" /></a>&nbsp;';
 			}
 		}
 		
@@ -1199,7 +1363,7 @@ class TSimulationSuivi extends TObjetStd {
 	//Exécute une action et met en oeuvre les règles de gestion en conséquence
 	function doAction(&$PDOdb,&$simulation,$action){
 		
-		if($simulation->accord != "OK"){
+		//if($simulation->accord != "OK"){
 		
 			switch ($action) {
 				case 'demander':
@@ -1223,7 +1387,7 @@ class TSimulationSuivi extends TObjetStd {
 					
 					break;
 			}
-		}
+		//}
 	}
 	
 	//Effectuer l'action de faire la demande de financement au leaser
@@ -1235,9 +1399,7 @@ class TSimulationSuivi extends TObjetStd {
 			// 20113 = BNP Mandatée // 3382 = BNP Cession (Location simple) // 19483 = Lixxbail Mandatée // 6065 = Lixxbail Cession (Location simple)
 			$sql = "SELECT rowid 
 					FROM ".MAIN_DB_PREFIX."fin_simulation_suivi 
-					WHERE (fk_leaser = 20113 
-						OR fk_leaser = 3382 
-						OR fk_leaser = 19483
+					WHERE (fk_leaser = 3382 
 						OR fk_leaser = 6065)
 						AND fk_simulation = ".$this->fk_simulation;
 			$TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
@@ -1251,13 +1413,14 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		//Si leaser auto alors on envoye la demande par XML
-		if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
+		/*if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
 			$this->_sendDemandeAuto($PDOdb);
-		}
+		}*/
 		
 		$this->statut_demande = 1;
 		$this->date_demande = time();
 		$this->statut = 'WAIT';
+		$this->date_selection = 0;
 		$this->save($PDOdb);
 	}
 	
@@ -1277,9 +1440,13 @@ class TSimulationSuivi extends TObjetStd {
 		global $db;
 		
 		$simulation->accord = 'WAIT';
+		$simulation->coeff_final = '';
+		$simulation->fk_leaser = 0;
+		$simulation->numero_accord = '';
 		$simulation->save($PDOdb, $db);
 		
 		$this->statut = 'OK';
+		$this->date_selection = 0;
 		$this->save($PDOdb);
 	}
 	
@@ -1298,14 +1465,47 @@ class TSimulationSuivi extends TObjetStd {
 	function doActionSelectionner(&$PDOdb,&$simulation){
 		global $db;
 		
-		if($simulation->type_financement != "ADOSSEE" && $simulation->type_financement != "MANDATEE"){
-			$simulation->coeff_final = $this->coeff_leaser;
+		$TTypeFinancement = array(3=>'ADOSSEE', 4=>'MANDATEE', 18=>'PURE', 19=>'FINANCIERE'); // En cléf : id categorie, en valeur, type financement associé
+		$TCateg_tiers = array();
+		
+		if(!empty($this->fk_leaser)) {
+			// Récupération des catégories du leaser. fk_categorie : 5 pour "Cession", 3 pour "Adossee", 18 pour Loc Pure, 4 pour Mandatee, 19 pour Financière
+			$sql = 'SELECT fk_categorie FROM '.MAIN_DB_PREFIX.'categorie_fournisseur WHERE fk_categorie IN (3, 4, 5, 18, 19) and fk_societe = '.$this->fk_leaser;
+			$resql = $db->query($sql);
+			while($res = $db->fetch_object($resql)) {
+				$TCateg_tiers[] = (int)$res->fk_categorie;
+			}
 		}
+		
+		if($simulation->type_financement != "ADOSSEE" && $simulation->type_financement != "MANDATEE" && in_array(5, $TCateg_tiers)){
+			$simulation->coeff_final = $this->coeff_leaser;
+			$simulation->montant = 0;
+			$options = array(
+							'opt_periodicite'=>$simulation->opt_periodicite
+							,'opt_mode_reglement'=>$simulation->opt_mode_reglement
+							,'opt_terme'=>$simulation->opt_terme
+							,'opt_calage'=>$simulation->opt_calage
+							,'opt_no_case_to_settle'=>$simulation->opt_no_case_to_settle
+						);
+			
+			$simulation->_calcul($PDOdb, 'calcul', $options);
+		}
+		// Une fois le test précédent effectué, on ne garde dans le tableau que les id des groupes qui nous intéressent (3 4 ou 18).
+		if(!empty($TCateg_tiers)) {
+			$TTemp = $TCateg_tiers;
+			$TCateg_tiers = array();
+			foreach ($TTemp as $id_categ) {
+				if($id_categ == 3 || $id_categ == 4 || $id_categ == 18 || $id_categ == 19) $TCateg_tiers[] = $id_categ;
+			}
+		} 
 		
 		$simulation->accord = 'OK';
 		$simulation->numero_accord = $this->numero_accord_leaser;
 		$simulation->fk_leaser = $this->fk_leaser;
+		if(!empty($TTypeFinancement[$TCateg_tiers[0]])) $simulation->type_financement = $TTypeFinancement[$TCateg_tiers[0]];
 		$simulation->save($PDOdb, $db);
+
+		$simulation->send_mail_vendeur();
 
 		$this->date_selection = time();
 

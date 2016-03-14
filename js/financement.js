@@ -15,13 +15,31 @@ $(document).ready(function() {
 	init_selected_dossier();
 	
 	// Calage
-	$('select[name="opt_calage"]').bind('change', select_calage);
+	/*$('select[name="opt_calage"]').bind('change', select_calage);
 	if($('select[name="opt_calage"]').val() == '') {
 		$('input[name="date_demarrage"]').attr('disabled', true);
 		$('input[name="date_demarrage"]').val('');
 	} else {
 		$('input[name="date_demarrage"]').attr('disabled', false);
-	}
+	}*/
+	
+	$('#date_demarrage').bind('change', function() {
+		var date_d = $('#date_demarrage').val();
+		date_d = date_d.split("/");
+		date_d.reverse();
+		date_d = date_d.join("/");
+		var date_demarrage = new Date(date_d);
+		var today = new Date();
+		var diff_time = date_demarrage.getTime()-today.getTime();
+		var diff_jours = Math.ceil(diff_time/(1000*60*60*24));
+		if(diff_jours > 30 && diff_jours < 125) {
+			$('#opt_calage').val(Math.floor(diff_jours/31)+'M');
+			$('#opt_calage_label').val(Math.floor(diff_jours/31)+' mois');
+		} else {
+			$('#opt_calage').val('');
+			$('#opt_calage_label').val('');
+		}
+	});
 	
 	// Rachat dossier ou case aucun
 	$('#opt_no_case_to_settle').bind('click', function() {

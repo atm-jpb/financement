@@ -6,15 +6,15 @@
  	define('INC_FROM_CRON_SCRIPT', true);
  
 	require('../config.php');
-	require('../class/commerciaux.class.php');
-	require('../class/affaire.class.php');
-	require('../class/dossier.class.php');
-	require('../class/dossier_integrale.class.php');
-	require('../class/simulation.class.php');
-	require('../class/score.class.php');
-	require('../class/import.class.php');
-	require('../class/import_error.class.php');
-	require('../class/grille.class.php');
+	dol_include_once('/financement/class/commerciaux.class.php');
+	dol_include_once('/financement/class/affaire.class.php');
+	dol_include_once('/financement/class/dossier.class.php');
+	dol_include_once('/financement/class/dossier_integrale.class.php');
+	dol_include_once('/financement/class/simulation.class.php');
+	dol_include_once('/financement/class/score.class.php');
+	dol_include_once('/financement/class/import.class.php');
+	dol_include_once('/financement/class/import_error.class.php');
+	dol_include_once('/financement/class/grille.class.php');
 
 	$ATMdb=new TPDOdb;
 	$ATMdb->db->debug=true;

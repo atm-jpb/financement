@@ -22,6 +22,7 @@ class TFin_affaire extends TObjetStd {
 			'LOCSIMPLE'=>$langs->trans('LocSimple')
 			,'FORFAITGLOBAL'=>$langs->trans('ForfaitGlobal')
 			,'INTEGRAL'=>$langs->trans('Integral')
+			,'GRANDCOMPTE'=>$langs->trans('GrandCompte')
 		);
 		$this->TTypeFinancement=array(
 			'PURE'=>'Location Pure'

@@ -94,7 +94,8 @@ if($action == 'save') {
 				$montant = $TPalier[$idTypeContrat][$j];
 		//	print "$i/$j $periode/$montant ".$coeff['coeff']."<br>";
 				
-				$at_least_on_delete = $grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, $montant, $coeff['coeff'] );
+				$res = $grille->setCoef($ATMdb,$coeff['rowid'], $idLeaser, $idTypeContrat, $periode, $montant, $coeff['coeff'] );
+				if(!empty($res)) $at_least_on_delete = true;
 				
 			}
 		}
@@ -107,6 +108,15 @@ if($action == 'save') {
 		*/
 	}
 	
+} elseif($action == 'delete') {
+	$TToDelete = $_REQUEST['tabToDelete'];
+	if(!empty($TToDelete)) {
+		foreach($TToDelete as $id) {
+			if(!empty($id));
+			$ATMdb->Execute('DELETE FROM '.MAIN_DB_PREFIX.'fin_grille_leaser WHERE rowid = '.$id);
+			$at_least_on_delete = true;
+		}
+	}
 }
 
 // Grille de coeff globale + % de pénalité par option
@@ -115,28 +125,36 @@ $mode = 'edit';
 foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	$grille = & $TGrille[$idTypeContrat];
 	
-	if(!empty($at_least_on_delete)) $grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
-	
+	if(!empty($at_least_on_delete)) $res = $grille->get_grille($ATMdb,$idLeaser, $idTypeContrat);
 	$TCoeff = $grille->TGrille;
 	
-	print_fiche_titre($label);
+	foreach($TCoeff as &$t) ksort($t);
+	
+	print_titre($label);
 	
 	//include '../tpl/admin.grille.tpl.php';
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formGrille'.$idTypeContrat,'POST');
-	$form->Set_typeaff($mode);
 	
+	$TTabIDToDelete = array();
 	
 	$TPalier=array();
+	$ii= 0;
 	foreach($grille->TPalier as $i=>$palier) {
-		$TPalier[]=array(
+		$TPalier[$ii]=array(
 			'montant'=>$form->texte('','TPalier['.$idTypeContrat.']['.($i+1).']', $palier['montant'],10,255)
 			,'lastMontant'=>$palier['lastMontant']
 		);
+		$a = '<a onclick="if(!window.confirm(\'Etes vous sûr de vouloir supprimer cette tranche ?\')) return false;" href="'.$_SERVER['PHP_SELF'].'?action=delete';
+		foreach($TCoeff as $periode => $TData) {
+			if(!empty($TData[$palier['montant']]['rowid'])) $a.= '&tabToDelete[]='.$TData[$palier['montant']]['rowid'];
+		}
+		$a.='">'.img_delete().'</a>';
 		
+		$TPalier[$ii]['toDelete'] = $a;
 		
+		$ii++;
 	}
-	
 	
 	
 	echo $form->hidden('action', 'save');

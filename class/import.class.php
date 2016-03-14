@@ -18,6 +18,7 @@ class TImport extends TObjetStd {
 			,'facture_materiel' => 'Fichier facture matériel'
 			,'facture_location' => 'Fichier facture location'
 			,'facture_lettree' => 'Fichier facture lettrée'
+			,'facture_rejetee' => 'Fichier règlement rejeté'
 			,'score' => 'Fichier score'
 		);
 		$this->TType_import = array(
@@ -132,6 +133,9 @@ class TImport extends TObjetStd {
 				break;
 			case 'facture_lettree':
 				$this->importLineFactureLettree($ATMdb, $data);
+				break;
+			case 'facture_rejetee':
+				$this->importLineFactureRejetee($ATMdb, $data);
 				break;
 			case 'commercial':
 				$this->importLineCommercial($ATMdb, $data, $TInfosGlobale);
@@ -1100,6 +1104,28 @@ class TImport extends TObjetStd {
 		$facture = new Facture($db);
 		$facture->fetch($facid);
 		$res = $facture->set_paid($user, '', $data['code_lettrage']);
+		if($res < 0) {
+			$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture->error);
+			return false;
+		} else {
+			$this->nb_update++;
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture), $facture->id,'update',$data);
+		}
+
+		return true;
+	}
+
+	function importLineFactureRejetee(&$ATMdb, $data) {
+		global $user, $db;
+		
+		// Recherche si facture existante dans la base
+		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
+		if(!$facid) return false;
+		
+		// Construction de l'objet final
+		$facture = new Facture($db);
+		$facture->fetch($facid);
+		$res = $facture->set_unpaid($user);
 		if($res < 0) {
 			$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture->error);
 			return false;

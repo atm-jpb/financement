@@ -1,4 +1,4 @@
-
+<div id="suivi_leaser"></div>
 [onshow;block=begin;when [view.type]=='simul']
 	
 	[view.titre; strconv=no]
@@ -11,10 +11,12 @@
 			<!--<td>Demande</td> -->
 			<td>Date<br>demande</td>
 			<td>Résultat</td>
-			<td>N° accord<br>Leaser</td>
+			<td>N° étude / Accord Leaser</td>
 			<td>Coeff.<br>Leaser</td>
 			<td>Date sélection<br>Leaser</td>
 			<td>Utilisateur</td>
+			<td>Commentaire</td>
+			<td>Enregistrer</td>
 			<td>Actions</td>
 		</tr>
 		
@@ -24,9 +26,11 @@
 			<td>[ligne.date_demande]</td>
 			<td>[ligne.resultat;strconv=no]</td>
 			<td>[ligne.numero_accord_leaser;strconv=no]</td>
-			<td>[ligne.coeff_leaser;strconv=no]</td>
+			<td>[ligne.coeff_leaser;strconv=no; frm=0,0000]</td>
 			<td>[ligne.date_selection]</td>
 			<td>[ligne.utilisateur;strconv=no]</td>
+			<td>[ligne.commentaire;strconv=no]</td>
+			<td>[ligne.action_save;strconv=no]</td>
 			<td>[ligne.actions;strconv=no]</td>
 		</tr>
 		
@@ -34,3 +38,4 @@
 	<br /><br />
 	
 [onshow;block=end]
+</div>

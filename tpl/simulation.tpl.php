@@ -119,10 +119,10 @@
 			<td width="25%">[simulation.opt_administration; strconv=no]</td>
 		</tr>
 		<tr>
-			<td>Calage</td>
-			<td>[simulation.opt_calage; strconv=no]</td>
-			<td>Date démarrage</td>
+			<td>Date de démarrage si calage</td>
 			<td>[simulation.date_demarrage; strconv=no]</td>
+			<td>Règle de calage</td>
+			<td>[simulation.opt_calage; strconv=no][simulation.opt_calage_label; strconv=no]</td>
 		</tr>
 		<tr>
 			<td>Adjonction</td>
@@ -172,7 +172,7 @@
 			<td>[simulation.duree; strconv=no]</td>
 			<td colspan="2" rowspan="4" align="center">
 				[onshow;block=begin;when [view.type]=='simul']
-				<span style="font-size: 14px;">[simulation.commentaire; strconv=utf8]</span>
+				<span style="font-size: 14px;">[simulation.commentaire; strconv=no]</span>
 				[onshow;block=end]
 			</td>
 		</tr>
@@ -185,7 +185,7 @@
 			<td>[simulation.echeance; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
-			<td>Montant trimestriel prestation</td>
+			<td>Montant périodique prestation</td>
 			<td>[simulation.montant_presta_trim; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		[onshow;block=begin;when [view.mode]=='edit']
@@ -217,7 +217,7 @@
 		</tr>
 		<tr>
 			<td>Coefficient final</td>
-			<td>[simulation.coeff_final; strconv=no; frm=0,000] %</td>
+			<td>[simulation.coeff_final; strconv=no; frm=0,0000] %</td>
 			<td>Numéro accord</td>
 			<td>[simulation.numero_accord; strconv=utf8]</td>
 		</tr>
@@ -247,3 +247,9 @@
 </center>
 <br />
 [onshow;block=end]
+
+<script>
+	$(document).ready(function() {
+		$("#date_demarrage" ).datepicker( "option", "maxDate", "+4m");
+	});
+</script>

@@ -9,6 +9,8 @@
 		<td align="center">Prochaine<br>&eacute;ch&eacute;ance</td>
 		<td align="center">Ass.<br>Ass. act</td>
 		<td align="center">Maint.</td>
+		<td align="center">R.P-1</td>
+		<td align="center">NR.P-1</td>
 		<td align="center">Solde R.</td>
 		<td align="center">Solde NR.</td>
 		<td align="center">R. P+1</td>
@@ -45,9 +47,11 @@
 		</td>
 		<td id="maintenance" align="right" nowrap="nowrap">[champs.maintenance; strconv=no; frm=0 000,00] &euro;</td>
 		[onshow;block=begin;when [champs.display_solde]=='0']
-		<td colspan="4" align="center">Soldes non disponibles. Contactez le service financement</td>
+		<td colspan="6" align="center">Soldes non disponibles. Contactez le service financement</td>
 		[onshow;block=end]
 		[onshow;block=begin;when [champs.display_solde]=='1']
+		<td id="solde_rm1" align="right" nowrap="nowrap" class="solde"[champs.checkedrm1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxrm1; strconv=no] [champs.solde_rm1; strconv=no; frm=0 000,00] &euro; [champs.montantrm1; strconv=no; frm=0 000,00]</td>
+		<td id="solde_nrm1" align="right" nowrap="nowrap" class="solde"[champs.checkednrm1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxnrm1; strconv=no] [champs.solde_nrm1; strconv=no; frm=0 000,00] &euro; [champs.montantnrm1; strconv=no; frm=0 000,00]</td>
 		<td id="solde_r" align="right" nowrap="nowrap" class="solde"[champs.checkedr;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxr; strconv=no] [champs.solde_r; strconv=no; frm=0 000,00] &euro; [champs.montantr; strconv=no; frm=0 000,00]</td>
 		<td id="solde_nr" align="right" nowrap="nowrap" class="solde"[champs.checkednr;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxnr; strconv=no] [champs.solde_nr; strconv=no; frm=0 000,00] &euro; [champs.montantnr; strconv=no; frm=0 000,00]</td>
 		<td id="solde_r1" align="right" nowrap="nowrap" class="solde"[champs.checkedr1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>[champs.checkboxr1; strconv=no] [champs.solde_r1; strconv=no; frm=0 000,00] &euro; [champs.montantr1; strconv=no; frm=0 000,00]</td>
