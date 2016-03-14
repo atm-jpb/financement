@@ -11,7 +11,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('date_simul,date_validite,date_accord,date_demarrage','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,marque_materiel,numero_accord,reference,opt_calage','type=chaine;');
 		parent::add_champs('dossiers,dossiers_rachetes_m1,dossiers_rachetes_nr_m1,dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
-		parent::add_champs('thirdparty_address,thirdparty_zip,thirdparty_town,thirdparty_code_client,thirdparty_idprof2_siret, thirdparty_idprof3_naf','type=chaine;');
+		parent::add_champs('thirdparty_name,thirdparty_address,thirdparty_zip,thirdparty_town,thirdparty_code_client,thirdparty_idprof2_siret, thirdparty_idprof3_naf','type=chaine;');
 
 		parent::start();
 		parent::_init_vars();
@@ -196,6 +196,7 @@ class TSimulation extends TObjetStd {
 	{
 		if (!empty($this->societe->id))
 		{
+			$this->thirdparty_name = $this->societe->nom;
 			$this->thirdparty_address = $this->societe->address;
 			$this->thirdparty_zip = $this->societe->zip;
 			$this->thirdparty_town = $this->societe->town;

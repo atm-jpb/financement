@@ -748,7 +748,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'leaser'=>($mode=='edit' && $can_preco) ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : (($simulation->fk_leaser > 0) ? $simulation->leaser->getNomUrl(1) : '')
 			)
 			,'client'=>array(
-				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.$simulation->societe->nom.'</a>'
+				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.(!empty($simulation->thirdparty_name) ? $simulation->thirdparty_name : $simulation->societe->nom).'</a>'
 				,'autres_simul'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/simulation.php?socid='.$simulation->fk_soc.'">(autres simulations)</a>'
 				,'adresse'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_address)) ? $simulation->thirdparty_address : $simulation->societe->address
 				,'cpville'=>( ($simulation->accord == 'OK' && !empty($simulation->thirdparty_zip)) ? $simulation->thirdparty_zip : $simulation->societe->zip ) .' / '. ( ($simulation->accord == 'OK' && !empty($simulation->thirdparty_town)) ? $simulation->thirdparty_town : $simulation->societe->town )
