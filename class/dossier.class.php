@@ -580,7 +580,9 @@ class TFin_dossier extends TObjetStd {
 		else
 		{
 			$coeff = $TCoeff[0];
-			if ($add_coef_cpro && !empty($dateProchaine) && $dateProchaine > $this->getDateApplicationPenInterne($PDOdb, $grille, $this->financementLeaser->fk_soc)) $coeff += $TCoeff[1]; // Ajout de la pénalité interne
+																		// TODO à vérifier si on remplace par ">=" 
+			if ($add_coef_cpro && !empty($dateProchaine) && strtotime($dateProchaine) > $this->getDateApplicationPenInterne($PDOdb, $grille, $type, $this->financementLeaser->fk_soc, $this->contrat)) $coeff += $TCoeff[1]; // Ajout de la pénalité interne
+			
 		}
 		
 		return $coeff;
@@ -658,16 +660,13 @@ class TFin_dossier extends TObjetStd {
 		return array($CRD,$LRD);
 	}
 	
-	function getDateApplicationPenInterne(&$PDOdb, &$grille, $fk_soc)
+	function getDateApplicationPenInterne(&$PDOdb, &$grille, $type, $fk_soc, $type_contrat)
 	{
-		//var_dump($this->financementLeaser);
-		//exit;
-		//$TDatePenalite[$idTypeContrat] = new TFin_grille_leaser_date;
-		//$TDatePenalite[$idTypeContrat]->loadByFkSocAndTypeContrat($ATMdb, $societe->id, $idTypeContrat);
 		$grille_date = new TFin_grille_leaser_date;
-		//$grille_date = $grille->loadByFkSocAndTypeContrat($PDOdb, $fk_soc, '');
+		$grille_date->loadByFkSocAndTypeContrat($PDOdb, $fk_soc, $type_contrat);
 		
-		return 0; //strtotime('2016-07-01')
+		if ($type == 'R') return $grille_date->date_start_pr;
+		else return $grille_date->date_start_pnr; // $type == NR
 	}
 	
 	/**
@@ -726,11 +725,11 @@ class TFin_dossier extends TObjetStd {
 		
 		if ($nature_financement == 'EXTERNE')
 		{
-			
 			if ($this->financement->duree < $iPeriode) return $this->financement->reste; // TODO check si ça doit rester
 			
 			// Add Pen Leaser + CPro
-			$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $temps_restant, true) / 100);
+			$date_deb_periode = $this->getDateDebutPeriode($iPeriode);
+			$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
 			return ($solde > 0 ) ? $solde : 0;
 		}
 		else // INTERNE
@@ -867,6 +866,7 @@ class TFin_dossier extends TObjetStd {
 	}
 	/*****************************************************************************************/
 
+	// TODO remove
 	function getSolde_old($ATMdb, $type='SRBANK', $iPeriode=0) {
 		global $conf;
 		
