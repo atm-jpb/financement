@@ -307,7 +307,7 @@ class TFin_grille_leaser extends TObjetStd {
 		$sql.= " t.montant, t.coeff, t.coeff_interne";
 		
         $sql.= " FROM ".MAIN_DB_PREFIX."fin_grille_leaser as t";
-        $sql.= " WHERE t.fk_soc = ".$idLeaser;
+        $sql.= " WHERE t.fk_soc = ".$idLeaser.' AND t.entity IN ('.$entity.')';
 		$sql.= " AND t.fk_type_contrat = '".$idTypeContrat."' ";
 		if(!$iPeriode){
 			$sql.= " AND t.periode <= ".$duree;

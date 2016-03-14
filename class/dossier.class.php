@@ -716,16 +716,16 @@ class TFin_dossier extends TObjetStd {
 	 *  - Pure : LRD Client
 	 *  - Uniquement pour INTERNE => capé LRD Client
 	 */
-	function getSolde_SR_CLIENT(&$PDOdb, $iPeriode, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $nature_financement='EXTERNE')
+	function getSolde_SR_CLIENT(&$PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $nature_financement='EXTERNE')
 	{
 		global $conf;
 		
-		$temps_restant = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
-		if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
-		
 		if ($nature_financement == 'EXTERNE')
 		{
-			if ($this->financement->duree < $iPeriode) return $this->financement->reste; // TODO check si ça doit rester
+			$temps_restant = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
+			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+		
+			if ($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste; // TODO check si ça doit rester
 			
 			// Add Pen Leaser + CPro
 			$date_deb_periode = $this->getDateDebutPeriode($iPeriode);
@@ -734,6 +734,9 @@ class TFin_dossier extends TObjetStd {
 		}
 		else // INTERNE
 		{
+			$temps_restant = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
+			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+		
 			if (!empty($this->type_financement_affaire['ADOSSEE']) || !empty($this->type_financement_affaire['MANDATEE']))
 			{
 				return $CRD * (1+CRD_COEF_RENTA_ATTEINTE);
@@ -759,19 +762,23 @@ class TFin_dossier extends TObjetStd {
 	 *  - Pure : LRD CSlient
 	 *  - Uniquement pour INTERNE => capé LRD Client
 	 */
-	function getSolde_SNR_CLIENT($iPeriode, $duree_restante_client, $CRD, $LRD, $nature_financement='EXTERNE')
+	function getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $nature_financement='EXTERNE')
 	{
 		global $conf;
 		
-		$temps_restant = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
-		if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
-		
 		if ($nature_financement == 'EXTERNE')
 		{
+			$temps_restant = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
+			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+			
 			return $LRD;
 		}
 		else // INTERNE 
 		{
+			$temps_restant = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
+			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+		
+		
 			if (!empty($this->type_financement_affaire['ADOSSEE']) || !empty($this->type_financement_affaire['MANDATEE']))
 			{
 				$solde = $CRD * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
@@ -849,10 +856,10 @@ class TFin_dossier extends TObjetStd {
 				return $this->getSolde_SNR_LEASER($PDOdb, $iPeriode, $duree_restante_leaser, $CRD_Leaser, 'NR');
 				break;
 			case 'SRCPRO': // CPRO = client sur le PDF
-				return $this->getSolde_SR_CLIENT($PDOdb, $iPeriode, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $this->nature_financement);
+				return $this->getSolde_SR_CLIENT($PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $this->nature_financement);
 				break;
 			case 'SNRCPRO':
-				return $this->getSolde_SNR_CLIENT($iPeriode, $duree_restante_client, $CRD, $LRD, $this->nature_financement);
+				return $this->getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $this->nature_financement);
 				break;
 			case 'SRNRSAME': // [PH] case dernièrement ajouté par Geoffrey qui remplacement selon moi SRCPRO et SNRCPRO mais qui n'est plus à utiliser
 				return $this->getSolde_SR_NR_SAME($iPeriode, $duree_restante_client, $LRD, $LRD_leaser, $this->nature_financement);
