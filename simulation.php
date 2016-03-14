@@ -547,8 +547,16 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	//	$simulation->echeance = __get('echeance', $simulation->echeance, 'float');
 		
 	}
-
-	$simulation->opt_no_case_to_settle = 1;
+	
+	if (!empty($simulation->fk_soc)) 
+	{
+		$simu = new TSimulation;
+		$TSimu = $simu->load_by_soc($ATMdb, $db, $simulation->fk_soc);
+		if (empty($TSimu)) $simulation->opt_no_case_to_settle = 1;
+	}
+	else {
+		$simulation->opt_no_case_to_settle = 1;
+	}
 	
 	$extrajs = array('/financement/js/financement.js', '/financement/js/dossier.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
