@@ -18,12 +18,16 @@ class TFin_affaire extends TObjetStd {
 		$this->TAsset=array();
 		$this->contrat = 'LOCSIMPLE';
 		
-		$this->TContrat=array(
+		// TODO remove
+		/*$this->TContrat=array(
 			'LOCSIMPLE'=>$langs->trans('LocSimple')
 			,'FORFAITGLOBAL'=>$langs->trans('ForfaitGlobal')
 			,'INTEGRAL'=>$langs->trans('Integral')
 			,'GRANDCOMPTE'=>$langs->trans('GrandCompte')
-		);
+		);*/
+		
+		$this->TContrat=$this->load_c_type_contrat();
+		
 		$this->TTypeFinancement=array(
 			'PURE'=>'Location Pure'
 			,'ADOSSEE'=>'Location adossée'
@@ -44,6 +48,24 @@ class TFin_affaire extends TObjetStd {
 		);
 		
 		$this->somme_dossiers=0;
+	}
+	
+	function load_c_type_contrat()
+	{
+		global $db,$conf;
+		
+		$res = array();
+		$resql = $db->query('SELECT code, label FROM '.MAIN_DB_PREFIX.'c_financement_type_contrat WHERE entity = '.$conf->entity.' AND active = 1');
+		
+		if ($resql)
+		{
+			while ($line = $db->fetch_object($resql))
+			{
+				$res[$line->code] = $line->label;
+			}
+		}
+		
+		return $res;
 	}
 	
 	function load(&$ATMdb, $id, $annexe=true) {
