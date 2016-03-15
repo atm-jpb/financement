@@ -545,7 +545,8 @@ class TFin_dossier extends TObjetStd {
 		}
 	}
 	
-	/*
+	/**
+	 * TODO remove function
 	 * Attention, paramètre nature_financement prête à confusion :
 	 * Si INTERNE => utilisation de la penalité configurée sur la fiche tiers CPRO
 	 * Si EXTERNE => utilisation de la penalite configurée sur la fiche leaser
@@ -597,7 +598,8 @@ class TFin_dossier extends TObjetStd {
 	// Récupère le coeff de renta attendue dans le tableau défini en admin
 	function getRentabilite(&$ATMdb) {
 		
-		/*$g=new TFin_grille_leaser('RENTABILITE');
+		/* TODO remove
+		$g=new TFin_grille_leaser('RENTABILITE');
 		
 		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
 		else {	$f = &$this->financementLeaser; }
@@ -607,7 +609,7 @@ class TFin_dossier extends TObjetStd {
 		return $coeff > 0 ? $coeff : 0;*/
 		
 		$g=new TFin_grille_leaser('RENTABILITE');
-		$coeff = (double)$g->get_coeff($ATMdb, $this->financement->fk_soc, $this->contrat, 'TRIMESTRE', $this->financement->montant, 5,0, array(), $this->entity);
+		$coeff = $g->get_coeff($ATMdb, $this->financement->fk_soc, $this->contrat, 'TRIMESTRE', $this->financement->montant, 5,0, array(), $this->entity);
 		
 		return (is_array($coeff) && $coeff[0] > 0) ? $coeff[0] : 0;
 	}
