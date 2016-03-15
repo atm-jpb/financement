@@ -173,7 +173,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 		)
 		,array(
 			'view'=>array('mode'=>$mode, 'contrat'=>$idTypeContrat)
-			
+			,'colspan'=>count($TCoeff[current(array_keys($TCoeff))])+2
 		)
 	);
 	

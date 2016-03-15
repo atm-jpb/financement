@@ -545,20 +545,18 @@ class TFin_dossier extends TObjetStd {
 		}
 	}
 	
-	/*
+	/**
+	 * TODO remove function
 	 * Attention, paramètre nature_financement prête à confusion :
 	 * Si INTERNE => utilisation de la penalité configurée sur la fiche tiers CPRO
 	 * Si EXTERNE => utilisation de la penalite configurée sur la fiche leaser
 	 */
-	function getPenalite(&$ATMdb, $type, $nature_financement='INTERNE',$iPeriode=0) {
-		/*
-		 * TODO
-		 * à vérifier
-		 */
+	function getPenalite_old(&$ATMdb, $type, $nature_financement='INTERNE',$iPeriode=0) {
+		
 		$g=new TFin_grille_leaser('PENALITE_'.$type);
 		
-		if($nature_financement == 'INTERNE' && $this->financement->id>0) { $f= &$this->financement; }
-		else {	$f = &$this->financementLeaser; }
+		if($nature_financement == 'INTERNE' && $this->financement->id>0) $f= &$this->financement; 
+		else $f = &$this->financementLeaser; 
 		
 		
 		$fk_soc = ($nature_financement == 'INTERNE') ? FIN_LEASER_DEFAULT : $f->fk_soc;
@@ -572,6 +570,25 @@ class TFin_dossier extends TObjetStd {
 		
 		return $coeff > 0 ? $coeff : 0;
 	}
+	
+	function getPenalite(&$PDOdb, $type, $iPeriode=0, $dateProchaine='', $add_coef_cpro=false)
+	{
+		$grille = new TFin_grille_leaser('PENALITE_'.$type);
+		$grille->get_grille($PDOdb, $this->financementLeaser->fk_soc, $this->contrat, '', array(), $this->entity);
+		$TCoeff = $grille->get_coeff($PDOdb, $this->financementLeaser->fk_soc, $this->contrat, $this->financementLeaser->periodicite, $this->financementLeaser->montant, $this->financementLeaser->duree, $iPeriode, array(), $this->entity);
+		
+		if ($TCoeff == -1) $coeff = 0;
+		else
+		{
+			$coeff = $TCoeff[0];
+																		// TODO à vérifier si on remplace par ">=" 
+			if ($add_coef_cpro && !empty($dateProchaine) && strtotime($dateProchaine) > $this->getDateApplicationPenInterne($PDOdb, $grille, $type, $this->financementLeaser->fk_soc, $this->contrat, $this->entity)) $coeff += $TCoeff[1]; // Ajout de la pénalité interne
+			
+		}
+		
+		return $coeff;
+	}
+	
 	function getMontantCommission() {
 		$f= &$this->financement; 
 		
@@ -581,7 +598,8 @@ class TFin_dossier extends TObjetStd {
 	// Récupère le coeff de renta attendue dans le tableau défini en admin
 	function getRentabilite(&$ATMdb) {
 		
-		/*$g=new TFin_grille_leaser('RENTABILITE');
+		/* TODO remove
+		$g=new TFin_grille_leaser('RENTABILITE');
 		
 		if($this->nature_financement == 'INTERNE') { $f= &$this->financement; }
 		else {	$f = &$this->financementLeaser; }
@@ -591,9 +609,9 @@ class TFin_dossier extends TObjetStd {
 		return $coeff > 0 ? $coeff : 0;*/
 		
 		$g=new TFin_grille_leaser('RENTABILITE');
-		$coeff = (double)$g->get_coeff($ATMdb, $this->financement->fk_soc, $this->contrat, 'TRIMESTRE', $this->financement->montant, 5,0, array(), $this->entity);
+		$coeff = $g->get_coeff($ATMdb, $this->financement->fk_soc, $this->contrat, 'TRIMESTRE', $this->financement->montant, 5,0, array(), $this->entity);
 		
-		return $coeff > 0 ? $coeff : 0;
+		return (is_array($coeff) && $coeff[0] > 0) ? $coeff[0] : 0;
 	}
 	function getRentabilitePrevisionnelle() {
 		return $this->financement->somme_echeance - $this->financementLeaser->somme_echeance
@@ -644,7 +662,221 @@ class TFin_dossier extends TObjetStd {
 		return array($CRD,$LRD);
 	}
 	
-	function getSolde($ATMdb, $type='SRBANK', $iPeriode=0) {
+	function getDateApplicationPenInterne(&$PDOdb, &$grille, $type, $fk_soc, $type_contrat, $fk_entity)
+	{
+		$grille_date = new TFin_grille_leaser_date;
+		$grille_date->loadByFkSocAndTypeContratAndEntity($PDOdb, $fk_soc, $type_contrat, $fk_entity);
+		
+		if ($type == 'R') return $grille_date->date_start_pr;
+		else return $grille_date->date_start_pnr; // $type == NR
+	}
+	
+	/**
+	 * Type EXTERNE
+	 *  - CRD Leaser + Pénalité Leaser
+	 * 
+	 * Type INTERNE
+	 *  - CRD Leaser + Pénalité Leaser
+	 * 
+	 * Capé LRD Leaser
+	 */
+	function getSolde_SNR_LEASER(&$PDOdb, $iPeriode, $duree_restante_leaser, $baseCalcul, $type_penalite='NR')
+	{
+		return $this->getSolde_SR_LEASER($PDOdb, $iPeriode, $duree_restante_leaser, $baseCalcul, $type_penalite);
+	}
+	
+	/**
+	 * Type EXTERNE
+	 *  - CRD Leaser + Pénalité Leaser
+	 * 
+	 * Type INTERNE
+	 *  - CRD Leaser + pénalité Leaser
+	 * 
+	 * Capé LRD Leaser
+	 */
+	function getSolde_SR_LEASER(&$PDOdb, $iPeriode, $duree_restante_leaser, $CRD_Leaser, $type_penalite='R')
+	{
+		global $conf;
+		
+		$temps_restant = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
+		
+		if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+		if ($this->financementLeaser->duree <= $iPeriode) return $this->financementLeaser->reste; // TODO check si ça doit rester
+		
+		$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, $type_penalite, $iPeriode) / 100); // Même avec un $this->nature_financement == 'INTERNE' on passe la valeur EXTERNE (l'ancien code renvoyé la même chose)
+		
+		if ($solde > $CRD_Leaser) return $CRD_Leaser;
+		else return $solde;
+	}
+	
+	/**
+	 * Type EXTERNE
+	 *  - CRD Leaser + Pénalité Leaser + Pénalité CPRO
+	 * 
+	 * Type INTERNE
+	 *  - Adossé / Mandaté : CRD Client + % admin
+	 *  - Pure : LRD Client
+	 *  - Uniquement pour INTERNE => capé LRD Client
+	 */
+	function getSolde_SR_CLIENT(&$PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $nature_financement='EXTERNE')
+	{
+		global $conf;
+		
+		if ($nature_financement == 'EXTERNE')
+		{
+			$temps_restant = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
+			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+		
+			if ($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste; // TODO check si ça doit rester
+			
+			// Add Pen Leaser + CPro
+			$date_deb_periode = $this->getDateDebutPeriode($iPeriode);
+			$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
+			return ($solde > 0 ) ? $solde : 0;
+		}
+		else // INTERNE
+		{
+			$temps_restant = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
+			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+		
+			if (!empty($this->type_financement_affaire['ADOSSEE']) || !empty($this->type_financement_affaire['MANDATEE']))
+			{
+				return $CRD * (1+CRD_COEF_RENTA_ATTEINTE);
+			}
+			elseif (!empty($this->type_financement_affaire['PURE']))
+			{
+				return $LRD;
+			}
+			else // ['FINANCIERE']
+			{
+				return $LRD; // LRD client
+			}
+		}
+		
+	}
+	
+	/**
+	 * Type EXTERNE
+	 *  - LRD
+	 * 
+	 * Type INTERNE
+	 *  - Adossé / Mandaté : CRD Client + % admin
+	 *  - Pure : LRD CSlient
+	 *  - Uniquement pour INTERNE => capé LRD Client
+	 */
+	function getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $nature_financement='EXTERNE')
+	{
+		global $conf;
+		
+		if ($nature_financement == 'EXTERNE')
+		{
+			$temps_restant = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
+			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+			
+			return $LRD;
+		}
+		else // INTERNE 
+		{
+			$temps_restant = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
+			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+		
+		
+			if (!empty($this->type_financement_affaire['ADOSSEE']) || !empty($this->type_financement_affaire['MANDATEE']))
+			{
+				$solde = $CRD * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
+			}
+			elseif (!empty($this->type_financement_affaire['PURE']))
+			{
+				$solde = $LRD;
+			}
+			else // ['FINANCIERE']
+			{
+				$solde = $LRD;
+			}
+			
+			if ($solde > $LRD) return $LRD;
+			else return $solde;
+		}
+	}
+	
+	function getSolde_SR_NR_SAME($iPeriode, $duree_restante_client, $LRD, $LRD_leaser, $nature_financement='EXTERNE')
+	{
+		global $conf;
+		
+		//Calcul du Solde Renouvelant et Non Renouvelant CPRO 
+		$this->financement->capital_restant = $this->financement->montant;
+		$this->financement->total_loyer = $this->financement->montant;
+		
+		for ($i=0; $i<$iPeriode; $i++)
+		{
+			$capital_amortit 	= $this->financement->amortissement_echeance( $i+1 ,$this->financement->capital_restant);
+			$part_interet 		= $this->financement->echeance - $capital_amortit;
+			$this->financement->capital_restant	-= $capital_amortit;
+			$this->financement->total_loyer 	-= $this->financement->echeance;
+		}
+		
+		$seuil_solde = $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH;
+		$temps_restant = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
+		
+		if ($temps_restant <= $seuil_solde) $solde = $this->financement->montant;
+		elseif($this->TLien[0]->affaire->type_financement == 'MANDATEE' || $this->TLien[0]->affaire->type_financement == 'ADOSSEE') $solde = $this->financement->capital_restant * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
+		elseif($this->TLien[0]->affaire->type_financement == 'PURE') $solde = $LRD;
+		
+		if($nature_financement == 'EXTERNE') return ($solde > $LRD_leaser && $solde != $this->financementLeaser->montant) ? $LRD_leaser : $solde;
+		else return ($solde > $LRD && $solde != $this->financement->montant) ? $LRD : $solde; // INTERNE
+	}
+
+	/*****************************************************************************************/
+	function getSolde(&$PDOdb, $type='SRBANK', $iPeriode=0)
+	{
+		global $conf;
+		
+		$duree_restante_leaser = ($iPeriode == 0) ? $this->financementLeaser->duree_restante : $this->financementLeaser->duree - $iPeriode;
+		
+		$CRD_Leaser = $this->financementLeaser->valeur_actuelle($duree_restante_leaser);
+		$LRD_Leaser = $this->financementLeaser->echeance * $duree_restante_leaser + $this->financementLeaser->reste;
+		
+		// MKO 13.09.19 : base de calcul différente en fonction du leaser : voir fichier config
+		global $TLeaserTypeSolde;
+		// TODO remove
+		/*$baseCalcul = $CRD_Leaser;
+		if(!empty($TLeaserTypeSolde[$this->financementLeaser->fk_soc]) && $TLeaserTypeSolde[$this->financementLeaser->fk_soc] == 'LRD') {
+			$baseCalcul = $LRD_Leaser;
+		}*/
+		
+		$duree_restante_client = ($iPeriode == 0) ? $this->financement->duree_restante : $this->financement->duree - $iPeriode;
+		
+		$CRD = $this->financement->valeur_actuelle($duree_restante_client);
+		$LRD = $this->financement->echeance * $duree_restante_client + $this->financement->reste;
+		
+		switch ($type) 
+		{
+			case 'SRBANK': //BANK = leaser sur le PDF
+				return $this->getSolde_SR_LEASER($PDOdb, $iPeriode, $duree_restante_leaser, $CRD_Leaser, 'R');
+				break;
+			case 'SNRBANK':
+				return $this->getSolde_SNR_LEASER($PDOdb, $iPeriode, $duree_restante_leaser, $CRD_Leaser, 'NR');
+				break;
+			case 'SRCPRO': // CPRO = client sur le PDF
+				return $this->getSolde_SR_CLIENT($PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $this->nature_financement);
+				break;
+			case 'SNRCPRO':
+				return $this->getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $this->nature_financement);
+				break;
+			case 'SRNRSAME': // [PH] case dernièrement ajouté par Geoffrey qui remplacement selon moi SRCPRO et SNRCPRO mais qui n'est plus à utiliser
+				return $this->getSolde_SR_NR_SAME($iPeriode, $duree_restante_client, $LRD, $LRD_leaser, $this->nature_financement);
+				break;
+			case 'perso': 
+				return $this->soldeperso;
+				break;
+		}
+		
+		return 0; // Error
+	}
+	/*****************************************************************************************/
+
+	// TODO remove
+	function getSolde_old($ATMdb, $type='SRBANK', $iPeriode=0) {
 		global $conf;
 		
 		$duree_restante_leaser = ($iPeriode == 0) ? $this->financementLeaser->duree_restante : $this->financementLeaser->duree - $iPeriode;
@@ -969,11 +1201,14 @@ class TFin_dossier extends TObjetStd {
 				if($type_echeancier == 'CLIENT') {
 					
 					//Ticket 3049
-					$SR = $this->getSolde($ATMdb, 'SRNRSAME', $i+1);
-					$SNR = $this->getSolde($ATMdb, 'SRNRSAME', $i+1);
+					//$SR = $this->getSolde($ATMdb, 'SRNRSAME', $i+1);
+					//$SNR = $this->getSolde($ATMdb, 'SRNRSAME', $i+1);
 					
 					//echo " ***** ".($i+1)." *****<br>";
 					//echo "avant : ".$SR." ".$SNR.'<br>';
+					
+					$SR = $this->getSolde($ATMdb, 'SRCPRO', $i+1);
+					$SNR = $this->getSolde($ATMdb, 'SNRCPRO', $i+1);
 					
 					$duree_restante_client = ($i == 0) ? $this->financement->duree_restante : $this->financement->duree - $i;
 					if ((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) > $seuil_solde){
@@ -1573,6 +1808,8 @@ class TFin_financement extends TObjetStd {
 		return false;
 	}
 	function loadOrCreateSirenMontant(&$db, $data) {
+		global $conf;
+		
 		$sql = "SELECT a.rowid, a.nature_financement, a.montant, df.rowid as idDossierLeaser, df.reference as refDossierLeaser ";
 		$sql.= "FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc = s.rowid) ";
@@ -1608,7 +1845,6 @@ class TFin_financement extends TObjetStd {
 				$d->entity = $data['entity'];
 				$d->financementLeaser = $this;
 				$d->save($db);
-				
 				$idClient = $TIdClient[0];
 				$a=new TFin_affaire();
 				$a->entity = $data['entity'];
@@ -1616,6 +1852,7 @@ class TFin_financement extends TObjetStd {
 				$a->montant = $data['montant'];
 				$a->fk_soc = $idClient;
 				$a->nature_financement = 'EXTERNE';
+				if ($data['montant_prestation'] > 0 && !empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE) && in_array($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE, $a->TContrat)) $a->contrat = $conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE;
 				$a->addDossier($db, $d->getId());
 				$a->save($db);
 				//echo $a->getId().'<br>';
@@ -1640,6 +1877,7 @@ class TFin_financement extends TObjetStd {
 					$a->montant = $data['montant'];
 					$a->fk_soc = $idClient;
 					$a->nature_financement = 'EXTERNE';
+					if ($data['montant_prestation'] > 0 && !empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE) && in_array($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE, $a->TContrat)) $a->contrat = $conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE;
 					$a->addDossier($db, $d->getId());
 					$a->save($db);
 					//echo $a->getId().'<br>';
