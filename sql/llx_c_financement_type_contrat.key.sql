@@ -1,0 +1,1 @@
+ALTER TABLE llx_c_financement_type_contrat ADD INDEX uk_c_financement_type_contrat_id (code);
