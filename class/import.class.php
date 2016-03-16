@@ -811,11 +811,22 @@ class TImport extends TObjetStd {
 		//Gère les frais de gestion lié à l'intégrale
 		$this->importILFI_gestion($data,$integrale);
 		
+		$TRefSRVLabelCout = array(	// Copies NB
+									'SSC005'=>'mach',
+									'SSC015'=>'tech',
+									'SSC102'=>'loyer',
+									'SSC106'=>'loyer',
+									// Copies couleur
+									'SSC010'=>'mach',
+									'SSC005'=>'tech'
+									// SSC102 & SSC106, pareil : loyer
+									);
+		
 		//Gère les copies NOIR
-		$this->importILFI_noir($data,$integrale);
+		$this->importILFI_noir($data,$integrale,$TRefSRVLabelCout);
 		
 		//Gère les copies COULEUR
-		$this->importILFI_couleur($data,$integrale);
+		$this->importILFI_couleur($data,$integrale,$TRefSRVLabelCout);
 		
 		//pre($integrale,true);exit;
 		
@@ -898,7 +909,7 @@ class TImport extends TObjetStd {
 	} 
 	
 	//Gère les copies NOIR
-	private function importILFI_noir(&$data,&$integrale){
+	private function importILFI_noir(&$data,&$integrale,&$TRefSRVLabelCout){
 		
 		// ENGAGEMENT NOIR
 		if($data['ref_service'] == 'SSC015' && $data['total_ht'] > 0) {
@@ -933,10 +944,20 @@ class TImport extends TObjetStd {
 			if($data['total_ht'] > 0)
 				$integrale->cout_unit_noir = $data['pu'];
 		}
+		
+		// Enregistrement du détail du coût unitaire
+		// Copies noires
+		if(($data['ref_service'] == 'SSC005'
+			|| $data['ref_service'] == 'SSC015'
+			|| $data['ref_service'] == 'SSC102'
+			|| $data['ref_service'] == 'SSC106') && $data['pu'] > 0 && stripos($data['label_integrale'], 'COPIES NB')) {
+			$integrale->{'cout_unit_noir_'.$TRefSRVLabelCout[$data['ref_service']]} = $data['pu'];
+		}
+		
 	}
 
 	//Gère les copies COULEUR
-	private function importILFI_couleur(&$data,&$integrale){
+	private function importILFI_couleur(&$data,&$integrale,&$TRefSRVLabelCout){
 		// ENGAGEMENT COULEUR
 		if($data['ref_service'] == 'SSC010' && $data['total_ht'] > 0) {
 			if(empty($integrale->materiel_coul)) {
@@ -966,6 +987,16 @@ class TImport extends TObjetStd {
 			if($data['total_ht'] > 0)
 				$integrale->cout_unit_coul = $data['pu'];
 		}
+		
+		// Enregistrement du détail du coût unitaire
+		// Copies couleur
+		if(($data['ref_service'] == 'SSC005'
+			|| $data['ref_service'] == 'SSC010'
+			|| $data['ref_service'] == 'SSC102'
+			|| $data['ref_service'] == 'SSC106') && $data['pu'] > 0 && stripos($data['label_integrale'], 'COPIES COULEUR')) {
+			$integrale->{'cout_unit_coul_'.$TRefSRVLabelCout[$data['ref_service']]} = $data['pu'];
+		}
+
 	}
 
 	function sendAlertEmailIntegrale(&$ATMdb, &$TInfosGlobale) { //TODO delete ??
