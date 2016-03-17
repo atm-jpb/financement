@@ -44,20 +44,13 @@
                 ORDER BY rowid DESC";
         $Tid = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
         if(!empty($Tid)){
-            $dossier->load($PDOdb, $Tid[0]);
-            _fiche($PDOdb,$dossier, 'view');
-			
-            // TODO réaliser la séparation liste si plusieurs ou fiche si 1.
-            /*
-            if(count($Tid)>1)
-            {
-				// IL faut forcer la recherche de la list TBS (ne fonctionne pas)
-                $_REQUEST['TListTBS[list_llx_fin_dossier][search][refDosCli]']=GETPOST('searchdossier');
-            }else{
-                // UN seul on change pas le processus d'avant
-	            $dossier->load($PDOdb, $Tid[0]);
-	            _fiche($PDOdb,$dossier, 'view');
-            }*/
+        		if(count($Tid) > 1){
+        			_liste($PDOdb, $dossier);
+        		}
+				else{
+					$dossier->load($PDOdb, $Tid[0]);
+           			 _fiche($PDOdb,$dossier, 'view');
+				}
         }
 	}
 	
@@ -394,6 +387,10 @@ function _liste(&$PDOdb, &$dossier) {
 		$fk_leaser = __val($_REQUEST['fk_leaser'],'','integer');
 
 		$sql .= " AND l.rowid = ".$fk_leaser." AND fl.transfert = 1";
+	}
+	
+	if(GETPOST('searchdossier')){
+		$sql .= " AND ( fc.reference LIKE '%".GETPOST('searchdossier')."%' OR fl.reference LIKE '%".GETPOST('searchdossier')."%')";
 	}
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
