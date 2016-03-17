@@ -47,10 +47,10 @@
     		if(count($Tid) > 1){
     			_liste($PDOdb, $dossier);
     		}
-			else{
-				$dossier->load($PDOdb, $Tid[0]);
+		else{
+			$dossier->load($PDOdb, $Tid[0]);
        			 _fiche($PDOdb,$dossier, 'view');
-			}
+		}
         }
 	}
 	
@@ -329,7 +329,7 @@
 		$dossier->load($PDOdb, $id);
 		_fiche($PDOdb,$dossier, 'view');
 	}
-	elseif (!GETPOST('searchdossier')) {
+	elseif (empty($Tid)) {
 		/*
 		 * Liste
 		 */
@@ -391,8 +391,9 @@ function _liste(&$PDOdb, &$dossier) {
 	
 	if(GETPOST('searchdossier')){
 		$sql .= " AND ( fc.reference LIKE '%".GETPOST('searchdossier')."%' OR fl.reference LIKE '%".GETPOST('searchdossier')."%')";
+//	echo $sql;
 	}
-	
+
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	$aff = new TFin_affaire;
 	
