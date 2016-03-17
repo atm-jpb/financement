@@ -36,6 +36,7 @@
 	}
 	
 	$id = GETPOST('id');
+	$dejaAffiche = false;
 	if(!$id && GETPOST('searchdossier')){
         $sql = "SELECT d.rowid
                 FROM ".MAIN_DB_PREFIX."fin_dossier as d
@@ -44,17 +45,19 @@
                 ORDER BY rowid DESC";
         $Tid = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
         if(!empty($Tid)){
-        		if(count($Tid) > 1){
-        			_liste($PDOdb, $dossier);
-        		}
-				else{
-					$dossier->load($PDOdb, $Tid[0]);
-           			 _fiche($PDOdb,$dossier, 'view');
-				}
+    		if(count($Tid) > 1){
+    			_liste($PDOdb, $dossier);
+				$dejaAffiche = true;
+    		}
+			else{
+				$dossier->load($PDOdb, $Tid[0]);
+       			 _fiche($PDOdb,$dossier, 'view');
+				 $dejaAffiche = true;
+			}
         }
 	}
 	
-	if(isset($_REQUEST['action'])) {
+	if(isset($_REQUEST['action']) && !$dejaAffiche) {
 		switch($_REQUEST['action']) {
 			case 'add':
 			case 'new':
