@@ -305,11 +305,19 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 				foreach($facture as $fact){
 					$TIntegrale[$date_periode]->date_facture .= $fact->ref_client."<br>";
 					$TIntegrale[$date_periode]->facnumber .= $fact->getNomUrl()."<br>";
+					$fact->fetchObjectLinked('', 'propal', '', 'facture');
+					if(!empty($fact->linkedObjects['propal'])) {
+						foreach($fact->linkedObjects['propal'] as $p) $TIntegrale[$date_periode]->propal .= $p->getNomUrl(1)."<br>";
+					}
 				}
 			}
 			else{
 				$TIntegrale[$date_periode]->date_facture .= $facture->ref_client."<br>";
 				$TIntegrale[$date_periode]->facnumber .= $facture->getNomUrl()."<br>";
+				$facture->fetchObjectLinked('', 'propal', '', 'facture');
+				if(!empty($facture->linkedObjects['propal'])) {
+					foreach($facture->linkedObjects['propal'] as $p) $TIntegrale[$date_periode]->propal .= $p->getNomUrl(1)."<br>";
+				}
 			}
 			
 		}
