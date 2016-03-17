@@ -12,17 +12,23 @@ if (!$user->rights->financement->integrale->read)	{ accessforbidden(); }
 
 $dossier=new TFin_Dossier;
 $PDOdb=new TPDOdb;
-
+$action = GETPOST('action');
 $id_dossier = GETPOST('id');
+$TBS = new TTemplateTBS;
 
 llxHeader('','Suivi intégrale');
 
-if(empty($id_dossier)) {
-	_liste($PDOdb, $dossier);
+if($action == 'formAvenantIntegrale') {
+	$dossier->load($PDOdb, $id_dossier);
+	$dossier->load_facture($PDOdb,true);
+	_fiche($PDOdb, $db, $dossier, $TBS);
+	_printFormAvenantIntegrale($PDOdb, $dossier, $TBS);
+} elseif(empty($id_dossier)) {
+	_liste($PDOdb, $dossier, $TBS);
 } else {
 	$dossier->load($PDOdb, $id_dossier);
 	$dossier->load_facture($PDOdb,true);
-	_fiche($PDOdb, $db, $dossier);
+	_fiche($PDOdb, $db, $dossier, $TBS);
 }
 
 llxFooter();
@@ -246,9 +252,7 @@ function _factureAnnuleParAvoir($facnumber){
 	}
 }
 
-function _fiche(&$PDOdb, &$doliDB, &$dossier) {
-
-	$TBS = new TTemplateTBS;
+function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	
 	$fin = &$dossier->financement;
 	
@@ -332,4 +336,54 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 			,'client'=>$client
 		)
 	);
+	
+	print '<div class="tabsAction">';
+	print '<a class="butAction" href="?id='.GETPOST('id').'&action=formAvenantIntegrale">Nouveau calcul d\'avenant</a>';
+	print '</div>';
+	
+}
+
+function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
+	
+	$TFacture = &$dossier->TFacture;
+	if(empty($dossier->TFacture)) {
+		setEventMessage('Aucune facture intégrale trouvée', 'warnings');
+		return 0;
+	}
+	
+	$f = is_object(end($TFacture)) ? end($TFacture) : end(end($TFacture)); // Dans certains cas, il y a plusieurs factures pour une période, on veut la dernière
+	
+	$integrale = new TIntegrale;
+	$integrale->loadBy($PDOdb, $f->ref, 'facnumber');
+	//pre($integrale, true);
+	//pre($dossier->TFacture, true);
+	
+	print $TBS->render('./tpl/avenant_integrale.tpl.php'
+		,array(
+			//'integrale'=>$TIntegrale
+		)
+		,array(
+			'noir'=>array(
+				'engage'=>$integrale->vol_noir_engage
+				,'cout_unitaire'=>$integrale->cout_unit_noir
+				,'cout_unit_tech'=>$integrale->cout_unit_noir_tech
+				,'cout_unit_mach'=>$integrale->cout_unit_noir_mach
+				,'cout_unit_loyer'=>$integrale->cout_unit_noir_loyer
+			),
+			'couleur'=>array(
+				'engage'=>$integrale->vol_coul_engage
+				,'cout_unitaire'=>$integrale->cout_unit_coul
+				,'cout_coul_tech'=>$integrale->cout_unit_coul_tech
+				,'cout_coul_mach'=>$integrale->cout_unit_coul_mach
+				,'cout_coul_loyer'=>$integrale->cout_unit_coul_loyer
+			)
+		)
+	);
+	
+}
+
+function _createAvenantInPropal() {
+	
+	
+	
 }
