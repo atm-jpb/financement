@@ -325,7 +325,7 @@
 		}
 		
 	}
-	elseif($id && !empty($Tid)) {
+	elseif($id) {
 		$dossier->load($PDOdb, $id);
 		_fiche($PDOdb,$dossier, 'view');
 	}
