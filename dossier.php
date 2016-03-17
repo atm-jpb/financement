@@ -329,7 +329,7 @@
 		$dossier->load($PDOdb, $id);
 		_fiche($PDOdb,$dossier, 'view');
 	}
-	else {
+	elseif (!GETPOST('searchdossier')) {
 		/*
 		 * Liste
 		 */
