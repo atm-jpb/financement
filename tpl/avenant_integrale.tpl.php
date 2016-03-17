@@ -1,7 +1,7 @@
 <table class="border" align="center" width="50%">
 	
 	<tr class="liste_titre">
-		<th class="liste_titre" align="center"></th>
+		<th class="liste_titre" align="center" width="33%"></th>
 		<th class="liste_titre" align="center">Noir</th>
 		<th class="liste_titre" align="center">Couleur</th>
 	</tr>
