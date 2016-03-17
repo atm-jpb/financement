@@ -19,16 +19,25 @@ $TBS = new TTemplateTBS;
 llxHeader('','Suivi intégrale');
 
 if($action == 'formAvenantIntegrale') {
-	$dossier->load($PDOdb, $id_dossier);
-	$dossier->load_facture($PDOdb,true);
-	_fiche($PDOdb, $db, $dossier, $TBS);
+	_affichage($PDOdb, $TBS, $id_dossier);
 	_printFormAvenantIntegrale($PDOdb, $dossier, $TBS);
+} elseif($action == 'addAvenantIntegrale'){
+	_addAvenantIntegrale();
+	_affichage($PDOdb, $TBS, $id_dossier);
 } elseif(empty($id_dossier)) {
 	_liste($PDOdb, $dossier, $TBS);
 } else {
+	_affichage($PDOdb, $TBS, $id_dossier);
+}
+
+function _affichage(&$PDOdb, &$TBS, $id_dossier) {
+	
+	global $dossier, $db;
+	
 	$dossier->load($PDOdb, $id_dossier);
 	$dossier->load_facture($PDOdb,true);
 	_fiche($PDOdb, $db, $dossier, $TBS);
+	
 }
 
 llxFooter();
@@ -345,6 +354,8 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 
 function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	
+	global $langs;
+	
 	$TFacture = &$dossier->TFacture;
 	if(empty($dossier->TFacture)) {
 		setEventMessage('Aucune facture intégrale trouvée', 'warnings');
@@ -358,7 +369,9 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	//pre($integrale, true);
 	//pre($dossier->TFacture, true);
 	
-	$form=new TFormCore;
+	$form=new TFormCore($_SERVER['PHP_SELF'], 'formAvenantIntegrale', 'POST');
+	print $form->hidden('action', 'addAvenantIntegrale');
+	print $form->hidden('id', GETPOST('id'));
 	
 	print $TBS->render('./tpl/avenant_integrale.tpl.php'
 		,array(
@@ -367,9 +380,9 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 		,array(
 			'noir'=>array(
 				'engage'=>$integrale->vol_noir_engage
-				,'nouvel_engagement'=>$form->number('','nouvel_engagement_noir',$integrale->vol_noir_engage,$pTaille)
-				,'nouveau_cout_unitaire'=>$form->number('','nouveau_cout_unitaire_noir',0,$pTaille)
-				,'montant_total'=>$form->number('','montant_total_noir',0,$pTaille)
+				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_noir',$integrale->vol_noir_engage,10)
+				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_noir',$integrale->cout_unit_noir,10)
+				,'montant_total'=>$form->texteRO('','montant_total_noir',0,10,'','style="background-color: #C0C0C0"')
 				,'cout_unitaire'=>$integrale->cout_unit_noir
 				,'cout_unit_tech'=>$integrale->cout_unit_noir_tech
 				,'cout_unit_mach'=>$integrale->cout_unit_noir_mach
@@ -377,28 +390,37 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 			),
 			'couleur'=>array(
 				'engage'=>$integrale->vol_coul_engage
-				,'nouvel_engagement'=>$form->number('','nouvel_engagement_couleur',$integrale->vol_coul_engage,$pTaille)
-				,'nouveau_cout_unitaire'=>$form->number('','nouveau_cout_unitaire_couleur',0,$pTaille)
-				,'montant_total'=>$form->number('','montant_total_couleur',0,$pTaille)
+				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_couleur',$integrale->vol_coul_engage,10)
+				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_couleur',$integrale->cout_unit_coul,10)
+				,'montant_total'=>$form->texteRO('','montant_total_couleur',0,10,'','style="background-color: #C0C0C0"')
 				,'cout_unitaire'=>$integrale->cout_unit_coul
 				,'cout_unit_tech'=>$integrale->cout_unit_coul_tech
 				,'cout_unit_mach'=>$integrale->cout_unit_coul_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_coul_loyer
 			),
 			'global'=>array(
-				'FAS'=>$integrale->fas
-				,'FASS'=>$integrale->fass
-				,'frais_bris_machine'=>$integrale->frais_bris_machine
-				,'frais_facturation'=>$integrale->frais_facturation
-				,'total_global'=>$form->number('','total_global',0,$pTaille)
+				'FAS'=>$form->texteRO('','fas',$integrale->fas,10,'','style="background-color: #C0C0C0"')
+				,'FASS'=>$form->texteRO('','fass',$integrale->fass,10,'','style="background-color: #C0C0C0"')
+				,'frais_bris_machine'=>$form->texteRO('','frais_bris_machine',$integrale->frais_bris_machine,10,'','style="background-color: #C0C0C0"')
+				,'frais_facturation'=>$form->texteRO('','ftc',$integrale->frais_facturation,10,'','style="background-color: #C0C0C0"')
+				,'total_global'=>$form->texteRO('','total_global',$integrale->vol_noir_engage*$integrale->cout_unit_noir
+																+$integrale->vol_coul_engage*$integrale->cout_unit_coul
+																+$integrale->fas
+																+$integrale->fass
+																+$integrale->frais_bris_machine
+																+$integrale->frais_facturation,10,'','style="background-color: #C0C0C0"')
 			)
 		)
 	);
 	
+	print '<div class="tabsAction">';
+	print $form->btsubmit($langs->trans('Save'), '', '', 'butAction');
+	print '</div>';
+	
 }
 
-function _createAvenantInPropal() {
+function _addAvenantIntegrale() {
 	
-	
+	//pre($_REQUEST, true);
 	
 }
