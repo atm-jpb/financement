@@ -126,16 +126,17 @@ class InterfaceFinancementtrigger
 				
 				// On clôture en non signées toutes les autres propositions (avenants)
 				if(!empty($f->linkedObjects['propal'])) {
+					$TAvenantsFermes = array();
 					foreach($f->linkedObjects['propal'] as $p) {
-						if($p->id != $object->id) $p->cloture($user, 3, 'Fermé car avenant '.$object->ref.' signé');
+						if($p->id != $object->id) {
+							$p->cloture($user, 3, 'Fermé car avenant '.$object->ref.' signé');
+							$TAvenantsFermes[] = $p->ref;
+						}
 					}
+					setEventMessage('Avenants '.implode(', ', $TAvenantsFermes).' clôturés non signés automatiquement');
 				}
 				
 			}
-			$object->linkedObjects['facture'];
-            dol_syslog(
-                "Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id
-            );
         }
 
         return 0;
