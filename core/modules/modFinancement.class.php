@@ -86,6 +86,7 @@ class modFinancement extends DolibarrModules
 		//                        );
 		$this->module_parts = array(
 			'hooks'=>array('thirdpartycard','salesrepresentativescard','invoicecard','invoicesuppliercard','searchform','propalcard')
+			,'triggers'=>1
 		);
 
 		// Data directories to create when module is enabled.

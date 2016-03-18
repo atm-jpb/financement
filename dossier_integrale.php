@@ -309,7 +309,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 					$TIntegrale[$date_periode]->facnumber .= $fact->getNomUrl()."<br>";
 					$fact->fetchObjectLinked('', 'propal', '', 'facture');
 					if(!empty($fact->linkedObjects['propal'])) {
-						foreach($fact->linkedObjects['propal'] as $p) $TIntegrale[$date_periode]->propal .= $p->getNomUrl(1)."<br>";
+						foreach($fact->linkedObjects['propal'] as $p) $TIntegrale[$date_periode]->propal .= $p->getNomUrl(1).' '.$p->getLibStatut(3)."<br>";
 					}
 				}
 			}
@@ -318,7 +318,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 				$TIntegrale[$date_periode]->facnumber .= $facture->getNomUrl()."<br>";
 				$facture->fetchObjectLinked('', 'propal', '', 'facture');
 				if(!empty($facture->linkedObjects['propal'])) {
-					foreach($facture->linkedObjects['propal'] as $p) $TIntegrale[$date_periode]->propal .= $p->getNomUrl(1)."<br>";
+					foreach($facture->linkedObjects['propal'] as $p) $TIntegrale[$date_periode]->propal .= $p->getNomUrl(1).' '.$p->getLibStatut(3)."<br>";
 				}
 			}
 			
