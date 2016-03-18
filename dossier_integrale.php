@@ -1,10 +1,12 @@
 <?php
 
 require('config.php');
-require('./class/affaire.class.php');
-require('./class/dossier.class.php');
-require('./class/dossier_integrale.class.php');
-require('./class/grille.class.php');
+dol_include_once('/financement/class/affaire.class.php');
+dol_include_once('/financement/class/dossier.class.php');
+dol_include_once('/financement/class/dossier_integrale.class.php');
+dol_include_once('/financement/class/grille.class.php');
+dol_include_once('/comm/propal/class/propal.class.php');
+dol_include_once('/compta/facture/class/facture.class.php');
 
 $langs->load('financement@financement');
 
@@ -380,6 +382,8 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formAvenantIntegrale', 'POST');
 	print $form->hidden('action', 'addAvenantIntegrale');
 	print $form->hidden('id', GETPOST('id'));
+	print $form->hidden('fk_facture', $f->id);
+	print $form->hidden('fk_soc', $f->socid);
 	
 	print $TBS->render('./tpl/avenant_integrale.tpl.php'
 		,array()
@@ -436,6 +440,57 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 
 function _addAvenantIntegrale() {
 	
-	//pre($_REQUEST, true);
+	global $db, $user;
+	
+	$p = new Propal($db);
+	$p->socid = GETPOST('fk_soc');
+	$p->date = strtotime(date('Y-m-d'));
+	$p->duree_validite = 30;
+	
+	$p->cond_reglement_id = 0;
+	$p->mode_reglement_id = 0;
+	
+	$res = $p->create($user);
+	
+	if($res > 0) {
+		
+		_addLines($p);
+		$p->valid($user);
+		setEventMessage('Avenant <a href="'.dol_buildpath('/comm/propal.php?id='.$p->id, 1).'">'.$p->ref.'</a> créé avec succès !');
+		$f = new Facture($db);
+		$f->id = GETPOST('fk_facture');
+		$f->element = 'facture';
+		$f->add_object_linked('propal', $p->id);
+		
+	}
+	
+}
+
+function _addLines(&$p) {
+	
+	global $db;
+	//pre($_REQUEST, true);exit;
+	$TProduits = _getIDProducts();
+	
+	if(!empty($TProduits['E_NOIR'])) $p->addline('Nouvel engagement noir', GETPOST('nouveau_cout_unitaire_noir'), GETPOST('nouvel_engagement_noir'), 20, 0.0, 0.0, $TProduits['E_NOIR']);
+	if(!empty($TProduits['E_COUL'])) $p->addline('Nouvel engagement couleur', GETPOST('nouveau_cout_unitaire_couleur'), GETPOST('nouvel_engagement_couleur'), 20, 0.0, 0.0, $TProduits['E_COUL']);
+	
+	if(!empty($TProduits['FAS'])) $p->addline('FAS', GETPOST('fas'), 1, 20, 0.0, 0.0, $TProduits['FAS']);
+	if(!empty($TProduits['FASS'])) $p->addline('FASS', GETPOST('fass'), 1, 20, 0.0, 0.0, $TProduits['FASS']);
+	if(!empty($TProduits['FTC'])) $p->addline('FTC', GETPOST('ftc'), 1, 20, 0.0, 0.0, $TProduits['FTC']);
+	
+}
+
+function _getIDProducts() {
+	
+	global $db;
+	
+	// 037004 = Frais brise de machine
+	$sql = 'SELECT ref, rowid FROM '.MAIN_DB_PREFIX.'product WHERE ref IN("037004", "FAS", "FASS", "FTC", "E_NOIR", "E_COUL")';
+	$resql = $db->query($sql);
+	$TProduits = array();
+	while($res = $db->fetch_object($resql)) $TProduits[$res->ref] = $res->rowid; 
+	
+	return $TProduits;
 	
 }
