@@ -315,6 +315,13 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'read';
 		//$this->rights[$r][5] = 'read';
 		$r++;
+		
+		$this->rights[$r][0] = 210055;
+		$this->rights[$r][1] = 'Suivi intégrale : Voir le détail des coûts unitaires';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'integrale';
+		$this->rights[$r][5] = 'detail_couts';
+		$r++;
 
 
 		// Main menu entries

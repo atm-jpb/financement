@@ -362,7 +362,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 
 function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	
-	global $langs;
+	global $user, $langs;
 	
 	$TFacture = &$dossier->TFacture;
 	if(empty($dossier->TFacture)) {
@@ -382,29 +382,33 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	print $form->hidden('id', GETPOST('id'));
 	
 	print $TBS->render('./tpl/avenant_integrale.tpl.php'
-		,array(
-			//'integrale'=>$TIntegrale
-		)
+		,array()
 		,array(
 			'noir'=>array(
 				'engage'=>$integrale->vol_noir_engage
 				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_noir',$integrale->vol_noir_engage,10)
-				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_noir',$integrale->cout_unit_noir,10)
 				,'montant_total'=>$form->texteRO('','montant_total_noir',0,10,'','style="background-color: #C0C0C0"')
 				,'cout_unitaire'=>$integrale->cout_unit_noir
 				,'cout_unit_tech'=>$integrale->cout_unit_noir_tech
 				,'cout_unit_mach'=>$integrale->cout_unit_noir_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_noir_loyer
+				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_noir',$integrale->cout_unit_noir,10)
+				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_noir_tech',0,10,'','style="background-color: #C0C0C0"')
+				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_noir_mach',0,10,'','style="background-color: #C0C0C0"')
+				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_noir_loyer',0,10,'','style="background-color: #C0C0C0"')
 			),
 			'couleur'=>array(
 				'engage'=>$integrale->vol_coul_engage
 				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_couleur',$integrale->vol_coul_engage,10)
-				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_couleur',$integrale->cout_unit_coul,10)
 				,'montant_total'=>$form->texteRO('','montant_total_couleur',0,10,'','style="background-color: #C0C0C0"')
 				,'cout_unitaire'=>$integrale->cout_unit_coul
 				,'cout_unit_tech'=>$integrale->cout_unit_coul_tech
 				,'cout_unit_mach'=>$integrale->cout_unit_coul_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_coul_loyer
+				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_couleur',$integrale->cout_unit_coul,10)
+				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_coul_tech',0,10,'','style="background-color: #C0C0C0"')
+				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_coul_mach',0,10,'','style="background-color: #C0C0C0"')
+				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_coul_loyer',0,10,'','style="background-color: #C0C0C0"')
 			),
 			'global'=>array(
 				'FAS'=>$form->texteRO('','fas',$integrale->fas,10,'','style="background-color: #C0C0C0"')
@@ -417,6 +421,9 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 																+$integrale->fass
 																+$integrale->frais_bris_machine
 																+$integrale->frais_facturation,10,'','style="background-color: #C0C0C0"')
+			),
+			'rights'=>array(
+				'voir_couts_unitaires'=>(int)$user->rights->financement->integrale->detail_couts
 			)
 		)
 	);

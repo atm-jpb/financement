@@ -18,19 +18,19 @@
 		<td>[couleur.cout_unitaire]</td>
 	</tr>
 	
-	<tr class="impair" align="center">
+	<tr class="impair showOnlyAdmin" align="center" style="display:none;">
 		<td>- Tech</td>
 		<td>[noir.cout_unit_tech]</td>
 		<td>[couleur.cout_unit_tech]</td>
 	</tr>
 	
-	<tr class="impair" align="center">
+	<tr class="impair showOnlyAdmin" align="center" style="display:none;">
 		<td>- Mach</td>
 		<td>[noir.cout_unit_mach]</td>
 		<td>[couleur.cout_unit_mach]</td>
 	</tr>
 	
-	<tr class="impair" align="center">
+	<tr class="impair showOnlyAdmin" align="center" style="display:none;">
 		<td>- Loyer</td>
 		<td>[noir.cout_unit_loyer]</td>
 		<td>[couleur.cout_unit_loyer]</td>
@@ -46,6 +46,24 @@
 		<td>Coût unitaire</td>
 		<td>[noir.nouveau_cout_unitaire;strconv=no]</td>
 		<td>[couleur.nouveau_cout_unitaire;strconv=no]</td>
+	</tr>
+	
+	<tr class="pair showOnlyAdmin" align="center" style="display:none;">
+		<td>- Tech</td>
+		<td>[noir.nouveau_cout_unit_tech;strconv=no]</td>
+		<td>[couleur.nouveau_cout_unit_tech;strconv=no]</td>
+	</tr>
+	
+	<tr class="pair showOnlyAdmin" align="center" style="display:none;">
+		<td>- Mach</td>
+		<td>[noir.nouveau_cout_unit_mach;strconv=no]</td>
+		<td>[couleur.nouveau_cout_unit_mach;strconv=no]</td>
+	</tr>
+	
+	<tr class="pair showOnlyAdmin" align="center" style="display:none;">
+		<td>- Loyer</td>
+		<td>[noir.nouveau_cout_unit_loyer;strconv=no]</td>
+		<td>[couleur.nouveau_cout_unit_loyer;strconv=no]</td>
 	</tr>
 	
 	<tr class="pair" align="center">
@@ -80,3 +98,15 @@
 	</tr>
 	
 </table>
+
+[onshow;block=begin;when [rights.voir_couts_unitaires]=='1']
+	
+	<script type="text/javascript">
+		
+		$(document).ready(function() {
+			$(".showOnlyAdmin").show();
+		});
+		
+	</script>
+	
+[onshow;block=end]
