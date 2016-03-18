@@ -10,14 +10,17 @@ class ActionsFinancement
       */ 
     function doActions($parameters, &$object, &$action, $hookmanager) 
     {
-        if (in_array('thirdpartycard',explode(':',$parameters['context']))) 
-        { 
-          // do something only for the context 'somecontext'
+    	global $user;
+		
+        if (in_array('propalcard',explode(':',$parameters['context']))) 
+        {
+        	if($object->fin_validite < strtotime(date('Y-m-d')) && empty($user->rights->financement->integrale->see_past_propal)) {
+        		dol_include_once('/core/lib/security.lib.php');
+				$mess = 'Vous ne pouvez consulter une proposition dont la date de fin de validité est dépassée.';
+				accessforbidden($mess, 1);
+        	}
         }
- 
-        /*$this->results=array('myreturn'=>$myvalue);
-        $this->resprints='';
- */
+
         return 0;
     }
 	

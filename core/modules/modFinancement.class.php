@@ -322,6 +322,13 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'integrale';
 		$this->rights[$r][5] = 'detail_couts';
 		$r++;
+		
+		$this->rights[$r][0] = 210056;
+		$this->rights[$r][1] = 'Suivi intégrale : Pouvoir visualiser les avenants dont la date de fin de validité est dépassée';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'integrale';
+		$this->rights[$r][5] = 'see_past_propal';
+		$r++;
 
 
 		// Main menu entries

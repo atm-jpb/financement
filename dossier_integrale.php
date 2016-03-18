@@ -322,7 +322,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 				}
 			}
 			
-		}
+		} // else{} TODO A voir comment faire car certaines factures sont des loyers intercalaires et ne sont pas associés à des périodes.
 		
 		//$TIntegrale[] = '';
 	}
