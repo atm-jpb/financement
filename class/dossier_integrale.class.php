@@ -102,5 +102,36 @@ class TIntegrale extends TObjetStd {
 			$this->ecart = round($this->ecart, 2);
 		}
 	}
+	
+	/**
+	 * $nouvel_engagement est une valeur qui vient du formulaire
+	 * $cout_unitaire est à la base l'ancien cout unitaire, mais peut également être modifié et provenir du formulaire
+	 */
+	function get_data_calcul_avenant_integrale($nouvel_engagement, $cout_unitaire, $type='noir') {
+		
+		global $conf;
+		
+		$TData = array();
+		
+		$nouveau_cout_unitaire = ($nouvel_engagement * $cout_unitaire
+								 + ($nouvel_engagement - $this->{'vol_'.$type.'_engage'})
+								 + (abs($this->{'vol_'.$type.'_engage'} - $nouvel_engagement) * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100) * $this->{'cout_unit_'.$type.'_tech'}))
+								 / $nouvel_engagement;
+		
+		$TData['nouveau_cout_unitaire'] = $this->ceil($nouveau_cout_unitaire, 4);
+		$TData['nouveau_cout_unitaire_tech'] = $this->{'cout_unit_'.$type.'_tech'};
+		$TData['nouveau_cout_unitaire_mach'] = $this->ceil($this->{'vol_'.$type.'_engage'} * $this->{'cout_unit_'.$type.'_mach'} / $nouvel_engagement, 4);
+		$TData['nouveau_cout_unitaire_loyer'] = $this->ceil($nouveau_cout_unitaire - $TData['nouveau_cout_unitaire_mach'] - $this->{'cout_unit_'.$type.'_tech'}, 4);
+		
+		return $TData;
+		
+	}
+	
+	private function ceil($valeur, $puissance) {
+
+		return ceil($valeur * pow(10, $puissance)) / pow(10, $puissance);
+		
+	}
+	
 }
 
