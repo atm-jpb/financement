@@ -413,7 +413,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS, $calcul=false) {
 				,'cout_unit_mach'=>$integrale->cout_unit_noir_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_noir_loyer
 				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_noir', $calcul ? $TDataCalculNoir['nouveau_cout_unitaire'] : $integrale->cout_unit_noir,10)
-				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_noir_tech', $TDataCalculNoir['nouveau_cout_unitaire_tech'],10,'',$style)  // Identique à l'ancien dans tous les cas
+				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_noir_tech', $calcul ? $TDataCalculNoir['nouveau_cout_unitaire_tech'] : 0,10,'',$style)  // Identique à l'ancien dans tous les cas
 				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_noir_mach', $calcul ? $TDataCalculNoir['nouveau_cout_unitaire_mach'] : 0,10,'',$style)
 				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_noir_loyer', $calcul ? $TDataCalculNoir['nouveau_cout_unitaire_loyer'] : 0,10,'',$style)
 			),
@@ -426,7 +426,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS, $calcul=false) {
 				,'cout_unit_mach'=>$integrale->cout_unit_coul_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_coul_loyer
 				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_couleur', $calcul ? $TDataCalculCouleur['nouveau_cout_unitaire'] : $integrale->cout_unit_coul,10)
-				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_coul_tech', $TDataCalculCouleur['nouveau_cout_unitaire_tech'],10,'',$style) // Identique à l'ancien dans tous les cas
+				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_coul_tech', $calcul ? $TDataCalculCouleur['nouveau_cout_unitaire_tech'] : 0,10,'',$style) // Identique à l'ancien dans tous les cas
 				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_coul_mach', $calcul ? $TDataCalculCouleur['nouveau_cout_unitaire_mach'] : 0,10,'',$style)
 				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_coul_loyer', $calcul ? $TDataCalculCouleur['nouveau_cout_unitaire_loyer'] : 0,10,'',$style)
 			),

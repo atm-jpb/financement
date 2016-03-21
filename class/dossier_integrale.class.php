@@ -113,23 +113,36 @@ class TIntegrale extends TObjetStd {
 		
 		$TData = array();
 		
+		// Calcul du nouveau coût unitaire en fonction des règles demandées
 		$nouveau_cout_unitaire = ($nouvel_engagement * $cout_unitaire
 								 + ($nouvel_engagement - $this->{'vol_'.$type.'_engage'})
 								 + (abs($this->{'vol_'.$type.'_engage'} - $nouvel_engagement) * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100) * $this->{'cout_unit_'.$type.'_tech'}))
 								 / $nouvel_engagement;
 		
-		$TData['nouveau_cout_unitaire'] = $this->ceil($nouveau_cout_unitaire, 4);
+		// Calcul du détail du nouveau coût unitaire en fonction des règles demandées
+		$TData['nouveau_cout_unitaire'] = $this->ceil($nouveau_cout_unitaire);
 		$TData['nouveau_cout_unitaire_tech'] = $this->{'cout_unit_'.$type.'_tech'};
-		$TData['nouveau_cout_unitaire_mach'] = $this->ceil($this->{'vol_'.$type.'_engage'} * $this->{'cout_unit_'.$type.'_mach'} / $nouvel_engagement, 4);
-		$TData['nouveau_cout_unitaire_loyer'] = $this->ceil($nouveau_cout_unitaire - $TData['nouveau_cout_unitaire_mach'] - $this->{'cout_unit_'.$type.'_tech'}, 4);
+		$TData['nouveau_cout_unitaire_mach'] = $this->ceil($this->{'vol_'.$type.'_engage'} * $this->{'cout_unit_'.$type.'_mach'} / $nouvel_engagement);
+		$TData['nouveau_cout_unitaire_loyer'] = $this->ceil($nouveau_cout_unitaire - $TData['nouveau_cout_unitaire_mach'] - $this->{'cout_unit_'.$type.'_tech'});
 		
 		return $TData;
 		
 	}
 	
-	private function ceil($valeur, $puissance) {
+	private function ceil($valeur, $puissance=4) {
 
 		return ceil($valeur * pow(10, $puissance)) / pow(10, $puissance);
+		
+	}
+	
+	/**
+	 * Retourne la ligne propal ayant le fk_product passé en param
+	 */
+	static function get_line_from_propal(&$propal, $ref_product) {
+		//pre($propal->lines ,true);
+		foreach($propal->lines as $line) {
+			if($line->ref == $ref_product) return $line;
+		}
 		
 	}
 	

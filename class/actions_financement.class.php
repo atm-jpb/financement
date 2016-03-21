@@ -182,6 +182,64 @@ class ActionsFinancement
 					print '</td>';
 					print '</tr>';
 				}
+				
+				// Détail du nouveau coût unitaire (uniquement si le user a les droits)
+				if(!empty($user->rights->financement->integrale->detail_couts)) {
+					
+					$PDOdb = new TPDOdb;
+					$integrale = new TIntegrale;
+					$integrale->loadBy($PDOdb, $object->linkedObjects['facture'][0]->ref, 'facnumber');
+					if($integrale->rowid > 0) {
+						
+						$line_engagement_noir = TIntegrale::get_line_from_propal($object, 'E_NOIR');
+						$line_engagement_coul = TIntegrale::get_line_from_propal($object, 'E_COUL');
+						$TDataCalculNoir = $integrale->get_data_calcul_avenant_integrale($line_engagement_noir->qty, $integrale->cout_unit_noir);
+						$TDataCalculCouleur = $integrale->get_data_calcul_avenant_integrale($line_engagement_coul->qty, $integrale->cout_unit_coul, 'coul');
+						
+						print '<tr>'.'<td>';
+						print '<STRONG>Détail nouvel engagement noir</STRONG>';
+						print '</td>'.'<td>';
+						print '';
+						print '</td>'.'</tr>';
+						
+						print '<tr>'.'<td>';
+						print '- Tech';
+						print '</td>'.'<td>';
+						print $TDataCalculNoir['nouveau_cout_unitaire_tech'];
+						print '</td>'.'</tr>'.'<tr>'.'<td>';
+						print '- Mach';
+						print '</td>'.'<td>';
+						print $TDataCalculNoir['nouveau_cout_unitaire_mach'];
+						print '</td>'.'</tr>'.'<tr>'.'<td>';
+						print '- Loyer';
+						print '</td>'.'<td>';
+						print $TDataCalculNoir['nouveau_cout_unitaire_loyer'];
+						print '</td>'.'</tr>';
+						
+						print '<tr>'.'<td>';
+						print '<STRONG>Détail nouvel engagement couleur</STRONG>';
+						print '</td>'.'<td>';
+						print '';
+						print '</td>'.'</tr>';
+						
+						print '<tr>'.'<td>';
+						print '- Tech';
+						print '</td>'.'<td>';
+						print $TDataCalculCouleur['nouveau_cout_unitaire_tech'];
+						print '</td>'.'</tr>'.'<tr>'.'<td>';
+						print '- Mach';
+						print '</td>'.'<td>';
+						print $TDataCalculCouleur['nouveau_cout_unitaire_mach'];
+						print '</td>'.'</tr>'.'<tr>'.'<td>';
+						print '- Loyer';
+						print '</td>'.'<td>';
+						print $TDataCalculCouleur['nouveau_cout_unitaire_loyer'];
+						print '</td>'.'</tr>';
+						
+					}
+
+				}
+				
 			}
 			
 		}
