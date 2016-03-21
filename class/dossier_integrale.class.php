@@ -107,17 +107,20 @@ class TIntegrale extends TObjetStd {
 	 * $nouvel_engagement est une valeur qui vient du formulaire
 	 * $cout_unitaire est à la base l'ancien cout unitaire, mais peut également être modifié et provenir du formulaire
 	 */
-	function get_data_calcul_avenant_integrale($nouvel_engagement, $cout_unitaire, $type='noir') {
+	function get_data_calcul_avenant_integrale($nouvel_engagement, $cout_unitaire, $type='noir', $nouveau_cout_unitaire_manuel=false) {
 		
 		global $conf;
 		
 		$TData = array();
-		
-		// Calcul du nouveau coût unitaire en fonction des règles demandées
-		$nouveau_cout_unitaire = ($nouvel_engagement * $cout_unitaire
-								 + ($nouvel_engagement - $this->{'vol_'.$type.'_engage'})
-								 + (abs($this->{'vol_'.$type.'_engage'} - $nouvel_engagement) * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100) * $this->{'cout_unit_'.$type.'_tech'}))
-								 / $nouvel_engagement;
+		//echo $cout_unitaire.'<br>';
+		if(!empty($nouveau_cout_unitaire_manuel)) $nouveau_cout_unitaire = $cout_unitaire;
+		else {
+			// Calcul du nouveau coût unitaire en fonction des règles demandées
+			$nouveau_cout_unitaire = ($nouvel_engagement * $cout_unitaire
+									 + ($nouvel_engagement - $this->{'vol_'.$type.'_engage'})
+									 + (abs($this->{'vol_'.$type.'_engage'} - $nouvel_engagement) * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100) * $this->{'cout_unit_'.$type.'_tech'}))
+									 / $nouvel_engagement;
+		}
 		
 		// Calcul du détail du nouveau coût unitaire en fonction des règles demandées
 		$TData['nouveau_cout_unitaire'] = $this->ceil($nouveau_cout_unitaire);

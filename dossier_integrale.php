@@ -379,22 +379,24 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS, $calcul=false) {
 	
 	$integrale = new TIntegrale;
 	$integrale->loadBy($PDOdb, $f->ref, 'facnumber');
-	//pre($integrale, true);
-	//pre($dossier->TFacture, true);
-	
-	if($calcul) {
-		$TDataCalculNoir = $integrale->get_data_calcul_avenant_integrale(GETPOST('nouvel_engagement_noir'), $integrale->cout_unit_noir);
-		$TDataCalculCouleur = $integrale->get_data_calcul_avenant_integrale(GETPOST('nouvel_engagement_couleur'), $integrale->cout_unit_coul, 'coul');
-	}
-	
-	/*pre($TDataCalculNoir, true);
-	pre($TDataCalculCouleur, true);*/
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formAvenantIntegrale', 'POST');
+	
+	if($calcul) {
+		$cout_unitaire_modifie_manuellement = (GETPOST('nouveau_cout_unitaire_noir_calcul') != GETPOST('nouveau_cout_unitaire_noir')) || (GETPOST('nouveau_cout_unitaire_couleur_calcul') != GETPOST('nouveau_cout_unitaire_couleur'));
+		$TDataCalculNoir = $integrale->get_data_calcul_avenant_integrale(GETPOST('nouvel_engagement_noir'), !empty($cout_unitaire_modifie_manuellement) ? GETPOST('nouveau_cout_unitaire_noir') : $integrale->cout_unit_noir, 'noir', $cout_unitaire_modifie_manuellement);
+		$TDataCalculCouleur = $integrale->get_data_calcul_avenant_integrale(GETPOST('nouvel_engagement_couleur'), !empty($cout_unitaire_modifie_manuellement) ? GETPOST('nouveau_cout_unitaire_couleur') : $integrale->cout_unit_coul, 'coul', $cout_unitaire_modifie_manuellement);
+		if(!empty($cout_unitaire_modifie_manuellement)) print $form->hidden('cout_unitaire_manuel', '1');
+	}
+	
 	print $form->hidden('action', 'addAvenantIntegrale');
 	print $form->hidden('id', GETPOST('id'));
 	print $form->hidden('fk_facture', $f->id);
 	print $form->hidden('fk_soc', $f->socid);
+	
+	// On a également besoin d'afficher 2 hidden contenant la même valeur que les champs Coût unitaire noir & Coût unitaire couleur, pour ensuite vérifier s'ils ont été modifiés à la main par l'utilisateur
+	print $form->hidden('nouveau_cout_unitaire_noir_calcul', $calcul ? $TDataCalculNoir['nouveau_cout_unitaire'] : $integrale->cout_unit_noir);
+	print $form->hidden('nouveau_cout_unitaire_couleur_calcul', $calcul ? $TDataCalculCouleur['nouveau_cout_unitaire'] : $integrale->cout_unit_coul);
 	
 	$style = 'style="background-color: #C0C0C0"';
 	
@@ -466,6 +468,9 @@ function _addAvenantIntegrale() {
 	
 	$p->cond_reglement_id = 0;
 	$p->mode_reglement_id = 0;
+	
+	$cout_unitaire_manuel = GETPOST('cout_unitaire_manuel');
+	if(!empty($cout_unitaire_manuel)) $p->array_options['options_cout_unitaire_manuel'] = 1;
 	
 	$res = $p->create($user);
 	
