@@ -124,11 +124,18 @@ class TIntegrale extends TObjetStd {
 		
 		// Calcul du détail du nouveau coût unitaire en fonction des règles demandées
 		$TData['nouveau_cout_unitaire'] = $this->ceil($nouveau_cout_unitaire);
-		$TData['nouveau_cout_unitaire_tech'] = $this->{'cout_unit_'.$type.'_tech'};
-		$TData['nouveau_cout_unitaire_mach'] = $this->ceil($this->{'vol_'.$type.'_engage'} * $this->{'cout_unit_'.$type.'_mach'} / $nouvel_engagement);
-		$TData['nouveau_cout_unitaire_loyer'] = $this->ceil($nouveau_cout_unitaire - $TData['nouveau_cout_unitaire_mach'] - $this->{'cout_unit_'.$type.'_tech'});
+		
+		$this->get_data_detail_calcul_avenant_integrale($engagement, $nouveau_cout_unitaire, $TData, $type);
 		
 		return $TData;
+		
+	}
+
+	function get_data_detail_calcul_avenant_integrale($engagement, $cout_unitaire, &$TData, $type='noir') {
+		
+		$TData['nouveau_cout_unitaire_tech'] = $this->{'cout_unit_'.$type.'_tech'};
+		$TData['nouveau_cout_unitaire_mach'] = $this->ceil($this->{'vol_'.$type.'_engage'} * $this->{'cout_unit_'.$type.'_mach'} / $nouvel_engagement);
+		$TData['nouveau_cout_unitaire_loyer'] = $this->ceil($cout_unitaire - $TData['nouveau_cout_unitaire_mach'] - $this->{'cout_unit_'.$type.'_tech'});
 		
 	}
 	
