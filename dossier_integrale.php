@@ -26,8 +26,8 @@ if($action == 'formAvenantIntegrale') {
 } elseif($action == 'addAvenantIntegrale'){
 	$calcul = false;
 	if(isset($_REQUEST['btCalcul'])) $calcul = true;
-	elseif(isset($_REQUEST['btSave'])) _addAvenantIntegrale();
-	_affichage($PDOdb, $TBS, $id_dossier);
+	elseif(isset($_REQUEST['btSave'])) $file_path = _addAvenantIntegrale();
+	_affichage($PDOdb, $TBS, $id_dossier, $file_path);
 	if($calcul) _printFormAvenantIntegrale($PDOdb, $dossier, $TBS, true);
 } elseif(empty($id_dossier)) {
 	_liste($PDOdb, $dossier, $TBS);
@@ -35,13 +35,21 @@ if($action == 'formAvenantIntegrale') {
 	_affichage($PDOdb, $TBS, $id_dossier);
 }
 
-function _affichage(&$PDOdb, &$TBS, $id_dossier) {
+function _affichage(&$PDOdb, &$TBS, $id_dossier, $file_path='') {
 	
 	global $dossier, $db;
-	
+
 	$dossier->load($PDOdb, $id_dossier);
 	$dossier->load_facture($PDOdb,true);
 	_fiche($PDOdb, $db, $dossier, $TBS);
+	
+	if(!empty($file_path)) {
+		?>
+			<script>
+				document.location.href="<?php echo $file_path; ?>";
+			</script>
+		<?php
+	}
 	
 }
 
@@ -474,13 +482,19 @@ function _addAvenantIntegrale() {
 		
 		_addLines($p);
 		$p->valid($user);
-		setEventMessage('Avenant <a href="'.dol_buildpath('/comm/propal.php?id='.$p->id, 1).'">'.$p->ref.'</a> créé avec succès !');
+		//setEventMessage('Avenant <a href="'.dol_buildpath('/comm/propal.php?id='.$p->id, 1).'">'.$p->ref.'</a> créé avec succès !');
 		$f = new Facture($db);
 		$f->id = GETPOST('fk_facture');
 		$f->element = 'facture';
 		$f->add_object_linked('propal', $p->id);
 		
+		$file_path = _genPDF($p);
+		
+		return $file_path;
+		
 	}
+	
+	return 0;
 	
 }
 
@@ -503,12 +517,41 @@ function _getIDProducts() {
 	
 	global $db;
 	
-	// 037004 = Frais brise de machine
+	// 037004 = Frais bris de machine
 	$sql = 'SELECT ref, rowid FROM '.MAIN_DB_PREFIX.'product WHERE ref IN("037004", "FAS", "FASS", "FTC", "E_NOIR", "E_COUL")';
 	$resql = $db->query($sql);
 	$TProduits = array();
 	while($res = $db->fetch_object($resql)) $TProduits[$res->ref] = $res->rowid; 
 	
 	return $TProduits;
+	
+}
+
+function _genPDF(&$propal) {
+	
+	global $conf;
+	
+	$TBS=new TTemplateTBS();
+	
+	@mkdir($conf->propal->dir_output.'/'.$propal->ref);
+	$dir = $conf->propal->dir_output.'/'.$propal->ref;
+	
+	$file_path = $TBS->render(dol_buildpath('/financement/tpl/doc/modele_avenant.odt')
+		,array(
+			'tab'=>array('1'=>'2')
+		)
+		,array(
+			'date'=>date("d/m/Y")
+			,'field'=>''
+		)
+		,array()
+		,array(
+			'outFile'=>$dir.'/'.$propal->ref."_avenant.odt"
+			,"convertToPDF"=>true
+		)
+		
+	);
+	
+	return dol_buildpath('/document.php?modulepart=propal&entity='.$conf->entity.'&file='.$propal->ref.'/'.$propal->ref.'_avenant.pdf', 2);
 	
 }
