@@ -18,29 +18,30 @@ $action = GETPOST('action');
 $id_dossier = GETPOST('id');
 $TBS = new TTemplateTBS;
 
+$dossier->load($PDOdb, $id_dossier);
+$dossier->load_facture($PDOdb,true);
+
 llxHeader('','Suivi intégrale');
 
 if($action == 'formAvenantIntegrale') {
-	_affichage($PDOdb, $TBS, $id_dossier);
+	_affichage($PDOdb, $TBS, $dossier);
 	_printFormAvenantIntegrale($PDOdb, $dossier, $TBS);
 } elseif($action == 'addAvenantIntegrale'){
 	$calcul = false;
 	if(isset($_REQUEST['btCalcul'])) $calcul = true;
-	elseif(isset($_REQUEST['btSave'])) $file_path = _addAvenantIntegrale();
-	_affichage($PDOdb, $TBS, $id_dossier, $file_path);
+	elseif(isset($_REQUEST['btSave'])) $file_path = _addAvenantIntegrale($dossier);
+	_affichage($PDOdb, $TBS, $dossier, $file_path);
 	if($calcul) _printFormAvenantIntegrale($PDOdb, $dossier, $TBS, true);
 } elseif(empty($id_dossier)) {
 	_liste($PDOdb, $dossier, $TBS);
 } else {
-	_affichage($PDOdb, $TBS, $id_dossier);
+	_affichage($PDOdb, $TBS, $dossier);
 }
 
-function _affichage(&$PDOdb, &$TBS, $id_dossier, $file_path='') {
+function _affichage(&$PDOdb, &$TBS, &$dossier, $file_path='') {
 	
-	global $dossier, $db;
+	global $db;
 
-	$dossier->load($PDOdb, $id_dossier);
-	$dossier->load_facture($PDOdb,true);
 	_fiche($PDOdb, $db, $dossier, $TBS);
 	
 	if(!empty($file_path)) {
@@ -464,7 +465,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS, $calcul=false) {
 	
 }
 
-function _addAvenantIntegrale() {
+function _addAvenantIntegrale(&$dossier) {
 	
 	global $db, $user;
 	
@@ -495,6 +496,8 @@ function _addAvenantIntegrale() {
 									,'cout_unitaire_couleur'=>GETPOST('nouveau_cout_unitaire_couleur')
 									,'FAS'=>GETPOST('fas')
 									,'FASS'=>GETPOST('fass')
+									,'ref_dossier'=>$dossier->financement->reference
+									,'total_global'=>GETPOST('total_global')
 								  ));
 		
 		return $file_path;
@@ -543,36 +546,38 @@ function _genPDF(&$propal, $TData) {
 	$dir = $conf->propal->dir_output.'/'.$propal->ref;
 	@mkdir($dir);
 	
+	$file_name = $propal->ref.'_avenant_'.date('Ymd');
+	
 	$file_path = $TBS->render(dol_buildpath('/financement/tpl/doc/modele_avenant.odt')
-		,array(
-			'tab'=>array('1'=>'2')
-		)
+		,array()
 		,array(
 			'avenant'=>array(
 				'ref'=>$propal->ref
 			)
 			,'copies_noires'=>array(
-				'engagement'=>''
-				,'cout_unitaire'=>''
+				'engagement'=>$TData['engagement_noir']
+				,'cout_unitaire'=>$TData['cout_unitaire_noir']
 			)
-			,'copies_couleurs'=>array(
-				'engagement'=>''
-				,'cout_unitaire'=>''
+			,'copies_couleur'=>array(
+				'engagement'=>$TData['engagement_couleur']
+				,'cout_unitaire'=>$TData['cout_unitaire_couleur']
 			)
 			,'global'=>array(
-				'FAS'=>''
-				,'FASS'=>''
-				,'total'=>''
+				'FAS'=>$TData['FAS']
+				,'FASS'=>$TData['FASS']
+				,'total'=>$TData['test']
+				,'ref_dossier'=>$TData['ref_dossier']
+				,'total_global'=>$TData['total_global']
 			)
 		)
 		,array()
 		,array(
-			'outFile'=>$dir.'/'.$propal->ref."_avenant.odt"
+			'outFile'=>$dir.'/'.$file_name.'.odt'
 			,"convertToPDF"=>true
 		)
 		
 	);
 	
-	return dol_buildpath('/document.php?modulepart=propal&entity='.$conf->entity.'&file='.$propal->ref.'/'.$propal->ref.'_avenant.pdf', 2);
+	return dol_buildpath('/document.php?modulepart=propal&entity='.$conf->entity.'&file='.$propal->ref.'/'.$file_name.'.pdf', 2);
 	
 }
