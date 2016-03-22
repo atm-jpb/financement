@@ -488,7 +488,14 @@ function _addAvenantIntegrale() {
 		$f->element = 'facture';
 		$f->add_object_linked('propal', $p->id);
 		
-		$file_path = _genPDF($p);
+		$file_path = _genPDF($p, array(
+									'engagement_noir'=>GETPOST('nouvel_engagement_noir')
+									,'cout_unitaire_noir'=>GETPOST('nouveau_cout_unitaire_noir')
+									,'engagement_couleur'=>GETPOST('nouvel_engagement_couleur')
+									,'cout_unitaire_couleur'=>GETPOST('nouveau_cout_unitaire_couleur')
+									,'FAS'=>GETPOST('fas')
+									,'FASS'=>GETPOST('fass')
+								  ));
 		
 		return $file_path;
 		
@@ -527,22 +534,36 @@ function _getIDProducts() {
 	
 }
 
-function _genPDF(&$propal) {
+function _genPDF(&$propal, $TData) {
 	
 	global $conf;
 	
 	$TBS=new TTemplateTBS();
 	
-	@mkdir($conf->propal->dir_output.'/'.$propal->ref);
 	$dir = $conf->propal->dir_output.'/'.$propal->ref;
+	@mkdir($dir);
 	
 	$file_path = $TBS->render(dol_buildpath('/financement/tpl/doc/modele_avenant.odt')
 		,array(
 			'tab'=>array('1'=>'2')
 		)
 		,array(
-			'date'=>date("d/m/Y")
-			,'field'=>''
+			'avenant'=>array(
+				'ref'=>$propal->ref
+			)
+			,'copies_noires'=>array(
+				'engagement'=>''
+				,'cout_unitaire'=>''
+			)
+			,'copies_couleurs'=>array(
+				'engagement'=>''
+				,'cout_unitaire'=>''
+			)
+			,'global'=>array(
+				'FAS'=>''
+				,'FASS'=>''
+				,'total'=>''
+			)
 		)
 		,array()
 		,array(
