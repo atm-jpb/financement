@@ -133,7 +133,7 @@ class InterfaceFinancementtrigger
 							$TAvenantsFermes[] = $p->ref;
 						}
 					}
-					setEventMessage('Avenants '.implode(', ', $TAvenantsFermes).' clôturés non signés automatiquement');
+					setEventMessage('Avenant(s) '.implode(', ', $TAvenantsFermes).' clôturé(s) non signé(s) automatiquement');
 				}
 				
 			}

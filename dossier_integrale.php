@@ -370,7 +370,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS, $calcul=false) {
 	global $user, $langs;
 	
 	$TFacture = &$dossier->TFacture;
-	if(empty($dossier->TFacture)) {
+	if(empty($TFacture)) {
 		setEventMessage('Aucune facture intégrale trouvée', 'warnings');
 		return 0;
 	}
@@ -386,7 +386,6 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS, $calcul=false) {
 		$cout_unitaire_modifie_manuellement = (GETPOST('nouveau_cout_unitaire_noir_calcul') != GETPOST('nouveau_cout_unitaire_noir')) || (GETPOST('nouveau_cout_unitaire_couleur_calcul') != GETPOST('nouveau_cout_unitaire_couleur'));
 		$TDataCalculNoir = $integrale->get_data_calcul_avenant_integrale(GETPOST('nouvel_engagement_noir'), !empty($cout_unitaire_modifie_manuellement) ? GETPOST('nouveau_cout_unitaire_noir') : $integrale->cout_unit_noir, 'noir', $cout_unitaire_modifie_manuellement);
 		$TDataCalculCouleur = $integrale->get_data_calcul_avenant_integrale(GETPOST('nouvel_engagement_couleur'), !empty($cout_unitaire_modifie_manuellement) ? GETPOST('nouveau_cout_unitaire_couleur') : $integrale->cout_unit_coul, 'coul', $cout_unitaire_modifie_manuellement);
-		if(!empty($cout_unitaire_modifie_manuellement)) print $form->hidden('cout_unitaire_manuel', '1');
 	}
 	
 	print $form->hidden('action', 'addAvenantIntegrale');
@@ -468,9 +467,6 @@ function _addAvenantIntegrale() {
 	
 	$p->cond_reglement_id = 0;
 	$p->mode_reglement_id = 0;
-	
-	$cout_unitaire_manuel = GETPOST('cout_unitaire_manuel');
-	if(!empty($cout_unitaire_manuel)) $p->array_options['options_cout_unitaire_manuel'] = 1;
 	
 	$res = $p->create($user);
 	
