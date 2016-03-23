@@ -498,6 +498,7 @@ function _addAvenantIntegrale(&$dossier) {
 									,'FASS'=>GETPOST('fass')
 									,'ref_dossier'=>$dossier->financement->reference
 									,'total_global'=>GETPOST('total_global')
+									,'client'=>_getInfosClient($p->socid)
 								  ));
 		
 		return $file_path;
@@ -505,6 +506,24 @@ function _addAvenantIntegrale(&$dossier) {
 	}
 	
 	return 0;
+	
+}
+
+function _getInfosClient($fk_soc) {
+	
+	global $db;
+	
+	dol_include_once('/societe/class/societe.class.php');
+	
+	$s = new Societe($db);
+	$s->fetch($fk_soc);
+	
+	$TData['raison_sociale'] = $s->name;
+	$TData['adresse'] = $s->getFullAddress();
+	$TData['siren'] = $s->idprof1;
+	$TData['dirigeant'] = '';
+	
+	return $TData;
 	
 }
 
@@ -537,7 +556,7 @@ function _getIDProducts() {
 	
 }
 
-function _genPDF(&$propal, $TData) {
+function _genPDF(&$propal, $TData, $print_bloc_locataire=true) {
 	
 	global $conf;
 	
@@ -568,6 +587,12 @@ function _genPDF(&$propal, $TData) {
 				,'total'=>$TData['test']
 				,'ref_dossier'=>$TData['ref_dossier']
 				,'total_global'=>$TData['total_global']
+			)
+			,'bloc_locataire'=>array(
+				'raison_sociale'=>$print_bloc_locataire ? $TData['client']['raison_sociale'] : ''
+				,'adresse'=>$print_bloc_locataire ? $TData['client']['adresse'] : ''
+				,'siren'=>$print_bloc_locataire ? $TData['client']['siren'] : ''
+				,'dirigeant'=>$print_bloc_locataire ? $TData['client']['dirigeant'] : ''
 			)
 		)
 		,array()
