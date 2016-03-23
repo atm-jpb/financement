@@ -194,11 +194,9 @@ class ActionsFinancement
 						$line_engagement_noir = TIntegrale::get_line_from_propal($object, 'E_NOIR');
 						$line_engagement_coul = TIntegrale::get_line_from_propal($object, 'E_COUL');
 						
-						$TDataCalculNoir = array();
-						$integrale->get_data_detail_calcul_avenant_integrale($line_engagement_noir->qty, $line_engagement_noir->subprice, $TDataCalculNoir);
+						$TDataCalculNoir = $integrale->calcul_detail_cout($line_engagement_noir->qty, $line_engagement_noir->subprice);
 						
-						$TDataCalculCouleur = array();
-						$integrale->get_data_detail_calcul_avenant_integrale($line_engagement_coul->qty, $line_engagement_coul->subprice, $TDataCalculCouleur, 'coul');
+						$TDataCalculCouleur = $integrale->calcul_detail_cout($line_engagement_coul->qty, $line_engagement_coul->subprice, 'coul');
 						
 						print '<tr>'.'<td>';
 						print '<STRONG>Détail nouvel engagement noir</STRONG>';

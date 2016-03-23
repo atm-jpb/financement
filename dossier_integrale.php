@@ -23,15 +23,11 @@ $dossier->load_facture($PDOdb,true);
 
 llxHeader('','Suivi intégrale');
 
-if($action == 'formAvenantIntegrale') {
-	_affichage($PDOdb, $TBS, $dossier);
-	_printFormAvenantIntegrale($PDOdb, $dossier, $TBS);
-} elseif($action == 'addAvenantIntegrale'){
+if($action == 'addAvenantIntegrale'){
 	$calcul = false;
-	if(isset($_REQUEST['btCalcul'])) $calcul = true;
-	elseif(isset($_REQUEST['btSave'])) $file_path = _addAvenantIntegrale($dossier);
+	if(isset($_REQUEST['btSave'])) $file_path = _addAvenantIntegrale($dossier);
 	_affichage($PDOdb, $TBS, $dossier, $file_path);
-	if($calcul) _printFormAvenantIntegrale($PDOdb, $dossier, $TBS, true);
+	_printFormAvenantIntegrale($PDOdb, $dossier, $TBS);
 } elseif(empty($id_dossier)) {
 	_liste($PDOdb, $dossier, $TBS);
 } else {
@@ -369,12 +365,12 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	);
 	
 	print '<div class="tabsAction">';
-	print '<a class="butAction" href="?id='.GETPOST('id').'&action=formAvenantIntegrale">Nouveau calcul d\'avenant</a>';
+	print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale">Nouveau calcul d\'avenant</a>';
 	print '</div>';
 	
 }
 
-function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS, $calcul=false) {
+function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	
 	global $user, $langs;
 	
@@ -391,11 +387,67 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS, $calcul=false) {
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formAvenantIntegrale', 'POST');
 	
-	if($calcul) {
-		$cout_unitaire_modifie_manuellement = (GETPOST('nouveau_cout_unitaire_noir_calcul') != GETPOST('nouveau_cout_unitaire_noir')) || (GETPOST('nouveau_cout_unitaire_couleur_calcul') != GETPOST('nouveau_cout_unitaire_couleur'));
-		$TDataCalculNoir = $integrale->get_data_calcul_avenant_integrale(GETPOST('nouvel_engagement_noir'), !empty($cout_unitaire_modifie_manuellement) ? GETPOST('nouveau_cout_unitaire_noir') : $integrale->cout_unit_noir, 'noir', $cout_unitaire_modifie_manuellement);
-		$TDataCalculCouleur = $integrale->get_data_calcul_avenant_integrale(GETPOST('nouvel_engagement_couleur'), !empty($cout_unitaire_modifie_manuellement) ? GETPOST('nouveau_cout_unitaire_couleur') : $integrale->cout_unit_coul, 'coul', $cout_unitaire_modifie_manuellement);
+	$new_engagement_noir = GETPOST('nouvel_engagement_noir');
+	$new_engagement_couleur = GETPOST('nouvel_engagement_couleur');
+	$old_engagement_noir = GETPOST('old_engagement_noir');
+	$old_engagement_couleur = GETPOST('old_engagement_couleur');
+	$new_cout_noir = GETPOST('nouveau_cout_unitaire_noir');
+	$new_cout_couleur = GETPOST('nouveau_cout_unitaire_couleur');
+	$old_cout_noir = GETPOST('old_cout_unitaire_noir');
+	$old_cout_couleur = GETPOST('old_cout_unitaire_couleur');
+	$new_fas_noir = 0;
+	$new_fas_couleur = 0;
+	
+	if(empty($new_engagement_noir)) $new_engagement_noir = $integrale->vol_noir_engage;
+	if(empty($new_engagement_couleur)) $new_engagement_couleur = $integrale->vol_coul_engage;
+	if(empty($new_cout_noir)) $new_cout_noir = $integrale->cout_unit_noir;
+	if(empty($new_cout_couleur)) $new_cout_couleur = $integrale->cout_unit_coul;
+	
+	// GESTION DU NOIR
+	if(!empty($new_engagement_noir) && !empty($old_engagement_noir) && $new_engagement_noir != $old_engagement_noir) {
+		// Calcul new cout
+		$new_cout_noir = $integrale->calcul_cout_unitaire($new_engagement_noir, 'noir');
+		// Get detail
+		$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $new_cout_noir, 'noir');
+	} else if(!empty($new_cout_noir) && !empty($old_cout_noir) && $new_cout_noir != $old_cout_noir) {
+		// Calcul new cout
+		$cout_noir_calcule = $integrale->calcul_cout_unitaire($new_engagement_noir, 'noir');
+		// Get detail
+		$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $cout_noir_calcule, 'noir');
+		// Calcul FAS
+		$new_fas_noir = $integrale->calcul_fas($TDetailCoutNoir, $new_cout_noir, $new_engagement_noir);
+	} else {
+		// Get detail
+		$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $new_cout_noir, 'noir');
 	}
+	
+	$total_noir = $new_engagement_noir * $new_cout_noir;
+	
+	// GESTION DE LA COULEUR
+	if(!empty($new_engagement_couleur) && !empty($old_engagement_couleur) && $new_engagement_couleur != $old_engagement_couleur) {
+		// Calcul new cout
+		$new_cout_couleur = $integrale->calcul_cout_unitaire($new_engagement_couleur, 'coul');
+		// Get detail
+		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
+	} else if(!empty($new_cout_couleur) && !empty($old_cout_couleur) && $new_cout_couleur != $old_cout_couleur) {
+		// Calcul new cout
+		$cout_coul_calcule = $integrale->calcul_cout_unitaire($new_engagement_couleur, 'noir');
+		// Get detail
+		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $cout_coul_calcule, 'noir');
+		// Calcul FAS
+		$new_fas_couleur = $integrale->calcul_fas($TDetailCoutCouleur['nouveau_cout_unitaire_loyer'], $new_cout_noir);
+	} else {
+		// Get detail
+		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'noir');
+	}
+
+	$total_couleur = $new_engagement_couleur * $new_cout_couleur;
+	
+	/*if($calcul) {
+		$cout_unitaire_modifie_manuellement = (GETPOST('nouveau_cout_unitaire_noir_calcul') != GETPOST('nouveau_cout_unitaire_noir')) || (GETPOST('nouveau_cout_unitaire_couleur_calcul') != GETPOST('nouveau_cout_unitaire_couleur'));
+		$TDetailCoutNoir = $integrale->get_data_calcul_avenant_integrale(GETPOST('nouvel_engagement_noir'), !empty($cout_unitaire_modifie_manuellement) ? GETPOST('nouveau_cout_unitaire_noir') : $integrale->cout_unit_noir, 'noir', $cout_unitaire_modifie_manuellement);
+		$TDetailCoutCouleur = $integrale->get_data_calcul_avenant_integrale(GETPOST('nouvel_engagement_couleur'), !empty($cout_unitaire_modifie_manuellement) ? GETPOST('nouveau_cout_unitaire_couleur') : $integrale->cout_unit_coul, 'coul', $cout_unitaire_modifie_manuellement);
+	}*/
 	
 	print $form->hidden('action', 'addAvenantIntegrale');
 	print $form->hidden('id', GETPOST('id'));
@@ -403,8 +455,10 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS, $calcul=false) {
 	print $form->hidden('fk_soc', $f->socid);
 	
 	// On a également besoin d'afficher 2 hidden contenant la même valeur que les champs Coût unitaire noir & Coût unitaire couleur, pour ensuite vérifier s'ils ont été modifiés à la main par l'utilisateur
-	print $form->hidden('nouveau_cout_unitaire_noir_calcul', $calcul ? $TDataCalculNoir['nouveau_cout_unitaire'] : $integrale->cout_unit_noir);
-	print $form->hidden('nouveau_cout_unitaire_couleur_calcul', $calcul ? $TDataCalculCouleur['nouveau_cout_unitaire'] : $integrale->cout_unit_coul);
+	print $form->hidden('old_engagement_noir', $new_engagement_noir);
+	print $form->hidden('old_engagement_couleur', $new_engagement_couleur);
+	print $form->hidden('old_cout_unitaire_noir', $new_cout_noir);
+	print $form->hidden('old_cout_unitaire_couleur', $new_cout_couleur);
 	
 	$style = 'style="background-color: #C0C0C0"';
 	
@@ -416,38 +470,38 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS, $calcul=false) {
 		,array(
 			'noir'=>array(
 				'engage'=>$integrale->vol_noir_engage
-				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_noir',(empty($post_nouvel_engagement_noir) ? $integrale->vol_noir_engage : $post_nouvel_engagement_noir),10)
-				,'montant_total'=>$form->texteRO('','montant_total_noir',0,10,'',$style)
+				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_noir',$new_engagement_noir,10)
+				,'montant_total'=>$form->texteRO('','montant_total_noir',$total_noir,10,'',$style)
 				,'cout_unitaire'=>$integrale->cout_unit_noir
 				,'cout_unit_tech'=>$integrale->cout_unit_noir_tech
 				,'cout_unit_mach'=>$integrale->cout_unit_noir_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_noir_loyer
-				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_noir', $calcul ? $TDataCalculNoir['nouveau_cout_unitaire'] : $integrale->cout_unit_noir,10)
-				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_noir_tech', $calcul ? $TDataCalculNoir['nouveau_cout_unitaire_tech'] : 0,10,'',$style)  // Identique à l'ancien dans tous les cas
-				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_noir_mach', $calcul ? $TDataCalculNoir['nouveau_cout_unitaire_mach'] : 0,10,'',$style)
-				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_noir_loyer', $calcul ? $TDataCalculNoir['nouveau_cout_unitaire_loyer'] : 0,10,'',$style)
+				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_noir', $new_cout_noir,10)
+				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_noir_tech', $TDetailCoutNoir['nouveau_cout_unitaire_tech'],10,'',$style)  // Identique à l'ancien dans tous les cas
+				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_noir_mach', $TDetailCoutNoir['nouveau_cout_unitaire_mach'],10,'',$style)
+				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_noir_loyer', $TDetailCoutNoir['nouveau_cout_unitaire_loyer'],10,'',$style)
 			),
 			'couleur'=>array(
 				'engage'=>$integrale->vol_coul_engage
-				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_couleur',(empty($post_nouvel_engagement_couleur) ? $integrale->vol_coul_engage : $post_nouvel_engagement_couleur),10)
-				,'montant_total'=>$form->texteRO('','montant_total_couleur',0,10,'',$style)
+				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_couleur',$new_engagement_couleur,10)
+				,'montant_total'=>$form->texteRO('','montant_total_couleur',$total_couleur,10,'',$style)
 				,'cout_unitaire'=>$integrale->cout_unit_coul
 				,'cout_unit_tech'=>$integrale->cout_unit_coul_tech
 				,'cout_unit_mach'=>$integrale->cout_unit_coul_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_coul_loyer
-				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_couleur', $calcul ? $TDataCalculCouleur['nouveau_cout_unitaire'] : $integrale->cout_unit_coul,10)
-				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_coul_tech', $calcul ? $TDataCalculCouleur['nouveau_cout_unitaire_tech'] : 0,10,'',$style) // Identique à l'ancien dans tous les cas
-				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_coul_mach', $calcul ? $TDataCalculCouleur['nouveau_cout_unitaire_mach'] : 0,10,'',$style)
-				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_coul_loyer', $calcul ? $TDataCalculCouleur['nouveau_cout_unitaire_loyer'] : 0,10,'',$style)
+				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_couleur', $new_cout_couleur,10)
+				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_coul_tech', $TDetailCoutCouleur['nouveau_cout_unitaire_tech'],10,'',$style) // Identique à l'ancien dans tous les cas
+				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_coul_mach', $TDetailCoutCouleur['nouveau_cout_unitaire_mach'],10,'',$style)
+				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_coul_loyer', $TDetailCoutCouleur['nouveau_cout_unitaire_loyer'],10,'',$style)
 			),
 			'global'=>array(
-				'FAS'=>$form->texteRO('','fas',$integrale->fas,10,'',$style)
+				'FAS'=>$form->texteRO('','fas',$integrale->fas + $new_fas_noir + $new_fas_couleur,10,'',$style)
 				,'FASS'=>$form->texteRO('','fass',$integrale->fass,10,'',$style)
 				,'frais_bris_machine'=>$form->texteRO('','frais_bris_machine',$integrale->frais_bris_machine,10,'',$style)
 				,'frais_facturation'=>$form->texteRO('','ftc',$integrale->frais_facturation,10,'',$style)
-				,'total_global'=>$form->texteRO('','total_global',$integrale->vol_noir_engage*$integrale->cout_unit_noir
-																+$integrale->vol_coul_engage*$integrale->cout_unit_coul
-																+$integrale->fas
+				,'total_global'=>$form->texteRO('','total_global',$total_noir
+																+$total_couleur
+																+$integrale->fas + $new_fas_noir + $new_fas_couleur
 																+$integrale->fass
 																+$integrale->frais_bris_machine
 																+$integrale->frais_facturation,10,'',$style)

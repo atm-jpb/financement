@@ -118,24 +118,59 @@ class TIntegrale extends TObjetStd {
 			// Calcul du nouveau coût unitaire en fonction des règles demandées
 			$nouveau_cout_unitaire = ($nouvel_engagement * $cout_unitaire
 									 + ($nouvel_engagement - $this->{'vol_'.$type.'_engage'})
-									 + (abs($this->{'vol_'.$type.'_engage'} - $nouvel_engagement) * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100) * $this->{'cout_unit_'.$type.'_tech'}))
+									 + (abs($this->{'vol_'.$type.'_engage'} - $nouvel_engagement) * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100)* $this->{'cout_unit_'.$type.'_tech'}))
 									 / $nouvel_engagement;
 		}
 		
 		// Calcul du détail du nouveau coût unitaire en fonction des règles demandées
 		$TData['nouveau_cout_unitaire'] = $this->ceil($nouveau_cout_unitaire);
 		
-		$this->get_data_detail_calcul_avenant_integrale($engagement, $nouveau_cout_unitaire, $TData, $type);
+		$this->get_data_detail_calcul_avenant_integrale($nouvel_engagement, $nouveau_cout_unitaire, $TData, $type);
 		
 		return $TData;
 		
 	}
 
-	function get_data_detail_calcul_avenant_integrale($engagement, $cout_unitaire, &$TData, $type='noir') {
+	function calcul_cout_unitaire($engagement, $type='noir') {
 		
+		$cout_unitaire = ($engagement * $this->{'cout_unit_'.$type}
+								 + ($engagement - $this->{'vol_'.$type.'_engage'})
+								 + (abs($this->{'vol_'.$type.'_engage'} - $engagement) * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100)* $this->{'cout_unit_'.$type.'_tech'}))
+								 / $engagement;
+		
+		return $this->ceil($cout_unitaire);
+		
+	}
+	
+	function calcul_fas($TData, &$cu_manuel, $engagement, $type='noir') {
+		
+		$fas_max = $this->{'vol_'.$type.'_engage'} * $TData['nouveau_cout_unitaire_loyer'] / 2;
+		if($fas_max < $this->fas) $fas_max = $this->fas;
+		$fas_necessaire = ($TData['cout_unitaire'] - $cu_manuel) * $engagement;
+		
+		//echo $fas_max.' - '.$fas_necessaire;
+		
+		if($fas_necessaire <= 0) return 0;
+		if($fas_necessaire > $fas_max) {
+			$cu_manuel = $TData['cout_unitaire'] - $fas_max / $engagement;
+			
+			return $fas_max;
+		}
+		
+		return $fas_necessaire;
+		
+	}
+
+	function calcul_detail_cout($engagement, $cout_unitaire, $type='noir') {
+		
+		$TData = array();
+		
+		$TData['cout_unitaire'] = $cout_unitaire;
 		$TData['nouveau_cout_unitaire_tech'] = $this->{'cout_unit_'.$type.'_tech'};
-		$TData['nouveau_cout_unitaire_mach'] = $this->ceil($this->{'vol_'.$type.'_engage'} * $this->{'cout_unit_'.$type.'_mach'} / $nouvel_engagement);
+		$TData['nouveau_cout_unitaire_mach'] = $this->ceil($this->{'vol_'.$type.'_engage'} * $this->{'cout_unit_'.$type.'_mach'} / $engagement);
 		$TData['nouveau_cout_unitaire_loyer'] = $this->ceil($cout_unitaire - $TData['nouveau_cout_unitaire_mach'] - $this->{'cout_unit_'.$type.'_tech'});
+		
+		return $TData;
 		
 	}
 	
