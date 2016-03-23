@@ -416,10 +416,10 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 		$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $cout_noir_calcule, 'noir');
 		// Calcul FAS
 		$new_fas_noir = $integrale->calcul_fas($TDetailCoutNoir, $new_cout_noir, $new_engagement_noir);
-	} else {
-		// Get detail
-		$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $new_cout_noir, 'noir');
+		//echo $new_engagement_noir.' : '. $cout_noir_calcule;
 	}
+	// Get detail
+	$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $new_cout_noir, 'noir');
 	
 	$total_noir = $new_engagement_noir * $new_cout_noir;
 	
@@ -431,15 +431,14 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
 	} else if(!empty($new_cout_couleur) && !empty($old_cout_couleur) && $new_cout_couleur != $old_cout_couleur) {
 		// Calcul new cout
-		$cout_coul_calcule = $integrale->calcul_cout_unitaire($new_engagement_couleur, 'noir');
+		$cout_coul_calcule = $integrale->calcul_cout_unitaire($new_engagement_couleur, 'coul');
 		// Get detail
-		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $cout_coul_calcule, 'noir');
+		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $cout_coul_calcule, 'coul');
 		// Calcul FAS
-		$new_fas_couleur = $integrale->calcul_fas($TDetailCoutCouleur['nouveau_cout_unitaire_loyer'], $new_cout_noir);
-	} else {
-		// Get detail
-		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'noir');
+		$new_fas_couleur = $integrale->calcul_fas($TDetailCoutCouleur['nouveau_cout_unitaire_loyer'], $new_cout_couleur);
 	}
+	// Get detail
+	$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
 
 	$total_couleur = $new_engagement_couleur * $new_cout_couleur;
 	
