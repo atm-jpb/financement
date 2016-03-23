@@ -385,7 +385,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	$integrale = new TIntegrale;
 	$integrale->loadBy($PDOdb, $f->ref, 'facnumber');
 	
-	$form=new TFormCore($_SERVER['PHP_SELF'], 'formAvenantIntegrale', 'POST');
+	$form=new TFormCore($_SERVER['PHP_SELF'].'#calculateur', 'formAvenantIntegrale', 'POST');
 	
 	$new_engagement_noir = GETPOST('nouvel_engagement_noir');
 	$new_engagement_couleur = GETPOST('nouvel_engagement_couleur');
@@ -464,6 +464,8 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	$post_nouvel_engagement_noir = GETPOST('nouvel_engagement_noir');
 	$post_nouvel_engagement_couleur = GETPOST('nouvel_engagement_couleur');
 	
+	print '<div id="calculateur">';
+	
 	print $TBS->render('./tpl/avenant_integrale.tpl.php'
 		,array()
 		,array(
@@ -511,8 +513,11 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 		)
 	);
 	
+	print '</div>';
+	
 	print '<div class="tabsAction">';
 	print $form->btsubmit($langs->trans('Calculer'), 'btCalcul', '', 'butAction');
+	print $form->checkbox1('Ne pas imprimer bloc locataire', 'no_print_bloc_locataire', 1, $pDefault);
 	print $form->btsubmit($langs->trans('Save'), 'btSave', '', 'butAction');
 	print '</div>';
 	
@@ -542,6 +547,8 @@ function _addAvenantIntegrale(&$dossier) {
 		$f->element = 'facture';
 		$f->add_object_linked('propal', $p->id);
 		
+		$no_print_bloc_locataire = GETPOST('no_print_bloc_locataire');
+		
 		$file_path = _genPDF($p, array(
 									'engagement_noir'=>GETPOST('nouvel_engagement_noir')
 									,'cout_unitaire_noir'=>GETPOST('nouveau_cout_unitaire_noir')
@@ -552,7 +559,7 @@ function _addAvenantIntegrale(&$dossier) {
 									,'ref_dossier'=>$dossier->financement->reference
 									,'total_global'=>GETPOST('total_global')
 									,'client'=>_getInfosClient($p->socid)
-								  ));
+								  ), empty($no_print_bloc_locataire));
 		
 		return $file_path;
 		
@@ -627,19 +634,18 @@ function _genPDF(&$propal, $TData, $print_bloc_locataire=true) {
 				'ref'=>$propal->ref
 			)
 			,'copies_noires'=>array(
-				'engagement'=>$TData['engagement_noir']
-				,'cout_unitaire'=>$TData['cout_unitaire_noir']
+				'engagement'=>price($TData['engagement_noir'])
+				,'cout_unitaire'=>price($TData['cout_unitaire_noir'])
 			)
 			,'copies_couleur'=>array(
-				'engagement'=>$TData['engagement_couleur']
-				,'cout_unitaire'=>$TData['cout_unitaire_couleur']
+				'engagement'=>price($TData['engagement_couleur'])
+				,'cout_unitaire'=>price($TData['cout_unitaire_couleur'])
 			)
 			,'global'=>array(
-				'FAS'=>$TData['FAS']
-				,'FASS'=>$TData['FASS']
-				,'total'=>$TData['test']
+				'FAS'=>price($TData['FAS'])
+				,'FASS'=>price($TData['FASS'])
 				,'ref_dossier'=>$TData['ref_dossier']
-				,'total_global'=>$TData['total_global']
+				,'total_global'=>price($TData['total_global'])
 			)
 			,'bloc_locataire'=>array(
 				'raison_sociale'=>$print_bloc_locataire ? $TData['client']['raison_sociale'] : ''
