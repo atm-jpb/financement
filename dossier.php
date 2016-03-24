@@ -1223,6 +1223,11 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 		$entity_field = TFinancementTools::get_entity_translation($entity).$form->hidden('entity', $entity);
 	}
 
+
+	if ($dossier->nature_financement == 'INTERNE') $current_periode = $dossier->financement->numero_prochaine_echeance - 1;
+	else $current_periode = $dossier->financementLeaser->numero_prochaine_echeance - 1;
+
+
 	//pre($TAffaire,true);exit;
 	print $TBS->render('./tpl/dossier.tpl.php'
 		,array(
@@ -1256,8 +1261,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'soldeRCPRO'=>($dossier->nature_financement == 'INTERNE') ? $dossier->getSolde($PDOdb, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time()) +1) : $dossier->getSolde($PDOdb, 'SRCPRO')//SRCPRO
 				,'soldeNRCPRO'=>($dossier->nature_financement == 'INTERNE') ? $dossier->getSolde($PDOdb, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time()) +1) : $dossier->getSolde($PDOdb, 'SNRCPRO')//SNRCPRO
 */
-				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO')//SRCPRO
-				,'soldeNRCPRO'=>$dossier->getSolde($PDOdb, 'SNRCPRO')//SNRCPRO
+				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO', $current_periode)//SRCPRO
+				,'soldeNRCPRO'=>$dossier->getSolde($PDOdb, 'SNRCPRO', $current_periode)//SNRCPRO
 				
 				,'soldeperso'=>$soldeperso
 				,'soldepersodispo'=>$form->combo('', 'soldepersodispo', array('1' => 'Oui', '2' => 'Non'), ($dossier->soldepersodispo) ? $dossier->soldepersodispo : 1)
