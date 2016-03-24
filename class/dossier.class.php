@@ -698,7 +698,6 @@ class TFin_dossier extends TObjetStd {
 		global $conf;
 		
 		$temps_restant = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
-		
 		if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_BANK_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
 		if ($this->financementLeaser->duree <= $iPeriode) return $this->financementLeaser->reste; // TODO check si ça doit rester
 		
@@ -1233,6 +1232,7 @@ class TFin_dossier extends TObjetStd {
 					$SR = $this->getSolde($ATMdb, 'SRBANK', $i+1);
 					$SNR = $this->getSolde($ATMdb, 'SNRBANK', $i+1);
 
+					/* TODO remove : depuis la réécriture de la fonction getSolde() ce bout de code est maintenant inutile mais il faut garder lese 2 appels à getSolde() du dessus
 					$duree_restante_leaser = ($i == 0) ? $this->financement->duree_restante : $this->financement->duree - $i;
 					if ((($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode()) > $seuil_solde){
 
@@ -1241,7 +1241,7 @@ class TFin_dossier extends TObjetStd {
 						if($SR > $LRD_leaser) $SR = $LRD_leaser;
 						if($SNR > $LRD_leaser) $SNR = $LRD_leaser;
 						//FIN Ticket 3049
-					}
+					}*/
 					$htmlSoldes.= '<tr><td colspan="2" align="center">Apr&egrave;s l\'&eacute;ch&eacute;ance n&deg;'.($i+1).'</td></tr>';
 					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($SR,2,',',' ').' &euro;</strong></td></tr>';
 					$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($SNR,2,',',' ').' &euro;</strong></td></tr>';
