@@ -571,7 +571,7 @@ class TFin_dossier extends TObjetStd {
 		return $coeff > 0 ? $coeff : 0;
 	}
 	
-	function getPenalite(&$PDOdb, $type, $iPeriode=0, $dateProchaine='', $coef_cpro=false)
+	function getPenalite(&$PDOdb, $type, $iPeriode=0, $date_deb_periode='', $coef_cpro=false)
 	{
 		$grille = new TFin_grille_leaser('PENALITE_'.$type);
 		$grille->get_grille($PDOdb, $this->financementLeaser->fk_soc, $this->contrat, '', array(), $this->entity);
@@ -581,7 +581,7 @@ class TFin_dossier extends TObjetStd {
 		else
 		{
 			$coeff = $TCoeff[0];
-			if ($coef_cpro && !empty($dateProchaine) && strtotime($dateProchaine) >= $this->getDateApplicationPenInterne($PDOdb, $grille, $type, $this->financementLeaser->fk_soc, $this->contrat, $this->entity)) $coeff = $TCoeff[1]; // Renvoi de la pénalité interne
+			if ($coef_cpro && !empty($date_deb_periode) && strtotime($date_deb_periode) >= $this->getDateApplicationPenInterne($PDOdb, $grille, $type, $this->financementLeaser->fk_soc, $this->contrat, $this->entity)) $coeff = $TCoeff[1]; // Renvoi de la pénalité interne
 			
 		}
 		
@@ -729,7 +729,7 @@ class TFin_dossier extends TObjetStd {
 			if ($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste; // TODO check si ça doit rester
 			
 			// Add Pen Leaser + CPro
-			$date_deb_periode = $this->getDateDebutPeriode($iPeriode);
+			$date_deb_periode = $this->getDateDebutPeriode($iPeriode-1);
 			$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode) / 100) * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
 			return ($solde > 0 ) ? $solde : 0;
 		}
