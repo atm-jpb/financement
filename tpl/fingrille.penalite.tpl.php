@@ -5,7 +5,7 @@
 		<td align="left">Pénalité leaser</td>
 		[onshow;block=begin;when [view.show_pen_interne;noerr=true]==1]
 			<td align="left">Pénalité Interne</td>
-			<td width="15%">Date d'application [view.selectDate;strconv=no;noerr=true]</td>
+			<td width="20%">Date d'application (Pen. Int.) [view.selectDate;strconv=no;noerr=true]</td>
 		[onshow;block=end]
 	</tr>
 	<tr class="[onshow;block=begin;when [coefficient.#;ope=mod:2]==1]impair[onshow;block=end][onshow;block=begin;when [coefficient.#;ope=mod:2]==0]pair[onshow;block=end]">
