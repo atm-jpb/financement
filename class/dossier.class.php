@@ -581,7 +581,13 @@ class TFin_dossier extends TObjetStd {
 		else
 		{
 			$coeff = $TCoeff[0];
-			if ($coef_cpro && !empty($date_deb_periode) && strtotime($date_deb_periode) >= $this->getDateApplicationPenInterne($PDOdb, $grille, $type, $this->financementLeaser->fk_soc, $this->contrat, $this->entity)) $coeff = $TCoeff[1]; // Renvoi de la pénalité interne
+			
+			if ($coef_cpro && !empty($date_deb_periode))
+			{
+				$coeff = 0;
+				$date_application = $this->getDateApplicationPenInterne($PDOdb, $grille, $type, $this->financementLeaser->fk_soc, $this->contrat, $this->entity);
+				if (strtotime($date_deb_periode) >= $date_application) $coeff = $TCoeff[1]; // Renvoi de la pénalité interne
+			}
 			
 		}
 		
