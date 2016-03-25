@@ -1221,6 +1221,11 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 		$entity_field = TFinancementTools::get_entity_translation($entity).$form->hidden('entity', $entity);
 	}
 
+
+	if ($dossier->nature_financement == 'INTERNE') $current_periode = $dossier->financement->numero_prochaine_echeance - 1;
+	else $current_periode = $dossier->financementLeaser->numero_prochaine_echeance - 1;
+
+
 	//pre($TAffaire,true);exit;
 	print $TBS->render('./tpl/dossier.tpl.php'
 		,array(
@@ -1230,6 +1235,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			'dossier'=>array(
 				'id'=>$dossier->rowid
 				,'entity'=>$entity_field
+				,'entity_label'=>$TEntities[$dossier->entity]
 				//combo($pLib,$pName,$pListe,$pDefault,$pTaille=1,$onChange='',$plus='',$class='flat',$id='',$multiple='false'){
 				/*,'reference'=>$form->texte('', 'reference', $dossier->reference, 100,255,'','','à saisir')*/ 
 				,'date_relocation'=>$form->calendrier('', 'date_relocation', $dossier->get_date('date_relocation'),10)
@@ -1248,8 +1254,14 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'marge_reelle'=>$dossier->marge_reelle
 				,'soldeRBANK'=>$dossier->getSolde($PDOdb, 'SRBANK',$dossier->financementLeaser->numero_prochaine_echeance-1)
 				,'soldeNRBANK'=>$dossier->getSolde($PDOdb, 'SNRBANK',$dossier->financementLeaser->numero_prochaine_echeance-1)
+
+/* TODO remove
 				,'soldeRCPRO'=>($dossier->nature_financement == 'INTERNE') ? $dossier->getSolde($PDOdb, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time()) +1) : $dossier->getSolde($PDOdb, 'SRCPRO')//SRCPRO
 				,'soldeNRCPRO'=>($dossier->nature_financement == 'INTERNE') ? $dossier->getSolde($PDOdb, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time()) +1) : $dossier->getSolde($PDOdb, 'SNRCPRO')//SNRCPRO
+*/
+				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO', $current_periode)//SRCPRO
+				,'soldeNRCPRO'=>$dossier->getSolde($PDOdb, 'SNRCPRO', $current_periode)//SNRCPRO
+				
 				,'soldeperso'=>$soldeperso
 				,'soldepersodispo'=>$form->combo('', 'soldepersodispo', array('1' => 'Oui', '2' => 'Non'), ($dossier->soldepersodispo) ? $dossier->soldepersodispo : 1)
 				,'soldepersointegrale'=>$soldepersointegrale

@@ -115,7 +115,7 @@ foreach ($liste_type_contrat as $idTypeContrat => $label) {
 	
 	$TCoeff = $grille->TGrille;
 	
-	print_titre($label);
+	print_fiche_titre($label);
 	
 	//include '../tpl/admin.grille.tpl.php';
 	

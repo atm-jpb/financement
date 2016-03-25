@@ -138,7 +138,7 @@ foreach ($liste_type_contrat as $typeContrat => $label) {
 	
 	$grille = &$TGrille[$typeContrat];
 
-	print_titre($label);
+	print_fiche_titre($label);
 
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formGrille'.$typeContrat,'POST');
 	$form->Set_typeaff($mode);
