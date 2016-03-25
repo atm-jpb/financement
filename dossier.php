@@ -386,7 +386,7 @@ function _liste(&$PDOdb, &$dossier) {
 	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
 		$fk_leaser = __val($_REQUEST['fk_leaser'],'','integer');
 
-		$sql .= " AND l.rowid = ".$fk_leaser." AND fl.transfert = 1";
+		$sql .= " AND l.rowid = ".$fk_leaser." AND fl.transfert = 1 AND a.type_financement = 'MANDATEE'";
 	}
 	
 	if(GETPOST('searchdossier')){
