@@ -27,6 +27,7 @@ penaliteNR=Pénalités non-renouvellantes
 rentabilite=Grille de rentabilité
 ScriptsManuallyLaunchable=Scripts à lancer manuellement
 PenalitesForSimulation=Pénalités appliquées au simulateur
+PenalitesForSuiviIntegrale=Pénalités appliquées au suivi intégrale
 opt_periodicite=Périodicité
 opt_mode_reglement=Mode de règlement
 opt_terme=Terme

@@ -8,6 +8,9 @@ class TIntegrale extends TObjetStd {
 		parent::add_champs('label','type=chaine;');
 		parent::add_champs('vol_noir_engage,vol_noir_realise,vol_noir_facture,vol_coul_engage,vol_coul_realise,vol_coul_facture','type=entier;');
 		parent::add_champs('cout_unit_noir,cout_unit_coul,fas,fass,frais_dossier,frais_bris_machine,frais_facturation,total_ht_engage,total_ht_realise,total_ht_facture,ecart','type=float;');
+		// Nouveaux Champs contenant le détail des cout_unit_noir et cout_unit_coul
+		parent::add_champs('cout_unit_noir_tech,cout_unit_noir_mach,cout_unit_noir_loyer','type=float;');
+		parent::add_champs('cout_unit_coul_tech,cout_unit_coul_mach,cout_unit_coul_loyer','type=float;');
 		
 		parent::start();
 		parent::_init_vars();
@@ -99,5 +102,94 @@ class TIntegrale extends TObjetStd {
 			$this->ecart = round($this->ecart, 2);
 		}
 	}
+	
+	/**
+	 * $nouvel_engagement est une valeur qui vient du formulaire
+	 * $cout_unitaire est à la base l'ancien cout unitaire, mais peut également être modifié et provenir du formulaire
+	 */
+	function get_data_calcul_avenant_integrale($nouvel_engagement, $cout_unitaire, $type='noir', $nouveau_cout_unitaire_manuel=false) {
+		
+		global $conf;
+		
+		$TData = array();
+		//echo $cout_unitaire.'<br>';
+		if(!empty($nouveau_cout_unitaire_manuel)) $nouveau_cout_unitaire = $cout_unitaire;
+		else {
+			// Calcul du nouveau coût unitaire en fonction des règles demandées
+			$nouveau_cout_unitaire = ($nouvel_engagement * $cout_unitaire
+									 + ($nouvel_engagement - $this->{'vol_'.$type.'_engage'})
+									 + (abs($this->{'vol_'.$type.'_engage'} - $nouvel_engagement) * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100)* $this->{'cout_unit_'.$type.'_tech'}))
+									 / $nouvel_engagement;
+		}
+		
+		// Calcul du détail du nouveau coût unitaire en fonction des règles demandées
+		$TData['nouveau_cout_unitaire'] = $this->ceil($nouveau_cout_unitaire);
+		
+		$this->get_data_detail_calcul_avenant_integrale($nouvel_engagement, $nouveau_cout_unitaire, $TData, $type);
+		
+		return $TData;
+		
+	}
+
+	function calcul_cout_unitaire($engagement, $type='noir') {
+		
+		$cout_unitaire = ($engagement * $this->{'cout_unit_'.$type}
+								 + (($engagement - $this->{'vol_'.$type.'_engage'}) + (abs($this->{'vol_'.$type.'_engage'} - $engagement)) * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100)
+								 * $this->{'cout_unit_'.$type.'_tech'}))
+								 / $engagement;
+		
+		return $this->ceil($cout_unitaire);
+		
+	}
+	
+	function calcul_fas($TData, &$cu_manuel, $engagement, $type='noir') {
+		
+		$fas_max = $this->{'vol_'.$type.'_engage'} * $TData['nouveau_cout_unitaire_loyer'] / 2;
+		if($fas_max < $this->fas) $fas_max = $this->fas;
+		$fas_necessaire = ($TData['cout_unitaire'] - $cu_manuel) * $engagement;
+		
+		//echo $fas_max.' - '.$fas_necessaire;
+		
+		if($fas_necessaire <= 0) return 0;
+		if($fas_necessaire > $fas_max) {
+			$cu_manuel = $TData['cout_unitaire'] - $fas_max / $engagement;
+			
+			return $fas_max;
+		}
+		
+		return $fas_necessaire;
+		
+	}
+
+	function calcul_detail_cout($engagement, $cout_unitaire, $type='noir') {
+		
+		$TData = array();
+		
+		$TData['cout_unitaire'] = $cout_unitaire;
+		$TData['nouveau_cout_unitaire_tech'] = $this->{'cout_unit_'.$type.'_tech'};
+		$TData['nouveau_cout_unitaire_mach'] = $this->ceil($this->{'vol_'.$type.'_engage'} * $this->{'cout_unit_'.$type.'_mach'} / $engagement);
+		$TData['nouveau_cout_unitaire_loyer'] = $this->ceil($cout_unitaire - $TData['nouveau_cout_unitaire_mach'] - $this->{'cout_unit_'.$type.'_tech'});
+		
+		return $TData;
+		
+	}
+	
+	private function ceil($valeur, $puissance=4) {
+
+		return ceil($valeur * pow(10, $puissance)) / pow(10, $puissance);
+		
+	}
+	
+	/**
+	 * Retourne la ligne propal ayant le fk_product passé en param
+	 */
+	static function get_line_from_propal(&$propal, $ref_product) {
+		//pre($propal->lines ,true);
+		foreach($propal->lines as $line) {
+			if($line->ref == $ref_product) return $line;
+		}
+		
+	}
+	
 }
 

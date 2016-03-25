@@ -85,7 +85,8 @@ class modFinancement extends DolibarrModules
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@financement')) // Set here all workflow context managed by module
 		//                        );
 		$this->module_parts = array(
-			'hooks'=>array('thirdpartycard','salesrepresentativescard','invoicecard','invoicesuppliercard','searchform')
+			'hooks'=>array('thirdpartycard','salesrepresentativescard','invoicecard','invoicesuppliercard','searchform','propalcard')
+			,'triggers'=>1
 		);
 
 		// Data directories to create when module is enabled.
@@ -329,6 +330,20 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'read';
 		//$this->rights[$r][5] = 'read';
+		$r++;
+		
+		$this->rights[$r][0] = 210055;
+		$this->rights[$r][1] = 'Suivi intégrale : Voir le détail des coûts unitaires';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'integrale';
+		$this->rights[$r][5] = 'detail_couts';
+		$r++;
+		
+		$this->rights[$r][0] = 210056;
+		$this->rights[$r][1] = 'Suivi intégrale : Pouvoir visualiser les avenants dont la date de fin de validité est dépassée';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'integrale';
+		$this->rights[$r][5] = 'see_past_propal';
 		$r++;
 
 
