@@ -178,6 +178,7 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		$TIntegrale[$integrale->date_periode]->facnumber .= "<br />".$integrale->facnumber;
 		$TIntegrale[$integrale->date_periode]->TIds[] = $integrale->getId();
 		
+		
 		//Cas avoir PARTIEL
 		if($facture->type == 2){
 			//re($TIntegrale[$integrale->date_periode],true);exit;
@@ -249,6 +250,11 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
 		$TIntegrale[$integrale->date_periode]->TIds = array(0 => $integrale->getId());
 	}
+
+	$facture->fetchObjectLinked('', 'propal', $facture->id, 'facture');
+	if(!empty($facture->linkedObjects['propal'])) {
+		foreach($facture->linkedObjects['propal'] as $p) $TIntegrale[$integrale->date_periode]->propal .= $p->getNomUrl(1).' '.$p->getLibStatut(3)."<br>";
+	}
 	
 	return $TIntegrale;
 	
@@ -315,19 +321,11 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 				foreach($facture as $fact){
 					$TIntegrale[$date_periode]->date_facture .= $fact->ref_client."<br>";
 					$TIntegrale[$date_periode]->facnumber .= $fact->getNomUrl()."<br>";
-					$fact->fetchObjectLinked('', 'propal', '', 'facture');
-					if(!empty($fact->linkedObjects['propal'])) {
-						foreach($fact->linkedObjects['propal'] as $p) $TIntegrale[$date_periode]->propal .= $p->getNomUrl(1).' '.$p->getLibStatut(3)."<br>";
-					}
 				}
 			}
 			else{
 				$TIntegrale[$date_periode]->date_facture .= $facture->ref_client."<br>";
 				$TIntegrale[$date_periode]->facnumber .= $facture->getNomUrl()."<br>";
-				$facture->fetchObjectLinked('', 'propal', '', 'facture');
-				if(!empty($facture->linkedObjects['propal'])) {
-					foreach($facture->linkedObjects['propal'] as $p) $TIntegrale[$date_periode]->propal .= $p->getNomUrl(1).' '.$p->getLibStatut(3)."<br>";
-				}
 			}
 			
 		} // else{} TODO A voir comment faire car certaines factures sont des loyers intercalaires et ne sont pas associés à des périodes.
