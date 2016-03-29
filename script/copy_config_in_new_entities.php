@@ -8,6 +8,29 @@ dol_include_once('/financement/class/grille.class.php');
 
 $ATMdb = new TPDOdb;
 
+$resql = $db->query('SELECT MAX(rowid) as max_rowid FROM llx_fin_grille_suivi');
+$res = $db->fetch_object($resql);
+$max_rowid = $res->max_rowid + 1;
+
+$sql = 'SELECT fk_type_contrat, fk_leaser_solde, fk_leaser_entreprise, fk_leaser_administration, fk_leaser_association, montantbase, montantfin
+FROM llx_fin_grille_suivi
+WHERE entity = 1';
+
+$entity = GETPOST('entity');
+if(empty($entity)) exit('entité vide');
+
+$resql = $db->query($sql);
+while($res = $db->fetch_object($resql)) {
+	$sql = 'INSERT INTO llx_fin_grille_suivi (rowid, fk_type_contrat, fk_leaser_solde, fk_leaser_entreprise, fk_leaser_administration, fk_leaser_association, montantbase, montantfin, entity)
+		VALUES ('.$max_rowid.',"'.$res->fk_type_contrat.'",'.$res->fk_leaser_solde.','.$res->fk_leaser_entreprise.','.$res->fk_leaser_administration.','.$res->fk_leaser_association.','.$res->montantbase.','.$res->montantfin.','. $entity .')
+	';
+	//echo $sql;exit;
+	$db->query($sql);
+	$max_rowid++;
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------
+exit;
 
 // On récupère les id's des nouvelles entités
 $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'entity WHERE rowid > 1';
