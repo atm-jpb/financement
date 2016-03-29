@@ -125,7 +125,9 @@ if(!empty($action)) {
 
 			$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
 			$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
-			$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
+			$simu = new TSimulation;
+			$TSimu = $simu->load_by_soc($ATMdb, $db, $simulation->fk_soc);
+			if (empty($TSimu)) $simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 
 			$simulation->_calcul($ATMdb);
 			//C'est dégueu mais sa marche
