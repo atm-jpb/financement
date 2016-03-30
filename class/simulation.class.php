@@ -246,6 +246,9 @@ class TSimulation extends TObjetStd {
 				$this->reordreSimulationSuivi($PDOdb);
 			}
 		}
+		/*foreach($this->TSimulationSuivi as $k=>$v) {
+			echo $v->fk_leaser.'<br>';
+		}exit;*/
 	}
 	
 	function getStatut() {
@@ -365,6 +368,8 @@ class TSimulation extends TObjetStd {
 	//Réorganisation de l'ordre de la liste en fonction de la grille d'administration
 	function reordreSimulationSuivi(&$PDOdb){
 		
+		global $conf;
+		
 		$TSimulationSuiviTemp = array();
 		
 		//Récupération du leaser prioritaire pour affichage en premier dans le tableau
@@ -384,7 +389,7 @@ class TSimulation extends TObjetStd {
 		//Récupération de l'ordre par défaut pour les autres Leaser
 		$sql = "SELECT rowid, fk_leaser_solde, montantbase 
 				FROM ".MAIN_DB_PREFIX."fin_grille_suivi 
-				WHERE fk_type_contrat = 'DEFAUT_".$this->fk_type_contrat."'";
+				WHERE fk_type_contrat = 'DEFAUT_".$this->fk_type_contrat."' AND entity = ".$conf->entity;
 		if($idLeaserPrio) $sql .= " AND fk_leaser_solde != ".$idLeaserPrio;	
 		$sql .= " ORDER BY montantbase ASC";
 	
