@@ -1,7 +1,7 @@
 <?php
 
 class TSimulation extends TObjetStd {
-	function __construct() {
+	function __construct($setChild=false) {
 		global $langs;
 		
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation');
@@ -17,6 +17,9 @@ class TSimulation extends TObjetStd {
 		parent::_init_vars();
 		
 		$this->init();
+		
+		if ($setChild) $this->setChild('TSimulationSuivi','fk_simulation');
+		else $this->TSimulationSuivi = array();
 		
 		$this->TStatut=array(
 			'OK'=>$langs->trans('Accord')
@@ -54,7 +57,6 @@ class TSimulation extends TObjetStd {
 			,'TOSHIBA' => 'TOSHIBA'
 		);
 
-		$this->TSimulationSuivi = array();
 	}
 	
 	function init() {

@@ -14,7 +14,7 @@ require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 
 $langs->load('financement@financement');
-$simulation=new TSimulation;
+$simulation=new TSimulation(true);
 $ATMdb = new TPDOdb;
 $tbs = new TTemplateTBS;
 
