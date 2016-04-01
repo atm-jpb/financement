@@ -385,6 +385,9 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'].'#calculateur', 'formAvenantIntegrale', 'POST');
 	
+	// Si simulation sur le mois de décembre, +6% sur tous les coûts
+	$pourcentage_sup_mois_decembre = ((int)date('m') == 12) ? 1.06 : 1;
+	
 	$new_engagement_noir = GETPOST('nouvel_engagement_noir');
 	$new_engagement_couleur = GETPOST('nouvel_engagement_couleur');
 	$old_engagement_noir = GETPOST('old_engagement_noir');
@@ -398,8 +401,8 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	
 	if(empty($new_engagement_noir)) $new_engagement_noir = $integrale->vol_noir_engage;
 	if(empty($new_engagement_couleur)) $new_engagement_couleur = $integrale->vol_coul_engage;
-	if(empty($new_cout_noir)) $new_cout_noir = $integrale->cout_unit_noir;
-	if(empty($new_cout_couleur)) $new_cout_couleur = $integrale->cout_unit_coul;
+	if(empty($new_cout_noir)) $new_cout_noir = $integrale->cout_unit_noir * $pourcentage_sup_mois_decembre;
+	if(empty($new_cout_couleur)) $new_cout_couleur = $integrale->cout_unit_coul * $pourcentage_sup_mois_decembre;
 	
 	// GESTION DU NOIR
 	if(!empty($new_engagement_noir) && !empty($old_engagement_noir) && $new_engagement_noir != $old_engagement_noir) {
@@ -494,10 +497,10 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_coul_loyer', $TDetailCoutCouleur['nouveau_cout_unitaire_loyer'],10,'',$style)
 			),
 			'global'=>array(
-				'FAS'=>$form->texteRO('','fas',$integrale->fas + $new_fas_noir + $new_fas_couleur,10,'',$style)
-				,'FASS'=>$form->texteRO('','fass',$integrale->fass,10,'',$style)
-				,'frais_bris_machine'=>$form->texteRO('','frais_bris_machine',$integrale->frais_bris_machine,10,'',$style)
-				,'frais_facturation'=>$form->texteRO('','ftc',$integrale->frais_facturation,10,'',$style)
+				'FAS'=>$form->texteRO('','fas', ($integrale->fas + $new_fas_noir + $new_fas_couleur) * $pourcentage_sup_mois_decembre,10,'',$style)
+				,'FASS'=>$form->texteRO('','fass', $integrale->fass * $pourcentage_sup_mois_decembre,10,'',$style)
+				,'frais_bris_machine'=>$form->texteRO('','frais_bris_machine',$integrale->frais_bris_machine  * $pourcentage_sup_mois_decembre,10,'',$style)
+				,'frais_facturation'=>$form->texteRO('','ftc',$integrale->frais_facturation * $pourcentage_sup_mois_decembre,10,'',$style)
 				,'total_global'=>$form->texteRO('','total_global',$total_noir
 																+$total_couleur
 																+$integrale->fas + $new_fas_noir + $new_fas_couleur
