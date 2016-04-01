@@ -408,6 +408,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	if(!empty($new_engagement_noir) && !empty($old_engagement_noir) && $new_engagement_noir != $old_engagement_noir) {
 		// Calcul new cout
 		$new_cout_noir = $integrale->calcul_cout_unitaire($new_engagement_noir, 'noir');
+		$new_cout_noir *= $pourcentage_sup_mois_decembre;
 		// Get detail
 		$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $new_cout_noir, 'noir');
 	} else if(!empty($new_cout_noir) && !empty($old_cout_noir) && $new_cout_noir != $old_cout_noir) {
@@ -428,6 +429,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	if(!empty($new_engagement_couleur) && !empty($old_engagement_couleur) && $new_engagement_couleur != $old_engagement_couleur) {
 		// Calcul new cout
 		$new_cout_couleur = $integrale->calcul_cout_unitaire($new_engagement_couleur, 'coul');
+		$new_cout_couleur *= $pourcentage_sup_mois_decembre;
 		// Get detail
 		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
 	} else if(!empty($new_cout_couleur) && !empty($old_cout_couleur) && $new_cout_couleur != $old_cout_couleur) {
