@@ -389,7 +389,7 @@ class TSimulation extends TObjetStd {
 		//Récupération de l'ordre par défaut pour les autres Leaser
 		$sql = "SELECT rowid, fk_leaser_solde, montantbase 
 				FROM ".MAIN_DB_PREFIX."fin_grille_suivi 
-				WHERE fk_type_contrat = 'DEFAUT_".$this->fk_type_contrat."' AND entity = ".$conf->entity;
+				WHERE fk_type_contrat = 'DEFAUT_".$this->fk_type_contrat."' AND entity = ".(empty($this->entity) ? $conf->entity : $this->entity);
 		if($idLeaserPrio) $sql .= " AND fk_leaser_solde != ".$idLeaserPrio;	
 		$sql .= " ORDER BY montantbase ASC";
 	
