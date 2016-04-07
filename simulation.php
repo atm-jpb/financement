@@ -57,7 +57,7 @@ if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive 
 	}
 }
 
-if(!empty($_REQUEST['fk_soc'])) {
+if(!empty($_REQUEST['fk_soc']) && $action == 'new') {
 	$simulation->fk_soc = $_REQUEST['fk_soc'];
 	$simulation->load_annexe($ATMdb, $db);
 
