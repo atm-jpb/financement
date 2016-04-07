@@ -111,6 +111,7 @@ function createOrUpdateThird(&$ATMdb, $code_client, $dataline) {
 	
 	if(!empty($TIdSociete)) {
 		foreach($TIdSociete as $rowid){
+			echo 'UPDATE '.$rowid;
 			$societe = new Societe($db);
 			$societe->fetch($rowid);
 			$societe->name = $nom;
@@ -129,8 +130,10 @@ function createOrUpdateThird(&$ATMdb, $code_client, $dataline) {
 		$societe->town = $ville;
 		$societe->country_id = $pays;
 		$societe->idprof1 = $siren;
-		$societe->client = 1;  
-		$societe->create();
+		$societe->client = 1;
+		$societe->code_client = $code_client; 
+		$societe->create($user);
+		echo 'CREATE '.$societe->id;
 	}
 }
 ?>
