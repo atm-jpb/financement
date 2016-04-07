@@ -75,7 +75,7 @@ function get_duree(&$ATMdb) {
 	$idTypeContrat = GETPOST('fk_type_contrat');
 	$opt_periodicite = GETPOST('opt_periodicite');
 
-	$htmlresult = $form->combo('','duree', $grille->get_duree($ATMdb, FIN_LEASER_DEFAULT, $idTypeContrat, $opt_periodicite, getEntity()), '');
+	$htmlresult = $form->combo('','duree', $grille->get_duree($ATMdb, FIN_LEASER_DEFAULT, $idTypeContrat, $opt_periodicite, GETPOST('entity')), '');
 	
 	$db->close();
 	
@@ -97,7 +97,7 @@ function get_grille(&$ATMdb) {
 	}
 	
 	$grille = new TFin_grille_leaser();
-	$grille->get_grille($ATMdb, $idLeaser, $fk_type_contrat, $opt_periodicite, $options);
+	$grille->get_grille($ATMdb, $idLeaser, $fk_type_contrat, $opt_periodicite, $options, GETPOST('entity'));
 	
 	
 	if (empty($grille->TGrille)) {

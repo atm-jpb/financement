@@ -8,6 +8,8 @@
 		[simulation.titre_simul; strconv=no]
 	<br />
 	
+	<input type="hidden" name="entity_partenaire" id="entity_partenaire" value="[simulation.entity_partenaire; strconv=no]" />
+	
 	<table width="100%"  class="border">
 		<tr class="liste_titre">
 			<td width="50%" valign="top">

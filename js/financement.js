@@ -71,7 +71,8 @@ var get_grille = function() {
 		idLeaser : $('input[name="idLeaser"]').val(),
 		fk_type_contrat : $('select[name="fk_type_contrat"]').val(),
 		opt_periodicite : $('select[name="opt_periodicite"]').val(),
-		options : fin_options
+		options : fin_options,
+		entity : $('#entity_partenaire').val()
 	};
 	
 	if(data.fk_type_contrat != 0) {
@@ -95,6 +96,7 @@ var get_periode = function() {
 		outjson : 1,
 		opt_periodicite : $('select[name="opt_periodicite"]').val(),
 		fk_type_contrat : $('select[name="fk_type_contrat"]').val(),
+		entity : $('#entity_partenaire').val()
 	};
 	$.post(
 		'ajaxsimulateur.php',
