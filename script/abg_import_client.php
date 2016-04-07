@@ -99,7 +99,7 @@ $ATMdb->close();
 print '--- end'.$eol;
 
 function createOrUpdateThird(&$ATMdb, $code_client, $dataline) {
-	global $db;
+	global $db, $user;
 	
 	$TIdSociete = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe',array('code_client'=>$code_client));
 	
