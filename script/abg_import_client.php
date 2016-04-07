@@ -84,9 +84,9 @@ while($dataline = fgetcsv($fileHandler, 1024, FIN_IMPORT_FIELD_DELIMITER, FIN_IM
 	
 	echo $code_client1." / ".$dataline[0].'<br>';
 	
-	if(!empty($dataline[7])) createOrUpdateThird($code_client1, $dataline);
-	if(!empty($dataline[8])) createOrUpdateThird($code_client2, $dataline);
-	if(!empty($dataline[9])) createOrUpdateThird($code_client3, $dataline);
+	if(!empty($dataline[7])) createOrUpdateThird($ATMdb, $code_client1, $dataline);
+	if(!empty($dataline[8])) createOrUpdateThird($ATMdb, $code_client2, $dataline);
+	if(!empty($dataline[9])) createOrUpdateThird($ATMdb, $code_client3, $dataline);
 	
 	$nb_lines++;
 }
@@ -98,7 +98,7 @@ $ATMdb->close();
 
 print '--- end'.$eol;
 
-function createOrUpdateThird($code_client, $dataline) {
+function createOrUpdateThird(&$ATMdb, $code_client, $dataline) {
 	$TIdSociete = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe',array('code_client'=>$code_client));
 	
 	$siren = trim($dataline[0]);
