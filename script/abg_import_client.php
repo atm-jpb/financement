@@ -119,7 +119,7 @@ function createOrUpdateThird(&$ATMdb, $code_client, $dataline) {
 			$societe->country_id = $pays;
 			$societe->idprof1 = $siren;
 			$societe->array_options['options_other_siren'] = '';
-			$societe->update($rowid);
+			$societe->update($rowid, $user);
 		}
 	} else {
 		$societe = new Societe($db);
