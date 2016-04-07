@@ -121,6 +121,7 @@ function createOrUpdateThird($code_client, $dataline) {
 		}
 	} else {
 		$societe = new Societe($db);
+		$societe->entity = 5;
 		$societe->name = $nom;
 		$societe->zip = $cp;
 		$societe->town = $ville;
