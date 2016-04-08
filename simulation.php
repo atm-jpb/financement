@@ -92,8 +92,13 @@ if(!empty($_REQUEST['fk_soc'])) {
 	    $objcanvas->getCanvas('thirdparty', 'card', $canvas);
 	}
 	
-	// Security check
-	$result = restrictedArea($user, 'societe', $simulation->societe->id, '&societe', '', 'fk_soc', 'rowid', $objcanvas);
+	if(empty(TFinancementTools::user_courant_est_admin_financement())) {
+
+		// Security check
+		$result = restrictedArea($user, 'societe', $simulation->societe->id, '&societe', '', 'fk_soc', 'rowid', $objcanvas);
+
+	}
+
 }
 
 if($action == 'list') $TDossierLink = _getListIDDossierByNumAccord();
