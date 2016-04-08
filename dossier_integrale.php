@@ -1,10 +1,12 @@
 <?php
 
 require('config.php');
-require('./class/affaire.class.php');
-require('./class/dossier.class.php');
-require('./class/dossier_integrale.class.php');
-require('./class/grille.class.php');
+dol_include_once('/financement/class/affaire.class.php');
+dol_include_once('/financement/class/dossier.class.php');
+dol_include_once('/financement/class/dossier_integrale.class.php');
+dol_include_once('/financement/class/grille.class.php');
+dol_include_once('/comm/propal/class/propal.class.php');
+dol_include_once('/compta/facture/class/facture.class.php');
 
 $langs->load('financement@financement');
 
@@ -12,17 +14,40 @@ if (!$user->rights->financement->integrale->read)	{ accessforbidden(); }
 
 $dossier=new TFin_Dossier;
 $PDOdb=new TPDOdb;
-
+$action = GETPOST('action');
 $id_dossier = GETPOST('id');
+$TBS = new TTemplateTBS;
+
+$dossier->load($PDOdb, $id_dossier);
+$dossier->load_facture($PDOdb,true);
 
 llxHeader('','Suivi intégrale');
 
-if(empty($id_dossier)) {
-	_liste($PDOdb, $dossier);
+if($action == 'addAvenantIntegrale'){
+	$calcul = false;
+	if(isset($_REQUEST['btSave'])) $file_path = _addAvenantIntegrale($dossier);
+	_affichage($PDOdb, $TBS, $dossier, $file_path);
+	_printFormAvenantIntegrale($PDOdb, $dossier, $TBS);
+} elseif(empty($id_dossier)) {
+	_liste($PDOdb, $dossier, $TBS);
 } else {
-	$dossier->load($PDOdb, $id_dossier);
-	$dossier->load_facture($PDOdb,true);
-	_fiche($PDOdb, $db, $dossier);
+	_affichage($PDOdb, $TBS, $dossier);
+}
+
+function _affichage(&$PDOdb, &$TBS, &$dossier, $file_path='') {
+	
+	global $db;
+
+	_fiche($PDOdb, $db, $dossier, $TBS);
+	
+	if(!empty($file_path)) {
+		?>
+			<script>
+				document.location.href="<?php echo $file_path; ?>";
+			</script>
+		<?php
+	}
+	
 }
 
 llxFooter();
@@ -153,6 +178,7 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		$TIntegrale[$integrale->date_periode]->facnumber .= "<br />".$integrale->facnumber;
 		$TIntegrale[$integrale->date_periode]->TIds[] = $integrale->getId();
 		
+		
 		//Cas avoir PARTIEL
 		if($facture->type == 2){
 			//re($TIntegrale[$integrale->date_periode],true);exit;
@@ -224,6 +250,11 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		$TIntegrale[$integrale->date_periode]->nb_ecart += 1;
 		$TIntegrale[$integrale->date_periode]->TIds = array(0 => $integrale->getId());
 	}
+
+	$facture->fetchObjectLinked('', 'propal', $facture->id, 'facture');
+	if(!empty($facture->linkedObjects['propal'])) {
+		foreach($facture->linkedObjects['propal'] as $p) $TIntegrale[$integrale->date_periode]->propal .= $p->getNomUrl(1).' '.$p->getLibStatut(3)."<br>";
+	}
 	
 	return $TIntegrale;
 	
@@ -246,9 +277,7 @@ function _factureAnnuleParAvoir($facnumber){
 	}
 }
 
-function _fiche(&$PDOdb, &$doliDB, &$dossier) {
-
-	$TBS = new TTemplateTBS;
+function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	
 	$fin = &$dossier->financement;
 	
@@ -299,7 +328,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 				$TIntegrale[$date_periode]->facnumber .= $facture->getNomUrl()."<br>";
 			}
 			
-		}
+		} // else{} TODO A voir comment faire car certaines factures sont des loyers intercalaires et ne sont pas associés à des périodes.
 		
 		//$TIntegrale[] = '';
 	}
@@ -332,4 +361,310 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier) {
 			,'client'=>$client
 		)
 	);
+	
+	print '<div class="tabsAction">';
+	print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale">Nouveau calcul d\'avenant</a>';
+	print '</div>';
+	
+}
+
+function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
+	
+	global $user, $langs;
+	
+	$TFacture = &$dossier->TFacture;
+	if(empty($TFacture)) {
+		setEventMessage('Aucune facture intégrale trouvée', 'warnings');
+		return 0;
+	}
+	
+	$f = is_object(end($TFacture)) ? end($TFacture) : end(end($TFacture)); // Dans certains cas, il y a plusieurs factures pour une période, on veut la dernière
+	
+	$integrale = new TIntegrale;
+	$integrale->loadBy($PDOdb, $f->ref, 'facnumber');
+	
+	$form=new TFormCore($_SERVER['PHP_SELF'].'#calculateur', 'formAvenantIntegrale', 'POST');
+	
+	// Si simulation sur le mois de décembre, +6% sur tous les coûts
+	$pourcentage_sup_mois_decembre = ((int)date('m') == 12) ? 1.06 : 1;
+	
+	$new_engagement_noir = GETPOST('nouvel_engagement_noir');
+	$new_engagement_couleur = GETPOST('nouvel_engagement_couleur');
+	$old_engagement_noir = GETPOST('old_engagement_noir');
+	$old_engagement_couleur = GETPOST('old_engagement_couleur');
+	$new_cout_noir = GETPOST('nouveau_cout_unitaire_noir');
+	$new_cout_couleur = GETPOST('nouveau_cout_unitaire_couleur');
+	$old_cout_noir = GETPOST('old_cout_unitaire_noir');
+	$old_cout_couleur = GETPOST('old_cout_unitaire_couleur');
+	$new_fas_noir = 0;
+	$new_fas_couleur = 0;
+	
+	if(empty($new_engagement_noir)) $new_engagement_noir = $integrale->vol_noir_engage;
+	if(empty($new_engagement_couleur)) $new_engagement_couleur = $integrale->vol_coul_engage;
+	if(empty($new_cout_noir)) $new_cout_noir = $integrale->cout_unit_noir * $pourcentage_sup_mois_decembre;
+	if(empty($new_cout_couleur)) $new_cout_couleur = $integrale->cout_unit_coul * $pourcentage_sup_mois_decembre;
+	
+	// GESTION DU NOIR
+	if(!empty($new_engagement_noir) && !empty($old_engagement_noir) && $new_engagement_noir != $old_engagement_noir) {
+		// Calcul new cout
+		$new_cout_noir = $integrale->calcul_cout_unitaire($new_engagement_noir, 'noir');
+		$new_cout_noir *= $pourcentage_sup_mois_decembre;
+		// Get detail
+		$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $new_cout_noir, 'noir');
+	} else if(!empty($new_cout_noir) && !empty($old_cout_noir) && $new_cout_noir != $old_cout_noir) {
+		// Calcul new cout
+		$cout_noir_calcule = $integrale->calcul_cout_unitaire($new_engagement_noir, 'noir');
+		// Get detail
+		$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $cout_noir_calcule, 'noir');
+		// Calcul FAS
+		$new_fas_noir = $integrale->calcul_fas($TDetailCoutNoir, $new_cout_noir, $new_engagement_noir);
+		//echo $new_engagement_noir.' : '. $cout_noir_calcule;
+	}
+	// Get detail
+	$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $new_cout_noir, 'noir');
+	
+	$total_noir = $new_engagement_noir * $new_cout_noir;
+	
+	// GESTION DE LA COULEUR
+	if(!empty($new_engagement_couleur) && !empty($old_engagement_couleur) && $new_engagement_couleur != $old_engagement_couleur) {
+		// Calcul new cout
+		$new_cout_couleur = $integrale->calcul_cout_unitaire($new_engagement_couleur, 'coul');
+		$new_cout_couleur *= $pourcentage_sup_mois_decembre;
+		// Get detail
+		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
+	} else if(!empty($new_cout_couleur) && !empty($old_cout_couleur) && $new_cout_couleur != $old_cout_couleur) {
+		// Calcul new cout
+		$cout_coul_calcule = $integrale->calcul_cout_unitaire($new_engagement_couleur, 'coul');
+		// Get detail
+		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $cout_coul_calcule, 'coul');
+		// Calcul FAS
+		$new_fas_couleur = $integrale->calcul_fas($TDetailCoutCouleur['nouveau_cout_unitaire_loyer'], $new_cout_couleur);
+	}
+	// Get detail
+	$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
+
+	$total_couleur = $new_engagement_couleur * $new_cout_couleur;
+	
+	/*if($calcul) {
+		$cout_unitaire_modifie_manuellement = (GETPOST('nouveau_cout_unitaire_noir_calcul') != GETPOST('nouveau_cout_unitaire_noir')) || (GETPOST('nouveau_cout_unitaire_couleur_calcul') != GETPOST('nouveau_cout_unitaire_couleur'));
+		$TDetailCoutNoir = $integrale->get_data_calcul_avenant_integrale(GETPOST('nouvel_engagement_noir'), !empty($cout_unitaire_modifie_manuellement) ? GETPOST('nouveau_cout_unitaire_noir') : $integrale->cout_unit_noir, 'noir', $cout_unitaire_modifie_manuellement);
+		$TDetailCoutCouleur = $integrale->get_data_calcul_avenant_integrale(GETPOST('nouvel_engagement_couleur'), !empty($cout_unitaire_modifie_manuellement) ? GETPOST('nouveau_cout_unitaire_couleur') : $integrale->cout_unit_coul, 'coul', $cout_unitaire_modifie_manuellement);
+	}*/
+	
+	print $form->hidden('action', 'addAvenantIntegrale');
+	print $form->hidden('id', GETPOST('id'));
+	print $form->hidden('fk_facture', $f->id);
+	print $form->hidden('fk_soc', $f->socid);
+	
+	// On a également besoin d'afficher 2 hidden contenant la même valeur que les champs Coût unitaire noir & Coût unitaire couleur, pour ensuite vérifier s'ils ont été modifiés à la main par l'utilisateur
+	print $form->hidden('old_engagement_noir', $new_engagement_noir);
+	print $form->hidden('old_engagement_couleur', $new_engagement_couleur);
+	print $form->hidden('old_cout_unitaire_noir', $new_cout_noir);
+	print $form->hidden('old_cout_unitaire_couleur', $new_cout_couleur);
+	
+	$style = 'style="background-color: #C0C0C0"';
+	
+	$post_nouvel_engagement_noir = GETPOST('nouvel_engagement_noir');
+	$post_nouvel_engagement_couleur = GETPOST('nouvel_engagement_couleur');
+	
+	print '<div id="calculateur">';
+	
+	print $TBS->render('./tpl/avenant_integrale.tpl.php'
+		,array()
+		,array(
+			'noir'=>array(
+				'engage'=>$integrale->vol_noir_engage
+				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_noir',$new_engagement_noir,10)
+				,'montant_total'=>$form->texteRO('','montant_total_noir',$total_noir,10,'',$style)
+				,'cout_unitaire'=>$integrale->cout_unit_noir
+				,'cout_unit_tech'=>$integrale->cout_unit_noir_tech
+				,'cout_unit_mach'=>$integrale->cout_unit_noir_mach
+				,'cout_unit_loyer'=>$integrale->cout_unit_noir_loyer
+				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_noir', $new_cout_noir,10)
+				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_noir_tech', $TDetailCoutNoir['nouveau_cout_unitaire_tech'],10,'',$style)  // Identique à l'ancien dans tous les cas
+				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_noir_mach', $TDetailCoutNoir['nouveau_cout_unitaire_mach'],10,'',$style)
+				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_noir_loyer', $TDetailCoutNoir['nouveau_cout_unitaire_loyer'],10,'',$style)
+			),
+			'couleur'=>array(
+				'engage'=>$integrale->vol_coul_engage
+				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_couleur',$new_engagement_couleur,10)
+				,'montant_total'=>$form->texteRO('','montant_total_couleur',$total_couleur,10,'',$style)
+				,'cout_unitaire'=>$integrale->cout_unit_coul
+				,'cout_unit_tech'=>$integrale->cout_unit_coul_tech
+				,'cout_unit_mach'=>$integrale->cout_unit_coul_mach
+				,'cout_unit_loyer'=>$integrale->cout_unit_coul_loyer
+				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_couleur', $new_cout_couleur,10)
+				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_coul_tech', $TDetailCoutCouleur['nouveau_cout_unitaire_tech'],10,'',$style) // Identique à l'ancien dans tous les cas
+				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_coul_mach', $TDetailCoutCouleur['nouveau_cout_unitaire_mach'],10,'',$style)
+				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_coul_loyer', $TDetailCoutCouleur['nouveau_cout_unitaire_loyer'],10,'',$style)
+			),
+			'global'=>array(
+				'FAS'=>$form->texteRO('','fas', ($integrale->fas + $new_fas_noir + $new_fas_couleur) * $pourcentage_sup_mois_decembre,10,'',$style)
+				,'FASS'=>$form->texteRO('','fass', $integrale->fass * $pourcentage_sup_mois_decembre,10,'',$style)
+				,'frais_bris_machine'=>$form->texteRO('','frais_bris_machine',$integrale->frais_bris_machine  * $pourcentage_sup_mois_decembre,10,'',$style)
+				,'frais_facturation'=>$form->texteRO('','ftc',$integrale->frais_facturation * $pourcentage_sup_mois_decembre,10,'',$style)
+				,'total_global'=>$form->texteRO('','total_global',$total_noir
+																+$total_couleur
+																+$integrale->fas + $new_fas_noir + $new_fas_couleur
+																+$integrale->fass
+																+$integrale->frais_bris_machine
+																+$integrale->frais_facturation,10,'',$style)
+			),
+			'rights'=>array(
+				'voir_couts_unitaires'=>(int)$user->rights->financement->integrale->detail_couts
+			)
+		)
+	);
+	
+	print '</div>';
+	
+	print '<div class="tabsAction">';
+	print $form->btsubmit($langs->trans('Calculer'), 'btCalcul', '', 'butAction');
+	print $form->checkbox1('Ne pas imprimer bloc locataire', 'no_print_bloc_locataire', 1, $pDefault);
+	print $form->btsubmit($langs->trans('Save'), 'btSave', '', 'butAction');
+	print '</div>';
+	
+}
+
+function _addAvenantIntegrale(&$dossier) {
+	
+	global $db, $user;
+	
+	$p = new Propal($db);
+	$p->socid = GETPOST('fk_soc');
+	$p->date = strtotime(date('Y-m-d'));
+	$p->duree_validite = 30;
+	
+	$p->cond_reglement_id = 0;
+	$p->mode_reglement_id = 0;
+	
+	$res = $p->create($user);
+	
+	if($res > 0) {
+		
+		_addLines($p);
+		$p->valid($user);
+		//setEventMessage('Avenant <a href="'.dol_buildpath('/comm/propal.php?id='.$p->id, 1).'">'.$p->ref.'</a> créé avec succès !');
+		$f = new Facture($db);
+		$f->id = GETPOST('fk_facture');
+		$f->element = 'facture';
+		$f->add_object_linked('propal', $p->id);
+		
+		$no_print_bloc_locataire = GETPOST('no_print_bloc_locataire');
+		
+		$file_path = _genPDF($p, array(
+									'engagement_noir'=>GETPOST('nouvel_engagement_noir')
+									,'cout_unitaire_noir'=>GETPOST('nouveau_cout_unitaire_noir')
+									,'engagement_couleur'=>GETPOST('nouvel_engagement_couleur')
+									,'cout_unitaire_couleur'=>GETPOST('nouveau_cout_unitaire_couleur')
+									,'FAS'=>GETPOST('fas')
+									,'FASS'=>GETPOST('fass')
+									,'ref_dossier'=>$dossier->financement->reference
+									,'total_global'=>GETPOST('total_global')
+									,'client'=>_getInfosClient($p->socid)
+								  ), empty($no_print_bloc_locataire));
+		
+		return $file_path;
+		
+	}
+	
+	return 0;
+	
+}
+
+function _getInfosClient($fk_soc) {
+	
+	global $db;
+	
+	dol_include_once('/societe/class/societe.class.php');
+	
+	$s = new Societe($db);
+	$s->fetch($fk_soc);
+	
+	$TData['raison_sociale'] = $s->name;
+	$TData['adresse'] = $s->getFullAddress();
+	$TData['siren'] = $s->idprof1;
+	$TData['dirigeant'] = '';
+	
+	return $TData;
+	
+}
+
+function _addLines(&$p) {
+	
+	global $db;
+	//pre($_REQUEST, true);exit;
+	$TProduits = _getIDProducts();
+	
+	if(!empty($TProduits['E_NOIR'])) $p->addline('Nouvel engagement noir', GETPOST('nouveau_cout_unitaire_noir'), GETPOST('nouvel_engagement_noir'), 20, 0.0, 0.0, $TProduits['E_NOIR']);
+	if(!empty($TProduits['E_COUL'])) $p->addline('Nouvel engagement couleur', GETPOST('nouveau_cout_unitaire_couleur'), GETPOST('nouvel_engagement_couleur'), 20, 0.0, 0.0, $TProduits['E_COUL']);
+	
+	if(!empty($TProduits['FAS'])) $p->addline('FAS', GETPOST('fas'), 1, 20, 0.0, 0.0, $TProduits['FAS']);
+	if(!empty($TProduits['FASS'])) $p->addline('FASS', GETPOST('fass'), 1, 20, 0.0, 0.0, $TProduits['FASS']);
+	if(!empty($TProduits['FTC'])) $p->addline('FTC', GETPOST('ftc'), 1, 20, 0.0, 0.0, $TProduits['FTC']);
+	
+}
+
+function _getIDProducts() {
+	
+	global $db;
+	
+	// 037004 = Frais bris de machine
+	$sql = 'SELECT ref, rowid FROM '.MAIN_DB_PREFIX.'product WHERE ref IN("037004", "FAS", "FASS", "FTC", "E_NOIR", "E_COUL")';
+	$resql = $db->query($sql);
+	$TProduits = array();
+	while($res = $db->fetch_object($resql)) $TProduits[$res->ref] = $res->rowid; 
+	
+	return $TProduits;
+	
+}
+
+function _genPDF(&$propal, $TData, $print_bloc_locataire=true) {
+	
+	global $conf;
+	
+	$TBS=new TTemplateTBS();
+	
+	$dir = $conf->propal->dir_output.'/'.$propal->ref;
+	@mkdir($dir);
+	
+	$file_name = $propal->ref.'_avenant_'.date('Ymd');
+	
+	$file_path = $TBS->render(dol_buildpath('/financement/tpl/doc/modele_avenant.odt')
+		,array()
+		,array(
+			'avenant'=>array(
+				'ref'=>$propal->ref
+			)
+			,'copies_noires'=>array(
+				'engagement'=>price($TData['engagement_noir'])
+				,'cout_unitaire'=>price($TData['cout_unitaire_noir'])
+			)
+			,'copies_couleur'=>array(
+				'engagement'=>price($TData['engagement_couleur'])
+				,'cout_unitaire'=>price($TData['cout_unitaire_couleur'])
+			)
+			,'global'=>array(
+				'FAS'=>price($TData['FAS'])
+				,'FASS'=>price($TData['FASS'])
+				,'ref_dossier'=>$TData['ref_dossier']
+				,'total_global'=>price($TData['total_global'])
+			)
+			,'bloc_locataire'=>array(
+				'raison_sociale'=>$print_bloc_locataire ? $TData['client']['raison_sociale'] : ''
+				,'adresse'=>$print_bloc_locataire ? $TData['client']['adresse'] : ''
+				,'siren'=>$print_bloc_locataire ? $TData['client']['siren'] : ''
+				,'dirigeant'=>$print_bloc_locataire ? $TData['client']['dirigeant'] : ''
+			)
+		)
+		,array()
+		,array(
+			'outFile'=>$dir.'/'.$file_name.'.odt'
+			,"convertToPDF"=>true
+		)
+		
+	);
+	
+	return dol_buildpath('/document.php?modulepart=propal&entity='.$conf->entity.'&file='.$propal->ref.'/'.$file_name.'.pdf', 2);
+	
 }

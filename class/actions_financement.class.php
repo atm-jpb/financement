@@ -10,14 +10,17 @@ class ActionsFinancement
       */ 
     function doActions($parameters, &$object, &$action, $hookmanager) 
     {
-        if (in_array('thirdpartycard',explode(':',$parameters['context']))) 
-        { 
-          // do something only for the context 'somecontext'
+    	global $user;
+		
+        if (in_array('propalcard',explode(':',$parameters['context']))) 
+        {
+        	if($object->fin_validite < strtotime(date('Y-m-d')) && empty($user->rights->financement->integrale->see_past_propal)) {
+        		dol_include_once('/core/lib/security.lib.php');
+				$mess = 'Vous ne pouvez consulter une proposition dont la date de fin de validité est dépassée.';
+				accessforbidden($mess, 1);
+        	}
         }
- 
-        /*$this->results=array('myreturn'=>$myvalue);
-        $this->resprints='';
- */
+
         return 0;
     }
 	
@@ -153,6 +156,94 @@ class ActionsFinancement
 					}
 				}
 			}
+		}
+
+		if (in_array('propalcard',explode(':',$parameters['context']))) {
+			
+			$object->fetchObjectLinked();
+			
+			if(!empty($object->linkedObjects['facture'])) {
+				
+				define('INC_FROM_DOLIBARR', true);
+				dol_include_once('/financement/config.php');
+				dol_include_once('/financement/class/dossier_integrale.class.php');
+				
+				$sql = 'SELECT fk_source FROM '.MAIN_DB_PREFIX.'element_element WHERE sourcetype="dossier" AND targettype="facture" AND fk_target='.$object->linkedObjects['facture'][0]->id.' LIMIT 1';
+				$resql = $db->query($sql);
+				$res = $db->fetch_object($resql);
+				
+				if($res->fk_source > 0) {
+					print '<tr>';
+					print '<td>';
+					print 'Suivi intégrale';
+					print '</td>';
+					print '<td>';
+					print '<a href="'.dol_buildpath('/financement/dossier_integrale.php?id='.$res->fk_source, 1).'">Voir le suivi intégrale associé</a>';
+					print '</td>';
+					print '</tr>';
+				}
+				
+				// Détail du nouveau coût unitaire (uniquement si le user a les droits)
+				if(!empty($user->rights->financement->integrale->detail_couts)) {
+					
+					$PDOdb = new TPDOdb;
+					$integrale = new TIntegrale;
+					$integrale->loadBy($PDOdb, $object->linkedObjects['facture'][0]->ref, 'facnumber');
+					if($integrale->rowid > 0) {
+						
+						$line_engagement_noir = TIntegrale::get_line_from_propal($object, 'E_NOIR');
+						$line_engagement_coul = TIntegrale::get_line_from_propal($object, 'E_COUL');
+						
+						$TDataCalculNoir = $integrale->calcul_detail_cout($line_engagement_noir->qty, $line_engagement_noir->subprice);
+						
+						$TDataCalculCouleur = $integrale->calcul_detail_cout($line_engagement_coul->qty, $line_engagement_coul->subprice, 'coul');
+						
+						print '<tr>'.'<td>';
+						print '<STRONG>Détail nouvel engagement noir</STRONG>';
+						print '</td>'.'<td>';
+						print '';
+						print '</td>'.'</tr>';
+						
+						print '<tr>'.'<td>';
+						print '- Tech';
+						print '</td>'.'<td>';
+						print $TDataCalculNoir['nouveau_cout_unitaire_tech'];
+						print '</td>'.'</tr>'.'<tr>'.'<td>';
+						print '- Mach';
+						print '</td>'.'<td>';
+						print $TDataCalculNoir['nouveau_cout_unitaire_mach'];
+						print '</td>'.'</tr>'.'<tr>'.'<td>';
+						print '- Loyer';
+						print '</td>'.'<td>';
+						print $TDataCalculNoir['nouveau_cout_unitaire_loyer'];
+						print '</td>'.'</tr>';
+						
+						print '<tr>'.'<td>';
+						print '<STRONG>Détail nouvel engagement couleur</STRONG>';
+						print '</td>'.'<td>';
+						print '';
+						print '</td>'.'</tr>';
+						
+						print '<tr>'.'<td>';
+						print '- Tech';
+						print '</td>'.'<td>';
+						print $TDataCalculCouleur['nouveau_cout_unitaire_tech'];
+						print '</td>'.'</tr>'.'<tr>'.'<td>';
+						print '- Mach';
+						print '</td>'.'<td>';
+						print $TDataCalculCouleur['nouveau_cout_unitaire_mach'];
+						print '</td>'.'</tr>'.'<tr>'.'<td>';
+						print '- Loyer';
+						print '</td>'.'<td>';
+						print $TDataCalculCouleur['nouveau_cout_unitaire_loyer'];
+						print '</td>'.'</tr>';
+						
+					}
+
+				}
+				
+			}
+			
 		}
 	}
 }
