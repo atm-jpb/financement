@@ -92,7 +92,9 @@ if(!empty($_REQUEST['fk_soc'])) {
 	    $objcanvas->getCanvas('thirdparty', 'card', $canvas);
 	}
 	
-	if(empty(TFinancementTools::user_courant_est_admin_financement())) {
+	$user_courant_est_admin_financement = TFinancementTools::user_courant_est_admin_financement();
+
+	if(empty($user_courant_est_admin_financement)) {
 
 		// Security check
 		$result = restrictedArea($user, 'societe', $simulation->societe->id, '&societe', '', 'fk_soc', 'rowid', $objcanvas);
