@@ -57,7 +57,7 @@ if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive 
 	}
 }
 
-if(!empty($_REQUEST['fk_soc']) && $action == 'new') {
+if(!empty($_REQUEST['fk_soc'])) {
 	$simulation->fk_soc = $_REQUEST['fk_soc'];
 	$simulation->load_annexe($ATMdb, $db);
 
@@ -92,8 +92,13 @@ if(!empty($_REQUEST['fk_soc']) && $action == 'new') {
 	    $objcanvas->getCanvas('thirdparty', 'card', $canvas);
 	}
 	
-	// Security check
-	$result = restrictedArea($user, 'societe', $simulation->societe->id, '&societe', '', 'fk_soc', 'rowid', $objcanvas);
+	if(empty(TFinancementTools::user_courant_est_admin_financement())) {
+
+		// Security check
+		$result = restrictedArea($user, 'societe', $simulation->societe->id, '&societe', '', 'fk_soc', 'rowid', $objcanvas);
+
+	}
+
 }
 
 if($action == 'list') $TDossierLink = _getListIDDossierByNumAccord();
