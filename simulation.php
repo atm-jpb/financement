@@ -654,11 +654,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 					LEFT JOIN ".MAIN_DB_PREFIX."usergroup_user as ugu ON (ugu.fk_user = u.rowid)
 					LEFT JOIN ".MAIN_DB_PREFIX."usergroup as ug ON (ug.rowid = ugu.fk_usergroup)
 				WHERE ug.nom IN (".implode(',', $TGroupEntities).") ";
-					  
+		
 		$TUserInclude = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 
 		//pre($TUserExculde,true); exit;
-		$link_user = $formdolibarr->select_dolusers($simulation->fk_user_author,'fk_user_author',1,'',0,$TUserInclude,'',$conf->entity);
+		$link_user = $formdolibarr->select_dolusers($simulation->fk_user_author,'fk_user_author',1,'',0,$TUserInclude,'',getEntity('fin_simulation', 1));
 		
 		$TUserInclude = TRequeteCore::_get_id_by_sql($ATMdb, "SELECT u.rowid 
 															FROM ".MAIN_DB_PREFIX."user as u 
