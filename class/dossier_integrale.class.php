@@ -132,11 +132,16 @@ class TIntegrale extends TObjetStd {
 	}
 
 	function calcul_cout_unitaire($engagement, $type='noir') {
+		global $conf;
+		$cout_act = $this->{'vol_'.$type.'_engage'} * $this->{'cout_unit_'.$type};
+		$diff = abs($this->{'vol_'.$type.'_engage'} - $engagement);
+		$diff2 = $diff + $diff * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100);
 		
-		$cout_unitaire = ($engagement * $this->{'cout_unit_'.$type}
+		$cout_unitaire = ($cout_act + $diff2 * $this->{'cout_unit_'.$type.'_tech'}) / $engagement;
+		/*$cout_unitaire = ($engagement * $this->{'cout_unit_'.$type}
 								 + (($engagement - $this->{'vol_'.$type.'_engage'}) + (abs($this->{'vol_'.$type.'_engage'} - $engagement)) * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100)
 								 * $this->{'cout_unit_'.$type.'_tech'}))
-								 / $engagement;
+								 / $engagement;*/
 		
 		return $this->ceil($cout_unitaire);
 		
