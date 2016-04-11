@@ -487,13 +487,13 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 			),
 			'couleur'=>array(
 				'engage'=>$integrale->vol_coul_engage
-				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_couleur',$new_engagement_couleur,10)
+				,'nouvel_engagement'=>!empty($new_engagement_couleur) ? $form->texte('','nouvel_engagement_couleur',$new_engagement_couleur,10) : $form->texteRO('','nouvel_engagement_couleur',$new_engagement_couleur,10,'',$style)
 				,'montant_total'=>$form->texteRO('','montant_total_couleur',$total_couleur,10,'',$style)
 				,'cout_unitaire'=>$integrale->cout_unit_coul
 				,'cout_unit_tech'=>$integrale->cout_unit_coul_tech
 				,'cout_unit_mach'=>$integrale->cout_unit_coul_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_coul_loyer
-				,'nouveau_cout_unitaire'=>$form->texte('','nouveau_cout_unitaire_couleur', $new_cout_couleur,10)
+				,'nouveau_cout_unitaire'=>!empty($new_engagement_couleur) ? $form->texte('','nouveau_cout_unitaire_couleur', $new_cout_couleur,10) : $form->texteRO('','nouveau_cout_unitaire_couleur', $new_cout_couleur,10,'',$style)
 				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_coul_tech', $TDetailCoutCouleur['nouveau_cout_unitaire_tech'],10,'',$style) // Identique à l'ancien dans tous les cas
 				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_coul_mach', $TDetailCoutCouleur['nouveau_cout_unitaire_mach'],10,'',$style)
 				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_coul_loyer', $TDetailCoutCouleur['nouveau_cout_unitaire_loyer'],10,'',$style)
