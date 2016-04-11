@@ -363,7 +363,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	);
 	
 	print '<div class="tabsAction">';
-	print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale">Nouveau calcul d\'avenant</a>';
+	print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale#calculateur">Nouveau calcul d\'avenant</a>';
 	print '</div>';
 	
 }
