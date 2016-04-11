@@ -520,7 +520,8 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	
 	print '<div class="tabsAction">';
 	print $form->btsubmit($langs->trans('Calculer'), 'btCalcul', '', 'butAction');
-	print $form->checkbox1('Ne pas imprimer bloc locataire', 'no_print_bloc_locataire', 1, $pDefault);
+	// On n'utilise plus la solution en dessous
+	//print $form->checkbox1('Ne pas imprimer bloc locataire', 'no_print_bloc_locataire', 1, $pDefault);
 	print $form->btsubmit($langs->trans('Save'), 'btSave', '', 'butAction');
 	print '</div>';
 	
@@ -550,7 +551,7 @@ function _addAvenantIntegrale(&$dossier) {
 		$f->element = 'facture';
 		$f->add_object_linked('propal', $p->id);
 		
-		$no_print_bloc_locataire = GETPOST('no_print_bloc_locataire');
+		//$no_print_bloc_locataire = GETPOST('no_print_bloc_locataire');
 		
 		$file_path = _genPDF($p, array(
 									'engagement_noir'=>GETPOST('nouvel_engagement_noir')
@@ -562,7 +563,7 @@ function _addAvenantIntegrale(&$dossier) {
 									,'ref_dossier'=>$dossier->financement->reference
 									,'total_global'=>GETPOST('total_global')
 									,'client'=>_getInfosClient($p->socid)
-								  ), empty($no_print_bloc_locataire));
+								  ));
 		
 		return $file_path;
 		
