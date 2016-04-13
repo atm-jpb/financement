@@ -493,7 +493,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 				,'cout_unit_tech'=>$integrale->cout_unit_noir_tech
 				,'cout_unit_mach'=>$integrale->cout_unit_noir_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_noir_loyer
-				,'repartition'=>$form->texte('','nouvelle_repartition_noir',$new_repartition_noir,3)
+				,'repartition'=>!empty($new_engagement_couleur) ? $form->texte('','nouvelle_repartition_noir',$new_repartition_noir,3) : $form->texte('','nouvelle_repartition_noir',100,3,0,$style)
 				,'nouveau_cout_unitaire'=>$form->texteRO('','nouveau_cout_unitaire_noir', $new_cout_noir,10,'',$style)
 				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_noir_tech', $TDetailCoutNoir['nouveau_cout_unitaire_tech'],10,'',$style)  // Identique à l'ancien dans tous les cas
 				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_noir_mach', $TDetailCoutNoir['nouveau_cout_unitaire_mach'],10,'',$style)
@@ -507,7 +507,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 				,'cout_unit_tech'=>$integrale->cout_unit_coul_tech
 				,'cout_unit_mach'=>$integrale->cout_unit_coul_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_coul_loyer
-				,'repartition'=>$form->texte('','nouvelle_repartition_couleur',$new_repartition_couleur,3)
+				,'repartition'=>!empty($new_engagement_couleur) ? $form->texte('','nouvelle_repartition_couleur',$new_repartition_couleur,3) : $form->texteRO('','nouvelle_repartition_couleur',0,3,0,$style)
 				,'nouveau_cout_unitaire'=>$form->texteRO('','nouveau_cout_unitaire_couleur', $new_cout_couleur,10,'',$style)
 				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_coul_tech', $TDetailCoutCouleur['nouveau_cout_unitaire_tech'],10,'',$style) // Identique à l'ancien dans tous les cas
 				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_coul_mach', $TDetailCoutCouleur['nouveau_cout_unitaire_mach'],10,'',$style)
