@@ -437,7 +437,6 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	// Get detail
 	$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $new_cout_noir, 'noir');
 	
-	$total_noir = $new_engagement_noir * $new_cout_noir;
 	
 	// GESTION DE LA COULEUR
 	if(!empty($new_engagement_couleur) && !empty($old_engagement_couleur) && $new_engagement_couleur != $old_engagement_couleur) {
@@ -462,6 +461,41 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	// Get detail
 	$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
 
+
+	// Nouvelle méthode de calcul en fonction des répartitions en %tage.
+	if(!empty($new_repartition_noir) && !empty($old_repartition_noir) && $new_repartition_noir != $old_repartition_noir) {
+		
+		$new_cout_noir = $integrale->calcul_cout_unitaire_by_repartition($new_engagement_noir,
+																			$TDetailCoutNoir['nouveau_cout_unitaire_mach'],
+																			$TDetailCoutNoir['nouveau_cout_unitaire_loyer'],
+																			$TDetailCoutNoir['nouveau_cout_unitaire_tech'],
+																			$new_engagement_couleur,
+																			$TDetailCoutCouleur['nouveau_cout_unitaire_mach'],
+																			$TDetailCoutCouleur['nouveau_cout_unitaire_loyer'],
+																			$TDetailCoutCouleur['nouveau_cout_unitaire_tech'],
+																			$new_repartition_noir, $type='noir');
+	
+		$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $new_cout_noir, 'noir');
+
+	}
+	
+	if(!empty($new_repartition_couleur) && !empty($old_repartition_couleur) && $new_repartition_couleur != $old_repartition_couleur) {
+		
+		$new_cout_couleur = $integrale->calcul_cout_unitaire_by_repartition($new_engagement_noir,
+																			$TDetailCoutNoir['nouveau_cout_unitaire_mach'],
+																			$TDetailCoutNoir['nouveau_cout_unitaire_loyer'],
+																			$TDetailCoutNoir['nouveau_cout_unitaire_tech'],
+																			$new_engagement_couleur,
+																			$TDetailCoutCouleur['nouveau_cout_unitaire_mach'],
+																			$TDetailCoutCouleur['nouveau_cout_unitaire_loyer'],
+																			$TDetailCoutCouleur['nouveau_cout_unitaire_tech'],
+																			$new_repartition_couleur, 'couleur');
+		
+		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
+		
+	}
+
+	$total_noir = $new_engagement_noir * $new_cout_noir;
 	$total_couleur = $new_engagement_couleur * $new_cout_couleur;
 	
 	print $form->hidden('action', 'addAvenantIntegrale');

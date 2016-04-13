@@ -153,6 +153,22 @@ class TIntegrale extends TObjetStd {
 		
 	}
 	
+	private function calcul_tcf($engagement_noir, $cout_mach_noir, $cout_loyer_noir, $engagement_couleur, $cout_mach_couleur, $cout_loyer_couleur) {
+		
+		return ($engagement_noir * ($cout_mach_noir + $cout_loyer_noir)) + ($engagement_couleur * ($cout_mach_couleur + $cout_loyer_couleur));
+		
+	}
+	
+	function calcul_cout_unitaire_by_repartition($engagement_noir, $cout_mach_noir, $cout_loyer_noir, $cout_tech_noir, $engagement_couleur, $cout_mach_couleur, $cout_loyer_couleur, $cout_tech_couleur, $pourcentage, $type='noir') {
+		
+		$tcf = $this->calcul_tcf($engagement_noir, $cout_mach_noir, $cout_loyer_noir, $engagement_couleur, $cout_mach_couleur, $cout_loyer_couleur);
+		//var_dump($tcf, $pourcentage, ${'engagement_'.$type}, ${'cout_tech_'.$type});exit;
+		$res = ($tcf * ($pourcentage/100) / ${'engagement_'.$type}) + ${'cout_tech_'.$type};
+		//echo $res;exit;
+		return $res;
+		
+	}
+	
 	function calcul_fas($TData, &$cu_manuel, $engagement, $type='noir') {
 		
 		$fas_max = $this->{'vol_'.$type.'_engage'} * $TData['nouveau_cout_unitaire_loyer'] / 2;
