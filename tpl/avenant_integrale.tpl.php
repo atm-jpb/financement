@@ -73,6 +73,12 @@
 	</tr>
 	
 	<tr class="pair" align="center">
+		<td>Répartition</td>
+		<td>[noir.repartition;strconv=no]</td>
+		<td>[couleur.repartition;strconv=no]</td>
+	</tr>
+	
+	<tr class="pair" align="center">
 		<td>FAS</td>
 		<td colspan="2">[global.FAS;strconv=no]</td>
 	</tr>
@@ -110,3 +116,34 @@
 	</script>
 	
 [onshow;block=end]
+
+<script type="text/javascript">
+	
+	$(document).ready(function() {
+		
+		var rep_left = $("#nouvelle_repartition_noir");
+		var rep_right = $("#nouvelle_repartition_couleur");
+		
+		rep_left.change(function() {
+			if(!$.isNumeric(rep_left.val())) {
+				rep_left.val(50);
+			} else if(rep_left.val() > 85){
+				rep_left.val(85);
+			} else if(rep_left.val() < 15) {
+				rep_left.val(15);
+			}
+			rep_right.val(100 - rep_left.val());
+		});
+		rep_right.change(function() {
+			if(!$.isNumeric(rep_right.val())) {
+				rep_right.val(50);
+			} else if(rep_right.val() > 85){
+				rep_right.val(85);
+			} else if(rep_right.val() < 15) {
+				rep_right.val(15);
+			}
+			rep_left.val(100 - rep_right.val());
+		});
+		
+	});
+</script>

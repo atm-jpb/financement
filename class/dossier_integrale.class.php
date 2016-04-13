@@ -147,6 +147,12 @@ class TIntegrale extends TObjetStd {
 		
 	}
 	
+	function calcul_cout_unitaire_by_fas($engagement, $cu_manuel, $new_fas, $old_fas) {
+		//echo '(('.$engagement.' * '.$cu_manuel.') - '.(abs($new_fas - $old_fas)).') / '.$engagement;exit;
+		return (($engagement * $cu_manuel) - abs($new_fas - $old_fas)) / $engagement;
+		
+	}
+	
 	function calcul_fas($TData, &$cu_manuel, $engagement, $type='noir') {
 		
 		$fas_max = $this->{'vol_'.$type.'_engage'} * $TData['nouveau_cout_unitaire_loyer'] / 2;
