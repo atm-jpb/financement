@@ -149,7 +149,7 @@ class TIntegrale extends TObjetStd {
 	
 	function calcul_cout_unitaire_by_fas($engagement, $cu_manuel, $new_fas, $old_fas) {
 		//echo '(('.$engagement.' * '.$cu_manuel.') - '.(abs($new_fas - $old_fas)).') / '.$engagement;exit;
-		return (($engagement * $cu_manuel) - abs($new_fas - $old_fas)) / $engagement;
+		return $this->ceil((($engagement * $cu_manuel) - abs($new_fas - $old_fas)) / $engagement);
 		
 	}
 	
@@ -165,7 +165,7 @@ class TIntegrale extends TObjetStd {
 		//var_dump($tcf, $pourcentage, ${'engagement_'.$type}, ${'cout_tech_'.$type});exit;
 		$res = ($tcf * ($pourcentage/100) / ${'engagement_'.$type}) + ${'cout_tech_'.$type};
 		//echo $res;exit;
-		return $res;
+		return $this->ceil($res);
 		
 	}
 	
