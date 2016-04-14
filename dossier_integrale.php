@@ -588,6 +588,9 @@ function _addAvenantIntegrale(&$dossier) {
 	$p->cond_reglement_id = 0;
 	$p->mode_reglement_id = 0;
 	
+	$p->array_options['options_repartition_noir'] = GETPOST('nouvelle_repartition_noir');
+	$p->array_options['options_repartition_couleur'] = GETPOST('nouvelle_repartition_couleur');
+	
 	$res = $p->create($user);
 	
 	if($res > 0) {
