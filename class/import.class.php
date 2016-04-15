@@ -812,12 +812,12 @@ class TImport extends TObjetStd {
 		$this->importILFI_gestion($data,$integrale);
 		
 		$TRefSRVLabelCout = array(	// Copies NB
-									'SSC005'=>'tech',
-									'SSC015'=>'mach',
+									'SSC005'=>'mach',
+									'SSC015'=>'tech',
 									'SSC102'=>'loyer',
 									'SSC106'=>'loyer',
 									// Copies couleur
-									'SSC010'=>'mach'
+									'SSC010'=>'tecch'
 									// SSC005, pareil que nb : tech
 									// SSC102 & SSC106, pareil : loyer
 									);
