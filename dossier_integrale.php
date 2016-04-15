@@ -363,7 +363,8 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	);
 	
 	print '<div class="tabsAction">';
-	print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale#calculateur">Nouveau calcul d\'avenant</a>';
+	$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
+	print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale#calculateur">'.$label.'</a>';
 	print '</div>';
 	
 }
