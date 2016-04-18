@@ -110,7 +110,7 @@ class TIntegrale extends TObjetStd {
 	function get_data_calcul_avenant_integrale($nouvel_engagement, $cout_unitaire, $type='noir', $nouveau_cout_unitaire_manuel=false) {
 		
 		global $conf;
-		
+
 		$TData = array();
 		//echo $cout_unitaire.'<br>';
 		if(!empty($nouveau_cout_unitaire_manuel)) $nouveau_cout_unitaire = $cout_unitaire;
@@ -192,11 +192,11 @@ class TIntegrale extends TObjetStd {
 		
 		$TData = array();
 		
-		$TData['cout_unitaire'] = $cout_unitaire;
-		$TData['nouveau_cout_unitaire_tech'] = $this->{'cout_unit_'.$type.'_tech'};
+		$TData['cout_unitaire'] = $this->ceil($cout_unitaire);
+		$TData['nouveau_cout_unitaire_tech'] = $this->ceil($this->{'cout_unit_'.$type.'_tech'});
 		$TData['nouveau_cout_unitaire_mach'] = $this->ceil($this->{'vol_'.$type.'_engage'} * $this->{'cout_unit_'.$type.'_mach'} / $engagement);
-		$TData['nouveau_cout_unitaire_loyer'] = $this->ceil($cout_unitaire - $TData['nouveau_cout_unitaire_mach'] - $this->{'cout_unit_'.$type.'_tech'});
-		
+		$TData['nouveau_cout_unitaire_loyer'] = $cout_unitaire - $TData['nouveau_cout_unitaire_mach'] - $TData['nouveau_cout_unitaire_tech'];
+
 		return $TData;
 		
 	}
