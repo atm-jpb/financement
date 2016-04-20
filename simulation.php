@@ -693,6 +693,14 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$TOptCalageLabel = array('1M'=>'1 mois', '2M'=>'2 mois', '3M'=>'3 mois');
 	
+	/**
+	 * Calcul à la volé pour connaitre le coef en fonction de la périodicité
+	 */
+	if ($simulation->opt_periodicite == 'MOIS') $coeff = $simulation->coeff / 3;
+	elseif ($simulation->opt_periodicite == 'SEMESTRE') $coeff = $simulation->coeff * 2;
+	elseif ($simulation->opt_periodicite == 'ANNEE') $coeff = $simulation->coeff * 4;
+	else $coeff = $simulation->coeff; // TRIMESTRE
+	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
@@ -727,7 +735,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'duree'=>$form->combo('', 'duree', $TDuree, $simulation->duree)
 				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
 				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
-				,'coeff'=>$form->texteRO('', 'coeff', $simulation->coeff, 6)
+				,'coeff'=>$form->texteRO('', 'coeff', $coeff, 6)
 				,'coeff_final'=>$can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 6) : $simulation->coeff_final
 				,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10)
 				,'cout_financement'=>$simulation->cout_financement
