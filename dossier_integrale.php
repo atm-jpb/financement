@@ -517,6 +517,8 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	
 	print '<div id="calculateur">';
 	
+	//echo 'total : '.$total_noir.' + '.$total_couleur.' + '.$new_fas .' + '. $new_fas_noir .' + '. $new_fas_couleur.' + '.$integrale->fass.' + '.$integrale->frais_bris_machine.' + '.$integrale->frais_facturation.'<br>';
+
 	print $TBS->render('./tpl/avenant_integrale.tpl.php'
 		,array()
 		,array(
@@ -555,7 +557,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 				,'frais_facturation'=>$form->texteRO('','ftc',$integrale->frais_facturation * $pourcentage_sup_mois_decembre,10,'',$style)
 				,'total_global'=>$form->texteRO('','total_global',$total_noir
 																+$total_couleur
-																+$integrale->fas + $new_fas_noir + $new_fas_couleur
+																+$new_fas + $new_fas_noir + $new_fas_couleur
 																+$integrale->fass
 																+$integrale->frais_bris_machine
 																+$integrale->frais_facturation,10,'',$style)

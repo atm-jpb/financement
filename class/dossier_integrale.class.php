@@ -148,7 +148,7 @@ class TIntegrale extends TObjetStd {
 	}
 	
 	function calcul_cout_unitaire_by_fas($engagement, $cu_manuel, $new_fas, $old_fas) {
-		//echo '(('.$engagement.' * '.$cu_manuel.') - '.(abs($new_fas - $old_fas)).') / '.$engagement;exit;
+		//echo '(('.$engagement.' * '.$cu_manuel.') - '.(abs($new_fas - $old_fas)).') / '.$engagement.'<br>';
 		return $this->ceil((($engagement * $cu_manuel) - abs($new_fas - $old_fas)) / $engagement);
 		
 	}
