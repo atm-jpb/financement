@@ -145,19 +145,103 @@ function repondreDemande($authentication, $TReponse)
 
 	if (! $error)
 	{
-		$fuser->getrights();
+		if (empty($fuser->rights)) $fuser->getrights();
 
-		// TODO appliquer le bon droit
-		if ($fuser->rights->facture->lire)
+		if (!empty($fuser->rights->financement->webservice->repondre_demande))
 		{
-			// TODO faire le traitement pour maj du scoring cf. Voir avec Gauthier
-			
-			$objectresp = array('result'=>array('result_code'=>'OK', 'result_label'=>'Statut mis à jour'));
+			$fuser->fetch_optionals();
+			if (!empty($fuser->array_options['options_fk_leaser_webservice']))
+			{
+				dol_include_once('/financement/class/simulation.class.php');
+				dol_include_once('/financement/class/score.class.php');
+				dol_include_once('/financement/class/dossier.class.php');
+				dol_include_once('/financement/class/dossier_integrale.class.php');
+				dol_include_once('/financement/class/affaire.class.php');
+				dol_include_once('/financement/class/grille.class.php');
+	
+				$PDOdb = new TPDOdb;
+				$simulation = new TSimulation;
+				$reference_simulation = $TReponse['partenaire'][0]['ref_ext'];
+				
+				$TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $simulation->get_table(), array('reference'=>$reference_simulation));
+				if (!empty($TId[0]))
+				{
+					$simulation->load($PDOdb, $db, $TId[0]);
+					if ($simulation->getId() > 0)
+					{
+						if (strcmp($simulation->societe->idprof1, $TReponse['client'][0]['client_siren']) === 0)
+						{
+							
+							$found = false;
+							foreach ($simulation->TSimulationSuivi as &$simulationSuivi)
+							{
+								if ($simulationSuivi->fk_leaser == $fuser->array_options['options_fk_leaser_webservice'])
+								{
+									$found = true;
+									break;
+								}
+							}
+							
+							if ($found)
+							{
+								$statut = $TReponse['financement'][0]['num_dossier'];
+								
+								$commentaire = $TReponse['financement'][0]['commentaire_statut'];
+								$numero_accord = $TReponse['financement'][0]['num_dossier'];
+								$coeff = $TReponse['financement'][0]['coefficient']; // 2016-04-28 : le fichier ne communique pas encore de coefficient 
+								
+								$action = _getAction($fuser, $statut); // return accepter || refuser || attente
+								if ($action != 'attente')
+								{
+									$simulationSuivi->doAction($PDOdb, $simulation, $action);
+								}
+								
+								$Tab = array('commentaire'=>$commentaire, 'numero_accord_leaser'=>$numero_accord, 'coeff_leaser'=>$coeff);
+								$simulationSuivi->set_values($Tab);
+								$simulationSuivi->save($PDOdb);
+								
+								$extra_label = '';
+								if ($action == 'accepter') $extra_label = ' Demande enregistrée comme étant "Acceptée"';
+								elseif ($action == 'refuser') $extra_label = ' Demande enregistrée comme étant "Refusée"';
+								elseif ($action == 'attente') $extra_label = ' Demande enregistrée comme étant en "Attente"';
+								
+								$objectresp = array('result'=>array('result_code'=>'OK', 'result_label'=>'Statut mis à jour.'.$extra_label));
+							}
+							else
+							{
+								$error++;
+								$errorcode='ERROR_SUIVI_NOT_FOUND'; $errorlabel='Impossible de répondre à la demande, car non trouvée dans le suivi leaser simulation.';
+							}
+						}
+						else
+						{
+							$error++;
+							$errorcode='CLIENT_SIREN_NOT_EQUAL'; $errorlabel='Le numéro SIREN du client associé au dossier est différent de celui fournis.';
+						}
+					}
+					else
+					{
+						$error++;
+						$errorcode='NUM_DOSSIER_NOT_FOUND'; $errorlabel='La référence dossier ne correspond à aucune simulation.';
+					}
+				}
+				else
+				{
+					$error++;
+					$errorcode='NUM_DOSSIER_EMPTY'; $errorlabel='Aucune référence communiquée.';
+				}
+				
+			}
+			else
+			{
+				$error++;
+				$errorcode='MISSING_CONFIGURATION'; $errorlabel='Configuration du compte utilisateur manquante. Le compte n\'est pas associé à un leaser.';
+			}
 		}
 		else
 		{
 			$error++;
-			$errorcode='PERMISSION_DENIED'; $errorlabel='User does not have permission for this request';
+			$errorcode='PERMISSION_DENIED'; $errorlabel='User does not have permission for this request.';
 		}
 	}
 
@@ -167,6 +251,32 @@ function repondreDemande($authentication, $TReponse)
 	}
 
 	return $objectresp;
+}
+
+function _getAction(&$fuser, $statut)
+{
+	$action = 'refuser';
+	
+	// TODO à faire évoluer si l'utilisateur du webservice change et n'est plus uniquement CAL&F (Lixxbail)
+	switch (strtolower($statut)) {
+		case 'attente':
+			$action = 'attente';
+			break;
+			
+		case 'accepte':
+			$action = 'accepter';
+			break;
+			
+		case 'refuse':
+		case 'ajourne':
+		case 'sansuisu':
+		case 'sansuisa':
+		case 'annule':
+			$action = 'refuser';
+			break;
+	}
+	
+	return $action;
 }
 
 // Return the results.
