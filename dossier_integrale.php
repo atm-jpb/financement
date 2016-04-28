@@ -431,6 +431,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 		//echo $new_engagement_noir.' : '. $cout_noir_calcule;
 	} elseif(!empty($new_fas) && !empty($old_fas) && $new_fas != $old_fas) {
 		// Calcul supplémentaire si FAS modifiés
+		$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $new_cout_noir, 'noir');
 		$new_cout_noir = $integrale->calcul_cout_unitaire_by_fas($new_engagement_noir, $TDetailCoutNoir, $new_fas, $old_fas, $new_repartition_noir);
 		$new_cout_noir *= $pourcentage_sup_mois_decembre;
 		
@@ -455,7 +456,8 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 		$new_fas_couleur = $integrale->calcul_fas($TDetailCoutCouleur['nouveau_cout_unitaire_loyer'], $new_cout_couleur);
 	} elseif(!empty($new_fas) && !empty($old_fas) && $new_fas != $old_fas) {
 		// Calcul supplémentaire si FAS modifiés
-		$new_cout_couleur = $integrale->calcul_cout_unitaire_by_fas($new_engagement_couleur, $new_cout_couleur, $new_fas, $old_fas, $new_repartition_couleur);
+		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
+		$new_cout_couleur = $integrale->calcul_cout_unitaire_by_fas($new_engagement_couleur, $TDetailCoutCouleur, $new_fas, $old_fas, $new_repartition_couleur);
 		$new_cout_couleur *= $pourcentage_sup_mois_decembre;
 		
 	}
