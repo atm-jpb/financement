@@ -429,7 +429,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 		// Calcul FAS
 		$new_fas_noir = $integrale->calcul_fas($TDetailCoutNoir, $new_cout_noir, $new_engagement_noir);
 		//echo $new_engagement_noir.' : '. $cout_noir_calcule;
-	} elseif(!empty($new_fas) && !empty($old_fas) && $new_fas != $old_fas) {
+	} elseif((!empty($new_fas) && !empty($old_fas) && $new_fas != $old_fas) || (!empty($new_repartition_noir) && !empty($old_repartition_noir) && $new_repartition_noir != $old_repartition_noir)) {
 		// Calcul supplémentaire si FAS modifiés
 		$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $new_cout_noir, 'noir');
 		$new_cout_noir = $integrale->calcul_cout_unitaire_by_fas($new_engagement_noir, $TDetailCoutNoir, $new_fas, $old_fas, $new_repartition_noir);
@@ -454,7 +454,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $cout_coul_calcule, 'coul');
 		// Calcul FAS
 		$new_fas_couleur = $integrale->calcul_fas($TDetailCoutCouleur['nouveau_cout_unitaire_loyer'], $new_cout_couleur);
-	} elseif(!empty($new_fas) && !empty($old_fas) && $new_fas != $old_fas) {
+	} elseif((!empty($new_fas) && !empty($old_fas) && $new_fas != $old_fas) || (!empty($new_repartition_couleur) && !empty($old_repartition_couleur) && $new_repartition_couleur != $old_repartition_couleur)) {
 		// Calcul supplémentaire si FAS modifiés
 		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
 		$new_cout_couleur = $integrale->calcul_cout_unitaire_by_fas($new_engagement_couleur, $TDetailCoutCouleur, $new_fas, $old_fas, $new_repartition_couleur);
@@ -466,7 +466,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 
 
 	// Nouvelle méthode de calcul en fonction des répartitions en %tage.
-	if(!empty($new_repartition_noir) && !empty($old_repartition_noir) && $new_repartition_noir != $old_repartition_noir) {
+	/*if(!empty($new_repartition_noir) && !empty($old_repartition_noir) && $new_repartition_noir != $old_repartition_noir) {
 		
 		$new_cout_noir = $integrale->calcul_cout_unitaire_by_repartition($new_engagement_noir,
 																			$TDetailCoutNoir['nouveau_cout_unitaire_mach'],
@@ -496,7 +496,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 		
 		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
 		
-	}
+	}*/
 
 	$total_noir = $new_engagement_noir * $new_cout_noir;
 	$total_couleur = $new_engagement_couleur * $new_cout_couleur;
