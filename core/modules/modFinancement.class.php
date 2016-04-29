@@ -331,6 +331,12 @@ class modFinancement extends DolibarrModules
 		//$this->rights[$r][5] = 'read';
 		$r++;
 
+		$this->rights[$r][0] = $this->numero.$r;
+		$this->rights[$r][1] = 'Webservice : autoriser les réponses aux demandes de financement';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'webservice';
+		$this->rights[$r][5] = 'repondre_demande';
+		$r++;
 
 		// Main menu entries
 		$this->menus = array();			// List of menus to add
@@ -673,6 +679,8 @@ class modFinancement extends DolibarrModules
 	 */
 	function init($options='')
 	{
+		global $db;
+		
 		$sql = array();
 
 		$result=$this->load_tables();
@@ -682,6 +690,10 @@ class modFinancement extends DolibarrModules
 		define('INC_FROM_DOLIBARR',true);
 		dol_include_once('/financement/config.php');
 		dol_include_once('/financement/script/create-maj-base.php');
+		
+		dol_include_once('/core/class/extrafields.class.php');
+		$extra = new ExtraFields($db);
+		$extra->addExtraField('fk_leaser_webservice', 'Identifiant du leaser associé pour les réponses de demande de financement', 'int', '1', '', 'user', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		
 		return $this->_init($sql, $options);
 	}
