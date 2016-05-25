@@ -230,8 +230,9 @@ function _liste(&$ATMdb, &$affaire) {
 		);
 	}
 
-	if($errone) $sql .= " GROUP BY a.rowid";
-	
+	if($errone) $sql .= " GROUP BY a.rowid
+			      HAVING ABS(SUM(df.montant) - a.montant) > 0.01";
+ 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formAffaire', 'GET');
 	
 	$TEntityName = TFinancementTools::build_array_entities();

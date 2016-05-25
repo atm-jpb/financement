@@ -630,6 +630,7 @@ class TSimulation extends TObjetStd {
 		$this->coeff=0;
 		// Calcul à partir du montant
 		if(!empty($this->montant_total_finance)) {
+			//var_dump($this->montant_total_finance, $this->duree, $grille->TGrille);exit;
 			foreach($grille->TGrille[$this->duree] as $palier => $infos) {
 				if($this->montant_total_finance <= $palier)
 				{
@@ -638,15 +639,12 @@ class TSimulation extends TObjetStd {
 				}
 			}
 		} else if(!empty($this->echeance)) { // Calcul à partir de l'échéance
-			$montant = 0;
-			$palierMin = 0;
+			//var_dump($this->echeance, $this->duree, $grille->TGrille);exit;
 			foreach($grille->TGrille[$this->duree] as $palier => $infos) {
-				$montantMax = $this->echeance / ($infos['coeff'] / 100);
-				if($montantMax > $montant && $montantMax <= $palier && $montantMax >= $palierMin) {
-					$montant = $montantMax;
+				if ($infos['echeance'] >= $this->echeance) {
 					$this->coeff = $infos['coeff']; // coef trimestriel
+					break;
 				}
-				$palierMin = $palier;
 			}
 		}
 		
@@ -1175,6 +1173,11 @@ class TSimulation extends TObjetStd {
 		if (!empty($this->thirdparty_code_client)) $this->societe->code_client = $this->thirdparty_code_client;
 		if (!empty($this->thirdparty_idprof2_siret)) $this->societe->idprof2 = $this->thirdparty_idprof2_siret;
 		if (!empty($this->thirdparty_idprof3_naf)) $this->societe->idprof3 = $this->thirdparty_idprof3_naf;
+		
+		if ($simu2->opt_periodicite == 'MOIS') $simu2->coeff_by_periodicite = $simu2->coeff / 3;
+		elseif ($simu2->opt_periodicite == 'SEMESTRE') $simu2->coeff_by_periodicite = $simu2->coeff * 2;
+		elseif ($simu2->opt_periodicite == 'ANNEE') $simu2->coeff_by_periodicite = $simu2->coeff * 4;
+		else $simu2->coeff_by_periodicite = $simu2->coeff; // TRIMESTRE
 		
 		$TBS = new TTemplateTBS;
 		$file = $TBS->render('./tpl/doc/simulation.odt'

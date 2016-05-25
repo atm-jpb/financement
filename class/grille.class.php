@@ -74,7 +74,7 @@ class TFin_grille_leaser extends TObjetStd {
 				'rowid' => $ligne_grille['rowid']
 				,'coeff' => $coeff
 				,'coeff_interne' => $ligne_grille['coeff_interne']
-				,'echeance' => ( ($periode==0) ? 0 : $montant / $periode * (1 + $coeff / 100) )
+				,'echeance' => ( ($periode==0) ? 0 : $montant * $coeff / 100 )
 				,'montant' => $montant
 				,'periode' => $periode
 			);
