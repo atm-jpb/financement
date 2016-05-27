@@ -369,21 +369,18 @@ class TFin_affaire extends TObjetStd {
 	}	
 	
 	function genLixxbailXML(&$PDOdb, &$TAffaires,$andUpload=false){
-		
-		$date = date('Ymd');
-		$name = "CPROMA01IMMA".$date;
 
 		$xml = new DOMDocument('1.0','UTF-8');
 		$xml->formatOutput = true;
 
 		$affairelist = $xml->createElement("affaireList");
 		$affairelist = $xml->appendChild($affairelist);
-
-		$affairelist->appendChild($xml->createElement("nomFich",$name));
-		$affairelist->appendChild($xml->createElement("refExtPartenaire","CPROMA01"));
-		$affairelist->appendChild($xml->createElement("numLot","IMMA".date('ymd')));
 		
-		$name2 = "FP_207_MA01_CPRO_".$date;
+		list($nomFichier,$name2,$refPartenaire,$numLot) = $this->getEnTeteByEntity();
+		
+		$affairelist->appendChild($xml->createElement("nomFich",$nomFichier));
+		$affairelist->appendChild($xml->createElement("refExtPartenaire",$refPartenaire));
+		$affairelist->appendChild($xml->createElement("numLot",$numLot));
 		
 		//Chargement des noeuds correspondant aux affaires
 		foreach($TAffaires as $Affaire){
@@ -402,6 +399,53 @@ class TFin_affaire extends TObjetStd {
 		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name2.'.xml', $chaine);
 		
 		return $name2;
+	}
+
+	function getEnTeteByEntity(){
+		
+		$date = date('Ymd');
+		
+		switch (getEntity()) {
+			case 1: //CPRO Impression
+				$name2 = "FP_207_MA01_CPRO_".$date;
+				$nomFichier = "CPROMA01IMMA".$date;
+				$refPartenaire = "CPROMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 2: //CPRO Informatique
+				$name2 = "FP_207_MA01_CPRO_".$date;
+				$nomFichier = "CPROMA01IMMA".$date;
+				$refPartenaire = "CPROMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 3: //CPRO Télécom
+				$name2 = "FP_207_MA01_CPRO_".$date;
+				$nomFichier = "CPROMA01IMMA".$date;
+				$refPartenaire = "CPROMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 4: //Bougogne Copie
+				$name2 = "FP_207_MA01_CPRO_".$date;
+				$nomFichier = "CPROMA01IMMA".$date;
+				$refPartenaire = "CPROMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 5: //ABG
+				$name2 = "";
+				$nomFichier = "";
+				$refPartenaire = "";
+				$numLot = "";
+				break;
+			
+			default:
+				$name2 = "FP_207_MA01_CPRO_".$date;
+				$nomFichier = "CPROMA01IMMA".$date;
+				$refPartenaire = "CPROMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+		}
+		
+		return array($nomFichier,$name2,$refPartenaire,$numLot);
 	}
 	
 	function resetAllDossiersInXML(&$ATMdb,&$TAffaires){
