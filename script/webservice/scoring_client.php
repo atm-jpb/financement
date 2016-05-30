@@ -30,29 +30,29 @@ $simulation->load($PDOdb, $db, 6164);
 $simulationSuivi = new TSimulationSuivi;
 
 
-var_dump($simulation);
+var_dump($simulation->opt_mode_reglement);
 exit;
 
 $TParam = array(
 	'PARTENAIRE' => array( // 1..1
 		0 => array(
-			'SIREN_PARTENAIRE' => $mysoc->idprof1
-			,'NIC_PARTENAIRE' => $mysoc->tva_intra
+			'SIREN_PARTENAIRE' => $mysoc->idprof1 // Partenaire = CPRO
+			,'NIC_PARTENAIRE' => $mysoc->idprof2
 			,'COMMERCIAL_EMAIL' => $simulationSuivi->user->email // TODO vérifier si on doit prendre l'email du user associé à la simulation et non celui du suivi
 			,'REF_EXT' => $simulation->reference
 		)
 	)
 	,'BIEN' => array( // 1..1
 		0 => array(
-			'CATEGORIE_BIEN' => ''
-			,'NATURE_BIEN' => $simulation->type_materiel
-			,'MARQUE_BIEN' => $simulation->marque_materiel
-			,'ANNEE_BIEN' => ''
-			,'ETAT_BIEN' => ''
-			,'QTE_BIEN' => ''
+			'CATEGORIE_BIEN' => '' // *
+			,'NATURE_BIEN' => '' // *
+			,'MARQUE_BIEN' => '' // *
+			,'ANNEE_BIEN' => date('Y')
+			,'ETAT_BIEN' => 'NEUF'
+			,'QTE_BIEN' => 1
 			,'MT_HT_BIEN' => $simulation->montant
 			,'PAYS_DESTINATION_BIEN' => !empty($simulation->societe->country_code) ? $simulation->societe->country_code : 'FR'
-			,'FOURNISSEUR_SIREN' => ''
+			,'FOURNISSEUR_SIREN' => $mysoc->idprof1 // Toujours CPRO
 		)
 	)
 	,'BIEN_COMPL' => array( // 1..n
@@ -77,8 +77,8 @@ $TParam = array(
 	)
 	,'CLIENT' => array( // 1..1
 		0 => array(
-			'CLIENT_SIREN' => $simulation->societe->idprof1
-			,'CLIENT_NIC' => $simulation->societe->tva_intra // NO
+			'CLIENT_SIREN' => $mysoc->idprof1 // Toujours CPRO
+			,'CLIENT_NIC' => $mysoc->idprof2 
 		)
 	)
 	,'FINANCEMENT' => array( // 1..1
@@ -88,19 +88,48 @@ $TParam = array(
 			,'MT_FINANCEMENT_HT' => ''
 			,'PCT_VR' => ''
 			,'MT_VR' => ''
-			,'TYPE_REGLEMENT' => $simulation->opt_mode_reglement
+			,'TYPE_REGLEMENT' => _getIdModeRglt($simulation->opt_mode_reglement)
 			,'MT_PREMIER_LOYER' => '' // NO
 			,'DUREE_FINANCEMENT' => $simulation->duree
-			,'PERIODICITE_FINANCEMENT' => $simulation->opt_periodicite
-			,'TERME_FINANCEMENT' => $simulation->opt_terme == 1 ? 'AECH' : 'ECHU' // 4 char. échu ou à échoir
+			,'PERIODICITE_FINANCEMENT' => _getIdPeriodiciteFinancement($simulation->opt_periodicite)
+			,'TERME_FINANCEMENT' => $simulation->opt_terme == 1 ? 'A' : 'E' // 4 char. échu ou à échoir
 			,'NB_FRANCHISE' => '' // NO
-			,'NATURE_FINANCEMENT' => $simulation->type_financement
+			,'NATURE_FINANCEMENT' => 'STD'
 			,'DATE_DEMANDE_FINANCEMENT' => date('Y-m-d H:i:s')
 		)
 	)
 );
 
 
+/**
+ * Retourne le code de périodicité sous forme de string
+ */
+function _getIdPeriodiciteFinancement($string_periodicite)
+{
+	$TId = array(
+		'ANNEE' => '1'
+		,'SEMESTRE' => '2'
+		,'TRIMESTRE' => '4'
+		,'BIMESTRIEL' => '6' // Non utilisé dans financement
+		,'MOIS' => '12'
+	);
+	
+	// TODO catch error if empty ?
+	return $TId[$string_periodicite];
+}
+
+function _getIdModeRglt($string_mode_reglement)
+{
+	$TId = array(
+		'CHQ' => 1
+		,'PRE' => 2
+		//,'MDT' => 0 // Non géré pas cal&f
+		//,'VIR' => 0 // Non géré pas cal&f
+	);
+	
+	// TODO catch error if empty ?
+	return $TId[$string_mode_reglement];
+}
 
 /*
 $wsdl = dol_buildpath('/financement/files/demandeFinancement.wsdl', 2);
