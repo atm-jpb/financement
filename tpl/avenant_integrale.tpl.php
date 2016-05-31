@@ -74,8 +74,8 @@
 	
 	<tr class="pair" align="center">
 		<td>Répartition</td>
-		<td>[noir.repartition;strconv=no]</td>
-		<td>[couleur.repartition;strconv=no]</td>
+		<td>[noir.repartition;strconv=no]%</td>
+		<td>[couleur.repartition;strconv=no]%</td>
 	</tr>
 	
 	<tr class="pair" align="center">
