@@ -194,7 +194,7 @@ class TIntegrale extends TObjetStd {
 	function calcul_fas_max($fas_manuel) {
 		
 		$fas_max = ($this->cout_unit_noir_loyer * $this->vol_noir_engage) + ($this->cout_unit_coul_loyer * $this->vol_coul_engage);
-		return ($fas_manuel > $fas_max) ? $fas_max : $fas_manuel;
+		return ($fas_manuel > $fas_max) ? $this->ceil($fas_max, 2) : $this->ceil($fas_manuel, 2);
 		
 	}
 
