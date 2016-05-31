@@ -1449,6 +1449,7 @@ class TFin_dossier extends TObjetStd {
 			
 			$object = new FactureFournisseur($db);
 			
+			$object->entity = $d->entity;
 			$object->ref_supplier = $reference;
 			$object->ref           = $reference;
 		    $object->socid         = $f->fk_soc;
