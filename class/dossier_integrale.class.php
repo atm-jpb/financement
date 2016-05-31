@@ -190,6 +190,13 @@ class TIntegrale extends TObjetStd {
 		return $fas_necessaire;
 		
 	}
+	
+	function calcul_fas_max($fas_manuel) {
+		
+		$fas_max = ($this->cout_unit_noir_loyer * $this->vol_noir_engage) + ($this->cout_unit_coul_loyer * $this->vol_coul_engage);
+		return ($fas_manuel > $fas_max) ? $fas_max : $fas_manuel;
+		
+	}
 
 	function calcul_detail_cout($engagement, $cout_unitaire, $type='noir') {
 		

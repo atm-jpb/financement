@@ -414,6 +414,17 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	if(empty($new_repartition_noir)) $new_repartition_noir = 50;
 	if(empty($new_repartition_couleur)) $new_repartition_couleur = 50;
 
+	
+	/* Si on modifie les FAS manuellement, il faut vérifier qu'on ne dépasse pas les fas max
+	 * Si on dépasse, il faut les rabaisser au montant maximum
+	 */
+	if((!empty($new_fas) && !empty($old_fas) && $new_fas != $old_fas)
+		|| (!empty($new_fas) && !empty($old_fas) && $new_fas != $old_fas))
+	{
+		$new_fas = $integrale->calcul_fas_max($new_fas);
+	}
+	
+
 	// GESTION DU NOIR
 	if(!empty($new_engagement_noir) && !empty($old_engagement_noir) && $new_engagement_noir != $old_engagement_noir) {
 		// Calcul new cout
