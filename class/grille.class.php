@@ -412,7 +412,7 @@ class TFin_grille_suivi extends TObjetStd {
 	 *  @param	int		$fk_type_contrat     Type du contrat (LOCSIMPLE,FORFAITGLOBAL,INTEGRAL)
      *  @return array   Tableau contenant la grille assocée au type de contrat
      */
-    function get_grille(&$PDOdb,$fk_type_contrat,$admin=true)
+    function get_grille(&$PDOdb,$fk_type_contrat,$admin=true,$entity=1)
     {
 		
 		$form=new TFormCore();
@@ -420,7 +420,7 @@ class TFin_grille_suivi extends TObjetStd {
     	$sql = "SELECT rowid, fk_leaser_solde, montantbase, montantfin, fk_leaser_entreprise,fk_leaser_administration,fk_leaser_association
         	 	FROM ".MAIN_DB_PREFIX."fin_grille_suivi
         	 	WHERE fk_type_contrat = '".$fk_type_contrat."'
-        	 	AND entity IN(".getEntity().")
+        	 	AND entity = ".$entity."
         	 	ORDER BY fk_leaser_solde,montantbase ASC";
 
 		$PDOdb->Execute($sql);
