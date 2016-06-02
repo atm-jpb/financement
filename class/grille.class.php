@@ -421,7 +421,7 @@ class TFin_grille_suivi extends TObjetStd {
         	 	FROM ".MAIN_DB_PREFIX."fin_grille_suivi
         	 	WHERE fk_type_contrat = '".$fk_type_contrat."'
         	 	AND entity = ".$entity."
-        	 	ORDER BY fk_leaser_solde,montantbase ASC";
+        	 	ORDER BY montantbase ASC";
 
 		$PDOdb->Execute($sql);
 
