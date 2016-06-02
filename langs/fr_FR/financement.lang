@@ -141,3 +141,10 @@ ErrorCreatingLinkAffaireFactureMaterielAlreidyExist=Facture matériel déjà rat
 
 # IHM
 DataSaved=Données enregistrées avec succès
+
+# WEBSERVICE MSG
+webservice_financement_msg_scoring_send=Demande de scoring transmise au leaser : %s
+
+# WEBSERVICE ERROR
+webservice_financement_error_mode_reglement=Erreur : le mode de règlement [%s] n'est pas un choix valide pour ce leaser
+webservice_financement_error_periodicite=Erreur : la périodicité [%s] n'est pas un choix valide pour ce leaser

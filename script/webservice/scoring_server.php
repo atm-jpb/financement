@@ -90,6 +90,7 @@ $server->wsdl->addComplexType(
         ,'commentaire_statut' => array('name'=>'commentaire_statut','type'=>'xsd:string') // NO - Commentaire additionnel sur le statut positionné sur le dossier - chaîne de caractères alphanumérique de 250 caractères max cf. tableau ci-dessous pour valeurs autorisées
         													// Rapprochez-vous de votre contact commercial || Rapprochez-vous de votre contact commercial || Attente retour client CAL&F || Délai de validité de l'accord dépassé || Dossier sans suite || Dossier annulé
         ,'num_dossier' => array('name'=>'num_dossier','type'=>'xsd:string') // O - Numéro de dossier CAL&F - chaîne de caractères alphanumérique de 13 caractères max
+        ,'coeff_dossier' => array('name'=>'coeff_dossier','type'=>'xsd:double') // pourcentage au format numérique décimal (. comme séparateur décimal)
 		,'date_demande_financement' => array('name'=>'date_demande_financement','type'=>'xsd:dateTime') // O - Date et heure de la demande de financement. - format YYYY-MM-DDThh:mm:ss
 		,'date_reponse_financement' => array('name'=>'date_reponse_financement','type'=>'xsd:dateTime') // O - Date et heure de la réponse à la demande de financement. - format YYYY-MM-DDThh:mm:ss
     )
@@ -101,12 +102,18 @@ $server->wsdl->addComplexType(
     'all',
     '',
     array(
-    	'partenaire' => array('name'=>'ref_ext','type'=>'tns:linePartenaire','minOccurs' => '1','maxOccurs' => '1')
+    	'partenaire' => array('name'=>'partenaire','type'=>'tns:linePartenaire','minOccurs' => '1','maxOccurs' => '1')
 		,'client' => array('name'=>'client','type'=>'tns:lineClient','minOccurs' => '1','maxOccurs' => '1')
 		,'financement' => array('name'=>'financement','type'=>'tns:lineFinancement','minOccurs' => '1','maxOccurs' => '1')
     )
 );
 
+// 5 styles: RPC/encoded, RPC/literal, Document/encoded (not WS-I compliant), Document/literal, Document/literal wrapped
+// Style merely dictates how to translate a WSDL binding to a SOAP message. Nothing more. You can use either style with any programming model.
+// http://www.ibm.com/developerworks/webservices/library/ws-whichwsdl/
+$styledoc='rpc';       // rpc/document (document is an extend into SOAP 1.0 to support unstructured messages)
+$styleuse='encoded';   // encoded/literal/literal wrapped
+// Better choice is document/literal wrapped but literal wrapped not supported by nusoap.
 
 // Register WSDL
 $server->register(
@@ -114,12 +121,12 @@ $server->register(
     // Entry values
     array('authentication'=>'tns:authentication','TReponse'=>'tns:TReponse'),
     // Exit values
-    array('result'=>'tns:result'),
+    array('result'=>'tns:result','date'=>'xsd:dateTime','timezone'=>'xsd:string'),
     $ns,
     $ns.'#repondreDemande',
     $styledoc,
     $styleuse,
-    'WS mise à jour du statut d\'une demande de financement'
+    'WS retour suite à une réponse de demande de financement'
 );
 
 
@@ -127,7 +134,7 @@ function repondreDemande($authentication, $TReponse)
 {
 	global $db,$conf,$langs;
 
-	dol_syslog("Function: repondreDemande login=".$authentication['login']);
+	dol_syslog("WEBSERVICE ".date('Y-m-d H:i:s')." Function: repondreDemande login=".$authentication['login']);
 
 	if ($authentication['entity']) $conf->entity=$authentication['entity'];
 
@@ -140,7 +147,7 @@ function repondreDemande($authentication, $TReponse)
 	if (! $error && (empty($TReponse['partenaire']) || empty($TReponse['client']) || empty($TReponse['financement'])))
 	{
 		$error++;
-		$errorcode='BAD_PARAMETERS'; $errorlabel="Indice 'partenaire' ou 'client' ou 'financement' manquant.";
+		$errorcode='BAD_PARAMETERS'; $errorlabel="Indice 'partenaire' ou 'client' ou 'financement' manquant";
 	}
 
 	if (! $error)
@@ -184,11 +191,10 @@ function repondreDemande($authentication, $TReponse)
 							
 							if ($found)
 							{
-								$statut = $TReponse['financement'][0]['num_dossier'];
-								
-								$commentaire = $TReponse['financement'][0]['commentaire_statut'];
-								$numero_accord = $TReponse['financement'][0]['num_dossier'];
-								$coeff = $TReponse['financement'][0]['coefficient']; // 2016-04-28 : le fichier ne communique pas encore de coefficient 
+								$statut = $TReponse['financement']['statut'];
+								$commentaire = $TReponse['financement']['commentaire_statut'];
+								$numero_accord = $TReponse['financement']['num_dossier'];
+								$coeff = $TReponse['financement']['coeff_dossier'];
 								
 								$action = _getAction($fuser, $statut); // return accepter || refuser || attente
 								if ($action != 'attente')
@@ -210,38 +216,38 @@ function repondreDemande($authentication, $TReponse)
 							else
 							{
 								$error++;
-								$errorcode='ERROR_SUIVI_NOT_FOUND'; $errorlabel='Impossible de répondre à la demande, car non trouvée dans le suivi leaser simulation.';
+								$errorcode='ERROR_SUIVI_NOT_FOUND'; $errorlabel='Impossible de répondre à la demande, car non trouvée dans le suivi leaser simulation';
 							}
 						}
 						else
 						{
 							$error++;
-							$errorcode='CLIENT_SIREN_NOT_EQUAL'; $errorlabel='Le numéro SIREN du client associé au dossier est différent de celui fournis.';
+							$errorcode='CLIENT_SIREN_NOT_EQUAL'; $errorlabel='Le numéro SIREN du client associé au dossier est différent de celui fournis';
 						}
 					}
 					else
 					{
 						$error++;
-						$errorcode='NUM_DOSSIER_NOT_FOUND'; $errorlabel='La référence dossier ne correspond à aucune simulation.';
+						$errorcode='NUM_DOSSIER_NOT_FOUND'; $errorlabel='La référence dossier ne correspond à aucune simulation';
 					}
 				}
 				else
 				{
 					$error++;
-					$errorcode='NUM_DOSSIER_EMPTY'; $errorlabel='Aucune référence communiquée.';
+					$errorcode='NUM_DOSSIER_EMPTY'; $errorlabel='Aucune référence communiquée';
 				}
 				
 			}
 			else
 			{
 				$error++;
-				$errorcode='MISSING_CONFIGURATION'; $errorlabel='Configuration du compte utilisateur manquante. Le compte n\'est pas associé à un leaser.';
+				$errorcode='MISSING_CONFIGURATION'; $errorlabel='Configuration du compte utilisateur manquante. Le compte n\'est pas associé à un leaser';
 			}
 		}
 		else
 		{
 			$error++;
-			$errorcode='PERMISSION_DENIED'; $errorlabel='User does not have permission for this request.';
+			$errorcode='PERMISSION_DENIED'; $errorlabel='User does not have permission for this request';
 		}
 	}
 
@@ -249,6 +255,10 @@ function repondreDemande($authentication, $TReponse)
 	{
 		$objectresp = array('result'=>array('result_code' => $errorcode, 'result_label' => $errorlabel));
 	}
+
+	$date = new DateTime();
+	$objectresp['date'] = $date->format('Y-m-d H:i:s');
+	$objectresp['timezone'] = $date->getTimezone()->getName();
 
 	return $objectresp;
 }

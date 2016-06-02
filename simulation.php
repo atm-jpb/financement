@@ -283,6 +283,16 @@ if(!empty($action)) {
 				}
 				
 				if($action == 'demander'){
+					/* TODO mettre en place l'appel au webservice CAL&F si il s'agit du bon leaser
+					dol_include_once('/financement/class/service_financement.class.php');
+					$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[$id_suivi]); // Dans l'idée de créer une class pour gérer l'appel du webservice leaser
+					$res = $service->call();
+					if (!$res)
+					{
+						setEventMessages('', $service->TError, 'errors');
+					}
+					*/
+					
 					//$simulation->accord = 'WAIT_LEASER';
 					// Suite retours PR1512_1187, on ne garde plus que le statut WAIT (En étude)
 					$simulation->accord = 'WAIT';
