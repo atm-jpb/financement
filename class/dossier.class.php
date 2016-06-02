@@ -1449,7 +1449,6 @@ class TFin_dossier extends TObjetStd {
 			
 			$object = new FactureFournisseur($db);
 			
-			$object->entity = $d->entity;
 			$object->ref_supplier = $reference;
 			$object->ref           = $reference;
 		    $object->socid         = $f->fk_soc;
@@ -1459,7 +1458,12 @@ class TFin_dossier extends TObjetStd {
 		    $object->note_public   = '';
 			$object->origin = 'dossier';
 			$object->origin_id = $d->getId();
+			
+			// Permet la création d'une facture leaser dans l'entité du dossier
+			$curEntity = $conf->entity;
+			$conf->entity = $d->entity;
 			$id = $object->create($user);
+			$conf->entity = $curEntity;
 			
 			if($id > 0) {
 				$this->create_facture_leaser_addline($echeance, $f, $d, $object,$res,$user,$validate,$date);
