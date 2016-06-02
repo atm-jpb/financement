@@ -417,11 +417,14 @@ class TFin_grille_suivi extends TObjetStd {
 		
 		$form=new TFormCore();
 		
+		$order = 'fk_leaser_solde,montantbase';
+		if(strpos($fk_type_contrat,'DEFAUT_') === 0) $order = 'montantbase';
+		
     	$sql = "SELECT rowid, fk_leaser_solde, montantbase, montantfin, fk_leaser_entreprise,fk_leaser_administration,fk_leaser_association
         	 	FROM ".MAIN_DB_PREFIX."fin_grille_suivi
         	 	WHERE fk_type_contrat = '".$fk_type_contrat."'
         	 	AND entity = ".$entity."
-        	 	ORDER BY montantbase ASC";
+        	 	ORDER BY $order ASC";
 
 		$PDOdb->Execute($sql);
 
