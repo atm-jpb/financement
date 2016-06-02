@@ -1463,13 +1463,14 @@ class TFin_dossier extends TObjetStd {
 			$curEntity = $conf->entity;
 			$conf->entity = $d->entity;
 			$id = $object->create($user);
-			$conf->entity = $curEntity;
 			
 			if($id > 0) {
 				$this->create_facture_leaser_addline($echeance, $f, $d, $object,$res,$user,$validate,$date);
 			}
 
 		}
+		
+		$conf->entity = $curEntity;
 		
 		return $object;
 	}
