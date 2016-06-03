@@ -72,6 +72,11 @@
 		<td>[couleur.montant_total;strconv=no]</td>
 	</tr>
 	
+	<tr class="impair" align="center">
+		<td>% couleur</td>
+		<td colspan="2"><div id="cursor"></div></td>
+	</tr>
+	
 	<tr class="pair" align="center">
 		<td>Répartition</td>
 		<td>[noir.repartition;strconv=no]%</td>

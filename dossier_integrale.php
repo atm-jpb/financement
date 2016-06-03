@@ -411,8 +411,6 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	if(empty($new_cout_noir)) $new_cout_noir = $integrale->cout_unit_noir * $pourcentage_sup_mois_decembre;
 	if(empty($new_cout_couleur)) $new_cout_couleur = $integrale->cout_unit_coul * $pourcentage_sup_mois_decembre;
 	if(empty($new_fas)) $new_fas = $integrale->fas;
-	if(empty($new_repartition_noir)) $new_repartition_noir = 50;
-	if(empty($new_repartition_couleur)) $new_repartition_couleur = 50;
 
 	
 	/* Si on modifie les FAS manuellement, il faut vérifier qu'on ne dépasse pas les fas max
@@ -478,6 +476,12 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	// Get detail
 	$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
 
+	if(empty($new_repartition_couleur)) {
+		$new_repartition_couleur = $integrale->calcul_percent_couleur($TDetailCoutNoir, $new_engagement_noir, $TDetailCoutCouleur, $new_engagement_couleur);
+		$new_repartition_noir = 100 - $new_repartition_couleur;
+	}
+	//if(empty($new_repartition_noir)) $new_repartition_noir = 50;
+	
 
 	// Nouvelle méthode de calcul en fonction des répartitions en %tage.
 	/*if(!empty($new_repartition_noir) && !empty($old_repartition_noir) && $new_repartition_noir != $old_repartition_noir) {
@@ -511,12 +515,22 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
 		
 	}*/
-
+$new_cout_couleur = $integrale->calcul_cout_unitaire_by_repartition($new_engagement_noir,
+																			$TDetailCoutNoir['nouveau_cout_unitaire_mach'],
+																			$TDetailCoutNoir['nouveau_cout_unitaire_loyer'],
+																			$TDetailCoutNoir['nouveau_cout_unitaire_tech'],
+																			$new_engagement_couleur,
+																			$TDetailCoutCouleur['nouveau_cout_unitaire_mach'],
+																			$TDetailCoutCouleur['nouveau_cout_unitaire_loyer'],
+																			$TDetailCoutCouleur['nouveau_cout_unitaire_tech'],
+																			$new_repartition_couleur, 'couleur');
+echo $new_cout_couleur;
 	$total_noir = $new_engagement_noir * $new_cout_noir;
 	$total_couleur = $new_engagement_couleur * $new_cout_couleur;
 	
 	print $form->hidden('action', 'addAvenantIntegrale');
 	print $form->hidden('id', GETPOST('id'));
+	print $form->hidden('id_integrale', $integrale->getId());
 	print $form->hidden('fk_facture', $f->id);
 	print $form->hidden('fk_soc', $f->socid);
 	
@@ -540,7 +554,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 		,array(
 			'noir'=>array(
 				'engage'=>$integrale->vol_noir_engage
-				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_noir',$new_engagement_noir,10)
+				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_noir',$new_engagement_noir,10,0,' engagement_type="noir" autocomplete="off"')
 				,'montant_total'=>$form->texteRO('','montant_total_noir',$total_noir,10,'',$style)
 				,'cout_unitaire'=>$integrale->cout_unit_noir
 				,'cout_unit_tech'=>$integrale->cout_unit_noir_tech
@@ -554,7 +568,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 			),
 			'couleur'=>array(
 				'engage'=>$integrale->vol_coul_engage
-				,'nouvel_engagement'=>!empty($new_engagement_couleur) ? $form->texte('','nouvel_engagement_couleur',$new_engagement_couleur,10) : $form->texteRO('','nouvel_engagement_couleur',$new_engagement_couleur,10,'',$style)
+				,'nouvel_engagement'=>!empty($new_engagement_couleur) ? $form->texte('','nouvel_engagement_couleur',$new_engagement_couleur,10,0,' engagement_type="coul" autocomplete="off"') : $form->texteRO('','nouvel_engagement_couleur',$new_engagement_couleur,10,'',$style)
 				,'montant_total'=>$form->texteRO('','montant_total_couleur',$total_couleur,10,'',$style)
 				,'cout_unitaire'=>$integrale->cout_unit_coul
 				,'cout_unit_tech'=>$integrale->cout_unit_coul_tech
@@ -593,6 +607,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	print $form->btsubmit($langs->trans('Save'), 'btSave', '', 'butAction');
 	print '</div>';
 	
+	print '<script type="text/javascript" src="./js/avenant_integral.js"></script>';
 }
 
 function _addAvenantIntegrale(&$dossier) {

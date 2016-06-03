@@ -228,5 +228,12 @@ class TIntegrale extends TObjetStd {
 		
 	}
 	
+	function calcul_percent_couleur($TDetailCoutNoir, $engagement_noir, $TDetailCoutCouleur, $engagement_couleur) {
+		// (cout loyer couleur * engagement couleur) / ((Cout loyer noir * engagement noir) + (cout loyer couleur * engagement couleur))
+		$loyer_noir = $TDetailCoutNoir['nouveau_cout_unitaire_loyer'] * $engagement_noir;
+		$loyer_couleur = $TDetailCoutCouleur['nouveau_cout_unitaire_loyer'] * $engagement_couleur;
+		
+		return round($loyer_couleur / ($loyer_noir + $loyer_couleur) * 100);
+	}
 }
 
