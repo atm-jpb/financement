@@ -162,11 +162,20 @@ class TIntegrale extends TObjetStd {
 		
 	}
 	
-	function calcul_cout_unitaire_by_repartition($engagement_noir, $cout_mach_noir, $cout_loyer_noir, $cout_tech_noir, $engagement_couleur, $cout_mach_couleur, $cout_loyer_couleur, $cout_tech_couleur, $pourcentage, $type='noir') {
+	function calcul_cout_unitaire_by_repartition($TDetailCoutNoir, $engagement_noir, $TDetailCoutCouleur, $engagement_couleur, $pourcentage, $type='noir') {
+		if($type == 'noir') $cout_tech = $TDetailCoutNoir['nouveau_cout_unitaire_tech'];
+		else $cout_tech = $TDetailCoutCouleur['nouveau_cout_unitaire_tech'];
 		
-		$tcf = $this->calcul_tcf($engagement_noir, $cout_mach_noir, $cout_loyer_noir, $engagement_couleur, $cout_mach_couleur, $cout_loyer_couleur);
+		$tcf = $this->calcul_tcf(
+			$engagement_noir,
+			$TDetailCoutNoir['nouveau_cout_unitaire_mach'],
+			$TDetailCoutNoir['nouveau_cout_unitaire_loyer'],
+			$engagement_couleur,
+			$TDetailCoutCouleur['nouveau_cout_unitaire_mach'],
+			$TDetailCoutCouleur['nouveau_cout_unitaire_loyer']
+		);
 		//var_dump($tcf, $pourcentage, ${'engagement_'.$type}, ${'cout_tech_'.$type});exit;
-		$res = ($tcf * ($pourcentage/100) / ${'engagement_'.$type}) + ${'cout_tech_'.$type};
+		$res = ($tcf * ($pourcentage/100) / ${'engagement_'.$type}) + $cout_tech;
 		//echo $res;exit;
 		return $this->ceil($res);
 		
@@ -198,7 +207,9 @@ class TIntegrale extends TObjetStd {
 		
 	}
 
-	function calcul_detail_cout($engagement, $cout_unitaire, $type='noir') {
+	function calcul_detail_cout($engagement=0, $cout_unitaire=0, $type='noir') {
+		if(empty($engagement)) $engagement = $this->{'vol_'.$type.'_engage'};
+		if(empty($cout_unitaire)) $cout_unitaire = $this->{'cout_unit_'.$type};
 		
 		$TData = array();
 		
@@ -208,7 +219,6 @@ class TIntegrale extends TObjetStd {
 		$TData['nouveau_cout_unitaire_loyer'] = $TData['cout_unitaire'] - $TData['nouveau_cout_unitaire_mach'] - $TData['nouveau_cout_unitaire_tech'];
 
 		return $TData;
-		
 	}
 	
 	private function ceil($valeur, $puissance=4) {
@@ -228,11 +238,17 @@ class TIntegrale extends TObjetStd {
 		
 	}
 	
-	function calcul_percent_couleur($TDetailCoutNoir, $engagement_noir, $TDetailCoutCouleur, $engagement_couleur) {
+	function calcul_percent_couleur($cout_unit_noir_loyer=0, $engagement_noir=0, $cout_unitaire_coul_loyer=0, $engagement_couleur=0) {
+		//return "25.23";
 		// (cout loyer couleur * engagement couleur) / ((Cout loyer noir * engagement noir) + (cout loyer couleur * engagement couleur))
-		$loyer_noir = $TDetailCoutNoir['nouveau_cout_unitaire_loyer'] * $engagement_noir;
-		$loyer_couleur = $TDetailCoutCouleur['nouveau_cout_unitaire_loyer'] * $engagement_couleur;
+		if(empty($cout_unit_noir_loyer)) $cout_unit_noir_loyer = $this->cout_unit_noir_loyer;
+		if(empty($engagement_noir)) $engagement_noir = $this->vol_noir_engage;
+		if(empty($cout_unitaire_coul_loyer)) $cout_unitaire_coul_loyer = $this->cout_unit_coul_loyer;
+		if(empty($engagement_couleur)) $engagement_couleur = $this->vol_coul_engage;
 		
+		$loyer_noir = $cout_unit_noir_loyer * $engagement_noir;
+		$loyer_couleur = $cout_unitaire_coul_loyer * $engagement_couleur;
+		//echo 'TADA'.$loyer_couleur. '-' .$loyer_noir;
 		return round($loyer_couleur / ($loyer_noir + $loyer_couleur) * 100);
 	}
 }
