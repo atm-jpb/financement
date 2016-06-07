@@ -1424,9 +1424,9 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		//Si leaser auto alors on envoye la demande par XML
-		/*if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
+		if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
 			$this->_sendDemandeAuto($PDOdb);
-		}*/
+		}
 		
 		$this->statut_demande = 1;
 		$this->date_demande = time();
