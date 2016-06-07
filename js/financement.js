@@ -119,17 +119,14 @@ var calcul_montant_rachat = function() {
 	var type_contrat = $('select[name="fk_type_contrat"]').val();
 	var type_solde = 'solde_nr';
 	$('input[name^="dossiers_rachetes"]:checked').each(function() {
-		//type_solde = ($(this).attr('contrat') == type_contrat) ? 'solde_r' : 'solde_nr';
-		//montant_rachat += parseFloat($(this).attr(type_solde));
+
 		montant_rachat += parseFloat($(this).attr('solde'));
-		
-		//if($('#dossiers_rachetes_perso['+$(this).val()+']').attr('solde')){
-			montant_decompte_copies += parseFloat($('input[name="dossiers_rachetes_perso['+$(this).val()+']"]').attr('solde'));
-		/*}
-		else{
-			montant_decompte_copies += 0;
-		}*/
+		montant_decompte_copies += parseFloat($('input[name="dossiers_rachetes_perso['+$(this).val()+']"]').attr('solde'));
 		montant_rachat_concurrence = parseFloat($('#montant_rachete_concurrence').val());
+		
+		if((montant_rachat - montant_decompte_copies) < 0)
+			montant_decompte_copies = montant_rachat;
+		
 		montant_rachat_final = montant_rachat - montant_decompte_copies + montant_rachat_concurrence;
 	});
 	

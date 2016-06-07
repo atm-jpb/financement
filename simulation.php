@@ -701,6 +701,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	elseif ($simulation->opt_periodicite == 'ANNEE') $coeff = $simulation->coeff * 4;
 	else $coeff = $simulation->coeff; // TRIMESTRE
 	
+	if($simulation->montant_decompte_copies_sup < 0) $simulation->montant_decompte_copies_sup = 0;
+	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
