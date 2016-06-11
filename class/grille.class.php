@@ -60,21 +60,24 @@ class TFin_grille_leaser extends TObjetStd {
 				,'coeff_interne' => $line->coeff_interne
 			);
 		}
+		
+		$transcoperiode = 3 / $this->getiPeriode($periodicite);
 	
 		foreach($TResult as $ligne_grille) {
 			
 			$periode = floatval($ligne_grille['periode']);
 			//if($periodicite == 'MOIS') $periode *= 3;
-			$periode *= 3 / $this->getiPeriode($periodicite);
+			$periode *= $transcoperiode;
 			
 			$montant = floatval($ligne_grille['montant']);
 			$coeff = $this->_calculate_coeff($PDOdb, $ligne_grille['coeff'], $options, $entity);
+			$echeance = ($periode == 0) ? 0 : $montant * ($coeff / $transcoperiode) / 100;
 			
 			$result[strval($periode)][$montant]=array(
 				'rowid' => $ligne_grille['rowid']
 				,'coeff' => $coeff
 				,'coeff_interne' => $ligne_grille['coeff_interne']
-				,'echeance' => ( ($periode==0) ? 0 : $montant * $coeff / 100 )
+				,'echeance' => $echeance
 				,'montant' => $montant
 				,'periode' => $periode
 			);
