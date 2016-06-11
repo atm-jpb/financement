@@ -862,26 +862,26 @@ class TFin_dossier extends TObjetStd {
 		switch ($type) 
 		{
 			case 'SRBANK': //BANK = leaser sur le PDF
-				return $this->getSolde_SR_LEASER($PDOdb, $iPeriode, $duree_restante_leaser, $CRD_Leaser, $LRD_Leaser, 'R', $this->nature_financement);
+				$solde =$this->getSolde_SR_LEASER($PDOdb, $iPeriode, $duree_restante_leaser, $CRD_Leaser, $LRD_Leaser, 'R', $this->nature_financement);
 				break;
 			case 'SNRBANK':
-				return $this->getSolde_SNR_LEASER($PDOdb, $iPeriode, $duree_restante_leaser, $CRD_Leaser, $LRD_Leaser, 'NR', $this->nature_financement);
+				$solde =$this->getSolde_SNR_LEASER($PDOdb, $iPeriode, $duree_restante_leaser, $CRD_Leaser, $LRD_Leaser, 'NR', $this->nature_financement);
 				break;
 			case 'SRCPRO': // CPRO = client sur le PDF
-				return $this->getSolde_SR_CLIENT($PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
+				$solde =$this->getSolde_SR_CLIENT($PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
 				break;
 			case 'SNRCPRO':
-				return $this->getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
+				$solde =$this->getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
 				break;
 			case 'SRNRSAME': // [PH] case dernièrement ajouté par Geoffrey qui remplacement selon moi SRCPRO et SNRCPRO mais qui n'est plus à utiliser
-				return $this->getSolde_SR_NR_SAME($iPeriode, $duree_restante_client, $LRD, $LRD_leaser, $this->nature_financement);
+				$solde =$this->getSolde_SR_NR_SAME($iPeriode, $duree_restante_client, $LRD, $LRD_leaser, $this->nature_financement);
 				break;
 			case 'perso': 
-				return $this->soldeperso;
+				$solde =$this->soldeperso;
 				break;
 		}
-		
-		return 0; // Error
+
+		return ($solde > 0) ? $solde : 0 ;
 	}
 	/*****************************************************************************************/
 
@@ -1449,7 +1449,6 @@ class TFin_dossier extends TObjetStd {
 			
 			$object = new FactureFournisseur($db);
 			
-			$object->entity = $d->entity;
 			$object->ref_supplier = $reference;
 			$object->ref           = $reference;
 		    $object->socid         = $f->fk_soc;
@@ -1459,6 +1458,10 @@ class TFin_dossier extends TObjetStd {
 		    $object->note_public   = '';
 			$object->origin = 'dossier';
 			$object->origin_id = $d->getId();
+			
+			// Permet la création d'une facture leaser dans l'entité du dossier
+			$curEntity = $conf->entity;
+			$conf->entity = $d->entity;
 			$id = $object->create($user);
 			
 			if($id > 0) {
@@ -1466,6 +1469,8 @@ class TFin_dossier extends TObjetStd {
 			}
 
 		}
+		
+		$conf->entity = $curEntity;
 		
 		return $object;
 	}
