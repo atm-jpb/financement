@@ -573,7 +573,7 @@ echo $new_cout_couleur;*/
 				,'cout_unit_mach'=>$integrale->cout_unit_coul_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_coul_loyer
 				,'repartition'=>!empty($new_engagement_couleur) ? $form->texte('','nouvelle_repartition_couleur',$new_repartition_couleur,3) : $form->texteRO('','nouvelle_repartition_couleur',0,3,0,$style)
-				,'nouveau_cout_unitaire'=>$form->texteRO('','nouveau_cout_unitaire_couleur', $new_cout_couleur,10,'',$style)
+				,'nouveau_cout_unitaire'=>$form->texteRO('','nouveau_cout_unitaire_coul', $new_cout_couleur,10,'',$style)
 				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_coul_tech', $TDetailCoutCouleur['nouveau_cout_unitaire_tech'],10,'',$style) // Identique à l'ancien dans tous les cas
 				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_coul_mach', $TDetailCoutCouleur['nouveau_cout_unitaire_mach'],10,'',$style)
 				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_coul_loyer', $TDetailCoutCouleur['nouveau_cout_unitaire_loyer'],10,'',$style)
@@ -705,11 +705,11 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 				,'cout_unit_mach'=>$integrale->cout_unit_coul_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_coul_loyer
 				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_couleur',$engagement_couleur,10,0,' style="text-align: center;" engagement_type="coul" autocomplete="off"')
-				,'nouveau_cout_unitaire'=>$form->texteRO('','nouveau_cout_unitaire_couleur', $TDetailCoutCouleur['cout_unitaire'],10,'',$style)
+				,'nouveau_cout_unitaire'=>$form->texteRO('','nouveau_cout_unitaire_coul', $TDetailCoutCouleur['cout_unitaire'],10,'',$style)
 				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_coul_tech', $TDetailCoutCouleur['nouveau_cout_unitaire_tech'],10,'',$style) // Identique à l'ancien dans tous les cas
 				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_coul_mach', $TDetailCoutCouleur['nouveau_cout_unitaire_mach'],10,'',$style)
 				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_coul_loyer', $TDetailCoutCouleur['nouveau_cout_unitaire_loyer'],10,'',$style)				
-				,'montant_total'=>$form->texteRO('','montant_total_couleur',$total_couleur,10,'',$style)
+				,'montant_total'=>$form->texteRO('','montant_total_coul',$total_couleur,10,'',$style)
 				,'repartition'=>!empty($engagement_couleur) ? $form->texte('','nouvelle_repartition_couleur',$repartition_couleur,3) : $form->texteRO('','nouvelle_repartition_couleur',0,3,0,$style)
 			),
 			'global'=>array(
