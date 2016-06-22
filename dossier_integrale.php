@@ -369,7 +369,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	
 }
 
-function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
+function _printFormAvenantIntegraleOLD(&$PDOdb, &$dossier, &$TBS) {
 	
 	global $user, $langs;
 	
@@ -411,14 +411,18 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	if(empty($new_cout_noir)) $new_cout_noir = $integrale->cout_unit_noir * $pourcentage_sup_mois_decembre;
 	if(empty($new_cout_couleur)) $new_cout_couleur = $integrale->cout_unit_coul * $pourcentage_sup_mois_decembre;
 	if(empty($new_fas)) $new_fas = $integrale->fas;
-	if(empty($new_repartition_noir)) $new_repartition_noir = 50;
-	if(empty($new_repartition_couleur)) $new_repartition_couleur = 50;
+	if(empty($new_repartition_couleur)) {
+		$new_repartition_couleur = $integrale->calcul_percent_couleur($TDetailCoutNoir, $new_engagement_noir, $TDetailCoutCouleur, $new_engagement_couleur);
+		$new_repartition_noir = 100 - $new_repartition_couleur;
+	}
+	$TDetailCoutNoir = $integrale->calcul_detail_cout($new_engagement_noir, $new_cout_noir, 'noir');
+	$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
 
 	
 	/* Si on modifie les FAS manuellement, il faut vérifier qu'on ne dépasse pas les fas max
 	 * Si on dépasse, il faut les rabaisser au montant maximum
 	 */
-	if((!empty($new_fas) && !empty($old_fas) && $new_fas != $old_fas)
+	/*if((!empty($new_fas) && !empty($old_fas) && $new_fas != $old_fas)
 		|| (!empty($new_fas) && !empty($old_fas) && $new_fas != $old_fas))
 	{
 		$new_fas = $integrale->calcul_fas_max($new_fas);
@@ -478,6 +482,12 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	// Get detail
 	$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
 
+	if(empty($new_repartition_couleur)) {
+		$new_repartition_couleur = $integrale->calcul_percent_couleur($TDetailCoutNoir, $new_engagement_noir, $TDetailCoutCouleur, $new_engagement_couleur);
+		$new_repartition_noir = 100 - $new_repartition_couleur;
+	}
+	//if(empty($new_repartition_noir)) $new_repartition_noir = 50;
+	
 
 	// Nouvelle méthode de calcul en fonction des répartitions en %tage.
 	/*if(!empty($new_repartition_noir) && !empty($old_repartition_noir) && $new_repartition_noir != $old_repartition_noir) {
@@ -511,12 +521,14 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 		$TDetailCoutCouleur = $integrale->calcul_detail_cout($new_engagement_couleur, $new_cout_couleur, 'coul');
 		
 	}*/
-
+/*$new_cout_couleur = $integrale->calcul_cout_unitaire_by_repartition($TDetailCoutNoir, $new_engagement_noir, $TDetailCoutCouleur, $new_engagement_couleur, $new_repartition_couleur, 'couleur');
+echo $new_cout_couleur;*/
 	$total_noir = $new_engagement_noir * $new_cout_noir;
 	$total_couleur = $new_engagement_couleur * $new_cout_couleur;
 	
 	print $form->hidden('action', 'addAvenantIntegrale');
 	print $form->hidden('id', GETPOST('id'));
+	print $form->hidden('id_integrale', $integrale->getId());
 	print $form->hidden('fk_facture', $f->id);
 	print $form->hidden('fk_soc', $f->socid);
 	
@@ -540,7 +552,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 		,array(
 			'noir'=>array(
 				'engage'=>$integrale->vol_noir_engage
-				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_noir',$new_engagement_noir,10)
+				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_noir',$new_engagement_noir,10,0,' engagement_type="noir" autocomplete="off"')
 				,'montant_total'=>$form->texteRO('','montant_total_noir',$total_noir,10,'',$style)
 				,'cout_unitaire'=>$integrale->cout_unit_noir
 				,'cout_unit_tech'=>$integrale->cout_unit_noir_tech
@@ -554,14 +566,14 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 			),
 			'couleur'=>array(
 				'engage'=>$integrale->vol_coul_engage
-				,'nouvel_engagement'=>!empty($new_engagement_couleur) ? $form->texte('','nouvel_engagement_couleur',$new_engagement_couleur,10) : $form->texteRO('','nouvel_engagement_couleur',$new_engagement_couleur,10,'',$style)
+				,'nouvel_engagement'=>!empty($new_engagement_couleur) ? $form->texte('','nouvel_engagement_couleur',$new_engagement_couleur,10,0,' engagement_type="coul" autocomplete="off"') : $form->texteRO('','nouvel_engagement_couleur',$new_engagement_couleur,10,'',$style)
 				,'montant_total'=>$form->texteRO('','montant_total_couleur',$total_couleur,10,'',$style)
 				,'cout_unitaire'=>$integrale->cout_unit_coul
 				,'cout_unit_tech'=>$integrale->cout_unit_coul_tech
 				,'cout_unit_mach'=>$integrale->cout_unit_coul_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_coul_loyer
 				,'repartition'=>!empty($new_engagement_couleur) ? $form->texte('','nouvelle_repartition_couleur',$new_repartition_couleur,3) : $form->texteRO('','nouvelle_repartition_couleur',0,3,0,$style)
-				,'nouveau_cout_unitaire'=>$form->texteRO('','nouveau_cout_unitaire_couleur', $new_cout_couleur,10,'',$style)
+				,'nouveau_cout_unitaire'=>$form->texteRO('','nouveau_cout_unitaire_coul', $new_cout_couleur,10,'',$style)
 				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_coul_tech', $TDetailCoutCouleur['nouveau_cout_unitaire_tech'],10,'',$style) // Identique à l'ancien dans tous les cas
 				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_coul_mach', $TDetailCoutCouleur['nouveau_cout_unitaire_mach'],10,'',$style)
 				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_coul_loyer', $TDetailCoutCouleur['nouveau_cout_unitaire_loyer'],10,'',$style)
@@ -593,6 +605,141 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	print $form->btsubmit($langs->trans('Save'), 'btSave', '', 'butAction');
 	print '</div>';
 	
+	print '<script type="text/javascript" src="./js/avenant_integral.js"></script>';
+}
+
+function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
+	
+	global $user, $langs;
+	
+	$TFacture = &$dossier->TFacture;
+	if(empty($TFacture)) {
+		setEventMessage('Aucune facture intégrale trouvée', 'warnings');
+		return 0;
+	}
+	
+	$f = is_object(end($TFacture)) ? end($TFacture) : end(end($TFacture)); // Dans certains cas, il y a plusieurs factures pour une période, on veut la dernière
+	
+	$integrale = new TIntegrale;
+	$integrale->loadBy($PDOdb, $f->ref, 'facnumber');
+	
+	$form=new TFormCore($_SERVER['PHP_SELF'].'#calculateur', 'formAvenantIntegrale', 'POST');
+	
+	// Si simulation sur le mois de décembre, +6% sur tous les coûts
+	$pourcentage_sup_mois_decembre = ((int)date('m') == 12) ? 1.06 : 1;
+	
+	/*$new_engagement_noir = GETPOST('nouvel_engagement_noir');
+	$new_engagement_couleur = GETPOST('nouvel_engagement_couleur');
+	$old_engagement_noir = GETPOST('old_engagement_noir');
+	$old_engagement_couleur = GETPOST('old_engagement_couleur');
+	$new_cout_noir = GETPOST('nouveau_cout_unitaire_noir');
+	$new_cout_couleur = GETPOST('nouveau_cout_unitaire_couleur');
+	$old_cout_noir = GETPOST('old_cout_unitaire_noir');
+	$old_cout_couleur = GETPOST('old_cout_unitaire_couleur');
+	$new_fas = GETPOST('nouveau_fas');
+	$old_fas = GETPOST('old_fas');
+	$old_repartition_noir = GETPOST('old_repartition_noir');
+	$old_repartition_couleur = GETPOST('old_repartition_couleur');
+	$new_repartition_noir = GETPOST('nouvelle_repartition_noir');
+	$new_repartition_couleur = GETPOST('nouvelle_repartition_couleur');
+	$new_fas_noir = 0;
+	$new_fas_couleur = 0;*/
+	
+	$engagement_noir = $integrale->vol_noir_engage;
+	$engagement_couleur = $integrale->vol_coul_engage;
+	$cout_noir = $integrale->cout_unit_noir * $pourcentage_sup_mois_decembre;
+	$cout_couleur = $integrale->cout_unit_coul * $pourcentage_sup_mois_decembre;
+	$fas = $integrale->fas;
+	
+	$TDetailCoutNoir = $integrale->calcul_detail_cout(0, 0, 'noir');
+	$TDetailCoutCouleur = $integrale->calcul_detail_cout(0, 0, 'coul');
+	
+	$repartition_couleur = $integrale->calcul_percent_couleur();
+	$repartition_noir = 100 - $repartition_couleur;
+
+	$total_noir = $engagement_noir * $cout_noir;
+	$total_couleur = $engagement_couleur * $cout_couleur;
+	
+	print $form->hidden('action', 'addAvenantIntegrale');
+	print $form->hidden('id', GETPOST('id'));
+	print $form->hidden('id_integrale', $integrale->getId());
+	print $form->hidden('fk_facture', $f->id);
+	print $form->hidden('fk_soc', $f->socid);
+	
+	// On a également besoin d'afficher 2 hidden contenant la même valeur que les champs Coût unitaire noir & Coût unitaire couleur, pour ensuite vérifier s'ils ont été modifiés à la main par l'utilisateur
+	/*print $form->hidden('old_engagement_noir', $new_engagement_noir);
+	print $form->hidden('old_engagement_couleur', $new_engagement_couleur);
+	print $form->hidden('old_cout_unitaire_noir', $new_cout_noir);
+	print $form->hidden('old_cout_unitaire_couleur', $new_cout_couleur);
+	print $form->hidden('old_fas', $new_fas);
+	print $form->hidden('old_repartition_noir', $new_repartition_noir);
+	print $form->hidden('old_repartition_couleur', $new_repartition_couleur);*/
+	
+	$style = 'style="background-color: #C0C0C0; text-align: right;"';
+	
+	print '<div id="calculateur">';
+	
+	//echo 'total : '.$total_noir.' + '.$total_couleur.' + '.$new_fas .' + '. $new_fas_noir .' + '. $new_fas_couleur.' + '.$integrale->fass.' + '.$integrale->frais_bris_machine.' + '.$integrale->frais_facturation.'<br>';
+
+	print $TBS->render('./tpl/avenant_integrale.tpl.php'
+		,array()
+		,array(
+			'noir'=>array(
+				'engage'=>$integrale->vol_noir_engage
+				,'cout_unitaire'=>$integrale->cout_unit_noir
+				,'cout_unit_tech'=>$integrale->cout_unit_noir_tech
+				,'cout_unit_mach'=>$integrale->cout_unit_noir_mach
+				,'cout_unit_loyer'=>$integrale->cout_unit_noir_loyer
+				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_noir',$engagement_noir,10,0,' style="text-align: center;" engagement_type="noir" autocomplete="off"')
+				,'nouveau_cout_unitaire'=>$form->texteRO('','nouveau_cout_unitaire_noir', $TDetailCoutNoir['cout_unitaire'],10,'',$style)
+				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_noir_tech', $TDetailCoutNoir['nouveau_cout_unitaire_tech'],10,'',$style)  // Identique à l'ancien dans tous les cas
+				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_noir_mach', $TDetailCoutNoir['nouveau_cout_unitaire_mach'],10,'',$style)
+				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_noir_loyer', $TDetailCoutNoir['nouveau_cout_unitaire_loyer'],10,'',$style)
+				,'montant_total'=>$form->texteRO('','montant_total_noir',$total_noir,10,'',$style)
+				,'repartition'=>!empty($engagement_couleur) ? $form->texte('','nouvelle_repartition_noir',$repartition_noir,3) : $form->texte('','nouvelle_repartition_noir',100,3,0,$style)
+			),
+			'couleur'=>array(
+				'engage'=>$integrale->vol_coul_engage
+				,'cout_unitaire'=>$integrale->cout_unit_coul
+				,'cout_unit_tech'=>$integrale->cout_unit_coul_tech
+				,'cout_unit_mach'=>$integrale->cout_unit_coul_mach
+				,'cout_unit_loyer'=>$integrale->cout_unit_coul_loyer
+				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_couleur',$engagement_couleur,10,0,' style="text-align: center;" engagement_type="coul" autocomplete="off"')
+				,'nouveau_cout_unitaire'=>$form->texteRO('','nouveau_cout_unitaire_coul', $TDetailCoutCouleur['cout_unitaire'],10,'',$style)
+				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_coul_tech', $TDetailCoutCouleur['nouveau_cout_unitaire_tech'],10,'',$style) // Identique à l'ancien dans tous les cas
+				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_coul_mach', $TDetailCoutCouleur['nouveau_cout_unitaire_mach'],10,'',$style)
+				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_coul_loyer', $TDetailCoutCouleur['nouveau_cout_unitaire_loyer'],10,'',$style)				
+				,'montant_total'=>$form->texteRO('','montant_total_coul',$total_couleur,10,'',$style)
+				,'repartition'=>!empty($engagement_couleur) ? $form->texte('','nouvelle_repartition_couleur',$repartition_couleur,3) : $form->texteRO('','nouvelle_repartition_couleur',0,3,0,$style)
+			),
+			'global'=>array(
+				'FAS'=>$form->texte('','nouveau_fas', ($fas + $fas_noir + $fas_couleur) * $pourcentage_sup_mois_decembre,10,'')
+				,'FASS'=>$form->texteRO('','fass', $integrale->fass * $pourcentage_sup_mois_decembre,10,'',$style)
+				,'frais_bris_machine'=>$form->texteRO('','frais_bris_machine',$integrale->frais_bris_machine  * $pourcentage_sup_mois_decembre,10,'',$style)
+				,'frais_facturation'=>$form->texteRO('','ftc',$integrale->frais_facturation * $pourcentage_sup_mois_decembre,10,'',$style)
+				,'total_global'=>$form->texteRO('','total_global',$total_noir
+																+$total_couleur
+																+$fas + $fas_noir + $fas_couleur
+																+$integrale->fass
+																+$integrale->frais_bris_machine
+																+$integrale->frais_facturation,10,'',$style)
+			),
+			'rights'=>array(
+				'voir_couts_unitaires'=>(int)$user->rights->financement->integrale->detail_couts
+			)
+		)
+	);
+	
+	print '</div>';
+	
+	print '<div class="tabsAction">';
+	print $form->btsubmit($langs->trans('Calculer'), 'btCalcul', '', 'butAction');
+	// On n'utilise plus la solution en dessous
+	//print $form->checkbox1('Ne pas imprimer bloc locataire', 'no_print_bloc_locataire', 1, $pDefault);
+	print $form->btsubmit($langs->trans('Save'), 'btSave', '', 'butAction');
+	print '</div>';
+	
+	print '<script type="text/javascript" src="./js/avenant_integral.js"></script>';
 }
 
 function _addAvenantIntegrale(&$dossier) {

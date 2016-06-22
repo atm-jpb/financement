@@ -60,21 +60,24 @@ class TFin_grille_leaser extends TObjetStd {
 				,'coeff_interne' => $line->coeff_interne
 			);
 		}
+		
+		$transcoperiode = 3 / $this->getiPeriode($periodicite);
 	
 		foreach($TResult as $ligne_grille) {
 			
 			$periode = floatval($ligne_grille['periode']);
 			//if($periodicite == 'MOIS') $periode *= 3;
-			$periode *= 3 / $this->getiPeriode($periodicite);
+			$periode *= $transcoperiode;
 			
 			$montant = floatval($ligne_grille['montant']);
 			$coeff = $this->_calculate_coeff($PDOdb, $ligne_grille['coeff'], $options, $entity);
+			$echeance = ($periode == 0) ? 0 : $montant * ($coeff / $transcoperiode) / 100;
 			
 			$result[strval($periode)][$montant]=array(
 				'rowid' => $ligne_grille['rowid']
 				,'coeff' => $coeff
 				,'coeff_interne' => $ligne_grille['coeff_interne']
-				,'echeance' => ( ($periode==0) ? 0 : $montant * $coeff / 100 )
+				,'echeance' => $echeance
 				,'montant' => $montant
 				,'periode' => $periode
 			);
@@ -412,16 +415,19 @@ class TFin_grille_suivi extends TObjetStd {
 	 *  @param	int		$fk_type_contrat     Type du contrat (LOCSIMPLE,FORFAITGLOBAL,INTEGRAL)
      *  @return array   Tableau contenant la grille assocée au type de contrat
      */
-    function get_grille(&$PDOdb,$fk_type_contrat,$admin=true)
+    function get_grille(&$PDOdb,$fk_type_contrat,$admin=true,$entity=1)
     {
 		
 		$form=new TFormCore();
 		
+		$order = 'fk_leaser_solde,montantbase';
+		if(strpos($fk_type_contrat,'DEFAUT_') === 0) $order = 'montantbase';
+		
     	$sql = "SELECT rowid, fk_leaser_solde, montantbase, montantfin, fk_leaser_entreprise,fk_leaser_administration,fk_leaser_association
         	 	FROM ".MAIN_DB_PREFIX."fin_grille_suivi
         	 	WHERE fk_type_contrat = '".$fk_type_contrat."'
-        	 	AND entity IN(".getEntity().")
-        	 	ORDER BY fk_leaser_solde,montantbase ASC";
+        	 	AND entity = ".$entity."
+        	 	ORDER BY $order ASC";
 
 		$PDOdb->Execute($sql);
 

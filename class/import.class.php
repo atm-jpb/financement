@@ -879,6 +879,7 @@ class TImport extends TObjetStd {
 		//if(in_array($data['ref_service'], $TFAS) 
 		if ( $data['label_integrale'] == 'Frais d\'Accès au Service' 
 			|| $data['label_integrale'] == 'Forfait d\'Accès au Service'
+			|| $data['label_integrale'] == 'Forfait Frais d\'Accès au Service'
 			|| strpos($data['label_integrale'], '(FAS)') !== false 
 			|| substr($data['label_integrale'], -3) === 'FAS')
 		{
