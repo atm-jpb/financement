@@ -348,7 +348,8 @@ class TFin_affaire extends TObjetStd {
 				WHERE fa.type_financement = "MANDATEE"
 					AND df.type = "LEASER"
 					AND s.rowid = '.$fk_leaser.'
-					AND df.transfert = 1';
+					AND df.transfert = 1
+					AND df.entity IN('.((in_array('1',getEntity()) || in_array('4',getEntity())) ? "1,4" : getEntity() ).')';
 		
 		//echo $sql;exit;
 		
