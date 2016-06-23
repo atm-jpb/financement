@@ -380,7 +380,7 @@ function _liste(&$PDOdb, &$dossier) {
 	//$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."facture f ON (f.rowid=ee.fk_target)) ";
 	
 	//$sql.=" WHERE a.entity=".$conf->entity;
-	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])) $sql.=" WHERE a.entity IN(".((in_array('1',getEntity()) || in_array('4',getEntity())) ? "1,4" : getEntity() ).")";
+	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])) $sql.=" WHERE a.entity IN(".((strpos(getEntity(),'1') !== FALSE || strpos(getEntity(),'4')!== FALSE) ? "1,4" : getEntity() ).")";
 	else $sql.=" WHERE a.entity IN(".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
 	
 	//Filtrage sur leaser et uniquement dossier avec "Bon pour transfert" = 1 (Oui)
@@ -400,8 +400,7 @@ function _liste(&$PDOdb, &$dossier) {
 	
 	$TEntityName = TFinancementTools::build_array_entities();
 	TFinancementTools::add_css();
-	
-	//echo $sql;
+
 	$r->liste($PDOdb, $sql, array(
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
