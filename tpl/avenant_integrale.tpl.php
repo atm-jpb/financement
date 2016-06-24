@@ -12,7 +12,7 @@
 		<td>[couleur.engage]</td>
 	</tr>
 	
-	<tr class="impair" align="center">
+	<tr class="pair" align="center">
 		<td>Coût unitaire</td>
 		<td>[noir.cout_unitaire]</td>
 		<td>[couleur.cout_unitaire]</td>
@@ -42,7 +42,7 @@
 		<td>[couleur.nouvel_engagement;strconv=no]</td>
 	</tr>
 	
-	<tr class="pair" align="center">
+	<tr class="impair" align="center">
 		<td>Coût unitaire</td>
 		<td>[noir.nouveau_cout_unitaire;strconv=no]</td>
 		<td>[couleur.nouveau_cout_unitaire;strconv=no]</td>
@@ -74,13 +74,11 @@
 	
 	<tr class="impair" align="center">
 		<td>% couleur</td>
-		<td colspan="2"><div id="cursor"></div></td>
-	</tr>
-	
-	<tr class="pair" align="center">
-		<td>Répartition</td>
-		<td>[noir.repartition;strconv=no]%</td>
-		<td>[couleur.repartition;strconv=no]%</td>
+		<td colspan="2" style="padding: 10px;">
+			<span id="repartition_coul">[couleur.repartition;strconv=no]</span> %
+			<div id="cursor"></div>
+			<div style="display:none;">[couleur.repartition_input;strconv=no]</div>
+		</td>
 	</tr>
 	
 	<tr class="pair" align="center">
@@ -88,7 +86,7 @@
 		<td colspan="2">[global.FAS;strconv=no]</td>
 	</tr>
 	
-	<tr class="pair" align="center">
+	<tr class="impair" align="center">
 		<td>FASS</td>
 		<td colspan="2">[global.FASS;strconv=no]</td>
 	</tr>
@@ -98,7 +96,7 @@
 		<td colspan="2">[global.frais_bris_machine;strconv=no]</td>
 	</tr>
 	
-	<tr class="pair" align="center">
+	<tr class="impair" align="center">
 		<td>FTC</td>
 		<td colspan="2">[global.frais_facturation;strconv=no]</td>
 	</tr>

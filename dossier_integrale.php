@@ -660,6 +660,11 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	$total_noir = $engagement_noir * $cout_noir;
 	$total_couleur = $engagement_couleur * $cout_couleur;
 	
+	$fas_min = $integrale->fas;
+	$fas_max = $integrale->calcul_fas_max($TDetailCoutNoir, $TDetailCoutCouleur, $engagement_noir, $engagement_couleur);
+	
+	$total_global = $integrale->calcul_total_global($TDetailCoutNoir, $TDetailCoutCouleur);
+	
 	print $form->hidden('action', 'addAvenantIntegrale');
 	print $form->hidden('id', GETPOST('id'));
 	print $form->hidden('id_integrale', $integrale->getId());
@@ -710,19 +715,16 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_coul_mach', $TDetailCoutCouleur['nouveau_cout_unitaire_mach'],10,'',$style)
 				,'nouveau_cout_unit_loyer'=>$form->texteRO('','nouveau_cout_unit_coul_loyer', $TDetailCoutCouleur['nouveau_cout_unitaire_loyer'],10,'',$style)				
 				,'montant_total'=>$form->texteRO('','montant_total_coul',$total_couleur,10,'',$style)
-				,'repartition'=>!empty($engagement_couleur) ? $form->texte('','nouvelle_repartition_couleur',$repartition_couleur,3) : $form->texteRO('','nouvelle_repartition_couleur',0,3,0,$style)
+				,'repartition_input'=>!empty($engagement_couleur) ? $form->texte('','nouvelle_repartition_couleur',$repartition_couleur,3) : $form->texteRO('','nouvelle_repartition_couleur',0,3,0,$style)
+				,'repartition'=>$repartition_couleur
 			),
 			'global'=>array(
 				'FAS'=>$form->texte('','nouveau_fas', ($fas + $fas_noir + $fas_couleur) * $pourcentage_sup_mois_decembre,10,'')
+				,'FAS'=>'<input type="number" id="nouveau_fas" name="nouveau_fas" min="'.$fas_min.'" max="'.$fas_max.'" value="'.$fas.'" step="0.01" />'
 				,'FASS'=>$form->texteRO('','fass', $integrale->fass * $pourcentage_sup_mois_decembre,10,'',$style)
 				,'frais_bris_machine'=>$form->texteRO('','frais_bris_machine',$integrale->frais_bris_machine  * $pourcentage_sup_mois_decembre,10,'',$style)
 				,'frais_facturation'=>$form->texteRO('','ftc',$integrale->frais_facturation * $pourcentage_sup_mois_decembre,10,'',$style)
-				,'total_global'=>$form->texteRO('','total_global',$total_noir
-																+$total_couleur
-																+$fas + $fas_noir + $fas_couleur
-																+$integrale->fass
-																+$integrale->frais_bris_machine
-																+$integrale->frais_facturation,10,'',$style)
+				,'total_global'=>$form->texteRO('','total_global',$total_global,10,'',$style)
 			),
 			'rights'=>array(
 				'voir_couts_unitaires'=>(int)$user->rights->financement->integrale->detail_couts
@@ -733,7 +735,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	print '</div>';
 	
 	print '<div class="tabsAction">';
-	print $form->btsubmit($langs->trans('Calculer'), 'btCalcul', '', 'butAction');
+	//print $form->btsubmit($langs->trans('Calculer'), 'btCalcul', '', 'butAction');
 	// On n'utilise plus la solution en dessous
 	//print $form->checkbox1('Ne pas imprimer bloc locataire', 'no_print_bloc_locataire', 1, $pDefault);
 	print $form->btsubmit($langs->trans('Save'), 'btSave', '', 'butAction');

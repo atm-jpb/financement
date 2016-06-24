@@ -8,10 +8,6 @@ switch($action) {
 	case 'change_engagement':
 		change_engagement();
 		break;
-		
-	case 'get_percent_couleur':
-		get_percent_couleur();
-		break;
 	
 	case 'change_couleur_percent':
 		change_couleur_percent();
@@ -44,28 +40,20 @@ function change_engagement() {
 	$TDetailCoutNoir = $integrale->calcul_detail_cout($engagement_noir, $new_cout_noir, 'noir');
 	$TDetailCoutCoul = $integrale->calcul_detail_cout($engagement_coul, $new_cout_coul, 'coul');
 	
+	$total_global = $integrale->calcul_total_global($TDetailCoutNoir, $TDetailCoutCoul, $fas);
+	
+	$fas_min = $integrale->fas;
+	$fas_max = $integrale->calcul_fas_max($TDetailCoutNoir, $TDetailCoutCoul, $engagement_noir, $engagement_coul);
+	
 	$data = array(
 		'couts_noir'	=> $TDetailCoutNoir,
 		'couts_coul'	=> $TDetailCoutCoul,
-		'total_global'	=> $TDetailCoutNoir['nouveau_cout_total'] + $TDetailCoutCoul['nouveau_cout_total'] + $fas
-							+ $integrale->fass + $integrale->frais_bris_machine + $integrale->frais_facturation
+		'total_global'	=> $total_global,
+		'fas_min'		=> $fas_min,
+		'fas_max'		=> $fas_max
 	);
 	
 	echo json_encode($data);
-}
-
-function get_percent_couleur() {
-	dol_include_once('/financement/class/dossier_integrale.class.php');
-	$integrale = new TIntegrale;
-	
-	$cout_noir = GETPOST('cout_unit_noir_loyer');
-	$cout_coul = GETPOST('cout_unit_coul_loyer');
-	$engagement_noir = GETPOST('engagement_noir');
-	$engagement_coul = GETPOST('engagement_coul');
-	
-	$data = $integrale->calcul_percent_couleur($cout_noir, $engagement_noir, $cout_coul, $engagement_coul);
-	
-	echo json_encode(array('percent' => $data));
 }
 
 function change_couleur_percent() {
@@ -92,11 +80,12 @@ function change_couleur_percent() {
 	$TDetailCoutNoir = $integrale->calcul_detail_cout($engagement_noir, $new_cout_noir, 'noir');
 	$TDetailCoutCoul = $integrale->calcul_detail_cout($engagement_coul, $new_cout_coul, 'coul');
 	
+	$total_global = $integrale->calcul_total_global($TDetailCoutNoir, $TDetailCoutCoul, $fas);
+	
 	$data = array(
 		'couts_noir'	=> $TDetailCoutNoir,
 		'couts_coul'	=> $TDetailCoutCoul,
-		'total_global'	=> $TDetailCoutNoir['nouveau_cout_total'] + $TDetailCoutCoul['nouveau_cout_total'] + $fas
-							+ $integrale->fass + $integrale->frais_bris_machine + $integrale->frais_facturation
+		'total_global'	=> $total_global
 	);
 
 	echo json_encode($data);
@@ -126,11 +115,12 @@ function change_fas() {
 	$TDetailCoutNoir = $integrale->calcul_detail_cout($engagement_noir, $new_cout_noir, 'noir');
 	$TDetailCoutCoul = $integrale->calcul_detail_cout($engagement_coul, $new_cout_coul, 'coul');
 	
+	$total_global = $integrale->calcul_total_global($TDetailCoutNoir, $TDetailCoutCoul, $fas);
+	
 	$data = array(
 		'couts_noir'	=> $TDetailCoutNoir,
 		'couts_coul'	=> $TDetailCoutCoul,
-		'total_global'	=> $TDetailCoutNoir['nouveau_cout_total'] + $TDetailCoutCoul['nouveau_cout_total'] + $fas
-							+ $integrale->fass + $integrale->frais_bris_machine + $integrale->frais_facturation
+		'total_global'	=> $total_global
 	);
 	
 	echo json_encode($data);

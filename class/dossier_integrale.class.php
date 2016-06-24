@@ -205,11 +205,23 @@ class TIntegrale extends TObjetStd {
 		
 	}
 	
-	function calcul_fas_max($fas_manuel) {
-		
-		$fas_max = ($this->cout_unit_noir_loyer * $this->vol_noir_engage) + ($this->cout_unit_coul_loyer * $this->vol_coul_engage);
-		return ($fas_manuel > $fas_max) ? $this->ceil($fas_max, 2) : $this->ceil($fas_manuel, 2);
-		
+	function calcul_total_global($TDetailCoutNoir, $TDetailCoutCoul, $fas=0) {
+		if(empty($fas)) $fas = $this->fas;
+		$total = $TDetailCoutNoir['nouveau_cout_total']
+					+ $TDetailCoutCoul['nouveau_cout_total']
+					+ $fas
+					+ $this->fass
+					+ $this->frais_bris_machine
+					+ $this->frais_facturation;
+					
+		return round($total, 2);
+	}
+	
+	function calcul_fas_max($TDetailCoutNoir, $TDetailCoutCoul, $engagement_noir, $engagement_coul) {
+		$total_global = $this->calcul_total_global($TDetailCoutNoir, $TDetailCoutNoir);
+		$part_loyer = $TDetailCoutNoir['nouveau_cout_unitaire_loyer'] * $engagement_noir + $TDetailCoutCoul['nouveau_cout_unitaire_loyer'] * $engagement_coul;
+				
+		return min($total_global/2, $part_loyer + $this->fas);		
 	}
 
 	function calcul_detail_cout($engagement=0, $cout_unitaire=0, $type='noir') {

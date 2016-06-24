@@ -6,42 +6,27 @@ $(document).ready(function() {
 	
 	$('#cursor').slider({
 		range: "max",
-		min: 0,
-		max: 100,
+		min: 15,
+		max: 85,
 		value: $('#nouvelle_repartition_couleur').val(),
 		change: function( event, ui ) {
 			$('#nouvelle_repartition_couleur').val( ui.value );
-			$('#nouvelle_repartition_noir').val( 100 - ui.value );
+			$('#repartition_coul').html( ui.value );
 			update_cout_loyer('change_couleur_percent');
 		}
 	});
 	
-	$('#nouveau_fas').on('blur', function() {
-		update_cout_loyer('change_fas');
-	});
-});
-
-function update_percent_couleur() {
-	$.ajax({
-		type: 'post',
-		url: './ajax/avenant_integral.php',
-		data: {
-			'action': 'get_percent_couleur',
-			'cout_unit_noir_loyer': $('input[name="nouveau_cout_unit_noir_loyer"]').val(),
-			'cout_unit_coul_loyer': $('input[name="nouveau_cout_unit_coul_loyer"]').val(),
-			'engagement_noir': $('input[name="nouvel_engagement_noir"]').val(),
-			'engagement_coul': $('input[name="nouvel_engagement_couleur"]').val()
-		},
-		dataType: 'json',
-		success: function(data) {
-			/*$('#cursor').slider({
-				value: data.percent
-			});*/
-			$('#nouvelle_repartition_couleur').val( data.percent );
-			$('#nouvelle_repartition_noir').val( 100 - data.percent );
+	$('#nouveau_fas').on('change', function() {
+		var val = parseFloat($(this).val());
+		var max = parseFloat($(this).attr('max'));
+		var min = parseFloat($(this).attr('min'));
+		if(val >= min && val <= max) {
+			update_cout_loyer('change_fas');
 		}
 	});
-}
+	
+	update_cout_loyer('change_fas');
+});
 
 function update_cout_loyer(action,type) {
 	$.ajax({
