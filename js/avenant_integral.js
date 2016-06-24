@@ -56,6 +56,7 @@ function update_cout_loyer(action,type) {
 			$('input[name="montant_total_noir"]').val(data.couts_noir.nouveau_cout_total);
 			$('input[name="montant_total_coul"]').val(data.couts_coul.nouveau_cout_total);
 			$('input[name="total_global"]').val(data.total_global);
+			$('#nouveau_fas').attr('max', data.fas_max);
 		}
 	});
 }
