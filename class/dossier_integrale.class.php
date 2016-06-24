@@ -147,13 +147,29 @@ class TIntegrale extends TObjetStd {
 		
 	}
 	
-	function calcul_cout_unitaire_by_fas($engagement, $TDetailCouts, $new_fas, $old_fas, $pourcentage) {
-
-		//echo '(((('.$engagement.' * ('.$TDetailCouts['nouveau_cout_unitaire_mach'].' + '.$TDetailCouts['nouveau_cout_unitaire_loyer'].')) - (abs('.$new_fas.' - '.$this->fas.') * '.$pourcentage.' / 100)) / '.$engagement.') + '.$TDetailCouts['nouveau_cout_unitaire_tech'].')<br />';
-		$res =  $this->ceil(((($engagement * ($TDetailCouts['nouveau_cout_unitaire_mach'] + $TDetailCouts['nouveau_cout_unitaire_loyer'])) - (abs($new_fas - $this->fas) * $pourcentage / 100)) / $engagement) + $TDetailCouts['nouveau_cout_unitaire_tech']);
-		//echo 'res : '.$res.'<br />';
-		return $res;
+	function calcul_cout_unitaire_by_fas($TDetailCouts, $engagement, $new_fas, $pourcentage) {
+		// 18000 * (0.00352+0.03821) = 751.14
+		// - (413 - 313.33) * 82 / 100 = 669.4106
+		// / 18000 = 0.03719
+		// + 0.00844 = 
+		/*echo 'ENG : '.$engagement.'<br>';
+		echo 'PERC: '.$pourcentage.'<br>';
+		echo 'MACH: '.$TDetailCouts['nouveau_cout_unitaire_mach'].'<br>';
+		echo 'LOY : '.$TDetailCouts['nouveau_cout_unitaire_loyer'].'<br>';
+		echo 'TECH: '.$TDetailCouts['nouveau_cout_unitaire_tech'].'<br>';
+		pre($TDetailCouts,true);*/
 		
+		$l1 = $engagement * ($TDetailCouts['nouveau_cout_unitaire_mach'] + $TDetailCouts['nouveau_cout_unitaire_loyer']);
+		$l2 = abs($new_fas - $this->fas) * $pourcentage / 100;
+		$l3 = ($l1 - $l2) / $engagement;
+		$l4 = $l3 + $TDetailCouts['nouveau_cout_unitaire_tech'];
+		
+		/*echo 'L1 : '.$l1.'<br>';
+		echo 'L2 : '.$l2.'<br>';
+		echo 'L3 : '.$l3.'<br>';
+		echo 'L4 : '.$l4.'<br>';*/
+		
+		return $this->ceil($l4);
 	}
 	
 	private function calcul_tcf($engagement_noir, $cout_mach_noir, $cout_loyer_noir, $engagement_couleur, $cout_mach_couleur, $cout_loyer_couleur) {
@@ -179,11 +195,10 @@ class TIntegrale extends TObjetStd {
 			$TDetailCoutCouleur['nouveau_cout_unitaire_mach'],
 			$TDetailCoutCouleur['nouveau_cout_unitaire_loyer']
 		);
-		//var_dump($tcf, $pourcentage, ${'engagement_'.$type}, ${'cout_tech_'.$type});exit;
-		$res = ($tcf * ($pourcentage/100) / ${'engagement_'.$type}) + $cout_tech + $cout_mach;
-		//echo $res;exit;
-		return $this->ceil($res);
 		
+		$res = ($tcf * ($pourcentage/100) / ${'engagement_'.$type}) + $cout_tech + $cout_mach;
+		
+		return $this->ceil($res);
 	}
 	
 	function calcul_fas($TData, &$cu_manuel, $engagement, $type='noir') {
