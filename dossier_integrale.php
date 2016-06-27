@@ -777,8 +777,8 @@ function _addAvenantIntegrale(&$dossier) {
 									'engagement_noir'=>GETPOST('nouvel_engagement_noir')
 									,'cout_unitaire_noir'=>GETPOST('nouveau_cout_unitaire_noir')
 									,'engagement_couleur'=>GETPOST('nouvel_engagement_couleur')
-									,'cout_unitaire_couleur'=>GETPOST('nouveau_cout_unitaire_couleur')
-									,'FAS'=>GETPOST('fas')
+									,'cout_unitaire_couleur'=>GETPOST('nouveau_cout_unitaire_coul')
+									,'FAS'=>GETPOST('nouveau_fas')
 									,'FASS'=>GETPOST('fass')
 									,'ref_dossier'=>$dossier->financement->reference
 									,'total_global'=>GETPOST('total_global')
@@ -818,9 +818,9 @@ function _addLines(&$p) {
 	$TProduits = _getIDProducts();
 	
 	if(!empty($TProduits['E_NOIR'])) $p->addline('Nouvel engagement noir', GETPOST('nouveau_cout_unitaire_noir'), GETPOST('nouvel_engagement_noir'), 20, 0.0, 0.0, $TProduits['E_NOIR']);
-	if(!empty($TProduits['E_COUL'])) $p->addline('Nouvel engagement couleur', GETPOST('nouveau_cout_unitaire_couleur'), GETPOST('nouvel_engagement_couleur'), 20, 0.0, 0.0, $TProduits['E_COUL']);
+	if(!empty($TProduits['E_COUL'])) $p->addline('Nouvel engagement couleur', GETPOST('nouveau_cout_unitaire_coul'), GETPOST('nouvel_engagement_couleur'), 20, 0.0, 0.0, $TProduits['E_COUL']);
 	
-	if(!empty($TProduits['FAS'])) $p->addline('FAS', GETPOST('fas'), 1, 20, 0.0, 0.0, $TProduits['FAS']);
+	if(!empty($TProduits['FAS'])) $p->addline('FAS', GETPOST('nouveau_fas'), 1, 20, 0.0, 0.0, $TProduits['FAS']);
 	if(!empty($TProduits['FASS'])) $p->addline('FASS', GETPOST('fass'), 1, 20, 0.0, 0.0, $TProduits['FASS']);
 	if(!empty($TProduits['FTC'])) $p->addline('FTC', GETPOST('ftc'), 1, 20, 0.0, 0.0, $TProduits['FTC']);
 	
