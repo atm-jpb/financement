@@ -720,7 +720,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 			),
 			'global'=>array(
 				'FAS'=>$form->texte('','nouveau_fas', ($fas + $fas_noir + $fas_couleur) * $pourcentage_sup_mois_decembre,10,'')
-				,'FAS'=>'<input type="number" id="nouveau_fas" name="nouveau_fas" min="'.$fas_min.'" max="'.$fas_max.'" value="'.$fas.'" step="0.01" />'
+				,'FAS'=>'<input type="number" id="nouveau_fas" name="nouveau_fas" min="'.$fas_min.'" max="'.$fas_max.'" value="'.$fas.'" step="0.01" style="text-align: center;" />'
 				,'FASS'=>$form->texteRO('','fass', $integrale->fass * $pourcentage_sup_mois_decembre,10,'',$style)
 				,'frais_bris_machine'=>$form->texteRO('','frais_bris_machine',$integrale->frais_bris_machine  * $pourcentage_sup_mois_decembre,10,'',$style)
 				,'frais_facturation'=>$form->texteRO('','ftc',$integrale->frais_facturation * $pourcentage_sup_mois_decembre,10,'',$style)
@@ -858,11 +858,11 @@ function _genPDF(&$propal, $TData, $print_bloc_locataire=true) {
 				'ref'=>$propal->ref
 			)
 			,'copies_noires'=>array(
-				'engagement'=>price($TData['engagement_noir'])
+				'engagement'=>$TData['engagement_noir']
 				,'cout_unitaire'=>price($TData['cout_unitaire_noir'])
 			)
 			,'copies_couleur'=>array(
-				'engagement'=>price($TData['engagement_couleur'])
+				'engagement'=>$TData['engagement_couleur']
 				,'cout_unitaire'=>price($TData['cout_unitaire_couleur'])
 			)
 			,'global'=>array(

@@ -45,6 +45,9 @@ function update_cout_loyer(action,type) {
 		},
 		dataType: 'json',
 		success: function(data) {
+			for (i in data.couts_noir) data.couts_noir[i] = _format_float(data.couts_noir[i],5);
+			for (i in data.couts_coul) data.couts_coul[i] = _format_float(data.couts_coul[i],5);
+			for (i in data) data[i] = _format_float(data[i],2);
 			$('input[name="nouveau_cout_unitaire_noir"]').val(data.couts_noir.cout_unitaire);
 			$('input[name="nouveau_cout_unitaire_coul"]').val(data.couts_coul.cout_unitaire);
 			$('input[name="nouveau_cout_unit_noir_tech"]').val(data.couts_noir.nouveau_cout_unitaire_tech);
@@ -59,4 +62,9 @@ function update_cout_loyer(action,type) {
 			$('#nouveau_fas').attr('max', data.fas_max);
 		}
 	});
+}
+
+function _format_float(val,dec) {
+	if(isNaN(val)) return val;
+	return val.toFixed(dec);
 }
