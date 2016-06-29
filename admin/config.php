@@ -290,9 +290,26 @@ print '</table>';
 
 print '</form>';
 
+print_titre($langs->trans("PenalitesForSuiviIntegrale"));
 
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_PENALITE_SUIVI_INTEGRALE" />';
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameter").'</td>';
+print '<td align="center">'.$langs->trans("Value").'</td>';
+print '<td width="80"><input type="submit" class="button" value="'.$langs->trans("Enregistrer").'" /></td>';
+print "</tr>\n";
+$var=true;
 
+print '<tr '.$bc[$var].'><td>';
+print 'Pourcentage à appliquer</td>';
+print '<td colspan="2"><input type="text" name="FINANCEMENT_PENALITE_SUIVI_INTEGRALE" value="'.$conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE.'" size="5"/> %';
+print '</td>';
+print "</tr>\n";
 
+print '</table>';
 
 print_titre($langs->trans("ScriptsManuallyLaunchable"));
 
