@@ -348,9 +348,8 @@ class TFin_affaire extends TObjetStd {
 				WHERE fa.type_financement = "MANDATEE"
 					AND df.type = "LEASER"
 					AND s.rowid = '.$fk_leaser.'
-					AND df.transfert = 1';
-		
-		//echo $sql;exit;
+					AND df.transfert = 1
+					AND fa.entity IN('.((strpos(getEntity(),'1') !== FALSE || strpos(getEntity(),'4')!== FALSE) ? "1,4" : getEntity() ).')';
 		
 		$TIdAffaire = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 		
@@ -400,7 +399,31 @@ class TFin_affaire extends TObjetStd {
 		
 		return $name2;
 	}
-
+	
+	function _getNumFournisseur(){
+		
+		switch (getEntity()) {
+			case 1: //CPRO Impression
+				return "M000355961";
+				break;
+			case 2: //CPRO Informatique
+				return "M000355961";
+				break;
+			case 3: //CPRO Télécom
+				return "M000355961";
+				break;
+			case 4: //Bougogne Copie
+				return "M000355961";
+				break;
+			case 5: //ABG
+				return "M000290985";
+				break;
+			default:
+				return "M000355961";
+				break;
+		}
+	}
+	
 	function getEnTeteByEntity(){
 		
 		$date = date('Ymd');
@@ -431,10 +454,10 @@ class TFin_affaire extends TObjetStd {
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 5: //ABG
-				$name2 = "";
-				$nomFichier = "";
-				$refPartenaire = "";
-				$numLot = "";
+				$name2 = "FP_207_MA01_ABG_".$date;
+				$nomFichier = "ABGMA01IMMA".$date;
+				$refPartenaire = "ABGMA01";
+				$numLot = "IMMA".date('ymd');
 				break;
 			
 			default:
@@ -779,7 +802,7 @@ class TFin_affaire extends TObjetStd {
 		//pre($TAsset[0]->asset->serial_number);exit;
 		//$commande->appendChild($xml->createElement("noCommande",((count($TAsset) > 1) ? date('dmY') : $TAsset[0]->asset->serial_number)));
 		$commande->appendChild($xml->createElement("noCommande",strtoupper(substr($Affaire->reference,0,10))));
-		$commande->appendChild($xml->createElement("fournisseur","M000355961"));
+		$commande->appendChild($xml->createElement("fournisseur",$this->_getNumFournisseur()));
 
 		//foreach($TAsset as $a=>$assetLink){
 				
