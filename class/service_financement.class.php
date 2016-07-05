@@ -343,5 +343,29 @@ class ServiceFinancement {
 			exit;
 		}
 	}
+	
+	// TODO comment for prod
+	public function createXmlFileOfParam()
+	{
+		$TParam = $this->_getTParamLixxbail();
+		 
+		$xml_data = new SimpleXMLElement('<?xml version="1.0"?><data></data>');
+		self::array_to_xml($TParam,$xml_data);
+		$result = $xml_data->asXML('/var/www/demande_de_financement.xml');
+	}
+	
+	public static function array_to_xml( $data, &$xml_data ) {
+	    foreach( $data as $key => $value ) {
+	        if( is_array($value) ) {
+	            if( is_numeric($key) ){
+	                $key = 'item'.$key; //dealing with <0/>..<n/> issues
+	            }
+	            $subnode = $xml_data->addChild($key);
+	            self::array_to_xml($value, $subnode);
+	        } else {
+	            $xml_data->addChild("$key",htmlspecialchars("$value"));
+	        }
+	     }
+	}
 
 } // End Class
