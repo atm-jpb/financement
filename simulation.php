@@ -275,23 +275,30 @@ if(!empty($action)) {
 			//Actions spécifiques au suivi financement leaser
 			$id_suivi = GETPOST('id_suivi');
 			if($id_suivi){
+				
 				$simulation->load($ATMdb, $db, $_REQUEST['id']);
-				$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$simulation,$action);
 				
-				if(!empty($simulation->TSimulationSuivi[$id_suivi]->errorLabel)){
-					setEventMessage($simulation->TSimulationSuivi[$id_suivi]->errorLabel,'errors');
-				}
-				
-				if($action == 'demander'){
-					/* TODO mettre en place l'appel au webservice CAL&F si il s'agit du bon leaser
+				$res = true; // Init à true pour garder le comportement de base si action <> de "demander"
+				if($action == 'demander') 
+				{
+					// TODO mettre en place l'appel au webservice CAL&F s'il s'agit du bon leaser
 					dol_include_once('/financement/class/service_financement.class.php');
 					$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[$id_suivi]); // Dans l'idée de créer une class pour gérer l'appel du webservice leaser
 					$res = $service->call();
-					if (!$res)
-					{
-						setEventMessages('', $service->TError, 'errors');
+				}
+
+				// La methode call() retournera principalement false, car pour le moment 1 seul leaser est prévu, et dans le cas de l'appel avec le bon leaser il faut tester qu'il n'y a pas d'erreur
+				if (!$res && !empty($service->TError))
+				{
+					setEventMessages('', $service->TError, 'errors');
+				}
+				else
+				{
+					$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$simulation,$action);
+					
+					if(!empty($simulation->TSimulationSuivi[$id_suivi]->errorLabel)){
+						setEventMessage($simulation->TSimulationSuivi[$id_suivi]->errorLabel,'errors');
 					}
-					*/
 					
 					//$simulation->accord = 'WAIT_LEASER';
 					// Suite retours PR1512_1187, on ne garde plus que le statut WAIT (En étude)
@@ -748,6 +755,12 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'coeff'=>$form->texteRO('', 'coeff', $coeff, 6)
 				,'coeff_final'=>$can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 6) : $simulation->coeff_final
 				,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10)
+				
+				,'pct_vr'=>$form->texte('', 'pct_vr', vatrate($simulation->pct_vr), 10)
+				,'mt_vr'=>$form->texte('', 'mt_vr', price2num($simulation->mt_vr), 10)
+												
+				,'info_vr'=>$html->textwithpicto('', $langs->transnoentities('simulation_info_vr'), 1, 'info', '', 0, 3)
+				
 				,'cout_financement'=>$simulation->cout_financement
 				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
 				,'can_resend_accord'=>$simulation->accord
@@ -755,6 +768,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'commentaire'=>$form->zonetexte('', 'commentaire', $mode == 'edit' ? $simulation->commentaire : nl2br($simulation->commentaire), 50,3)
 				,'accord_confirme'=>$simulation->accord_confirme
 				,'total_financement'=>$simulation->montant_total_finance
+				,'fk_categorie_bien'=>$mode == 'edit' ? $html->selectarray('fk_categorie_bien', TFinancementTools::getCategorieId(), $simulation->fk_categorie_bien) : TFinancementTools::getCategorieLabel($simulation->fk_categorie_bien)
+				,'fk_nature_bien'=>$mode == 'edit' ? $html->selectarray('fk_nature_bien', TFinancementTools::getNatureId(), $simulation->fk_nature_bien) : TFinancementTools::getNatureLabel($simulation->fk_nature_bien)
 				,'type_materiel'=>$form->texte('','type_materiel',$simulation->type_materiel, 50)
 				,'marque_materiel'=>$form->combo('','marque_materiel',$simulation->TMarqueMateriel,$simulation->marque_materiel)
 				,'numero_accord'=>($can_preco && GETPOST('action') == 'edit') ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $link_dossier

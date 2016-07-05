@@ -147,15 +147,51 @@ class modFinancement extends DolibarrModules
 	}
 	$this->dictionaries=array(
 		'langs'=>'financement@financement'
-		,'tabname'=>array(MAIN_DB_PREFIX.'c_financement_type_contrat')
-		,'tablib'=>array('Type de contrat')
-		,'tabsql'=>array('SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_type_contrat as f WHERE entity = '.$conf->entity)
-		,'tabsqlsort'=>array('label ASC')
-		,'tabfield'=>array('code,label')
-		,'tabfieldvalue'=>array('code,label,entity')
-		,'tabfieldinsert'=>array('code,label,entity')
-		,'tabrowid'=>array('rowid')
-		,'tabcond'=>array($conf->financement->enabled)
+		,'tabname'=>array(
+			MAIN_DB_PREFIX.'c_financement_type_contrat'
+			,MAIN_DB_PREFIX.'c_financement_categorie_bien'
+			,MAIN_DB_PREFIX.'c_financement_nature_bien'
+		)
+		,'tablib'=>array(
+			'Type de contrat'
+			,'Categorie du Bien'
+			,'Nature du Bien'
+		)
+		,'tabsql'=>array(
+			'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_type_contrat as f WHERE entity = '.$conf->entity
+			,'SELECT f.rowid as rowid, f.cat_id, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_categorie_bien as f WHERE entity IN (0, '.$conf->entity.')'
+			,'SELECT f.rowid as rowid, f.nat_id, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_nature_bien as f WHERE entity IN (0, '.$conf->entity.')'
+		)
+		,'tabsqlsort'=>array(
+			'label ASC'
+			,'label ASC'
+			,'label ASC'
+		)
+		,'tabfield'=>array(
+			'code,label'
+			,'cat_id,label,entity'
+			,'nat_id,label,entity'
+		)
+		,'tabfieldvalue'=>array(
+			'code,label,entity'
+			,'cat_id,label,entity'
+			,'nat_id,label,entity'
+		)
+		,'tabfieldinsert'=>array(
+			'code,label,entity'
+			,'cat_id,label,entity'
+			,'nat_id,label,entity'
+		)
+		,'tabrowid'=>array(
+			'rowid'
+			,'rowid'
+			,'rowid'
+		)
+		,'tabcond'=>array(
+			$conf->financement->enabled
+			,$conf->financement->enabled
+			,$conf->financement->enabled
+		)
 	);
         /* Example:
         if (! isset($conf->financement->enabled)) $conf->financement->enabled=0;	// This is to avoid warnings

@@ -48,6 +48,9 @@ class ServiceFinancement {
 	
 	public function call()
 	{
+		global $langs;
+		
+		// TODO à revoir, peut être qu'un test sur code client ou mieux encore sur numéro SIRET
 		if (strcmp($this->leaser->name, 'LIXXBAIL') === 0)
 		{
 			return $this->callLixxbail();
@@ -74,6 +77,7 @@ class ServiceFinancement {
 		}
 		
 		try {
+			// TODO uncomment to call webservice
 			// $this->soapClient = new nusoap_client($this->wsdl);
 			// $this->result = $this->soapClient->call('CreateDemFin', $TParam);
 			// on affiche la requete
@@ -112,18 +116,28 @@ class ServiceFinancement {
 		return $TId[$opt_mode_reglement];
 	}
 	
-	public function getIdPeriodiciteFinancement($opt_periodicite)
+	public function getCodePeriodiciteFinancement($opt_periodicite)
 	{
 		global $langs;
 		
 		if (strcmp($this->leaser->name, 'LIXXBAIL') === 0)
 		{
+			/**
+			 * Autre valeurs possible
+			 * Code		Libellé
+			 * B		BIMESTRIEL
+			 * H		HEBDOMADAIRE
+			 * J		JOURNALIER
+			 * Q		QUADRIMESTRIEL
+			 * X		SAISONNIER
+			 * 9		INDETERMINE 
+			 */	
+			
 			$TId = array(
-				'ANNEE' => '1'
-				,'SEMESTRE' => '2'
-				,'TRIMESTRE' => '4'
-				//,'BIMESTRIEL' => '6' // Non utilisé dans financement
-				,'MOIS' => '12'
+				'ANNEE' => 'A'
+				,'SEMESTRE' => 'S'
+				,'TRIMESTRE' => 'T'
+				,'MOIS' => 'M'
 			);
 		}
 		
@@ -136,37 +150,137 @@ class ServiceFinancement {
 		return $TId[$opt_periodicite];
 	}
 	
+	/**
+	 * TODO à construire
+	 */
+	public function getIdCategorieBien()
+	{
+		/*
+		CAT_ID	LIB_CAT			NAT_ID	LIB_NAT								MRQ_ID	LIB_MRQ
+		11		INFORMATIQUE	107		Micro ordinateur					16		GENERIQUE
+		11		INFORMATIQUE	107		Micro ordinateur					2366	TOSHIBA
+		11		INFORMATIQUE	113		Serveur vocal						16		GENERIQUE
+		11		INFORMATIQUE	114		Station								16		GENERIQUE
+		11		INFORMATIQUE	114		Station								1132	HEWLETT PACKARD
+		11		INFORMATIQUE	114		Station								2366	TOSHIBA
+		11		INFORMATIQUE	116		Traceur								16		GENERIQUE
+		11		INFORMATIQUE	116		Traceur								556		CANON
+		11		INFORMATIQUE	116		Traceur								1132	HEWLETT PACKARD
+		11		INFORMATIQUE	117		Logiciels							16		GENERIQUE
+		11		INFORMATIQUE	117		Logiciels							1132	HEWLETT PACKARD
+		26		BUREAUTIQUE		663		Ensemble de matériels bureautique	16		GENERIQUE
+		26		BUREAUTIQUE		663		Ensemble de matériels bureautique	556		CANON
+		26		BUREAUTIQUE		663		Ensemble de matériels bureautique	1132	HEWLETT PACKARD
+		26		BUREAUTIQUE		663		Ensemble de matériels bureautique	2059	RISO
+		26		BUREAUTIQUE		663		Ensemble de matériels bureautique	2366	TOSHIBA
+		26		BUREAUTIQUE		665		Photocopieur						16		GENERIQUE
+		26		BUREAUTIQUE		665		Photocopieur						556		CANON
+		26		BUREAUTIQUE		665		Photocopieur						1794	OCE
+		26		BUREAUTIQUE		665		Photocopieur						2059	RISO
+		26		BUREAUTIQUE		665		Photocopieur						2366	TOSHIBA
+		*/
+		
+		return $this->simulation->fk_categorie_bien;
+	}
+
+	public function getIdNatureBien()
+	{
+		return $this->simulation->fk_nature_bien;
+	}
+	
+	public function getIdMarqueBien()
+	{
+		/* Valeurs possibles
+		16		GENERIQUE
+		2366	TOSHIBA
+		1132	HEWLETT PACKARD
+		556		CANON
+		2059	RISO
+		1794	OCE
+		*/
+		$TCodeId = array(
+			'CANON' => 556
+			,'DELL' => ''
+			,'KONICA MINOLTA' => ''
+			,'KYOCERA' => ''
+			,'LEXMARK' => ''
+			,'HEWLETT-PACKARD' => 1132
+			,'OCE' => 1794
+			,'OKI' => ''
+			,'SAMSUNG' => ''
+			,'TOSHIBA' => 2366
+		);
+		
+		if (!empty($TCodeId[$this->simulation->marque_materiel])) return $TCodeId[$this->simulation->marque_materiel];
+		else return '';
+	}
+	
+	/**
+	 * TODO à construire
+	 */
+	public function getCodeProduit()
+	{
+		/*
+		Code 	Libellé							Type	Libellé type produit
+		produit	produit	 						produit	
+		
+		LOCF	Location						STAN	Standard
+		LOCF	Location						CESS	Cession de contrat (sans prestation)
+		LOCF	Location						LMAF	Location mandatée fichier
+		LOA		Location avec Option d'Achat	PROF	LOA professionnelle
+		*/
+		
+		return 'LOCF';
+	}
+	
+	/**
+	 * TODO à combiner avec $this->getCodeProduit()
+	 */
+	public function getTypeProduit()
+	{
+		return 'STAN';
+	}
+	
+	/**
+	 * Function to prepare data to send to Lixxbail
+	 */
 	private function _getTParamLixxbail()
 	{
 		global $mysoc;
 		
 		$mode_reglement_id = $this->getIdModeRglt($this->simulation->opt_mode_reglement);
-		$periodicite_id = $this->getIdPeriodiciteFinancement($this->simulation->opt_periodicite);
+		$periodicite_code = $this->getCodePeriodiciteFinancement($this->simulation->opt_periodicite);
+		
+		$pct_vr = $this->simulation->pct_vr;
+		$mt_vr = $this->simulation->mt_vr;
+		
+		if (!empty($pct_vr) && !empty($mt_vr)) $pct_vr = ''; // Si les 2 sont renseignés alors je garde que le montant
 		
 		$TParam = array(
 			'PARTENAIRE' => array( // 1..1
 				0 => array(
-					'SIREN_PARTENAIRE' => $mysoc->idprof1 // Partenaire = CPRO
-					,'NIC_PARTENAIRE' => $mysoc->idprof2 // Partenaire = CPRO
-					,'COMMERCIAL_EMAIL' => $this->simulationSuivi->user->email // TODO vérifier si on doit prendre l'email du user associé à la simulation et non celui du suivi
-					,'REF_EXT' => $this->simulation->reference
+					'SIREN_PARTENAIRE' => $mysoc->idprof1 // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 9 *
+					,'NIC_PARTENAIRE' => substr($mysoc->idprof2, -5, 5) // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 5 *
+					,'COMMERCIAL_EMAIL' => $this->simulationSuivi->user->email // TODO vérifier si on doit prendre l'email du user associé à la simulation et non celui du suivi // format d'une adresse email *
+					,'REF_EXT' => $this->simulation->reference // chaîne de caractères alphanumérique de 20 caractères max *
 				)
 			)
 			,'BIEN' => array( // 1..1
 				0 => array(
-					'CATEGORIE_BIEN' => '' // *
-					,'NATURE_BIEN' => '' // *
-					,'MARQUE_BIEN' => '' // *
-					,'ANNEE_BIEN' => date('Y')
-					,'ETAT_BIEN' => 'NEUF'
-					,'QTE_BIEN' => 1
-					,'MT_HT_BIEN' => $this->simulation->montant
-					,'PAYS_DESTINATION_BIEN' => !empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR'
-					,'FOURNISSEUR_SIREN' => $mysoc->idprof1 // Toujours CPRO
+					'CATEGORIE_BIEN' => $this->getIdCategorieBien() // numérique entier sur 10 positions max. Cf. onglet 'Référentiel de biens C'PRO' *
+					,'NATURE_BIEN' => $this->getIdNatureBien() // numérique entier sur 10 positions max. Cf. onglet 'Référentiel de biens C'PRO' *
+					,'MARQUE_BIEN' => $this->getIdMarqueBien() // numérique entier sur 10 positions max. Cf. onglet 'Référentiel de biens C'PRO' *
+					,'ANNEE_BIEN' => date('Y') // numérique entier sur 4 positions *
+					,'ETAT_BIEN' => 'NEUF' // 'NEUF' OU 'OCCA' *
+					,'QTE_BIEN' => 1 // numérique entier *
+					,'MT_HT_BIEN' => $this->simulation->montant // numérique décimal (. comme séparateur décimal) *
+					,'PAYS_DESTINATION_BIEN' => !empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR' // code ISO2 (2 positions). Pour France, 'FR'. *
+					,'FOURNISSEUR_SIREN' => $mysoc->idprof1 // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 9 *
+					,'FOURNISSEUR_NIC' => substr($mysoc->idprof2, -5, 5) // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 5 *
 				)
 			)
 			,'BIEN_COMPL' => array( // 1..n
-				0 => array(
+				/*0 => array(
 					'CATEGORIE_BIEN_COMPL' => '' // NO
 					,'NATURE_BIEN_COMPL' => '' // NO
 					,'MARQUE_BIEN_COMPL' => '' // NO
@@ -183,32 +297,34 @@ class ServiceFinancement {
 					,'ETAT_BIEN_COMPL' => ''
 					,'MT_HT_BIEN_COMPL' => ''
 					,'QTE_BIEN_COMPL' => ''
-				)
+				)*/
 			)
 			,'CLIENT' => array( // 1..1
 				0 => array(
-					'CLIENT_SIREN' => $mysoc->idprof1 // Toujours CPRO
-					,'CLIENT_NIC' => $mysoc->idprof2 // Toujours CPRO
+					'CLIENT_SIREN' => $mysoc->idprof1 // Toujours entité à partir de laquelle on score *
+					,'CLIENT_NIC' => substr($mysoc->idprof2, -5, 5) // Toujours entité à partir de laquelle on score
 				)
 			)
 			,'FINANCEMENT' => array( // 1..1
 				0 => array(
-					'CODE_PRODUIT' => ''
-					,'TYPE_PRODUIT' => ''
-					,'MT_FINANCEMENT_HT' => ''
-					,'PCT_VR' => ''
-					,'MT_VR' => ''
-					,'TYPE_REGLEMENT' => $mode_reglement_id
+					'CODE_PRODUIT' => $this->getCodeProduit() // chaîne de caractères alphanumérique de 8 caractères max. Cf. onglet 'Produit' *
+					,'TYPE_PRODUIT' => $this->getTypeProduit() // chaîne de caractères alphanumérique de 8 caractères max. Cf. onglet 'Produit' *
+					,'MT_FINANCEMENT_HT' => $this->simulation->montant // numérique décimal (. comme séparateur décimal) *
+					,'PCT_VR' => $pct_vr // Doit être saisie par CPro - Pourcentage de la valeur résiduelle. L'élément est exclusif de l'élément MT_VR.
+					,'MT_VR' => $mt_vr // Doit être saisie par CPro - Montant de la valeur résiduelle, en euros. L'élément est exclusif de l'élément PCT_VR.
+					,'TYPE_REGLEMENT' => $mode_reglement_id // *
 					,'MT_PREMIER_LOYER' => '' // NO
-					,'DUREE_FINANCEMENT' => $this->simulation->duree
-					,'PERIODICITE_FINANCEMENT' => $periodicite_id
-					,'TERME_FINANCEMENT' => $this->simulation->opt_terme == 1 ? 'A' : 'E' // 4 char. échu ou à échoir
+					,'DUREE_FINANCEMENT' => $this->simulation->duree // *
+					,'PERIODICITE_FINANCEMENT' => $periodicite_code // chaîne de caractères alphanumérique de 3 caractères max. Cf. onglet 'Périodicité de financement' *
+					,'TERME_FINANCEMENT' => $this->simulation->opt_terme == 1 ? 'A' : 'E' // 4 char. échu ou à échoir *
 					,'NB_FRANCHISE' => '' // NO
-					,'NATURE_FINANCEMENT' => 'STD'
-					,'DATE_DEMANDE_FINANCEMENT' => date('Y-m-d H:i:s')
+					,'NATURE_FINANCEMENT' => 'STD' // NO - Voir si saisie par CPro
+					,'DATE_DEMANDE_FINANCEMENT' => date('Y-m-dTH:i:s') // format YYYY-MM-DDThh:mm:ss *
 				)
 			)
 		);
+		
+		return $TParam;
 	}
 
 

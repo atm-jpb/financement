@@ -103,6 +103,7 @@ ErrorInvalidVR=La valeur résiduelle ne peut pas être supérieure au montant
 ErrorCaseMandatory=Merci de sélectionner au moins un dossier à racheter ou de cocher la case "Aucun dossier à solder"
 UnableToCreateProspect=Impossible de créer la fiche prospect
 SimulationSuivi=Suivi Leaser Simulation
+simulation_info_vr=Le pourcentage et/ou le montant de la valeur résiduelle est utilisé pour une demande de financement. Le pourcentage et le montant sont exclusifs l'un l'autre, c'est-à-dire que seul un des 2 champs doit être renseigné. Si les 2 sont renseignés, alors c'est le montant qui sera pris en compte pour la demande de financement.
 
 # SCORE
 ScoreList=Scores
