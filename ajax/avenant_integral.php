@@ -45,7 +45,7 @@ function change_all($case) {
 	$total_global = $integrale->calcul_total_global($TDetailCoutNoir, $TDetailCoutCoul, $fas);
 	
 	$fas_min = $integrale->fas;
-	$fas_max = $integrale->calcul_fas_max($TDetailCoutNoir, $TDetailCoutCoul, $engagement_noir, $engagement_coul);
+	$fas_max = $integrale->calcul_fas_max($TDetailCoutNoir, $TDetailCoutCoul, $engagement_noir, $engagement_coul, $fas);
 	
 	$data = array(
 		'couts_noir'	=> $TDetailCoutNoir,
