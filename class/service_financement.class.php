@@ -258,15 +258,12 @@ class ServiceFinancement {
 		
 		$TParam = array(
 			'PARTENAIRE' => array( // 1..1
-				0 => array(
 					'SIREN_PARTENAIRE' => $mysoc->idprof1 // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 9 *
 					,'NIC_PARTENAIRE' => substr($mysoc->idprof2, -5, 5) // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 5 *
 					,'COMMERCIAL_EMAIL' => $this->simulationSuivi->user->email // TODO vérifier si on doit prendre l'email du user associé à la simulation et non celui du suivi // format d'une adresse email *
 					,'REF_EXT' => $this->simulation->reference // chaîne de caractères alphanumérique de 20 caractères max *
-				)
 			)
 			,'BIEN' => array( // 1..1
-				0 => array(
 					'CATEGORIE_BIEN' => $this->getIdCategorieBien() // numérique entier sur 10 positions max. Cf. onglet 'Référentiel de biens C'PRO' *
 					,'NATURE_BIEN' => $this->getIdNatureBien() // numérique entier sur 10 positions max. Cf. onglet 'Référentiel de biens C'PRO' *
 					,'MARQUE_BIEN' => $this->getIdMarqueBien() // numérique entier sur 10 positions max. Cf. onglet 'Référentiel de biens C'PRO' *
@@ -277,7 +274,6 @@ class ServiceFinancement {
 					,'PAYS_DESTINATION_BIEN' => !empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR' // code ISO2 (2 positions). Pour France, 'FR'. *
 					,'FOURNISSEUR_SIREN' => $mysoc->idprof1 // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 9 *
 					,'FOURNISSEUR_NIC' => substr($mysoc->idprof2, -5, 5) // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 5 *
-				)
 			)
 			,'BIEN_COMPL' => array( // 1..n
 				/*0 => array(
@@ -300,13 +296,10 @@ class ServiceFinancement {
 				)*/
 			)
 			,'CLIENT' => array( // 1..1
-				0 => array(
 					'CLIENT_SIREN' => $mysoc->idprof1 // Toujours entité à partir de laquelle on score *
 					,'CLIENT_NIC' => substr($mysoc->idprof2, -5, 5) // Toujours entité à partir de laquelle on score
-				)
 			)
 			,'FINANCEMENT' => array( // 1..1
-				0 => array(
 					'CODE_PRODUIT' => $this->getCodeProduit() // chaîne de caractères alphanumérique de 8 caractères max. Cf. onglet 'Produit' *
 					,'TYPE_PRODUIT' => $this->getTypeProduit() // chaîne de caractères alphanumérique de 8 caractères max. Cf. onglet 'Produit' *
 					,'MT_FINANCEMENT_HT' => $this->simulation->montant // numérique décimal (. comme séparateur décimal) *
@@ -320,7 +313,6 @@ class ServiceFinancement {
 					,'NB_FRANCHISE' => '' // NO
 					,'NATURE_FINANCEMENT' => 'STD' // NO - Voir si saisie par CPro
 					,'DATE_DEMANDE_FINANCEMENT' => date('Y-m-dTH:i:s') // format YYYY-MM-DDThh:mm:ss *
-				)
 			)
 		);
 		
