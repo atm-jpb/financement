@@ -905,6 +905,7 @@ function _getExport(&$TLines){
 
 
 function _getExportXML($sql){
+	global $conf;
 	
 	$PDOdb = new TPDOdb;;
 	
@@ -917,7 +918,13 @@ function _getExportXML($sql){
 	$TTRes = $PDOdb->Get_All(PDO::FETCH_ASSOC);
 	
 	$filename = 'export_XML.csv';
-	$filepath = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename;
+	
+	if($conf->entity > 1)
+		$url = DOL_DATA_ROOT.'/'.$conf->entity.'/financement/XML/Lixxbail/';
+	else
+		$url = DOL_DATA_ROOT.'/financement/XML/Lixxbail/';
+	
+	$filepath = $url.$filename;
 	$file = fopen($filepath,'w');
 	
 	//Ajout première ligne libelle
