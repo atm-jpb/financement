@@ -368,7 +368,8 @@ class TFin_affaire extends TObjetStd {
 	}	
 	
 	function genLixxbailXML(&$PDOdb, &$TAffaires,$andUpload=false){
-
+		global $conf;
+		
 		$xml = new DOMDocument('1.0','UTF-8');
 		$xml->formatOutput = true;
 
