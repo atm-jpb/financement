@@ -195,7 +195,7 @@
 				
 				$affaire = new TFin_affaire;
 				
-				$TAffaires = $affaire->getAffairesForXML($PDOdb);
+				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
 				$dirName = $affaire->genLixxbailXML($PDOdb, $TAffaires);
 				
 				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=1&file=XML/Lixxbail/".$dirName.".xml",2));
@@ -211,7 +211,7 @@
 				
 				$affaire = new TFin_affaire;
 				
-				$TAffaires = $affaire->getAffairesForXML($PDOdb);
+				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
 				$filename = $affaire->genLixxbailXML($PDOdb, $TAffaires,true);
 				$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
 				
@@ -233,7 +233,7 @@
 			case 'setnottransfer':
 				
 				$affaire = new TFin_affaire;
-				$TAffaires = $affaire->getAffairesForXML($PDOdb);
+				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
 				$affaire->resetAllDossiersInXML($PDOdb,$TAffaires);
 				
 				?>
