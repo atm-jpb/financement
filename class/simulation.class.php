@@ -744,7 +744,7 @@ class TSimulation extends TObjetStd {
 		// aucun intérêt dans la mesure où dépend de l'entity de l'objet... finaleent simple
 		//$PDFPath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef()); 
 		
-		$PDFPath = DOL_DATA_ROOT.'/financement/';
+		$PDFPath = DOL_DATA_ROOT.'/financement/'. dol_sanitizeFileName($this->getRef());
 		
 		return $PDFPath;
 	}
