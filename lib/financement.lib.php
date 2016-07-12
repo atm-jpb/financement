@@ -11,19 +11,23 @@ class TFinancementTools {
 		// On vérifie si l'utilisateur fait partie du groupe admin financement
 		$g = new UserGroup($db);
 		$g->fetch('', 'GSL_DOLIBARR_FINANCEMENT_ADMIN');
+		if($g->id>0) {
 
-		// On ne peut pas utiliser la fonction listgroupforuser parce qu'elle cherche les groupes dans lesquels se trouve l'utilisateur, mais uniquement les groupes qui sont dans l'entité courante
-		$resql = $db->query('SELECT rowid FROM '.MAIN_DB_PREFIX.'usergroup_user WHERE fk_user = '.$user->id.' AND fk_usergroup = '.$g->id);
-		$res = $db->fetch_object($resql);
+			// On ne peut pas utiliser la fonction listgroupforuser parce qu'elle cherche les groupes dans lesquels se trouve l'utilisateur, mais uniquement les groupes qui sont dans l'entité courante
+			$resql = $db->query('SELECT rowid FROM '.MAIN_DB_PREFIX.'usergroup_user WHERE fk_user = '.$user->id.' AND fk_usergroup = '.$g->id);
+			$res = $db->fetch_object($resql);
+			
+			if($res->rowid > 0) return true;
+			else return false;
+			
+		}
 		
-		if($res->rowid > 0) return true;
-		else return false;
-		
+		return false;		
 	}
 	
 	function check_user_rights(&$object) {
 		
-		global $user, $conf;
+		global $user, $conf,$db;
 		
 		dol_include_once('/core/lib/security.lib.php');
 
