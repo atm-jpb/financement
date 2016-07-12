@@ -738,6 +738,17 @@ class TSimulation extends TObjetStd {
 		return false;
 	}
 	
+	function getFilePath() {
+		global $conf;
+		
+		// aucun intérêt dans la mesure où dépend de l'entity de l'objet... finaleent simple
+		//$PDFPath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef()); 
+		
+		$PDFPath = DOL_DATA_ROOT.'/financement/';
+		
+		return $PDFPath;
+	}
+	
 	function send_mail_vendeur($auto=false, $mailto='') {
 		global $langs, $conf;
 		
@@ -746,7 +757,7 @@ class TSimulation extends TObjetStd {
 		dol_include_once('/core/class/CMailFile.class.php');
 		
 		$PDFName = dol_sanitizeFileName($this->getRef()).'.pdf';
-		$PDFPath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef());
+		$PDFPath = $this->getFilePath();
 		
 		$formmail = new FormMail($db);
 		$formmail->clear_attached_files();
@@ -1088,7 +1099,7 @@ class TSimulation extends TObjetStd {
 		//pre($TDossier,true); exit;
 		// Création du répertoire
 		$fileName = dol_sanitizeFileName($this->getRef()).'.odt';
-		$filePath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef());
+		$filePath = $this->getFilePath();
 		dol_mkdir($filePath);
 		
 		if($this->fk_leaser){

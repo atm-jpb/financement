@@ -29,7 +29,7 @@ exit;
 	dol_include_once('/core/class/CMailFile.class.php');
 	
 	$PDFName = dol_sanitizeFileName($simulation->getRef()).'.pdf';
-	$PDFPath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($simulation->getRef());
+	$PDFPath = $simulation->getFilePath();
 		
 	$formmail = new FormMail($db);
 	$formmail->clear_attached_files();
