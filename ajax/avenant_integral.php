@@ -22,6 +22,7 @@ function change_all($case) {
 	$integrale = new TIntegrale;
 	$integrale->load($PDOdb, $id_integrale);
 	
+	// Recalcul coûts unitaires à partir des engagement passés en paramètres
 	$cout_noir = $integrale->calcul_cout_unitaire($engagement_noir, 'noir');
 	$cout_coul = $integrale->calcul_cout_unitaire($engagement_coul, 'coul');
 	
@@ -34,10 +35,14 @@ function change_all($case) {
 	} else if($case == 'change_couleur_percent') {
 		$new_cout_noir = $integrale->calcul_cout_unitaire_by_repartition($TDetailCoutNoir, $engagement_noir, $TDetailCoutCoul, $engagement_coul, 100 - $percent, 'noir');
 		$new_cout_coul = $integrale->calcul_cout_unitaire_by_repartition($TDetailCoutNoir, $engagement_noir, $TDetailCoutCoul, $engagement_coul, $percent, 'couleur');
-	} else if($case == 'change_fas') {
+	}/* else if($case == 'change_fas') {
 		$new_cout_noir = $integrale->calcul_cout_unitaire_by_fas($TDetailCoutNoir, $engagement_noir, $fas, 100 - $percent);
 		$new_cout_coul = $integrale->calcul_cout_unitaire_by_fas($TDetailCoutCoul, $engagement_coul, $fas, $percent);
-	}
+	}*/
+	
+	// Recalcul coûts unitaires avec les fas passés en paramètres
+	$new_cout_noir = $integrale->calcul_cout_unitaire_by_fas($TDetailCoutNoir, $engagement_noir, $fas, 100 - $percent);
+	$new_cout_coul = $integrale->calcul_cout_unitaire_by_fas($TDetailCoutCoul, $engagement_coul, $fas, $percent);
 	
 	$TDetailCoutNoir = $integrale->calcul_detail_cout($engagement_noir, $new_cout_noir, 'noir');
 	$TDetailCoutCoul = $integrale->calcul_detail_cout($engagement_coul, $new_cout_coul, 'coul');

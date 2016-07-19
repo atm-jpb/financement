@@ -228,6 +228,7 @@ class TIntegrale extends TObjetStd {
 	
 	function calcul_total_global($TDetailCoutNoir, $TDetailCoutCoul, $fas=0) {
 		if(empty($fas)) $fas = $this->fas;
+		
 		$total = $TDetailCoutNoir['nouveau_cout_total']
 					+ $TDetailCoutCoul['nouveau_cout_total']
 					+ $fas
@@ -239,15 +240,13 @@ class TIntegrale extends TObjetStd {
 	}
 	
 	function calcul_fas_max($TDetailCoutNoir, $TDetailCoutCoul, $engagement_noir, $engagement_coul,$fas=0) {
-		$total_global = $this->calcul_total_global($TDetailCoutNoir, $TDetailCoutNoir,$fas);
+		$total_global = $this->calcul_total_global($TDetailCoutNoir, $TDetailCoutCoul,$fas);
 		
 		// Pour la part loyer, on part des cout de base avant avenant
 		$TDetailCoutNoir = $this->calcul_detail_cout(0,0,'noir');
 		$TDetailCoutCoul = $this->calcul_detail_cout(0,0,'coul');
 		$part_loyer = $TDetailCoutNoir['nouveau_cout_unitaire_loyer'] * $this->{'vol_noir_engage'} + $TDetailCoutCoul['nouveau_cout_unitaire_loyer'] * $this->{'vol_coul_engage'};
-		/*pre($TDetailCoutNoir,true);
-		pre($TDetailCoutCoul,true);
-		return $part_loyer;*/
+		
 		return min($total_global/2, $part_loyer + $this->fas);		
 	}
 
