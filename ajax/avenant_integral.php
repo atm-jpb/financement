@@ -40,6 +40,9 @@ function change_all($case) {
 		$new_cout_coul = $integrale->calcul_cout_unitaire_by_fas($TDetailCoutCoul, $engagement_coul, $fas, $percent);
 	}*/
 	
+	$TDetailCoutNoir = $integrale->calcul_detail_cout($engagement_noir, $new_cout_noir, 'noir');
+	$TDetailCoutCoul = $integrale->calcul_detail_cout($engagement_coul, $new_cout_coul, 'coul');
+	
 	// Recalcul coûts unitaires avec les fas passés en paramètres
 	$new_cout_noir = $integrale->calcul_cout_unitaire_by_fas($TDetailCoutNoir, $engagement_noir, $fas, 100 - $percent);
 	$new_cout_coul = $integrale->calcul_cout_unitaire_by_fas($TDetailCoutCoul, $engagement_coul, $fas, $percent);
