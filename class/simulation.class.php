@@ -1725,7 +1725,7 @@ class TSimulationSuivi extends TObjetStd {
 	
 	function _createDemandeBNP(&$PDOdb){
 		
-		/*if(BNP_TEST){
+		if(BNP_TEST){
 			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
 		}
 		else{
@@ -1748,7 +1748,7 @@ class TSimulationSuivi extends TObjetStd {
 		catch(SoapFault $e) {
 			var_dump($e);
 			exit;
-		}*/
+		}
 		//pre($soap->__getFunctions(),true);exit;
 //		echo "1<br>";
 		$TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] = $this->_getBNPDataTabForDemande($PDOdb);
@@ -2003,7 +2003,6 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$cat = new Categorie($db);
 		$TCats = $cat->containing($this->fk_leaser, 1);
-		pre($TCats,true);
 		foreach($TCats as $categorie){
 			if(strtoupper($categorie->label) == 'Cession'){
 				$codeFinancier = '021';
