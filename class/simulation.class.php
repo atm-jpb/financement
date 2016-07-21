@@ -1501,7 +1501,7 @@ class TSimulationSuivi extends TObjetStd {
 		switch ($this->fk_leaser) {
 			//BNP PARIBAS LEASE GROUP
 			case '3382':
-			case '19553':
+			//case '19553': //On prend pas en compte BNP ADOSSEE car le scoring se fait spécifiquement
 			case '20113':
 				$this->_createDemandeBNP($PDOdb);
 				break;
