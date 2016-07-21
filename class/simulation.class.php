@@ -1753,7 +1753,7 @@ class TSimulationSuivi extends TObjetStd {
 //		echo "1<br>";
 		$TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] = $this->_getBNPDataTabForDemande($PDOdb);
 		
-		pre($TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'],true);exit;
+		//pre($TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'],true);exit;
 		
 		//pre(preg_match('/[\S\t ]*/', 'ZI 8 RUE JEAN CHARCOT BP 279'),true);
 		//pre($TtransmettreDemandeFinancementRequest,true);exit;
