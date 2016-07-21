@@ -2004,7 +2004,7 @@ class TSimulationSuivi extends TObjetStd {
 		$cat = new Categorie($db);
 		$TCats = $cat->containing($this->fk_leaser, 1);
 		foreach($TCats as $categorie){
-			if(strtoupper($categorie->label) == 'Cession'){
+			if(strtoupper($categorie->label) == 'CESSION'){
 				$codeFinancier = '021';
 				$codeTypeCalcul = 'L';
 				if($this->simulation->getLabelCategorieClient() == 'administration'){
@@ -2014,7 +2014,7 @@ class TSimulationSuivi extends TObjetStd {
 					$codeCommercial = '23';
 				}
 			}
-			elseif(strtoupper($categorie->label) == 'Mandatee'){
+			elseif(strtoupper($categorie->label) == 'MANDATEE'){
 				$codeFinancier = '024';
 				$codeTypeCalcul = 'L';
 				$codeCommercial = '02';
