@@ -266,7 +266,7 @@ if(!empty($action)) {
 			<script language="javascript">
 				document.location.href="?delete_ok=1";
 			</script>
-			<?
+			<?php
 			
 			break;
 		
@@ -477,7 +477,7 @@ function _liste(&$ATMdb, &$simulation) {
 	$form->end();
 	
 	if(isset($_REQUEST['socid'])) {
-		?><div class="tabsAction"><a href="?action=new&fk_soc=<?=$_REQUEST['socid'] ?>" class="butAction">Nouvelle simulation</a></div><?
+		?><div class="tabsAction"><a href="?action=new&fk_soc=<?php echo $_REQUEST['socid'] ?>" class="butAction">Nouvelle simulation</a></div><?php
 	}
 	
 	llxFooter();
@@ -627,22 +627,27 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	dol_include_once('/core/class/html.formfile.class.php');
 	$formfile = new FormFile($db);
 	$filename = dol_sanitizeFileName($simulation->getRef());
-	$filedir = $conf->financement->dir_output . '/' . dol_sanitizeFileName($simulation->getRef());
+	$filedir = $simulation->getFilePath();
 	
-	$TDuree = $grille->get_duree($ATMdb,FIN_LEASER_DEFAULT,$simulation->fk_type_contrat,$simulation->opt_periodicite,$simulation->entity);
+	$TDuree = (Array)$grille->get_duree($ATMdb,FIN_LEASER_DEFAULT,$simulation->fk_type_contrat,$simulation->opt_periodicite,$simulation->entity);
 	//var_dump($TDuree);
 	$can_preco = ($user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0) ? 1 : 0;
 	
 	// Chargement des groupes configurés dans multi entité
 	$TGroupEntity = unserialize($conf->global->MULTICOMPANY_USER_GROUP_ENTITY);
 	$TGroupEntities = array();
-	foreach($TGroupEntity as $tab) {
-		$g = new UserGroup($db);
-		if(!in_array($tab['group_id'], array_keys($TGroupEntities))) {
-			$g->fetch($tab['group_id']);
-			if($g->id > 0) $TGroupEntities[$tab['group_id']] = "'".$g->name."'";
+	
+	if(!empty($TGroupEntity)) {
+		foreach($TGroupEntity as $tab) {
+			$g = new UserGroup($db);
+			if(!in_array($tab['group_id'], array_keys($TGroupEntities))) {
+				$g->fetch($tab['group_id']);
+				if($g->id > 0) $TGroupEntities[$tab['group_id']] = "'".$g->name."'";
+			}
 		}
+		
 	}
+	
 	//var_dump($TGroupEntity, $TGroupEntities);
 	if($user->rights->financement->admin->write && ($mode == "add" || $mode == "new" || $mode == "edit")){
 		$formdolibarr = new Form($db);

@@ -195,7 +195,7 @@
 				
 				$affaire = new TFin_affaire;
 				
-				$TAffaires = $affaire->getAffairesForXML($PDOdb);
+				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
 				$dirName = $affaire->genLixxbailXML($PDOdb, $TAffaires);
 				
 				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=1&file=XML/Lixxbail/".$dirName.".xml",2));
@@ -211,7 +211,7 @@
 				
 				$affaire = new TFin_affaire;
 				
-				$TAffaires = $affaire->getAffairesForXML($PDOdb);
+				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
 				$filename = $affaire->genLixxbailXML($PDOdb, $TAffaires,true);
 				$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
 				
@@ -233,7 +233,7 @@
 			case 'setnottransfer':
 				
 				$affaire = new TFin_affaire;
-				$TAffaires = $affaire->getAffairesForXML($PDOdb);
+				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
 				$affaire->resetAllDossiersInXML($PDOdb,$TAffaires);
 				
 				?>
@@ -482,7 +482,7 @@ function _liste(&$PDOdb, &$dossier) {
 		?>
 		<div class="tabsAction">
 				<a href="?action=exportXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Exporter</a>
-				<a href="?action=generateXML" class="butAction">Générer le XML Lixxbail</a>
+				<a href="?action=generateXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Générer le XML Lixxbail</a>
 				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Générer le XML Lixxbail et envoyer au Leaser</a>
 				<a href="?action=setnottransfer&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
 		</div>
@@ -905,6 +905,7 @@ function _getExport(&$TLines){
 
 
 function _getExportXML($sql){
+	global $conf;
 	
 	$PDOdb = new TPDOdb;;
 	
@@ -917,7 +918,13 @@ function _getExportXML($sql){
 	$TTRes = $PDOdb->Get_All(PDO::FETCH_ASSOC);
 	
 	$filename = 'export_XML.csv';
-	$filepath = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename;
+	
+	if($conf->entity > 1)
+		$url = DOL_DATA_ROOT.'/'.$conf->entity.'/financement/XML/Lixxbail/';
+	else
+		$url = DOL_DATA_ROOT.'/financement/XML/Lixxbail/';
+	
+	$filepath = $url.$filename;
 	$file = fopen($filepath,'w');
 	
 	//Ajout première ligne libelle

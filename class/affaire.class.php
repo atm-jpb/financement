@@ -368,7 +368,8 @@ class TFin_affaire extends TObjetStd {
 	}	
 	
 	function genLixxbailXML(&$PDOdb, &$TAffaires,$andUpload=false){
-
+		global $conf;
+		
 		$xml = new DOMDocument('1.0','UTF-8');
 		$xml->formatOutput = true;
 
@@ -394,8 +395,14 @@ class TFin_affaire extends TObjetStd {
 		}
 		
 		$chaine = $xml->saveXML();
-		dol_mkdir(DOL_DATA_ROOT.'/financement/XML/Lixxbail/');
-		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name2.'.xml', $chaine);
+		
+		if($conf->entity > 1)
+			$url = DOL_DATA_ROOT.'/'.$conf->entity.'/financement/XML/Lixxbail/';
+		else
+			$url = DOL_DATA_ROOT.'/financement/XML/Lixxbail/';
+		
+		dol_mkdir($url);
+		file_put_contents($url.$name2.'.xml', $chaine);
 		
 		return $name2;
 	}
