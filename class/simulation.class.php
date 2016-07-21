@@ -1727,14 +1727,16 @@ class TSimulationSuivi extends TObjetStd {
 		
 		if(BNP_TEST){
 			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
 			$soapWSDL = BNP_WSDL_URL;
+			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-Prod.crt";
 		}
 
 		try{
 			$soap = new SoapClient($soapWSDL,array(
-									'local_cert'=>"/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt"
+									'local_cert'=> $local_cert
 									,'trace'=>1
 									,'stream_context' => stream_context_create(array(
 										    'ssl' => array(
@@ -2063,28 +2065,28 @@ class TSimulationSuivi extends TObjetStd {
 		foreach($TCats as $categorie){
 			if($TData['codeFamilleMateriel'] == 'H'){ // => BUREAUTIQUE
 				if(strtoupper($categorie->label) == 'MANDATEE'){
-					$codeBareme = '00004046';
+					$codeBareme = (BNP_TEST) ? '00004046' : '00002368';
 				}
 				elseif(strtoupper($categorie->label) == 'CESSION'){
 					switch ($codeCommercial) {
 						case '02': // = ''
 								if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-									$codeBareme = '00000868';
+									$codeBareme = (BNP_TEST) ? '00000868' : '00002061';
 								}
 								elseif($this->simulation->opt_periodicite == 'MOIS'){
-									$codeBareme = '00004028';
+									$codeBareme = (BNP_TEST) ? '00004028' : '00002063';
 								}
 							break;
 						case '23': // = Top Full
 								if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-									$codeBareme = '00004049';
+									$codeBareme = (BNP_TEST) ? '00004049' : '00002369';
 								}
 								elseif($this->simulation->opt_periodicite == 'MOIS'){
-									$codeBareme = '00004050';
+									$codeBareme = (BNP_TEST) ? '00004050' : '00002467';
 								}
 							break;
 						case '2Q': // = Secteur Public
-								$codeBareme = '00004051';
+								$codeBareme = (BNP_TEST) ? '00004051' : '00006710';
 							break;
 						default:
 							
