@@ -1725,7 +1725,7 @@ class TSimulationSuivi extends TObjetStd {
 	
 	function _createDemandeBNP(&$PDOdb){
 		
-		if(BNP_TEST){
+		/*if(BNP_TEST){
 			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
 		}
 		else{
@@ -1748,10 +1748,13 @@ class TSimulationSuivi extends TObjetStd {
 		catch(SoapFault $e) {
 			var_dump($e);
 			exit;
-		}
+		}*/
 		//pre($soap->__getFunctions(),true);exit;
 //		echo "1<br>";
 		$TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'] = $this->_getBNPDataTabForDemande($PDOdb);
+		
+		pre($TtransmettreDemandeFinancementRequest['transmettreDemandeFinancementRequest'],true);exit;
+		
 		//pre(preg_match('/[\S\t ]*/', 'ZI 8 RUE JEAN CHARCOT BP 279'),true);
 		//pre($TtransmettreDemandeFinancementRequest,true);exit;
 		try{
@@ -2000,8 +2003,9 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$cat = new Categorie($db);
 		$TCats = $cat->containing($this->fk_leaser, 1);
+		pre($TCats,true);
 		foreach($TCats as $categorie){
-			if(strtoupper($categorie->label) == 'CESSION'){
+			if(strtoupper($categorie->label) == 'Cession'){
 				$codeFinancier = '021';
 				$codeTypeCalcul = 'L';
 				if($this->simulation->getLabelCategorieClient() == 'administration'){
@@ -2011,7 +2015,7 @@ class TSimulationSuivi extends TObjetStd {
 					$codeCommercial = '23';
 				}
 			}
-			elseif(strtoupper($categorie->label) == 'MANDATEE'){
+			elseif(strtoupper($categorie->label) == 'Mandatee'){
 				$codeFinancier = '024';
 				$codeTypeCalcul = 'L';
 				$codeCommercial = '02';
