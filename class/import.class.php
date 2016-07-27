@@ -315,11 +315,6 @@ class TImport extends TObjetStd {
 			return false;
 		}
 		
-		if(!empty($f->fk_soc) && $f->fk_soc!=$data['idLeaser']) { // Si le dossier de financement récupéré n'est pas lié au bon leaser, erreur
-			$this->addError($ATMdb, 'leaserNotAllgood', $data['idLeaser']);
-			return false;
-		}
-		
 		$dossier = new TFin_dossier();
 		if($dossier->load($ATMdb, $f->fk_fin_dossier,true)) { // Chargement du dossier correspondant
 			
@@ -339,6 +334,12 @@ class TImport extends TObjetStd {
 				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
 				//pre($dossier->financementLeaser,true);echo '<hr>';flush();
 			} else { // Dossier interne => Vérification des informations
+			
+				if(!empty($f->fk_soc) && $f->fk_soc!=$data['idLeaser']) { // Si le dossier de financement récupéré n'est pas lié au bon leaser, erreur
+					$this->addError($ATMdb, 'leaserNotAllgood', $data['idLeaser']);
+					return false;
+				}
+			
 				$echeance = $data['echeance'];
 				$montant = $data['montant'];
 				$date_debut = $data['date_debut'];
