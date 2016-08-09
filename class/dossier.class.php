@@ -714,7 +714,7 @@ class TFin_dossier extends TObjetStd {
 		if ($solde > $LRD_Leaser) return $LRD_Leaser;
 		//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 		else if($this->TLien[0]->affaire->societe->entity == 5 && $solde < $this->financementLeaser->reste){
-			$solde = $this->financementLeaser->reste;
+			return $this->financementLeaser->reste;
 		}
 		else return $solde;
 	}
@@ -745,7 +745,7 @@ class TFin_dossier extends TObjetStd {
 			if ($solde > $LRD_Leaser) return $LRD_Leaser;
 			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 			else if($this->TLien[0]->affaire->societe->entity == 5 && $solde < $this->financementLeaser->reste){
-				$solde = $this->financementLeaser->reste;
+				return $this->financementLeaser->reste;
 			}
 			else return $solde;
 		}
@@ -770,7 +770,7 @@ class TFin_dossier extends TObjetStd {
 			if ($solde > $LRD) return $LRD;
 			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 			else if($this->TLien[0]->affaire->societe->entity == 5 && $solde < $this->financement->reste){
-				$solde = $this->financement->reste;
+				return $this->financement->reste;
 			}
 			else return $solde;
 		}
@@ -819,7 +819,7 @@ class TFin_dossier extends TObjetStd {
 			if ($solde > $LRD) return $LRD;
 			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 			else if($this->TLien[0]->affaire->societe->entity == 5 && $solde < $this->financement->reste){
-				$solde = $this->financement->reste;
+				return $this->financement->reste;
 			}
 			else return $solde;
 		}
