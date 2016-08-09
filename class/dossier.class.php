@@ -795,7 +795,11 @@ class TFin_dossier extends TObjetStd {
 			$temps_restant = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
 			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
 			
-			return $LRD_Leaser;
+			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+			if($this->TLien[0]->affaire->societe->entity == 5 && $LRD_Leaser < $this->financement->reste){
+				return $this->financementLeaser->reste;
+			}
+			else return $LRD_Leaser;
 		}
 		else // INTERNE 
 		{
