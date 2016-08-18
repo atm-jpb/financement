@@ -176,7 +176,7 @@ class TImport extends TObjetStd {
 		// Recherche si facture existante dans la base
 		$facid = $this->_recherche_facture_2($ATMdb, $this->mapping['search_key'], $data);
 		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
-		//echo $facid.'<br>';
+		//pre($facid,true).'<br>';
 		//Si existe pas alors on la créé
 		if(!$facid && $socid){
 			//echo '-'.$socid.'<br>';
@@ -296,6 +296,9 @@ class TImport extends TObjetStd {
 			}
 
 			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facture_loc->id;
+		}
+		else{
+			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facid->rowid;
 		}
 	}
 
@@ -697,7 +700,6 @@ class TImport extends TObjetStd {
 		$firstLine = true;
 
 		$facid = &$TInfosGlobale[$data[$this->mapping['search_key']]];
-		echo ' FACID '.$facid.'<br>';
 		
 		if($facid){
 			$facture_loc = new Facture($db);
@@ -784,9 +786,11 @@ class TImport extends TObjetStd {
 	function importLineFactureIntegrale(&$ATMdb, $data, &$TInfosGlobale) {
 		global $user, $db;
 		//pre($data,true);
-		if(empty($TInfosGlobale['integrale'][$data[$this->mapping['search_key']]])) {
-			$facture_loc = new Facture($db);
-			$facture_loc->fetch('',$data[$this->mapping['search_key']]);
+		
+		$facture_loc = new Facture($db);
+		$facture_loc->fetch($TInfosGlobale[$data[$this->mapping['search_key']]]);
+		
+		if(empty($TInfosGlobale['integrale'][$facture_loc->ref])) {
 			$facture_loc->fetchObjectLinked('','dossier');
 			if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
 				//pre($facture_loc, true);
@@ -801,8 +805,8 @@ class TImport extends TObjetStd {
 					return false;
 				}
 				else{
-					$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]] = new TIntegrale();
-					$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]]->loadBy($ATMdb, $data[$this->mapping['search_key']], $this->mapping['search_key']);
+					$TInfosGlobale['integrale'][$facture_loc->ref] = new TIntegrale();
+					$TInfosGlobale['integrale'][$facture_loc->ref]->loadBy($ATMdb, $facture_loc->ref, $this->mapping['search_key']);
 					//$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]]->truc="llll".$data[$this->mapping['search_key']];
 				}
 				
@@ -811,13 +815,13 @@ class TImport extends TObjetStd {
 			}
 
 			//La première fois qu'on charge la facture, on reset les données intégrale
-			$this->resetIntegrale($TInfosGlobale['integrale'][$data[$this->mapping['search_key']]]);
+			$this->resetIntegrale($TInfosGlobale['integrale'][$facture_loc->ref]);
 		}
 		
-		$integrale = &$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]];
+		$integrale = &$TInfosGlobale['integrale'][$facture_loc->ref];
 		//pre($integrale,true);exit("la");
 		
-		$integrale->facnumber = $data[$this->mapping['search_key']];
+		$integrale->facnumber = $facture_loc->ref;
 		
 		//Gère les frais de gestion lié à l'intégrale
 		$this->importILFI_gestion($data,$integrale);
