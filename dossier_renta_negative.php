@@ -38,7 +38,6 @@ $sqljoin.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (da.fk_fin_affaire = a
 $sqljoin.= " LEFT JOIN ".MAIN_DB_PREFIX."societe scli ON (scli.rowid = a.fk_soc)";
 
 // 1 - Récupération de tous les dossiers dont "Visa renta négative" est à non, ce qui signifie que la règle 1 est à contrôler
-
 $sql = "SELECT d.rowid";
 $sql.= ", $sqlfields";
 $sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
@@ -232,6 +231,82 @@ foreach($TRes as $res) {
 	}
 }
 
+// 4 - Récupération de tous les dossiers dont au moins une facture client est impayée et en retard
+// ce qui signifie que la règle 4 est à contrôler
+$sql = "SELECT DISTINCT d.rowid";
+$sql.= ", $sqlfields";
+$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_extrafields fext ON (fext.fk_object = f.rowid)";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (ee.fk_source = d.rowid AND ee.sourcetype = 'dossier')";
+$sql.= $sqljoin;
+$sql.= " WHERE f.paye = 0";
+$sql.= " AND f.date_lim_reglement <= '".date('Y-m-d')."'";
+$sql.= " AND d.nature_financement = 'INTERNE'";
+$sql.= " AND d.montant_solde = 0";
+$sql.= " AND d.date_solde = '0000-00-00 00:00:00' ";
+$sql.= " AND d.entity IN (".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
+$sql.= " AND d.reference NOT LIKE '%old%' ";
+//$sql.= " LIMIT 1";
+
+//echo $sql . '<hr>';
+
+$PDOdb->Execute($sql);
+$TRes = $PDOdb->Get_All();
+
+foreach($TRes as $res) {
+	$rowid = $res->rowid;
+	$renta_neg = false;
+	
+	// TODO : voir si besoin d'un visa sur la règle concernant les factures impayées, sachant qu'elle passent en payées en automatique via import quotidien
+	
+	// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
+	/*if($visaauto) {
+		$dossier->load($PDOdb, $rowid);
+		
+		// Si règle 5 non vérifiée et visa non coché, on le coche et on ne prend pas le dossier
+		// Attention on vérifie les factures et regroupements de factures
+		$montant_facture = 0;
+		foreach($dossier->TFacture as $p => $d) {
+			// Récupération du montant facturé au client pour comparer aux loyers. Si plusieurs factures, on fait la somme
+			if(is_array($d)) {
+				foreach ($d as $i => $f) {
+					$montant_facture += $f->total_ht;
+				}
+			} else {
+				$montant_facture = $d->total_ht;
+			}
+			
+			// Comparaison au loyer client
+			// Si règle 5 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
+			// TODO : Faire la somme des échéances des dossiers préfixés par la référence contrat (pour prendre en compte les adjonctions)
+			$maj_visa_client = false;
+			if($montant_facture < $dossier->financement->echeance) {
+				$renta_neg = true;
+			} else if($visaauto) {
+				echo 'Dossier '.$dossier->financement->reference.', période '.($p+1).' respecte la règle 5, case "Visa renta facture < loyer client" cochée automatiquement.<br>';
+				if(is_array($d)) {
+					foreach ($d as $i => $f) {
+						$f->array_options['options_visa_renta_loyer_client'] = 1;
+						$f->insertExtraFields();
+					}
+				} else {
+					$d->array_options['options_visa_renta_loyer_client'] = 1;
+					$d->insertExtraFields();
+				}
+			}
+		}
+	}*/
+
+	if($renta_neg || !$visaauto) {
+		if(!in_array($rowid, $TDossiersError['all'])) {
+			$TDossiersError['all'][] = $rowid;
+			$TDossiersError['data'][$rowid] = $res;
+		}
+		if(!in_array($rowid, $TDossiersError['err4'])) $TDossiersError['err4'][] = $rowid;
+	}
+}
+
 //pre($TDossiersError,true);
 //exit;
 
@@ -266,7 +341,7 @@ foreach($TDossiersError['all'] as $id_dossier) {
 	
 	$TLinesDisp[] = array(
 		'iddos' => $id_dossier
-		,'refdos' => '<a href="?id='.$id_dossier.'">'.$data->refdoscli .'<br>'. $data->refdoslea.'</a>'
+		,'refdos' => '<a href="dossier.php?id='.$id_dossier.'">'.$data->refdoscli .'<br>'. $data->refdoslea.'</a>'
 		,'fk_affaire' => $data->fk_affaire
 		,'affaire'=> $data->refaffaire
 		,'noms' => '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$data->fk_client.'">'.$data->nomcli.'</a><br><a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$data->fk_leaser.'">'.$data->nomlea.'</a>'
