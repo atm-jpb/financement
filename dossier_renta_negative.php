@@ -242,21 +242,18 @@ foreach($TDossiersError['all'] as $id_dossier) {
 	$data = $TDossiersError['data'][$id_dossier];
 	
 	$TLinesFile[] = array(
-		'iddos' => $id_dossier
-		,'refdoscli' => $data->refdoscli
+		'refdoscli' => $data->refdoscli
 		,'refdoslea' => $data->refdoslea
-		,'fk_affaire' => $data->fk_affaire
 		,'affaire'=> $data->refaffaire
 		,'nomcli' => $data->nomcli
-		,'fk_client' => $data->fk_client
 		,'nomlea' => $data->nomlea
-		,'fk_leaser' => $data->fk_leaser
 		,'status_1' => (in_array($id_dossier, $TDossiersError['err1']) ? "Oui" : "Non")
 		,'status_2' => (in_array($id_dossier, $TDossiersError['err2']) ? "Oui" : "Non")
 		,'status_3' => (in_array($id_dossier, $TDossiersError['err3']) ? "Oui" : "Non")
 		,'status_4' => (in_array($id_dossier, $TDossiersError['err4']) ? "Oui" : "Non")
 		,'status_5' => (in_array($id_dossier, $TDossiersError['err5']) ? "Oui" : "Non")
-		,'duree' => $data->duree . ' ' . substr($data->periodicite, 0, 1)
+		,'duree' => $data->duree
+		,'periodicite' => $data->periodicite
 		,'montant' => price($data->montant,0,'',1,-1,2)
 		,'echeance' => price($data->echeance,0,'',1,2)
 		,'date_prochaine' => date('d/m/y', strtotime($data->date_prochaine_echeance))
@@ -302,26 +299,27 @@ $TTitles = array(
 	'refdos'=>'Contrat'
 	,'refdoscli'=>'Contrat'
 	,'refdoslea'=>'Contrat Leaser'
+	,'affaire'=>'Affaire'
 	,'nomcli'=>'Client'
 	,'nomlea'=>'Leaser'
 	,'noms' => 'Tiers'
-	,'date_prochaine'=>'Prochaine'
-	,'date_debut'=>'Début'
-	,'date_fin'=>'Fin'
-	,'dates'=>'Dates'
-	,'echeance'=>'Échéance'
-	,'montant'=>'Montant'
-	,'duree'=>'Durée'
-	,'montants'=>'Montants'
 	,'status_1'=>$TErrorStatus['error_1']
 	,'status_2'=>$TErrorStatus['error_2']
 	,'status_3'=>$TErrorStatus['error_3']
 	,'status_4'=>$TErrorStatus['error_4']
 	,'status_5'=>$TErrorStatus['error_5']
+	,'duree'=>'Durée'
+	,'periodicite' => 'Périodicité'
+	,'montant'=>'Montant'
+	,'echeance'=>'Échéance'
+	,'montants'=>'Montants'
+	,'date_prochaine'=>'Prochaine'
+	,'date_debut'=>'Début'
+	,'date_fin'=>'Fin'
+	,'dates'=>'Dates'
 	,'renta_previsionnelle'=>'Renta <br />Prévisionnelle'
 	,'renta_attendue'=>'Renta <br />Attendue'
 	,'renta_reelle'=>'Renta <br />Réelle'
-	,'affaire'=>'Affaire'
 );
 $limit = !empty($user->conf->MAIN_SIZE_LISTE_LIMIT) ? $user->conf->MAIN_SIZE_LISTE_LIMIT : $conf->global->MAIN_SIZE_LISTE_LIMIT;
 
@@ -362,8 +360,18 @@ print $r->renderArray($PDOdb, $TLinesDisp, array(
 ));
 $form->end();
 
-llxFooter();
+?>
+<div class="tabsAction">
+	<a href="?action=exportListeDossier" class="butAction">Exporter</a>
+</div>
+<?php
 
+$action = GETPOST('action');
+if($action === 'exportListeDossier'){
+	_getExport($TLinesFile,$TTitles);
+}
+
+llxFooter();
 
 function _getExport(&$TLines, $TTitles){
 	$filename = 'export_liste_dossier_renta_neg.csv';
@@ -375,10 +383,10 @@ function _getExport(&$TLines, $TTitles){
 	$TFirstline = array();
 	foreach ($TTitles as $key => $value) {
 		if(array_key_exists($key, $l1)) {
-			$TFirstline[] = $val;
+			$TFirstline[] = $value;
 		}
 	}
-					
+	
 	fputcsv($file, $TFirstline,';','"');
 	
 	foreach($TLines as $line){
@@ -389,7 +397,7 @@ function _getExport(&$TLines, $TTitles){
 	
 	?>
 	<script language="javascript">
-		document.location.href="<?php echo dol_buildpath("/document.php?modulepart=financement&entity=1&file=".$filename,2); ?>";					
+		document.location.href="<?php echo dol_buildpath("/document.php?modulepart=financement&entity=1&file=".$filename,2); ?>";
 	</script>
 	<?php
 }	
