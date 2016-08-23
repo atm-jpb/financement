@@ -15,14 +15,14 @@ $visaauto = false;
 $visaauto = GETPOST('visaauto');
 if(!empty($visaauto)) set_time_limit(0);
 
-/**
+/********************************************************************************************************************
  * Liste des dossiers qui doivent être contrôlés car il y a risque de rentabilité négative
  * 1 - loyer client < loyer leaser (Case à cocher sur le dossier de financement)
- * 2 - échéance non facturée (A CONFIRMER)
- * 3 - facture client < loyer leaser (Case à cocher sur la facture client)
+ * 2 - facture client < loyer leaser (Case à cocher sur la facture client)
+ * 3 - facture client < loyer client (Case à cocher sur la facture client)
  * 4 - facture client impayée (A CONFIRMER)
- * 5 - facture client < loyer client (Case à cocher sur la facture client)
- */
+ * 5 - échéance non facturée (A CONFIRMER)
+ ********************************************************************************************************************/
 
 $TDossiersError = array('all'=>array(),'err1'=>array(),'err2'=>array(),'err3'=>array(),'err4'=>array(),'err5'=>array());
 
@@ -37,7 +37,9 @@ $sqljoin.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (d.rowid = da
 $sqljoin.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (da.fk_fin_affaire = a.rowid) ";
 $sqljoin.= " LEFT JOIN ".MAIN_DB_PREFIX."societe scli ON (scli.rowid = a.fk_soc)";
 
-// 1 - Récupération de tous les dossiers dont "Visa renta négative" est à non, ce qui signifie que la règle 1 est à contrôler
+/***********************************************************************************************************************************************************
+ * 1 - Récupération de tous les dossiers dont "Visa renta négative" est à non, ce qui signifie que la règle 1 est à contrôler
+ ***********************************************************************************************************************************************************/
 $sql = "SELECT d.rowid";
 $sql.= ", $sqlfields";
 $sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
@@ -85,8 +87,10 @@ foreach($TRes as $res) {
 //pre($TDossiersError,true);
 //exit;
 
-// 2 - Récupération de tous les dossiers dont "Visa renta facture < loyer leaser" ou "Visa renta facture < loyer client" est à non
-// ce qui signifie que les règles 3 et 5 est à contrôler
+/***********************************************************************************************************************************************************
+ * 2 - Récupération de tous les dossiers dont "Visa renta facture < loyer leaser" est à non
+ * ce qui signifie que la règle 2 est à contrôler
+ ***********************************************************************************************************************************************************/
 $sql = "SELECT DISTINCT d.rowid";
 $sql.= ", $sqlfields";
 $sql.= " FROM ".MAIN_DB_PREFIX."facture f";
@@ -158,8 +162,10 @@ foreach($TRes as $res) {
 	}
 }
 
-// 3 - Récupération de tous les dossiers dont "Visa renta facture < loyer client" est à non
-// ce qui signifie que la règle 5 est à contrôler
+/***********************************************************************************************************************************************************
+ * 3 - Récupération de tous les dossiers dont "Visa renta facture < loyer client" est à non
+ * ce qui signifie que la règle 3 est à contrôler
+ ***********************************************************************************************************************************************************/
 $sql = "SELECT DISTINCT d.rowid";
 $sql.= ", $sqlfields";
 $sql.= " FROM ".MAIN_DB_PREFIX."facture f";
@@ -231,8 +237,10 @@ foreach($TRes as $res) {
 	}
 }
 
-// 4 - Récupération de tous les dossiers dont au moins une facture client est impayée et en retard
-// ce qui signifie que la règle 4 est à contrôler
+/***********************************************************************************************************************************************************
+ * 4 - Récupération de tous les dossiers dont au moins une facture client est impayée et en retard
+ * ce qui signifie que la règle 4 est à contrôler
+ ***********************************************************************************************************************************************************/
 $sql = "SELECT DISTINCT d.rowid";
 $sql.= ", $sqlfields";
 $sql.= " FROM ".MAIN_DB_PREFIX."facture f";
@@ -249,7 +257,7 @@ $sql.= " AND d.entity IN (".getEntity('fin_dossier', TFinancementTools::user_cou
 $sql.= " AND d.reference NOT LIKE '%old%' ";
 //$sql.= " LIMIT 1";
 
-//echo $sql . '<hr>';
+echo $sql . '<hr>';
 
 $PDOdb->Execute($sql);
 $TRes = $PDOdb->Get_All();
@@ -259,6 +267,83 @@ foreach($TRes as $res) {
 	$renta_neg = false;
 	
 	// TODO : voir si besoin d'un visa sur la règle concernant les factures impayées, sachant qu'elle passent en payées en automatique via import quotidien
+	
+	// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
+	/*if($visaauto) {
+		$dossier->load($PDOdb, $rowid);
+		
+		// Si règle 5 non vérifiée et visa non coché, on le coche et on ne prend pas le dossier
+		// Attention on vérifie les factures et regroupements de factures
+		$montant_facture = 0;
+		foreach($dossier->TFacture as $p => $d) {
+			// Récupération du montant facturé au client pour comparer aux loyers. Si plusieurs factures, on fait la somme
+			if(is_array($d)) {
+				foreach ($d as $i => $f) {
+					$montant_facture += $f->total_ht;
+				}
+			} else {
+				$montant_facture = $d->total_ht;
+			}
+			
+			// Comparaison au loyer client
+			// Si règle 5 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
+			// TODO : Faire la somme des échéances des dossiers préfixés par la référence contrat (pour prendre en compte les adjonctions)
+			$maj_visa_client = false;
+			if($montant_facture < $dossier->financement->echeance) {
+				$renta_neg = true;
+			} else if($visaauto) {
+				echo 'Dossier '.$dossier->financement->reference.', période '.($p+1).' respecte la règle 5, case "Visa renta facture < loyer client" cochée automatiquement.<br>';
+				if(is_array($d)) {
+					foreach ($d as $i => $f) {
+						$f->array_options['options_visa_renta_loyer_client'] = 1;
+						$f->insertExtraFields();
+					}
+				} else {
+					$d->array_options['options_visa_renta_loyer_client'] = 1;
+					$d->insertExtraFields();
+				}
+			}
+		}
+	}*/
+
+	if($renta_neg || !$visaauto) {
+		if(!in_array($rowid, $TDossiersError['all'])) {
+			$TDossiersError['all'][] = $rowid;
+			$TDossiersError['data'][$rowid] = $res;
+		}
+		if(!in_array($rowid, $TDossiersError['err4'])) $TDossiersError['err4'][] = $rowid;
+	}
+}
+
+/***********************************************************************************************************************************************************
+ * 5 - Récupération de tous les dossiers pour lesquels il manque une facture
+ * ce qui signifie que la règle 5 est à contrôler
+ ***********************************************************************************************************************************************************/
+$sql = "SELECT d.rowid, COUNT(DISTINCT f.ref_client)";
+//$sql.= ", $sqlfields";
+$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (ee.fk_source = d.rowid AND ee.sourcetype = 'dossier')";
+$sql.= $sqljoin;
+$sql.= " WHERE f.type = 0";
+$sql.= " AND d.nature_financement = 'INTERNE'";
+$sql.= " AND d.montant_solde = 0";
+$sql.= " AND d.date_solde = '0000-00-00 00:00:00' ";
+$sql.= " AND d.entity IN (".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
+$sql.= " AND d.reference NOT LIKE '%old%' ";
+$sql.= " GROUP BY d.rowid";
+//$sql.= " LIMIT 1";
+
+echo $sql . '<hr>';
+
+$PDOdb->Execute($sql);
+$TRes = $PDOdb->Get_All();
+
+foreach($TRes as $res) {
+	$rowid = $res->rowid;
+	$renta_neg = false;
+	
+	// TODO : voir si besoin d'un visa sur la règle concernant les factures manquantes, sachant qu'elles sont créées en automatique via import quotidien
 	
 	// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
 	/*if($visaauto) {
