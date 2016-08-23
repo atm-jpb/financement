@@ -266,7 +266,7 @@ function _fiche(&$ATMdb, &$import, $mode) {
 		)
 	);
 	
-	?><div class="tabsAction" style="text-align: left;"><a href="?action=export&id=<?=$import->getId()?>" class="butAction">Exporter les erreurs</a></div><br><br><?
+	?><div class="tabsAction" style="text-align: left;"><a href="?action=export&id=<?php echo$import->getId()?>" class="butAction">Exporter les erreurs</a></div><br><br><?
 	
 	echo $form->end_form();
 	echo date('d/m/Y H:i:s', time());

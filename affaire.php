@@ -64,7 +64,7 @@
 				<script language="javascript">
 					document.location.href="?delete_ok=1";					
 				</script>
-				<?
+				<?php
 				
 				
 				break;
@@ -303,7 +303,7 @@ function _liste(&$ATMdb, &$affaire) {
 	$form->end();
 	
 	if(isset($_REQUEST['socid'])) {
-		?><div class="tabsAction"><a href="?action=new&fk_soc=<?=$_REQUEST['socid'] ?>" class="butAction">Créer une affaire</a></div><?
+		?><div class="tabsAction"><a href="?action=new&fk_soc=<?php echo $_REQUEST['socid'] ?>" class="butAction">Créer une affaire</a></div><?php
 	}
 	
 	llxFooter();
