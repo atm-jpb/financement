@@ -364,7 +364,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	
 	print '<div class="tabsAction">';
 	$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
-	print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale#calculateur">'.$label.'</a>';
+	print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale">'.$label.'</a>';
 	print '</div>';
 	
 }
@@ -681,6 +681,11 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	print $form->hidden('old_repartition_couleur', $new_repartition_couleur);*/
 	
 	$style = 'style="background-color: #C0C0C0; text-align: right;"';
+	if($integrale->vol_coul_engage > 0) {
+		$input_engagement_couleur = $form->texte('','nouvel_engagement_couleur',$engagement_couleur,10,0,' style="text-align: center;" engagement_type="coul" autocomplete="off"');
+	} else {
+		$input_engagement_couleur = $form->texteRO('','nouvel_engagement_couleur',$engagement_couleur,10,0,' style="text-align: center; background-color: #C0C0C0;" engagement_type="coul" autocomplete="off"');
+	}
 	
 	print '<div id="calculateur">';
 	
@@ -709,7 +714,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 				,'cout_unit_tech'=>$integrale->cout_unit_coul_tech
 				,'cout_unit_mach'=>$integrale->cout_unit_coul_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_coul_loyer
-				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_couleur',$engagement_couleur,10,0,' style="text-align: center;" engagement_type="coul" autocomplete="off"')
+				,'nouvel_engagement'=>$input_engagement_couleur
 				,'nouveau_cout_unitaire'=>$form->texteRO('','nouveau_cout_unitaire_coul', $TDetailCoutCouleur['cout_unitaire'],10,'',$style)
 				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_coul_tech', $TDetailCoutCouleur['nouveau_cout_unitaire_tech'],10,'',$style) // Identique à l'ancien dans tous les cas
 				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_coul_mach', $TDetailCoutCouleur['nouveau_cout_unitaire_mach'],10,'',$style)

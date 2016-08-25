@@ -137,14 +137,16 @@ class TIntegrale extends TObjetStd {
 		$diff = $engagement - $this->{'vol_'.$type.'_engage'};
 		$diff2 = $diff + abs($diff) * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100);
 		
-		$cout_unitaire = ($cout_act + $diff2 * $this->{'cout_unit_'.$type.'_tech'}) / $engagement;
+		$cout_unitaire = 0;
+		if($engagement > 0) {
+			$cout_unitaire = ($cout_act + $diff2 * $this->{'cout_unit_'.$type.'_tech'}) / $engagement;
+		}
 		/*$cout_unitaire = ($engagement * $this->{'cout_unit_'.$type}
 								 + (($engagement - $this->{'vol_'.$type.'_engage'}) + (abs($this->{'vol_'.$type.'_engage'} - $engagement)) * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100)
 								 * $this->{'cout_unit_'.$type.'_tech'}))
 								 / $engagement;*/
 		
 		return $this->ceil($cout_unitaire);
-		
 	}
 	
 	function calcul_cout_unitaire_by_fas($TDetailCouts, $engagement, $new_fas, $pourcentage) {
@@ -161,7 +163,7 @@ class TIntegrale extends TObjetStd {
 		
 		$l1 = $engagement * ($TDetailCouts['nouveau_cout_unitaire_mach'] + $TDetailCouts['nouveau_cout_unitaire_loyer']);
 		$l2 = abs($new_fas - $this->fas) * $pourcentage / 100;
-		$l3 = ($l1 - $l2) / $engagement;
+		$l3 = ($engagement > 0) ? ($l1 - $l2) / $engagement : 0;
 		$l4 = $l3 + $TDetailCouts['nouveau_cout_unitaire_tech'];
 		
 		/*echo 'L1 : '.$l1.'<br>';
@@ -196,7 +198,11 @@ class TIntegrale extends TObjetStd {
 			$TDetailCoutCouleur['nouveau_cout_unitaire_loyer']
 		);
 		
-		$res = ($tcf * ($pourcentage/100) / ${'engagement_'.$type}) + $cout_tech + $cout_mach;
+		$res = 0;
+		if(${'engagement_'.$type} > 0) {
+			$res = ($tcf * ($pourcentage/100) / ${'engagement_'.$type});
+		}
+		$res += $cout_tech + $cout_mach;
 		
 		return $this->ceil($res);
 	}
@@ -222,6 +228,7 @@ class TIntegrale extends TObjetStd {
 	
 	function calcul_total_global($TDetailCoutNoir, $TDetailCoutCoul, $fas=0) {
 		if(empty($fas)) $fas = $this->fas;
+		
 		$total = $TDetailCoutNoir['nouveau_cout_total']
 					+ $TDetailCoutCoul['nouveau_cout_total']
 					+ $fas
@@ -232,10 +239,14 @@ class TIntegrale extends TObjetStd {
 		return round($total, 2);
 	}
 	
-	function calcul_fas_max($TDetailCoutNoir, $TDetailCoutCoul, $engagement_noir, $engagement_coul) {
-		$total_global = $this->calcul_total_global($TDetailCoutNoir, $TDetailCoutNoir);
-		$part_loyer = $TDetailCoutNoir['nouveau_cout_unitaire_loyer'] * $engagement_noir + $TDetailCoutCoul['nouveau_cout_unitaire_loyer'] * $engagement_coul;
-				
+	function calcul_fas_max($TDetailCoutNoir, $TDetailCoutCoul, $engagement_noir, $engagement_coul,$fas=0) {
+		$total_global = $this->calcul_total_global($TDetailCoutNoir, $TDetailCoutCoul,$fas);
+		
+		// Pour la part loyer, on part des cout de base avant avenant
+		$TDetailCoutNoir = $this->calcul_detail_cout(0,0,'noir');
+		$TDetailCoutCoul = $this->calcul_detail_cout(0,0,'coul');
+		$part_loyer = $TDetailCoutNoir['nouveau_cout_unitaire_loyer'] * $this->{'vol_noir_engage'} + $TDetailCoutCoul['nouveau_cout_unitaire_loyer'] * $this->{'vol_coul_engage'};
+		
 		return min($total_global/2, $part_loyer + $this->fas);		
 	}
 
@@ -247,7 +258,10 @@ class TIntegrale extends TObjetStd {
 		
 		$TData['cout_unitaire'] = $this->ceil($cout_unitaire);
 		$TData['nouveau_cout_unitaire_tech'] = $this->ceil($this->{'cout_unit_'.$type.'_tech'});
-		$TData['nouveau_cout_unitaire_mach'] = $this->ceil($this->{'vol_'.$type.'_engage'} * $this->{'cout_unit_'.$type.'_mach'} / $engagement);
+		$TData['nouveau_cout_unitaire_mach'] = 0;
+		if($engagement > 0) {
+			$TData['nouveau_cout_unitaire_mach'] = $this->ceil($this->{'vol_'.$type.'_engage'} * $this->{'cout_unit_'.$type.'_mach'} / $engagement);
+		}
 		$TData['nouveau_cout_unitaire_loyer'] = $TData['cout_unitaire'] - $TData['nouveau_cout_unitaire_mach'] - $TData['nouveau_cout_unitaire_tech'];
 		$TData['nouveau_cout_total'] = $this->ceil($engagement * $TData['cout_unitaire']);
 
@@ -282,7 +296,11 @@ class TIntegrale extends TObjetStd {
 		$loyer_noir = $cout_unit_noir_loyer * $engagement_noir;
 		$loyer_couleur = $cout_unitaire_coul_loyer * $engagement_couleur;
 		//echo 'TADA'.$loyer_couleur. '-' .$loyer_noir;
-		return round($loyer_couleur / ($loyer_noir + $loyer_couleur) * 100);
+		$total_loyer = ($loyer_noir + $loyer_couleur);
+		if($total_loyer > 0) {
+			return round($loyer_couleur / $total_loyer * 100);
+		}
+		return 0;
 	}
 }
 

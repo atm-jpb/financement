@@ -64,6 +64,9 @@
 					
 					
 					$mappingFile = ($fileType == 'fichier_leaser' ? $fileType.'.'.$societe->code_client.'.mapping' : $fileType.'.mapping');
+					if(!is_file($importFolderMapping.$mappingFile) && $fileType == 'fichier_leaser'){
+						$mappingFile = $fileType.'.default.mapping';
+					}
 					$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
 					
 					$imp->init($fileName, $fileType);
