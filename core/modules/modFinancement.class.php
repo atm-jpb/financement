@@ -558,7 +558,7 @@ class modFinancement extends DolibarrModules
 								'titre'=>$langs->trans('Dossiers renta négative'),
 								'mainmenu'=>'financement',
 								'leftmenu'=>'dossier_list',
-								'url'=>'/financement/dossier.php?liste_renta_negative=1',
+								'url'=>'/financement/dossier_renta_negative.php',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>418,
 								'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
