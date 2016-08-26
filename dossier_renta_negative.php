@@ -24,26 +24,29 @@ foreach($TDossiersError['all'] as $id_dossier) {
 	$data = $TDossiersError['data'][$id_dossier];
 	
 	$TLinesFile[] = array(
-		'refdoscli' => $data->refdoscli
-		,'refdoslea' => $data->refdoslea
-		,'affaire'=> $data->refaffaire
-		,'nomcli' => $data->nomcli
-		,'nomlea' => $data->nomlea
-		,'status_1' => (in_array($id_dossier, $TDossiersError['err1']) ? "Oui" : "Non")
-		,'status_2' => (in_array($id_dossier, $TDossiersError['err2']) ? "Oui" : "Non")
-		,'status_3' => (in_array($id_dossier, $TDossiersError['err3']) ? "Oui" : "Non")
-		,'status_4' => (in_array($id_dossier, $TDossiersError['err4']) ? "Oui" : "Non")
-		,'status_5' => (in_array($id_dossier, $TDossiersError['err5']) ? "Oui" : "Non")
-		,'duree' => $data->duree
-		,'periodicite' => $data->periodicite
-		,'montant' => price($data->montant,0,'',1,-1,2)
-		,'echeance' => price($data->echeance,0,'',1,2)
-		,'date_prochaine' => date('d/m/y', strtotime($data->date_prochaine_echeance))
-		,'date_debut' => date('d/m/y', strtotime($data->date_debut))
-		,'date_fin' => date('d/m/y', strtotime($data->date_fin))
-		,'renta_previsionnelle'=>number_format($data->renta_previsionnelle,2, ',', ' ').' / '.number_format($data->marge_previsionnelle,2).' %'
-		,'renta_attendue'=>number_format($data->renta_attendue,2, ',', ' ').' / '.number_format($data->marge_attendue, 2).' %'
-		,'renta_reelle'=>number_format($data->renta_reelle,2, ',', ' ').' / '.number_format($data->marge_reelle,2).' %'
+		'refdoscli'					=> $data->refdoscli
+		,'refdoslea'				=> $data->refdoslea
+		,'affaire'					=> $data->refaffaire
+		,'nomcli'					=> $data->nomcli
+		,'nomlea'					=> $data->nomlea
+		,'status_1'					=> (in_array($id_dossier, $TDossiersError['err1']) ? "Oui" : "Non")
+		,'status_2'					=> (in_array($id_dossier, $TDossiersError['err2']) ? "Oui" : "Non")
+		,'status_3'					=> (in_array($id_dossier, $TDossiersError['err3']) ? "Oui" : "Non")
+		,'status_4'					=> (in_array($id_dossier, $TDossiersError['err4']) ? "Oui" : "Non")
+		,'status_5'					=> (in_array($id_dossier, $TDossiersError['err5']) ? "Oui" : "Non")
+		,'duree'					=> $data->duree
+		,'periodicite'				=> $data->periodicite
+		,'montant'					=> price($data->montant,0,'',1,-1,2)
+		,'echeance'					=> price($data->echeance,0,'',1,2)
+		,'date_prochaine'			=> date('d/m/y', strtotime($data->date_prochaine_echeance))
+		,'date_debut'				=> date('d/m/y', strtotime($data->date_debut))
+		,'date_fin'					=> date('d/m/y', strtotime($data->date_fin))
+		,'renta_previsionnelle'		=> number_format($data->renta_previsionnelle,2, ',', ' ')
+		,'marge_previsionnelle'		=> number_format($data->marge_previsionnelle,2)
+		,'renta_attendue'			=> number_format($data->renta_attendue,2, ',', ' ')
+		,'marge_attendue'			=> number_format($data->marge_attendue, 2)
+		,'renta_reelle'				=> number_format($data->renta_reelle,2, ',', ' ')
+		,'marge_reelle'				=> number_format($data->marge_reelle,2)
 	);
 	
 	$TLinesDisp[] = array(
@@ -71,11 +74,11 @@ $aff = new TFin_affaire;
 $dos = new TFin_dossier;
 
 $TErrorStatus=array(
-	'error_1' => "Echéance Client <br>< Echéance Leaser",
-	'error_2' => "Facture Client <br>< Loyer client",
-	'error_3' => "Facture Client <br>< Facture leaser",
-	'error_4' => "Facture Client <br>impayée",
-	'error_5' => "Echéance client <br>non facturée"
+	'error_1' => "Echéance Client < Echéance Leaser",
+	'error_2' => "Facture Client < Loyer client",
+	'error_3' => "Facture Client < Facture leaser",
+	'error_4' => "Facture Client impayée",
+	'error_5' => "Echéance client non facturée"
 );
 $TTitles = array(
 	'refdos'=>'Contrat'
@@ -99,9 +102,12 @@ $TTitles = array(
 	,'date_debut'=>'Début'
 	,'date_fin'=>'Fin'
 	,'dates'=>'Dates'
-	,'renta_previsionnelle'=>'Renta <br />Prévisionnelle'
-	,'renta_attendue'=>'Renta <br />Attendue'
-	,'renta_reelle'=>'Renta <br />Réelle'
+	,'renta_previsionnelle'=>'Renta Prévisionnelle'
+	,'renta_attendue'=>'Renta Attendue'
+	,'renta_reelle'=>'Renta Réelle'
+	,'marge_previsionnelle'=>'Marge Prévisionnelle'
+	,'marge_attendue'=>'Marge Attendue'
+	,'marge_reelle'=>'Marge Réelle'
 );
 $limit = !empty($user->conf->MAIN_SIZE_LISTE_LIMIT) ? $user->conf->MAIN_SIZE_LISTE_LIMIT : $conf->global->MAIN_SIZE_LISTE_LIMIT;
 
