@@ -6,8 +6,6 @@ dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/grille.class.php');
 dol_include_once('/financement/lib/financement.lib.php');
 
-llxHeader('','Dossiers renta négative');
-
 $dossier=new TFin_Dossier;
 $PDOdb=new TPDOdb;
 
@@ -284,45 +282,47 @@ foreach($TRes as $res) {
 $sql = "SELECT d.rowid, dfcli.numero_prochaine_echeance";
 	$sql.= ", ( SELECT COUNT(DISTINCT f.ref_client)";
 	$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
+	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture a ON (f.rowid = a.fk_facture_source AND a.type = 2)";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d2 ON (ee.fk_source = d2.rowid AND ee.sourcetype = 'dossier')";
 	$sql.= " WHERE d.rowid = d2.rowid";
-	$sql.= " AND f.type = 0 ) as nb_echeances_facturee";
-	
-	$sql.= ", ( SELECT COUNT(DISTINCT a.ref_client)";
-	$sql.= " FROM ".MAIN_DB_PREFIX."facture a";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture f ON (f.rowid = a.fk_facture_source)";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = a.rowid AND ee.targettype = 'facture')";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d2 ON (ee.fk_source = d2.rowid AND ee.sourcetype = 'dossier')";
-	$sql.= " WHERE d.rowid = d2.rowid";
-	$sql.= " AND (f.total + a.total) = 0";
-	$sql.= " AND a.type = 2 ) as nb_echeances_annulees";
+	$sql.= " AND f.type = 0";
+	$sql.= " AND (f.total + IFNULL(a.total,0)) != 0";
+	$sql.= ") as nb_echeances_facturees";
 $sql.= ", $sqlfields";
 $sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
 $sql.= $sqljoin;
 $sql.= " WHERE 1";
 $sql.= $sqlwhere;
 
-echo $sql . '<hr>';
+//echo $sql . '<hr>';
 
 $PDOdb->Execute($sql);
 $TRes = $PDOdb->Get_All();
+
+$TPeriodeType = array(
+	'MOIS' => 1
+	,'TRIMESTRE' => 3
+	,'SEMESTRE' => 6
+	,'ANNEE' => 12
+);
 
 foreach($TRes as $res) {
 	$rowid = $res->rowid;
 	$renta_neg = false;
 	
 	// Calcul du nombre de période écoulées entre le début du dossier et le 01/01/2014, date de début d'intégration des factures dans LeaseBoard
-	/*$nb_periode_sans_fact = 0;
-	$datedeb = new DateTime($res->date_debut);
-	$datestart = new DateTime('2014-01-01');
-	$diff = $datedeb->diff($datestart);
-	echo $datedeb->format('Y-m-d'). ' - ' . $datestart->format('Y-m-d').'<hr>';
-	if($diff->days > 0) {
-		pre($diff,true);
-	}*/
+	$nb_periode_sans_fact = 0;
+	$datedeb = strtotime($res->date_debut);
+	$datelimit = strtotime('2014-01-01');
+	$nbmonth = $TPeriodeType[$res->periodicite];
 	
-	if(($res->nb_echeances_facturee - $res->nb_echeances_annulees + $nb_periode_sans_fact) != $res->numero_prochaine_echeance) {
+	while($datedeb < $datelimit) {
+		$datedeb = strtotime('+ '.$nbmonth.' month', $datedeb);
+		$nb_periode_sans_fact++;
+	}
+	
+	if(($res->nb_echeances_facturees + $nb_periode_sans_fact) != ($res->numero_prochaine_echeance - 1)) {
 		$renta_neg = true;
 	}
 	
@@ -343,6 +343,8 @@ foreach($TRes as $res) {
 /************************************************************************
  * VIEW
  ************************************************************************/
+llxHeader('','Dossiers renta négative');
+
 foreach($TDossiersError['all'] as $id_dossier) {
 	$data = $TDossiersError['data'][$id_dossier];
 	
