@@ -412,7 +412,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0) {
 	$sql.= ", $sqlfields";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
 	$sql.= $sqljoin;
-	$sql.= " WHERE 1";
+	$sql.= " WHERE d.reference NOT LIKE '%adj%'";
 	$sql.= $sqlwhere;
 	
 	//echo $sql . '<hr>';
