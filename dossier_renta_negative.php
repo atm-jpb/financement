@@ -144,7 +144,7 @@ $form->end();
 
 ?>
 <div class="tabsAction">
-	<a href="?action=exportListeDossier" class="butAction">Exporter</a>
+	<a href="?action=exportListeDossier" class="butAction">Exporter (<?php echo count($TDossiersError['all']); ?> dossiers)</a>
 </div>
 <?php
 
