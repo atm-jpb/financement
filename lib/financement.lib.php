@@ -141,7 +141,7 @@ class TFinancementTools {
  * 4 - facture client impayée (A CONFIRMER)
  * 5 - échéance non facturée (A CONFIRMER)
  ********************************************************************************************************************/
-function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0) {
+function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = false) {
 	$dossier=new TFin_Dossier;
 	$TDossiersError = array('all'=>array(),'err1'=>array(),'err2'=>array(),'err3'=>array(),'err4'=>array(),'err5'=>array());
 	
@@ -160,6 +160,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0) {
 	$sqlwhere.= " AND d.date_solde = '0000-00-00 00:00:00' ";
 	$sqlwhere.= " AND d.entity IN (".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
 	$sqlwhere.= " AND d.reference NOT LIKE '%old%' ";
+	$sqlwhere.= " AND d.reference NOT LIKE '%adj%' ";
 	if(!empty($id_dossier)) $sqlwhere.= " AND d.rowid = ".$id_dossier;
 	//$sqlwhere.= " LIMIT 1 ";
 	
@@ -173,8 +174,6 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0) {
 	$sql.= $sqljoin;
 	$sql.= " WHERE d.visa_renta = 0";
 	$sql.= $sqlwhere;
-	
-	//echo $sql . '<hr>';
 	
 	$PDOdb->Execute($sql);
 	$TRes = $PDOdb->Get_All();
@@ -213,7 +212,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0) {
 	 * 2 - Récupération de tous les dossiers dont "Visa renta facture < loyer leaser" est à non
 	 * ce qui signifie que la règle 2 est à contrôler
 	 ***********************************************************************************************************************************************************/
-	$sql = "SELECT DISTINCT d.rowid,f.facnumber";
+	$sql = "SELECT DISTINCT d.rowid";
 	$sql.= ", $sqlfields";
 	$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_extrafields fext ON (fext.fk_object = f.rowid)";
@@ -222,8 +221,6 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0) {
 	$sql.= $sqljoin;
 	$sql.= " WHERE (fext.visa_renta_loyer_leaser = 0 OR fext.visa_renta_loyer_leaser IS NULL)";
 	$sql.= $sqlwhere;
-	
-	//echo $sql . '<hr>';
 	
 	$PDOdb->Execute($sql);
 	$TRes = $PDOdb->Get_All();
@@ -237,13 +234,17 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0) {
 			$dossier->load($PDOdb, $rowid);
 			
 			// On fait la somme des échéances des dossiers leaser associés à cette référence dossier (prise en compte des adjonctions)
-			$sql = "SELECT SUM(dflea.echeance) as total_echeances
-					FROM ".MAIN_DB_PREFIX."fin_dossier d
-					LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dfcli.fk_fin_dossier = d.rowid AND dfcli.type='CLIENT')
-					LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type='LEASER')
-					WHERE dfcli.reference LIKE '".$dossier->financement->reference."%'";
+			$sql = "SELECT SUM(dflea.echeance) as total_echeances";
+			$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
+			$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dfcli.fk_fin_dossier = d.rowid AND dfcli.type='CLIENT')";
+			$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type='LEASER')";
+			$sql.= " WHERE dfcli.reference LIKE '".$dossier->financement->reference."%'";
+			$sql.= " AND dfcli.montant_solde = 0";
+			$sql.= " AND dfcli.date_solde = '0000-00-00 00:00:00'";
+			$sql.= " AND dfcli.reference NOT LIKE '%old%'";
 			$TRes = $PDOdb->ExecuteAsArray($sql);
 			$total_echeances = $TRes[0]->total_echeances;
+			$nb_dossiers = $TRes[0]->nb_dossiers;
 			
 			// Attention on vérifie les factures et regroupements de factures
 			$montant_facture = 0;
@@ -299,8 +300,6 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0) {
 	$sql.= " WHERE (fext.visa_renta_loyer_client = 0 OR fext.visa_renta_loyer_client IS NULL)";
 	$sql.= $sqlwhere;
 	
-	//echo $sql . '<hr>';
-	
 	$PDOdb->Execute($sql);
 	$TRes = $PDOdb->Get_All();
 	
@@ -313,10 +312,13 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0) {
 			$dossier->load($PDOdb, $rowid);
 			
 			// On fait la somme des échéances des dossiers client associés à cette référence dossier (prise en compte des adjonctions)
-			$sql = "SELECT SUM(dfcli.echeance) as total_echeances
-					FROM ".MAIN_DB_PREFIX."fin_dossier_financement dfcli
-					WHERE dfcli.reference LIKE '".$dossier->financement->reference."%'
-					AND dfcli.type='CLIENT'";
+			$sql = "SELECT SUM(dfcli.echeance) as total_echeances, COUNT(dfcli.reference) as nb_dossiers";
+			$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier_financement dfcli";
+			$sql.= " WHERE dfcli.reference LIKE '".$dossier->financement->reference."%'";
+			$sql.= " AND dfcli.type='CLIENT'";
+			$sql.= " AND dfcli.montant_solde = 0";
+			$sql.= " AND dfcli.date_solde = '0000-00-00 00:00:00'";
+			$sql.= " AND dfcli.reference NOT LIKE '%old%'";
 			$TRes = $PDOdb->ExecuteAsArray($sql);
 			$total_echeances = $TRes[0]->total_echeances;
 			
@@ -375,8 +377,6 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0) {
 	$sql.= " AND f.date_lim_reglement <= '".date('Y-m-d')."'";
 	$sql.= $sqlwhere;
 	
-	//echo $sql . '<hr>';
-	
 	$PDOdb->Execute($sql);
 	$TRes = $PDOdb->Get_All();
 	
@@ -414,8 +414,6 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0) {
 	$sql.= $sqljoin;
 	$sql.= " WHERE d.reference NOT LIKE '%adj%'";
 	$sql.= $sqlwhere;
-	
-	//echo $sql . '<hr>';
 	
 	$PDOdb->Execute($sql);
 	$TRes = $PDOdb->Get_All();
