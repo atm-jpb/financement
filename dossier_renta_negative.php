@@ -6,7 +6,6 @@ dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/grille.class.php');
 dol_include_once('/financement/lib/financement.lib.php');
 
-$dossier=new TFin_Dossier;
 $PDOdb=new TPDOdb;
 
 $visaauto = GETPOST('visaauto');
@@ -18,9 +17,11 @@ if(!empty($visaauto)) {
 $id_dossier = GETPOST('id_dossier');
 $TDossiersError = get_liste_dossier_renta_negative($PDOdb,$id_dossier,$visaauto);
 
-if(empty($visaauto)) display_liste($TDossiersError);
+if(empty($visaauto)) display_liste($PDOdb, $TDossiersError);
 
-function display_liste(&$PDOdb, &$TDossiersError, $visaauto) {
+function display_liste(&$PDOdb, &$TDossiersError) {
+	$dossier=new TFin_Dossier;
+	
 	/************************************************************************
 	 * VIEW
 	 ************************************************************************/
