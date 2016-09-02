@@ -1506,7 +1506,7 @@ class TSimulationSuivi extends TObjetStd {
 				$this->_createDemandeGE($PDOdb);
 				break;
 			default:
-				
+				return 1;
 				break;
 		}
 	}
@@ -1803,7 +1803,7 @@ class TSimulationSuivi extends TObjetStd {
 		//pre($TconsulterSuivisDemandesRequest,true);exit;
 		try{
 			$TreponseSuivisDemandes = $soap->__call('consulterSuivisDemandes',$TconsulterSuivisDemandesRequest);
-			return $TreponseSuivisDemandes;
+			//return $TreponseSuivisDemandes;
 		}
 		catch(SoapFault $TreponseSuivisDemandes) {
 			//echo '<pre>';
@@ -1856,7 +1856,9 @@ class TSimulationSuivi extends TObjetStd {
 		return $errorLabel;
 	}
 	
-	function traiteBNPReponseSuivisDemande(&$PDOdb,&$TreponseSuivisDemandes){
+	function traiteBNPReponseSuivisDemande(&$TreponseSuivisDemandes){
+		
+		$PDOdb = new TPDOdb;
 		
 		//Statut spécifique retourné par BNP
 		$TCodeStatut = array(
