@@ -1484,11 +1484,6 @@ class TSimulationSuivi extends TObjetStd {
 			$simulation = new TSimulation;
 			$simulation->load($PDOdb, $db, $this->fk_simulation,false);
 			$this->simulation = $simulation;
-			
-			//Si Leaser possiblité demande auto alors on effectue directement l'action
-			if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
-				$this->doAction($PDOdb, $simulation, GETPOST('action'));
-			}
 		}
 	}
 	
