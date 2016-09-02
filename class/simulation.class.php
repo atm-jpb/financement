@@ -1871,21 +1871,16 @@ class TSimulationSuivi extends TObjetStd {
 		
 		if($TreponseSuivisDemandes->rapportSuivi->suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
 			$this->statut = $TCodeStatut[$TreponseSuivisDemandes->rapportSuivi->suiviDemande->etat->codeStatutDemande];
-			switch ($TreponseSuivisDemandes->rapportSuivi->suiviDemande->etat->codeStatutDemande) {
-				case 'E1':
+			switch ($this->statut) {
+				case 'OK':
 					$this->doActionAccepter($PDOdb,$this->simulation);
 					break;
-				case 'E2':
-				case 'E4':
+				case 'KO':
 					$this->doActionRefuser($PDOdb,$this->simulation);
 					break;
-				
 				default:
-					
 					break;
 			}
-			
-			$this->save($PDOdb);
 		}
 	}
 
