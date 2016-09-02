@@ -12,8 +12,7 @@
 	$sql = "SELECT rowid, numero_accord_leaser 
 				FROM ".MAIN_DB_PREFIX."fin_simulation_suivi 
 				WHERE (fk_leaser = 3382 OR fk_leaser = 19553 OR fk_leaser = 20113)
-					AND numero_accord_leaser != '' AND numero_accord_leaser IS NOT NULL
-					AND  statut = 'WAIT' ";
+					AND numero_accord_leaser IS NOT NULL ";
 	//echo $sql;exit;
 	$TRes = $PDOdb->ExecuteAsArray($sql);
 	
