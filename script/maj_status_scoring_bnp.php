@@ -3,7 +3,7 @@
 	define('INC_FROM_CRON_SCRIPT',true);
 
 	require('../config.php');
-	require('../class/simulation.class.php');
+	dol_include_once('financement/class/simulation.class.php');
 	
 	$PDOdb = new TPDOdb;
 	
