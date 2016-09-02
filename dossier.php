@@ -319,6 +319,35 @@
 				
 				break;
 			
+			case 'new_facture_client':
+				dol_include_once('/compta/facture/class/facture.class.php');
+				dol_include_once('/product/class/product.class.php');
+				
+				$idDossier = GETPOST('id_dossier');
+				$echeance = GETPOST('echeance');
+				
+				// Maj échéance dossier
+				$dossier = new TFin_dossier();
+				$dossier->load($PDOdb, $idDossier);
+				$fact = $dossier->create_facture_client(false, true, $echeance);
+				
+				if($fact->id){
+					$dossier->financement->setProchaineEcheanceClient($PDOdb, $dossier);
+					$dossier->save($PDOdb);
+					
+					$urlback = dol_buildpath('/compta/facture.php?facid='.$fact->id, 1);
+					header("Location: ".$urlback);
+					exit;
+				}
+				else{
+					setEventMessage('Création facture impossible, dossier incomplet','errors');
+					$urlback = dol_buildpath('/financement/dossier.php?id='.$dossier->rowid, 1);
+					header("Location: ".$urlback);
+					exit;
+				}
+				
+				break;
+			
 			case 'exportListeDossier' :
 				_liste_renta_negative($PDOdb, $dossier);
 			break;

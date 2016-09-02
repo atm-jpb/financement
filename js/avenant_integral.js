@@ -1,20 +1,27 @@
 $(document).ready(function() {
+	// Pas de submit sur Entrée
+	$('#formAvenantIntegrale').on('keypress', function(e) {
+		if ( e.which == 13 ) return false;
+	});
+	
 	$('#nouvel_engagement_noir, #nouvel_engagement_couleur').on('input', function() {
 		var type = $(this).attr('engagement_type');
 		update_cout_loyer('change_engagement',type);
 	});
 	
-	$('#cursor').slider({
-		range: "max",
-		min: 15,
-		max: 85,
-		value: $('#nouvelle_repartition_couleur').val(),
-		change: function( event, ui ) {
-			$('#nouvelle_repartition_couleur').val( ui.value );
-			$('#repartition_coul').html( ui.value );
-			update_cout_loyer('change_couleur_percent');
-		}
+	if($('#nouvelle_repartition_couleur').val() > 0) {
+		$('#cursor').slider({
+			range: "max",
+			min: 15,
+			max: 85,
+			value: $('#nouvelle_repartition_couleur').val(),
+			change: function( event, ui ) {
+				$('#nouvelle_repartition_couleur').val( ui.value );
+				$('#repartition_coul').html( ui.value );
+				update_cout_loyer('change_couleur_percent');
+			}
 	});
+	}
 	
 	$('#nouveau_fas').on('change', function() {
 		var val = parseFloat($(this).val());
@@ -22,6 +29,10 @@ $(document).ready(function() {
 		var min = parseFloat($(this).attr('min'));
 		if(val >= min && val <= max) {
 			update_cout_loyer('change_fas');
+		} else if(val < min) {
+			$(this).val(min).change();
+		} else {
+			$(this).val(max).change();
 		}
 	});
 	
