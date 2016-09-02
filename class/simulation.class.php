@@ -1857,6 +1857,7 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	function traiteBNPReponseSuivisDemande(&$TreponseSuivisDemandes){
+		global $db;
 		
 		$PDOdb = new TPDOdb;
 		
@@ -1869,14 +1870,17 @@ class TSimulationSuivi extends TObjetStd {
 			,'E5' => 'MEL'
 		);
 		
+		$simulation = new TSimulation;
+		$simulation->load($PDOdb, $db, $this->fk_simulation);
+		
 		if($TreponseSuivisDemandes->rapportSuivi->suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
 			$this->statut = $TCodeStatut[$TreponseSuivisDemandes->rapportSuivi->suiviDemande->etat->codeStatutDemande];
 			switch ($this->statut) {
 				case 'OK':
-					$this->doActionAccepter($PDOdb,$this->simulation);
+					$this->doActionAccepter($PDOdb,$simulation);
 					break;
 				case 'KO':
-					$this->doActionRefuser($PDOdb,$this->simulation);
+					$this->doActionRefuser($PDOdb,$simulation);
 					break;
 				default:
 					break;
