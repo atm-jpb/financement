@@ -1869,11 +1869,9 @@ class TSimulationSuivi extends TObjetStd {
 			,'E5' => 'MEL'
 		);
 		
-		foreach($TreponseSuivisDemandes->consulterSuivisDemandesResponse as $rapportSuivi){
-			if($rapportSuivi->suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
-				$this->statut = $TCodeStatut[$apportSuivi->suiviDemande->etat->codeStatutDemande];
-				$this->save($PDOdb);
-			}
+		if($TreponseSuivisDemandes->rapportSuivi->suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
+			$this->statut = $TCodeStatut[$apportSuivi->suiviDemande->etat->codeStatutDemande];
+			$this->save($PDOdb);
 		}
 	}
 
