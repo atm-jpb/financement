@@ -215,7 +215,13 @@
 				$filename = $affaire->genLixxbailXML($PDOdb, $TAffaires,true);
 				$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
 				
+				if($conf->entity > 1)
+					$dirname = DOL_DATA_ROOT.'/'.$conf->entity.'/financement/XML/Lixxbail/'.$filename.'.xml';
+				else
+					$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
+
 				//$affaire->uploadXMLOnLeaserServer($host,$user,$directory,$dirname,$filename.'.xml');
+//echo $dirname;exit;
 				if(BASE_TEST) {
 					exec('sh bash/lixxbailxml_test.sh '.$dirname);
 				} else {
