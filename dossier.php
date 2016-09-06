@@ -198,7 +198,7 @@
 				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
 				$dirName = $affaire->genLixxbailXML($PDOdb, $TAffaires);
 				
-				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=1&file=XML/Lixxbail/".$dirName.".xml",2));
+				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=".$conf->entity."&file=XML/Lixxbail/".$dirName.".xml",2));
 				
 				break;
 			
@@ -926,7 +926,7 @@ function _getExportXML($sql){
 	
 	$filepath = $url.$filename;
 	$file = fopen($filepath,'w');
-	
+
 	//Ajout première ligne libelle
 	$TLabel = array('Contrat','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant','Echeance','Prochaine','Debut','Fin','Facture Materiel');
 	fputcsv($file, $TLabel,';','"');
@@ -948,7 +948,7 @@ function _getExportXML($sql){
 	
 	?>
 	<script language="javascript">
-		document.location.href="<?php echo dol_buildpath("/document.php?modulepart=financement&entity=1&file=XML/Lixxbail/".$filename,2); ?>";					
+		document.location.href="<?php echo dol_buildpath("/document.php?modulepart=financement&entity=".$conf->entity."&file=XML/Lixxbail/".$filename,2); ?>";					
 	</script>
 	<?php
 	
