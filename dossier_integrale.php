@@ -657,8 +657,8 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	$repartition_couleur = $integrale->calcul_percent_couleur();
 	$repartition_noir = 100 - $repartition_couleur;
 
-	$total_noir = $engagement_noir * $cout_noir;
-	$total_couleur = $engagement_couleur * $cout_couleur;
+	$total_noir = price($engagement_noir * $cout_noir);
+	$total_couleur = price($engagement_couleur * $cout_couleur);
 	
 	$fas_min = $integrale->fas;
 	$fas_max = $integrale->calcul_fas_max($TDetailCoutNoir, $TDetailCoutCouleur, $engagement_noir, $engagement_couleur);
