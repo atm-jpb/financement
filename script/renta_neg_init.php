@@ -30,6 +30,7 @@ foreach($TLine as $line) {
 		$d->visa_renta = 1;
 		$d->save($PDOdb);
 		
+		$nbf = 0;
 		foreach($d->TFacture as $TFact) {
 			if(is_array($TFact)) {
 				foreach ($TFact as $f) {
@@ -40,6 +41,7 @@ foreach($TLine as $line) {
 							$f->array_options['options_visa_renta_loyer_client'] = 1;
 							$f->array_options['options_visa_renta_loyer_leaser'] = 1;
 							$f->insertExtraFields();
+							$nbf++;
 						}
 					}
 				}
@@ -52,10 +54,12 @@ foreach($TLine as $line) {
 						$f->array_options['options_visa_renta_loyer_client'] = 1;
 						$f->array_options['options_visa_renta_loyer_leaser'] = 1;
 						$f->insertExtraFields();
+						$nbf++;
 					}
 				}
 			}
 		}
+		echo ' - Factures : '.$nbf;
 	} else {
 		echo '<br>Dossier '.$ref_dossier.' non trouvé';
 	}
