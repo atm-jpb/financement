@@ -148,15 +148,42 @@ class modFinancement extends DolibarrModules
 	}
 	$this->dictionaries=array(
 		'langs'=>'financement@financement'
-		,'tabname'=>array(MAIN_DB_PREFIX.'c_financement_type_contrat')
-		,'tablib'=>array('Type de contrat')
-		,'tabsql'=>array('SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_type_contrat as f WHERE entity = '.$conf->entity)
-		,'tabsqlsort'=>array('label ASC')
-		,'tabfield'=>array('code,label')
-		,'tabfieldvalue'=>array('code,label,entity')
-		,'tabfieldinsert'=>array('code,label,entity')
-		,'tabrowid'=>array('rowid')
-		,'tabcond'=>array($conf->financement->enabled)
+		,'tabname'=>array(
+			MAIN_DB_PREFIX.'c_financement_type_contrat'
+			,MAIN_DB_PREFIX.'c_financement_marque_materiel'
+		)
+		,'tablib'=>array(
+			'Type de contrat'
+			,'Marque de materiel'
+		)
+		,'tabsql'=>array(
+			'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_type_contrat as f WHERE entity = '.$conf->entity
+			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_marque_materiel as f WHERE entity = '.$conf->entity
+		)
+		,'tabsqlsort'=>array(
+			'label ASC'
+			,'label ASC'
+		)
+		,'tabfield'=>array(
+			'code,label'
+			,'code,label'
+		)
+		,'tabfieldvalue'=>array(
+			'code,label,entity'
+			,'code,label,entity'
+		)
+		,'tabfieldinsert'=>array(
+			'code,label,entity'
+			,'code,label,entity'
+		)
+		,'tabrowid'=>array(
+			'rowid'
+			,'rowid'
+		)
+		,'tabcond'=>array(
+			$conf->financement->enabled
+			,$conf->financement->enabled
+		)
 	);
         /* Example:
         if (! isset($conf->financement->enabled)) $conf->financement->enabled=0;	// This is to avoid warnings
