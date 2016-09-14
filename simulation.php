@@ -1104,6 +1104,12 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		if($dossier->montant >= $min_amount_to_see && $dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
 		if($dossier->soldepersodispo == 2) $dossier->display_solde = 0;
 		
+		if ($dossier->nature_financement == 'INTERNE' && $dossier->display_solde != 0) 
+		{
+			$nb_month_passe = ($dossier->financement->duree - $dossier->financement->duree_restante) * $dossier->financement->getiPeriode();
+			if ($nb_month_passe > 0 && $nb_month_passe <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) $dossier->display_solde = 0;
+		}
+		
 		//Ne pas laissé disponible un dossier dont la dernière facture client est impayée
 		$cpt = 0;
 		$TFactures = array_reverse($dossier->TFacture,true);
