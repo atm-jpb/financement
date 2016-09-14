@@ -9,6 +9,39 @@ require('../../config.php');
 dol_include_once('/financement/class/service_financement.class.php');
 
 $service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[85600]);
+
+
+$xml_data = new SimpleXMLElement('<?xml version="1.0"?><data></data>');
+$authentication=array(
+    'dolibarrkey'=>$conf->global->WEBSERVICES_KEY,
+    'sourceapplication'=>'edi_leaser',
+    'login'=>'calf',
+    'password'=>'passwdcalf'
+	);
+	array_to_xml($authentication, $xml_data);
+	$result = $xml_data->asXML('/var/www/authentification.xml');
+
+function array_to_xml( $data, &$xml_data ) {
+	    foreach( $data as $key => $value ) {
+	        if( is_array($value) ) {
+	            if( is_numeric($key) ){
+	                $key = 'item'.$key; //dealing with <0/>..<n/> issues
+	            }
+	            $subnode = $xml_data->addChild($key);
+	            self::array_to_xml($value, $subnode);
+	        } else {
+	            $xml_data->addChild("$key",htmlspecialchars("$value"));
+	        }
+	     }
+	}
+
+exit;
+
+
+
+$service->createXmlFileOfParam();
+exit;
+
 $service->wsdl = 'http://localhost/client/cpro/fin/htdocs/custom/financement/script/webservice/scoring_server.php';
 
 // Call the WebService method and store its result in $result.
