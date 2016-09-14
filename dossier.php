@@ -146,7 +146,7 @@
 				<script language="javascript">
 					document.location.href="?delete_ok=1";					
 				</script>
-				<?
+				<?php
 				unset($dossier);
 				
 				break;
