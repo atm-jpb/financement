@@ -79,9 +79,11 @@ if ($action == 'save_penalites_simulateur') {
 llxHeader('',$langs->trans("FinancementSetup"));
 $head = financement_admin_prepare_head(null);
 
+$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
+print_fiche_titre($langs->trans("GlobalOptionsForFinancementSimulation"), $linkback);
+
 dol_fiche_head($head, 'config', $langs->trans("Financement"), 0, 'financementico@financement');
 
-print_titre($langs->trans("GlobalOptionsForFinancementSimulation"));
 
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';
