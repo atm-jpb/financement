@@ -953,6 +953,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$ATMdb->Execute($sql);
 	$ATMdb2 = new TPDOdb;
 	$var = true;
+	$min_amount_to_see = price2num($conf->global->FINANCEMENT_MIN_AMOUNT_TO_SHOW_SOLDE);
+	if (empty($min_amount_to_see)) $min_amount_to_see = 50000;
 	
 	$TDossierUsed = $simulation->get_list_dossier_used(true);
 	//pre($ATMdb->Get_field('IDDoss'),true);
@@ -1099,7 +1101,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		if($ATMdb->Get_field('incident_paiement')=='OUI' && $dossier->nature_financement == 'EXTERNE') $dossier->display_solde = 0;
 		//if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
 		//if($leaser->code_client == '024242') $dossier->display_solde = 0; // Ticket 447, suite
-		if($dossier->montant >= 50000 && $dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
+		if($dossier->montant >= $min_amount_to_see && $dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
 		if($dossier->soldepersodispo == 2) $dossier->display_solde = 0;
 		
 		//Ne pas laissé disponible un dossier dont la dernière facture client est impayée

@@ -42,6 +42,7 @@ NbInvoiceUnpaid=Indisponibilité du solde dans la simulation si X factures non p
 NbDayDossierIndispo=Nombre de jour avant disponibilité d'un dossier dans une simulation s'il est déjà sélectionné dans une simulation antérieure
 NbMoisSoldeCPRO=Nombre de mois avant avant application des règles de calcule des soldes sur échéancier CLIENT
 NbMoisSoldeBANK=Nombre de mois avant avant application des règles de calcule des soldes sur échéancier LEASER
+FINANCEMENT_MIN_AMOUNT_TO_SHOW_SOLDE=Montant minimum pour voir les soldes sur une simulation uniquement pour les dossiers INTERNE
 
 # SIMULATIONS
 Simulations=Simulations
