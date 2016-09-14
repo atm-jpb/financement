@@ -44,6 +44,7 @@ class TSimulation extends TObjetStd {
 			,1=>'A Echoir'
 		);
 		
+		/* TODO remove => a été remplacé par un dictionnaire
 		$this->TMarqueMateriel = array(
 			'CANON' => 'CANON'
 			,'DELL' => 'DELL'
@@ -56,7 +57,33 @@ class TSimulation extends TObjetStd {
 			,'SAMSUNG' => 'SAMSUNG'
 			,'TOSHIBA' => 'TOSHIBA'
 		);
-
+		*/
+		$this->TMarqueMateriel = self::getMarqueMateriel();
+	}
+	
+	public static function getMarqueMateriel()
+	{
+		global $conf,$db;
+		
+		$TRes = array();
+		
+		$sql = 'SELECT code, label FROM '.MAIN_DB_PREFIX.'c_financement_marque_materiel WHERE entity = '.$conf->entity.' AND active = 1';
+		dol_syslog('TSimulation::getMarqueMateriel sql='.$sql, LOG_INFO);
+		$resql = $db->query($sql);
+		
+		if ($resql)
+		{
+			while ($row = $db->fetch_object($resql))
+			{
+				$TRes[$row->code] = $row->label;
+			}
+		}
+		else
+		{
+			dol_syslog('TSimulation::getMarqueMateriel SQL FAIL - look up', LOG_ERR);
+		}
+		
+		return $TRes;
 	}
 	
 	function init() {

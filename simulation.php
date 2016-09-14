@@ -753,7 +753,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'accord_confirme'=>$simulation->accord_confirme
 				,'total_financement'=>$simulation->montant_total_finance
 				,'type_materiel'=>$form->texte('','type_materiel',$simulation->type_materiel, 50)
-				,'marque_materiel'=>$form->combo('','marque_materiel',$simulation->TMarqueMateriel,$simulation->marque_materiel)
+				,'marque_materiel'=>(!in_array($simulation->marque_materiel, $simulation->TMarqueMateriel) ? $langs->trans('Simulation_marque_not_more_available', $simulation->marque_materiel).' - ' : '') . $form->combo('','marque_materiel',$simulation->TMarqueMateriel,$simulation->marque_materiel)
 				,'numero_accord'=>($can_preco && GETPOST('action') == 'edit') ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $link_dossier
 				
 				,'no_case_to_settle'=>$form->checkbox1('', 'opt_no_case_to_settle', 1, $simulation->opt_no_case_to_settle) 

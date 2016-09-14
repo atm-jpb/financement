@@ -104,6 +104,7 @@ ErrorInvalidVR=La valeur résiduelle ne peut pas être supérieure au montant
 ErrorCaseMandatory=Merci de sélectionner au moins un dossier à racheter ou de cocher la case "Aucun dossier à solder"
 UnableToCreateProspect=Impossible de créer la fiche prospect
 SimulationSuivi=Suivi Leaser Simulation
+Simulation_marque_not_more_available=Ancienne marque : <b>%s</b>
 
 # SCORE
 ScoreList=Scores
