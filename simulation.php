@@ -953,7 +953,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$ATMdb->Execute($sql);
 	$ATMdb2 = new TPDOdb;
 	$var = true;
-	$min_amount_to_see = price2num($conf->global->FINANCEMENT_MIN_AMOUNT_TO_SHOW_SOLDE);
+	$min_amount_to_see = price2num($conf->global->FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE);
 	if (empty($min_amount_to_see)) $min_amount_to_see = 50000;
 	
 	$TDossierUsed = $simulation->get_list_dossier_used(true);
