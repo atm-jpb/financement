@@ -266,7 +266,7 @@ print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
 print '<input type="hidden" name="action" value="set_FINANCEMENT_LIMIT_AMOUNT_TO_SHOW_SOLDE" />';
 print '<tr '.$bc[$var].'><td>';
 print $langs->trans("FINANCEMENT_MIN_AMOUNT_TO_SHOW_SOLDE").'</td>';
-print '<td align="right"><input placeholder="50000" size="10" class="flat" type="text" name="FINANCEMENT_MIN_AMOUNT_TO_SHOW_SOLDE" value="'.$conf->global->FINANCEMENT_MIN_AMOUNT_TO_SHOW_SOLDE.'" /> &euro;';
+print '<td align="right">>= <input placeholder="50000" size="10" class="flat" type="text" name="FINANCEMENT_MIN_AMOUNT_TO_SHOW_SOLDE" value="'.$conf->global->FINANCEMENT_MIN_AMOUNT_TO_SHOW_SOLDE.'" /> &euro;';
 print '</td><td align="right">';
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
 print "</td></tr>\n";
