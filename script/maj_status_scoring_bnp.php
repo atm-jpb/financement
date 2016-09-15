@@ -4,7 +4,13 @@
 
 	require('../config.php');
 	dol_include_once('financement/class/simulation.class.php');
+	dol_include_once('financement/class/affaire.class.php');
+	dol_include_once('financement/class/score.class.php');
+	dol_include_once('financement/class/grille.class.php');
+	dol_include_once('financement/class/dossier.class.php');
+	dol_include_once('financement/class/dossier_integrale.class.php');
 	
+	global $db;
 	$PDOdb = new TPDOdb;
 	
 	$TSimulationSuivi = new TSimulationSuivi;
