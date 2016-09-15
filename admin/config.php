@@ -328,7 +328,7 @@ $var=true;
 		<a href="../script/create-facture-leaser.php" target="_blank">Lancer le script</a>
 	</td>
 </tr>
-<?
+<?php
 
 /*
 $var=! $var;
