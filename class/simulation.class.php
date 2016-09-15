@@ -1399,7 +1399,7 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	//Effectue l'action de passer au statut accepter la demande de financement leaser
-	function doActionAccepter(&$PDOdb,&$simulation,$numEtude=''){
+	function doActionAccepter(&$PDOdb,&$simulation,$suiviDemande=''){
 		global $db;
 		
 		$simulation->accord = 'WAIT';
@@ -1408,8 +1408,9 @@ class TSimulationSuivi extends TObjetStd {
 		$simulation->numero_accord = '';
 		$simulation->save($PDOdb, $db);
 		
-		if($numEtude){
-			$this->numero_accord_leaser = $numEtude;
+		if(is_object($suiviDemande)){
+			$this->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
+			$this->coeff_leaser = ($suiviDemande->financement->montantLoyerPrincial / $suiviDemande->financement->montantFinance) / 100;
 		}
 		
 		$this->statut = 'OK';
@@ -1881,7 +1882,7 @@ class TSimulationSuivi extends TObjetStd {
 			$this->statut = $TCodeStatut[$TreponseSuivisDemandes->rapportSuivi->suiviDemande->etat->codeStatutDemande];
 			switch ($this->statut) {
 				case 'OK':
-					$this->doActionAccepter($PDOdb,$simulation,$TreponseSuivisDemandes->rapportSuivi->suiviDemande->numeroDemandeDefinitif);
+					$this->doActionAccepter($PDOdb,$simulation,$TreponseSuivisDemandes->rapportSuivi->suiviDemande);
 					break;
 				case 'KO':
 					$this->doActionRefuser($PDOdb,$simulation);
