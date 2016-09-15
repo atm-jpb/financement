@@ -1410,7 +1410,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		if(is_object($suiviDemande)){
 			$this->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
-			$this->coeff_leaser = ($suiviDemande->financement->montantLoyerPrincial / $suiviDemande->financement->montantFinance) / 100;
+			$this->coeff_leaser = ($suiviDemande->financement->montantLoyerPrincial / $suiviDemande->financement->montantFinance) * 100;
 		}
 		
 		$this->statut = 'OK';
