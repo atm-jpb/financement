@@ -193,7 +193,7 @@ if(!empty($action)) {
 			
 			// Si l'accord vient d'être donné (par un admin)
 			if($simulation->accord == 'OK' && $simulation->accord != $oldAccord) {
-				$simulation->date_validite = strtotime('+ 2 months');
+				//$simulation->date_validite = strtotime('+ 2 months');
 				$simulation->date_accord = time();
 				$simulation->accord_confirme = 1;
 				$simulation->setThirparty();
@@ -707,7 +707,6 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	else $coeff = $simulation->coeff; // TRIMESTRE
 	
 	if($simulation->montant_decompte_copies_sup < 0) $simulation->montant_decompte_copies_sup = 0;
-	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
@@ -722,7 +721,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'entity'=>$entity_field
 				,'entity_partenaire'=>$simulation->entity
 				,'ref'=>$simulation->reference
-				,'doc'=>$formfile->getDocumentsLink('financement', $filename, $filedir)
+				,'doc'=>$formfile->getDocumentsLink('financement', $filename, $filedir, 1)
 				,'fk_soc'=>$simulation->fk_soc
 				,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat)
 				,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
