@@ -1,7 +1,12 @@
 <?php
 
 class TImport extends TObjetStd {
+	
+	public $TEntityByPrefix = array();
+	
 	function __construct() {
+		global $conf;
+		
 		parent::set_table(MAIN_DB_PREFIX.'fin_import');
 		parent::add_champs('fk_user_author,entity','type=entier;');
 		parent::add_champs('nb_lines,nb_errors,nb_create,nb_update','type=entier;');
@@ -28,6 +33,23 @@ class TImport extends TObjetStd {
 			'dossier_init_all'=>'Import initial',
 			'dossier_init_loc_pure'=>'Import initial Loc Pures');
 		$this->current_line = array();
+		
+		if (!empty($conf->global->FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY))
+		{
+			$tab = explode(';', $conf->global->FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY);
+			foreach ($tab as $string)
+			{
+				if (empty($string)) continue;
+				
+				$tab2 = explode(':', $string);
+				// [0] = prefix ; [1] = fk_entity
+				if (empty($tab2[0]) || empty($tab2[1]) || !is_numeric($tab2[1])) continue;
+				
+				$this->TEntityByPrefix[$tab2[0]] = (int) $tab2[1];
+			}
+		}
+		
+	
 	}
 
 	/**
@@ -175,6 +197,7 @@ class TImport extends TObjetStd {
 		// Recherche si facture existante dans la base
 		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
+		
 		//echo $facid.'<br>';
 		//Si existe pas alors on la créé
 		if(!$facid && $socid){
@@ -224,6 +247,9 @@ class TImport extends TObjetStd {
 				if(empty($facid)) {
 					$dossier = new TFin_dossier;
 					$dossier->load($ATMdb, $financement->fk_fin_dossier,false);
+					// update de l'entité de la facture car le dossier existe et possède déjà la bonne entité qui provient de l'affaire qui a créé le dossier
+					if ($this->getObjectEntity($facture_loc) != $dossier->entity) $this->updateObjectEntity($facture_loc, $dossier->entity);
+					
 					$financement->setProchaineEcheanceClient($ATMdb,$dossier);
 				}
 				//echo date('d/m/Y',$financement->date_prochaine_echeance).'<br>';
@@ -260,6 +286,8 @@ class TImport extends TObjetStd {
 							$fin->save($ATMdb);
 						}
 					}
+					// update de l'entité de la facture car le dossier existe déjà et possède déjà la bonne entité qui provient de l'affaire qui a créé le dossier
+					if ($this->getObjectEntity($facture_loc) != $dossier->entity) $this->updateObjectEntity($facture_loc, $dossier->entity);
 					
 					$dossier->save($ATMdb);
 					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update',$data);
@@ -536,6 +564,9 @@ class TImport extends TObjetStd {
 			// Mise à jour ou création de la facture
 			if($facid > 0) {
 				$res = $facture_mat->update($user);
+				// Association à la bonne entity
+				if ($this->getObjectEntity($facture_mat) != $affaire->entity) $this->updateObjectEntity($facture_mat, $affaire->entity);
+				
 				// Erreur : la mise à jour n'a pas marché
 				if($res < 0) {
 					$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_mat->error);
@@ -551,6 +582,8 @@ class TImport extends TObjetStd {
 					$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_mat->error);
 					return false;
 				} else {
+					// Association à la bonne entity
+					if ($conf->entity != $affaire->entity) $this->updateObjectEntity($facture_mat, $affaire->entity);
 					$this->nb_create++;
 					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_mat), $facture_mat->id,'create',$data);
 				}
@@ -571,6 +604,8 @@ class TImport extends TObjetStd {
 				$asset=new TAsset;
 				if($asset->loadReference($ATMdb, $serial)) {
 					$asset->fk_soc = $affaire->fk_soc;
+					// Association à la bonne entity
+					$asset->entity = $affaire->entity;
 					
 					$asset->add_link($affaire->getId(),'affaire');
 					$asset->add_link($facture_mat->id,'facture');
@@ -589,7 +624,8 @@ class TImport extends TObjetStd {
 				$dossier = new TFin_dossier;
 				if(!$dossier->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'])) {
 					if($dossier->addAffaire($ATMdb, $affaire->getId())) {
-						$dossier->entity = 1;
+						// Association à la bonne entity
+						$dossier->entity = $affaire->entity;
 						$dossier->montant = $data['total_ht'];
 						$dossier->nature_financement = $affaire->nature_financement;
 						$dossier->reference_contrat_interne = $data['reference_dossier_interne'];
@@ -608,7 +644,9 @@ class TImport extends TObjetStd {
 			} else if(!empty($data['reference_dossier_interne'])) { // Lien avec l'affaire sinon
 				$dossier = new TFin_dossier;
 				$dossier->load($ATMdb, $financement->fk_fin_dossier);
-				
+				// Association à la bonne entity
+				$dossier->entity = $affaire->entity;
+						
 				$addlink = true;
 				//Gestion des Adjonction
 				//Avant de faire la liaison
@@ -674,6 +712,34 @@ class TImport extends TObjetStd {
 		TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_mat), $facture_mat->id,'update',$data);
 		
 		return true;
+	}
+
+	public function getObjectEntity(&$object)
+	{
+		global $sql;
+		
+		if (!empty($object->entity)) return $object->entity;
+		
+		$sql = 'SELECT entity FROM '.MAIN_DB_PREFIX.$object->table_element.' WHERE rowid = '.$object->id;
+		$resql = $db->query($sql);
+		if ($resql && ($r = $db->fetch_object($resql))) 
+		{
+			$object->entity = $r->entity;
+			return $r->entity;
+		}
+		
+		return -1;
+	}
+	
+	public function updateObjectEntity(&$object, $fk_entity)
+	{
+		global $db;
+		
+		$sql = 'UPDATE '.MAIN_DB_PREFIX.$object->table_element.' SET entity = '.$fk_entity;
+		$resql = $db->query($sql);
+		
+		if ($resql) return true;
+		else return false;
 	}
 
 	function importLineFactureLocation(&$ATMdb, $data, &$TInfosGlobale) {
@@ -761,6 +827,8 @@ class TImport extends TObjetStd {
 					}
 					
 					$dossier->save($ATMdb);
+					// Association à la bonne entity
+					if ($this->getObjectEntity($facture_loc) != $dossier->entity) $this->updateObjectEntity($facture_loc, $dossier->entity);
 				}
 			}
 		}
@@ -1193,8 +1261,9 @@ class TImport extends TObjetStd {
 		}
 		
 		$a=new TFin_affaire;
-		$a->entity = 1;
 		$a->loadReference($ATMdb, $data[$this->mapping['search_key']]);
+		
+		$a->entity = $this->getEntityByRefAffaire($data[$this->mapping['search_key']]);
 		
 		if($a->fk_soc > 0 && $a->fk_soc != $fk_soc) { // client ne correspond pas
 			$this->addError($ATMdb, 'ErrorClientDifferent', $data[$this->mapping['search_key']]);
@@ -1221,6 +1290,21 @@ class TImport extends TObjetStd {
 		$a->save($ATMdb);
 		
 		return true;
+	}
+
+	public function getEntityByRefAffaire($ref)
+	{
+		if (empty($ref) || empty($this->TEntityByPrefix)) return 1;
+		
+		foreach ($this->TEntityByPrefix as $prefix => $fk_entity)
+		{
+			if (preg_match('/^'.$prefix.'/', $ref))
+			{
+				return $fk_entity;
+			}
+		}
+		
+		return 1;
 	}
 
 	function createProduct($data, $type=0) {

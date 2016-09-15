@@ -272,6 +272,18 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY").'</td>';
+print '<td align="right"><input size="40" class="flat" type="text" name="FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY" value="'.$conf->global->FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY.'" />';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
 print '</table><br /><br />';
 
 print_titre($langs->trans("PenalitesForSimulation"));
