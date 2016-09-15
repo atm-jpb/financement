@@ -121,7 +121,7 @@ if($action == 'save') {
 
 foreach ($liste_type_contrat as $typeContrat => $label) {
 	$TFin_grille_suivi = new TFin_grille_suivi;
-	$grille = $TFin_grille_suivi->get_grille($ATMdb,$typeContrat);
+	$grille = $TFin_grille_suivi->get_grille($ATMdb,$typeContrat,true,getEntity());
 	
 	$TGrille[$typeContrat] = $grille;
 }

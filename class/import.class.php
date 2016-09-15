@@ -832,7 +832,7 @@ class TImport extends TObjetStd {
 									'SSC102'=>'loyer',
 									'SSC106'=>'loyer',
 									// Copies couleur
-									'SSC010'=>'tecch'
+									'SSC010'=>'tech'
 									// SSC005, pareil que nb : tech
 									// SSC102 & SSC106, pareil : loyer
 									);
