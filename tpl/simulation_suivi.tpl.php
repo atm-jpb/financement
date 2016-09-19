@@ -37,5 +37,37 @@
 	</table>
 	<br /><br />
 	
+	[view.titre_history; strconv=no]
+	<br />
+	
+	<table class="simulation_suivi border" width="100%" style="text-align: center;">
+
+		<tr class="liste_titre" style="text-align: center;">
+			<td>Leaser</td>
+			<!--<td>Demande</td> -->
+			<td>Date<br>demande</td>
+			<td>Résultat</td>
+			<td>N° étude / Accord Leaser</td>
+			<td>Coeff.<br>Leaser</td>
+			<td>Date sélection<br>Leaser</td>
+			<td>Utilisateur</td>
+			<td>Commentaire</td>
+		</tr>
+		
+		<tr class="[TLigneHistorized.class]">
+			<td style="text-align: left;"><!-- [TLigneHistorized.#; block=tr] -->[TLigneHistorized.leaser;strconv=no]</td>
+			<!--<td>[TLigneHistorized.demande;strconv=no]</td>-->
+			<td>[TLigneHistorized.date_demande]</td>
+			<td>[TLigneHistorized.resultat;strconv=no]</td>
+			<td>[TLigneHistorized.numero_accord_leaser;strconv=no]</td>
+			<td>[TLigneHistorized.coeff_leaser;strconv=no; frm=0,0000]</td>
+			<td>[TLigneHistorized.date_selection]</td>
+			<td>[TLigneHistorized.utilisateur;strconv=no]</td>
+			<td>[TLigneHistorized.commentaire;strconv=no]</td>
+		</tr>
+		
+	</table>
+	<br /><br />
+	
 [onshow;block=end]
 </div>

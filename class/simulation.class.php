@@ -357,6 +357,7 @@ class TSimulation extends TObjetStd {
 	function load_suivi_simulation(&$PDOdb){
 		
 		$this->TSimulationSuivi = array();
+		$this->TSimulationSuiviHistorized = array();
 		
 		$TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
 	
@@ -365,9 +366,12 @@ class TSimulation extends TObjetStd {
 			foreach($TRowid as $rowid){
 				$simulationSuivi = new TSimulationSuivi;
 				$simulationSuivi->load($PDOdb, $rowid);
-
-				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+				// Attention les type date via abricot, c'est du timestamp
+				if ($simulationSuivi->date_historization <= 0) $this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+				else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
 			}
+			
+			if (empty($this->TSimulationSuivi)) $this->create_suivi_simulation($PDOdb);
 		}
 		elseif($this->rowid > 0){
 			$this->create_suivi_simulation($PDOdb);
@@ -483,12 +487,34 @@ class TSimulation extends TObjetStd {
 		global $db;
 
 		$this->load_suivi_simulation($PDOdb);
+		
 		//echo 'get<br>';
 		$TLignes = array();
 		if ($this->accord == "OK" ) $form->type_aff = 'view';
-		//pre($this->TSimulationSuivi,true);
+		
+		$TLignes = $this->_get_lignes_suivi($this->TSimulationSuivi, $form);
+		if ($with_history) $T = $this->_get_lignes_suivi($this->TSimulationSuiviHistorized, $form);
+		
+		return $TLignes;
+	}
+
+	function get_suivi_simulation_historized(&$PDOdb,&$form)
+	{
+		if (empty($this->TSimulationSuiviHistorized)) $this->load_suivi_simulation($PDOdb);
+		
+		$form->type_aff = 'view';
+		
+		$Tab = $this->_get_lignes_suivi($this->TSimulationSuiviHistorized, $form);
+		
+		return $Tab;
+	}
+	
+	private function _get_lignes_suivi(&$TSuivi, &$form)
+	{
+		$Tab = array();
+		//pre($TSuivi,true);
 		//Construction d'un tableau de ligne pour futur affichage TBS
-		foreach($this->TSimulationSuivi as $simulationSuivi){
+		foreach($TSuivi as $simulationSuivi){
 			//echo $simulationSuivi->rowid.'<br>';
 			$link_user = '<a href="'.DOL_URL_ROOT.'/user/card.php?id='.$simulationSuivi->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulationSuivi->user->login.'</a>';
 			
@@ -512,10 +538,10 @@ class TSimulation extends TObjetStd {
 			$ligne['actions'] = $simulationSuivi->getAction($this);
 			$ligne['action_save'] = $simulationSuivi->getAction($this, true);
 			
-			$TLignes[] = $ligne;
+			$Tab[] = $ligne;
 		}
 
-		return $TLignes;
+		return $Tab;
 	}
 	
 	/**
@@ -1232,14 +1258,14 @@ class TSimulationSuivi extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation_suivi');
 		parent::add_champs('entity,fk_simulation,fk_leaser,fk_user_author,statut_demande','type=entier;');
 		parent::add_champs('coeff_leaser','type=float;');
-		parent::add_champs('date_demande,date_accord,date_selection','type=date;');
+		parent::add_champs('date_demande,date_accord,date_selection,date_historization','type=date;');
 		parent::add_champs('numero_accord_leaser,statut','type=chaine;');
 		parent::add_champs('commentaire','type=text;');
 		parent::start();
 		parent::_init_vars();
 		
 		//Reset des dates car par défaut = time() à l'instanciation de la classe
-		$this->date_demande = $this->date_accord = $this->date_selection = '';
+		$this->date_demande = $this->date_accord = $this->date_selection = $this->date_historization = '';
 
 		$this->TStatut=array(
 			'OK'=>$langs->trans('Accord')

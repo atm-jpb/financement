@@ -178,6 +178,11 @@ if(!empty($action)) {
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			$oldAccord = $simulation->accord;
 			//pre($_REQUEST,true);
+			
+			$fk_type_contrat_old = $simulation->fk_type_contrat;
+			$fk_type_contrat_new = $_REQUEST['fk_type_contrat'];
+			
+			
 			$simulation->set_values($_REQUEST);
 			
 			$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
@@ -223,12 +228,39 @@ if(!empty($action)) {
 			if(empty($_REQUEST['dossiers_rachetes_perso'])) $simulation->dossiers_rachetes_perso = array();
 			
 			
-			
 			// On refait le calcul avant d'enregistrer
 			$simulation->_calcul($ATMdb, 'save');
+			//var_dump(count($simulation->TSimulationSuivi), $error);exit;
 			if($error) {
 				_fiche($ATMdb, $simulation,'edit');
 			} else {
+				
+				// Modification du type de contrat => save du suivi
+				if (strcmp($fk_type_contrat_old, $fk_type_contrat_new) != 0)
+				{
+					$simulation->load_suivi_simulation($ATMdb);
+					if (!empty($simulation->TSimulationSuivi))
+					{
+						$now = time();
+						$nowFr = date('d/m/Y H:i');
+						foreach ($simulation->TSimulationSuivi as &$simuSuivi)
+						{
+							if ($simuSuivi->statut_demande == 0)
+							{
+								$simuSuivi->delete($ATMdb);
+							}
+							else 
+							{
+								if (!empty($simuSuivi->commentaire)) $simuSuivi->commentaire .= "\n";
+								$simuSuivi->commentaire .= "[$fk_type_contrat_old] suivi historisé le $nowFr";
+								$simuSuivi->date_historization = $now;
+								
+								$simuSuivi->save($ATMdb);
+							}
+						}
+					}
+				}
+				
 				//$ATMdb->db->debug=true;
 				$simulation->save($ATMdb, $db);
 				//echo $simulation->opt_calage; exit;
@@ -874,7 +906,7 @@ function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	echo $form->hidden('action', 'save_suivi');
 	echo $form->hidden('id', $simulation->getId());
 	$TLignes = $simulation->get_suivi_simulation($ATMdb,$form);
-	
+	$TLigneHistorized = $simulation->get_suivi_simulation_historized($ATMdb,$form);
 	//pre($TLignes,true);exit;
 	
 	$TBS=new TTemplateTBS;
@@ -882,12 +914,14 @@ function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	print $TBS->render('./tpl/simulation_suivi.tpl.php'
 		,array(
 			'ligne' => $TLignes
+			,'TLigneHistorized' => $TLigneHistorized
 		)
 		,array(
 			'view'=>array(
 				'mode'=>$mode
 				,'type'=>($simulation->fk_soc > 0) ? 'simul' : 'calcul'
 				,'titre'=>load_fiche_titre($langs->trans("SimulationSuivi"),'','object_simul.png@financement')
+				,'titre_history'=>load_fiche_titre($langs->trans("SimulationSuiviHistory"),'','object_simul.png@financement')
 			)
 		)
 	);
