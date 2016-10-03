@@ -1135,7 +1135,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		if($ATMdb->Get_field('incident_paiement')=='OUI' && $dossier->nature_financement == 'EXTERNE') $dossier->display_solde = 0;
 		//if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
 		//if($leaser->code_client == '024242') $dossier->display_solde = 0; // Ticket 447, suite
-		if($dossier->montant >= $min_amount_to_see && $dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
+		if($dossier->montant >= $min_amount_to_see) $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
 		if($dossier->soldepersodispo == 2) $dossier->display_solde = 0;
 		
 		if ($dossier->nature_financement == 'INTERNE' && $dossier->display_solde != 0) 

@@ -214,6 +214,9 @@ class TSimulation extends TObjetStd {
 		
 		$this->gen_simulation_pdf($db, $doliDB);
 		
+		if($this->accord == 'OK') {
+			$this->date_validite = strtotime('+ 3 months',$this->date_accord);
+		}
 		parent::save($db);
 		
 		//Création du suivi simulation leaser s'il n'existe pas
@@ -1239,7 +1242,7 @@ class TSimulation extends TObjetStd {
 			$this->demande_accord();
 			if($this->accord == 'OK') {
 				$this->date_accord = time();
-				$this->date_validite = strtotime('+ 3 months');
+				//$this->date_validite = strtotime('+ 3 months');
 			}
 			if($mode == 'save' && ($this->accord == 'OK' || $this->accord == 'KO')) { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
 				$this->send_mail_vendeur(true);
