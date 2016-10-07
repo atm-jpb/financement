@@ -514,7 +514,7 @@ class TFin_affaire extends TObjetStd {
 		//pre($Affaire,true);exit;
 
 		foreach($Affaire->TLien as $i => $Tdata){
-			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert){
+			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert === 1){
 				
 				$affaire->appendChild($xml->createElement("dateSignature",date("Y-m-d",$Affaire->date_affaire)));
 				$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[$i]->dossier->financementLeaser->reference));
