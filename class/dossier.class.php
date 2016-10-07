@@ -1927,13 +1927,15 @@ class TFin_financement extends TObjetStd {
 			}
 			
 		} else if(count($TRes) == 1) { // Un seul dossier trouvé, load
-			$db->Get_line();
-			$idDossierFin = $db->Get_field('idDossierLeaser');
+			//$db->Get_line();
+			//$idDossierFin = $db->Get_field('idDossierLeaser');
+			$idDossierFin = $TRes[0]->idDossierLeaser;
 			$this->load($db, $idDossierFin);
 			return true;
 		} else { // Plusieurs dossiers trouvé correspondant, utilisation du premier trouvé
-			$db->Get_line();
-			$idDossierFin = $db->Get_field('idDossierLeaser');
+			//$db->Get_line();
+			//$idDossierFin = $db->Get_field('idDossierLeaser');
+			$idDossierFin = $TRes[0]->idDossierLeaser;
 			$this->load($db, $idDossierFin);
 			return true;
 		}
