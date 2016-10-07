@@ -31,10 +31,21 @@ class ServiceFinancement {
 	
 	public $debug;
 	
+	public $activate;
+	public $production;
+	
 	public $wsdl;
 	
+	/**
+	 * Construteur
+	 * 
+	 * @param $simulation		object TSimulation			Simulation concerné par la demande
+	 * @param $simulationSuivi	object TSimulationSuivi		Ligne de suivi qui fait l'objet de la demande
+	 */
 	public function ServiceFinancement(&$simulation, &$simulationSuivi)
 	{
+		global $conf;
+		
 		$this->simulation = &$simulation;
 		$this->simulationSuivi = &$simulationSuivi;
 		
@@ -44,11 +55,24 @@ class ServiceFinancement {
 		$this->TError = array();
 		
 		$this->debug = GETPOST('DEBUG');
+		
+		$this->activate = !empty($conf->global->FINANCEMENT_WEBSERVICE_ACTIVATE) ? true : false;
+		$this->production = !empty($conf->global->FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD) ? true : false;
 	}
 	
+	/**
+	 * Fonction call
+	 * 
+	 * Ce charge de faire l'appel au bon webservice en fonction du leaser
+	 * 
+	 * return false if KO, true if OK
+	 */
 	public function call()
 	{
-		global $langs;
+		global $langs,$conf;
+		
+		// Si les appels ne sont pas actives alors return true
+		if (!$this->activate) return true;
 		
 		// TODO à revoir, peut être qu'un test sur code client ou mieux encore sur numéro SIRET
 		if (strcmp($this->leaser->name, 'LIXXBAIL') === 0)
@@ -65,7 +89,10 @@ class ServiceFinancement {
 	{
 		global $langs;
 		
-		$this->wsdl = '';
+		// Production ou Test
+		if ($this->production) $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CALF_PROD) ? $conf->global->FINANCEMENT_WSDL_CALF_PROD : 'https://archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1';
+		else $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CALF_RECETTE) ? $conf->global->FINANCEMENT_WSDL_CALF_RECETTE : 'https://hom-archipels.ca-lf.com/archplGN/';
+		
 		$TParam = $this->_getTParamLixxbail();
 		
 		if ($this->debug) var_dump('DEBUG :: Function callLixxbail(): leaser name = ['.$this->leaser->name.']', 'wsdl = '.$wsdl, 'TParam =v', $TParam);

@@ -328,8 +328,65 @@ print "</td></tr>\n";
 print '</form>';
 */
 
+print '</table>';
 
 
+print_titre($langs->trans("WebService"));
+
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameter").'</td>';
+print '<td width="80">&nbsp;</td>';
+print '<td align="center">'.$langs->trans("Value").'</td>';
+print "</tr>\n";
+$var=true;
+
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_WEBSERVICE_ACTIVATE").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="600">';
+print ajax_constantonoff('FINANCEMENT_WEBSERVICE_ACTIVATE');
+print '</td></tr>';
+
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="600">';
+print ajax_constantonoff('FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_WSDL_CALF_RECETTE").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_WSDL_CALF_RECETTE">';
+print '<input type="text" name="FINANCEMENT_WSDL_CALF_RECETTE" value="'.$conf->global->FINANCEMENT_WSDL_CALF_RECETTE.'" size="60" placeholder="https://hom-archipels.ca-lf.com/archplGN/" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_WSDL_CALF_PROD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_WSDL_CALF_PROD">';
+print '<input type="text" name="FINANCEMENT_WSDL_CALF_PROD" value="'.$conf->global->FINANCEMENT_WSDL_CALF_PROD.'" size="60" placeholder="https://archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+
+print '</table>';
 
 
 dol_htmloutput_mesg($mesg);
