@@ -228,91 +228,167 @@ class ServiceFinancement {
 		return $TId[$opt_periodicite];
 	}
 	
-	/**
-	 * TODO à construire
+	/** Cal&f
+	 *	CAT_ID	LIB_CAT
+	 *	2		INFORMATIQUE
+	 *	U		BUREAUTIQUE
 	 */
 	public function getIdCategorieBien()
 	{
-		/*
-		CAT_ID	LIB_CAT			NAT_ID	LIB_NAT								MRQ_ID	LIB_MRQ
-		11		INFORMATIQUE	107		Micro ordinateur					16		GENERIQUE
-		11		INFORMATIQUE	107		Micro ordinateur					2366	TOSHIBA
-		11		INFORMATIQUE	113		Serveur vocal						16		GENERIQUE
-		11		INFORMATIQUE	114		Station								16		GENERIQUE
-		11		INFORMATIQUE	114		Station								1132	HEWLETT PACKARD
-		11		INFORMATIQUE	114		Station								2366	TOSHIBA
-		11		INFORMATIQUE	116		Traceur								16		GENERIQUE
-		11		INFORMATIQUE	116		Traceur								556		CANON
-		11		INFORMATIQUE	116		Traceur								1132	HEWLETT PACKARD
-		11		INFORMATIQUE	117		Logiciels							16		GENERIQUE
-		11		INFORMATIQUE	117		Logiciels							1132	HEWLETT PACKARD
-		26		BUREAUTIQUE		663		Ensemble de matériels bureautique	16		GENERIQUE
-		26		BUREAUTIQUE		663		Ensemble de matériels bureautique	556		CANON
-		26		BUREAUTIQUE		663		Ensemble de matériels bureautique	1132	HEWLETT PACKARD
-		26		BUREAUTIQUE		663		Ensemble de matériels bureautique	2059	RISO
-		26		BUREAUTIQUE		663		Ensemble de matériels bureautique	2366	TOSHIBA
-		26		BUREAUTIQUE		665		Photocopieur						16		GENERIQUE
-		26		BUREAUTIQUE		665		Photocopieur						556		CANON
-		26		BUREAUTIQUE		665		Photocopieur						1794	OCE
-		26		BUREAUTIQUE		665		Photocopieur						2059	RISO
-		26		BUREAUTIQUE		665		Photocopieur						2366	TOSHIBA
-		*/
+		$label = $this->getCategoryLabel($this->simulation->fk_categorie_bien);
 		
-		return $this->simulation->fk_categorie_bien;
-	}
-
-	public function getIdNatureBien()
-	{
-		return $this->simulation->fk_nature_bien;
-	}
-	
-	public function getIdMarqueBien()
-	{
-		/* Valeurs possibles
-		16		GENERIQUE
-		2366	TOSHIBA
-		1132	HEWLETT PACKARD
-		556		CANON
-		2059	RISO
-		1794	OCE
-		*/
-		$TCodeId = array(
-			'CANON' => 556
-			,'DELL' => ''
-			,'KONICA MINOLTA' => ''
-			,'KYOCERA' => ''
-			,'LEXMARK' => ''
-			,'HEWLETT-PACKARD' => 1132
-			,'OCE' => 1794
-			,'OKI' => ''
-			,'SAMSUNG' => ''
-			,'TOSHIBA' => 2366
-		);
-		
-		if (!empty($TCodeId[$this->simulation->marque_materiel])) return $TCodeId[$this->simulation->marque_materiel];
+		if ($label == 'INFORMATIQUE') return 2;
+		elseif ($label == 'BUREAUTIQUE') return 'U';
 		else return '';
 	}
+
+	private function getCategoryLabel($fk_categorie_bien)
+	{
+		global $db;
+		
+		$sql = 'SELECT label FROM '.MAIN_DB_PREFIX.'c_financement_categorie_bien WHERE cat_id = '.$fk_categorie_bien;
+		$resql = $db->query($sql);
+		
+		if ($resql && ($row = $db->fetch_object($resql)))
+		{
+			$this->simulation->category_label = $row->label;
+			return $row->label;
+		}
+		
+		return '';
+	}
+	/** Cal&f
+	 * NAT_ID	LIB_NAT
+	 * 209B	Micro ordinateur
+	 * 215B	Serveur vocal
+	 * 216B	Station							
+	 * 218C	Traceur							
+	 * 219Q	Logiciels						
+	 * U01C	Ensemble de matériels bureautique
+	 * U03C	Photocopieur
+	 */
+	public function getIdNatureBien()
+	{
+		$label = $this->getNatureLabel($this->simulation->fk_nature_bien);
+		
+		switch ($label) {
+			case 'Micro ordinateur':
+				return '209B';
+				break;
+			case 'Serveur vocal':
+				return '215B';
+				break;
+			case 'Station':
+				return '216B';
+				break;
+			case 'Traceur':
+				return '218C';
+				break;
+			case 'Logiciels':
+				return '219Q';
+				break;
+			case 'Ensemble de matériels bureautique':
+				return 'U01C';
+				break;
+			case 'Photocopieur':
+				return 'U03C';
+				break;
+		}
+		
+		return '';
+	}
 	
+	private function getNatureLabel($fk_nature_bien)
+	{
+		global $db;
+		
+		$sql = 'SELECT label FROM '.MAIN_DB_PREFIX.'c_financement_nature_bien WHERE nat_id = '.$fk_nature_bien;
+		$resql = $db->query($sql);
+		
+		if ($resql && ($row = $db->fetch_object($resql)))
+		{
+			$this->simulation->nature_label = $row->label;
+			return $row->label;
+		}
+		
+		return '';
+	}
+	
+	/** Cal&f
+	 * MRQ_ID	LIB_MRQ
+	 * Z999	GENERIQUE
+	 * T046	TOSHIBA
+	 * H113	HEWLETT PACKARD
+	 * C098	CANON
+	 * R128	RISO
+	 * 0034	OCE
+	 */
+	public function getIdMarqueBien()
+	{
+		$label = $this->getMarqueLabel($this->simulation->fk_marque_materiel);
+		
+		switch ($label) {
+			case 'GENERIQUE':
+				return 'Z999';
+				break;
+			case 'TOSHIBA':
+				return 'T046';
+				break;
+			case 'HEWLETT PACKARD':
+				return 'H113';
+				break;
+			case 'CANON':
+				return 'C098';
+				break;
+			case 'RISO':
+				return 'R128';
+				break;
+			case 'OCE':
+				return '0034';
+				break;
+		}
+		
+		return '';
+	}
+	
+	private function getMarqueLabel($fk_marque_materiel)
+	{
+		global $db;
+		
+		$sql = 'SELECT label FROM '.MAIN_DB_PREFIX.'c_financement_marque_materiel WHERE code = "'.$fk_marque_materiel.'"';
+		$resql = $db->query($sql);
+		
+		if ($resql && ($row = $db->fetch_object($resql)))
+		{
+			$this->simulation->marque_label = $row->label;
+			return $row->label;
+		}
+		
+		return '';
+	}
+
 	/**
 	 * TODO à construire
+	 * Code 	Libellé
+	 * produit	produit
+	 * 
+	 * LOCF 	Location
+	 * LOA		Location avec Option d'Achat
 	 */
 	public function getCodeProduit()
 	{
-		/*
-		Code 	Libellé							Type	Libellé type produit
-		produit	produit	 						produit	
-		
-		LOCF	Location						STAN	Standard
-		LOCF	Location						CESS	Cession de contrat (sans prestation)
-		LOCF	Location						LMAF	Location mandatée fichier
-		LOA		Location avec Option d'Achat	PROF	LOA professionnelle
-		*/
-		
 		return 'LOCF';
 	}
 	
 	/**
 	 * TODO à combiner avec $this->getCodeProduit()
+	 * Type		Libellé type produit
+	 * produit
+	 * 
+	 * STAN		Standard
+	 * CESS		Cession de contrat (sans prestation)
+	 * LMAF		Location mandatée fichier
+	 * PROF		LOA professionnelle
 	 */
 	public function getTypeProduit()
 	{
