@@ -1317,6 +1317,7 @@ class TSimulationSuivi extends TObjetStd {
 	
 	//Retourne les actions possible pour ce suivi suivant les règles de gestion
 	function getAction(&$simulation, $just_save=false){
+		global $conf,$user;
 		
 		$actions = '';
 		$ancre = '#suivi_leaser';
@@ -1371,6 +1372,8 @@ class TSimulationSuivi extends TObjetStd {
 				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Annuler"><img src="'.dol_buildpath('/financement/img/OK.png',1).'" /></a>&nbsp;';
 			}
 		}
+		
+		if (!$just_save && !empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($user->admin) && $user->entity == 0) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.img_picto('Webservice', 'call').'</a>&nbsp;';
 		
 		return $actions;
 	}

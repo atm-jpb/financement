@@ -60,6 +60,18 @@ class ServiceFinancement {
 		$this->production = !empty($conf->global->FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD) ? true : false;
 	}
 	
+	private function printHeader()
+	{
+		header("Content-type: text/html; charset=utf8");
+		print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">'."\n";
+		echo '<html>'."\n";
+		echo '<head>';
+		echo '<title>WebService Test: callTest</title>';
+		echo '</head>'."\n";
+		
+		echo '<body>'."\n";
+	}
+
 	/**
 	 * Fonction call
 	 * 
@@ -71,8 +83,18 @@ class ServiceFinancement {
 	{
 		global $langs,$conf;
 		
+		if ($this->debug)
+		{
+			$this->printHeader();
+			var_dump('DEBUG :: Function call(): leaser name = ['.$this->leaser->name.']');
+		}
+		
 		// Si les appels ne sont pas actives alors return true
-		if (!$this->activate) return true;
+		if (!$this->activate)
+		{
+			if ($this->debug) var_dump('DEBUG :: Function call(): # appel webservice non actif');
+			return true;
+		}
 		
 		// TODO à revoir, peut être qu'un test sur code client ou mieux encore sur numéro SIRET
 		if (strcmp($this->leaser->name, 'LIXXBAIL') === 0)
@@ -80,7 +102,7 @@ class ServiceFinancement {
 			return $this->callLixxbail();
 		}
 		
-		if ($this->debug) var_dump('DEBUG :: Function call(): leaser name = ['.$this->leaser->name.'] # aucun traitement prévu');
+		if ($this->debug) var_dump('DEBUG :: Function call(): # aucun traitement prévu');
 		
 		return false;
 	}
@@ -93,22 +115,51 @@ class ServiceFinancement {
 		if ($this->production) $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CALF_PROD) ? $conf->global->FINANCEMENT_WSDL_CALF_PROD : 'https://archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1';
 		else $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CALF_RECETTE) ? $conf->global->FINANCEMENT_WSDL_CALF_RECETTE : 'https://hom-archipels.ca-lf.com/archplGN/';
 		
+		if ($this->debug) var_dump('DEBUG :: Function callLixxbail(): Production = '.json_encode($this->production).' ; WSDL = '.$this->wsdl);
+		
 		$TParam = $this->_getTParamLixxbail();
 		
-		if ($this->debug) var_dump('DEBUG :: Function callLixxbail(): leaser name = ['.$this->leaser->name.']', 'wsdl = '.$wsdl, 'TParam =v', $TParam);
+		if ($this->debug) var_dump('DEBUG :: TParam =v', $TParam);
 		
 		if (!empty($this->TError))
 		{
-			if ($this->debug) var_dump('DEBUG :: Function callLixxbail(): error catch =v', $this->TError);
+			if ($this->debug) var_dump('DEBUG :: error catch =v', $this->TError);
 			return false;
 		}
 		
 		try {
-			// TODO uncomment to call webservice
-			// $this->soapClient = new nusoap_client($this->wsdl);
-			// $this->result = $this->soapClient->call('CreateDemFin', $TParam);
-			// on affiche la requete
-			// print($this->soapClient->request);
+			// TODO Tester l'appel au client et voir le retour : il semblerait qu'il y ai 2 params à donner, le header et les infos
+			$this->soapClient = new nusoap_client($this->wsdl);
+			
+			//TODO donner le header avant appel
+			//$this->soapClient->setHeaders($headers);
+			
+			$this->result = $this->soapClient->call('DemandeCreationLeasingGN', $TParam);
+			
+			if ($this->debug)
+			{
+				// on affiche la requete et la reponse
+				echo '<br />';
+				echo "<h2>Request:</h2>";
+				echo '<h4>Function</h4>';
+				echo 'call DemandeCreationLeasingGN';
+				echo '<h4>SOAP Message</h4>';
+				echo '<pre>' . htmlspecialchars($this->soapClient->request, ENT_QUOTES) . '</pre>';
+				
+				echo '<hr>';
+				
+				echo "<h2>Response:</h2>";
+				echo '<h4>Result</h4>';
+				echo '<pre>';
+				print_r($this->result);
+				echo '</pre>';
+				echo '<h4>SOAP Message</h4>';
+				echo '<pre>' . htmlspecialchars($this->soapClient->response, ENT_QUOTES) . '</pre>';
+				
+				echo '</body>'."\n";
+				echo '</html>'."\n";
+				exit;
+			}
 
 			$this->TMsg[] = $langs->trans('webservice_financement_msg_scoring_send', $this->leaser->name);
 			

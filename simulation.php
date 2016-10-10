@@ -269,7 +269,19 @@ if(!empty($action)) {
 			<?
 			
 			break;
-		
+		case 'trywebservice':
+			$simulation->load($ATMdb, $db, GETPOST('id'));
+			$id_suivi = GETPOST('id_suivi');
+			if (!empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($user->admin) && $user->entity == 0 && !empty($simulation->getId()) && !empty($id_suivi))
+			{
+				dol_include_once('/financement/class/service_financement.class.php');
+				$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[$id_suivi]);
+				$service->debug = true; // si tout ce passe bien, on tombera sur un exit avec cet attribut
+				$res = $service->call();
+			}
+			
+			_fiche($ATMdb, $simulation, 'view');
+			break;
 		default:
 			
 			//Actions spécifiques au suivi financement leaser
@@ -281,9 +293,9 @@ if(!empty($action)) {
 				$res = true; // Init à true pour garder le comportement de base si action <> de "demander"
 				if($action == 'demander') 
 				{
-					// TODO mettre en place l'appel au webservice CAL&F s'il s'agit du bon leaser
 					dol_include_once('/financement/class/service_financement.class.php');
-					$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[$id_suivi]); // Dans l'idée de créer une class pour gérer l'appel du webservice leaser
+					$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[$id_suivi]);
+					// La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active) 
 					$res = $service->call();
 				}
 

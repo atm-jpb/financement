@@ -344,6 +344,14 @@ $var=true;
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_SHOW_RECETTE_BUTTON").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="600">';
+print ajax_constantonoff('FINANCEMENT_SHOW_RECETTE_BUTTON');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("FINANCEMENT_WEBSERVICE_ACTIVATE").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="600">';
