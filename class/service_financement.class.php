@@ -115,7 +115,10 @@ class ServiceFinancement {
 		if ($this->production) $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CALF_PROD) ? $conf->global->FINANCEMENT_WSDL_CALF_PROD : 'https://archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1';
 		else $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CALF_RECETTE) ? $conf->global->FINANCEMENT_WSDL_CALF_RECETTE : 'https://hom-archipels.ca-lf.com/archplGN/';
 		
-		if ($this->debug) var_dump('DEBUG :: Function callLixxbail(): Production = '.json_encode($this->production).' ; WSDL = '.$this->wsdl);
+		// TODO remove si on utilise bien la methode ->setHeaders();
+		$this->target_ns = 'http://referentiel.ca.fr/Services/calf/DemandeCreationLeasingGN/V1/';
+		
+		if ($this->debug) var_dump('DEBUG :: Function callLixxbail(): Production = '.json_encode($this->production).' ; WSDL = '.$this->wsdl.' ; namespace = '.$this->target_ns);
 		
 		$TParam = $this->_getTParamLixxbail();
 		
@@ -127,14 +130,16 @@ class ServiceFinancement {
 			return false;
 		}
 		
+		$string_xml_header = $this->getHeaderLixxbail();
+		
+		//echo '<pre>'.htmlspecialchars($string_xml_header).'</pre>';exit;
 		try {
 			// TODO Tester l'appel au client et voir le retour : il semblerait qu'il y ai 2 params à donner, le header et les infos
 			$this->soapClient = new nusoap_client($this->wsdl);
+			$this->soapClient->soap_defencoding = 'UTF-8';
+			$this->soapClient->setHeaders($string_xml_header);
 			
-			//TODO donner le header avant appel
-			//$this->soapClient->setHeaders($headers);
-			
-			$this->result = $this->soapClient->call('DemandeCreationLeasingGN', $TParam);
+			$this->result = $this->soapClient->call('DemandeCreationLeasingGN', $TParam/*, $this->target_ns, '', $string_xml_header*/);
 			
 			if ($this->debug)
 			{
@@ -168,6 +173,50 @@ class ServiceFinancement {
 			var_dump($e);
 			exit;
 		}
+	}
+
+	private function getHeaderLixxbail()
+	{
+		$header = ''.
+/*<?xml version="1.0" encoding="UTF-8"?>*/
+'<xsd:schema targetNamespace="http://referentiel.ca.fr/Services/calf/DemandeCreationLeasingGN/V1/" elementFormDefault="qualified">
+	<xsd:element name="Calf_Header_GN" type="tns:Calf_Header_GN">
+		<xsd:annotation>
+			<xsd:documentation>En-tête utilisé entre Calf et CPro</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:complexType name="Calf_Header_GN">
+		<xsd:annotation>
+			<xsd:documentation>
+				Schéma des données de contexte niveau groupe utilisées dans les échanges.
+				On trouve des données qui sont issues du contexte transmis par la structure hôte à l\'application qui initie l\'appel de service ainsi que des données calculées par l\'application : 
+
+				Identifiant de l\'occurrence du processus.
+			</xsd:documentation>
+		</xsd:annotation>
+
+		<xsd:attribute name="correlationId" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					Identifiant de corrélation des traces. Constitué de la concaténation de trois chaînes:
+					l\'identifiant de l\'entité qui génère l\'identifiant de corrélation, formaté selon la norme CAM0303 (UOM),
+					un UUID V3, valeur sur 128 bits, construit à partir d\'une information aléatoire et haché MD5,
+					un UUID V4 (nombre aléatoire), valeur sur 128 bits.
+				 	la représentation sous forme de chaîne de caractères d\'un UUID suit un format bien précis dont la longueur est 36 caractères. La longueur totale de l\'identifiant de correlation est donc de 77 caractères (5+36+36).</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:length value="77"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+
+</xsd:schema>
+		';
+		
+		return $header;
 	}
 	
 	public function getIdModeRglt($opt_mode_reglement)
