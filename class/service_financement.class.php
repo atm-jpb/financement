@@ -113,7 +113,7 @@ class ServiceFinancement {
 		
 		// Production ou Test
 		if ($this->production) $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CALF_PROD) ? $conf->global->FINANCEMENT_WSDL_CALF_PROD : 'https://archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1';
-		else $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CALF_RECETTE) ? $conf->global->FINANCEMENT_WSDL_CALF_RECETTE : 'https://hom-archipels.ca-lf.com/archplGN/';
+		else $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CALF_RECETTE) ? $conf->global->FINANCEMENT_WSDL_CALF_RECETTE : 'https://hom-archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1';
 		
 		// TODO remove si on utilise bien la methode ->setHeaders();
 		$this->target_ns = 'http://referentiel.ca.fr/Services/calf/DemandeCreationLeasingGN/V1/';
@@ -134,12 +134,19 @@ class ServiceFinancement {
 		
 		//echo '<pre>'.htmlspecialchars($string_xml_header).'</pre>';exit;
 		try {
-			// TODO Tester l'appel au client et voir le retour : il semblerait qu'il y ai 2 params à donner, le header et les infos
-			$this->soapClient = new nusoap_client($this->wsdl);
-			$this->soapClient->soap_defencoding = 'UTF-8';
-			$this->soapClient->setHeaders($string_xml_header);
+			$this->soapClient = new nusoap_client($this->wsdl, 'wsdl');
+			// TODO remplacer la ligne précédente par celle-ci pour afficher le xml
+			//$this->soapClient = new nusoap_client($this->wsdl, '');
 			
-			$this->result = $this->soapClient->call('DemandeCreationLeasingGN', $TParam/*, $this->target_ns, '', $string_xml_header*/);
+			$this->soapClient->namespaces['SOAP-ENV'] = 'http://www.w3.org/2003/05/soap-envelope';
+			unset($this->soapClient->namespaces['SOAP-ENC']);// = '';
+			unset($this->soapClient->namespaces['xsd']);// = '';
+			unset($this->soapClient->namespaces['xsi']);// = '';
+			
+			$this->soapClient->soap_defencoding = 'UTF-8';
+			
+			// Besoin du dernier paramètre à vide
+			$this->result = $this->soapClient->call('DemandeCreationLeasingGN', $TParam, $this->target_ns, '', $string_xml_header, null, 'rpc', '');
 			
 			if ($this->debug)
 			{
@@ -214,6 +221,13 @@ class ServiceFinancement {
 	</xsd:complexType>
 
 </xsd:schema>
+		';
+		
+		
+		$header = '
+
+<soap1:Calf_Header_GN xmlns:soap1="http://referentiel.ca.fr/SoapHeaderV1" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" correlationId="12345" wsu:Id="id-11"/>
+
 		';
 		
 		return $header;
@@ -374,7 +388,7 @@ class ServiceFinancement {
 	 */
 	public function getIdMarqueBien()
 	{
-		$label = $this->getMarqueLabel($this->simulation->fk_marque_materiel);
+		$label = $this->getMarqueLabel($this->simulation->marque_materiel);
 		
 		switch ($label) {
 			case 'GENERIQUE':
@@ -457,9 +471,9 @@ class ServiceFinancement {
 		$pct_vr = $this->simulation->pct_vr;
 		$mt_vr = $this->simulation->mt_vr;
 		
-		if (!empty($pct_vr) && !empty($mt_vr)) $pct_vr = ''; // Si les 2 sont renseignés alors je garde que le montant
+		if (!empty($pct_vr) && !empty($mt_vr)) $pct_vr = 0; // Si les 2 sont renseignés alors je garde que le montant
 		
-		$TParam = array(
+		/*$TParam = array(
 			'PARTENAIRE' => array( // 1..1
 					'SIREN_PARTENAIRE' => $mysoc->idprof1 // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 9 *
 					,'NIC_PARTENAIRE' => substr($mysoc->idprof2, -5, 5) // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 5 *
@@ -497,7 +511,7 @@ class ServiceFinancement {
 					,'MT_HT_BIEN_COMPL' => ''
 					,'QTE_BIEN_COMPL' => ''
 				)*/
-			)
+/*			)
 			,'CLIENT' => array( // 1..1
 					'CLIENT_SIREN' => $mysoc->idprof1 // Toujours entité à partir de laquelle on score *
 					,'CLIENT_NIC' => substr($mysoc->idprof2, -5, 5) // Toujours entité à partir de laquelle on score
@@ -509,7 +523,7 @@ class ServiceFinancement {
 					,'PCT_VR' => $pct_vr // Doit être saisie par CPro - Pourcentage de la valeur résiduelle. L'élément est exclusif de l'élément MT_VR.
 					,'MT_VR' => $mt_vr // Doit être saisie par CPro - Montant de la valeur résiduelle, en euros. L'élément est exclusif de l'élément PCT_VR.
 					,'TYPE_REGLEMENT' => $mode_reglement_id // *
-					,'MT_PREMIER_LOYER' => '' // NO
+					,'MT_PREMIER_LOYER' => 0 // NO
 					,'DUREE_FINANCEMENT' => $this->simulation->duree // *
 					,'PERIODICITE_FINANCEMENT' => $periodicite_code // chaîne de caractères alphanumérique de 3 caractères max. Cf. onglet 'Périodicité de financement' *
 					,'TERME_FINANCEMENT' => $this->simulation->opt_terme == 1 ? 'A' : 'E' // 4 char. échu ou à échoir *
@@ -517,9 +531,63 @@ class ServiceFinancement {
 					,'NATURE_FINANCEMENT' => 'STD' // NO - Voir si saisie par CPro
 					,'DATE_DEMANDE_FINANCEMENT' => date('Y-m-dTH:i:s') // format YYYY-MM-DDThh:mm:ss *
 			)
-		);
+		);*/
 		
-		return $TParam;
+
+		$xml = '
+		<ns1:Request>
+            <ns1:PARTENAIRE>
+               <ns1:SIREN_PARTENAIRE>'.$mysoc->idprof1.'</ns1:SIREN_PARTENAIRE>
+               <ns1:NIC_PARTENAIRE>'.substr($mysoc->idprof2, -5, 5).'</ns1:NIC_PARTENAIRE>
+               <ns1:COMMERCIAL_EMAIL>'.$this->simulationSuivi->user->email.'</ns1:COMMERCIAL_EMAIL>
+               <ns1:REF_EXT>'.$this->simulation->reference.'</ns1:REF_EXT>
+            </ns1:PARTENAIRE>
+            <ns1:BIEN>
+               <ns1:CATEGORIE_BIEN>'.$this->getIdCategorieBien().'</ns1:CATEGORIE_BIEN>
+               <ns1:NATURE_BIEN>'.$this->getIdNatureBien().'</ns1:NATURE_BIEN>
+               <ns1:MARQUE_BIEN>'.$this->getIdMarqueBien().'</ns1:MARQUE_BIEN>
+               <ns1:ANNEE_BIEN>'.date('Y').'</ns1:ANNEE_BIEN>
+               <ns1:ETAT_BIEN>NEUF</ns1:ETAT_BIEN>
+               <ns1:QTE_BIEN>1</ns1:QTE_BIEN>
+               <ns1:MT_HT_BIEN>'.$this->simulation->montant.'</ns1:MT_HT_BIEN>
+               <ns1:PAYS_DESTINATION_BIEN>'.(!empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR').'</ns1:PAYS_DESTINATION_BIEN>
+               <ns1:FOURNISSEUR_SIREN>'.$mysoc->idprof1.'</ns1:FOURNISSEUR_SIREN>
+               <ns1:FOURNISSEUR_NIC>'.substr($mysoc->idprof2, -5, 5).'</ns1:FOURNISSEUR_NIC>
+            </ns1:BIEN>
+            <!--1 or more repetitions:-->
+            <ns1:BIEN_COMPL>
+               <!--ns1:CATEGORIE_BIEN_COMPL>U</ns1:CATEGORIE_BIEN_COMPL>
+               <ns1:NATURE_BIEN_COMPL>U03C</ns1:NATURE_BIEN_COMPL>
+               <ns1:MARQUE_BIEN_COMPL>T046</ns1:MARQUE_BIEN_COMPL>
+               <ns1:ANNEE_BIEN_COMPL>2016</ns1:ANNEE_BIEN_COMPL>
+               <ns1:ETAT_BIEN_COMPL>NEUF</ns1:ETAT_BIEN_COMPL>
+               <ns1:MT_HT_BIEN_COMPL>1000.01</ns1:MT_HT_BIEN_COMPL>
+               <ns1:QTE_BIEN_COMPL>2</ns1:QTE_BIEN_COMPL-->
+            </ns1:BIEN_COMPL> 
+            <ns1:CLIENT>
+               <ns1:CLIENT_SIREN>'.$this->simulation->societe->idprof1 .'</ns1:CLIENT_SIREN>
+               <ns1:CLIENT_NIC>'.substr($this->simulation->societe->idprof2, -5, 5).'</ns1:CLIENT_NIC>
+            </ns1:CLIENT>
+            <ns1:FINANCEMENT>
+               <ns1:CODE_PRODUIT>'.$this->getCodeProduit().'</ns1:CODE_PRODUIT>
+               <ns1:TYPE_PRODUIT>'.$this->getTypeProduit().'</ns1:TYPE_PRODUIT>
+               <ns1:MT_FINANCEMENT_HT>'.$this->simulation->montant.'</ns1:MT_FINANCEMENT_HT>
+               <ns1:PCT_VR>'.$pct_vr.'</ns1:PCT_VR>
+               <ns1:MT_VR>'.$mt_vr.'</ns1:MT_VR>
+               <ns1:TYPE_REGLEMENT>'.$mode_reglement_id.'</ns1:TYPE_REGLEMENT>
+               <ns1:MT_PREMIER_LOYER>0</ns1:MT_PREMIER_LOYER>
+               <ns1:DUREE_FINANCEMENT>'.$this->simulation->duree.'</ns1:DUREE_FINANCEMENT>
+               <ns1:PERIODICITE_FINANCEMENT>'.$periodicite_code.'</ns1:PERIODICITE_FINANCEMENT>
+               <ns1:TERME_FINANCEMENT>'.($this->simulation->opt_terme == 1 ? 'A' : 'E').'</ns1:TERME_FINANCEMENT>
+               <ns1:NB_FRANCHISE>0</ns1:NB_FRANCHISE>
+               <ns1:NATURE_FINANCEMENT>STD</ns1:NATURE_FINANCEMENT>
+               <ns1:DATE_DEMANDE_FINANCEMENT>'.date('Y-m-d').'T'.date('H:i:s').'</ns1:DATE_DEMANDE_FINANCEMENT>
+            </ns1:FINANCEMENT>
+         </ns1:Request>
+		';
+		
+		//return $TParam;
+		return $xml;
 	}
 
 
