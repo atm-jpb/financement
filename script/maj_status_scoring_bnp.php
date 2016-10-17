@@ -21,7 +21,7 @@
 				AND numero_accord_leaser IS NOT NULL 
 				AND numero_accord_leaser != ''
 				AND statut_demande = 1 AND statut = 'WAIT'";
-	//echo $sql;exit;
+	echo $sql.'<br>';
 	$TRes = $PDOdb->ExecuteAsArray($sql);
 	
 	foreach($TRes as $res){
