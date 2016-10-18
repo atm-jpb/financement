@@ -954,7 +954,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')';
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
 	$sql.= " AND (a.fk_soc = ".$simulation->fk_soc;
-	if(!empty($simulation->societe->siren)) {
+	if(!empty($simulation->societe->idprof1)) {
 		$sql.= " OR a.fk_soc IN
 					(
 						SELECT s.rowid 
@@ -962,12 +962,12 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 							LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
 						WHERE
 						(
-							s.siren = '".$simulation->societe->siren."'
+							s.siren = '".$simulation->societe->idprof1."'
 							AND s.siren != ''
 						) 
 						OR
 						(
-							se.other_siren LIKE '%".$simulation->societe->siren."%'
+							se.other_siren LIKE '%".$simulation->societe->idprof1."%'
 							AND se.other_siren != ''
 						)
 					)";

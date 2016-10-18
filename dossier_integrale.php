@@ -361,12 +361,15 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 			,'client'=>$client
 		)
 	);
-	
-	print '<div class="tabsAction">';
-	$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
-	print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale">'.$label.'</a>';
-	print '</div>';
-	
+
+global $user;
+
+	if (!empty($user->rights->financement->admin->write)) {
+		print '<div class="tabsAction">';
+		$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
+		print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale">'.$label.'</a>';
+		print '</div>';
+	}
 }
 
 function _printFormAvenantIntegraleOLD(&$PDOdb, &$dossier, &$TBS) {
