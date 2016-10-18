@@ -716,7 +716,7 @@ class TImport extends TObjetStd {
 
 	public function getObjectEntity(&$object)
 	{
-		global $sql;
+		global $db;
 		
 		if (!empty($object->entity)) return $object->entity;
 		
