@@ -302,8 +302,11 @@ class TFin_grille_leaser extends TObjetStd {
 		
 		//if($periodicite == 'MOIS') $duree /= 3 * $this->getiPeriode($periodicite);
 		
+		// La conf des coeffs se base sur des trimestres. Lorsque la périodicité n'est pas le trimestre, il faut calculer la période.
 		$duree *= $this->getiPeriode($periodicite) / 3;
-
+		$duree = floor($duree);
+		$iPeriode *= $this->getiPeriode($periodicite) / 3;
+		$iPeriode = floor($iPeriode);
 		
     	global $langs;
         $sql = "SELECT";

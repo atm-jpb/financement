@@ -146,7 +146,7 @@
 				<script language="javascript">
 					document.location.href="?delete_ok=1";					
 				</script>
-				<?
+				<?php
 				unset($dossier);
 				
 				break;
@@ -198,7 +198,7 @@
 				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
 				$dirName = $affaire->genLixxbailXML($PDOdb, $TAffaires);
 				
-				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=1&file=XML/Lixxbail/".$dirName.".xml",2));
+				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=".$conf->entity."&file=XML/Lixxbail/".$dirName.".xml",2));
 				
 				break;
 			
@@ -215,7 +215,13 @@
 				$filename = $affaire->genLixxbailXML($PDOdb, $TAffaires,true);
 				$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
 				
+				if($conf->entity > 1)
+					$dirname = DOL_DATA_ROOT.'/'.$conf->entity.'/financement/XML/Lixxbail/'.$filename.'.xml';
+				else
+					$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
+
 				//$affaire->uploadXMLOnLeaserServer($host,$user,$directory,$dirname,$filename.'.xml');
+//echo $dirname;exit;
 				if(BASE_TEST) {
 					exec('sh bash/lixxbailxml_test.sh '.$dirname);
 				} else {
@@ -955,7 +961,7 @@ function _getExportXML($sql){
 	
 	$filepath = $url.$filename;
 	$file = fopen($filepath,'w');
-	
+
 	//Ajout première ligne libelle
 	$TLabel = array('Contrat','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant','Echeance','Prochaine','Debut','Fin','Facture Materiel');
 	fputcsv($file, $TLabel,';','"');
@@ -977,7 +983,7 @@ function _getExportXML($sql){
 	
 	?>
 	<script language="javascript">
-		document.location.href="<?php echo dol_buildpath("/document.php?modulepart=financement&entity=1&file=XML/Lixxbail/".$filename,2); ?>";					
+		document.location.href="<?php echo dol_buildpath("/document.php?modulepart=financement&entity=".$conf->entity."&file=XML/Lixxbail/".$filename,2); ?>";					
 	</script>
 	<?php
 	

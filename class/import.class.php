@@ -832,7 +832,7 @@ class TImport extends TObjetStd {
 									'SSC102'=>'loyer',
 									'SSC106'=>'loyer',
 									// Copies couleur
-									'SSC010'=>'tecch'
+									'SSC010'=>'tech'
 									// SSC005, pareil que nb : tech
 									// SSC102 & SSC106, pareil : loyer
 									);
@@ -928,20 +928,20 @@ class TImport extends TObjetStd {
 	private function importILFI_noir(&$data,&$integrale,&$TRefSRVLabelCout){
 		
 		// ENGAGEMENT NOIR
-		if($data['ref_service'] == 'SSC015' && $data['total_ht'] > 0) {
+		if($data['ref_service'] == 'SSC015' && $data['total_ht'] != 0) {
 			if(empty($integrale->materiel_noir)) {
 				$integrale->materiel_noir = $data['matricule'];
 				$integrale->vol_noir_engage = $data['quantite'];
 				$integrale->vol_noir_realise = $data['quantite_integrale'];
 				$integrale->vol_noir_facture = $data['quantite'];
-			} else if($integrale->materiel_noir != $data['matricule'] && $data['total_ht'] > 0) {
+			} else if($integrale->materiel_noir != $data['matricule'] && $data['total_ht'] != 0) {
 				$integrale->materiel_noir = $data['matricule'];
 				$integrale->vol_noir_engage+= $data['quantite'];
 				$integrale->vol_noir_realise+= $data['quantite_integrale'];
 				$integrale->vol_noir_facture+= $data['quantite'];
 			}
 			
-			if($data['total_ht'] > 0)
+			if($data['total_ht'] != 0)
 				$integrale->cout_unit_noir = $data['cout_integrale'];
 		}
 		else{ // CAS DES AVOIRS, ON GARDE QUE LE TOTAL HT
@@ -957,7 +957,7 @@ class TImport extends TObjetStd {
 			$integrale->vol_noir_realise += $data['quantite_integrale'];
 			$integrale->vol_noir_facture += $data['quantite'];
 			
-			if($data['total_ht'] > 0)
+			if($data['total_ht'] != 0)
 				$integrale->cout_unit_noir = $data['pu'];
 		}
 		
@@ -975,20 +975,20 @@ class TImport extends TObjetStd {
 	//Gère les copies COULEUR
 	private function importILFI_couleur(&$data,&$integrale,&$TRefSRVLabelCout){
 		// ENGAGEMENT COULEUR
-		if($data['ref_service'] == 'SSC010' && $data['total_ht'] > 0) {
+		if($data['ref_service'] == 'SSC010' && $data['total_ht'] != 0) {
 			if(empty($integrale->materiel_coul)) {
 				$integrale->materiel_coul = $data['matricule'];
 				$integrale->vol_coul_engage = $data['quantite'];
 				$integrale->vol_coul_realise = $data['quantite_integrale'];
 				$integrale->vol_coul_facture = $data['quantite'];
-			} else if($integrale->materiel_coul != $data['matricule'] && $data['total_ht'] > 0) {
+			} else if($integrale->materiel_coul != $data['matricule'] && $data['total_ht'] != 0) {
 				$integrale->materiel_coul = $data['matricule'];
 				$integrale->vol_coul_engage+= $data['quantite'];
 				$integrale->vol_coul_realise+= $data['quantite_integrale'];
 				$integrale->vol_coul_facture+= $data['quantite'];
 			}
 			
-			if($data['total_ht'] > 0)
+			if($data['total_ht'] != 0)
 				$integrale->cout_unit_coul = $data['cout_integrale'];
 		}
 		// COPIE SUP COULEUR
@@ -1000,7 +1000,7 @@ class TImport extends TObjetStd {
 			$integrale->vol_coul_realise+= $data['quantite_integrale'];
 			$integrale->vol_coul_facture+= $data['quantite'];
 			
-			if($data['total_ht'] > 0)
+			if($data['total_ht'] != 0)
 				$integrale->cout_unit_coul = $data['pu'];
 		}
 		
