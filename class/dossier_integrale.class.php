@@ -263,8 +263,8 @@ class TIntegrale extends TObjetStd {
 			$TData['nouveau_cout_unitaire_mach'] = $this->ceil($this->{'vol_'.$type.'_engage'} * $this->{'cout_unit_'.$type.'_mach'} / $engagement);
 		}
 		$TData['nouveau_cout_unitaire_loyer'] = $TData['cout_unitaire'] - $TData['nouveau_cout_unitaire_mach'] - $TData['nouveau_cout_unitaire_tech'];
-		$TData['nouveau_cout_total'] = price(round($this->ceil($engagement * $TData['cout_unitaire']),2));
-
+		$TData['nouveau_cout_total'] = $this->ceil($engagement * $TData['cout_unitaire']);
+		
 		return $TData;
 	}
 	
