@@ -357,7 +357,7 @@ class TSimulation extends TObjetStd {
 		$idLeaserPrioritaire = 0; //18305 ACECOM pour test
 		
 		$TFinGrilleSuivi = new TFin_grille_suivi;
-		$grille = $TFinGrilleSuivi->get_grille($PDOdb, $this->fk_type_contrat,false);
+		$grille = $TFinGrilleSuivi->get_grille($PDOdb, $this->fk_type_contrat,false, $this->entity);
 		
 		//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 		$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
