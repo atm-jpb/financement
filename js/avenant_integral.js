@@ -73,6 +73,9 @@ function update_cout_loyer(action,type) {
 			$('input[name="montant_total_coul"]').val(data.couts_coul.nouveau_cout_total);
 			$('input[name="total_global"]').val(data.total_global);
 			$('#nouveau_fas').attr('max', data.fas_max);
+			
+			$('input[name="fass"]').val(_format_float($('input[name="fass"]').val(),2));
+			$('input[name="ftc"]').val(_format_float($('input[name="ftc"]').val(),2));
 		}
 	});
 }
