@@ -290,7 +290,11 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	$fin->_affterme = $fin->TTerme[$fin->terme];
 	$fin->_affperiodicite = $fin->TPeriodicite[$fin->periodicite];
 	
+	// ETAPE 1 : on ne conserve que les factures qui nous intéressent
+	$dossier->format_facture_integrale($PDOdb);
 	//pre($dossier->TFacture[6],true);
+	
+	// ETAPE 2 : on fait tous les calculs pour le tableau intégral
 	$TIntegrale = array();
 	foreach ($dossier->TFacture as $fac) {
 		
@@ -305,8 +309,9 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		}
 	}
 	
+	// ETAPE 3 : on finalise le formatage pour l'affichage
+	
 	//$dossier->load_facture($PDOdb,true);
-	$dossier->format_facture_integrale($PDOdb);
 	//pre($dossier->TFacture,true);
 	//pre($TIntegrale,true);
 	foreach($dossier->TFacture as $echeance => $facture){
