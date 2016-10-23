@@ -231,7 +231,8 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		
 		// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
 		if(!empty($visaauto)) {
-			$dossier->load($PDOdb, $rowid);
+			$dossier->load($PDOdb, $rowid, false, true);
+			$dossier->load_facture($PDOdb,true);
 			
 			// On fait la somme des échéances des dossiers leaser associés à cette référence dossier (prise en compte des adjonctions)
 			$sql = "SELECT SUM(dflea.echeance) as total_echeances";
@@ -240,11 +241,10 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type='LEASER')";
 			$sql.= " WHERE dfcli.reference LIKE '".$dossier->financement->reference."%'";
 			$sql.= " AND dfcli.montant_solde = 0";
-			$sql.= " AND dfcli.date_solde = '0000-00-00 00:00:00'";
+			$sql.= " AND dfcli.date_solde < '1970-00-00 00:00:00'";
 			$sql.= " AND dfcli.reference NOT LIKE '%old%'";
 			$TRes = $PDOdb->ExecuteAsArray($sql);
 			$total_echeances = $TRes[0]->total_echeances;
-			$nb_dossiers = $TRes[0]->nb_dossiers;
 			
 			// Attention on vérifie les factures et regroupements de factures
 			$montant_facture = 0;
@@ -268,12 +268,15 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 						foreach ($d as $i => $f) {
 							$f->array_options['options_visa_renta_loyer_leaser'] = 1;
 							$f->insertExtraFields();
+							//echo $f->ref.'<br>';
 						}
 					} else {
 						$d->array_options['options_visa_renta_loyer_leaser'] = 1;
 						$d->insertExtraFields();
+						//echo $d->ref.'<br>';
 					}
 				}
+				echo 'Dossier '.$dossier->financement->reference.', '.$montant_facture.' < '.$total_echeances.'<br>';
 			}
 		}
 	
@@ -309,7 +312,8 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		
 		// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
 		if(!empty($visaauto)) {
-			$dossier->load($PDOdb, $rowid);
+			$dossier->load($PDOdb, $rowid, false, true);
+			$dossier->load_facture($PDOdb,true);
 			
 			// On fait la somme des échéances des dossiers client associés à cette référence dossier (prise en compte des adjonctions)
 			$sql = "SELECT SUM(dfcli.echeance) as total_echeances, COUNT(dfcli.reference) as nb_dossiers";
@@ -317,7 +321,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			$sql.= " WHERE dfcli.reference LIKE '".$dossier->financement->reference."%'";
 			$sql.= " AND dfcli.type='CLIENT'";
 			$sql.= " AND dfcli.montant_solde = 0";
-			$sql.= " AND dfcli.date_solde = '0000-00-00 00:00:00'";
+			$sql.= " AND dfcli.date_solde < '1970-00-00 00:00:00'";
 			$sql.= " AND dfcli.reference NOT LIKE '%old%'";
 			$TRes = $PDOdb->ExecuteAsArray($sql);
 			$total_echeances = $TRes[0]->total_echeances;
@@ -344,10 +348,12 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 						foreach ($d as $i => $f) {
 							$f->array_options['options_visa_renta_loyer_client'] = 1;
 							$f->insertExtraFields();
+							//echo $f->ref.'<br>';
 						}
 					} else {
 						$d->array_options['options_visa_renta_loyer_client'] = 1;
 						$d->insertExtraFields();
+						//echo $d->ref.'<br>';
 					}
 				}
 			}
