@@ -187,6 +187,9 @@ class TSimulation extends TObjetStd {
 		
 		$this->gen_simulation_pdf($db, $doliDB);
 		
+		if($this->accord == 'OK') {
+			$this->date_validite = strtotime('+ 3 months',$this->date_accord);
+		}
 		parent::save($db);
 		
 		//Création du suivi simulation leaser s'il n'existe pas
@@ -354,7 +357,7 @@ class TSimulation extends TObjetStd {
 		$idLeaserPrioritaire = 0; //18305 ACECOM pour test
 		
 		$TFinGrilleSuivi = new TFin_grille_suivi;
-		$grille = $TFinGrilleSuivi->get_grille($PDOdb, $this->fk_type_contrat,false);
+		$grille = $TFinGrilleSuivi->get_grille($PDOdb, $this->fk_type_contrat,false, $this->entity);
 		
 		//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 		$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
@@ -1186,7 +1189,7 @@ class TSimulation extends TObjetStd {
 			$this->demande_accord();
 			if($this->accord == 'OK') {
 				$this->date_accord = time();
-				$this->date_validite = strtotime('+ 3 months');
+				//$this->date_validite = strtotime('+ 3 months');
 			}
 			if($mode == 'save' && ($this->accord == 'OK' || $this->accord == 'KO')) { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
 				$this->send_mail_vendeur(true);

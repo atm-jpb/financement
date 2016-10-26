@@ -303,7 +303,7 @@ function _liste(&$ATMdb, &$affaire) {
 	$form->end();
 	
 	if(isset($_REQUEST['socid'])) {
-		?><div class="tabsAction"><a href="?action=new&fk_soc=<?php echo $_REQUEST['socid'] ?>" class="butAction">Créer une affaire</a></div><?php
+		?><div class="tabsAction"><a href="?action=new&fk_soc=<?php echo $_REQUEST['socid']; ?>" class="butAction">Créer une affaire</a></div><?php
 	}
 	
 	llxFooter();

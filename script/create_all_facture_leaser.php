@@ -2,9 +2,9 @@
 	define('INC_FROM_CRON_SCRIPT',true);
 
 	require('../config.php');
-	require('../class/affaire.class.php');
-	require('../class/dossier.class.php');
-	require('../class/grille.class.php');
+	dol_include_once("/financement/class/affaire.class.php");
+	dol_include_once("/financement/class/dossier.class.php");
+	dol_include_once("/financement/class/grille.class.php");
 	dol_include_once("/fourn/class/fournisseur.facture.class.php");
 
 	set_time_limit(0);

@@ -264,7 +264,7 @@ class TIntegrale extends TObjetStd {
 		}
 		$TData['nouveau_cout_unitaire_loyer'] = $TData['cout_unitaire'] - $TData['nouveau_cout_unitaire_mach'] - $TData['nouveau_cout_unitaire_tech'];
 		$TData['nouveau_cout_total'] = $this->ceil($engagement * $TData['cout_unitaire']);
-
+		
 		return $TData;
 	}
 	

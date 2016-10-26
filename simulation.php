@@ -193,7 +193,7 @@ if(!empty($action)) {
 			
 			// Si l'accord vient d'être donné (par un admin)
 			if($simulation->accord == 'OK' && $simulation->accord != $oldAccord) {
-				$simulation->date_validite = strtotime('+ 2 months');
+				//$simulation->date_validite = strtotime('+ 2 months');
 				$simulation->date_accord = time();
 				$simulation->accord_confirme = 1;
 				$simulation->setThirparty();
@@ -707,7 +707,6 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	else $coeff = $simulation->coeff; // TRIMESTRE
 	
 	if($simulation->montant_decompte_copies_sup < 0) $simulation->montant_decompte_copies_sup = 0;
-	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
@@ -722,7 +721,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'entity'=>$entity_field
 				,'entity_partenaire'=>$simulation->entity
 				,'ref'=>$simulation->reference
-				,'doc'=>$formfile->getDocumentsLink('financement', $filename, $filedir)
+				,'doc'=>$formfile->getDocumentsLink('financement', $filename, $filedir, 1)
 				,'fk_soc'=>$simulation->fk_soc
 				,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat)
 				,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
@@ -920,7 +919,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')';
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
 	$sql.= " AND (a.fk_soc = ".$simulation->fk_soc;
-	if(!empty($simulation->societe->siren)) {
+	if(!empty($simulation->societe->idprof1)) {
 		$sql.= " OR a.fk_soc IN
 					(
 						SELECT s.rowid 
@@ -928,12 +927,12 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 							LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
 						WHERE
 						(
-							s.siren = '".$simulation->societe->siren."'
+							s.siren = '".$simulation->societe->idprof1."'
 							AND s.siren != ''
 						) 
 						OR
 						(
-							se.other_siren LIKE '%".$simulation->societe->siren."%'
+							se.other_siren LIKE '%".$simulation->societe->idprof1."%'
 							AND se.other_siren != ''
 						)
 					)";
@@ -1099,7 +1098,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		if($ATMdb->Get_field('incident_paiement')=='OUI' && $dossier->nature_financement == 'EXTERNE') $dossier->display_solde = 0;
 		//if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
 		//if($leaser->code_client == '024242') $dossier->display_solde = 0; // Ticket 447, suite
-		if($dossier->montant >= 50000 && $dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
+		if($dossier->montant >= 40000) $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
 		if($dossier->soldepersodispo == 2) $dossier->display_solde = 0;
 		
 		//Ne pas laissé disponible un dossier dont la dernière facture client est impayée

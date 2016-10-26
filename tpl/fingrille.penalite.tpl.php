@@ -9,7 +9,7 @@
 		[onshow;block=end]
 	</tr>
 	<tr class="[onshow;block=begin;when [coefficient.#;ope=mod:2]==1]impair[onshow;block=end][onshow;block=begin;when [coefficient.#;ope=mod:2]==0]pair[onshow;block=end]">
-		<td align="left"><input type="text" class="flat" name="TPeriode[[coefficient.#]]" size="3" value="[coefficient.$; block=tr;strconv=no;sub1]" /> Trimestres</td>
+		<td align="left"><input type="text" class="flat" name="TPeriode[[coefficient.#]]" size="3" value="[coefficient.$; block=tr;strconv=no;sub1]" /> Période</td>
 		<td align="left">
 			<input type="hidden" name="TCoeff[[coefficient.#]][[coefficient_sub1.#]][rowid]" value="[coefficient_sub1.rowid; block=tr]" />
 			<input type="text" class="flat" name="TCoeff[[coefficient.#]][[coefficient_sub1.#]][coeff]" size="5" value="[coefficient_sub1.coeff;]" /> %

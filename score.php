@@ -84,9 +84,9 @@ if(!empty($action)) {
 			
 			?>
 			<script language="javascript">
-				document.location.href="?socid=<?php echo  $_REQUEST['socid'] ?>&delete_ok=1";
+				document.location.href="?socid=<?php echo $_REQUEST['socid']; ?>&delete_ok=1";
 			</script>
-			<?
+			<?php
 			
 			break;
 	}
@@ -179,7 +179,7 @@ function _liste(&$ATMdb, &$score) {
 	));
 	
 	if(isset($_REQUEST['socid'])) {
-		?><div class="tabsAction"><a href="?action=new&fk_soc=<?php echo $_REQUEST['socid'] ?>" class="butAction">Nouveau score</a></div><?
+		?><div class="tabsAction"><a href="?action=new&fk_soc=<?php echo $_REQUEST['socid']; ?>" class="butAction">Nouveau score</a></div><?php
 	}
 	
 	llxFooter();
