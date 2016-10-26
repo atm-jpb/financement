@@ -24,6 +24,7 @@ foreach($TLine as $line) {
 	$ref_dossier = str_pad($data[0], 8, '0', STR_PAD_LEFT);
 	
 	$d->loadReference($PDOdb, $ref_dossier,true);
+	$d->load_facture($PDOdb, true);
 	
 	if($d->getId() > 0) {
 		echo '<br>Dossier '.$ref_dossier.' trouvé : '.$d->getId();
