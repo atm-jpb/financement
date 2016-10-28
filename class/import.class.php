@@ -194,16 +194,24 @@ class TImport extends TObjetStd {
 
 	function createFacture(&$ATMdb,&$data,&$TInfosGlobale){
 		global $db,$user;
-		// Recherche si facture existante dans la base
-		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
 		
-		//echo $facid.'<br>';
+		// Recherche si facture existante dans la base
+		$facid = $this->_recherche_facture_2($ATMdb, $this->mapping['search_key'], $data);
+		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
+		//pre($facid,true).'<br>';
 		//Si existe pas alors on la créé
 		if(!$facid && $socid){
 			//echo '-'.$socid.'<br>';
 			$data['socid'] = $socid;
 			$facture_loc = new Facture($db);
+			
+			//On test de fetch sur la facnumber pour savoir s'il s'agit d'une facturation multi-contrats
+			$isMultipleContrat = false;
+			if($facture_loc->fetch('',$data['facnumber'])){
+				$isMultipleContrat = true;
+				$facture_loc = new Facture($db);
+			}
+			
 			//pre($facture_loc,true);
 			foreach ($data as $key => $value) {
 				$facture_loc->{$key} = $value;
@@ -231,7 +239,7 @@ class TImport extends TObjetStd {
 			}
 			
 			// Force la validation avec numéro de facture
-			$facture_loc->validate($user, $data[$this->mapping['search_key']]);
+			$facture_loc->validate($user, ($isMultipleContrat) ? $data['facnumber'].'-'.$data['reference_dossier_interne'] : $data[$this->mapping['search_key']]);
 			
 			// La validation entraine le recalcul de la date d'échéance de la facture, on remet celle fournie
 			$facture_loc->date_lim_reglement = $data['date_lim_reglement'];
@@ -313,8 +321,11 @@ class TImport extends TObjetStd {
 					$facture_loc->add_object_linked('dossier', $facture_loc->linked_objects['dossier']);
 				}
 			}
-			
+
 			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facture_loc->id;
+		}
+		else{
+			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facid->rowid;
 		}
 	}
 
@@ -444,7 +455,7 @@ class TImport extends TObjetStd {
 		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."fin_dossier_financement f ";
 		$sql.= "WHERE f.type = 'LEASER' ";
 		$sql.= "AND f.fk_soc = ".$idLeaser." ";
-		$sql.= "AND f.date_solde = '0000-00-00 00:00:00' ";
+		$sql.= "AND f.date_solde < '1970-00-00 00:00:00' ";
 		echo $sql;
 		
 		$TRes = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
@@ -785,7 +796,7 @@ class TImport extends TObjetStd {
 			// On ajoute la ligne
 			$facture_loc->addline($data['libelle_ligne'], $data['pu'], $data['quantite'], $taux_tva,0,0,$fk_service, 0, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, $data['libelle_ligne']);
 			// Force la validation avec numéro de facture
-			$facture_loc->validate($user, $data[$this->mapping['search_key']]);
+			$facture_loc->validate($user, $facture_loc->facnumber);
 			
 			// La validation entraine le recalcul de la date d'échéance de la facture, on remet celle fournie
 			$facture_loc->date_lim_reglement = $data['date_lim_reglement'];
@@ -842,9 +853,11 @@ class TImport extends TObjetStd {
 	function importLineFactureIntegrale(&$ATMdb, $data, &$TInfosGlobale) {
 		global $user, $db;
 		//pre($data,true);
-		if(empty($TInfosGlobale['integrale'][$data[$this->mapping['search_key']]])) {
-			$facture_loc = new Facture($db);
-			$facture_loc->fetch('',$data[$this->mapping['search_key']]);
+		
+		$facture_loc = new Facture($db);
+		$facture_loc->fetch($TInfosGlobale[$data[$this->mapping['search_key']]]);
+		
+		if(empty($TInfosGlobale['integrale'][$facture_loc->ref])) {
 			$facture_loc->fetchObjectLinked('','dossier');
 			if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
 				//pre($facture_loc, true);
@@ -859,8 +872,8 @@ class TImport extends TObjetStd {
 					return false;
 				}
 				else{
-					$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]] = new TIntegrale();
-					$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]]->loadBy($ATMdb, $data[$this->mapping['search_key']], $this->mapping['search_key']);
+					$TInfosGlobale['integrale'][$facture_loc->ref] = new TIntegrale();
+					$TInfosGlobale['integrale'][$facture_loc->ref]->loadBy($ATMdb, $facture_loc->ref, $this->mapping['search_key']);
 					//$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]]->truc="llll".$data[$this->mapping['search_key']];
 				}
 				
@@ -869,13 +882,13 @@ class TImport extends TObjetStd {
 			}
 
 			//La première fois qu'on charge la facture, on reset les données intégrale
-			$this->resetIntegrale($TInfosGlobale['integrale'][$data[$this->mapping['search_key']]]);
+			$this->resetIntegrale($TInfosGlobale['integrale'][$facture_loc->ref]);
 		}
 		
-		$integrale = &$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]];
+		$integrale = &$TInfosGlobale['integrale'][$facture_loc->ref];
 		//pre($integrale,true);exit("la");
 		
-		$integrale->facnumber = $data[$this->mapping['search_key']];
+		$integrale->facnumber = $facture_loc->ref;
 		
 		//Gère les frais de gestion lié à l'intégrale
 		$this->importILFI_gestion($data,$integrale);
@@ -1831,6 +1844,36 @@ class TImport extends TObjetStd {
 	function _recherche_facture(&$ATMdb, $key, $val, $errorNotFound = false) {
 		global $conf;
 		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'facture',array($key=>$val, 'entity' => $conf->entity));
+		
+		$rowid = 0;
+		$num = count($TRes);
+		if($num == 1) { // Enregistrement trouvé, mise à jour
+			$rowid = $TRes[0];
+		} else if($num > 1) { // Plusieurs trouvés, erreur
+			$this->addError($ATMdb, 'ErrorMultipleFactureFound', $val);
+			return false;
+		} else if($errorNotFound) {
+			$this->addError($ATMdb, 'ErrorFactureNotFound', $val);
+			return false;
+		}
+		
+		return $rowid;
+	}
+	
+	//Nouvelle version de la fonction précédente
+	//Maintenant on recherche une association ref_facture + num_dossier pour gérer la facturation multi-dossiers
+	function _recherche_facture_2(&$ATMdb, $key, $val, $errorNotFound = false) {
+		global $conf;
+		
+		$sql = "SELECT f.rowid
+				FROM ".MAIN_DB_PREFIX."facture as f
+					LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON (ee.fk_target = f.rowid AND targettype = 'facture' AND sourcetype = 'dossier')
+					LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier as d ON (d.rowid = ee.fk_source)
+					LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as df ON (df.fk_fin_dossier = d.rowid)
+				WHERE d.entity = ".$conf->entity."
+					AND df.type = 'CLIENT' AND df.reference = '".$val['reference_dossier_interne']."' AND f.facnumber LIKE '".$val['facnumber']."%'";
+		
+		$TRes = $ATMdb->ExecuteAsArray($sql);
 		
 		$rowid = 0;
 		$num = count($TRes);

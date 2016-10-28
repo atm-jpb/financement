@@ -26,10 +26,15 @@ $ATMdb=new TPDOdb;
 /*
  * Création des factures bon pour facturation
  */
-$TabOui = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'fin_dossier_financement',array('okPourFacturation'=>'OUI', 'date_solde'=>'0000-00-00 00:00:00'));
+/*$TabOui = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'fin_dossier_financement',array('okPourFacturation'=>'OUI', 'date_solde'=>'0000-00-00 00:00:00'));
 $TabAuto = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'fin_dossier_financement',array('okPourFacturation'=>'AUTO', 'date_solde'=>'0000-00-00 00:00:00'));
 $TabManuel = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'fin_dossier_financement',array('okPourFacturation'=>'MANUEL', 'date_solde'=>'0000-00-00 00:00:00'));
-$Tab = array_merge($TabOui, $TabAuto, $TabManuel);
+$Tab = array_merge($TabOui, $TabAuto, $TabManuel);*/
+
+$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'fin_dossier_financement';
+$sql.= " WHERE date_solde < '1970-00-00 00:00:00'";
+$sql.= " AND okPourFacturation IN ('OUI', 'AUTO', 'MANUEL')";
+$Tab = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 
 foreach($Tab as $id) {
 	$f=new TFin_financement;

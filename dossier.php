@@ -325,6 +325,35 @@
 				
 				break;
 			
+			case 'new_facture_client':
+				dol_include_once('/compta/facture/class/facture.class.php');
+				dol_include_once('/product/class/product.class.php');
+				
+				$idDossier = GETPOST('id_dossier');
+				$echeance = GETPOST('echeance');
+				
+				// Maj échéance dossier
+				$dossier = new TFin_dossier();
+				$dossier->load($PDOdb, $idDossier);
+				$fact = $dossier->create_facture_client(false, true, $echeance);
+				
+				if($fact->id){
+					$dossier->financement->setProchaineEcheanceClient($PDOdb, $dossier);
+					$dossier->save($PDOdb);
+					
+					$urlback = dol_buildpath('/compta/facture.php?facid='.$fact->id, 1);
+					header("Location: ".$urlback);
+					exit;
+				}
+				else{
+					setEventMessage('Création facture impossible, dossier incomplet','errors');
+					$urlback = dol_buildpath('/financement/dossier.php?id='.$dossier->rowid, 1);
+					header("Location: ".$urlback);
+					exit;
+				}
+				
+				break;
+			
 			case 'exportListeDossier' :
 				_liste_renta_negative($PDOdb, $dossier);
 			break;
@@ -597,9 +626,9 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 				INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (a.rowid = da.fk_fin_affaire)
 				LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (d.rowid = df.fk_fin_dossier AND df.type = "LEASER")
 				
-			WHERE df.date_solde = "0000-00-00 00:00:00"
+			WHERE df.date_solde < "1970-00-00 00:00:00"
 			AND d.montant_solde = "0.00" 
-			AND d.date_solde = "0000-00-00 00:00:00"
+			AND d.date_solde < "1970-00-00 00:00:00"
 			AND a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')
 			AND d.reference NOT LIKE "%old%"
 			ORDER BY d.rowid
