@@ -47,7 +47,7 @@ Les colonnes sont :
 		LEFT JOIN ".MAIN_DB_PREFIX."societe leaser ON leaser.rowid = f.fk_soc
 		LEFT JOIN ".MAIN_DB_PREFIX."societe client ON client.rowid = a.fk_soc
 		WHERE f.type = 'LEASER'
-		AND a.type_financement IN ('ADOSSEE', 'MANDATEE') AND f.date_solde='0000-00-00'";
+		AND a.type_financement IN ('ADOSSEE', 'MANDATEE') AND f.date_solde < '1970-00-00'";
 		
 	if(!empty($date_debut)) {
 		$sql.=" AND ff.datef BETWEEN STR_TO_DATE(".$date_debut.", '%d/%m/%Y') AND STR_TO_DATE(".$date_fin.", '%d/%m/%Y')   ";

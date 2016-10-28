@@ -626,9 +626,9 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 				INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (a.rowid = da.fk_fin_affaire)
 				LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (d.rowid = df.fk_fin_dossier AND df.type = "LEASER")
 				
-			WHERE df.date_solde = "0000-00-00 00:00:00"
+			WHERE df.date_solde < "1970-00-00 00:00:00"
 			AND d.montant_solde = "0.00" 
-			AND d.date_solde = "0000-00-00 00:00:00"
+			AND d.date_solde < "1970-00-00 00:00:00"
 			AND a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')
 			AND d.reference NOT LIKE "%old%"
 			ORDER BY d.rowid

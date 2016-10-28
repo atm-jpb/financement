@@ -441,7 +441,7 @@ function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb,$date_debut,$date_
 	$sql.= " WHERE fdf.type = 'LEASER'";
 	$sql.= " AND c1.rowid IS NOT NULL";
 	$sql.= " AND c2.rowid IS NOT NULL";
-	$sql.= " AND fdf.date_solde = '0000-00-00 00:00:00'";
+	$sql.= " AND fdf.date_solde < '1970-00-00 00:00:00'";
 	$sql.= " ORDER BY c1.label, c2.label";
 	
 	$ATMdb->Execute($sql);
@@ -668,7 +668,7 @@ function _listeRentabilite(&$ATMdb,$date_debut,$date_fin) {
 				LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (c.rowid = cf.fk_categorie)
 			WHERE fd.nature_financement = 'INTERNE'
 				AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Type de financement')
-				AND fd.date_solde = '0000-00-00 00:00:00'
+				AND fd.date_solde < '1970-00-00 00:00:00'
 			GROUP BY c.rowid";
 	
 	$ATMdb->Execute($sql);
@@ -690,7 +690,7 @@ function _listeRentabilite(&$ATMdb,$date_debut,$date_fin) {
 				LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (c.rowid = cf.fk_categorie)
 			WHERE fd.nature_financement = 'INTERNE'
 				AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Type de financement')
-				AND fd.date_solde != '0000-00-00 00:00:00'
+				AND fd.date_solde > '1970-00-00 00:00:00'
 			GROUP BY c.rowid";
 	
 	$ATMdb->Execute($sql);

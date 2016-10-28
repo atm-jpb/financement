@@ -428,7 +428,7 @@ class TImport extends TObjetStd {
 		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."fin_dossier_financement f ";
 		$sql.= "WHERE f.type = 'LEASER' ";
 		$sql.= "AND f.fk_soc = ".$idLeaser." ";
-		$sql.= "AND f.date_solde = '0000-00-00 00:00:00' ";
+		$sql.= "AND f.date_solde < '1970-00-00 00:00:00' ";
 		echo $sql;
 		
 		$TRes = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
