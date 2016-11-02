@@ -258,9 +258,15 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 					$montant_facture = $d->total_ht;
 				}
 				
+				// Si on est sur la facture intercalaire, on compare avec le loyer intercalaire prévu
+				$intercalaireOK = false;
+				if($p === 0 && $montant_facture >= $dossier->financement->loyer_intercalaire) {
+					$intercalaireOK = true;
+				}
+				
 				// Comparaison au loyer leaser
 				// Si règle 2 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
-				if($montant_facture < $total_echeances) {
+				if($montant_facture < $total_echeances && !$intercalaireOK) {
 					$renta_neg = true;
 				} else {
 					echo 'Dossier '.$dossier->financement->reference.', période '.($p+1).' respecte la règle 2, case "Visa renta facture < loyer leaser" cochée automatiquement.<br>';
