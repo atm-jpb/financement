@@ -260,7 +260,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 				
 				// Si on est sur la facture intercalaire, on compare avec le loyer intercalaire prévu
 				$intercalaireOK = false;
-				if($p === 0 && $montant_facture >= $dossier->financement->loyer_intercalaire) {
+				if($p == -1 && $montant_facture >= $dossier->financement->loyer_intercalaire) {
 					$intercalaireOK = true;
 				}
 				
@@ -346,7 +346,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 				
 				// Si on est sur la facture intercalaire, on compare avec le loyer intercalaire prévu
 				$intercalaireOK = false;
-				if($p === 0 && $montant_facture >= $dossier->financement->loyer_intercalaire) {
+				if($p == -1 && $montant_facture >= $dossier->financement->loyer_intercalaire) {
 					$intercalaireOK = true;
 				}
 				
