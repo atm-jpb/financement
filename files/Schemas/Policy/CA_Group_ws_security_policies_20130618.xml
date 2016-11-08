@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<policies xmlns:wsp="http://www.w3.org/ns/ws-policy"
+	xmlns:sp="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702"
+	xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+	targetNamespace="http://referentiel.ca.fr/Services/CA_Group_ws_security_policies"
+	xmlns:tns="http://referentiel.ca.fr/Services/CA_Group_ws_security_policies">
+	<wsp:Policy wsu:Id="CA_Group_ws_security_policy_common_v1">
+		<wsp:ExactlyOne>
+			<wsp:All>
+				<sp:AsymmetricBinding>
+					<wsp:Policy>
+						<sp:InitiatorToken>
+							<wsp:Policy>
+								<sp:X509Token
+									sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/Always">
+									<wsp:Policy>
+									</wsp:Policy>
+								</sp:X509Token>
+							</wsp:Policy>
+						</sp:InitiatorToken>
+						<sp:RecipientToken>
+							<wsp:Policy>
+								<sp:X509Token
+									sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/Always">
+									<wsp:Policy>
+									</wsp:Policy>
+								</sp:X509Token>
+							</wsp:Policy>
+						</sp:RecipientToken>
+						<sp:Layout>
+							<wsp:Policy>
+								<sp:Lax/>
+							</wsp:Policy>
+						</sp:Layout>
+						<sp:IncludeTimestamp />
+						<sp:OnlySignEntireHeadersAndBody />
+						<sp:AlgorithmSuite>
+							<wsp:Policy>
+								<sp:Basic256Sha256/>
+							</wsp:Policy>
+						</sp:AlgorithmSuite>
+					</wsp:Policy>
+				</sp:AsymmetricBinding>
+
+				<sp:SignedParts>
+					<sp:Body />
+					<sp:Header Namespace="http://referentiel.ca.fr/SoapHeaderV1" />
+				</sp:SignedParts>
+				
+				<sp:Wss10 xmlns:sp="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy">
+					<wsp:Policy>
+						<sp:MustSupportRefKeyIdentifier/>
+						<sp:MustSupportRefIssuerSerial/>
+					</wsp:Policy>
+				</sp:Wss10>
+				
+			</wsp:All>
+		</wsp:ExactlyOne>
+	</wsp:Policy>
+</policies>

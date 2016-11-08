@@ -44,8 +44,8 @@ NbMoisSoldeBANK=Nombre de mois avant avant application des règles de calcule de
 FINANCEMENT_SHOW_RECETTE_BUTTON=Affiche un bouton dans la colonne "Actions" des suivis leaser pour forcer l'appel au webservice (si l'utilisateur courant est admin et entité 0)
 FINANCEMENT_WEBSERVICE_ACTIVATE=Activer les appels webservice
 FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD=Mode production (si non active les appels ce feront sur les URLs de recette
-FINANCEMENT_WSDL_CALF_RECETTE=URL de <b>recette</b> pour CAL&f
-FINANCEMENT_WSDL_CALF_PROD=URL de <b>production</b> CAL&f
+FINANCEMENT_ENDPOINT_CALF_RECETTE=URL de <b>recette</b> pour CAL&f (endpoint)
+FINANCEMENT_ENDPOINT_CALF_PROD=URL de <b>production</b> CAL&f (endpoint)
 
 
 # SIMULATIONS
