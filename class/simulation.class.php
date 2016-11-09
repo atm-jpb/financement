@@ -439,21 +439,20 @@ class TSimulation extends TObjetStd {
 		
 		$idLeaserDossierSolde = $montantDossierSolde = 0;
 		$TDossierUsed = array_merge(
-			array_keys($this->dossiers_rachetes)
-			,array_keys($this->dossiers_rachetes_nr)
-			,array_keys($this->dossiers_rachetes_p1)
-			,array_keys($this->dossiers_rachetes_nr_p1)
+			$this->dossiers_rachetes
+			,$this->dossiers_rachetes_nr
+			,$this->dossiers_rachetes_p1
+			,$this->dossiers_rachetes_nr_p1
 		);
 		
 		if(count($TDossierUsed)){
-			foreach($TDossierUsed as $k => $id_dossier){
-				$dossier = new TFin_dossier;
-				$dossier->load($PDOdb, $id_dossier);
-				//pre($dossier,true);
-				//Si plusieurs dossiers soldé dans la simulation alors on prends le Leaser de celui ayant le plus gros montant
-				if($dossier->montant > $montantDossierSolde){
+			foreach($TDossierUsed as $id_dossier => $data){
+				if(empty($data['checked'])) continue;
+				if($data['montant'] > $montantDossierSolde) {
+					$dossier = new TFin_dossier;
+					$dossier->load($PDOdb, $data['checked']);
 					$idLeaserDossierSolde = $dossier->financementLeaser->fk_soc;
-					$montantDossierSolde = $dossier->montant;
+					$montantDossierSolde = $data['montant'];
 				}
 			}
 		}
