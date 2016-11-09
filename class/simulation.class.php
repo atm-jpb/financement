@@ -221,7 +221,7 @@ class TSimulation extends TObjetStd {
 		
 		$leaser = new Fournisseur($db);
 		$leaser->id = $idLeaserPrio;
-		
+		//echo 'PRIO = '.$idLeaserPrio;
 		// Ajout du leaser prioritaire
 		$simulationSuivi = new TSimulationSuivi;
 		$simulationSuivi->init($PDOdb,$leaser,$this->getId());
@@ -358,9 +358,10 @@ class TSimulation extends TObjetStd {
 		
 		$TFinGrilleSuivi = new TFin_grille_suivi;
 		$grille = $TFinGrilleSuivi->get_grille($PDOdb, $this->fk_type_contrat,false, $this->entity);
-		
+		//pre($grille,true);
 		//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 		$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
+		//echo 'SOLDE = '.$idLeaserDossierSolde;
 		//echo $idLeaserDossierSolde;
 		//Récupération de la catégorie du client : entreprise, administration ou association
 		// suivant sont code NAF
@@ -436,18 +437,23 @@ class TSimulation extends TObjetStd {
 	//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 	function getIdLeaserDossierSolde(&$PDOdb){
 		
-		$idLeaserDossierSolde = $montantDossierSole = 0;
-		$TDossierUsed = $this->get_list_dossier_used();
-		//pre($TDossierUsed,true);
+		$idLeaserDossierSolde = $montantDossierSolde = 0;
+		$TDossierUsed = array_merge(
+			array_keys($this->dossiers_rachetes)
+			,array_keys($this->dossiers_rachetes_nr)
+			,array_keys($this->dossiers_rachetes_p1)
+			,array_keys($this->dossiers_rachetes_nr_p1)
+		);
+		
 		if(count($TDossierUsed)){
 			foreach($TDossierUsed as $k => $id_dossier){
 				$dossier = new TFin_dossier;
 				$dossier->load($PDOdb, $id_dossier);
 				//pre($dossier,true);
 				//Si plusieurs dossiers soldé dans la simulation alors on prends le Leaser de celui ayant le plus gros montant
-				if($dossier->montant > $montantDossierSole){
+				if($dossier->montant > $montantDossierSolde){
 					$idLeaserDossierSolde = $dossier->financementLeaser->fk_soc;
-					$montantDossierSole = $dossier->montant;
+					$montantDossierSolde = $dossier->montant;
 				}
 			}
 		}
