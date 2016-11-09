@@ -462,7 +462,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		}
 		
 		$intercalaire = ($res->loyer_intercalaire > 0) ? 1 : 0;
-		$echu = ($res->terme === 0) ? 1 : 0;
+		$echu = ($res->terme == 0) ? 1 : 0;
 		
 		if(($res->nb_echeances_facturees + $nb_periode_sans_fact) != ($res->numero_prochaine_echeance - 1 + $intercalaire - $echu)) {
 			$renta_neg = true;
