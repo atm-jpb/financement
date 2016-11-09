@@ -428,6 +428,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= " WHERE d.rowid = d2.rowid";
 		$sql.= " AND f.type = 0";
 		$sql.= " AND (f.total + IFNULL(a.total,0)) != 0";
+		$sql.= " AND SUBSTR(f.ref_client,-4) >= 2014";
 		$sql.= ") as nb_echeances_facturees";
 	$sql.= ", $sqlfields";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
