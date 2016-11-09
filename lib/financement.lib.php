@@ -419,7 +419,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	 * 5 - Récupération de tous les dossiers pour lesquels il manque une facture
 	 * ce qui signifie que la règle 5 est à contrôler
 	 ***********************************************************************************************************************************************************/
-	$sql = "SELECT d.rowid, dfcli.numero_prochaine_echeance, dfcli.loyer_intercalaire";
+	$sql = "SELECT d.rowid, dfcli.numero_prochaine_echeance, dfcli.loyer_intercalaire, dfcli.terme";
 		$sql.= ", ( SELECT COUNT(DISTINCT f.ref_client)";
 		$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture a ON (f.rowid = a.fk_facture_source AND a.type = 2)";
