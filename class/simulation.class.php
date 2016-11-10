@@ -515,6 +515,7 @@ class TSimulation extends TObjetStd {
 	 * 			-4	= Pas de grille chargée
 	 */
 	function calcul_financement(&$ATMdb, $idLeaser, $options, $typeCalcul='cpro') {
+		global $conf;
 		/*
 		 * Formule de calcul échéance
 		 * 
@@ -558,7 +559,7 @@ class TSimulation extends TObjetStd {
 			$this->error = 'ErrorMaterielRequired';
 			return false;
 		}
-		else if($this->montant_presta_trim <= 0 && $this->fk_type_contrat == "FORFAITGLOBAL") {
+		else if($this->montant_presta_trim <= 0 && $this->fk_type_contrat == "FORFAITGLOBAL" && !empty($conf->global->FINANCEMENT_MONTANT_PRESTATION_OBLIGATOIRE)) {
 			$this->error = 'ErrorMontantTrimRequired';
 			return false;
 		}
