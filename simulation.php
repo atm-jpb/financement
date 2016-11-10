@@ -272,7 +272,8 @@ if(!empty($action)) {
 		case 'trywebservice':
 			$simulation->load($ATMdb, $db, GETPOST('id'));
 			$id_suivi = GETPOST('id_suivi');
-			if (!empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($user->admin) && $user->entity == 0 && !empty($simulation->getId()) && !empty($id_suivi))
+			$simulation_id = $simulation->getId();
+			if (!empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($user->admin) && $user->entity == 0 && !empty($simulation_id) && !empty($id_suivi))
 			{
 				dol_include_once('/financement/class/service_financement.class.php');
 				$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[$id_suivi]);
