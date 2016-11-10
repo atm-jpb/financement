@@ -31,8 +31,8 @@
         <xsd:element name="PARTENAIRE">
           <xsd:complexType>
             <xsd:sequence>
-              <xsd:element type="xsd:integer" name="SIREN_PARTENAIRE"/>
-			  <xsd:element type="xsd:integer" name="NIC_PARTENAIRE"/>
+              <xsd:element type="xsd:string" name="SIREN_PARTENAIRE"/>
+			  <xsd:element type="xsd:string" name="NIC_PARTENAIRE"/>
 			  <xsd:element type="xsd:string" name="COMMERCIAL_EMAIL"/>
               <xsd:element type="xsd:string" name="REF_EXT"/>
             </xsd:sequence>
@@ -50,8 +50,8 @@
               <xsd:element type="xsd:int" name="QTE_BIEN"/>
               <xsd:element type="xsd:decimal" name="MT_HT_BIEN"/>
 			  <xsd:element type="xsd:string" name="PAYS_DESTINATION_BIEN"/>
-              <xsd:element type="xsd:integer" name="FOURNISSEUR_SIREN"/>
-              <xsd:element type="xsd:integer" name="FOURNISSEUR_NIC"/>
+              <xsd:element type="xsd:string" name="FOURNISSEUR_SIREN"/>
+              <xsd:element type="xsd:string" name="FOURNISSEUR_NIC"/>
             </xsd:sequence>
           </xsd:complexType>
         </xsd:element>
