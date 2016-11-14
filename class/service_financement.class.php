@@ -136,52 +136,37 @@ class ServiceFinancement {
 		/*$cert = file_get_contents('/var/www/client/cpro/crt/TestKM.crt');
 		var_dump($cert);
 		$a = openssl_x509_parse($cert);
-		
 		var_dump($a);
 		exit;*/
 		
 		try {
 			
-			/*$header = array(
-				'local_cert' => dol_buildpath('/financement/crt/calf.crt')
-				//,'soap_version' => SOAP_1_2
-				,'location' => $this->endpoint
-				,'trace'=>1
-				,'cache_wsdl' => WSDL_CACHE_NONE
-				
-			);*/
-			
-			//$soap_header = new SoapHeader($this->endpoint, 'Security', $header);
-			
-			/*var_dump(dol_buildpath('/financement/crt/TestKM.crt'));
-			exit;*/
-			
 			$this->soapClient = new SoapClient($this->wsdl, array(
-				'trace' => 1
+				'exceptions'=>0
+				,'trace' => 1
 				,'cache_wsdl' => WSDL_CACHE_NONE
-				//,'soap_version' => SOAP_1_2
 				,'location' => $this->endpoint
-				,'local_cert' => dol_buildpath('/financement/crt/TestKM.crt')
+				,'soap_version' => SOAP_1_2
+				
+				//,'local_cert' => dol_buildpath('/financement/crt/TestKM.crt')
+				
+				,'encoding' => 'UTF-8'
 				/*,'stream_context' => stream_context_create(array(
 				    'ssl' => array(
 				        'verify_peer' => false,
 				        'allow_self_signed' => true
 				    )
 				))*/
-				,'soap_version' => SOAP_1_2
 			));
-			 
 			
 			/**
+			 * TODO a finaliser
 			 * Déclaration du header
 			 */
 			$string_xml_header = $this->getHeaderLixxbail();
 			$soap_var_header = new SoapVar($string_xml_header, XSD_ANYXML, null, null, null);
 			$soap_header = new SoapHeader($this->endpoint, 'Security', $soap_var_header);
 			$this->soapClient->__setSoapHeaders($soap_header);
-			
-			// Function ("setCredentials") is not a valid method for this service
-			//$this->soapClient->setCredentials('', '', 'certificate', dol_buildpath('/financement/crt/calf.pem')); // couche sécu ???
 			
 			/**
 			 * Déclaration du body + appel
@@ -190,13 +175,17 @@ class ServiceFinancement {
 			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, null, null, null);
 			$response = $this->soapClient->DemandeCreationLeasingGN($soap_var_body);
 			
+			/*
 			var_dump(
 				$response
 				,'@@@@@@@@@@@@@@@@@@@@@@@@@@@' 
-				,$this->soapClient
+				,$this->soapClient->__getLastRequestHeaders()
+				,$this->soapClient->__getLastRequest()
+				,$this->soapClient->__getLastResponse()
 			);
+			echo '<pre>' . htmlspecialchars($this->soapClient->__getLastRequest(), ENT_QUOTES) . '</pre>';
 			exit;
-			
+			*/
 			if ($this->debug)
 			{
 				// on affiche la requete et la reponse
@@ -205,17 +194,17 @@ class ServiceFinancement {
 				echo '<h4>Function</h4>';
 				echo 'call DemandeCreationLeasingGN';
 				echo '<h4>SOAP Message</h4>';
-				echo '<pre>' . htmlspecialchars($this->soapClient->request, ENT_QUOTES) . '</pre>';
+				echo '<pre>' . htmlspecialchars($this->soapClient->__getLastRequest(), ENT_QUOTES) . '</pre>';
 				
 				echo '<hr>';
 				
 				echo "<h2>Response:</h2>";
 				echo '<h4>Result</h4>';
 				echo '<pre>';
-				print_r($this->result);
+				print_r($response);
 				echo '</pre>';
 				echo '<h4>SOAP Message</h4>';
-				echo '<pre>' . htmlspecialchars($this->soapClient->response, ENT_QUOTES) . '</pre>';
+				echo '<pre>' . htmlspecialchars($this->soapClient->__getLastResponse(), ENT_QUOTES) . '</pre>';
 				
 				echo '</body>'."\n";
 				echo '</html>'."\n";
@@ -226,23 +215,26 @@ class ServiceFinancement {
 			
 			return true;
 		} catch (SoapFault $e) {
+			
+			 echo '<b>Caught exception:</b> ',  $e->getMessage(), "\n"; 
+			
 			$trace = $e->getTrace();
-			var_dump('ERROR TRACE 1:');
+			var_dump('ERROR TRACE 1: $trace[0]["args"][0] => ');
 			
 			echo '<pre>' . htmlspecialchars($trace[0]['args'][0], ENT_QUOTES) . '</pre>';
 			
-			var_dump('ERROR TRACE 2:');
+			var_dump('ERROR TRACE 2: $trace[0]["args"][1] => ');
 			var_dump($trace[0]['args'][1]);
 			
 			
-			var_dump('ERROR TRACE 3:');
+			var_dump('ERROR TRACE 3: $trace[0]["args"][1][0]->enc_value => ');
 			echo '<pre>' . htmlspecialchars($trace[0]['args'][1][0]->enc_value, ENT_QUOTES) . '</pre>';
 			
 			
-			var_dump('ERROR TRACE 8:');
+			var_dump('ERROR TRACE 8: $e');
 			var_dump($e);
 			
-			echo ($e->xdebug_message);
+			echo ($e->__toString());
 			exit;
 		}
 	}
@@ -281,7 +273,6 @@ class ServiceFinancement {
 		//<soap1:Calf_Header_GN xmlns:soap1="http://referentiel.ca.fr/SoapHeaderV1" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" correlationId="12345" wsu:Id="id-11"/></soap:Header>
 		$xml = '
 			
-			<soap:Body>
 				<v1:DemandeCreationLeasingGN xmlns:v1="http://referentiel.ca.fr/Services/calf/DemandeCreationLeasingGN/V1/">
 			         <v1:Request>
 			            <v1:PARTENAIRE>
@@ -334,7 +325,6 @@ class ServiceFinancement {
 			            </v1:FINANCEMENT>
 			         </v1:Request>
 				</v1:DemandeCreationLeasingGN>
-			</soap:Body>
 		';
 		
 	/*	
@@ -449,6 +439,11 @@ class ServiceFinancement {
 		</wsse:Security>
 		';
 	//<ds:SignatureValue>MIIDNzCCAh8CBFap/TswDQYJKoZIhvcNAQELBQAwYDELMAkGA1UEBhMCRlIxDzANBgNVBAgMBkZyYW5jZTESMBAGA1UEBwwJTW9udHJvdWdlMQ0wCwYDVQQKDARDQUxGMQwwCgYDVQQLDANEU0kxDzANBgNVBAMMBlRlc3RLTTAeFw0xNjAxMjgxMTM2MjdaFw0xNzAxMjcxMTM2MjdaMGAxCzAJBgNVBAYTAkZSMQ8wDQYDVQQIDAZGcmFuY2UxEjAQBgNVBAcMCU1vbnRyb3VnZTENMAsGA1UECgwEQ0FMRjEMMAoGA1UECwwDRFNJMQ8wDQYDVQQDDAZUZXN0S00wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCjTjAdw4loiKpZpaynp0naI7xs05eF875nRbcgzSJPzCPgIpGjWpqp6B5I2u9lZ0UO/aH3moJTlRBV31JM1ak0z5vGIxBdxhZXme/P5UrAuxXFm0idv7tPo4zpR3SowxxVawWRMYCs2n+PPBgH1nB4pWcEm8+HMhUgGkTriSkiUMsEDVLQIfwxB25R28MbwsD4O3N25nZRLN8cZfRZcsbt5X0nKFvAbd00Xa8Wu5mr2NNm4kK/idFYmoqkLum1TCavHkdHpPr4TjP0uGF+052bgXbcKEn9WHvy+oa3SeXRyQ0v0Cxv9MBgZKH/wiEeZrdl9lVwZco+R8b3qj2VP06zAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAKGfSliI9P28Up9oyPUSNenG4pL4r5QtiiHXrK1VBB8VZwDNDJDJWSp9v8AwKMsvG/7e+tdM/XswL1LeYXOcaf58NioiWxJqEM5nqGs5fKbEVSGcCBT/STUXBL0nqLyARXpHAhsbSiWkmntFNLu1Ui9lQa0v7jva7A2433YoJ25KmtGzEP5edybC4fGFXCUTb2BXTvTFb0v5Z0TnsA5fz2SDmy7q4o+QXOVvEwc0HWmdVmF9e75VRaCdOPvRgihWGKKyUt4UWI+g0wQqBwyi6CkQ5S8PygbZvLo7ANx48Du5z3zPQkwPbw8VQ58DKE7ymXj5gUuHXCDQ06qgABp85BA=</ds:SignatureValue>
+	
+	
+	$header = '
+<env1:Calf_Header_GN xmlns:env1="http://referentiel.ca.fr/SoapHeaderV1" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" correlationId="12345" wsu:Id="id-11"/>
+	';
 	
 		return $header;
 	}
