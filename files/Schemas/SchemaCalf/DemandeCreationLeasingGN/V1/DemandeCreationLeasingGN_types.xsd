@@ -73,7 +73,7 @@
         <xsd:element name="CLIENT">
           <xsd:complexType>
             <xsd:sequence>
-              <xsd:element type="xsd:integer" name="CLIENT_SIREN"/>
+              <xsd:element type="xsd:string" name="CLIENT_SIREN"/>
 			  <xsd:element type="xsd:string" minOccurs="0" name="CLIENT_NIC"/> 
             </xsd:sequence>
           </xsd:complexType>
