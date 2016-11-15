@@ -367,14 +367,31 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		)
 	);
 
-global $user;
+	global $user;
+	
+	// 2016.11.10 MKO : Nouvelles règles : 
+	// - avenant impossible si somme des coûts unitaires détaillés différente du cout unitaire
+	// - avenant impossible si cout unitaire loyer à 0
+	$avenantOK = true;
+	$facIntegral = array_pop($TIntegrale);
+	if(empty($facIntegral->cout_unit_noir_loyer) || (empty($facIntegral->cout_unit_coul_loyer) && !empty($facIntegral->vol_coul_engage))) $avenantOK = false;
+	if($facIntegral->cout_unit_noir !=
+		$facIntegral->cout_unit_noir_loyer
+		+ $facIntegral->cout_unit_noir_mach
+		+ $facIntegral->cout_unit_noir_tech) $avenantOK = false;
+	if($facIntegral->cout_unit_coul !=
+		$facIntegral->cout_unit_coul_loyer
+		+ $facIntegral->cout_unit_coul_mach
+		+ $facIntegral->cout_unit_coul_tech) $avenantOK = false;
 
-	if (!empty($user->rights->financement->admin->write)) {
-		print '<div class="tabsAction">';
+	print '<div class="tabsAction">';
+	if (!empty($user->rights->financement->integrale->create_new_avenant) && $avenantOK) {
 		$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
 		print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale">'.$label.'</a>';
-		print '</div>';
+	} else {
+		echo 'Avenant impossible. Merci de contacter le service financement';
 	}
+	print '</div>';
 }
 
 function _printFormAvenantIntegraleOLD(&$PDOdb, &$dossier, &$TBS) {
