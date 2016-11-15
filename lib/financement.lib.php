@@ -395,6 +395,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	$sql.= $sqljoin;
 	$sql.= " WHERE f.paye = 0";
 	$sql.= " AND f.date_lim_reglement <= '".date('Y-m-d')."'";
+	$sql.= " AND SUBSTR(f.ref_client, -4) >= 2015";
 	$sql.= $sqlwhere;
 	
 	$PDOdb->Execute($sql);
@@ -428,14 +429,14 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= " WHERE d.rowid = d2.rowid";
 		$sql.= " AND f.type = 0";
 		$sql.= " AND (f.total + IFNULL(a.total,0)) != 0";
-		$sql.= " AND SUBSTR(f.ref_client,-4) >= 2014";
+		$sql.= " AND SUBSTR(f.ref_client,-4) >= 2016";
 		$sql.= ") as nb_echeances_facturees";
 	$sql.= ", $sqlfields";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
 	$sql.= $sqljoin;
 	$sql.= " WHERE d.reference NOT LIKE '%adj%'";
 	$sql.= $sqlwhere;
-	
+	//echo $sql;
 	$PDOdb->Execute($sql);
 	$TRes = $PDOdb->Get_All();
 	
@@ -453,7 +454,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		// Calcul du nombre de période écoulées entre le début du dossier et le 01/01/2014, date de début d'intégration des factures dans LeaseBoard
 		$nb_periode_sans_fact = 0;
 		$datedeb = strtotime($res->date_debut);
-		$datelimit = strtotime('2014-01-01');
+		$datelimit = strtotime('2016-01-01');
 		$nbmonth = $TPeriodeType[$res->periodicite];
 		
 		while($datedeb < $datelimit) {
@@ -463,8 +464,8 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		
 		$intercalaire = ($res->loyer_intercalaire > 0) ? 1 : 0;
 		$echu = ($res->terme == 0) ? 1 : 0;
-		
-		if(($res->nb_echeances_facturees + $nb_periode_sans_fact) != ($res->numero_prochaine_echeance - 1 + $intercalaire - $echu)) {
+		//echo $res->nb_echeances_facturees.' + '.$nb_periode_sans_fact.' != '.$res->numero_prochaine_echeance.' + '.$intercalaire.' - '.$echu;
+		if(($res->nb_echeances_facturees + $nb_periode_sans_fact) < ($res->numero_prochaine_echeance - 1 + $intercalaire - $echu)) {
 			$renta_neg = true;
 		}
 		
