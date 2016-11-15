@@ -550,6 +550,10 @@ class TSimulation extends TObjetStd {
 		}
 		else if(empty($this->opt_no_case_to_settle)
 				&& empty($this->montant_rachete)
+				&& empty($this->dossiers_rachetes)
+				&& empty($this->dossiers_rachetes_nr)
+				&& empty($this->dossiers_rachetes_p1)
+				&& empty($this->dossiers_rachetes_nr_p1)
 				&& empty($this->montant_rachete_concurrence)) { // Soit case "aucun dossier à solder", soit choix de dossier, soit saisie d'un montant rachat concurrence
 			$this->error = 'ErrorCaseMandatory';
 			return false;
