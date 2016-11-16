@@ -1633,8 +1633,11 @@ class TFin_dossier extends TObjetStd {
 	
 	//Retourne le volume (noir + couleur) réalisé, le volume noir engagé et le colument couleur engagé sur les 4 dernière échéances du dossier
 	function getSommesIntegrale(&$PDOdb,$copiesup=false){
+		global $conf;
+		
 		$sommeRealise = $sommeNoir = $sommeCouleur = $sommeCopieSupNoir = $sommeCopieSupCouleur = 0;
 		$nbEcheance = count($this->TFacture) - 1 ; //-1 car échéance 1 = 0
+		$nbEcheance = $this->financement->numero_prochaine_echeance - 1;
 		
 		//pre($this->TFacture,true);exit;
 		
@@ -1642,7 +1645,7 @@ class TFin_dossier extends TObjetStd {
 			if($echeance == -1) $nbEcheance -= 1; //supression loyer intercalaire
 			
 			//Somme uniquement sur les 4 dernières échéances
-			if($echeance > ($nbEcheance - FINANCEMENT_NB_TRIM_COPIES_SUP)){
+			if($echeance > ($nbEcheance - $conf->global->FINANCEMENT_NB_TRIM_COPIES_SUP)){
 				//pre($Tfacture,true);exit;
 				if(is_array($Tfacture)){
 					foreach($Tfacture as $k => $facture){

@@ -82,8 +82,8 @@ function display_liste(&$PDOdb, &$TDossiersError) {
 	
 	$TErrorStatus=array(
 		'error_1' => "Echéance Client < Echéance Leaser",
-		'error_2' => "Facture Client < Loyer client",
-		'error_3' => "Facture Client < Facture leaser",
+		'error_2' => "Facture Client < Loyer leaser",
+		'error_3' => "Facture Client < Loyer client",
 		'error_4' => "Facture Client impayée",
 		'error_5' => "Echéance client non facturée"
 	);

@@ -34,6 +34,8 @@ $langs->load("admin");
 $langs->load("errors");
 $langs->load('other');
 
+$form = new Form($db);
+
 $action = GETPOST('action','alpha');
 $ATMdb = new TPDOdb;
 
@@ -255,6 +257,19 @@ print '<input type="hidden" name="action" value="set_FINANCEMENT_SEUIL_SOLDE_CPR
 print '<tr '.$bc[$var].'><td>';
 print $langs->trans("NbMoisSoldeCPRO").'</td>';
 print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH" value="'.$conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH.'" /> mois';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_MONTANT_PRESTATION_OBLIGATOIRE" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("SimulationMontantPrestationObligatoire").'</td>';
+print '<td align="right">';
+print $form->selectyesno("FINANCEMENT_MONTANT_PRESTATION_OBLIGATOIRE",$conf->global->FINANCEMENT_MONTANT_PRESTATION_OBLIGATOIRE,1);
 print '</td><td align="right">';
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
 print "</td></tr>\n";

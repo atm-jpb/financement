@@ -161,6 +161,8 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	$sqlwhere.= " AND d.entity IN (".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
 	$sqlwhere.= " AND d.reference NOT LIKE '%old%' ";
 	$sqlwhere.= " AND d.reference NOT LIKE '%adj%' ";
+	$sqlwhere.= " AND dfcli.date_fin > NOW() ";
+	$sqlwhere.= " AND dflea.echeance > 0 ";
 	if(!empty($id_dossier)) $sqlwhere.= " AND d.rowid = ".$id_dossier;
 	//$sqlwhere.= " LIMIT 1 ";
 	
@@ -258,9 +260,15 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 					$montant_facture = $d->total_ht;
 				}
 				
+				// Si on est sur la facture intercalaire, on compare avec le loyer intercalaire prévu
+				$intercalaireOK = false;
+				if($p == -1 && $montant_facture >= round($dossier->financement->loyer_intercalaire,2)) {
+					$intercalaireOK = true;
+				}
+				
 				// Comparaison au loyer leaser
 				// Si règle 2 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
-				if($montant_facture < $total_echeances) {
+				if($montant_facture < $total_echeances && !$intercalaireOK) {
 					$renta_neg = true;
 				} else {
 					echo 'Dossier '.$dossier->financement->reference.', période '.($p+1).' respecte la règle 2, case "Visa renta facture < loyer leaser" cochée automatiquement.<br>';
@@ -276,7 +284,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 						//echo $d->ref.'<br>';
 					}
 				}
-				echo 'Dossier '.$dossier->financement->reference.', '.$montant_facture.' < '.$total_echeances.'<br>';
+				//echo 'Dossier '.$dossier->financement->reference.', '.$montant_facture.' < '.$total_echeances.'<br>';
 			}
 		}
 	
@@ -338,9 +346,15 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 					$montant_facture = $d->total_ht;
 				}
 				
+				// Si on est sur la facture intercalaire, on compare avec le loyer intercalaire prévu
+				$intercalaireOK = false;
+				if($p == -1 && $montant_facture >= round($dossier->financement->loyer_intercalaire,2)) {
+					$intercalaireOK = true;
+				}
+				
 				// Comparaison au loyer client
 				// Si règle 3 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
-				if($montant_facture < $total_echeances) {
+				if($montant_facture < $total_echeances && !$intercalaireOK) {
 					$renta_neg = true;
 				} else {
 					echo 'Dossier '.$dossier->financement->reference.', période '.($p+1).' respecte la règle 3, case "Visa renta facture < loyer client" cochée automatiquement.<br>';
@@ -381,6 +395,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	$sql.= $sqljoin;
 	$sql.= " WHERE f.paye = 0";
 	$sql.= " AND f.date_lim_reglement <= '".date('Y-m-d')."'";
+	$sql.= " AND SUBSTR(f.ref_client, -4) >= 2015";
 	$sql.= $sqlwhere;
 	
 	$PDOdb->Execute($sql);
@@ -405,7 +420,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	 * 5 - Récupération de tous les dossiers pour lesquels il manque une facture
 	 * ce qui signifie que la règle 5 est à contrôler
 	 ***********************************************************************************************************************************************************/
-	$sql = "SELECT d.rowid, dfcli.numero_prochaine_echeance, dfcli.loyer_intercalaire";
+	$sql = "SELECT d.rowid, dfcli.numero_prochaine_echeance, dfcli.loyer_intercalaire, dfcli.terme";
 		$sql.= ", ( SELECT COUNT(DISTINCT f.ref_client)";
 		$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture a ON (f.rowid = a.fk_facture_source AND a.type = 2)";
@@ -414,13 +429,14 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= " WHERE d.rowid = d2.rowid";
 		$sql.= " AND f.type = 0";
 		$sql.= " AND (f.total + IFNULL(a.total,0)) != 0";
+		$sql.= " AND SUBSTR(f.ref_client,-4) >= 2016";
 		$sql.= ") as nb_echeances_facturees";
 	$sql.= ", $sqlfields";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
 	$sql.= $sqljoin;
 	$sql.= " WHERE d.reference NOT LIKE '%adj%'";
 	$sql.= $sqlwhere;
-	
+	//echo $sql;
 	$PDOdb->Execute($sql);
 	$TRes = $PDOdb->Get_All();
 	
@@ -438,7 +454,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		// Calcul du nombre de période écoulées entre le début du dossier et le 01/01/2014, date de début d'intégration des factures dans LeaseBoard
 		$nb_periode_sans_fact = 0;
 		$datedeb = strtotime($res->date_debut);
-		$datelimit = strtotime('2014-01-01');
+		$datelimit = strtotime('2016-01-01');
 		$nbmonth = $TPeriodeType[$res->periodicite];
 		
 		while($datedeb < $datelimit) {
@@ -447,8 +463,9 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		}
 		
 		$intercalaire = ($res->loyer_intercalaire > 0) ? 1 : 0;
-		
-		if(($res->nb_echeances_facturees + $nb_periode_sans_fact) != ($res->numero_prochaine_echeance - 1 + $intercalaire)) {
+		$echu = ($res->terme == 0) ? 1 : 0;
+		//echo $res->nb_echeances_facturees.' + '.$nb_periode_sans_fact.' != '.$res->numero_prochaine_echeance.' + '.$intercalaire.' - '.$echu;
+		if(($res->nb_echeances_facturees + $nb_periode_sans_fact) < ($res->numero_prochaine_echeance - 1 + $intercalaire - $echu)) {
 			$renta_neg = true;
 		}
 		

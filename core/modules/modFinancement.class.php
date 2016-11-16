@@ -372,6 +372,13 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'integrale';
 		$this->rights[$r][5] = 'see_past_propal';
 		$r++;
+		
+		$this->rights[$r][0] = 210057;
+		$this->rights[$r][1] = 'Suivi intégrale : Pouvoir créer un avenant';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'integrale';
+		$this->rights[$r][5] = 'create_new_avenant';
+		$r++;
 
 
 		// Main menu entries

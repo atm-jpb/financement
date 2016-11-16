@@ -248,7 +248,7 @@ class TSimulation extends TObjetStd {
 		
 		$leaser = new Fournisseur($db);
 		$leaser->id = $idLeaserPrio;
-		
+		//echo 'PRIO = '.$idLeaserPrio;
 		// Ajout du leaser prioritaire
 		$simulationSuivi = new TSimulationSuivi;
 		$simulationSuivi->init($PDOdb,$leaser,$this->getId());
@@ -389,9 +389,10 @@ class TSimulation extends TObjetStd {
 		
 		$TFinGrilleSuivi = new TFin_grille_suivi;
 		$grille = $TFinGrilleSuivi->get_grille($PDOdb, $this->fk_type_contrat,false, $this->entity);
-		
+		//pre($grille,true);
 		//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 		$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
+		//echo 'SOLDE = '.$idLeaserDossierSolde;
 		//echo $idLeaserDossierSolde;
 		//Récupération de la catégorie du client : entreprise, administration ou association
 		// suivant sont code NAF
@@ -467,18 +468,22 @@ class TSimulation extends TObjetStd {
 	//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 	function getIdLeaserDossierSolde(&$PDOdb){
 		
-		$idLeaserDossierSolde = $montantDossierSole = 0;
-		$TDossierUsed = $this->get_list_dossier_used();
-		//pre($TDossierUsed,true);
+		$idLeaserDossierSolde = $montantDossierSolde = 0;
+		$TDossierUsed = array_merge(
+			$this->dossiers_rachetes
+			,$this->dossiers_rachetes_nr
+			,$this->dossiers_rachetes_p1
+			,$this->dossiers_rachetes_nr_p1
+		);
+		
 		if(count($TDossierUsed)){
-			foreach($TDossierUsed as $k => $id_dossier){
-				$dossier = new TFin_dossier;
-				$dossier->load($PDOdb, $id_dossier);
-				//pre($dossier,true);
-				//Si plusieurs dossiers soldé dans la simulation alors on prends le Leaser de celui ayant le plus gros montant
-				if($dossier->montant > $montantDossierSole){
+			foreach($TDossierUsed as $id_dossier => $data){
+				if(empty($data['checked'])) continue;
+				if($data['montant'] > $montantDossierSolde) {
+					$dossier = new TFin_dossier;
+					$dossier->load($PDOdb, $data['checked']);
 					$idLeaserDossierSolde = $dossier->financementLeaser->fk_soc;
-					$montantDossierSole = $dossier->montant;
+					$montantDossierSolde = $data['montant'];
 				}
 			}
 		}
@@ -563,6 +568,7 @@ class TSimulation extends TObjetStd {
 	 * 			-4	= Pas de grille chargée
 	 */
 	function calcul_financement(&$ATMdb, $idLeaser, $options, $typeCalcul='cpro') {
+		global $conf;
 		/*
 		 * Formule de calcul échéance
 		 * 
@@ -596,9 +602,12 @@ class TSimulation extends TObjetStd {
 			return false;
 		}
 		else if(empty($this->opt_no_case_to_settle)
-				&& empty($this->dossiers_rachetes) && empty($this->dossiers_rachetes_nr)
-				&& empty($this->dossiers_rachetes_p1) && empty($this->dossiers_rachetes_nr_p1)
-				&& empty($this->dossiers_rachetes_perso)) { // Dossier obligatoire
+				&& empty($this->montant_rachete)
+				&& empty($this->dossiers_rachetes)
+				&& empty($this->dossiers_rachetes_nr)
+				&& empty($this->dossiers_rachetes_p1)
+				&& empty($this->dossiers_rachetes_nr_p1)
+				&& empty($this->montant_rachete_concurrence)) { // Soit case "aucun dossier à solder", soit choix de dossier, soit saisie d'un montant rachat concurrence
 			$this->error = 'ErrorCaseMandatory';
 			return false;
 		}
@@ -606,7 +615,7 @@ class TSimulation extends TObjetStd {
 			$this->error = 'ErrorMaterielRequired';
 			return false;
 		}
-		else if($this->montant_presta_trim <= 0 && $this->fk_type_contrat == "FORFAITGLOBAL") {
+		else if($this->montant_presta_trim <= 0 && $this->fk_type_contrat == "FORFAITGLOBAL" && !empty($conf->global->FINANCEMENT_MONTANT_PRESTATION_OBLIGATOIRE)) {
 			$this->error = 'ErrorMontantTrimRequired';
 			return false;
 		}
