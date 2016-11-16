@@ -40,10 +40,11 @@ PercentNbTrimCopiesSup=Nombre de trimestre pour calcul copies suplémentaires
 PercentAugCRD=Pourcentage d'augmentation du CRD pour calcul Solde Loc Addosée ou Mandatée
 NbInvoiceUnpaid=Indisponibilité du solde dans la simulation si X factures non payées
 NbDayDossierIndispo=Nombre de jour avant disponibilité d'un dossier dans une simulation s'il est déjà sélectionné dans une simulation antérieure
-NbMoisSoldeCPRO=Nombre de mois avant avant application des règles de calcule des soldes sur échéancier CLIENT
-NbMoisSoldeBANK=Nombre de mois avant avant application des règles de calcule des soldes sur échéancier LEASER
-FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE=Montant maximum pour voir les soldes sur une simulation
-FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY=Paramétrage des préfix par entité (à configurer depuis l'entité maître, format d'exemple : PREFIX1:fk_entity;PREFIX2:fk_entity)
+NbMoisSoldeCPRO=Solde CPRO = montant financé tant que le dossier n'a pas dépassé
+NbMoisSoldeBANK=Solde banque = montant financé tant que le dossier n'a pas dépassé
+NbMoisSoldeNotAvailable=Solde non disponible tant que le dossier n'a pas dépassé
+FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE=Ne pas afficher les soldes pour les dossiers dont le montant est supérieur à
+FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY=Répartition affaires. Ex : "012:3;", les affaires commençant par 012 seront attribuée à l'entité 3
 SimulationMontantPrestationObligatoire=Montant prestation obligatoire sur les simulations
 
 # SIMULATIONS

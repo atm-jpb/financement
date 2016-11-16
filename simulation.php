@@ -1126,10 +1126,24 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		if($dossier->montant >= $min_amount_to_see) $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
 		if($dossier->soldepersodispo == 2) $dossier->display_solde = 0;
 		
-		if ($dossier->nature_financement == 'INTERNE' && $dossier->display_solde != 0) 
-		{
-			$nb_month_passe = ($dossier->financement->duree - $dossier->financement->duree_restante) * $dossier->financement->getiPeriode();
-			if ($nb_month_passe > 0 && $nb_month_passe <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) $dossier->display_solde = 0;
+		/* 
+		 * 2016.11.15 MKO : Règle d'affichage du solde d'un dossier :
+		 *  - Si age < FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH => Montant financé (règle appliquée dans getSolde())
+		 *  - Si age < FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH => Non dispo
+		 *  - Sinon, on affiche le solde
+		 */
+		if($dossier->display_solde != 0) {
+			if ($dossier->nature_financement == 'INTERNE') 
+			{
+				$nb_month_passe = ($dossier->financement->numero_prochaine_echeance - 1) * $dossier->financement->getiPeriode();
+			} else {
+				$nb_month_passe = ($dossier->financementLeaser->numero_prochaine_echeance - 1) * $dossier->financementLeaser->getiPeriode();
+			}
+			
+			if ($nb_month_passe <= $conf->global->FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH
+				&& $nb_month_passe > $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) {
+				$dossier->display_solde = 0;
+			}
 		}
 		
 		//Ne pas laissé disponible un dossier dont la dernière facture client est impayée
