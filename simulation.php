@@ -420,6 +420,7 @@ function _liste(&$ATMdb, &$simulation) {
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
 			,'nbLine'=>'30'
+			,'global'=>'1000'
 		)
 		,'link'=>array(
 			'reference'=>'<a href="?id=@rowid@">@val@</a>'
