@@ -146,6 +146,7 @@ class TImport extends TObjetStd {
 				$this->importLineMateriel($ATMdb, $data);
 				break;
 			case 'facture_materiel':
+				$this->getLeaserList($ATMdb, $TInfosGlobale);
 				$this->importLineFactureMateriel($ATMdb, $data, $TInfosGlobale);
 				break;
 			case 'facture_location':
@@ -547,7 +548,13 @@ class TImport extends TObjetStd {
 		} else {
 			$socid = &$TInfosGlobale['societe'][$data[$this->mapping['search_key_client']]];
 		}
-			
+		
+		// 2016.11.18 MKO : si la facture matériel ne concerne pas un leaser, on ne l'importe pas, ni le contrat
+		if(!in_array($socid, $TInfosGlobale['TIdLeaser'])) {
+			$this->addError($ATMdb, 'ErrorMaterielNonFinance', $data[$this->mapping['search_key']], 'WARNING');
+			return false;
+		}
+		
 		$data['socid'] = $socid;
 		
 		// Construction de l'objet final
@@ -1972,6 +1979,15 @@ class TImport extends TObjetStd {
 				$TCommercialCpro->delete($PDOdb);
 			}
 		}
+	}
+	
+	// 2016.11.18 MKO : Fonction utilisée pour éviter d'importer des factures matériel non adressées à des fournisseur
+	// Il s'agit dans ce cas de facture matériel facturée directement au client et qui correspondent à un contrat sans financement
+	function getLeaserList(&$PDOdb,&$TInfosGlobale) {
+		if(!empty($TInfosGlobale['TIdLeaser'])) return false;
+		
+		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE fournisseur = 1";
+		$TInfosGlobale['TIdLeaser'] = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 	}
 }
 
