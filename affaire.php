@@ -242,6 +242,7 @@ function _liste(&$ATMdb, &$affaire) {
 		'limit'=>array(
 			'page'=>1
 			,'nbLine'=>'30'
+			,'global'=>'1000'
 		)
 		,'link'=>array(
 			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
