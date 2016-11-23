@@ -171,65 +171,6 @@ class ServiceFinancement {
 			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, null, null, null);
 			$response = $this->soapClient->DemandeCreationLeasingGN($soap_var_body);
   
-			var_dump(
-				$response
-				,'@@@@@@@@@@@@@@@@@@@@@@@@@@@' 
-				,"__getLastRequestHeaders :: ".$this->soapClient->__getLastRequestHeaders()
-				,"__getLastRequest :: ".$this->soapClient->__getLastRequest()
-				,"__getLastResponse :: ".$this->soapClient->__getLastResponse()
-			);
-			
-			echo '<b>__getLastRequest print :: </b>';
-			echo '<pre>' . htmlspecialchars($this->soapClient->__getLastRequest(), ENT_QUOTES) . '</pre>';
-			
-			echo '<b>realXML print :: </b>';
-			echo '<pre>' . htmlspecialchars($this->soapClient->realXML, ENT_QUOTES) . '</pre>';
-			
-			exit;
-			/*
-			
-			$this->soapClient = new SoapClient($this->wsdl, array(
-				'exceptions'=>0
-				,'trace' => 1
-				,'cache_wsdl' => WSDL_CACHE_NONE
-				,'location' => $this->endpoint
-				,'soap_version' => SOAP_1_2
-				
-				,'encoding' => 'UTF-8'
-				
-			));
-			*/
-			/**
-			 * TODO a finaliser
-			 * Déclaration du header
-			 */
-			//$string_xml_header = $this->getHeaderLixxbail();
-			
-			/*$string_xml_header = $this->signHeaderLixxbail();
-		
-			$soap_var_header = new SoapVar($string_xml_header, XSD_ANYXML, null, null, null);
-			$soap_header = new SoapHeader($this->endpoint, 'Security', $soap_var_header);
-			$this->soapClient->__setSoapHeaders($soap_header);
-			*/
-			
-			/**
-			 * Déclaration du body + appel
-			 */
-			/*$string_xml_body = $this->getXmlForLixxbail();
-			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, null, null, null);
-			$response = $this->soapClient->DemandeCreationLeasingGN($soap_var_body);
-			*/
-			/*
-			var_dump(
-				$response
-				,'@@@@@@@@@@@@@@@@@@@@@@@@@@@' 
-				,$this->soapClient->__getLastRequestHeaders()
-				,$this->soapClient->__getLastRequest()
-				,$this->soapClient->__getLastResponse()
-			);
-			echo '<pre>' . htmlspecialchars($this->soapClient->__getLastRequest(), ENT_QUOTES) . '</pre>';
-			exit;
-			*/
 			if ($this->debug)
 			{
 				// on affiche la requete et la reponse
