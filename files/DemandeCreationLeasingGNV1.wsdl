@@ -55,7 +55,7 @@
 
 
  		<wsp:PolicyReference
-			URI="./files/Schemas/Policy/CA_Group_ws_security_policies_20130618.xml#CA_Group_ws_security_policy_common_v1" />
+			URI="./Schemas/Policy/CA_Group_ws_security_policies_20130618.xml#CA_Group_ws_security_policy_common_v1" />
  
   	<wsdl:operation name="DemandeCreationLeasingGN">
   		 <wsoap12:operation soapAction="http://referentiel.ca.fr/Services/calf/demandeCreationLeasing/V1/DemandeCreationLeasingGN"/>

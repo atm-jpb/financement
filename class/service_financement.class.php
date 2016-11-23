@@ -1,5 +1,12 @@
 <?php
 
+use RobRichards\XMLSecLibs\XMLSecurityDSig;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
+
+
+use RobRichards\WsePhp\WSSESoap;
+//use RobRichards\XMLSecLibs\XMLSecurityKey;
+
 // This is to make Dolibarr working with Plesk
 set_include_path($_SERVER['DOCUMENT_ROOT'].'/htdocs');
 
@@ -15,6 +22,15 @@ dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/dossier_integrale.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
+
+dol_include_once('/financement/class/xmlseclibs/src/XMLSecEnc.php');
+dol_include_once('/financement/class/xmlseclibs/src/XMLSecurityDSig.php');
+dol_include_once('/financement/class/xmlseclibs/src/XMLSecurityKey.php');
+
+
+dol_include_once('/financement/class/wse-php/WSASoap.php');
+dol_include_once('/financement/class/wse-php/WSSESoap.php');
+dol_include_once('/financement/class/wse-php/WSSESoapServer.php');
 
 class ServiceFinancement {
 	
@@ -115,7 +131,7 @@ class ServiceFinancement {
 	{
 		global $conf,$langs;
 		
-		$this->wsdl = dol_buildpath('/financement/files/DemandeCreationLeasingGNV1.wsdl',2);
+		$this->wsdl = dol_buildpath('/financement/files/DemandeCreationLeasingGNV1.wsdl', 2);
 		
 		// Production ou Test
 		if ($this->production) $this->endpoint = !empty($conf->global->FINANCEMENT_ENDPOINT_CALF_PROD) ? $conf->global->FINANCEMENT_ENDPOINT_CALF_PROD : 'https://archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1';
@@ -124,8 +140,8 @@ class ServiceFinancement {
 		
 		if ($this->debug) var_dump('DEBUG :: Function callLixxbail(): Production = '.json_encode($this->production).' ; WSDL = '.$this->wsdl.' ; endpoint = '.$this->endpoint);
 		
-		$TParam = $this->_getTParamLixxbail(true);
-		if ($this->debug) var_dump('DEBUG :: TParam =v', $TParam);
+		//$TParam = $this->_getTParamLixxbail(true);
+		//if ($this->debug) var_dump('DEBUG :: TParam =v', $TParam);
 		
 		if (!empty($this->TError))
 		{
@@ -133,13 +149,44 @@ class ServiceFinancement {
 			return false;
 		}
 		
-		/*$cert = file_get_contents('/var/www/client/cpro/crt/TestKM.crt');
-		var_dump($cert);
-		$a = openssl_x509_parse($cert);
-		var_dump($a);
-		exit;*/
 		
+		$options = array(
+			'exceptions'=>0
+			,'trace' => 1
+			,'location' =>  $this->endpoint
+		  	,'soap_version' => SOAP_1_2
+		  	//,'local_cert' => dol_buildpath('/financement/crt/CALF/cert.pem')
+		  	,'connection_timeout' => 20
+		  	,'cache_wsdl' => WSDL_CACHE_NONE
+		  	,'user_agent' => 'MySoapClient'
+		  	
+		); 
+			
+			
 		try {
+			$this->soapClient = new MySoapClient($this->wsdl, $options);
+			
+			//$response = $this->soapClient->DemandeCreationLeasingGN($TParam);
+			$string_xml_body = $this->getXmlForLixxbail();
+			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, null, null, null);
+			$response = $this->soapClient->DemandeCreationLeasingGN($soap_var_body);
+  
+			var_dump(
+				$response
+				,'@@@@@@@@@@@@@@@@@@@@@@@@@@@' 
+				,"__getLastRequestHeaders :: ".$this->soapClient->__getLastRequestHeaders()
+				,"__getLastRequest :: ".$this->soapClient->__getLastRequest()
+				,"__getLastResponse :: ".$this->soapClient->__getLastResponse()
+			);
+			
+			echo '<b>__getLastRequest print :: </b>';
+			echo '<pre>' . htmlspecialchars($this->soapClient->__getLastRequest(), ENT_QUOTES) . '</pre>';
+			
+			echo '<b>realXML print :: </b>';
+			echo '<pre>' . htmlspecialchars($this->soapClient->realXML, ENT_QUOTES) . '</pre>';
+			
+			exit;
+			/*
 			
 			$this->soapClient = new SoapClient($this->wsdl, array(
 				'exceptions'=>0
@@ -148,33 +195,30 @@ class ServiceFinancement {
 				,'location' => $this->endpoint
 				,'soap_version' => SOAP_1_2
 				
-				//,'local_cert' => dol_buildpath('/financement/crt/TestKM.crt')
-				
 				,'encoding' => 'UTF-8'
-				/*,'stream_context' => stream_context_create(array(
-				    'ssl' => array(
-				        'verify_peer' => false,
-				        'allow_self_signed' => true
-				    )
-				))*/
+				
 			));
-			
+			*/
 			/**
 			 * TODO a finaliser
 			 * Déclaration du header
 			 */
-			$string_xml_header = $this->getHeaderLixxbail();
+			//$string_xml_header = $this->getHeaderLixxbail();
+			
+			/*$string_xml_header = $this->signHeaderLixxbail();
+		
 			$soap_var_header = new SoapVar($string_xml_header, XSD_ANYXML, null, null, null);
 			$soap_header = new SoapHeader($this->endpoint, 'Security', $soap_var_header);
 			$this->soapClient->__setSoapHeaders($soap_header);
+			*/
 			
 			/**
 			 * Déclaration du body + appel
 			 */
-			$string_xml_body = $this->getXmlForLixxbail();
+			/*$string_xml_body = $this->getXmlForLixxbail();
 			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, null, null, null);
 			$response = $this->soapClient->DemandeCreationLeasingGN($soap_var_body);
-			
+			*/
 			/*
 			var_dump(
 				$response
@@ -427,25 +471,172 @@ class ServiceFinancement {
 
 	private function getHeaderLixxbail()
 	{
-		$header = '
+/*		$header = '
 		<wsse:Security>
 			<wsu:Timestamp wsu:Id="TS-55">
 				<wsu:Created>'.$this->iso_8601_utc_time(3).'</wsu:Created>
 				<wsu:Expires>'.$this->iso_8601_utc_time(3, 240).'</wsu:Expires>
 			</wsu:Timestamp>
 			<ds:Signature Id="SIG-15">
-				<ds:SignatureValue></ds:SignatureValue>
+				<ds:SignatureValue>MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCjTjAdw4loiKpZpaynp0naI7xs05eF875nRbcgzSJPzCPgIpGjWpqp6B5I2u9lZ0UO/aH3moJTlRBV31JM1ak0z5vGIxBdxhZXme/P5UrAuxXFm0idv7tPo4zpR3SowxxVawWRMYCs2n+PPBgH1nB4pWcEm8+HMhUgGkTriSkiUMsEDVLQIfwxB25R28MbwsD4O3N25nZRLN8cZfRZcsbt5X0nKFvAbd00Xa8Wu5mr2NNm4kK/idFYmoqkLum1TCavHkdHpPr4TjP0uGF+052bgXbcKEn9WHvy+oa3SeXRyQ0v0Cxv9MBgZKH/wiEeZrdl9lVwZco+R8b3qj2VP06zAgMBAAECggEAZ9se0J79cUSRCehKUGkcl6VofNFoKOFlsunsV+j9rEAIhM+XTYsel3WuZOkPnK67hZgZ/Iz/20YOmH4pKgIr1RE/YRgFnY2PwfB9Sfrpun6AjyZ9XQ2Fg1VhFS7Da1yCVXR1muwfiE6BF0fBhKKE7sVKKe0pYzKfqsXqFN0rEs3FBQ+uBg6I2uw4PrjT/7vZelAAxrBrqxCCjncoXvzN7FUZIBjOxOTd+G4sClFxzx3CZNvAdWFwy+b5D0d92T9AxWYO5/L8Hyd2Q3ruYWaG6pla8J7ERCX87e6tKB/dea9hS6JOcYyJMbQgafDM96aoykIg6+N9WoIbdMWQ199fWQKBgQDzHZLM2r4AG9QI4NhYycltKxrK4VOALnQq8NK9W2q6/o87Img378JiQ4hPsnTDAcQgQQws78tFeClxx0Okon9oVXKFjaR7Sq0hWezwZnuzTWw/pthwNcLjfZ3mUIgUBDG5mb8xZYdLliou7SasyleQrQ1v9NGK27l02ffbYn5e3wKBgQCr9c4hUHtZoBylA24jLyR+SSdYyXSz8Dgpm9/TxtlXjn43UuXfRSu8aI/p9/ZmVSyKZZKizfH+AjaB0BjOoqYog442AqPbFEYUb3XdFbvKlHIvwgf2mvwCgoVS+WnyIEJ3W7GH2FHcaDcuXzk3h794396/mP9j7MIi7SYcXXcOrQKBgEPYP+xdKuK64Vws6xM0FLsbaVmuse+2hwKovBbN2SYf/fahrnXVuehUMkkTYxQ8fPAHVw9/R7m2Q9KVqiHamzWRiukMUxd5CoGhJ8cawnCSLaBBvmrqBd4YYyUv2hnD5eCGsF1nmO8WE+WOltlnijI8qOBScNuQX9vlLA8UGHH/AoGASk952XmvJGcFmeWmlbvMmGpCf6LnNM8tZgW/LwRybdzc/EltnxOEN/IzptcJ+uT5z4DfYk1/MtZ/+Y8U+U7eYQmgzgRMDONw+WnFVFoNAhkuUycVS+Nj3i3LMbUorIJ2VqAgUuUPUyESH4706eNWwgR0fPW//82Tg4ZZ/s4BIi0CgYEAh2mPTUvcHPKqpXsGoAf9+v8o2CKwork5yO051N6R3bDl+2cetESfJ3sOvDRB6o0Wm2/Wzw3hJF2/rB9ZIm3Xk/j841sniTt9A0sX92p8oIw357AmA6j5vrtZTI+4PHq/MkQE8TBeRmY02ua/JO/Wq3vWsbeCK/Cd+HQqy5UK+/Q=</ds:SignatureValue>
 			</ds:Signature>
 		</wsse:Security>
-		';
+		';*/
 	//<ds:SignatureValue>MIIDNzCCAh8CBFap/TswDQYJKoZIhvcNAQELBQAwYDELMAkGA1UEBhMCRlIxDzANBgNVBAgMBkZyYW5jZTESMBAGA1UEBwwJTW9udHJvdWdlMQ0wCwYDVQQKDARDQUxGMQwwCgYDVQQLDANEU0kxDzANBgNVBAMMBlRlc3RLTTAeFw0xNjAxMjgxMTM2MjdaFw0xNzAxMjcxMTM2MjdaMGAxCzAJBgNVBAYTAkZSMQ8wDQYDVQQIDAZGcmFuY2UxEjAQBgNVBAcMCU1vbnRyb3VnZTENMAsGA1UECgwEQ0FMRjEMMAoGA1UECwwDRFNJMQ8wDQYDVQQDDAZUZXN0S00wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCjTjAdw4loiKpZpaynp0naI7xs05eF875nRbcgzSJPzCPgIpGjWpqp6B5I2u9lZ0UO/aH3moJTlRBV31JM1ak0z5vGIxBdxhZXme/P5UrAuxXFm0idv7tPo4zpR3SowxxVawWRMYCs2n+PPBgH1nB4pWcEm8+HMhUgGkTriSkiUMsEDVLQIfwxB25R28MbwsD4O3N25nZRLN8cZfRZcsbt5X0nKFvAbd00Xa8Wu5mr2NNm4kK/idFYmoqkLum1TCavHkdHpPr4TjP0uGF+052bgXbcKEn9WHvy+oa3SeXRyQ0v0Cxv9MBgZKH/wiEeZrdl9lVwZco+R8b3qj2VP06zAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAKGfSliI9P28Up9oyPUSNenG4pL4r5QtiiHXrK1VBB8VZwDNDJDJWSp9v8AwKMsvG/7e+tdM/XswL1LeYXOcaf58NioiWxJqEM5nqGs5fKbEVSGcCBT/STUXBL0nqLyARXpHAhsbSiWkmntFNLu1Ui9lQa0v7jva7A2433YoJ25KmtGzEP5edybC4fGFXCUTb2BXTvTFb0v5Z0TnsA5fz2SDmy7q4o+QXOVvEwc0HWmdVmF9e75VRaCdOPvRgihWGKKyUt4UWI+g0wQqBwyi6CkQ5S8PygbZvLo7ANx48Du5z3zPQkwPbw8VQ58DKE7ymXj5gUuHXCDQ06qgABp85BA=</ds:SignatureValue>
-	
-	
 	$header = '
-<env1:Calf_Header_GN xmlns:env1="http://referentiel.ca.fr/SoapHeaderV1" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" correlationId="12345" wsu:Id="id-11"/>
+		<wsse:Security>
+			<wsu:Timestamp wsu:Id="TS-55">
+				<wsu:Created>'.$this->iso_8601_utc_time(3).'</wsu:Created>
+				<wsu:Expires>'.$this->iso_8601_utc_time(3, 7200).'</wsu:Expires>
+			</wsu:Timestamp>
+			
+		</wsse:Security>
 	';
 	
+//	$header = '<env1:Calf_Header_GN xmlns:env1="http://referentiel.ca.fr/SoapHeaderV1" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" correlationId="12345" wsu:Id="id-11"/>';
+
+	$header = <<<EOT
+	<wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+	<wsse:BinarySecurityToken EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary" ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3" wsu:Id="X509-AD489CB5D4E5C55BA6147921413300895">MIIDNzCCAh8CBFap/TswDQYJKoZIhvcNAQELBQAwYDELMAkGA1UEBhMCRlIxDzANBgNVBAgMBkZyYW5jZTESMBAGA1UEBwwJTW9udHJvdWdlMQ0wCwYDVQQKDARDQUxGMQwwCgYDVQQLDANEU0kxDzANBgNVBAMMBlRlc3RLTTAeFw0xNjAxMjgxMTM2MjdaFw0xNzAxMjcxMTM2MjdaMGAxCzAJBgNVBAYTAkZSMQ8wDQYDVQQIDAZGcmFuY2UxEjAQBgNVBAcMCU1vbnRyb3VnZTENMAsGA1UECgwEQ0FMRjEMMAoGA1UECwwDRFNJMQ8wDQYDVQQDDAZUZXN0S00wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCjTjAdw4loiKpZpaynp0naI7xs05eF875nRbcgzSJPzCPgIpGjWpqp6B5I2u9lZ0UO/aH3moJTlRBV31JM1ak0z5vGIxBdxhZXme/P5UrAuxXFm0idv7tPo4zpR3SowxxVawWRMYCs2n+PPBgH1nB4pWcEm8+HMhUgGkTriSkiUMsEDVLQIfwxB25R28MbwsD4O3N25nZRLN8cZfRZcsbt5X0nKFvAbd00Xa8Wu5mr2NNm4kK/idFYmoqkLum1TCavHkdHpPr4TjP0uGF+052bgXbcKEn9WHvy+oa3SeXRyQ0v0Cxv9MBgZKH/wiEeZrdl9lVwZco+R8b3qj2VP06zAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAKGfSliI9P28Up9oyPUSNenG4pL4r5QtiiHXrK1VBB8VZwDNDJDJWSp9v8AwKMsvG/7e+tdM/XswL1LeYXOcaf58NioiWxJqEM5nqGs5fKbEVSGcCBT/STUXBL0nqLyARXpHAhsbSiWkmntFNLu1Ui9lQa0v7jva7A2433YoJ25KmtGzEP5edybC4fGFXCUTb2BXTvTFb0v5Z0TnsA5fz2SDmy7q4o+QXOVvEwc0HWmdVmF9e75VRaCdOPvRgihWGKKyUt4UWI+g0wQqBwyi6CkQ5S8PygbZvLo7ANx48Du5z3zPQkwPbw8VQ58DKE7ymXj5gUuHXCDQ06qgABp85BA=</wsse:BinarySecurityToken><ds:Signature Id="SIG-AD489CB5D4E5C55BA6147921413300899" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"><ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><ec:InclusiveNamespaces PrefixList="soap" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#"/></ds:CanonicalizationMethod><ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/><ds:Reference URI="#TS-AD489CB5D4E5C55BA6147921413300694"><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><ec:InclusiveNamespaces PrefixList="wsse soap" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#"/></ds:Transform></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/><ds:DigestValue>iM1PD7B7Wi7ASg1jdX405WY/IN7G6RVi8RUjQPekpcw=</ds:DigestValue></ds:Reference><ds:Reference URI="#id-AD489CB5D4E5C55BA6147921413300898"><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><ec:InclusiveNamespaces PrefixList="" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#"/></ds:Transform></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/><ds:DigestValue>++dWWyPjTH1k3sU6Qz7M0DgOUOkop4OPDKGjwWJd854=</ds:DigestValue></ds:Reference><ds:Reference URI="#id-11"><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><ec:InclusiveNamespaces PrefixList="soap" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#"/></ds:Transform></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/><ds:DigestValue>0oeYiDU20NlsVR5Apm6LI1LtEHfjOswsninoKnoxZ6E=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue>ddYygnEqiaVgKAt4B0NHSvbnRWpwORpWdm74EEPWkz/1q7JmHUOyERBBPcZ3oROuo5C7OhEVOBsy
+Ywo0est1MGETNfcPxCnwNJH9rI3Ydy8Eu/6HdP8POS5fB5efsGVmnsoLZbHqLLKa4dGY8CTI6TAR
+PhNvvLj/5PyHVpz/DBFHa47elrWT0ChypVf++GBiqZLLsyxPklD5Yyw4vuRKQMy6Q4iNzyZwXFrE
+CQt0TUoni6vvGucaJb3VdyMnW4X/cs9XVOqKklXbahoH/+vwRlx/UjrpIDwkVhe/s3TXtOeBqFOg
+W3qQqjU4uVVTMYowOouAGyNLym3jMvjtpFzBfQ==</ds:SignatureValue>
+
+	<ds:KeyInfo Id="KI-AD489CB5D4E5C55BA6147921413300896">
+		<wsse:SecurityTokenReference wsu:Id="STR-AD489CB5D4E5C55BA6147921413300897">
+			<wsse:Reference URI="#X509-AD489CB5D4E5C55BA6147921413300895" ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3"/>
+		</wsse:SecurityTokenReference>
+	</ds:KeyInfo>
+</ds:Signature>
+
+<wsu:Timestamp wsu:Id="TS-AD489CB5D4E5C55BA6147921413300694">
+	<wsu:Created>2016-11-15T12:48:53.006Z</wsu:Created>
+	<wsu:Expires>2016-11-15T21:08:53.006Z</wsu:Expires>
+</wsu:Timestamp>
+
+</wsse:Security>
+
+<soap1:Calf_Header_GN correlationId="12345" wsu:Id="id-11" xmlns:soap1="http://referentiel.ca.fr/SoapHeaderV1" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"/>
+EOT;
+	
+	
 		return $header;
+	}
+	
+	private function signHeaderLixxbail()
+	{
+		$timestamp_id = 'id-'.rand(10,30);
+		/*
+		 * Balises devant avoir un id (à voir si obligatoire)
+		 *  - Timestamp
+		 *  - Body
+		 *  - calf Header GN
+		 * 
+		 * Attention au <BinarySecurityToken> balise non présente
+		 * <wsse:BinarySecurityToken EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary" ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3" wsu:Id="X509-AD489CB5D4E5C55BA6147921413300895">MIIDNzCCAh8CBFap/TswDQYJKoZIhvcNAQELBQAwYDELMAkGA1UEBhMCRlIxDzANBgNVBAgMBkZyYW5jZTESMBAGA1UEBwwJTW9udHJvdWdlMQ0wCwYDVQQKDARDQUxGMQwwCgYDVQQLDANEU0kxDzANBgNVBAMMBlRlc3RLTTAeFw0xNjAxMjgxMTM2MjdaFw0xNzAxMjcxMTM2MjdaMGAxCzAJBgNVBAYTAkZSMQ8wDQYDVQQIDAZGcmFuY2UxEjAQBgNVBAcMCU1vbnRyb3VnZTENMAsGA1UECgwEQ0FMRjEMMAoGA1UECwwDRFNJMQ8wDQYDVQQDDAZUZXN0S00wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCjTjAdw4loiKpZpaynp0naI7xs05eF875nRbcgzSJPzCPgIpGjWpqp6B5I2u9lZ0UO/aH3moJTlRBV31JM1ak0z5vGIxBdxhZXme/P5UrAuxXFm0idv7tPo4zpR3SowxxVawWRMYCs2n+PPBgH1nB4pWcEm8+HMhUgGkTriSkiUMsEDVLQIfwxB25R28MbwsD4O3N25nZRLN8cZfRZcsbt5X0nKFvAbd00Xa8Wu5mr2NNm4kK/idFYmoqkLum1TCavHkdHpPr4TjP0uGF+052bgXbcKEn9WHvy+oa3SeXRyQ0v0Cxv9MBgZKH/wiEeZrdl9lVwZco+R8b3qj2VP06zAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAKGfSliI9P28Up9oyPUSNenG4pL4r5QtiiHXrK1VBB8VZwDNDJDJWSp9v8AwKMsvG/7e+tdM/XswL1LeYXOcaf58NioiWxJqEM5nqGs5fKbEVSGcCBT/STUXBL0nqLyARXpHAhsbSiWkmntFNLu1Ui9lQa0v7jva7A2433YoJ25KmtGzEP5edybC4fGFXCUTb2BXTvTFb0v5Z0TnsA5fz2SDmy7q4o+QXOVvEwc0HWmdVmF9e75VRaCdOPvRgihWGKKyUt4UWI+g0wQqBwyi6CkQ5S8PygbZvLo7ANx48Du5z3zPQkwPbw8VQ58DKE7ymXj5gUuHXCDQ06qgABp85BA=</wsse:BinarySecurityToken>
+		 * 
+		 * La balise <ds:KeyInfo> doit contenir (la URI de Reference pointe vers l'id de <BinarySecurityToken>):
+		 * 	<wsse:SecurityTokenReference wsu:Id="STR-AD489CB5D4E5C55BA6147921413300897">
+				<wsse:Reference URI="#X509-AD489CB5D4E5C55BA6147921413300895" ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3"/>
+			</wsse:SecurityTokenReference>
+		 * 
+		 */
+		
+		// Load the XML to be signed
+		$doc = new DOMDocument(1.0, 'utf-8' );
+		$node = $doc->createElement('wsse:Security');
+		//$node = $doc->createElementNS('wsse',  'wsse:Security');
+		$node->setAttribute('xmlns:wsse', 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd');
+		$node->setAttribute('xmlns:wsu', 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd');
+		$security = $doc->appendChild($node);
+		
+		
+		$timestamp = $doc->createElement('wsu:Timestamp');
+		$timestamp->setAttribute('wsu:Id', $timestamp_id);
+		$security->appendChild($timestamp);
+		
+		
+		$created = $doc->createElement('wsu:Created');
+		$created->nodeValue = $this->iso_8601_utc_time(3);
+		$timestamp->appendChild($created);
+		
+		
+		$expires = $doc->createElement('wsu:Expires');
+		$expires->nodeValue = $this->iso_8601_utc_time(3, 7200);
+		$timestamp->appendChild($expires);
+		
+		
+		/*
+		var_dump($doc->saveXML(), $doc->documentElement);
+		exit;
+		*/
+		
+		new WSSESoap($doc);
+		exit;
+		
+		$options = array('force_uri' => $timestamp_id);
+		
+		//$doc->loadXML($xml_to_sign);
+
+		// Create a new Security object 
+		$objDSig = new XMLSecurityDSig();
+		// Use the c14n exclusive canonicalization
+		$objDSig->setCanonicalMethod(XMLSecurityDSig::EXC_C14N);
+		// Sign using SHA-256
+		$objDSig->addReference(
+		    $doc, 
+		    XMLSecurityDSig::SHA256, 
+		   // array('http://www.w3.org/2000/09/xmldsig#enveloped-signature')
+		   array('http://www.w3.org/2001/10/xml-exc-c14n#')
+		   ,$options
+		);
+		
+		// Create a new (private) Security key
+		$objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, array('type'=>'private'));
+		// Load the private key
+		$objKey->loadKey(dol_buildpath('/financement/crt/CALF/key.pem'), TRUE);
+		/* 
+		If key has a passphrase, set it using 
+		$objKey->passphrase = '<passphrase>';
+		*/
+		
+		// Sign the XML file
+		$objDSig->sign($objKey);
+		
+		// Add the associated public key to the signature
+		//$objDSig->add509Cert(file_get_contents(dol_buildpath('/financement/crt/CALF/cert.pem')));
+		
+		
+		// Append the signature to the XML
+		$objDSig->appendSignature($doc->documentElement);
+		
+		
+		// Save the signed XML
+		//$xml = $doc->saveXML();
+		
+		// PHP DomDocument output without <?xml version=“1.0” encoding=“UTF-8” => http://stackoverflow.com/questions/5706086/php-domdocument-output-without-xml-version-1-0-encoding-utf-8
+		$xml = '';
+		foreach ($doc->childNodes as $node) {
+		   $xml .=  $doc->saveXML($node).PHP_EOL;
+		}
+
+
+		$xml .= '
+			<ds:KeyInfo Id="KI-AD489CB5D4E5C55BA6147921413300896">
+				<wsse:SecurityTokenReference wsu:Id="STR-AD489CB5D4E5C55BA6147921413300897">
+					<wsse:Reference URI="#X509-AD489CB5D4E5C55BA6147921413300895" ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3"/>
+				</wsse:SecurityTokenReference>
+			</ds:KeyInfo>
+		';
+
+	/*echo '<pre>' . htmlspecialchars($xml, ENT_QUOTES) . '</pre>';
+		exit;*/
+
+		
+		$xml .= '<env1:Calf_Header_GN xmlns:env1="http://referentiel.ca.fr/SoapHeaderV1" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" correlationId="12345" wsu:Id="id-11"/>';
+
+		return $xml;
 	}
 	
 	public function getIdModeRglt($opt_mode_reglement)
@@ -691,7 +882,7 @@ class ServiceFinancement {
 		//var_dump(substr($mysoc->idprof2, -5, 5), $mysoc->idprof2, $aa);exit;
 		if ($as_array)
 		{
-			$TParam = array(0 => array('Request' => array(
+			$TParam = array('Request' => array(
 				'PARTENAIRE' => array( // 1..1
 						'SIREN_PARTENAIRE' => $mysoc->idprof1 // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 9 *
 						,'NIC_PARTENAIRE' => substr($mysoc->idprof2, -5, 5) // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 5 *
@@ -750,7 +941,7 @@ class ServiceFinancement {
 						,'NATURE_FINANCEMENT' => 'STD' // NO - Voir si saisie par CPro
 						,'DATE_DEMANDE_FINANCEMENT' => date('Y-m-d').'T'.date('H:i:s') // format YYYY-MM-DDThh:mm:ss *
 				)
-			)));
+			));
 			//var_dump($TParam[0]['Request']['BIEN']);exit;
 			
 			return $TParam;
@@ -908,3 +1099,44 @@ class ServiceFinancement {
 	}
 
 } // End Class
+
+
+class MySoapClient extends SoapClient
+{
+	function __doRequest($request, $location, $saction, $version)
+	{		
+		$doc = new DOMDocument('1.0');
+		$doc->loadXML($request);
+		
+		$objWSSE = new WSSESoap($doc);
+		
+		/* timestamp expires after five minutes */
+		$objWSSE->addTimestamp(4000);
+		
+		/* create key object, set passphrase and load key */
+		$objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, array('type'=>'private'));
+		//$objKey->passphrase = 'My password.';
+		$objKey->loadKey(dol_buildpath('/financement/crt/CALF/key.pem'), TRUE);
+	
+		/* sign message */
+		$options = array('algorithm' => 'http://www.w3.org/2001/04/xmlenc#sha256');
+		$objWSSE->signAllHeaders = true; // Obligatoire car j'ajoute la balise "Calf_Header_GN" dans l'objet via ma méthode privée "locateSecurityHeader", du coup la librairie n'est pas utilisable pour les autres
+		$objWSSE->signSoapDoc($objKey, $options);
+		
+		/* add certificate */
+		$token = $objWSSE->addBinaryToken(file_get_contents(dol_buildpath('/financement/crt/CALF/cert.pem')));
+		$objWSSE->attachTokentoSig($token);
+		
+		// this DOES print the header
+		// echo $objWSSE->saveXML();
+		
+		/*echo '<pre>' . htmlspecialchars($objWSSE->saveXML(), ENT_QUOTES) . '</pre>';
+		exit;*/
+		
+		$this->realXML = $objWSSE->saveXML();
+		$this->realXML = str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $this->realXML);
+		
+		
+		return parent::__doRequest($this->realXML, $location, $saction, $version);
+	}
+} 
