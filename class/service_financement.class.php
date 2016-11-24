@@ -191,6 +191,17 @@ class ServiceFinancement {
 				echo '<h4>SOAP Message</h4>';
 				echo '<pre>' . htmlspecialchars($this->soapClient->__getLastResponse(), ENT_QUOTES) . '</pre>';
 				
+				echo '<hr>';
+				
+				echo '<br />';
+				echo "<h2>Request realXML:</h2>";
+				echo '<h4>Function</h4>';
+				echo 'call DemandeCreationLeasingGN';
+				echo '<h4>SOAP Message</h4>';
+				echo '<pre>' . htmlspecialchars($this->soapClient->realXML, ENT_QUOTES) . '</pre>';
+				
+				
+				
 				echo '</body>'."\n";
 				echo '</html>'."\n";
 				exit;
