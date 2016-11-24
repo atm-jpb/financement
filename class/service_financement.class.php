@@ -308,7 +308,7 @@ class ServiceFinancement {
 			               <v1:CODE_PRODUIT>'.$this->getCodeProduit().'</v1:CODE_PRODUIT>
 			               <v1:TYPE_PRODUIT>'.$this->getTypeProduit().'</v1:TYPE_PRODUIT>
 			               <v1:MT_FINANCEMENT_HT>'.$this->simulation->montant.'</v1:MT_FINANCEMENT_HT>
-			               <!--v1:PCT_VR>'.$pct_vr.'</v1:PCT_VR-->
+			               <v1:PCT_VR>'.$pct_vr.'</v1:PCT_VR>
 			               <v1:MT_VR>'.$mt_vr.'</v1:MT_VR>
 			               <v1:TYPE_REGLEMENT>'.$mode_reglement_id.'</v1:TYPE_REGLEMENT>
 			               <v1:MT_PREMIER_LOYER>0</v1:MT_PREMIER_LOYER>
