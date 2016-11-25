@@ -46,11 +46,9 @@
         if(!empty($Tid)){
     		if(count($Tid) > 1){
     			_liste($PDOdb, $dossier);
-    		}
-		else{
-			$dossier->load($PDOdb, $Tid[0]);
-       			 _fiche($PDOdb,$dossier, 'view');
-		}
+    		} else{
+				header('Location: '.$SERVER['PHP_SELF'].'?id='.$Tid[0]);
+			}
         }
 	}
 	
