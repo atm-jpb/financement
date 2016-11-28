@@ -1585,6 +1585,8 @@ class TFin_dossier extends TObjetStd {
 		    $object->note_public   = '';
 			$object->origin = 'dossier';
 			$object->origin_id = $d->getId();
+			$object->array_options['options_visa_renta_loyer_leaser'] = 1;
+			$object->array_options['options_visa_renta_loyer_client'] = 1;
 			
 			// Permet la création d'une facture leaser dans l'entité du dossier
 			$curEntity = $conf->entity;
