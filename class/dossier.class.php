@@ -713,7 +713,7 @@ class TFin_dossier extends TObjetStd {
 		
 		if ($solde > $LRD_Leaser) return $LRD_Leaser;
 		//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
-		else if($this->TLien[0]->affaire->societe->entity == 5 && $solde < $this->financementLeaser->reste){
+		else if($solde < $this->financementLeaser->reste){
 			return $this->financementLeaser->reste;
 		}
 		else return $solde;
@@ -744,7 +744,7 @@ class TFin_dossier extends TObjetStd {
 			$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode) / 100) * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
 			if ($solde > $LRD_Leaser) return $LRD_Leaser;
 			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
-			else if($this->TLien[0]->affaire->societe->entity == 5 && $solde < $this->financementLeaser->reste){
+			else if($solde < $this->financementLeaser->reste){
 				return $this->financementLeaser->reste;
 			}
 			else return $solde;
@@ -769,7 +769,7 @@ class TFin_dossier extends TObjetStd {
 			
 			if ($solde > $LRD) return $LRD;
 			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
-			else if($this->TLien[0]->affaire->societe->entity == 5 && $solde < $this->financement->reste){
+			else if($solde < $this->financement->reste){
 				return $this->financement->reste;
 			}
 			else return $solde;
@@ -796,7 +796,7 @@ class TFin_dossier extends TObjetStd {
 			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
 			
 			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
-			if($this->TLien[0]->affaire->societe->entity == 5 && $LRD_Leaser < $this->financement->reste){
+			if($LRD_Leaser < $this->financement->reste){
 				return $this->financementLeaser->reste;
 			}
 			else return $LRD_Leaser;
@@ -822,7 +822,7 @@ class TFin_dossier extends TObjetStd {
 			
 			if ($solde > $LRD) return $LRD;
 			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
-			else if($this->TLien[0]->affaire->societe->entity == 5 && $solde < $this->financement->reste){
+			else if($solde < $this->financement->reste){
 				return $this->financement->reste;
 			}
 			else return $solde;
