@@ -1325,8 +1325,10 @@ class TFin_dossier extends TObjetStd {
 				$autre['total_facture'] += $fact->total_ht;
 				$autre['total_loyer'] += $f->loyer_intercalaire;
 			} else {
-				$autre['loyer_intercalaire_facture_total_ht'] = '';
-				$autre['loyer_intercalaire_facture_link'] = '';
+				$link = dol_buildpath('/financement/dossier.php?action=new_facture_client&id_dossier='.$this->rowid.'&echeance=0',1);
+				$autre['loyer_intercalaire_facture_total_ht'] = '+';
+				$autre['loyer_intercalaire_facture_multiple'] = '0';
+				$autre['loyer_intercalaire_facture_link'] = $link;
 				$autre['loyer_intercalaire_facture_bg'] = '';
 			}
 		} else {
@@ -1536,7 +1538,7 @@ class TFin_dossier extends TObjetStd {
 		return $object;
 	}
 
-	function create_facture_client($paid = false, $validate = true, $echeance=0, $date=0) {
+	function create_facture_client($paid = false, $validate = true, $echeance=-1, $date=0) {
 		global $user, $db, $conf,$PDOdb;
 
 		$d = & $this;
@@ -1545,7 +1547,7 @@ class TFin_dossier extends TObjetStd {
 		$res = '';
 		
 		// Ajout pour gérer création facture manuelle
-		if(empty($echeance)) $echeance = $this->_get_num_echeance_from_date($date);
+		if($echeance == -1) $echeance = $this->_get_num_echeance_from_date($date);
 		if(empty($date)) $date = $this->getDateDebutPeriode($echeance-1,'CLIENT');
 		
 		$object = new Facture($db);
