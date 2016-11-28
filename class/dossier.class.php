@@ -1546,7 +1546,7 @@ class TFin_dossier extends TObjetStd {
 		
 		// Ajout pour gérer création facture manuelle
 		if(empty($echeance)) $echeance = $this->_get_num_echeance_from_date($date);
-		if(empty($date)) $date = $this->getDateDebutPeriode($echeance-1);
+		if(empty($date)) $date = $this->getDateDebutPeriode($echeance-1,'CLIENT');
 		
 		$object = new Facture($db);
 		
