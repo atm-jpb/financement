@@ -1270,7 +1270,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'messageNothing'=>"Il n'y a aucun dossier à afficher"
 			,'order_down'=>img_picto('','1downarrow.png', '', 0)
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
-			
+			,'display_montant' => ($conf->entity == 6) ? 0 : 1
 		)
 	));
 	
