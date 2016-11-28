@@ -1393,7 +1393,7 @@ class TFin_dossier extends TObjetStd {
 		if($cpt==50) print "Erreur cycle infini dans generate_factures_leaser()<br />";
 	}
 
-	private function create_facture_leaser_addline(&$echeance, &$f, &$d, &$object,&$res,&$user,$validate,$date) {
+	private function create_facture_leaser_addline(&$echeance, &$f, &$d, &$object,&$res,&$user,$validate,$date,$paid=false) {
 		global $db;
 		
 		$tva = (FIN_TVA_DEFAUT-1)*100;
@@ -1438,7 +1438,7 @@ class TFin_dossier extends TObjetStd {
 		
 	}
 
-	private function create_facture_client_addline(&$echeance, &$f, &$d, &$object,&$res,&$user,$validate,$date) {
+	private function create_facture_client_addline(&$echeance, &$f, &$d, &$object,&$res,&$user,$validate,$date,$paid=false) {
 		global $db;
 		
 		$tva = (FIN_TVA_DEFAUT-1)*100;
@@ -1595,7 +1595,7 @@ class TFin_dossier extends TObjetStd {
 			$object->ref = $reference;
 			
 			if($id > 0) {
-				$res = $this->create_facture_client_addline($echeance, $f, $d, $object,$res,$user,$validate,time());
+				$res = $this->create_facture_client_addline($echeance, $f, $d, $object,$res,$user,$validate,time(),$paid);
 			}
 
 		}
