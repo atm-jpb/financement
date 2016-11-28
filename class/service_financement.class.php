@@ -259,6 +259,11 @@ class ServiceFinancement {
 	{
 		global $mysoc;
 		
+		// Need pour avoir la fonction de calcul de la périodicité
+		$f = new TFin_financement();
+		$f->periodicite = $this->simulation->opt_periodicite;
+		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
+		
 		$mode_reglement_id = $this->getIdModeRglt($this->simulation->opt_mode_reglement);
 		$periodicite_code = $this->getCodePeriodiciteFinancement($this->simulation->opt_periodicite);
 		
@@ -312,7 +317,7 @@ class ServiceFinancement {
 			               <v1:MT_VR>'.$mt_vr.'</v1:MT_VR>
 			               <v1:TYPE_REGLEMENT>'.$mode_reglement_id.'</v1:TYPE_REGLEMENT>
 			               <v1:MT_PREMIER_LOYER>0</v1:MT_PREMIER_LOYER>
-			               <v1:DUREE_FINANCEMENT>'.$this->simulation->duree.'</v1:DUREE_FINANCEMENT>
+			               <v1:DUREE_FINANCEMENT>'.$dureeInMonth.'</v1:DUREE_FINANCEMENT>
 			               <v1:PERIODICITE_FINANCEMENT>'.$periodicite_code.'</v1:PERIODICITE_FINANCEMENT>
 			               <v1:TERME_FINANCEMENT>'.($this->simulation->opt_terme == 1 ? 'A' : 'E').'</v1:TERME_FINANCEMENT>
 			               <v1:NB_FRANCHISE>0</v1:NB_FRANCHISE>
