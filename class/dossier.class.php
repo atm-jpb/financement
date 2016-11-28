@@ -712,6 +712,10 @@ class TFin_dossier extends TObjetStd {
 		$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, $type_penalite, $iPeriode) / 100); // Même avec un $this->nature_financement == 'INTERNE' on passe la valeur EXTERNE (l'ancien code renvoyé la même chose)
 		
 		if ($solde > $LRD_Leaser) return $LRD_Leaser;
+		//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+		else if($this->TLien[0]->affaire->societe->entity == 5 && $solde < $this->financementLeaser->reste){
+			return $this->financementLeaser->reste;
+		}
 		else return $solde;
 	}
 	
@@ -739,6 +743,10 @@ class TFin_dossier extends TObjetStd {
 			$date_deb_periode = $this->getDateDebutPeriode($iPeriode-1);
 			$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode) / 100) * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
 			if ($solde > $LRD_Leaser) return $LRD_Leaser;
+			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+			else if($this->TLien[0]->affaire->societe->entity == 5 && $solde < $this->financementLeaser->reste){
+				return $this->financementLeaser->reste;
+			}
 			else return $solde;
 		}
 		else // INTERNE
@@ -760,6 +768,10 @@ class TFin_dossier extends TObjetStd {
 			}
 			
 			if ($solde > $LRD) return $LRD;
+			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+			else if($this->TLien[0]->affaire->societe->entity == 5 && $solde < $this->financement->reste){
+				return $this->financement->reste;
+			}
 			else return $solde;
 		}
 		
@@ -783,7 +795,11 @@ class TFin_dossier extends TObjetStd {
 			$temps_restant = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
 			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
 			
-			return $LRD_Leaser;
+			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+			if($this->TLien[0]->affaire->societe->entity == 5 && $LRD_Leaser < $this->financement->reste){
+				return $this->financementLeaser->reste;
+			}
+			else return $LRD_Leaser;
 		}
 		else // INTERNE 
 		{
@@ -805,6 +821,10 @@ class TFin_dossier extends TObjetStd {
 			}
 			
 			if ($solde > $LRD) return $LRD;
+			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+			else if($this->TLien[0]->affaire->societe->entity == 5 && $solde < $this->financement->reste){
+				return $this->financement->reste;
+			}
 			else return $solde;
 		}
 	}
@@ -862,26 +882,26 @@ class TFin_dossier extends TObjetStd {
 		switch ($type) 
 		{
 			case 'SRBANK': //BANK = leaser sur le PDF
-				return $this->getSolde_SR_LEASER($PDOdb, $iPeriode, $duree_restante_leaser, $CRD_Leaser, $LRD_Leaser, 'R', $this->nature_financement);
+				$solde =$this->getSolde_SR_LEASER($PDOdb, $iPeriode, $duree_restante_leaser, $CRD_Leaser, $LRD_Leaser, 'R', $this->nature_financement);
 				break;
 			case 'SNRBANK':
-				return $this->getSolde_SNR_LEASER($PDOdb, $iPeriode, $duree_restante_leaser, $CRD_Leaser, $LRD_Leaser, 'NR', $this->nature_financement);
+				$solde =$this->getSolde_SNR_LEASER($PDOdb, $iPeriode, $duree_restante_leaser, $CRD_Leaser, $LRD_Leaser, 'NR', $this->nature_financement);
 				break;
 			case 'SRCPRO': // CPRO = client sur le PDF
-				return $this->getSolde_SR_CLIENT($PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
+				$solde =$this->getSolde_SR_CLIENT($PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
 				break;
 			case 'SNRCPRO':
-				return $this->getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
+				$solde =$this->getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
 				break;
 			case 'SRNRSAME': // [PH] case dernièrement ajouté par Geoffrey qui remplacement selon moi SRCPRO et SNRCPRO mais qui n'est plus à utiliser
-				return $this->getSolde_SR_NR_SAME($iPeriode, $duree_restante_client, $LRD, $LRD_leaser, $this->nature_financement);
+				$solde =$this->getSolde_SR_NR_SAME($iPeriode, $duree_restante_client, $LRD, $LRD_leaser, $this->nature_financement);
 				break;
 			case 'perso': 
-				return $this->soldeperso;
+				$solde =$this->soldeperso;
 				break;
 		}
 		
-		return 0; // Error
+		return ($solde > 0) ? $solde : 0 ;
 	}
 	/*****************************************************************************************/
 
@@ -1185,7 +1205,14 @@ class TFin_dossier extends TObjetStd {
 					$data['facture_bg'] = ($bg_color === '#FF0000') ? '#CC9933' : '#00FF00' ;
 				}
 			}
-			 else if($type_echeancier == 'LEASER' && $this->nature_financement == 'INTERNE' && $time < time() && $f->date_solde <= 0 && $f->montant_solde == 0) {
+			else if($type_echeancier == 'CLIENT' && $this->nature_financement == 'INTERNE' && $time < time() && $f->date_solde <= 0 && $f->montant_solde == 0) {
+				$link = dol_buildpath('/financement/dossier.php?action=new_facture_client&id_dossier='.$this->rowid.'&echeance='.($i+1),1);
+				$data['facture_total_ht'] = '+';
+				$data['facture_multiple'] = '0';
+				$data['facture_link'] = $link;
+				$data['facture_bg'] = '';
+			}
+			else if($type_echeancier == 'LEASER' && $this->nature_financement == 'INTERNE' && $time < time() && $f->date_solde <= 0 && $f->montant_solde == 0) {
 				$link = dol_buildpath('/financement/dossier.php?action=new_facture_leaser&id_dossier='.$this->rowid.'&echeance='.($i+1),1);
 				$data['facture_total_ht'] = '+';
 				$data['facture_multiple'] = '0';
@@ -1408,6 +1435,40 @@ class TFin_dossier extends TObjetStd {
 	
 		
 	}
+
+	private function create_facture_client_addline(&$echeance, &$f, &$d, &$object,&$res,&$user,$validate,$date) {
+		global $db;
+		
+		$tva = (FIN_TVA_DEFAUT-1)*100;
+		if($date < strtotime('2014-01-01')) $tva = 19.6;
+		
+		/* Ajout la ligne de l'échéance	*/
+		$fk_product = 0;
+		if(!empty($d->TLien[0]->affaire)) {
+			if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = 667;
+			elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = 667;
+		}
+		
+		if($echeance == -1 && $f->loyer_intercalaire > 0) {
+			$result=$object->addline("Echéance de loyer intercalaire", $f->loyer_intercalaire,1, $tva, 0, 0,$fk_product);
+		} else {
+			//var_dump($f->echeance,$tva,$fk_product);exit;
+			$result=$object->addline("Echéance de loyer", $f->echeance, 1,$tva, 0, 0,$fk_product);
+		}
+	
+		if($validate) {
+			$result=$object->validate($user,'',0);
+		}
+		
+		if($paid) {
+			$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
+		}
+		
+		$res.= "Création facture client ($id) : ".$object->ref."<br />";
+	
+		return $res;
+	}
+
 	function create_facture_leaser($paid = false, $validate = true, $echeance=0, $date=0) {
 		global $user, $db, $conf,$PDOdb;
 
@@ -1458,6 +1519,10 @@ class TFin_dossier extends TObjetStd {
 		    $object->note_public   = '';
 			$object->origin = 'dossier';
 			$object->origin_id = $d->getId();
+			
+			// Permet la création d'une facture leaser dans l'entité du dossier
+			$curEntity = $conf->entity;
+			$conf->entity = $d->entity;
 			$id = $object->create($user);
 			
 			if($id > 0) {
@@ -1465,6 +1530,75 @@ class TFin_dossier extends TObjetStd {
 			}
 
 		}
+		
+		$conf->entity = $curEntity;
+		
+		return $object;
+	}
+
+	function create_facture_client($paid = false, $validate = true, $echeance=0, $date=0) {
+		global $user, $db, $conf,$PDOdb;
+
+		$d = & $this;
+		$f = & $this->financement;
+		
+		$res = '';
+		
+		// Ajout pour gérer création facture manuelle
+		if(empty($echeance)) $echeance = $this->_get_num_echeance_from_date($date);
+		if(empty($date)) $date = $this->getDateDebutPeriode($echeance-1);
+		
+		$object = new Facture($db);
+		
+		$reference = $f->reference.'/'.$echeance;
+		
+		$createFacture = true;
+		$object->fetch(null, $reference);
+		if($object->id > 0) {
+				
+			$object->fetchObjectLinked();
+			$TIdAvoir = $object->getListIdAvoirFromInvoice();
+
+			if($this->rowid == $object->linkedObjectsIds['dossier'][0] && empty($TIdAvoir)){
+				
+				$createFacture = false;
+				$object->origin = 'dossier';
+				$object->origin_id = $d->getId();
+				$object->deleteObjectLinked();
+				$object->add_object_linked(); // Ajout de la liaison éventuelle vers ce dossier
+				$res.= "Erreur facture client déjà existante : ".$object->ref."<br />";
+			}
+			else{
+				$createFacture = true;
+			}
+		}
+		
+		if($createFacture && $this->financement->echeance > 0){
+			
+			$object = new Facture($db);
+			
+			$object->ref_client    = date('d/m/Y',strtotime($date));
+		    $object->socid         = $d->TLien[0]->affaire->fk_soc;
+		    $object->date          = time();
+		    $object->note_public   = '';
+			$object->origin = 'dossier';
+			$object->origin_id = $d->getId();
+			
+			// Permet la création d'une facture leaser dans l'entité du dossier
+			$curEntity = $conf->entity;
+			$conf->entity = $d->entity;
+			$id = $object->create($user);
+
+			$object->add_object_linked($object->origin, $object->origin_id);
+			$object->ref = $reference;
+			
+			if($id > 0) {
+				$res = $this->create_facture_client_addline($echeance, $f, $d, $object,$res,$user,$validate,time());
+			}
+
+		}
+		
+		$conf->entity = $curEntity;
 		
 		return $object;
 	}
@@ -1499,8 +1633,11 @@ class TFin_dossier extends TObjetStd {
 	
 	//Retourne le volume (noir + couleur) réalisé, le volume noir engagé et le colument couleur engagé sur les 4 dernière échéances du dossier
 	function getSommesIntegrale(&$PDOdb,$copiesup=false){
+		global $conf;
+		
 		$sommeRealise = $sommeNoir = $sommeCouleur = $sommeCopieSupNoir = $sommeCopieSupCouleur = 0;
 		$nbEcheance = count($this->TFacture) - 1 ; //-1 car échéance 1 = 0
+		$nbEcheance = $this->financement->numero_prochaine_echeance - 1;
 		
 		//pre($this->TFacture,true);exit;
 		
@@ -1508,7 +1645,7 @@ class TFin_dossier extends TObjetStd {
 			if($echeance == -1) $nbEcheance -= 1; //supression loyer intercalaire
 			
 			//Somme uniquement sur les 4 dernières échéances
-			if($echeance > ($nbEcheance - FINANCEMENT_NB_TRIM_COPIES_SUP)){
+			if($echeance > ($nbEcheance - $conf->global->FINANCEMENT_NB_TRIM_COPIES_SUP)){
 				//pre($Tfacture,true);exit;
 				if(is_array($Tfacture)){
 					foreach($Tfacture as $k => $facture){
@@ -1901,13 +2038,15 @@ class TFin_financement extends TObjetStd {
 			}
 			
 		} else if(count($TRes) == 1) { // Un seul dossier trouvé, load
-			$db->Get_line();
-			$idDossierFin = $db->Get_field('idDossierLeaser');
+			//$db->Get_line();
+			//$idDossierFin = $db->Get_field('idDossierLeaser');
+			$idDossierFin = $TRes[0]->idDossierLeaser;
 			$this->load($db, $idDossierFin);
 			return true;
 		} else { // Plusieurs dossiers trouvé correspondant, utilisation du premier trouvé
-			$db->Get_line();
-			$idDossierFin = $db->Get_field('idDossierLeaser');
+			//$db->Get_line();
+			//$idDossierFin = $db->Get_field('idDossierLeaser');
+			$idDossierFin = $TRes[0]->idDossierLeaser;
 			$this->load($db, $idDossierFin);
 			return true;
 		}

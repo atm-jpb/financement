@@ -1,0 +1,1 @@
+ALTER TABLE llx_c_financement_marque_materiel ADD INDEX uk_c_financement_marque_materiel_code (code);

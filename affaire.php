@@ -64,7 +64,7 @@
 				<script language="javascript">
 					document.location.href="?delete_ok=1";					
 				</script>
-				<?
+				<?php
 				
 				
 				break;
@@ -177,7 +177,8 @@ function _liste(&$ATMdb, &$affaire) {
 	//echo $sql; exit;
 	
 	if($errone){
-		$sql="SELECT a.rowid as 'ID', a.reference, e.rowid as entity_id, a.montant as 'Montant Affaire', SUM(df.montant) as 'Montant Financé', df.fk_fin_dossier, a.fk_soc, s.nom , a.nature_financement, a.type_financement, a.contrat, a.date_affaire 
+		$sql="SELECT a.rowid as 'ID', a.reference,
+                          ROUND(ABS(SUM(df.montant) - SUM(a.montant)), 2) as 'Ecart', e.rowid as entity_id, a.montant as 'Montant Affaire', SUM(df.montant) as 'Montant Financé', df.fk_fin_dossier, a.fk_soc, s.nom , a.nature_financement, a.type_financement, a.contrat, a.date_affaire 
 			  FROM llx_fin_affaire a 
 			  	LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid) 
 			  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) 
@@ -185,9 +186,9 @@ function _liste(&$ATMdb, &$affaire) {
 			  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid)
 				LEFT JOIN ".MAIN_DB_PREFIX."entity e ON (a.entity = e.rowid) 
 			  WHERE a.entity IN(".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")
-			  	AND df.type = 'LEASER' 
-			  	AND df.montant != a.montant
-			  	AND ABS(df.montant - a.montant) > 0.01";
+			  	AND df.type = 'LEASER' ";
+//			  	AND df.montant != a.montant ";
+//	$sql.="		  	AND ABS(df.montant - a.montant) > 0.01";
 	}
 	
 	$THide = array('fk_soc', 'ID', 'fk_fin_dossier');
@@ -230,8 +231,9 @@ function _liste(&$ATMdb, &$affaire) {
 		);
 	}
 
-	if($errone) $sql .= " GROUP BY a.rowid";
-	
+	if($errone) $sql .= " GROUP BY a.rowid
+			      HAVING ROUND(ABS(SUM(df.montant) - SUM(a.montant)), 2) > 0.01";
+ 	//echo $sql;
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formAffaire', 'GET');
 	
 	$TEntityName = TFinancementTools::build_array_entities();
@@ -240,6 +242,7 @@ function _liste(&$ATMdb, &$affaire) {
 		'limit'=>array(
 			'page'=>1
 			,'nbLine'=>'30'
+			,'global'=>'1000'
 		)
 		,'link'=>array(
 			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
@@ -301,7 +304,7 @@ function _liste(&$ATMdb, &$affaire) {
 	$form->end();
 	
 	if(isset($_REQUEST['socid'])) {
-		?><div class="tabsAction"><a href="?action=new&fk_soc=<?=$_REQUEST['socid'] ?>" class="butAction">Créer une affaire</a></div><?
+		?><div class="tabsAction"><a href="?action=new&fk_soc=<?php echo $_REQUEST['socid']; ?>" class="butAction">Créer une affaire</a></div><?php
 	}
 	
 	llxFooter();

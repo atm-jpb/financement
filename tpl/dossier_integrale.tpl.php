@@ -59,6 +59,7 @@
 			<!--<th class="liste_titre" align="center">Total HT r&eacute;alis&eacute;</th>-->
 			<th class="liste_titre" align="center">Total HT<br>factur&eacute;</th>
 			<th class="liste_titre" align="center">%</th>
+			<th class="liste_titre" align="center">Propositions<br>associées</th>
 		</tr>
 		<tr class="impair">
 			<td align="center">[integrale.date_periode;block=tr;noerr]</td>
@@ -81,6 +82,7 @@
 			<!--<td align="right" nowrap="nowrap">[integrale.total_ht_realise;frm=0 000,00;noerr] &euro;</td>-->
 			<td align="right" nowrap="nowrap">[integrale.total_ht_facture;frm=0 000,00;noerr] &euro;</td>
 			<td align="center" nowrap="nowrap">[integrale.ecart;frm=0 000,00;noerr] %</td>
+			<td align="center" nowrap="nowrap">[integrale.propal;frm=0 000,00;noerr]</td>
 		</tr>
 		<tr class="pair">
 			<td align="center">[integrale.date_periode;block=tr;noerr]</td>
@@ -103,6 +105,7 @@
 			<!--<td align="right" nowrap="nowrap">[integrale.total_ht_realise;frm=0 000,00;noerr] &euro;</td>-->
 			<td align="right" nowrap="nowrap">[integrale.total_ht_facture;frm=0 000,00;noerr] &euro;</td>
 			<td align="center" nowrap="nowrap">[integrale.ecart;frm=0 000,00;noerr] %</td>
+			<td align="center" nowrap="nowrap">[integrale.propal;frm=0 000,00;noerr]</td>
 		</tr>
 	</table>
 

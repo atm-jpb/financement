@@ -71,14 +71,14 @@ echo $date_fin.'<br>';*/
 	$dash=new TReport_dashboard;
 	$dash->initByCode($PDOdb, 'PRODUCTIONFOURNISSEUR',$TParam);
 	
-	?>$('#chart_prod_fournisseur').html('<div id="chart_prod_fournisseur" style="height:<?=$dash->hauteur?>px; margin-bottom:20px;"></div>');<?
+	?>$('#chart_prod_fournisseur').html('<div id="chart_prod_fournisseur" style="height:<?php echo $dash->hauteur; ?>px; margin-bottom:20px;"></div>');<?php
 	
 	$dash->get('chart_prod_fournisseur', true," €");
 	
 	$dash=new TReport_dashboard;
 	$dash->initByCode($PDOdb, 'PRODUCTIONLEASER',$TParam);
 	
-	?>$('#chart_prod_leaser').html('<div id="chart_prod_leaser" style="height:<?=$dash->hauteur?>px; margin-bottom:20px;"></div>');<?
+	?>$('#chart_prod_leaser').html('<div id="chart_prod_leaser" style="height:<?=$dash->hauteur?>px; margin-bottom:20px;"></div>');<?php
 	
 	$dash->get('chart_prod_leaser', true," €");
 
@@ -205,20 +205,20 @@ function _listeNbAffaireParTypeContrat(&$ATMdb,$date_debut,$date_fin) {
 				</tr>
 				<tr class="liste_titre">
 					<td></td>
-					<td class="titre_colonne"><?=(GETPOST('type_annee') == 'civile') ? date("Y", strtotime("-1 year", strtotime($date_debut))) : date("Y", strtotime("-1 year", strtotime($date_debut))).'/'.date("Y",strtotime($date_debut));?></td>
-					<td class="titre_colonne"><?=(GETPOST('type_annee') == 'civile') ? date("Y", strtotime($date_debut)) : date("Y", strtotime($date_debut)).'/'.date("Y",strtotime($date_fin));?></td>
-					<td class="titre_colonne"><?=(GETPOST('type_annee') == 'civile') ? date("Y", strtotime("-1 year", strtotime($date_debut))) : date("Y", strtotime("-1 year", strtotime($date_debut))).'/'.date("Y",strtotime($date_debut));?></td>
-					<td class="titre_colonne"><?=(GETPOST('type_annee') == 'civile') ? date("Y", strtotime($date_debut)) : date("Y", strtotime($date_debut)).'/'.date("Y",strtotime($date_fin));?></td>
+					<td class="titre_colonne"><?php echo (GETPOST('type_annee') == 'civile') ? date("Y", strtotime("-1 year", strtotime($date_debut))) : date("Y", strtotime("-1 year", strtotime($date_debut))).'/'.date("Y",strtotime($date_debut));?></td>
+					<td class="titre_colonne"><?php echo (GETPOST('type_annee') == 'civile') ? date("Y", strtotime($date_debut)) : date("Y", strtotime($date_debut)).'/'.date("Y",strtotime($date_fin));?></td>
+					<td class="titre_colonne"><?php echo (GETPOST('type_annee') == 'civile') ? date("Y", strtotime("-1 year", strtotime($date_debut))) : date("Y", strtotime("-1 year", strtotime($date_debut))).'/'.date("Y",strtotime($date_debut));?></td>
+					<td class="titre_colonne"><?php echo (GETPOST('type_annee') == 'civile') ? date("Y", strtotime($date_debut)) : date("Y", strtotime($date_debut)).'/'.date("Y",strtotime($date_fin));?></td>
 				</tr>
 				<?php
 				foreach($TRes as $contrat=>$TNb){
 					?>
 					<tr>
-						<td><?=$contrat;?></td>
-						<td class="justifie"><?=$TNb[0];?></td>
-						<td class="justifie"><?=$TNb[1];?></td>
-						<td><?=round(($TNb[0]*100)/$Total1);?> %</td>
-						<td><?=round(($TNb[1]*100)/$Total2);?> %</td>
+						<td><?php echo $contrat; ?></td>
+						<td class="justifie"><?php echo $TNb[0]; ?></td>
+						<td class="justifie"><?php echo $TNb[1]; ?></td>
+						<td><?php echo round(($TNb[0]*100)/$Total1); ?> %</td>
+						<td><?php echo round(($TNb[1]*100)/$Total2); ?> %</td>
 					</tr>
 					<?php	
 				}
@@ -266,7 +266,7 @@ function _listeNbAffaireParTypeContratParMois(&$ATMdb,$date_debut,$date_fin) {
 					setlocale(LC_TIME, "fr_FR");
 					foreach($TCle as $cle=>$val){
 					?>
-					<td class="titre_colonne"><?=ucfirst($langs->trans(strftime('%B',strtotime("2013-".$cle."-01")))); ?></td>
+					<td class="titre_colonne"><?php echo ucfirst($langs->trans(strftime('%B',strtotime("2013-".$cle."-01")))); ?></td>
 					<?php
 					}
 					?>
@@ -275,11 +275,11 @@ function _listeNbAffaireParTypeContratParMois(&$ATMdb,$date_debut,$date_fin) {
 				foreach($TRes as $contrat=>$TNb){
 					?>
 				<tr>
-					<td><?=$contrat;?></td>
+					<td><?php echo $contrat; ?></td>
 					<?php
 					foreach($TNb as $cle=>$nb){
 						?>
-						<td class="justifie"><?=$nb;?></td>
+						<td class="justifie"><?php echo $nb; ?></td>
 						<?php
 					}
 					?>
@@ -350,16 +350,16 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type,$date_debut,$date_fin
 		<!-- 3ème tableau -->
 		<td>
 			<div class="titre">
-				Production de l'exercice / Catégorie <?=ucfirst($type);?>
+				Production de l'exercice / Catégorie <?php echo ucfirst($type); ?>
 			</div>
 			<table class="border" width="100%">
 				<tr class="liste_titre">
 					<td></td>
-					<td class="titre_colonne" colspan="2"><?=(GETPOST('type_annee') == 'civile') ? date("Y", strtotime("-1 year", strtotime($date_debut))) : date("Y", strtotime("-1 year", strtotime($date_debut))).'/'.date("Y",strtotime($date_debut));?></td>
-					<td class="titre_colonne" colspan="2"><?=(GETPOST('type_annee') == 'civile') ? date("Y", strtotime($date_debut)) : date("Y", strtotime($date_debut)).'/'.date("Y",strtotime($date_fin));?></td>
+					<td class="titre_colonne" colspan="2"><?php echo (GETPOST('type_annee') == 'civile') ? date("Y", strtotime("-1 year", strtotime($date_debut))) : date("Y", strtotime("-1 year", strtotime($date_debut))).'/'.date("Y",strtotime($date_debut));?></td>
+					<td class="titre_colonne" colspan="2"><?php echo (GETPOST('type_annee') == 'civile') ? date("Y", strtotime($date_debut)) : date("Y", strtotime($date_debut)).'/'.date("Y",strtotime($date_fin));?></td>
 				</tr>
 				<tr class="liste_titre">
-					<td class="titre_colonne">au <?=date('d/m/Y');?></td>
+					<td class="titre_colonne">au <?php echo date('d/m/Y');?></td>
 					<td class="titre_colonne">CA</td>
 					<td class="titre_colonne">NB Factures</td>
 					<td class="titre_colonne">CA</td>
@@ -373,11 +373,11 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type,$date_debut,$date_fin
 						if($type == "fournisseur"){
 							?>
 							<tr>
-								<td><?=$societe?></td>
-								<td class="justifie"><?=number_format($TNb[1],2,',',' ')?> €</td>
-								<td class="justifie"><?=$TNb[0]?></td>
-								<td class="justifie"><?=number_format($TNb[3],2,',',' ')?> €</td>
-								<td class="justifie"><?=$TNb[2]?></td>
+								<td><?php echo $societe; ?></td>
+								<td class="justifie"><?php echo number_format($TNb[1],2,',',' '); ?> €</td>
+								<td class="justifie"><?php echo $TNb[0]; ?></td>
+								<td class="justifie"><?php echo number_format($TNb[3],2,',',' '); ?> €</td>
+								<td class="justifie"><?php echo $TNb[2]; ?></td>
 							</tr>
 							<?php
 						}
@@ -395,22 +395,22 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type,$date_debut,$date_fin
 					if($type=="fournisseur"){
 						?>
 						<tr>
-							<td style="font-weight: bold;">Sous Total <?=$categorie;?></td>
-							<td style="font-weight: bold;" class="justifie"><?=number_format($totalCA1,2,',',' ')?> €</td>
-							<td style="font-weight: bold;" class="justifie"><?=$totalNb1?></td>
-							<td style="font-weight: bold;" class="justifie"><?=number_format($totalCA2,2,',',' ')?> €</td>
-							<td style="font-weight: bold;" class="justifie"><?=$totalNb2?></td>
+							<td style="font-weight: bold;">Sous Total <?php echo $categorie; ?></td>
+							<td style="font-weight: bold;" class="justifie"><?php echo number_format($totalCA1,2,',',' '); ?> €</td>
+							<td style="font-weight: bold;" class="justifie"><?php echo $totalNb1; ?></td>
+							<td style="font-weight: bold;" class="justifie"><?php echo number_format($totalCA2,2,',',' '); ?> €</td>
+							<td style="font-weight: bold;" class="justifie"><?php echo $totalNb2; ?></td>
 						</tr>
 						<?php
 					}
 					elseif($type=="leaser"){
 						?>
 						<tr>
-							<td><?=$categorie;?></td>
-							<td class="justifie"><?=number_format($totalCA1,2,',',' ')?> €</td>
-							<td class="justifie"><?=$totalNb1?></td>
-							<td class="justifie"><?=number_format($totalCA2,2,',',' ')?> €</td>
-							<td class="justifie"><?=$totalNb2?></td>
+							<td><?php echo $categorie; ?></td>
+							<td class="justifie"><?php echo number_format($totalCA1,2,',',' '); ?> €</td>
+							<td class="justifie"><?php echo $totalNb1; ?></td>
+							<td class="justifie"><?php echo number_format($totalCA2,2,',',' '); ?> €</td>
+							<td class="justifie"><?php echo $totalNb2; ?></td>
 						</tr>
 						<?php
 					}
@@ -418,10 +418,10 @@ function _listeCAFactureMaterielParCategorie(&$ATMdb,$type,$date_debut,$date_fin
 				?>
 				<tr>
 					<td style="font-weight: bold;">TOTAL</td>
-					<td style="font-weight: bold;" class="justifie"><?=number_format($TotalCA1,2,',',' ')?> €</td>
-					<td style="font-weight: bold;" class="justifie"><?=$TotalNb1?></td>
-					<td style="font-weight: bold;" class="justifie"><?=number_format($TotalCA2,2,',',' ')?> €</td>
-					<td style="font-weight: bold;" class="justifie"><?=$TotalNb2?></td>
+					<td style="font-weight: bold;" class="justifie"><?php echo number_format($TotalCA1,2,',',' '); ?> €</td>
+					<td style="font-weight: bold;" class="justifie"><?php echo $TotalNb1; ?></td>
+					<td style="font-weight: bold;" class="justifie"><?php echo number_format($TotalCA2,2,',',' '); ?> €</td>
+					<td style="font-weight: bold;" class="justifie"><?php echo $TotalNb2; ?></td>
 				</tr>
 			</table>
 		</td>
@@ -441,7 +441,7 @@ function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb,$date_debut,$date_
 	$sql.= " WHERE fdf.type = 'LEASER'";
 	$sql.= " AND c1.rowid IS NOT NULL";
 	$sql.= " AND c2.rowid IS NOT NULL";
-	$sql.= " AND fdf.date_solde = '0000-00-00 00:00:00'";
+	$sql.= " AND fdf.date_solde < '1970-00-00 00:00:00'";
 	$sql.= " ORDER BY c1.label, c2.label";
 	
 	$ATMdb->Execute($sql);
@@ -491,7 +491,7 @@ function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb,$date_debut,$date_
 			</div>
 			<table class="border" width="100%">
 				<tr class="liste_titre">
-					<td class="titre_colonne">au <?=date('d/m/Y');?></td>
+					<td class="titre_colonne">au <?php echo date('d/m/Y'); ?></td>
 					<td class="titre_colonne">Cession</td>
 					<td class="titre_colonne">Mandatée</td>
 					<td class="titre_colonne">Adossée</td>
@@ -505,28 +505,28 @@ function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb,$date_debut,$date_
 					$sommeAdossee += $TCategorieLeaser['Adossee'];
 					?>
 					<tr>
-						<td><?=$categorie?></td>
-						<td class="justifie"><?=number_format($TCategorieLeaser['Cession'],2,',',' ');?> €</td>
-						<td class="justifie"><?=number_format($TCategorieLeaser['Mandatee'],2,',',' ');?> €</td>
-						<td class="justifie"><?=number_format($TCategorieLeaser['Adossee'],2,',',' ');?> €</td>
-						<td class="justifie"><?=number_format($TCategorieLeaser['Adossee'] + $TCategorieLeaser['Mandatee'] + $TCategorieLeaser['Cession'],2,',',' ');?> €</td>
-						<td><?=number_format(($TCategorieLeaser['Adossee'] + $TCategorieLeaser['Mandatee'] + $TCategorieLeaser['Cession']) * 100 / $TTotaux['total'],2,',','');?> %</td>
+						<td><?php echo $categorie; ?></td>
+						<td class="justifie"><?php echo number_format($TCategorieLeaser['Cession'],2,',',' '); ?> €</td>
+						<td class="justifie"><?php echo number_format($TCategorieLeaser['Mandatee'],2,',',' '); ?> €</td>
+						<td class="justifie"><?php echo number_format($TCategorieLeaser['Adossee'],2,',',' '); ?> €</td>
+						<td class="justifie"><?php echo number_format($TCategorieLeaser['Adossee'] + $TCategorieLeaser['Mandatee'] + $TCategorieLeaser['Cession'],2,',',' '); ?> €</td>
+						<td><?=number_format(($TCategorieLeaser['Adossee'] + $TCategorieLeaser['Mandatee'] + $TCategorieLeaser['Cession']) * 100 / $TTotaux['total'],2,',',''); ?> %</td>
 					</tr>
 					<?php
 				}
 				?>
 				<tr style="font-weight: bold;">
 					<td>TOTAL</td>
-					<td class="justifie"><?=number_format($sommeCession,2,',',' ') ?></td>
-					<td class="justifie"><?=number_format($sommeMandatee,2,',',' ') ?></td>
-					<td class="justifie"><?=number_format($sommeAdossee,2,',',' ') ?></td>
-					<td class="justifie"><?=number_format($sommeCession + $sommeMandatee + $sommeAdossee,2,',',' ')?></td>
+					<td class="justifie"><?php echo number_format($sommeCession,2,',',' '); ?></td>
+					<td class="justifie"><?php echo number_format($sommeMandatee,2,',',' '); ?></td>
+					<td class="justifie"><?php echo number_format($sommeAdossee,2,',',' '); ?></td>
+					<td class="justifie"><?php echo number_format($sommeCession + $sommeMandatee + $sommeAdossee,2,',',' '); ?></td>
 				</tr>
 				<tr>
 					<td>%</td>
-					<td><?=number_format(($sommeCession * 100) / $TTotaux['total'],2,',',' ') ?> %</td>
-					<td><?=number_format(($sommeMandatee * 100) / $TTotaux['total'],2,',',' ') ?> %</td>
-					<td><?=number_format(($sommeAdossee * 100) / $TTotaux['total'],2,',',' ') ?> %</td>
+					<td><?php echo number_format(($sommeCession * 100) / $TTotaux['total'],2,',',' '); ?> %</td>
+					<td><?php echo number_format(($sommeMandatee * 100) / $TTotaux['total'],2,',',' '); ?> %</td>
+					<td><?php echo number_format(($sommeAdossee * 100) / $TTotaux['total'],2,',',' '); ?> %</td>
 					<td></td>
 				</tr>
 			</table>
@@ -576,7 +576,7 @@ function _listeRelationCommerciales(&$ATMdb,$date_debut,$date_fin) {
 					setlocale(LC_TIME, "fr_FR");
 					foreach($TRes as $cle=>$Tval){
 					?>
-					<td class="titre_colonne"><?=ucfirst($langs->trans(strftime('%B',strtotime("2013-".$cle."-01")))); ?></td>
+					<td class="titre_colonne"><?php echo ucfirst($langs->trans(strftime('%B',strtotime("2013-".$cle."-01")))); ?></td>
 					<?php
 					}
 					?>
@@ -586,7 +586,7 @@ function _listeRelationCommerciales(&$ATMdb,$date_debut,$date_fin) {
 					<?php
 					foreach($TRes as $tres){
 						?>
-						<td><?=($tres["nbAuto"]) ? round(($tres["nbAuto"] * 100) / $tres["nbTotal"]) : "0";?> %</td>
+						<td><?php echo ($tres["nbAuto"]) ? round(($tres["nbAuto"] * 100) / $tres["nbTotal"]) : "0"; ?> %</td>
 						<?php 
 					}
 					?>
@@ -596,7 +596,7 @@ function _listeRelationCommerciales(&$ATMdb,$date_debut,$date_fin) {
 					<?php
 					foreach($TRes as $tres){
 						?>
-						<td><?=round($tres["delais"]);?> jours</td>
+						<td><?php echo round($tres["delais"]); ?> jours</td>
 						<?php 
 					}
 					?>
@@ -638,7 +638,7 @@ function _listeAdministrationDolibarr(&$ATMdb,$date_debut,$date_fin) {
 				<tr>
 					<td>Nb dossier internes > 1 mois incomplets</td>
 					<td class="justifie">30</td>
-					<td class="justifie"><?=$NbDossier;?></td>
+					<td class="justifie"><?php echo $NbDossier; ?></td>
 				</tr>
 				<!-- <tr>
 					<td>NB dossiers externes non rattachés</td>
@@ -668,7 +668,7 @@ function _listeRentabilite(&$ATMdb,$date_debut,$date_fin) {
 				LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (c.rowid = cf.fk_categorie)
 			WHERE fd.nature_financement = 'INTERNE'
 				AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Type de financement')
-				AND fd.date_solde = '0000-00-00 00:00:00'
+				AND fd.date_solde < '1970-00-00 00:00:00'
 			GROUP BY c.rowid";
 	
 	$ATMdb->Execute($sql);
@@ -690,7 +690,7 @@ function _listeRentabilite(&$ATMdb,$date_debut,$date_fin) {
 				LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (c.rowid = cf.fk_categorie)
 			WHERE fd.nature_financement = 'INTERNE'
 				AND c.fk_parent = (SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label = 'Type de financement')
-				AND fd.date_solde != '0000-00-00 00:00:00'
+				AND fd.date_solde > '1970-00-00 00:00:00'
 			GROUP BY c.rowid";
 	
 	$ATMdb->Execute($sql);
@@ -721,11 +721,11 @@ function _listeRentabilite(&$ATMdb,$date_debut,$date_fin) {
 				foreach($TRes as $renta=>$TCategorie){
 					?>
 					<tr>
-						<td><?=$renta?></td>
+						<td><?php echo $renta; ?></td>
 						<?php
 						foreach($TCategorie as $montant){
 							?>
-							<td class="justifie"><?=number_format($montant,2,',',' ');?> €</td>
+							<td class="justifie"><?php echo number_format($montant,2,',',' '); ?> €</td>
 							<?php
 						}
 						?>

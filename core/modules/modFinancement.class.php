@@ -85,7 +85,8 @@ class modFinancement extends DolibarrModules
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@financement')) // Set here all workflow context managed by module
 		//                        );
 		$this->module_parts = array(
-			'hooks'=>array('thirdpartycard','salesrepresentativescard','invoicecard','invoicesuppliercard','searchform')
+			'hooks'=>array('thirdpartycard','salesrepresentativescard','invoicecard','invoicesuppliercard','searchform','propalcard')
+			,'triggers'=>1
 		);
 
 		// Data directories to create when module is enabled.
@@ -149,16 +150,19 @@ class modFinancement extends DolibarrModules
 		'langs'=>'financement@financement'
 		,'tabname'=>array(
 			MAIN_DB_PREFIX.'c_financement_type_contrat'
+			,MAIN_DB_PREFIX.'c_financement_marque_materiel'
 			,MAIN_DB_PREFIX.'c_financement_categorie_bien'
 			,MAIN_DB_PREFIX.'c_financement_nature_bien'
 		)
 		,'tablib'=>array(
 			'Type de contrat'
+			,'Marque de materiel'
 			,'Categorie du Bien'
 			,'Nature du Bien'
 		)
 		,'tabsql'=>array(
 			'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_type_contrat as f WHERE entity = '.$conf->entity
+			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_marque_materiel as f WHERE entity = '.$conf->entity
 			,'SELECT f.rowid as rowid, f.cat_id, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_categorie_bien as f WHERE entity IN (0, '.$conf->entity.')'
 			,'SELECT f.rowid as rowid, f.nat_id, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_nature_bien as f WHERE entity IN (0, '.$conf->entity.')'
 		)
@@ -166,19 +170,23 @@ class modFinancement extends DolibarrModules
 			'label ASC'
 			,'label ASC'
 			,'label ASC'
+			,'label ASC'
 		)
 		,'tabfield'=>array(
 			'code,label'
+			,'code,label'
 			,'cat_id,label,entity'
 			,'nat_id,label,entity'
 		)
 		,'tabfieldvalue'=>array(
 			'code,label,entity'
+			,'code,label,entity'
 			,'cat_id,label,entity'
 			,'nat_id,label,entity'
 		)
 		,'tabfieldinsert'=>array(
 			'code,label,entity'
+			,'code,label,entity'
 			,'cat_id,label,entity'
 			,'nat_id,label,entity'
 		)
@@ -186,9 +194,11 @@ class modFinancement extends DolibarrModules
 			'rowid'
 			,'rowid'
 			,'rowid'
+			,'rowid'
 		)
 		,'tabcond'=>array(
 			$conf->financement->enabled
+			,$conf->financement->enabled
 			,$conf->financement->enabled
 			,$conf->financement->enabled
 		)
@@ -365,6 +375,27 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'read';
 		//$this->rights[$r][5] = 'read';
+		$r++;
+		
+		$this->rights[$r][0] = 210055;
+		$this->rights[$r][1] = 'Suivi intégrale : Voir le détail des coûts unitaires';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'integrale';
+		$this->rights[$r][5] = 'detail_couts';
+		$r++;
+		
+		$this->rights[$r][0] = 210056;
+		$this->rights[$r][1] = 'Suivi intégrale : Pouvoir visualiser les avenants dont la date de fin de validité est dépassée';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'integrale';
+		$this->rights[$r][5] = 'see_past_propal';
+		$r++;
+		
+		$this->rights[$r][0] = 210057;
+		$this->rights[$r][1] = 'Suivi intégrale : Pouvoir créer un avenant';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'integrale';
+		$this->rights[$r][5] = 'create_new_avenant';
 		$r++;
 
 		$this->rights[$r][0] = $this->numero.$r;
@@ -585,7 +616,7 @@ class modFinancement extends DolibarrModules
 								'titre'=>$langs->trans('Dossiers renta négative'),
 								'mainmenu'=>'financement',
 								'leftmenu'=>'dossier_list',
-								'url'=>'/financement/dossier.php?liste_renta_negative=1',
+								'url'=>'/financement/dossier_renta_negative.php',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>418,
 								'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.

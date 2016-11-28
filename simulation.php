@@ -132,9 +132,7 @@ if(!empty($action)) {
 
 			$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
 			$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
-			$simu = new TSimulation;
-			$TSimu = $simu->load_by_soc($ATMdb, $db, $simulation->fk_soc);
-			if (empty($TSimu)) $simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
+			$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 
 			$simulation->_calcul($ATMdb);
 			//C'est dégueu mais sa marche
@@ -178,6 +176,11 @@ if(!empty($action)) {
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			$oldAccord = $simulation->accord;
 			//pre($_REQUEST,true);
+			
+			$fk_type_contrat_old = $simulation->fk_type_contrat;
+			$fk_type_contrat_new = $_REQUEST['fk_type_contrat'];
+			
+			
 			$simulation->set_values($_REQUEST);
 			
 			$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
@@ -223,12 +226,39 @@ if(!empty($action)) {
 			if(empty($_REQUEST['dossiers_rachetes_perso'])) $simulation->dossiers_rachetes_perso = array();
 			
 			
-			
 			// On refait le calcul avant d'enregistrer
 			$simulation->_calcul($ATMdb, 'save');
+			//var_dump(count($simulation->TSimulationSuivi), $error);exit;
 			if($error) {
 				_fiche($ATMdb, $simulation,'edit');
 			} else {
+				
+				// Modification du type de contrat => save du suivi
+				if (strcmp($fk_type_contrat_old, $fk_type_contrat_new) != 0)
+				{
+					$simulation->load_suivi_simulation($ATMdb);
+					if (!empty($simulation->TSimulationSuivi))
+					{
+						$now = time();
+						$nowFr = date('d/m/Y H:i');
+						foreach ($simulation->TSimulationSuivi as &$simuSuivi)
+						{
+							if ($simuSuivi->statut_demande == 0)
+							{
+								$simuSuivi->delete($ATMdb);
+							}
+							else 
+							{
+								if (!empty($simuSuivi->commentaire)) $simuSuivi->commentaire .= "\n";
+								$simuSuivi->commentaire .= "[$fk_type_contrat_old] suivi historisé le $nowFr";
+								$simuSuivi->date_historization = $now;
+								
+								$simuSuivi->save($ATMdb);
+							}
+						}
+					}
+				}
+				
 				//$ATMdb->db->debug=true;
 				$simulation->save($ATMdb, $db);
 				//echo $simulation->opt_calage; exit;
@@ -266,7 +296,7 @@ if(!empty($action)) {
 			<script language="javascript">
 				document.location.href="?delete_ok=1";
 			</script>
-			<?
+			<?php
 			
 			break;
 		case 'trywebservice':
@@ -420,6 +450,7 @@ function _liste(&$ATMdb, &$simulation) {
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
 			,'nbLine'=>'30'
+			,'global'=>'1000'
 		)
 		,'link'=>array(
 			'reference'=>'<a href="?id=@rowid@">@val@</a>'
@@ -507,7 +538,7 @@ function _liste(&$ATMdb, &$simulation) {
 	$form->end();
 	
 	if(isset($_REQUEST['socid'])) {
-		?><div class="tabsAction"><a href="?action=new&fk_soc=<?=$_REQUEST['socid'] ?>" class="butAction">Nouvelle simulation</a></div><?
+		?><div class="tabsAction"><a href="?action=new&fk_soc=<?php echo $_REQUEST['socid'] ?>" class="butAction">Nouvelle simulation</a></div><?php
 	}
 	
 	llxFooter();
@@ -580,7 +611,7 @@ function getAllStatutSuivi() {
 				$super_ok = true;
 				break;
 			}
-			elseif($TData['statut'] == 'OK' && $TData['date_selection'] != '0000-00-00 00:00:00'){
+			elseif($TData['statut'] == 'OK' && $TData['date_selection'] > '1970-00-00 00:00:00'){
 				$TStatutSuiviFinal[$fk_simulation] = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$fk_simulation, 1).'#suivi_leaser">';
 				$TStatutSuiviFinal[$fk_simulation].= '<img title="Accord" src="'.dol_buildpath('/financement/img/super_ok.png',1).'" />';
 				$TStatutSuiviFinal[$fk_simulation].= '</a>';
@@ -624,16 +655,6 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		
 	}
 	
-	if (!empty($simulation->fk_soc)) 
-	{
-		$simu = new TSimulation;
-		$TSimu = $simu->load_by_soc($ATMdb, $db, $simulation->fk_soc);
-		if (empty($TSimu)) $simulation->opt_no_case_to_settle = 1;
-	}
-	else {
-		$simulation->opt_no_case_to_settle = 1;
-	}
-	
 	$extrajs = array('/financement/js/financement.js', '/financement/js/dossier.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
 
@@ -657,22 +678,27 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	dol_include_once('/core/class/html.formfile.class.php');
 	$formfile = new FormFile($db);
 	$filename = dol_sanitizeFileName($simulation->getRef());
-	$filedir = $conf->financement->dir_output . '/' . dol_sanitizeFileName($simulation->getRef());
+	$filedir = $simulation->getFilePath();
 	
-	$TDuree = $grille->get_duree($ATMdb,FIN_LEASER_DEFAULT,$simulation->fk_type_contrat,$simulation->opt_periodicite,$simulation->entity);
+	$TDuree = (Array)$grille->get_duree($ATMdb,FIN_LEASER_DEFAULT,$simulation->fk_type_contrat,$simulation->opt_periodicite,$simulation->entity);
 	//var_dump($TDuree);
 	$can_preco = ($user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0) ? 1 : 0;
 	
 	// Chargement des groupes configurés dans multi entité
 	$TGroupEntity = unserialize($conf->global->MULTICOMPANY_USER_GROUP_ENTITY);
 	$TGroupEntities = array();
-	foreach($TGroupEntity as $tab) {
-		$g = new UserGroup($db);
-		if(!in_array($tab['group_id'], array_keys($TGroupEntities))) {
-			$g->fetch($tab['group_id']);
-			if($g->id > 0) $TGroupEntities[$tab['group_id']] = "'".$g->name."'";
+	
+	if(!empty($TGroupEntity)) {
+		foreach($TGroupEntity as $tab) {
+			$g = new UserGroup($db);
+			if(!in_array($tab['group_id'], array_keys($TGroupEntities))) {
+				$g->fetch($tab['group_id']);
+				if($g->id > 0) $TGroupEntities[$tab['group_id']] = "'".$g->name."'";
+			}
 		}
+		
 	}
+	
 	//var_dump($TGroupEntity, $TGroupEntities);
 	if($user->rights->financement->admin->write && ($mode == "add" || $mode == "new" || $mode == "edit")){
 		$formdolibarr = new Form($db);
@@ -731,6 +757,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	elseif ($simulation->opt_periodicite == 'ANNEE') $coeff = $simulation->coeff * 4;
 	else $coeff = $simulation->coeff; // TRIMESTRE
 	
+	if($simulation->montant_decompte_copies_sup < 0) $simulation->montant_decompte_copies_sup = 0;
+	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
@@ -784,7 +812,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'fk_categorie_bien'=>$mode == 'edit' ? $html->selectarray('fk_categorie_bien', TFinancementTools::getCategorieId(), $simulation->fk_categorie_bien) : TFinancementTools::getCategorieLabel($simulation->fk_categorie_bien)
 				,'fk_nature_bien'=>$mode == 'edit' ? $html->selectarray('fk_nature_bien', TFinancementTools::getNatureId(), $simulation->fk_nature_bien) : TFinancementTools::getNatureLabel($simulation->fk_nature_bien)
 				,'type_materiel'=>$form->texte('','type_materiel',$simulation->type_materiel, 50)
-				,'marque_materiel'=>$form->combo('','marque_materiel',$simulation->TMarqueMateriel,$simulation->marque_materiel)
+				,'marque_materiel'=>(!in_array($simulation->marque_materiel, $simulation->TMarqueMateriel) ? $langs->trans('Simulation_marque_not_more_available', $simulation->marque_materiel).' - ' : '') . $form->combo('','marque_materiel',$simulation->TMarqueMateriel,$simulation->marque_materiel)
 				,'numero_accord'=>($can_preco && GETPOST('action') == 'edit') ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $link_dossier
 				
 				,'no_case_to_settle'=>$form->checkbox1('', 'opt_no_case_to_settle', 1, $simulation->opt_no_case_to_settle) 
@@ -905,7 +933,7 @@ function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	echo $form->hidden('action', 'save_suivi');
 	echo $form->hidden('id', $simulation->getId());
 	$TLignes = $simulation->get_suivi_simulation($ATMdb,$form);
-	
+	$TLigneHistorized = $simulation->get_suivi_simulation_historized($ATMdb,$form);
 	//pre($TLignes,true);exit;
 	
 	$TBS=new TTemplateTBS;
@@ -913,12 +941,14 @@ function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	print $TBS->render('./tpl/simulation_suivi.tpl.php'
 		,array(
 			'ligne' => $TLignes
+			,'TLigneHistorized' => $TLigneHistorized
 		)
 		,array(
 			'view'=>array(
 				'mode'=>$mode
 				,'type'=>($simulation->fk_soc > 0) ? 'simul' : 'calcul'
 				,'titre'=>load_fiche_titre($langs->trans("SimulationSuivi"),'','object_simul.png@financement')
+				,'titre_history'=>load_fiche_titre($langs->trans("SimulationSuiviHistory"),'','object_simul.png@financement')
 			)
 		)
 	);
@@ -951,7 +981,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')';
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
 	$sql.= " AND (a.fk_soc = ".$simulation->fk_soc;
-	if(!empty($simulation->societe->siren)) {
+	if(!empty($simulation->societe->idprof1)) {
 		$sql.= " OR a.fk_soc IN
 					(
 						SELECT s.rowid 
@@ -959,12 +989,12 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 							LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
 						WHERE
 						(
-							s.siren = '".$simulation->societe->siren."'
+							s.siren = '".$simulation->societe->idprof1."'
 							AND s.siren != ''
 						) 
 						OR
 						(
-							se.other_siren LIKE '%".$simulation->societe->siren."%'
+							se.other_siren LIKE '%".$simulation->societe->idprof1."%'
 							AND se.other_siren != ''
 						)
 					)";
@@ -984,6 +1014,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$ATMdb->Execute($sql);
 	$ATMdb2 = new TPDOdb;
 	$var = true;
+	$min_amount_to_see = price2num($conf->global->FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE);
+	if (empty($min_amount_to_see)) $min_amount_to_see = 50000;
 	
 	$TDossierUsed = $simulation->get_list_dossier_used(true);
 	//pre($ATMdb->Get_field('IDDoss'),true);
@@ -1130,8 +1162,28 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		if($ATMdb->Get_field('incident_paiement')=='OUI' && $dossier->nature_financement == 'EXTERNE') $dossier->display_solde = 0;
 		//if($dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0; // Ticket 447
 		//if($leaser->code_client == '024242') $dossier->display_solde = 0; // Ticket 447, suite
-		if($dossier->montant >= 50000 && $dossier->nature_financement == 'INTERNE') $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
+		if($dossier->montant >= $min_amount_to_see) $dossier->display_solde = 0;// On ne prends que les dossiers < 50 000€ pour faire des tests
 		if($dossier->soldepersodispo == 2) $dossier->display_solde = 0;
+		
+		/* 
+		 * 2016.11.15 MKO : Règle d'affichage du solde d'un dossier :
+		 *  - Si age < FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH => Montant financé (règle appliquée dans getSolde())
+		 *  - Si age < FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH => Non dispo
+		 *  - Sinon, on affiche le solde
+		 */
+		if($dossier->display_solde != 0) {
+			if ($dossier->nature_financement == 'INTERNE') 
+			{
+				$nb_month_passe = ($dossier->financement->numero_prochaine_echeance - 1) * $dossier->financement->getiPeriode();
+			} else {
+				$nb_month_passe = ($dossier->financementLeaser->numero_prochaine_echeance - 1) * $dossier->financementLeaser->getiPeriode();
+			}
+			
+			if ($nb_month_passe <= $conf->global->FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH
+				&& $nb_month_passe > $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) {
+				$dossier->display_solde = 0;
+			}
+		}
 		
 		//Ne pas laissé disponible un dossier dont la dernière facture client est impayée
 		$cpt = 0;

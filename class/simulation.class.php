@@ -46,6 +46,7 @@ class TSimulation extends TObjetStd {
 			,1=>'A Echoir'
 		);
 		
+		/* TODO remove => a été remplacé par un dictionnaire
 		$this->TMarqueMateriel = array(
 			'CANON' => 'CANON'
 			,'DELL' => 'DELL'
@@ -58,7 +59,33 @@ class TSimulation extends TObjetStd {
 			,'SAMSUNG' => 'SAMSUNG'
 			,'TOSHIBA' => 'TOSHIBA'
 		);
-
+		*/
+		$this->TMarqueMateriel = self::getMarqueMateriel();
+	}
+	
+	public static function getMarqueMateriel()
+	{
+		global $conf,$db;
+		
+		$TRes = array();
+		
+		$sql = 'SELECT code, label FROM '.MAIN_DB_PREFIX.'c_financement_marque_materiel WHERE entity = '.$conf->entity.' AND active = 1';
+		dol_syslog('TSimulation::getMarqueMateriel sql='.$sql, LOG_INFO);
+		$resql = $db->query($sql);
+		
+		if ($resql)
+		{
+			while ($row = $db->fetch_object($resql))
+			{
+				$TRes[$row->code] = $row->label;
+			}
+		}
+		else
+		{
+			dol_syslog('TSimulation::getMarqueMateriel SQL FAIL - look up', LOG_ERR);
+		}
+		
+		return $TRes;
 	}
 	
 	function init() {
@@ -190,6 +217,9 @@ class TSimulation extends TObjetStd {
 		
 		$this->gen_simulation_pdf($db, $doliDB);
 		
+		if($this->accord == 'OK') {
+			$this->date_validite = strtotime('+ 3 months',$this->date_accord);
+		}
 		parent::save($db);
 		
 		//Création du suivi simulation leaser s'il n'existe pas
@@ -213,45 +243,28 @@ class TSimulation extends TObjetStd {
 	
 	function create_suivi_simulation(&$PDOdb){
 		global $db, $conf;
-		dol_include_once('/categories/class/categorie.class.php');
-		//echo 'create<br>';
-		//Pour chacun des leasers, on créé un suivi demande de financement
-		//Les leasers concernés sont ceux présent dans la catégorie "Type de financement" => id = 2
-		$categorieParent = new Categorie($db);
-		$categorieParent->fetch('','Type de financement');
-		$TCategoriesFille = $categorieParent->get_filles();
 		
-		// Chargement du tableau des leaser par type de contrat
+		// Pour créer le suivi leaser simulation, on prend les leaser définis dans la conf et parmi ceux-la, on met en 1er le leaser prioritaire
 		$TFinGrilleSuivi = new TFin_grille_suivi;
-		$grille = $TFinGrilleSuivi->get_grille($PDOdb, 'DEFAUT_'.$this->fk_type_contrat,false);
-		$TGrille = array();
-		foreach($grille as $TData) $TGrille[$TData['fk_leaser']] = $TData['fk_leaser'];
+		$grille = $TFinGrilleSuivi->get_grille($PDOdb, 'DEFAUT_'.$this->fk_type_contrat,false,$this->entity);
+		$idLeaserPrio = $this->getIdLeaserPrioritaire($PDOdb);
 		
-		$TLeasersDejaAjoutes = array();
+		$leaser = new Fournisseur($db);
+		$leaser->id = $idLeaserPrio;
+		//echo 'PRIO = '.$idLeaserPrio;
+		// Ajout du leaser prioritaire
+		$simulationSuivi = new TSimulationSuivi;
+		$simulationSuivi->init($PDOdb,$leaser,$this->getId());
+		$simulationSuivi->save($PDOdb);
 		
-		foreach ($TCategoriesFille as $categorieFille) {
-			//$TLeaser = $categorieFille->get_type("societe","Fournisseur","fournisseur");
-			$TLeaser = $categorieFille->getObjectsInCateg("supplier");
-			
-			//Pour chaque leaser, ajout d'une ligne de suivi
-			foreach($TLeaser as $leaser){
-				
-				// On n'ajoute que les leaser qui sont en conf
-				if(!in_array($leaser->id, $TGrille) || isset($TLeasersDejaAjoutes[$leaser->id])) continue;
-				$simulationSuivi = new TSimulationSuivi;
-				$simulationSuivi->init($PDOdb,$leaser,$this->getId());
-				$simulationSuivi->save($PDOdb);
-				
-				// Ajout du leaser dans le tableau
-				$TLeasersDejaAjoutes[$leaser->id] = $leaser->id;
-				
-				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
-				$this->reordreSimulationSuivi($PDOdb);
-			}
+		// Ajout des autres leasers de la liste (sauf le prio)
+		foreach($grille as $TData) {
+			if($TData['fk_leaser'] == $idLeaserPrio) continue;
+			$leaser->id = $TData['fk_leaser'];
+			$simulationSuivi = new TSimulationSuivi;
+			$simulationSuivi->init($PDOdb,$leaser,$this->getId());
+			$simulationSuivi->save($PDOdb);
 		}
-		/*foreach($this->TSimulationSuivi as $k=>$v) {
-			echo $v->fk_leaser.'<br>';
-		}exit;*/
 	}
 	
 	function getStatut() {
@@ -348,66 +361,28 @@ class TSimulation extends TObjetStd {
 	
 	//Charge dans un tableau les différents suivis de demande leaser concernant la simulation
 	function load_suivi_simulation(&$PDOdb){
-		//echo 'load<br>';
-		$TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()));
-		//pre($TRowid,true);exit;
-		//Si les suivis existent déjà
+		
+		$this->TSimulationSuivi = array();
+		$this->TSimulationSuiviHistorized = array();
+		
+		$TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
+	
 		if(count($TRowid) > 0){
 			
 			foreach($TRowid as $rowid){
 				$simulationSuivi = new TSimulationSuivi;
 				$simulationSuivi->load($PDOdb, $rowid);
-
-				$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+				// Attention les type date via abricot, c'est du timestamp
+				if ($simulationSuivi->date_historization <= 0) $this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+				else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
 			}
-			//Réorganisation de l'ordre de la liste en fonction de la grille d'administration
-			$TLeaser = $this->reordreSimulationSuivi($PDOdb);
+			
+			if (empty($this->TSimulationSuivi)) $this->create_suivi_simulation($PDOdb);
 		}
 		elseif($this->rowid > 0){
 			$this->create_suivi_simulation($PDOdb);
 		}
 	}
-	
-	//Réorganisation de l'ordre de la liste en fonction de la grille d'administration
-	function reordreSimulationSuivi(&$PDOdb){
-		
-		global $conf;
-		
-		$TSimulationSuiviTemp = array();
-		
-		//Récupération du leaser prioritaire pour affichage en premier dans le tableau
-		$idLeaserPrio = $this->getIdLeaserPrioritaire($PDOdb);
-		//echo $idLeaserPrio;
-		if($idLeaserPrio){
-			//Récupération Id suivi simulation correspondant au leaser
-			$idSimulationSuiviLeaserPrio = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId(),'fk_leaser'=>$idLeaserPrio));
-			//Chargement du suivi simulation associé au leaser
-			$simulationSuiviLeaserPrio = new TSimulationSuivi;
-			$simulationSuiviLeaserPrio->load($PDOdb,$idSimulationSuiviLeaserPrio[0]);
-			//Ajout du suivi simulation associé dans le tableau à la première place
-			$id = $simulationSuiviLeaserPrio->getId();
-			if(!empty($id)) $TSimulationSuiviTemp[$id] = $simulationSuiviLeaserPrio;
-		}
-		
-		//Récupération de l'ordre par défaut pour les autres Leaser
-		$sql = "SELECT rowid, fk_leaser_solde, montantbase 
-				FROM ".MAIN_DB_PREFIX."fin_grille_suivi 
-				WHERE fk_type_contrat = 'DEFAUT_".$this->fk_type_contrat."' AND entity = ".(empty($this->entity) ? $conf->entity : $this->entity);
-		if($idLeaserPrio) $sql .= " AND fk_leaser_solde != ".$idLeaserPrio;	
-		$sql .= " ORDER BY montantbase ASC";
-	
-		$PDOdb->Execute($sql);
-
-		while($PDOdb->Get_line()){
-			foreach($this->TSimulationSuivi as $simulationSuivi){
-				if((int)$simulationSuivi->fk_leaser === (int)$PDOdb->Get_field('fk_leaser_solde')){
-					$TSimulationSuiviTemp[$simulationSuivi->rowid] = $simulationSuivi;
-				}
-			}
-		}
-		$this->TSimulationSuivi = $TSimulationSuiviTemp;
-	}
-	
 	
 	//Retourne l'identifiant leaser prioritaire en fonction de la grille d'administration
 	function getIdLeaserPrioritaire(&$PDOdb){
@@ -416,10 +391,11 @@ class TSimulation extends TObjetStd {
 		$idLeaserPrioritaire = 0; //18305 ACECOM pour test
 		
 		$TFinGrilleSuivi = new TFin_grille_suivi;
-		$grille = $TFinGrilleSuivi->get_grille($PDOdb, $this->fk_type_contrat,false);
-		
+		$grille = $TFinGrilleSuivi->get_grille($PDOdb, $this->fk_type_contrat,false, $this->entity);
+		//pre($grille,true);
 		//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 		$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
+		//echo 'SOLDE = '.$idLeaserDossierSolde;
 		//echo $idLeaserDossierSolde;
 		//Récupération de la catégorie du client : entreprise, administration ou association
 		// suivant sont code NAF
@@ -495,18 +471,22 @@ class TSimulation extends TObjetStd {
 	//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
 	function getIdLeaserDossierSolde(&$PDOdb){
 		
-		$idLeaserDossierSolde = $montantDossierSole = 0;
-		$TDossierUsed = $this->get_list_dossier_used();
-		//pre($TDossierUsed,true);
+		$idLeaserDossierSolde = $montantDossierSolde = 0;
+		$TDossierUsed = array_merge(
+			$this->dossiers_rachetes
+			,$this->dossiers_rachetes_nr
+			,$this->dossiers_rachetes_p1
+			,$this->dossiers_rachetes_nr_p1
+		);
+		
 		if(count($TDossierUsed)){
-			foreach($TDossierUsed as $k => $id_dossier){
-				$dossier = new TFin_dossier;
-				$dossier->load($PDOdb, $id_dossier);
-				//pre($dossier,true);
-				//Si plusieurs dossiers soldé dans la simulation alors on prends le Leaser de celui ayant le plus gros montant
-				if($dossier->montant > $montantDossierSole){
+			foreach($TDossierUsed as $id_dossier => $data){
+				if(empty($data['checked'])) continue;
+				if($data['montant'] > $montantDossierSolde) {
+					$dossier = new TFin_dossier;
+					$dossier->load($PDOdb, $data['checked']);
 					$idLeaserDossierSolde = $dossier->financementLeaser->fk_soc;
-					$montantDossierSole = $dossier->montant;
+					$montantDossierSolde = $data['montant'];
 				}
 			}
 		}
@@ -518,12 +498,34 @@ class TSimulation extends TObjetStd {
 		global $db;
 
 		$this->load_suivi_simulation($PDOdb);
+		
 		//echo 'get<br>';
 		$TLignes = array();
 		if ($this->accord == "OK" ) $form->type_aff = 'view';
-		//pre($this->TSimulationSuivi,true);
+		
+		$TLignes = $this->_get_lignes_suivi($this->TSimulationSuivi, $form);
+		if ($with_history) $T = $this->_get_lignes_suivi($this->TSimulationSuiviHistorized, $form);
+		
+		return $TLignes;
+	}
+
+	function get_suivi_simulation_historized(&$PDOdb,&$form)
+	{
+		if (empty($this->TSimulationSuiviHistorized)) $this->load_suivi_simulation($PDOdb);
+		
+		$form->type_aff = 'view';
+		
+		$Tab = $this->_get_lignes_suivi($this->TSimulationSuiviHistorized, $form);
+		
+		return $Tab;
+	}
+	
+	private function _get_lignes_suivi(&$TSuivi, &$form)
+	{
+		$Tab = array();
+		//pre($TSuivi,true);
 		//Construction d'un tableau de ligne pour futur affichage TBS
-		foreach($this->TSimulationSuivi as $simulationSuivi){
+		foreach($TSuivi as $simulationSuivi){
 			//echo $simulationSuivi->rowid.'<br>';
 			$link_user = '<a href="'.DOL_URL_ROOT.'/user/card.php?id='.$simulationSuivi->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulationSuivi->user->login.'</a>';
 			
@@ -547,10 +549,10 @@ class TSimulation extends TObjetStd {
 			$ligne['actions'] = $simulationSuivi->getAction($this);
 			$ligne['action_save'] = $simulationSuivi->getAction($this, true);
 			
-			$TLignes[] = $ligne;
+			$Tab[] = $ligne;
 		}
 
-		return $TLignes;
+		return $Tab;
 	}
 	
 	/**
@@ -569,6 +571,7 @@ class TSimulation extends TObjetStd {
 	 * 			-4	= Pas de grille chargée
 	 */
 	function calcul_financement(&$ATMdb, $idLeaser, $options, $typeCalcul='cpro') {
+		global $conf;
 		/*
 		 * Formule de calcul échéance
 		 * 
@@ -602,9 +605,12 @@ class TSimulation extends TObjetStd {
 			return false;
 		}
 		else if(empty($this->opt_no_case_to_settle)
-				&& empty($this->dossiers_rachetes) && empty($this->dossiers_rachetes_nr)
-				&& empty($this->dossiers_rachetes_p1) && empty($this->dossiers_rachetes_nr_p1)
-				&& empty($this->dossiers_rachetes_perso)) { // Dossier obligatoire
+				&& empty($this->montant_rachete)
+				&& empty($this->dossiers_rachetes)
+				&& empty($this->dossiers_rachetes_nr)
+				&& empty($this->dossiers_rachetes_p1)
+				&& empty($this->dossiers_rachetes_nr_p1)
+				&& empty($this->montant_rachete_concurrence)) { // Soit case "aucun dossier à solder", soit choix de dossier, soit saisie d'un montant rachat concurrence
 			$this->error = 'ErrorCaseMandatory';
 			return false;
 		}
@@ -612,7 +618,7 @@ class TSimulation extends TObjetStd {
 			$this->error = 'ErrorMaterielRequired';
 			return false;
 		}
-		else if($this->montant_presta_trim <= 0 && $this->fk_type_contrat == "FORFAITGLOBAL") {
+		else if($this->montant_presta_trim <= 0 && $this->fk_type_contrat == "FORFAITGLOBAL" && !empty($conf->global->FINANCEMENT_MONTANT_PRESTATION_OBLIGATOIRE)) {
 			$this->error = 'ErrorMontantTrimRequired';
 			return false;
 		}
@@ -633,6 +639,7 @@ class TSimulation extends TObjetStd {
 		$this->coeff=0;
 		// Calcul à partir du montant
 		if(!empty($this->montant_total_finance)) {
+			//var_dump($this->montant_total_finance, $this->duree, $grille->TGrille);exit;
 			foreach($grille->TGrille[$this->duree] as $palier => $infos) {
 				if($this->montant_total_finance <= $palier)
 				{
@@ -641,15 +648,12 @@ class TSimulation extends TObjetStd {
 				}
 			}
 		} else if(!empty($this->echeance)) { // Calcul à partir de l'échéance
-			$montant = 0;
-			$palierMin = 0;
+			//var_dump($this->echeance, $this->duree, $grille->TGrille);exit;
 			foreach($grille->TGrille[$this->duree] as $palier => $infos) {
-				$montantMax = $this->echeance / ($infos['coeff'] / 100);
-				if($montantMax > $montant && $montantMax <= $palier && $montantMax >= $palierMin) {
-					$montant = $montantMax;
+				if ($infos['echeance'] >= $this->echeance) {
 					$this->coeff = $infos['coeff']; // coef trimestriel
+					break;
 				}
-				$palierMin = $palier;
 			}
 		}
 		
@@ -802,6 +806,17 @@ class TSimulation extends TObjetStd {
 		return false;
 	}
 	
+	function getFilePath() {
+		global $conf;
+		
+		// aucun intérêt dans la mesure où dépend de l'entity de l'objet... finaleent simple
+		//$PDFPath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef()); 
+		
+		$PDFPath = DOL_DATA_ROOT.'/financement/'. dol_sanitizeFileName($this->getRef());
+		
+		return $PDFPath;
+	}
+	
 	function send_mail_vendeur($auto=false, $mailto='') {
 		global $langs, $conf;
 		
@@ -810,7 +825,7 @@ class TSimulation extends TObjetStd {
 		dol_include_once('/core/class/CMailFile.class.php');
 		
 		$PDFName = dol_sanitizeFileName($this->getRef()).'.pdf';
-		$PDFPath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef());
+		$PDFPath = $this->getFilePath();
 		
 		$formmail = new FormMail($db);
 		$formmail->clear_attached_files();
@@ -1152,7 +1167,7 @@ class TSimulation extends TObjetStd {
 		//pre($TDossier,true); exit;
 		// Création du répertoire
 		$fileName = dol_sanitizeFileName($this->getRef()).'.odt';
-		$filePath = $conf->financement->dir_output . '/' . dol_sanitizeFileName($this->getRef());
+		$filePath = $this->getFilePath();
 		dol_mkdir($filePath);
 		
 		if($this->fk_leaser){
@@ -1239,7 +1254,7 @@ class TSimulation extends TObjetStd {
 			$this->demande_accord();
 			if($this->accord == 'OK') {
 				$this->date_accord = time();
-				$this->date_validite = strtotime('+ 3 months');
+				//$this->date_validite = strtotime('+ 3 months');
 			}
 			if($mode == 'save' && ($this->accord == 'OK' || $this->accord == 'KO')) { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
 				$this->send_mail_vendeur(true);
@@ -1258,14 +1273,14 @@ class TSimulationSuivi extends TObjetStd {
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation_suivi');
 		parent::add_champs('entity,fk_simulation,fk_leaser,fk_user_author,statut_demande','type=entier;');
 		parent::add_champs('coeff_leaser','type=float;');
-		parent::add_champs('date_demande,date_accord,date_selection','type=date;');
+		parent::add_champs('date_demande,date_accord,date_selection,date_historization','type=date;');
 		parent::add_champs('numero_accord_leaser,statut','type=chaine;');
 		parent::add_champs('commentaire','type=text;');
 		parent::start();
 		parent::_init_vars();
 		
 		//Reset des dates car par défaut = time() à l'instanciation de la classe
-		$this->date_demande = $this->date_accord = $this->date_selection = '';
+		$this->date_demande = $this->date_accord = $this->date_selection = $this->date_historization = '';
 
 		$this->TStatut=array(
 			'OK'=>$langs->trans('Accord')

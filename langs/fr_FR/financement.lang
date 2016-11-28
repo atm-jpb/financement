@@ -27,6 +27,7 @@ penaliteNR=Pénalités non-renouvellantes
 rentabilite=Grille de rentabilité
 ScriptsManuallyLaunchable=Scripts à lancer manuellement
 PenalitesForSimulation=Pénalités appliquées au simulateur
+PenalitesForSuiviIntegrale=Pénalités appliquées au suivi intégrale
 opt_periodicite=Périodicité
 opt_mode_reglement=Mode de règlement
 opt_terme=Terme
@@ -39,14 +40,19 @@ PercentNbTrimCopiesSup=Nombre de trimestre pour calcul copies suplémentaires
 PercentAugCRD=Pourcentage d'augmentation du CRD pour calcul Solde Loc Addosée ou Mandatée
 NbInvoiceUnpaid=Indisponibilité du solde dans la simulation si X factures non payées
 NbDayDossierIndispo=Nombre de jour avant disponibilité d'un dossier dans une simulation s'il est déjà sélectionné dans une simulation antérieure
-NbMoisSoldeCPRO=Nombre de mois avant avant application des règles de calcule des soldes sur échéancier CLIENT
-NbMoisSoldeBANK=Nombre de mois avant avant application des règles de calcule des soldes sur échéancier LEASER
+NbMoisSoldeCPRO=Solde CPRO = montant financé tant que le dossier n'a pas dépassé
+NbMoisSoldeBANK=Solde banque = montant financé tant que le dossier n'a pas dépassé
+NbMoisSoldeNotAvailable=Solde non disponible tant que le dossier n'a pas dépassé
+FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE=Ne pas afficher les soldes pour les dossiers dont le montant est supérieur à
+FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY=Répartition affaires. Ex : "012:3;", les affaires commençant par 012 seront attribuée à l'entité 3
+SimulationMontantPrestationObligatoire=Montant prestation obligatoire sur les simulations
+
+# EDI
 FINANCEMENT_SHOW_RECETTE_BUTTON=Affiche un bouton dans la colonne "Actions" des suivis leaser pour forcer l'appel au webservice (si l'utilisateur courant est admin et entité 0)
 FINANCEMENT_WEBSERVICE_ACTIVATE=Activer les appels webservice
 FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD=Mode production (si non active les appels ce feront sur les URLs de recette
 FINANCEMENT_ENDPOINT_CALF_RECETTE=URL de <b>recette</b> pour CAL&f (endpoint)
 FINANCEMENT_ENDPOINT_CALF_PROD=URL de <b>production</b> CAL&f (endpoint)
-
 
 # SIMULATIONS
 Simulations=Simulations
@@ -110,6 +116,8 @@ ErrorCaseMandatory=Merci de sélectionner au moins un dossier à racheter ou de 
 UnableToCreateProspect=Impossible de créer la fiche prospect
 SimulationSuivi=Suivi Leaser Simulation
 simulation_info_vr=Le pourcentage et/ou le montant de la valeur résiduelle est utilisé pour une demande de financement. Le pourcentage et le montant sont exclusifs l'un l'autre, c'est-à-dire que seul un des 2 champs doit être renseigné. Si les 2 sont renseignés, alors c'est le montant qui sera pris en compte pour la demande de financement.
+SimulationSuiviHistory=Historique Suivi Leaser Simulation
+Simulation_marque_not_more_available=Ancienne marque : <b>%s</b>
 
 # SCORE
 ScoreList=Scores
@@ -145,6 +153,7 @@ ErrorDossierClientNotFound=Dossier non trouvé
 ErrorClientDifferent=Dossier rattaché à un autre client
 leaserNotAllgood=Leaser du dossier différent
 ErrorCreatingLinkAffaireFactureMaterielAlreidyExist=Facture matériel déjà rattaché à une affaire
+ErrorMaterielNonFinance=Facture matériel pour un contrat non financé
 
 # IHM
 DataSaved=Données enregistrées avec succès

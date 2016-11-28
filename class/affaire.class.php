@@ -348,9 +348,8 @@ class TFin_affaire extends TObjetStd {
 				WHERE fa.type_financement = "MANDATEE"
 					AND df.type = "LEASER"
 					AND s.rowid = '.$fk_leaser.'
-					AND df.transfert = 1';
-		
-		//echo $sql;exit;
+					AND df.transfert = 1
+					AND fa.entity IN('.((strpos(getEntity(),'1') !== FALSE || strpos(getEntity(),'4')!== FALSE) ? "1,4" : getEntity() ).')';
 		
 		$TIdAffaire = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 		
@@ -369,21 +368,19 @@ class TFin_affaire extends TObjetStd {
 	}	
 	
 	function genLixxbailXML(&$PDOdb, &$TAffaires,$andUpload=false){
+		global $conf;
 		
-		$date = date('Ymd');
-		$name = "CPROMA01IMMA".$date;
-
 		$xml = new DOMDocument('1.0','UTF-8');
 		$xml->formatOutput = true;
 
 		$affairelist = $xml->createElement("affaireList");
 		$affairelist = $xml->appendChild($affairelist);
-
-		$affairelist->appendChild($xml->createElement("nomFich",$name));
-		$affairelist->appendChild($xml->createElement("refExtPartenaire","CPROMA01"));
-		$affairelist->appendChild($xml->createElement("numLot","IMMA".date('ymd')));
 		
-		$name2 = "FP_207_MA01_CPRO_".$date;
+		list($nomFichier,$name2,$refPartenaire,$numLot) = $this->getEnTeteByEntity();
+		
+		$affairelist->appendChild($xml->createElement("nomFich",$nomFichier));
+		$affairelist->appendChild($xml->createElement("refExtPartenaire",$refPartenaire));
+		$affairelist->appendChild($xml->createElement("numLot",$numLot));
 		
 		//Chargement des noeuds correspondant aux affaires
 		foreach($TAffaires as $Affaire){
@@ -398,10 +395,87 @@ class TFin_affaire extends TObjetStd {
 		}
 		
 		$chaine = $xml->saveXML();
-		dol_mkdir(DOL_DATA_ROOT.'/financement/XML/Lixxbail/');
-		file_put_contents(DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$name2.'.xml', $chaine);
+		
+		if($conf->entity > 1)
+			$url = DOL_DATA_ROOT.'/'.$conf->entity.'/financement/XML/Lixxbail/';
+		else
+			$url = DOL_DATA_ROOT.'/financement/XML/Lixxbail/';
+		
+		dol_mkdir($url);
+		file_put_contents($url.$name2.'.xml', $chaine);
 		
 		return $name2;
+	}
+	
+	function _getNumFournisseur(){
+		
+		switch (getEntity()) {
+			case 1: //CPRO Impression
+				return "M000355961";
+				break;
+			case 2: //CPRO Informatique
+				return "M000355961";
+				break;
+			case 3: //CPRO Télécom
+				return "M000355961";
+				break;
+			case 4: //Bougogne Copie
+				return "M000355961";
+				break;
+			case 5: //ABG
+				return "M000290985";
+				break;
+			default:
+				return "M000355961";
+				break;
+		}
+	}
+	
+	function getEnTeteByEntity(){
+		
+		$date = date('Ymd');
+		
+		switch (getEntity()) {
+			case 1: //CPRO Impression
+				$name2 = "FP_207_MA01_CPRO_".$date;
+				$nomFichier = "CPROMA01IMMA".$date;
+				$refPartenaire = "CPROMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 2: //CPRO Informatique
+				$name2 = "FP_207_MA01_CPRO_".$date;
+				$nomFichier = "CPROMA01IMMA".$date;
+				$refPartenaire = "CPROMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 3: //CPRO Télécom
+				$name2 = "FP_207_MA01_CPRO_".$date;
+				$nomFichier = "CPROMA01IMMA".$date;
+				$refPartenaire = "CPROMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 4: //Bougogne Copie
+				$name2 = "FP_207_MA01_CPRO_".$date;
+				$nomFichier = "CPROMA01IMMA".$date;
+				$refPartenaire = "CPROMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 5: //ABG
+				$name2 = "FP_207_MA01_ABG_".$date;
+				$nomFichier = "ABGMA01IMMA".$date;
+				$refPartenaire = "ABGMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			
+			default:
+				$name2 = "FP_207_MA01_CPRO_".$date;
+				$nomFichier = "CPROMA01IMMA".$date;
+				$refPartenaire = "CPROMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+		}
+		
+		return array($nomFichier,$name2,$refPartenaire,$numLot);
 	}
 	
 	function resetAllDossiersInXML(&$ATMdb,&$TAffaires){
@@ -440,7 +514,7 @@ class TFin_affaire extends TObjetStd {
 		//pre($Affaire,true);exit;
 
 		foreach($Affaire->TLien as $i => $Tdata){
-			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert){
+			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert == 1){
 				
 				$affaire->appendChild($xml->createElement("dateSignature",date("Y-m-d",$Affaire->date_affaire)));
 				$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[$i]->dossier->financementLeaser->reference));
@@ -735,7 +809,7 @@ class TFin_affaire extends TObjetStd {
 		//pre($TAsset[0]->asset->serial_number);exit;
 		//$commande->appendChild($xml->createElement("noCommande",((count($TAsset) > 1) ? date('dmY') : $TAsset[0]->asset->serial_number)));
 		$commande->appendChild($xml->createElement("noCommande",strtoupper(substr($Affaire->reference,0,10))));
-		$commande->appendChild($xml->createElement("fournisseur","M000355961"));
+		$commande->appendChild($xml->createElement("fournisseur",$this->_getNumFournisseur()));
 
 		//foreach($TAsset as $a=>$assetLink){
 				

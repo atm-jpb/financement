@@ -64,6 +64,9 @@
 					
 					
 					$mappingFile = ($fileType == 'fichier_leaser' ? $fileType.'.'.$societe->code_client.'.mapping' : $fileType.'.mapping');
+					if(!is_file($importFolderMapping.$mappingFile) && $fileType == 'fichier_leaser'){
+						$mappingFile = $fileType.'.default.mapping';
+					}
 					$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
 					
 					$imp->init($fileName, $fileType);
@@ -209,7 +212,7 @@ function _liste(&$ATMdb, &$import) {
 		)
 	));
 	
-	?><div class="tabsAction"><a href="?action=new" class="butAction">Nouvel import</a></div><?
+	?><div class="tabsAction"><a href="?action=new" class="butAction">Nouvel import</a></div><?php
 
 	llxFooter();
 }	
@@ -263,7 +266,7 @@ function _fiche(&$ATMdb, &$import, $mode) {
 		)
 	);
 	
-	?><div class="tabsAction" style="text-align: left;"><a href="?action=export&id=<?=$import->getId()?>" class="butAction">Exporter les erreurs</a></div><br><br><?
+	?><div class="tabsAction" style="text-align: left;"><a href="?action=export&id=<?php echo $import->getId(); ?>" class="butAction">Exporter les erreurs</a></div><br><br><?php
 	
 	echo $form->end_form();
 	echo date('d/m/Y H:i:s', time());

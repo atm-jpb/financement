@@ -46,11 +46,9 @@
         if(!empty($Tid)){
     		if(count($Tid) > 1){
     			_liste($PDOdb, $dossier);
-    		}
-		else{
-			$dossier->load($PDOdb, $Tid[0]);
-       			 _fiche($PDOdb,$dossier, 'view');
-		}
+    		} else{
+				header('Location: '.$SERVER['PHP_SELF'].'?id='.$Tid[0]);
+			}
         }
 	}
 	
@@ -146,7 +144,7 @@
 				<script language="javascript">
 					document.location.href="?delete_ok=1";					
 				</script>
-				<?
+				<?php
 				unset($dossier);
 				
 				break;
@@ -195,10 +193,10 @@
 				
 				$affaire = new TFin_affaire;
 				
-				$TAffaires = $affaire->getAffairesForXML($PDOdb);
+				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
 				$dirName = $affaire->genLixxbailXML($PDOdb, $TAffaires);
 				
-				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=1&file=XML/Lixxbail/".$dirName.".xml",2));
+				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=".$conf->entity."&file=XML/Lixxbail/".$dirName.".xml",2));
 				
 				break;
 			
@@ -211,11 +209,17 @@
 				
 				$affaire = new TFin_affaire;
 				
-				$TAffaires = $affaire->getAffairesForXML($PDOdb);
+				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
 				$filename = $affaire->genLixxbailXML($PDOdb, $TAffaires,true);
 				$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
 				
+				if($conf->entity > 1)
+					$dirname = DOL_DATA_ROOT.'/'.$conf->entity.'/financement/XML/Lixxbail/'.$filename.'.xml';
+				else
+					$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
+
 				//$affaire->uploadXMLOnLeaserServer($host,$user,$directory,$dirname,$filename.'.xml');
+//echo $dirname;exit;
 				if(BASE_TEST) {
 					exec('sh bash/lixxbailxml_test.sh '.$dirname);
 				} else {
@@ -233,7 +237,7 @@
 			case 'setnottransfer':
 				
 				$affaire = new TFin_affaire;
-				$TAffaires = $affaire->getAffairesForXML($PDOdb);
+				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
 				$affaire->resetAllDossiersInXML($PDOdb,$TAffaires);
 				
 				?>
@@ -319,6 +323,35 @@
 				
 				break;
 			
+			case 'new_facture_client':
+				dol_include_once('/compta/facture/class/facture.class.php');
+				dol_include_once('/product/class/product.class.php');
+				
+				$idDossier = GETPOST('id_dossier');
+				$echeance = GETPOST('echeance');
+				
+				// Maj échéance dossier
+				$dossier = new TFin_dossier();
+				$dossier->load($PDOdb, $idDossier);
+				$fact = $dossier->create_facture_client(false, true, $echeance);
+				
+				if($fact->id){
+					$dossier->financement->setProchaineEcheanceClient($PDOdb, $dossier);
+					$dossier->save($PDOdb);
+					
+					$urlback = dol_buildpath('/compta/facture.php?facid='.$fact->id, 1);
+					header("Location: ".$urlback);
+					exit;
+				}
+				else{
+					setEventMessage('Création facture impossible, dossier incomplet','errors');
+					$urlback = dol_buildpath('/financement/dossier.php?id='.$dossier->rowid, 1);
+					header("Location: ".$urlback);
+					exit;
+				}
+				
+				break;
+			
 			case 'exportListeDossier' :
 				_liste_renta_negative($PDOdb, $dossier);
 			break;
@@ -380,7 +413,8 @@ function _liste(&$PDOdb, &$dossier) {
 	//$sql.="LEFT OUTER JOIN ".MAIN_DB_PREFIX."facture f ON (f.rowid=ee.fk_target)) ";
 	
 	//$sql.=" WHERE a.entity=".$conf->entity;
-	$sql.=" WHERE a.entity IN(".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
+	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])) $sql.=" WHERE a.entity IN(".((strpos(getEntity(),'1') !== FALSE || strpos(getEntity(),'4')!== FALSE) ? "1,4" : getEntity() ).")";
+	else $sql.=" WHERE a.entity IN(".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
 	
 	//Filtrage sur leaser et uniquement dossier avec "Bon pour transfert" = 1 (Oui)
 	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
@@ -399,12 +433,12 @@ function _liste(&$PDOdb, &$dossier) {
 	
 	$TEntityName = TFinancementTools::build_array_entities();
 	TFinancementTools::add_css();
-	
-	//echo $sql;
+
 	$r->liste($PDOdb, $sql, array(
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
 			,'nbLine'=>'30'
+			,'global'=>'1000'
 		)
 		,'link'=>array(
 			'nomCli'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
@@ -482,7 +516,7 @@ function _liste(&$PDOdb, &$dossier) {
 		?>
 		<div class="tabsAction">
 				<a href="?action=exportXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Exporter</a>
-				<a href="?action=generateXML" class="butAction">Générer le XML Lixxbail</a>
+				<a href="?action=generateXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Générer le XML Lixxbail</a>
 				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Générer le XML Lixxbail et envoyer au Leaser</a>
 				<a href="?action=setnottransfer&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
 		</div>
@@ -591,9 +625,9 @@ function _liste_renta_negative(&$PDOdb, &$dossier) {
 				INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (a.rowid = da.fk_fin_affaire)
 				LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (d.rowid = df.fk_fin_dossier AND df.type = "LEASER")
 				
-			WHERE df.date_solde = "0000-00-00 00:00:00"
+			WHERE df.date_solde < "1970-00-00 00:00:00"
 			AND d.montant_solde = "0.00" 
-			AND d.date_solde = "0000-00-00 00:00:00"
+			AND d.date_solde < "1970-00-00 00:00:00"
 			AND a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')
 			AND d.reference NOT LIKE "%old%"
 			ORDER BY d.rowid
@@ -905,6 +939,7 @@ function _getExport(&$TLines){
 
 
 function _getExportXML($sql){
+	global $conf;
 	
 	$PDOdb = new TPDOdb;;
 	
@@ -917,9 +952,15 @@ function _getExportXML($sql){
 	$TTRes = $PDOdb->Get_All(PDO::FETCH_ASSOC);
 	
 	$filename = 'export_XML.csv';
-	$filepath = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename;
-	$file = fopen($filepath,'w');
 	
+	if($conf->entity > 1)
+		$url = DOL_DATA_ROOT.'/'.$conf->entity.'/financement/XML/Lixxbail/';
+	else
+		$url = DOL_DATA_ROOT.'/financement/XML/Lixxbail/';
+	
+	$filepath = $url.$filename;
+	$file = fopen($filepath,'w');
+
 	//Ajout première ligne libelle
 	$TLabel = array('Contrat','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant','Echeance','Prochaine','Debut','Fin','Facture Materiel');
 	fputcsv($file, $TLabel,';','"');
@@ -941,7 +982,7 @@ function _getExportXML($sql){
 	
 	?>
 	<script language="javascript">
-		document.location.href="<?php echo dol_buildpath("/document.php?modulepart=financement&entity=1&file=XML/Lixxbail/".$filename,2); ?>";					
+		document.location.href="<?php echo dol_buildpath("/document.php?modulepart=financement&entity=".$conf->entity."&file=XML/Lixxbail/".$filename,2); ?>";					
 	</script>
 	<?php
 	

@@ -34,6 +34,8 @@ $langs->load("admin");
 $langs->load("errors");
 $langs->load('other');
 
+$form = new Form($db);
+
 $action = GETPOST('action','alpha');
 $ATMdb = new TPDOdb;
 
@@ -79,9 +81,11 @@ if ($action == 'save_penalites_simulateur') {
 llxHeader('',$langs->trans("FinancementSetup"));
 $head = financement_admin_prepare_head(null);
 
+$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
+print_fiche_titre($langs->trans("GlobalOptionsForFinancementSimulation"), $linkback);
+
 dol_fiche_head($head, 'config', $langs->trans("Financement"), 0, 'financementico@financement');
 
-print_titre($langs->trans("GlobalOptionsForFinancementSimulation"));
 
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';
@@ -258,7 +262,56 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 
-print '</table>';
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("NbMoisSoldeNotAvailable").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH" value="'.$conf->global->FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH.'" /> mois';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_MONTANT_PRESTATION_OBLIGATOIRE" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("SimulationMontantPrestationObligatoire").'</td>';
+print '<td align="right">';
+print $form->selectyesno("FINANCEMENT_MONTANT_PRESTATION_OBLIGATOIRE",$conf->global->FINANCEMENT_MONTANT_PRESTATION_OBLIGATOIRE,1);
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE").'</td>';
+print '<td align="right"><input placeholder="50000" size="10" class="flat" type="text" name="FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE" value="'.$conf->global->FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE.'" /> &euro;';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY").'</td>';
+print '<td align="right"><input size="40" class="flat" type="text" name="FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY" value="'.$conf->global->FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY.'" />';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+print '</table><br /><br />';
 
 print_titre($langs->trans("PenalitesForSimulation"));
 
@@ -286,13 +339,30 @@ while($ATMdb->Get_line()) {
 	$var=! $var;
 }
 
-print '</table>';
+print '</table><br />';
 
 print '</form>';
 
+print_titre($langs->trans("PenalitesForSuiviIntegrale"));
 
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_PENALITE_SUIVI_INTEGRALE" />';
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameter").'</td>';
+print '<td align="center">'.$langs->trans("Value").'</td>';
+print '<td width="80"><input type="submit" class="button" value="'.$langs->trans("Enregistrer").'" /></td>';
+print "</tr>\n";
+$var=true;
 
+print '<tr '.$bc[$var].'><td>';
+print 'Pourcentage à appliquer</td>';
+print '<td colspan="2"><input type="text" name="FINANCEMENT_PENALITE_SUIVI_INTEGRALE" value="'.$conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE.'" size="5"/> %';
+print '</td>';
+print "</tr>\n";
 
+print '</table><br />';
 
 print_titre($langs->trans("ScriptsManuallyLaunchable"));
 
@@ -311,7 +381,7 @@ $var=true;
 		<a href="../script/create-facture-leaser.php" target="_blank">Lancer le script</a>
 	</td>
 </tr>
-<?
+<?php
 
 /*
 $var=! $var;

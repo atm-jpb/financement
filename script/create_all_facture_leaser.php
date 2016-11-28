@@ -2,9 +2,9 @@
 	define('INC_FROM_CRON_SCRIPT',true);
 
 	require('../config.php');
-	require('../class/affaire.class.php');
-	require('../class/dossier.class.php');
-	require('../class/grille.class.php');
+	dol_include_once("/financement/class/affaire.class.php");
+	dol_include_once("/financement/class/dossier.class.php");
+	dol_include_once("/financement/class/grille.class.php");
 	dol_include_once("/fourn/class/fournisseur.facture.class.php");
 
 	set_time_limit(0);
@@ -24,7 +24,7 @@
 		  WHERE df.`date_debut` BETWEEN '2000-01-01 00:00:00' AND '".$date_echeance." 23:59:59'
 			AND df.date_fin BETWEEN '".$date_echeance." 00:00:00' AND '2200-01-01 00:00:00'
 			AND df.type = 'LEASER'
-			AND df.date_solde = '0000-00-00 00:00:00'
+			AND df.date_solde < '1970-00-00 00:00:00'
 			AND d.nature_financement = 'INTERNE'
 			AND (
 				df.okPourFacturation = 'OUI'
