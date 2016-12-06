@@ -46,6 +46,7 @@ NbMoisSoldeNotAvailable=Solde non disponible tant que le dossier n'a pas dépass
 FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE=Ne pas afficher les soldes pour les dossiers dont le montant est supérieur à
 FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY=Répartition affaires. Ex : "012:3;", les affaires commençant par 012 seront attribuée à l'entité 3
 SimulationMontantPrestationObligatoire=Montant prestation obligatoire sur les simulations
+FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE=Écart autorisé de modification du montant sur simulation
 
 # SIMULATIONS
 Simulations=Simulations
@@ -110,6 +111,7 @@ UnableToCreateProspect=Impossible de créer la fiche prospect
 SimulationSuivi=Suivi Leaser Simulation
 SimulationSuiviHistory=Historique Suivi Leaser Simulation
 Simulation_marque_not_more_available=Ancienne marque : <b>%s</b>
+ErrorMontantModifNotAuthorized=Votre modification du montant est trop importante, contactez le service financement
 
 # SCORE
 ScoreList=Scores

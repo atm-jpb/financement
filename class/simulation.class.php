@@ -12,6 +12,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,marque_materiel,numero_accord,reference,opt_calage','type=chaine;');
 		parent::add_champs('dossiers,dossiers_rachetes_m1,dossiers_rachetes_nr_m1,dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
 		parent::add_champs('thirdparty_name,thirdparty_address,thirdparty_zip,thirdparty_town,thirdparty_code_client,thirdparty_idprof2_siret, thirdparty_idprof3_naf','type=chaine;');
+		parent::add_champs('montant_accord','type=float;'); // Sert à stocker le montant pour lequel l'accord a été donné
 
 		parent::start();
 		parent::_init_vars();
@@ -104,6 +105,8 @@ class TSimulation extends TObjetStd {
 		$this->dossiers_rachetes_p1 = array();
 		$this->dossiers_rachetes_nr_p1 = array();
 		$this->dossiers_rachetes_perso = array();
+		
+		$this->modifiable = 1;
 	}
  
 	function getRef() {
@@ -339,6 +342,8 @@ class TSimulation extends TObjetStd {
 		if(!empty($this->fk_leaser)) {
 			$this->leaser = new Societe($doliDB);
 			$this->leaser->fetch($this->fk_leaser);
+			// Si un leaser a été préconisé, la simulation n'est plus modifiable
+			$this->modifiable = 0;
 		}
 		
 		if(!empty($this->fk_user_author)) {
@@ -370,7 +375,13 @@ class TSimulation extends TObjetStd {
 				$simulationSuivi = new TSimulationSuivi;
 				$simulationSuivi->load($PDOdb, $rowid);
 				// Attention les type date via abricot, c'est du timestamp
-				if ($simulationSuivi->date_historization <= 0) $this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+				if ($simulationSuivi->date_historization <= 0) {
+					$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+					// Si une demande a déjà été lancée, la simulation n'est plus modifiable
+					if($simulationSuivi->statut_demande > 0) {
+						$this->modifiable = 0;
+					}
+				}
 				else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
 			}
 			
@@ -690,6 +701,16 @@ class TSimulation extends TObjetStd {
 			
 			$this->montant = round($this->montant, 3);
 			$this->montant_total_finance = $this->montant;
+		}
+		
+		// Cas de la modification de la simulation à +- 10 %
+		// Si la simulation n'est pas modifiable (demande déjà formulée à un leaser) on vérifie la règle +- 10%
+		if(empty($this->modifiable) && $this->montant_accord != $this->montant_total_finance) {
+			$diff = abs($this->montant_total_finance - $this->montant_accord);
+			if(($diff / $this->montant_accord) * 100 > $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE) {
+				$this->error = 'ErrorMontantModifNotAuthorized';
+				return false;
+			}
 		}
 		
 		return true;

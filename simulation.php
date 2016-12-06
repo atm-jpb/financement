@@ -259,6 +259,11 @@ if(!empty($action)) {
 					}
 				}
 				
+				// Si le leaser préconisé est renseigné, on enregistre le montant pour le figer (+- 10%)
+				if(empty($simulation->montant_accord) && !empty($simulation->fk_leaser)) {
+					$simulation->montant_accord = $simulation->montant_total_finance;
+				}
+				
 				//$ATMdb->db->debug=true;
 				$simulation->save($ATMdb, $db);
 				//echo $simulation->opt_calage; exit;
@@ -316,6 +321,11 @@ if(!empty($action)) {
 					//$simulation->accord = 'WAIT_LEASER';
 					// Suite retours PR1512_1187, on ne garde plus que le statut WAIT (En étude)
 					$simulation->accord = 'WAIT';
+					
+					// Si une demande est formulée auprès d'un leaser, on fige le montant (+- 10%)
+					if(empty($simulation->montant_accord)) {
+						$simulation->montant_accord = $simulation->montant_total_finance;
+					}
 					$simulation->save($ATMdb, $db);
 				}
 				
