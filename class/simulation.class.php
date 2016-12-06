@@ -339,7 +339,7 @@ class TSimulation extends TObjetStd {
 			}
 		}
 		
-		if(!empty($this->fk_leaser)) {
+		if(!empty($this->fk_leaser) && $this->fk_leaser > 0) {
 			$this->leaser = new Societe($doliDB);
 			$this->leaser->fetch($this->fk_leaser);
 			// Si un leaser a été préconisé, la simulation n'est plus modifiable

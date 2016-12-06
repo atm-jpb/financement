@@ -260,7 +260,7 @@ if(!empty($action)) {
 				}
 				
 				// Si le leaser préconisé est renseigné, on enregistre le montant pour le figer (+- 10%)
-				if(empty($simulation->montant_accord) && !empty($simulation->fk_leaser)) {
+				if(empty($simulation->montant_accord) && $simulation->fk_leaser > 0) {
 					$simulation->montant_accord = $simulation->montant_total_finance;
 				}
 				
