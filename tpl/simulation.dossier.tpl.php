@@ -27,7 +27,12 @@
 		[onshow;block=end]
 		<td id="duree" align="center">
 			[champs.duree; strconv=no]<br>
+			[onshow;block=begin;when [champs.terme]=='Echu']
+			<span style="color: #FF0000">[champs.terme; strconv=no]</span>
+			[onshow;block=end]
+			[onshow;block=begin;when [champs.terme]!='Echu']
 			[champs.terme; strconv=no]
+			[onshow;block=end]
 		</td>
 		<td id="echeance" align="right" nowrap="nowrap">
 			[champs.echeance; strconv=no; frm=0 000,00] &euro;<br>
