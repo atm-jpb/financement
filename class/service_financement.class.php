@@ -601,7 +601,7 @@ EOT;
 		global $langs;
 		
 		$TId = array();
-		if (strcmp($this->leaser->name, 'LIXXBAIL') === 0)
+		if (strpos($this->leaser->name, 'LIXXBAIL') === 0)
 		{
 			$TId = array(
 				'CHQ' => 1
@@ -624,7 +624,7 @@ EOT;
 	{
 		global $langs;
 		
-		if (strcmp($this->leaser->name, 'LIXXBAIL') === 0)
+		if (strpos($this->leaser->name, 'LIXXBAIL') === 0)
 		{
 			/**
 			 * Autre valeurs possible
