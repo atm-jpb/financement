@@ -114,7 +114,7 @@ class ServiceFinancement {
 		}
 		
 		// TODO à revoir, peut être qu'un test sur code client ou mieux encore sur numéro SIRET
-		if (strcmp($this->leaser->name, 'LIXXBAIL') === 0)
+		if (strpos($this->leaser->name, 'LIXXBAIL') === 0)
 		{
 			return $this->callLixxbail();
 		}
