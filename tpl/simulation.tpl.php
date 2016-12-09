@@ -230,16 +230,16 @@
 </table>
 
 [onshow;block=begin;when [view.mode]=='view']
-[onshow;block=begin;when [simulation.accord_confirme]==0; when [simulation.display_preco]==1; when [simulation.can_preco]==1]
 <div class="tabsAction">
-	<input type="button" id="action-delete" value="Supprimer" name="delete" class="butActionDelete" onclick="delete_elem([simulation.id],'simulation');">
 	<a href="?id=[simulation.id]&action=edit" class="butAction">Modifier</a>
+	[onshow;block=begin;when [simulation.accord_confirme]==0; when [simulation.display_preco]==1; when [simulation.can_preco]==1]
+	<input type="button" id="action-delete" value="Supprimer" name="delete" class="butActionDelete" onclick="delete_elem([simulation.id],'simulation');">
+	[onshow;block=end]
 	[onshow;block=begin; when [simulation.can_resend_accord]=='OK']
 	<a href="?id=[simulation.id]&action=send_accord" class="butAction">Renvoyer l'accord</a>
 	[onshow;block=end]
 </div>
 <br />
-[onshow;block=end]
 [onshow;block=end]
 
 [onshow;block=begin;when [view.mode]=='edit']

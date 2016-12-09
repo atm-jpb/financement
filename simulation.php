@@ -122,17 +122,22 @@ if(!empty($action)) {
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			$simulation->set_values($_REQUEST);
 			
-			// On vérifie que les dossiers sélectionnés n'ont pas été décochés
-			//if(empty($_REQUEST['dossiers'])) $simulation->dossiers = array();
-			if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
-			if(empty($_REQUEST['dossiers_rachetes_p1'])) $simulation->dossiers_rachetes_p1 = array();
-			if(empty($_REQUEST['dossiers_rachetes_nr'])) $simulation->dossiers_rachetes_nr = array();
-			if(empty($_REQUEST['dossiers_rachetes_nr_p1'])) $simulation->dossiers_rachetes_nr_p1 = array();
-			if(empty($_REQUEST['dossiers_rachetes_perso'])) $simulation->dossiers_rachetes_perso = array();
-
-			$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
-			$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
-			$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
+			// Si on ne modifie que le montant, les autres champs ne sont pas présent, il faut conserver ceux de la simu
+			if($_REQUEST['mode'] != 'edit_montant') {
+				// On vérifie que les dossiers sélectionnés n'ont pas été décochés
+				//if(empty($_REQUEST['dossiers'])) $simulation->dossiers = array();
+				if(empty($_REQUEST['dossiers_rachetes_m1'])) $simulation->dossiers_rachetes_m1 = array();
+				if(empty($_REQUEST['dossiers_rachetes_nr_m1'])) $simulation->dossiers_rachetes_nr_m1 = array();
+				if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
+				if(empty($_REQUEST['dossiers_rachetes_p1'])) $simulation->dossiers_rachetes_p1 = array();
+				if(empty($_REQUEST['dossiers_rachetes_nr'])) $simulation->dossiers_rachetes_nr = array();
+				if(empty($_REQUEST['dossiers_rachetes_nr_p1'])) $simulation->dossiers_rachetes_nr_p1 = array();
+				if(empty($_REQUEST['dossiers_rachetes_perso'])) $simulation->dossiers_rachetes_perso = array();
+	
+				$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
+				$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
+				$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
+			}
 
 			$simulation->_calcul($ATMdb);
 			//C'est dégueu mais sa marche
@@ -143,8 +148,9 @@ if(!empty($action)) {
 		case 'edit'	:
 		
 			$simulation->load($ATMdb, $db, $_REQUEST['id']);
-
+			
 			_fiche($ATMdb, $simulation,'edit');
+			
 			break;
 		
 		case 'save_suivi':
@@ -178,14 +184,27 @@ if(!empty($action)) {
 			//pre($_REQUEST,true);
 			
 			$fk_type_contrat_old = $simulation->fk_type_contrat;
-			$fk_type_contrat_new = $_REQUEST['fk_type_contrat'];
-			
 			
 			$simulation->set_values($_REQUEST);
 			
-			$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
-			$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
-			$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
+			$fk_type_contrat_new = $simulation->fk_type_contrat;
+			
+			// Si on ne modifie que le montant, les autres champs ne sont pas présent, il faut conserver ceux de la simu
+			if($_REQUEST['mode'] != 'edit_montant') {
+				// On vérifie que les dossiers sélectionnés n'ont pas été décochés
+				//if(empty($_REQUEST['dossiers'])) $simulation->dossiers = array();
+				if(empty($_REQUEST['dossiers_rachetes_m1'])) $simulation->dossiers_rachetes_m1 = array();
+				if(empty($_REQUEST['dossiers_rachetes_nr_m1'])) $simulation->dossiers_rachetes_nr_m1 = array();
+				if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
+				if(empty($_REQUEST['dossiers_rachetes_p1'])) $simulation->dossiers_rachetes_p1 = array();
+				if(empty($_REQUEST['dossiers_rachetes_nr'])) $simulation->dossiers_rachetes_nr = array();
+				if(empty($_REQUEST['dossiers_rachetes_nr_p1'])) $simulation->dossiers_rachetes_nr_p1 = array();
+				if(empty($_REQUEST['dossiers_rachetes_perso'])) $simulation->dossiers_rachetes_perso = array();
+				
+				$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
+				$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
+				$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
+			}
 			
 			if($simulation->opt_calage != '') {
 				$simulation->set_date('date_demarrage',$_REQUEST['date_demarrage']);
@@ -215,15 +234,7 @@ if(!empty($action)) {
 			
 			//pre($_REQUEST,true);
 			
-			// On vérifie que les dossiers sélectionnés n'ont pas été décochés
-			//if(empty($_REQUEST['dossiers'])) $simulation->dossiers = array();
-			if(empty($_REQUEST['dossiers_rachetes_m1'])) $simulation->dossiers_rachetes_m1 = array();
-			if(empty($_REQUEST['dossiers_rachetes_nr_m1'])) $simulation->dossiers_rachetes_nr_m1 = array();
-			if(empty($_REQUEST['dossiers_rachetes'])) $simulation->dossiers_rachetes = array();
-			if(empty($_REQUEST['dossiers_rachetes_p1'])) $simulation->dossiers_rachetes_p1 = array();
-			if(empty($_REQUEST['dossiers_rachetes_nr'])) $simulation->dossiers_rachetes_nr = array();
-			if(empty($_REQUEST['dossiers_rachetes_nr_p1'])) $simulation->dossiers_rachetes_nr_p1 = array();
-			if(empty($_REQUEST['dossiers_rachetes_perso'])) $simulation->dossiers_rachetes_perso = array();
+			
 			
 			
 			// On refait le calcul avant d'enregistrer
@@ -257,6 +268,8 @@ if(!empty($action)) {
 							}
 						}
 					}
+					
+					$simulation->montant_accord = 0;
 				}
 				
 				// Si le leaser préconisé est renseigné, on enregistre le montant pour le figer (+- 10%)
@@ -624,7 +637,13 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	global $db, $langs, $user, $conf;
 	
 	TFinancementTools::check_user_rights($simulation);
-
+	
+	// Si simulation déjà préco ou demande faite, le "montant_accord" est renseigné, le vendeur ne peux modifier que certains champs
+	if($mode == 'edit') {
+		if(!empty($simulation->montant_accord) && empty($user->rights->financement->admin->write)) {
+			$mode = 'edit_montant';
+		}
+	}
 	/*pre($_REQUEST,true);
 	pre($simulation->dossiers,true);*/
 	
@@ -651,6 +670,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	echo $form->hidden('fk_user_author', !empty($simulation->fk_user_author) ? $simulation->fk_user_author : $user->id);
 	echo $form->hidden('entity', $conf->entity);
 	echo $form->hidden('idLeaser', FIN_LEASER_DEFAULT);
+	echo $form->hidden('mode', $mode);
 
 	$TBS=new TTemplateTBS();
 	$ATMdb=new TPDOdb;
@@ -739,70 +759,79 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	if($simulation->montant_decompte_copies_sup < 0) $simulation->montant_decompte_copies_sup = 0;
 	
+	$simuArray = array(
+		'titre_simul'=>load_fiche_titre($langs->trans("CustomerInfo"),'','object_company.png')
+		,'titre_calcul'=>load_fiche_titre($langs->trans("Simulator"),'','object_simul.png@financement')
+		,'titre_dossier'=>load_fiche_titre($langs->trans("DossierList"),'','object_financementico.png@financement')
+		
+		,'id'=>$simulation->rowid
+		,'entity'=>$entity_field
+		,'entity_partenaire'=>$simulation->entity
+		,'ref'=>$simulation->reference
+		,'doc'=>$formfile->getDocumentsLink('financement', $filename, $filedir)
+		,'fk_soc'=>$simulation->fk_soc
+		,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat)
+		,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
+		,'opt_adjonction'=>$form->checkbox1('', 'opt_adjonction', 1, $simulation->opt_adjonction) 
+		,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $financement->TPeriodicite, $simulation->opt_periodicite) 
+		//,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 1, $simulation->opt_creditbail)
+		,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement)
+		,'opt_calage_label'=>$form->texte('', 'opt_calage_label', $TOptCalageLabel[$simulation->opt_calage], 5, 0, 'readonly')
+		,'opt_calage'=>$form->hidden('opt_calage', $simulation->opt_calage)
+		,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme)
+		,'date_demarrage'=>$form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12)
+		,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)
+		,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)
+		,'montant_decompte_copies_sup'=>$form->texteRO('', 'montant_decompte_copies_sup', $simulation->montant_decompte_copies_sup, 10)
+		,'montant_rachat_final'=>$form->texteRO('', 'montant_rachat_final', $simulation->montant_rachat_final, 10)
+		,'montant_rachete_concurrence'=>$form->texte('', 'montant_rachete_concurrence', $simulation->montant_rachete_concurrence, 10)
+		,'duree'=>$form->combo('', 'duree', $TDuree, $simulation->duree)
+		,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
+		,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
+		,'coeff'=>$form->texteRO('', 'coeff', $coeff, 6)
+		,'coeff_final'=>$can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 6) : $simulation->coeff_final
+		,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10)
+		,'cout_financement'=>$simulation->cout_financement
+		,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
+		,'can_resend_accord'=>$simulation->accord
+		,'date_validite'=>$simulation->accord == 'OK' ? 'Validité : '.$simulation->get_date('date_validite') : ''
+		,'commentaire'=>$form->zonetexte('', 'commentaire', $mode == 'edit' ? $simulation->commentaire : nl2br($simulation->commentaire), 50,3)
+		,'accord_confirme'=>$simulation->accord_confirme
+		,'total_financement'=>$simulation->montant_total_finance
+		,'type_materiel'=>$form->texte('','type_materiel',$simulation->type_materiel, 50)
+		,'marque_materiel'=>(!in_array($simulation->marque_materiel, $simulation->TMarqueMateriel) ? $langs->trans('Simulation_marque_not_more_available', $simulation->marque_materiel).' - ' : '') . $form->combo('','marque_materiel',$simulation->TMarqueMateriel,$simulation->marque_materiel)
+		,'numero_accord'=>($can_preco && GETPOST('action') == 'edit') ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $link_dossier
+		
+		,'no_case_to_settle'=>$form->checkbox1('', 'opt_no_case_to_settle', 1, $simulation->opt_no_case_to_settle) 
+		
+		,'accord_val'=>$simulation->accord
+		,'can_preco'=>$can_preco
+		
+		,'user'=>$link_user
+		,'user_suivi'=>$link_user_suivi
+		,'date'=>$simulation->date_simul
+		,'bt_calcul'=>$form->btsubmit('Calculer', 'calculate')
+		,'bt_cancel'=>$form->btsubmit('Annuler', 'cancel')
+		,'bt_save'=>$form->btsubmit('Enregistrer simulation', 'validate_simul') //'onclick="$(this).remove(); $("#formSimulation").submit();"'
+		
+		,'display_preco'=>$can_preco
+		,'type_financement'=>$can_preco ? $form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement) : $simulation->type_financement
+		,'leaser'=>($mode=='edit' && $can_preco) ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : (($simulation->fk_leaser > 0) ? $simulation->leaser->getNomUrl(1) : '')
+	);
+	
+	if($mode == 'edit_montant') {
+		$mode = 'edit';
+		$form->Set_typeaff($mode);
+		$simuArray['montant'] = $form->texte('', 'montant', $simulation->montant, 10);
+		$simuArray['echeance'] = $form->texte('', 'echeance', $simulation->echeance, 10);
+	}
+	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
 		)
 		,array(
-			'simulation'=>array(
-				'titre_simul'=>load_fiche_titre($langs->trans("CustomerInfo"),'','object_company.png')
-				,'titre_calcul'=>load_fiche_titre($langs->trans("Simulator"),'','object_simul.png@financement')
-				,'titre_dossier'=>load_fiche_titre($langs->trans("DossierList"),'','object_financementico.png@financement')
-				
-				,'id'=>$simulation->rowid
-				,'entity'=>$entity_field
-				,'entity_partenaire'=>$simulation->entity
-				,'ref'=>$simulation->reference
-				,'doc'=>$formfile->getDocumentsLink('financement', $filename, $filedir)
-				,'fk_soc'=>$simulation->fk_soc
-				,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat)
-				,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
-				,'opt_adjonction'=>$form->checkbox1('', 'opt_adjonction', 1, $simulation->opt_adjonction) 
-				,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $financement->TPeriodicite, $simulation->opt_periodicite) 
-				//,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 1, $simulation->opt_creditbail)
-				,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement)
-				,'opt_calage_label'=>$form->texte('', 'opt_calage_label', $TOptCalageLabel[$simulation->opt_calage], 5, 0, 'readonly')
-				,'opt_calage'=>$form->hidden('opt_calage', $simulation->opt_calage)
-				,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme)
-				,'date_demarrage'=>$form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12)
-				,'montant'=>$form->texte('', 'montant', $simulation->montant, 10)
-				,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)
-				,'montant_decompte_copies_sup'=>$form->texteRO('', 'montant_decompte_copies_sup', $simulation->montant_decompte_copies_sup, 10)
-				,'montant_rachat_final'=>$form->texteRO('', 'montant_rachat_final', $simulation->montant_rachat_final, 10)
-				,'montant_rachete_concurrence'=>$form->texte('', 'montant_rachete_concurrence', $simulation->montant_rachete_concurrence, 10)
-				,'duree'=>$form->combo('', 'duree', $TDuree, $simulation->duree)
-				,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
-				,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
-				,'coeff'=>$form->texteRO('', 'coeff', $coeff, 6)
-				,'coeff_final'=>$can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 6) : $simulation->coeff_final
-				,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10)
-				,'cout_financement'=>$simulation->cout_financement
-				,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
-				,'can_resend_accord'=>$simulation->accord
-				,'date_validite'=>$simulation->accord == 'OK' ? 'Validité : '.$simulation->get_date('date_validite') : ''
-				,'commentaire'=>$form->zonetexte('', 'commentaire', $mode == 'edit' ? $simulation->commentaire : nl2br($simulation->commentaire), 50,3)
-				,'accord_confirme'=>$simulation->accord_confirme
-				,'total_financement'=>$simulation->montant_total_finance
-				,'type_materiel'=>$form->texte('','type_materiel',$simulation->type_materiel, 50)
-				,'marque_materiel'=>(!in_array($simulation->marque_materiel, $simulation->TMarqueMateriel) ? $langs->trans('Simulation_marque_not_more_available', $simulation->marque_materiel).' - ' : '') . $form->combo('','marque_materiel',$simulation->TMarqueMateriel,$simulation->marque_materiel)
-				,'numero_accord'=>($can_preco && GETPOST('action') == 'edit') ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $link_dossier
-				
-				,'no_case_to_settle'=>$form->checkbox1('', 'opt_no_case_to_settle', 1, $simulation->opt_no_case_to_settle) 
-				
-				,'accord_val'=>$simulation->accord
-				,'can_preco'=>$can_preco
-				
-				,'user'=>$link_user
-				,'user_suivi'=>$link_user_suivi
-				,'date'=>$simulation->date_simul
-				,'bt_calcul'=>$form->btsubmit('Calculer', 'calculate')
-				,'bt_cancel'=>$form->btsubmit('Annuler', 'cancel')
-				,'bt_save'=>$form->btsubmit('Enregistrer simulation', 'validate_simul') //'onclick="$(this).remove(); $("#formSimulation").submit();"'
-				
-				,'display_preco'=>$can_preco
-				,'type_financement'=>$can_preco ? $form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement) : $simulation->type_financement
-				,'leaser'=>($mode=='edit' && $can_preco) ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : (($simulation->fk_leaser > 0) ? $simulation->leaser->getNomUrl(1) : '')
-			)
+			'simulation'=>$simuArray
 			,'client'=>array(
 				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.(!empty($simulation->thirdparty_name) ? $simulation->thirdparty_name : $simulation->societe->nom).'</a>'
 				,'autres_simul'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/simulation.php?socid='.$simulation->fk_soc.'">(autres simulations)</a>'
