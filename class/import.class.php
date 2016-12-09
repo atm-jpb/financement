@@ -753,7 +753,7 @@ class TImport extends TObjetStd {
 	{
 		global $db;
 		
-		$sql = 'UPDATE '.MAIN_DB_PREFIX.$object->table_element.' SET entity = '.$fk_entity;
+		$sql = 'UPDATE '.MAIN_DB_PREFIX.$object->table_element.' SET entity = '.$fk_entity.' WHERE rowid = '.$object->id;
 		$resql = $db->query($sql);
 		
 		if ($resql) return true;
