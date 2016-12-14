@@ -1,10 +1,5 @@
 <?php
-
 require('../../config.php');
-require('../../class/affaire.class.php');
-require('../../class/dossier.class.php');
-require('../../class/grille.class.php');
-dol_include_once('/asset/class/asset.class.php');
 dol_include_once('/compta/facture/class/facture.class.php');
 
 @set_time_limit(0);					// No timeout for this script
@@ -23,16 +18,15 @@ $PDOdb->Execute($sql);
 $nbFact = 0;
 // On ressort toutes les factures en doublon
 $sql = "SELECT * FROM facture_view_5286";
-
-while($object = $PDOdb->fetch($sql)){
+$res = $PDOdb->Execute($sql);
+while($object = $res->fetch(PDO::FETCH_OBJ)){
 	$nbFact++;
 	$TDoubleFac[] = $object;
 }
 
 if(!empty($TDoubleFac)) {
 	foreach($TDoubleFac as $goodFacture) {
-		//var_dump($goodFacture);exit;
-		$sql = "SELECT rowid from llx_facture WHERE facnumber = '".$goodFacture->facnumber."' AND entity <> ".$goodFacture->entity;
+		$sql = "SELECT rowid,entity from llx_facture WHERE facnumber = '".$goodFacture->facnumber."' AND entity <> ".$goodFacture->entity;
 		delete_doublons_from_sql($sql,$PDOdb);
 	}
 }
@@ -44,9 +38,11 @@ echo '****** '.$nbFact.' factures ****** en doublon supprimées ******';
 function delete_doublons_from_sql($sql = null, $PDOdb){
 	global $db;
 	
-	while($badFacture = $PDOdb->fetch($sql)){
+	$res = $PDOdb->Execute($sql);
+	while($badFacture = $res->fetch(PDO::FETCH_OBJ)){
 		$facture = new Facture($db);
 		$facture->fetch($badFacture->rowid);
-		//$facture->delete();
+		$facture->delete();
+		echo 'Invoice : '.$badFacture->rowid.' deleted<br/>';
 	}
 }
