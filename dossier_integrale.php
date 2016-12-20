@@ -356,6 +356,14 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		}
 	}
 	
+	// MKO 2016.12.20 : pas d'affichage intégrale si type de régul non trimestriel
+	$error = 0;
+	$errmsg = '';
+	if($dossier->type_regul != 3) {
+		$errmsg = 'Le type de régul de ce dossier n\'est pas trimestriel. Merci de contacter le service financement';
+		$error++;
+	}
+	
 	//pre($TIntegrale,true);
 	echo $TBS->render('./tpl/dossier_integrale.tpl.php'
 		,array(
@@ -365,34 +373,38 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 			'dossier'=>$dossier
 			,'fin'=>$fin
 			,'client'=>$client
+			,'error'=>$error
+			,'errormsg'=>$errmsg
 		)
 	);
-
-	global $user;
 	
-	// 2016.11.10 MKO : Nouvelles règles : 
-	// - avenant impossible si somme des coûts unitaires détaillés différente du cout unitaire
-	// - avenant impossible si cout unitaire loyer à 0
-	$avenantOK = true;
-	$facIntegral = array_pop($TIntegrale);
-	if(empty($facIntegral->cout_unit_noir_loyer) || (empty($facIntegral->cout_unit_coul_loyer) && !empty($facIntegral->vol_coul_engage))) $avenantOK = false;
-	if($facIntegral->cout_unit_noir !=
-		$facIntegral->cout_unit_noir_loyer
-		+ $facIntegral->cout_unit_noir_mach
-		+ $facIntegral->cout_unit_noir_tech) $avenantOK = false;
-	if($facIntegral->cout_unit_coul !=
-		$facIntegral->cout_unit_coul_loyer
-		+ $facIntegral->cout_unit_coul_mach
-		+ $facIntegral->cout_unit_coul_tech) $avenantOK = false;
-
-	print '<div class="tabsAction">';
-	if (!empty($user->rights->financement->integrale->create_new_avenant) && $avenantOK) {
-		$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
-		print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale">'.$label.'</a>';
-	} else {
-		echo 'Avenant impossible. Merci de contacter le service financement';
+	if(empty($error)) {
+		global $user;
+		
+		// 2016.11.10 MKO : Nouvelles règles : 
+		// - avenant impossible si somme des coûts unitaires détaillés différente du cout unitaire
+		// - avenant impossible si cout unitaire loyer à 0
+		$avenantOK = true;
+		$facIntegral = array_pop($TIntegrale);
+		if(empty($facIntegral->cout_unit_noir_loyer) || (empty($facIntegral->cout_unit_coul_loyer) && !empty($facIntegral->vol_coul_engage))) $avenantOK = false;
+		if($facIntegral->cout_unit_noir !=
+			$facIntegral->cout_unit_noir_loyer
+			+ $facIntegral->cout_unit_noir_mach
+			+ $facIntegral->cout_unit_noir_tech) $avenantOK = false;
+		if($facIntegral->cout_unit_coul !=
+			$facIntegral->cout_unit_coul_loyer
+			+ $facIntegral->cout_unit_coul_mach
+			+ $facIntegral->cout_unit_coul_tech) $avenantOK = false;
+	
+		print '<div class="tabsAction">';
+		if (!empty($user->rights->financement->integrale->create_new_avenant) && $avenantOK) {
+			$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
+			print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale">'.$label.'</a>';
+		} else {
+			echo 'Avenant impossible. Merci de contacter le service financement';
+		}
+		print '</div>';
 	}
-	print '</div>';
 }
 
 function _printFormAvenantIntegraleOLD(&$PDOdb, &$dossier, &$TBS) {
