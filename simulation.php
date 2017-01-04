@@ -773,7 +773,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'entity'=>$entity_field
 				,'entity_partenaire'=>$simulation->entity
 				,'ref'=>$simulation->reference
-				,'doc'=>$formfile->getDocumentsLink('financement', $filename, $filedir)
+				,'doc'=>$formfile->getDocumentsLink('financement', $filename, $filedir, 1)
 				,'fk_soc'=>$simulation->fk_soc
 				,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat)
 				,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
@@ -1308,7 +1308,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'messageNothing'=>"Il n'y a aucun dossier à afficher"
 			,'order_down'=>img_picto('','1downarrow.png', '', 0)
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
-			
+			,'display_montant' => ($conf->entity == 6) ? 0 : 1
 		)
 	));
 	

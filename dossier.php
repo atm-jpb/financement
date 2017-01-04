@@ -333,7 +333,7 @@
 				// Maj échéance dossier
 				$dossier = new TFin_dossier();
 				$dossier->load($PDOdb, $idDossier);
-				$fact = $dossier->create_facture_client(false, true, $echeance);
+				$fact = $dossier->create_facture_client(true, true, $echeance);
 				
 				if($fact->id){
 					$dossier->financement->setProchaineEcheanceClient($PDOdb, $dossier);

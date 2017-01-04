@@ -753,7 +753,7 @@ class TImport extends TObjetStd {
 	{
 		global $db;
 		
-		$sql = 'UPDATE '.MAIN_DB_PREFIX.$object->table_element.' SET entity = '.$fk_entity;
+		$sql = 'UPDATE '.MAIN_DB_PREFIX.$object->table_element.' SET entity = '.$fk_entity.' WHERE rowid = '.$object->id;
 		$resql = $db->query($sql);
 		
 		if ($resql) return true;
@@ -1283,7 +1283,9 @@ class TImport extends TObjetStd {
 		$a=new TFin_affaire;
 		$a->loadReference($ATMdb, $data[$this->mapping['search_key']]);
 		
-		$a->entity = $this->getEntityByRefAffaire($data[$this->mapping['search_key']]);
+		if(empty($a->entity)) { // On ne renseigne l'entité en auto que lors de la création
+			$a->entity = $this->getEntityByRefAffaire($data[$this->mapping['search_key']]);
+		}
 		
 		if($a->fk_soc > 0 && $a->fk_soc != $fk_soc) { // client ne correspond pas
 			$this->addError($ATMdb, 'ErrorClientDifferent', $data[$this->mapping['search_key']]);
