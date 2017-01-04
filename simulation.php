@@ -640,7 +640,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	// Si simulation déjà préco ou demande faite, le "montant_accord" est renseigné, le vendeur ne peux modifier que certains champs
 	if($mode == 'edit') {
-		if(!empty($simulation->montant_accord) && empty($user->rights->financement->admin->write)) {
+		if($simulation->modifiable === 0 && empty($user->rights->financement->admin->write)) {
+			$mode = 'view';
+		}
+		if(!empty($simulation->montant_accord) && empty($user->rights->financement->admin->write)
+			&& $simulation->modifiable == 2) {
 			$mode = 'edit_montant';
 		}
 	}
@@ -683,6 +687,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	$TDuree = (Array)$grille->get_duree($ATMdb,FIN_LEASER_DEFAULT,$simulation->fk_type_contrat,$simulation->opt_periodicite,$simulation->entity);
 	//var_dump($TDuree);
 	$can_preco = ($user->rights->financement->allsimul->simul_preco && $simulation->fk_soc > 0) ? 1 : 0;
+	
+	// 2017.01.04 MKO : simulation modifiable par un admin ou si pas de préco ou demande sur un leaser catégorie Cession
+	$can_modify = 0;
+	if(!empty($user->rights->financement->admin->write)) $can_modify = 1;
+	if($simulation->modifiable > 0) $can_modify = 1;
 	
 	// Chargement des groupes configurés dans multi entité
 	$TGroupEntity = unserialize($conf->global->MULTICOMPANY_USER_GROUP_ENTITY);
@@ -806,6 +815,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		
 		,'accord_val'=>$simulation->accord
 		,'can_preco'=>$can_preco
+		,'can_modify'=>$can_modify
 		
 		,'user'=>$link_user
 		,'user_suivi'=>$link_user_suivi

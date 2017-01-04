@@ -106,7 +106,7 @@ class TSimulation extends TObjetStd {
 		$this->dossiers_rachetes_nr_p1 = array();
 		$this->dossiers_rachetes_perso = array();
 		
-		$this->modifiable = 1;
+		$this->modifiable = 1; // 1 = modifiable, 2 = modifiable +- 10%, 0 = non modifiable
 	}
  
 	function getRef() {
@@ -279,6 +279,8 @@ class TSimulation extends TObjetStd {
 	
 	function load_annexe(&$db, &$doliDB) {
 		global $conf;
+		dol_include_once('/categories/class/categorie.class.php');
+		
 		if(!empty($this->fk_soc)) {
 			// Récupếration des infos du client
 			if(empty($this->societe)) {
@@ -342,8 +344,16 @@ class TSimulation extends TObjetStd {
 		if(!empty($this->fk_leaser) && $this->fk_leaser > 0) {
 			$this->leaser = new Societe($doliDB);
 			$this->leaser->fetch($this->fk_leaser);
+			
 			// Si un leaser a été préconisé, la simulation n'est plus modifiable
-			$this->modifiable = 0;
+			// Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
+			$cat = new Categorie($doliDB);
+			$cat->fetch(0,'Cession');
+			if($cat->containsObject('supplier', $this->fk_leaser) > 0) {
+				$this->modifiable = 0;
+			} else {
+				$this->modifiable = 2;
+			}
 		}
 		
 		if(!empty($this->fk_user_author)) {
@@ -363,13 +373,17 @@ class TSimulation extends TObjetStd {
 	
 	//Charge dans un tableau les différents suivis de demande leaser concernant la simulation
 	function load_suivi_simulation(&$PDOdb){
-		
+		global $db;
 		$this->TSimulationSuivi = array();
 		$this->TSimulationSuiviHistorized = array();
 		
 		$TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
 	
 		if(count($TRowid) > 0){
+			// Si une demande a été faite auprès d'un leaser, la simulation n'est plus modifiable
+			// Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
+			$cat = new Categorie($db);
+			$cat->fetch(0,'Cession');
 			
 			foreach($TRowid as $rowid){
 				$simulationSuivi = new TSimulationSuivi;
@@ -379,7 +393,11 @@ class TSimulation extends TObjetStd {
 					$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 					// Si une demande a déjà été lancée, la simulation n'est plus modifiable
 					if($simulationSuivi->statut_demande > 0) {
-						$this->modifiable = 0;
+						if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
+							$this->modifiable = 0;
+						} else if($this->modifiable == 1) {
+							$this->modifiable = 2;
+						}
 					}
 				}
 				else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;

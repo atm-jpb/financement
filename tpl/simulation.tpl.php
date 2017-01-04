@@ -231,7 +231,9 @@
 
 [onshow;block=begin;when [view.mode]=='view']
 <div class="tabsAction">
+	[onshow;block=begin; when [simulation.can_modify]==1]
 	<a href="?id=[simulation.id]&action=edit" class="butAction">Modifier</a>
+	[onshow;block=end]
 	[onshow;block=begin;when [simulation.accord_confirme]==0; when [simulation.display_preco]==1; when [simulation.can_preco]==1]
 	<input type="button" id="action-delete" value="Supprimer" name="delete" class="butActionDelete" onclick="delete_elem([simulation.id],'simulation');">
 	[onshow;block=end]
