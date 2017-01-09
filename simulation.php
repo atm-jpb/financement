@@ -1234,6 +1234,9 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'incident_paiement'=>$incident_paiement
 			,'numcontrat_entity_leaser'=>$numcontrat_entity_leaser
 		);
+		if($row['type_contrat'] == 'Intégral'){
+			$row['type_contrat']='<a href="dossier_integrale.php?id='.$ATMdb->Get_field('IDDoss').'">Intégral</a>';
+		}
 		//pre($row,true);
 		$TDossier[$dossier->getId()] = $row;
 
