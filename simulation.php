@@ -338,6 +338,7 @@ llxFooter();
 	
 function _liste(&$ATMdb, &$simulation) {
 	global $langs, $db, $conf, $user;
+	$searchnumetude = GETPOST('searchnumetude');
 	
 	$affaire = new TFin_affaire();
 	
@@ -360,14 +361,19 @@ function _liste(&$ATMdb, &$simulation) {
 	if (!$user->rights->societe->client->voir || !$_REQUEST['socid']) {
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON (sc.fk_soc = soc.rowid)";
 	}
-	
+	if(!empty($searchnumetude)){
+		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_simulation_suivi as fss ON (fk_simulation = s.rowid)";
+	}
 	//$sql.= " WHERE s.entity = ".$conf->entity;
 	$sql.= " WHERE 1=1 ";
-	
 	if ((!$user->rights->societe->client->voir || !$_REQUEST['socid']) && !$user->rights->financement->allsimul->simul_list) //restriction
 	{
 		$sql.= " AND sc.fk_user = " .$user->id;
 	}
+	if(!empty($searchnumetude)){
+		$sql.=" AND fss.numero_accord_leaser='".$searchnumetude."'";
+	}
+	
 
 	if(isset($_REQUEST['socid'])) {
 		$sql.= ' AND s.fk_soc='.$_REQUEST['socid'];
