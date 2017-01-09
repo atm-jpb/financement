@@ -310,6 +310,11 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		}
 	}
 	
+	//On modifie la 1ere et 2nde valeur du tableau si on est à échoir
+	if($dossier->financement->_affterme == 'A Echoir' && $dossier->contrat == 'INTEGRAL'){
+		$TIntegrale  = updateFirstVals($TIntegrale);	
+	}
+	
 	// ETAPE 3 : on finalise le formatage pour l'affichage
 	
 	//$dossier->load_facture($PDOdb,true);
@@ -840,6 +845,27 @@ function _getInfosClient($fk_soc) {
 	
 	return $TData;
 	
+}
+//Pour le cas A Echoir modifie les 2 premieres valeurs du tableau
+function updateFirstVals($TIntegrale){
+	$temp = 0; //valeur temporaire afin de modifier uniquement la 1re et 2nde valeur
+	$valNoirEngage = 0;//valeur contenant le noir engagé de la 1ere facture
+	$valCoulEngage = 0;//valeur contenant la couleur engagée de la 1ere facture
+	if(!empty($TIntegrale)){
+		foreach($TIntegrale as $tab){
+			if($temp==0){	
+				$tab->vol_noir_realise = 0;
+				$tab->vol_coul_realise = 0;
+				$valNoirEngage=$tab->vol_noir_engage;
+				$valCoulEngage=$tab->vol_coul_engage;
+			} else if($temp==1){
+				$tab->vol_noir_realise = $tab->vol_noir_realise+$tab->vol_noir_engage-$valNoirEngage;
+				$tab->vol_coul_realise = $tab->vol_coul_realise+$tab->vol_coul_engage-$valCoulEngage;
+			}
+			$temp++;
+		}
+	}
+	return $TIntegrale;
 }
 
 function _addLines(&$p) {
