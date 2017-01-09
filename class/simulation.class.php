@@ -723,7 +723,7 @@ class TSimulation extends TObjetStd {
 		
 		// Cas de la modification de la simulation à +- 10 %
 		// Si la simulation n'est pas modifiable (demande déjà formulée à un leaser) on vérifie la règle +- 10%
-		if(empty($this->modifiable) && $this->montant_accord != $this->montant_total_finance) {
+		if(($this->modifiable == 0 || $this->modifiable == 2) && $this->montant_accord != $this->montant_total_finance) {
 			$diff = abs($this->montant_total_finance - $this->montant_accord);
 			if(($diff / $this->montant_accord) * 100 > $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE) {
 				$this->error = 'ErrorMontantModifNotAuthorized';
