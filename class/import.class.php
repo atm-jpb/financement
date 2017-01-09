@@ -326,7 +326,7 @@ class TImport extends TObjetStd {
 			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facture_loc->id;
 		}
 		else{
-			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facid->rowid;
+		//	$TInfosGlobale[$data[$this->mapping['search_key']]] = $facid->rowid; Effet de bord ticket 5356
 		}
 	}
 
@@ -861,6 +861,8 @@ class TImport extends TObjetStd {
 		global $user, $db;
 		//pre($data,true);
 		
+		if(empty($TInfosGlobale[$data[$this->mapping['search_key']]])) return false;
+
 		$facture_loc = new Facture($db);
 		$facture_loc->fetch($TInfosGlobale[$data[$this->mapping['search_key']]]);
 		

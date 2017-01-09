@@ -162,6 +162,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	$sqlwhere.= " AND d.reference NOT LIKE '%old%' ";
 	$sqlwhere.= " AND d.reference NOT LIKE '%adj%' ";
 	$sqlwhere.= " AND dfcli.date_fin > NOW() ";
+	$sqlwhere.= " AND dfcli.date_debut < NOW() ";
 	$sqlwhere.= " AND dflea.echeance > 0 ";
 	if(!empty($id_dossier)) $sqlwhere.= " AND d.rowid = ".$id_dossier;
 	//$sqlwhere.= " LIMIT 1 ";
