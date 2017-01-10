@@ -359,9 +359,8 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	// MKO 2016.12.20 : pas d'affichage intégrale si type de régul non trimestriel
 	$error = 0;
 	$errmsg = '';
-	if($dossier->type_regul != 3) {
-		$errmsg = 'Le type de régul de ce dossier n\'est pas trimestriel. Merci de contacter le service financement';
-		$error++;
+	if(!empty($dossier->type_regul)) {
+		$TIntegrale = regularisation($dossier,$TIntegrale);
 	}
 	
 	//pre($TIntegrale,true);
@@ -785,6 +784,116 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	print '</div>';
 	
 	print '<script type="text/javascript" src="./js/avenant_integral.js"></script>';
+}
+
+function regularisation($dossier,$TIntegrale){
+	$dossier->type_regul=6;
+	$periode = 0;
+	switch($dossier->financement->periodicite){
+		case 'MOIS':
+			$periodicite=1;
+			break;
+		case 'TRIMESTRE':
+			$periodicite=3;
+			break;
+		case 'SEMESTRE':
+			$periodicite=6;
+			break;
+		case 'ANNEE':
+			$periodicite=12;
+			break;
+	}
+	
+	
+	if( $dossier->type_regul > $periodicite){
+		
+		$dateTemp = '';
+		$compteur=1;
+		$volNoir= 0;
+		$volCoul=0;
+		$volNoirEngag=0;
+		$volCoulEngag=0;
+		$isIntercal=true;
+		
+		foreach($TIntegrale as &$tab){
+			if($isIntercal && !empty($dossier->financement->loyer_intercalaire)){
+				$isIntercal = false;
+			}else {
+				$theDate = explode('/',$tab->date_periode);
+				$periode = new DateTime($theDate[2].'-'.$theDate[1].'-'.$theDate[0]);
+				if(empty($dateTemp)){
+					
+					$dateTemp = $periode;
+					$volNoir+= $tab->vol_noir_realise;
+					$volCoul+= $tab->vol_coul_realise;
+					$volNoirEngag+=$tab->vol_noir_engage;
+					$volCoulEngag+=$tab->vol_coul_engage;
+					$tab->vol_noir_realise = $tab->vol_noir_engage;
+					$tab->vol_noir_facture = $tab->vol_noir_engage;
+					$tab->vol_coul_realise = $tab->vol_coul_engage;
+					$tab->vol_coul_facture = $tab->vol_coul_engage;
+				} else {
+					$dateCompare = ($periode->diff($dateTemp));
+					if($dateCompare->days <=$periodicite*31 && $dateCompare->days>=$periodicite*30){
+						$compteur++;
+						if($compteur != ($dossier->type_regul/$periodicite)){
+							$volNoir+= $tab->vol_noir_realise;
+							$volCoul+= $tab->vol_coul_realise;
+							$volNoirEngag+=$tab->vol_noir_engage;
+							$volCoulEngag+=$tab->vol_coul_engage;
+							$tab->vol_noir_realise = $tab->vol_noir_engage;
+							$tab->vol_noir_facture = $tab->vol_noir_engage;
+							$tab->vol_coul_realise = $tab->vol_coul_engage;
+							$tab->vol_coul_facture = $tab->vol_coul_engage;
+						}
+						else {
+							$volNoir+= $tab->vol_noir_realise;
+							$volCoul+= $tab->vol_coul_realise;
+							$volNoirEngag+=$tab->vol_noir_engage;
+							$volCoulEngag+=$tab->vol_coul_engage;
+							$compteur = 0;
+							if($volNoir<$volNoirEngag){
+								$tab->vol_noir_engage = $volNoirEngag;
+								$tab->vol_noir_realise = $volNoir;
+								$tab->vol_noir_facture = $tab->vol_noir_engage;
+							} else {
+								$tab->vol_noir_engage = $volNoirEngag;
+								$tab->vol_noir_realise = $volNoir;
+								$tab->vol_noir_facture = $volNoir;
+							}
+							
+							if($volCoul<$volCoulEngag){
+								$tab->vol_coul_engage = $volCoulEngag;
+								$tab->vol_coul_realise = $volCoul;
+								$tab->vol_coul_facture = $tab->vol_coul_engage;
+							} else {
+								$tab->vol_coul_engage = $volCoulEngag;
+								$tab->vol_coul_realise = $volCoul;
+								$tab->vol_coul_facture = $volCoul;
+							}
+							$volNoir=0;
+							$volCoul=0;
+							$volNoirEngag=0;
+							$volCoulEngag=0;
+							
+						}
+						
+					}	else {
+						setEventMessages('Problème de date pour la régularisation, régularisation interrompue.',$err,'errors');
+						$volNoir=0;
+						$volCoul=0;
+						$volNoirEngag=0;
+						$volCoulEngag=0;
+						return $TIntegrale;
+						
+					}
+					
+					$dateTemp = $periode;
+				}
+			}
+		}
+	}	
+	return $TIntegrale;
 }
 
 function _addAvenantIntegrale(&$dossier) {
