@@ -149,3 +149,4 @@ ErrorMaterielNonFinance=Facture matériel pour un contrat non financé
 
 # IHM
 DataSaved=Données enregistrées avec succès
+DateProblem=Problème de date, régularisation annulée.
