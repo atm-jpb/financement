@@ -278,7 +278,7 @@ class TSimulation extends TObjetStd {
 	}
 	
 	function load_annexe(&$db, &$doliDB) {
-		global $conf;
+		global $conf, $user;
 		dol_include_once('/categories/class/categorie.class.php');
 		
 		if(!empty($this->fk_soc)) {
@@ -348,7 +348,6 @@ class TSimulation extends TObjetStd {
 			// Si un leaser a été préconisé, la simulation n'est plus modifiable
 			// Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
 			// Sauf pour les admins
-			global $user;
 			if(empty($user->rights->financement->admin->write)) {
 				$cat = new Categorie($doliDB);
 				$cat->fetch(0,'Cession');
@@ -373,6 +372,12 @@ class TSimulation extends TObjetStd {
 		//Récupération des suivis demande de financement leaser s'ils existent
 		//Sinon on les créé
 		$this->load_suivi_simulation($db);
+		
+		// Simulation non modifiable dans tous les cas si la date de validité est dépassée
+		// Sauf pour les admins
+		if(empty($user->rights->financement->admin->write) && !empty($this->date_validite) && $this->date_validite < time()) {
+			$this->modifiable = 0;
+		}
 	}
 	
 	//Charge dans un tableau les différents suivis de demande leaser concernant la simulation
