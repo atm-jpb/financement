@@ -347,12 +347,16 @@ class TSimulation extends TObjetStd {
 			
 			// Si un leaser a été préconisé, la simulation n'est plus modifiable
 			// Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
-			$cat = new Categorie($doliDB);
-			$cat->fetch(0,'Cession');
-			if($cat->containsObject('supplier', $this->fk_leaser) > 0) {
-				$this->modifiable = 0;
-			} else {
-				$this->modifiable = 2;
+			// Sauf pour les admins
+			global $user;
+			if(empty($user->rights->financement->admin->write)) {
+				$cat = new Categorie($doliDB);
+				$cat->fetch(0,'Cession');
+				if($cat->containsObject('supplier', $this->fk_leaser) > 0) {
+					$this->modifiable = 0;
+				} else {
+					$this->modifiable = 2;
+				}
 			}
 		}
 		
@@ -392,10 +396,12 @@ class TSimulation extends TObjetStd {
 				if ($simulationSuivi->date_historization <= 0) {
 					$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 					// Si une demande a déjà été lancée, la simulation n'est plus modifiable
-					if($simulationSuivi->statut_demande > 0) {
+					// Sauf pour les admins
+					global $user;
+					if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
 						if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
 							$this->modifiable = 0;
-						} else if($this->modifiable == 1) {
+						} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
 							$this->modifiable = 2;
 						}
 					}
