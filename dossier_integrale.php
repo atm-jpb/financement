@@ -787,8 +787,9 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 }
 
 function regularisation($dossier,$TIntegrale){
-	$dossier->type_regul=6;
-	$periode = 0;
+	
+	$periodicite = 0;
+	//Conversion periodicite en nombre
 	switch($dossier->financement->periodicite){
 		case 'MOIS':
 			$periodicite=1;
@@ -804,10 +805,10 @@ function regularisation($dossier,$TIntegrale){
 			break;
 	}
 	
-	
+	//On vérifie que la période de régularisation est supérieur à la periode de facturation
 	if( $dossier->type_regul > $periodicite){
 		
-		$dateTemp = '';
+		$dateTemp = '';//date temporaire
 		$compteur=1;
 		$volNoir= 0;
 		$volCoul=0;
@@ -816,12 +817,12 @@ function regularisation($dossier,$TIntegrale){
 		$isIntercal=true;
 		
 		foreach($TIntegrale as &$tab){
-			if($isIntercal && !empty($dossier->financement->loyer_intercalaire)){
+			if($isIntercal && !empty($dossier->financement->loyer_intercalaire)){//Vérification loyer intercalaire
 				$isIntercal = false;
 			}else {
 				$theDate = explode('/',$tab->date_periode);
-				$periode = new DateTime($theDate[2].'-'.$theDate[1].'-'.$theDate[0]);
-				if(empty($dateTemp)){
+				$periode = new DateTime($theDate[2].'-'.$theDate[1].'-'.$theDate[0]);//On met la date au bon format
+				if(empty($dateTemp)){//Si c'est la premier passage
 					
 					$dateTemp = $periode;
 					$volNoir+= $tab->vol_noir_realise;
@@ -833,26 +834,26 @@ function regularisation($dossier,$TIntegrale){
 					$tab->vol_coul_realise = $tab->vol_coul_engage;
 					$tab->vol_coul_facture = $tab->vol_coul_engage;
 				} else {
-					$dateCompare = ($periode->diff($dateTemp));
-					if($dateCompare->days <=$periodicite*31 && $dateCompare->days>=$periodicite*30){
+					$dateCompare = ($periode->diff($dateTemp));//On compare la date actuelle avec la date d'avant
+					if($dateCompare->days <=$periodicite*31 && $dateCompare->days>=$periodicite*30){//On regarde si le nombre de jours est environ au bon nombre de mois
 						$compteur++;
-						if($compteur != ($dossier->type_regul/$periodicite)){
+						if($compteur != ($dossier->type_regul/$periodicite)){//Tant qu'on a pas passé le bon nombre de période, on cumule
 							$volNoir+= $tab->vol_noir_realise;
 							$volCoul+= $tab->vol_coul_realise;
 							$volNoirEngag+=$tab->vol_noir_engage;
 							$volCoulEngag+=$tab->vol_coul_engage;
-							$tab->vol_noir_realise = $tab->vol_noir_engage;
+							$tab->vol_noir_realise = $tab->vol_noir_engage;//engage=realise=facture
 							$tab->vol_noir_facture = $tab->vol_noir_engage;
 							$tab->vol_coul_realise = $tab->vol_coul_engage;
 							$tab->vol_coul_facture = $tab->vol_coul_engage;
 						}
 						else {
-							$volNoir+= $tab->vol_noir_realise;
+							$volNoir+= $tab->vol_noir_realise;//On n'oublie pas de bien prendre en compte les valeurs de la ligne actuelle
 							$volCoul+= $tab->vol_coul_realise;
 							$volNoirEngag+=$tab->vol_noir_engage;
 							$volCoulEngag+=$tab->vol_coul_engage;
 							$compteur = 0;
-							if($volNoir<$volNoirEngag){
+							if($volNoir<$volNoirEngag){//On compare l'engagé total avec le réalisé total
 								$tab->vol_noir_engage = $volNoirEngag;
 								$tab->vol_noir_realise = $volNoir;
 								$tab->vol_noir_facture = $tab->vol_noir_engage;
@@ -862,7 +863,7 @@ function regularisation($dossier,$TIntegrale){
 								$tab->vol_noir_facture = $volNoir;
 							}
 							
-							if($volCoul<$volCoulEngag){
+							if($volCoul<$volCoulEngag){//On compare l'engagé total avec le réalisé total
 								$tab->vol_coul_engage = $volCoulEngag;
 								$tab->vol_coul_realise = $volCoul;
 								$tab->vol_coul_facture = $tab->vol_coul_engage;
@@ -871,6 +872,7 @@ function regularisation($dossier,$TIntegrale){
 								$tab->vol_coul_realise = $volCoul;
 								$tab->vol_coul_facture = $volCoul;
 							}
+							//Reinitialisation des variables
 							$volNoir=0;
 							$volCoul=0;
 							$volNoirEngag=0;
@@ -879,7 +881,8 @@ function regularisation($dossier,$TIntegrale){
 						}
 						
 					}	else {
-						setEventMessages('Problème de date pour la régularisation, régularisation interrompue.',$err,'errors');
+						//
+						setEventMessages('Problème de date, régularisation interrompue.',$err,'errors');
 						$volNoir=0;
 						$volCoul=0;
 						$volNoirEngag=0;
@@ -888,7 +891,7 @@ function regularisation($dossier,$TIntegrale){
 						
 					}
 					
-					$dateTemp = $periode;
+					$dateTemp = $periode;//On récupère la date actuelle
 				}
 			}
 		}
