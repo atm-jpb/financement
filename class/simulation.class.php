@@ -246,13 +246,15 @@ class TSimulation extends TObjetStd {
 		$grille = $TFinGrilleSuivi->get_grille($PDOdb, 'DEFAUT_'.$this->fk_type_contrat,false,$this->entity);
 		$idLeaserPrio = $this->getIdLeaserPrioritaire($PDOdb);
 		
-		$leaser = new Fournisseur($db);
-		$leaser->id = $idLeaserPrio;
-		//echo 'PRIO = '.$idLeaserPrio;
-		// Ajout du leaser prioritaire
-		$simulationSuivi = new TSimulationSuivi;
-		$simulationSuivi->init($PDOdb,$leaser,$this->getId());
-		$simulationSuivi->save($PDOdb);
+		if($idLeaserPrio > 0) {
+			$leaser = new Fournisseur($db);
+			$leaser->id = $idLeaserPrio;
+			//echo 'PRIO = '.$idLeaserPrio;
+			// Ajout du leaser prioritaire
+			$simulationSuivi = new TSimulationSuivi;
+			$simulationSuivi->init($PDOdb,$leaser,$this->getId());
+			$simulationSuivi->save($PDOdb);
+		}
 		
 		// Ajout des autres leasers de la liste (sauf le prio)
 		foreach($grille as $TData) {
