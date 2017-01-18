@@ -476,6 +476,8 @@ class TSimulation extends TObjetStd {
 			,$this->dossiers_rachetes_nr
 			,$this->dossiers_rachetes_p1
 			,$this->dossiers_rachetes_nr_p1
+			,$this->dossiers_rachetes_m1
+			,$this->dossiers_rachetes_nr_m1
 		);
 		
 		if(count($TDossierUsed)){
