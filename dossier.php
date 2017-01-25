@@ -1007,6 +1007,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'affaire1'=>$TAffaire[0]
 				,'visa_renta'=>$form->combo('', 'visa_renta', array('1' => 'Oui', '0' => 'Non'), $dossier->visa_renta)
 				,'visa_renta_ndossier'=>$form->combo('', 'visa_renta_ndossier', array('1' => 'Oui', '0' => 'Non'), $dossier->visa_renta_ndossier)
+				,'renta_anomalie'=>$form->combo('', 'renta_anomalie', array('1' => 'Oui', '0' => 'Non'), $dossier->renta_anomalie)
 				,'commentaire_visa'=>$form->zonetexte('', 'commentaire_visa', $dossier->commentaire_visa,100,5,'')
 				,'quote_part_noir' => $form->texte('', 'quote_part_noir', $dossier_for_integral->quote_part_noir, 10)
 				,'quote_part_couleur' => $form->texte('', 'quote_part_couleur', $dossier_for_integral->quote_part_couleur, 10)
