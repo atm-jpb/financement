@@ -12,9 +12,10 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,marque_materiel,numero_accord,reference,opt_calage','type=chaine;');
 		parent::add_champs('dossiers,dossiers_rachetes_m1,dossiers_rachetes_nr_m1,dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
 		parent::add_champs('thirdparty_name,thirdparty_address,thirdparty_zip,thirdparty_town,thirdparty_code_client,thirdparty_idprof2_siret, thirdparty_idprof3_naf','type=chaine;');
+		parent::add_champs('montant_accord','type=float;'); // Sert à stocker le montant pour lequel l'accord a été donné
 		parent::add_champs('fk_categorie_bien,fk_nature_bien', array('type'=>'integer'));
 		parent::add_champs('pct_vr,mt_vr', array('type'=>'float'));
-
+		
 		parent::start();
 		parent::_init_vars();
 		
@@ -107,6 +108,8 @@ class TSimulation extends TObjetStd {
 		$this->dossiers_rachetes_p1 = array();
 		$this->dossiers_rachetes_nr_p1 = array();
 		$this->dossiers_rachetes_perso = array();
+		
+		$this->modifiable = 1; // 1 = modifiable, 2 = modifiable +- 10%, 0 = non modifiable
 	}
  
 	function getRef() {
@@ -249,13 +252,15 @@ class TSimulation extends TObjetStd {
 		$grille = $TFinGrilleSuivi->get_grille($PDOdb, 'DEFAUT_'.$this->fk_type_contrat,false,$this->entity);
 		$idLeaserPrio = $this->getIdLeaserPrioritaire($PDOdb);
 		
-		$leaser = new Fournisseur($db);
-		$leaser->id = $idLeaserPrio;
-		//echo 'PRIO = '.$idLeaserPrio;
-		// Ajout du leaser prioritaire
-		$simulationSuivi = new TSimulationSuivi;
-		$simulationSuivi->init($PDOdb,$leaser,$this->getId());
-		$simulationSuivi->save($PDOdb);
+		if($idLeaserPrio > 0) {
+			$leaser = new Fournisseur($db);
+			$leaser->id = $idLeaserPrio;
+			//echo 'PRIO = '.$idLeaserPrio;
+			// Ajout du leaser prioritaire
+			$simulationSuivi = new TSimulationSuivi;
+			$simulationSuivi->init($PDOdb,$leaser,$this->getId());
+			$simulationSuivi->save($PDOdb);
+		}
 		
 		// Ajout des autres leasers de la liste (sauf le prio)
 		foreach($grille as $TData) {
@@ -278,7 +283,9 @@ class TSimulation extends TObjetStd {
 	}
 	
 	function load_annexe(&$db, &$doliDB) {
-		global $conf;
+		global $conf, $user;
+		dol_include_once('/categories/class/categorie.class.php');
+		
 		if(!empty($this->fk_soc)) {
 			// Récupếration des infos du client
 			if(empty($this->societe)) {
@@ -339,9 +346,22 @@ class TSimulation extends TObjetStd {
 			}
 		}
 		
-		if(!empty($this->fk_leaser)) {
+		if(!empty($this->fk_leaser) && $this->fk_leaser > 0) {
 			$this->leaser = new Societe($doliDB);
 			$this->leaser->fetch($this->fk_leaser);
+			
+			// Si un leaser a été préconisé, la simulation n'est plus modifiable
+			// Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
+			// Sauf pour les admins
+			if(empty($user->rights->financement->admin->write)) {
+				$cat = new Categorie($doliDB);
+				$cat->fetch(0,'Cession');
+				if($cat->containsObject('supplier', $this->fk_leaser) > 0) {
+					$this->modifiable = 0;
+				} else {
+					$this->modifiable = 2;
+				}
+			}
 		}
 		
 		if(!empty($this->fk_user_author)) {
@@ -357,23 +377,45 @@ class TSimulation extends TObjetStd {
 		//Récupération des suivis demande de financement leaser s'ils existent
 		//Sinon on les créé
 		$this->load_suivi_simulation($db);
+		
+		// Simulation non modifiable dans tous les cas si la date de validité est dépassée
+		// Sauf pour les admins
+		if(empty($user->rights->financement->admin->write) && !empty($this->date_validite) && $this->date_validite < time()) {
+			$this->modifiable = 0;
+		}
 	}
 	
 	//Charge dans un tableau les différents suivis de demande leaser concernant la simulation
 	function load_suivi_simulation(&$PDOdb){
-		
+		global $db;
 		$this->TSimulationSuivi = array();
 		$this->TSimulationSuiviHistorized = array();
 		
 		$TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
 	
 		if(count($TRowid) > 0){
+			// Si une demande a été faite auprès d'un leaser, la simulation n'est plus modifiable
+			// Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
+			$cat = new Categorie($db);
+			$cat->fetch(0,'Cession');
 			
 			foreach($TRowid as $rowid){
 				$simulationSuivi = new TSimulationSuivi;
 				$simulationSuivi->load($PDOdb, $rowid);
 				// Attention les type date via abricot, c'est du timestamp
-				if ($simulationSuivi->date_historization <= 0) $this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+				if ($simulationSuivi->date_historization <= 0) {
+					$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+					// Si une demande a déjà été lancée, la simulation n'est plus modifiable
+					// Sauf pour les admins
+					global $user;
+					if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
+						if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
+							$this->modifiable = 0;
+						} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
+							$this->modifiable = 2;
+						}
+					}
+				}
 				else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
 			}
 			
@@ -477,6 +519,8 @@ class TSimulation extends TObjetStd {
 			,$this->dossiers_rachetes_nr
 			,$this->dossiers_rachetes_p1
 			,$this->dossiers_rachetes_nr_p1
+			,$this->dossiers_rachetes_m1
+			,$this->dossiers_rachetes_nr_m1
 		);
 		
 		if(count($TDossierUsed)){
@@ -693,6 +737,16 @@ class TSimulation extends TObjetStd {
 			
 			$this->montant = round($this->montant, 3);
 			$this->montant_total_finance = $this->montant;
+		}
+		
+		// Cas de la modification de la simulation à +- 10 %
+		// Si la simulation n'est pas modifiable (demande déjà formulée à un leaser) on vérifie la règle +- 10%
+		if(($this->modifiable == 0 || $this->modifiable == 2) && $this->montant_accord != $this->montant_total_finance) {
+			$diff = abs($this->montant_total_finance - $this->montant_accord);
+			if(($diff / $this->montant_accord) * 100 > $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE) {
+				$this->error = 'ErrorMontantModifNotAuthorized';
+				return false;
+			}
 		}
 		
 		return true;

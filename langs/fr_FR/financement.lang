@@ -46,6 +46,7 @@ NbMoisSoldeNotAvailable=Solde non disponible tant que le dossier n'a pas dépass
 FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE=Ne pas afficher les soldes pour les dossiers dont le montant est supérieur à
 FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY=Répartition affaires. Ex : "012:3;", les affaires commençant par 012 seront attribuée à l'entité 3
 SimulationMontantPrestationObligatoire=Montant prestation obligatoire sur les simulations
+FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE=Écart autorisé de modification du montant sur simulation
 
 # EDI
 FINANCEMENT_SHOW_RECETTE_BUTTON=Affiche un bouton dans la colonne "Actions" des suivis leaser pour forcer l'appel au webservice (si l'utilisateur courant est admin et entité 0)
@@ -118,6 +119,7 @@ SimulationSuivi=Suivi Leaser Simulation
 simulation_info_vr=Le pourcentage et/ou le montant de la valeur résiduelle est utilisé pour une demande de financement. Le pourcentage et le montant sont exclusifs l'un l'autre, c'est-à-dire que seul un des 2 champs doit être renseigné. Si les 2 sont renseignés, alors c'est le montant qui sera pris en compte pour la demande de financement.
 SimulationSuiviHistory=Historique Suivi Leaser Simulation
 Simulation_marque_not_more_available=Ancienne marque : <b>%s</b>
+ErrorMontantModifNotAuthorized=Votre modification du montant est trop importante, contactez le service financement
 
 # SCORE
 ScoreList=Scores
