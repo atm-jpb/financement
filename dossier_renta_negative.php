@@ -46,6 +46,7 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 			,'status_3'					=> (in_array($id_dossier, $TDossiersError['err3']) ? "Oui" : "Non")
 			,'status_4'					=> (in_array($id_dossier, $TDossiersError['err4']) ? "Oui" : "Non")
 			,'status_5'					=> (in_array($id_dossier, $TDossiersError['err5']) ? "Oui" : "Non")
+			,'status_6'					=> (in_array($id_dossier, $TDossiersError['err6']) ? "Oui" : "Non")
 			,'duree'					=> $data->duree
 			,'periodicite'				=> $data->periodicite
 			,'montant'					=> price($data->montant,0,'',1,-1,2)
@@ -72,6 +73,7 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 			,'status_3' => (in_array($id_dossier, $TDossiersError['err3']) ? "Oui" : "Non")
 			,'status_4' => (in_array($id_dossier, $TDossiersError['err4']) ? "Oui" : "Non")
 			,'status_5' => (in_array($id_dossier, $TDossiersError['err5']) ? "Oui" : "Non")
+			,'status_6' => (in_array($id_dossier, $TDossiersError['err6']) ? "Oui" : "Non")
 			,'montants' => price($data->montant,0,'',1,-1,2) . '<br>' . price($data->echeance,0,'',1,2) . '<br>' . $data->duree . ' ' . substr($data->periodicite, 0, 1) 
 			,'dates' => date('d/m/y', strtotime($data->date_debut)) . '<br>' . date('d/m/y', strtotime($data->date_prochaine_echeance)) . '<br>' . date('d/m/y', strtotime($data->date_fin))
 			,'renta_previsionnelle'=>number_format($data->renta_previsionnelle,2, ',', ' ').' <br> '.number_format($data->marge_previsionnelle,2).' %'
@@ -88,6 +90,7 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 	echo $form->checkbox1('Règle 3', 'TRule[rule3]', 1, !empty($TRule['rule3']) ? $TRule['rule3'] : 0);
 	echo $form->checkbox1('Règle 4', 'TRule[rule4]', 1, !empty($TRule['rule4']) ? $TRule['rule4'] : 0);
 	echo $form->checkbox1('Règle 5', 'TRule[rule5]', 1, !empty($TRule['rule5']) ? $TRule['rule5'] : 0);
+	echo $form->checkbox1('Règle 6', 'TRule[rule6]', 1, !empty($TRule['rule6']) ? $TRule['rule6'] : 0);
 	
 	echo $form->btsubmit('Lancer', 'run');
 	if(!empty($TDossiersError['all'])) {
@@ -102,7 +105,8 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 		'error_2' => "Facture Client < Loyer leaser",
 		'error_3' => "Facture Client < Loyer client",
 		'error_4' => "Facture Client impayée",
-		'error_5' => "Echéance client non facturée"
+		'error_5' => "Echéance client non facturée",
+		'error_6' => "Anomalie"
 	);
 	$TTitles = array(
 		'refdos'=>'Contrat'
@@ -117,6 +121,7 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 		,'status_3'=>$TErrorStatus['error_3']
 		,'status_4'=>$TErrorStatus['error_4']
 		,'status_5'=>$TErrorStatus['error_5']
+		,'status_6'=>$TErrorStatus['error_6']
 		,'duree'=>'Durée'
 		,'periodicite' => 'Périodicité'
 		,'montant'=>'Montant'
@@ -174,7 +179,7 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 	$form->end();
 	
 	$action = GETPOST('action');
-	if(!empty($_REQUEST['export'])){
+	if(!empty($_REQUEST['export']) && !empty($TDossiersError['all'])){
 		_getExport($TLinesFile,$TTitles);
 	}
 	

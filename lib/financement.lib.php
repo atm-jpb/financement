@@ -138,12 +138,21 @@ class TFinancementTools {
  * 1 - loyer client < loyer leaser (Case à cocher sur le dossier de financement)
  * 2 - facture client < loyer leaser (Case à cocher sur la facture client)
  * 3 - facture client < loyer client (Case à cocher sur la facture client)
- * 4 - facture client impayée (A CONFIRMER)
- * 5 - échéance non facturée (A CONFIRMER)
+ * 4 - facture client impayée
+ * 5 - échéance non facturée
+ * 6 - dossier coché "anomalie"
  ********************************************************************************************************************/
 function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = false, $TRule = array()) {
 	$dossier=new TFin_Dossier;
-	$TDossiersError = array('all'=>array(),'err1'=>array(),'err2'=>array(),'err3'=>array(),'err4'=>array(),'err5'=>array());
+	$TDossiersError = array(
+		'all'=>array(),
+		'err1'=>array(),
+		'err2'=>array(),
+		'err3'=>array(),
+		'err4'=>array(),
+		'err5'=>array(),
+		'err6'=>array()
+	);
 	
 	$sqlfields = 'a.reference as refaffaire, a.rowid as fk_affaire, a.fk_soc as fk_client,';
 	$sqlfields.= 'dfcli.reference as refdoscli, dfcli.duree, dfcli.periodicite, dfcli.montant, dfcli.echeance, dfcli.date_debut, dfcli.date_fin, dfcli.date_prochaine_echeance, ';
@@ -485,6 +494,34 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 					$TDossiersError['data'][$rowid] = $res;
 				}
 				if(!in_array($rowid, $TDossiersError['err5'])) $TDossiersError['err5'][] = $rowid;
+			}
+		}
+	}
+	
+	/***********************************************************************************************************************************************************
+	 * 6 - Récupération de tous les dossiers dont la case anomalie est cochée
+	 ***********************************************************************************************************************************************************/
+	if(!empty($TRule['rule6'])) {
+		$sql = "SELECT d.rowid";
+		$sql.= ", $sqlfields";
+		$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
+		$sql.= $sqljoin;
+		$sql.= " WHERE d.renta_anomalie = 1";
+		$sql.= $sqlwhere;
+		
+		$PDOdb->Execute($sql);
+		$TRes = $PDOdb->Get_All();
+		
+		foreach($TRes as $res) {
+			$rowid = $res->rowid;
+			$renta_neg = true;
+			
+			if($renta_neg) {
+				if(!in_array($rowid, $TDossiersError['all'])) {
+					$TDossiersError['all'][] = $rowid;
+					$TDossiersError['data'][$rowid] = $res;
+				}
+				if(!in_array($rowid, $TDossiersError['err6'])) $TDossiersError['err6'][] = $rowid;
 			}
 		}
 	}
