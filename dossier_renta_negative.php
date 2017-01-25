@@ -9,17 +9,22 @@ dol_include_once('/financement/lib/financement.lib.php');
 $PDOdb=new TPDOdb;
 
 $visaauto = GETPOST('visaauto');
+$TRule = GETPOST('TRule');
+$id_dossier = GETPOST('id_dossier');
+
+// Moulinette pour vérifier automatiquement les renta neg
 if(!empty($visaauto)) {
 	set_time_limit(0);
 	echo date('d/m/Y H:i:s').' - Début de la routine "renta négatives"<br>';
 }
 
-$id_dossier = GETPOST('id_dossier');
-$TDossiersError = get_liste_dossier_renta_negative($PDOdb,$id_dossier,$visaauto);
+$TDossiersError = get_liste_dossier_renta_negative($PDOdb,$id_dossier,$visaauto,$TRule);
 
-if(empty($visaauto)) display_liste($PDOdb, $TDossiersError);
+if(empty($visaauto)) {
+	display_liste($PDOdb, $TDossiersError, $TRule);
+}
 
-function display_liste(&$PDOdb, &$TDossiersError) {
+function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 	$dossier=new TFin_Dossier;
 	
 	/************************************************************************
@@ -77,6 +82,18 @@ function display_liste(&$PDOdb, &$TDossiersError) {
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	echo $form->hidden('liste_renta_negative', '1');
+	
+	echo $form->checkbox1('Règle 1', 'TRule[rule1]', 1, !empty($TRule['rule1']) ? $TRule['rule1'] : 0);
+	echo $form->checkbox1('Règle 2', 'TRule[rule2]', 1, !empty($TRule['rule2']) ? $TRule['rule2'] : 0);
+	echo $form->checkbox1('Règle 3', 'TRule[rule3]', 1, !empty($TRule['rule3']) ? $TRule['rule3'] : 0);
+	echo $form->checkbox1('Règle 4', 'TRule[rule4]', 1, !empty($TRule['rule4']) ? $TRule['rule4'] : 0);
+	echo $form->checkbox1('Règle 5', 'TRule[rule5]', 1, !empty($TRule['rule5']) ? $TRule['rule5'] : 0);
+	
+	echo $form->btsubmit('Lancer', 'run');
+	if(!empty($TDossiersError['all'])) {
+		echo $form->btsubmit('Exporter ('.count($TDossiersError['all']).' dossiers)', 'export');
+	}
+	
 	$aff = new TFin_affaire;
 	$dos = new TFin_dossier;
 	
@@ -153,16 +170,11 @@ function display_liste(&$PDOdb, &$TDossiersError) {
 		)
 		
 	));
+	
 	$form->end();
 	
-	?>
-	<div class="tabsAction">
-		<a href="?action=exportListeDossier" class="butAction">Exporter (<?php echo count($TDossiersError['all']); ?> dossiers)</a>
-	</div>
-	<?php
-	
 	$action = GETPOST('action');
-	if($action === 'exportListeDossier'){
+	if(!empty($_REQUEST['export'])){
 		_getExport($TLinesFile,$TTitles);
 	}
 	
