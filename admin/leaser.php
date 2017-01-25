@@ -182,21 +182,13 @@ echo '<hr><br><br>';
 /* *************************************************************************
  * Affichage du tableau permettant de définir l'ordre par défaut des leasers
  * ************************************************************************/
- 
-$typeContrat = "DEFAUT_LOCSIMPLE";
-print_titre('Ordre des leasers par défaut Location Simple');
 
-_affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
+foreach ($liste_type_contrat as $typeContrat => $label) {
+	$typeContrat = "DEFAUT_".$typeContrat;
+	print_titre('Ordre des leasers par défaut '.$label);
 
-$typeContrat = "DEFAUT_FORFAITGLOBAL";
-print_titre('Ordre des leasers par défaut Forfait global');
-
-_affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
-
-$typeContrat = "DEFAUT_INTEGRAL";
-print_titre('Ordre des leasers par défaut Integral');
-
-_affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
+	_affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
+}
 
 function _affOrdreLeaser(&$ATMdb,&$TBS,&$TFin_grille_suivi,$mode,$typeContrat){
 	
