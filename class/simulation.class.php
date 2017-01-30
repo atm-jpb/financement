@@ -1560,7 +1560,7 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		if($simulation->type_financement != "ADOSSEE" && $simulation->type_financement != "MANDATEE" && in_array(5, $TCateg_tiers)){
-			$simulation->coeff_final = $this->coeff_leaser;
+			if(!empty($this->coeff_leaser)) $simulation->coeff_final = $this->coeff_leaser;
 			$simulation->montant = 0;
 			$options = array(
 							'opt_periodicite'=>$simulation->opt_periodicite
