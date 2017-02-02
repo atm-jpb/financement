@@ -1197,7 +1197,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			}
 			
 			if ($nb_month_passe <= $conf->global->FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH
-				&& $nb_month_passe > $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) {
+				&& $nb_month_passe >= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) {
 				$dossier->display_solde = 0;
 			}
 		}
