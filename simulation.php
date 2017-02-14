@@ -840,6 +840,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$form->Set_typeaff($mode);
 		$simuArray['montant'] = $form->texte('', 'montant', $simulation->montant, 10);
 		$simuArray['echeance'] = $form->texte('', 'echeance', $simulation->echeance, 10);
+		$simuArray['montant_presta_trim'] = $form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10);
 	}
 	
 	print $TBS->render('./tpl/simulation.tpl.php'
