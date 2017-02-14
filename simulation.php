@@ -206,13 +206,6 @@ if(!empty($action)) {
 				$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 			}
 			
-			if($simulation->opt_calage != '') {
-				$simulation->set_date('date_demarrage',$_REQUEST['date_demarrage']);
-			}
-			else{
-				$simulation->set_date('date_demarrage','');
-			}
-			
 			// Si l'accord vient d'être donné (par un admin)
 			if($simulation->accord == 'OK' && $simulation->accord != $oldAccord) {
 				$simulation->date_validite = strtotime('+ 2 months');
