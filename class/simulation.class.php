@@ -377,7 +377,8 @@ class TSimulation extends TObjetStd {
 		
 		// Simulation non modifiable dans tous les cas si la date de validité est dépassée
 		// Sauf pour les admins
-		if(empty($user->rights->financement->admin->write) && !empty($this->date_validite) && $this->date_validite < time()) {
+		if(empty($user->rights->financement->admin->write)
+			&& $this->accord == 'OK' && !empty($this->date_validite) && $this->date_validite < time()) {
 			$this->modifiable = 0;
 		}
 	}
