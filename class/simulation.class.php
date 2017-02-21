@@ -1294,11 +1294,9 @@ class TSimulation extends TObjetStd {
 					$options[$k] = $v;
 				}
 			}
-		}
-		// Si les paramètre ne sont pas passé par formulaire, on garde les options de l'objet
-		if(empty($options)) {
+			// Si les paramètre ne sont pas passé par formulaire, on garde les options de l'objet
 			foreach($this as $k => $v) {
-				if(substr($k, 0, 4) == 'opt_') {
+				if(substr($k, 0, 4) == 'opt_' && empty($options[$k])) {
 					$options[$k] = $v;
 				}
 			}
