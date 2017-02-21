@@ -1295,6 +1295,14 @@ class TSimulation extends TObjetStd {
 				}
 			}
 		}
+		// Si les paramètre ne sont pas passé par formulaire, on garde les options de l'objet
+		if(empty($options)) {
+			foreach($this as $k => $v) {
+				if(substr($k, 0, 4) == 'opt_') {
+					$options[$k] = $v;
+				}
+			}
+		}
 		
 		$calcul = $this->calcul_financement($ATMdb, FIN_LEASER_DEFAULT, $options); // Calcul du financement
 			
