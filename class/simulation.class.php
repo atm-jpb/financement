@@ -214,7 +214,7 @@ class TSimulation extends TObjetStd {
 		}
 
 		if($this->accord == 'OK') {
-			$simulation->date_validite = strtotime('+ 3 months', $this->date_accord);
+			$this->date_validite = strtotime('+ 3 months', $this->date_accord);
 		}
 
 		//pre($this, true);exit;
