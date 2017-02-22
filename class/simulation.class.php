@@ -1518,6 +1518,9 @@ class TSimulationSuivi extends TObjetStd {
 	function doActionEnvoyer(&$PDOdb,&$simulation){
 		global $db;
 		
+		$simulation->accord = 'WAIT';
+		$simulation->save($PDOdb, $db);
+		
 		$this->statut = 'WAIT';
 		$this->save($PDOdb);
 	}
@@ -1525,6 +1528,9 @@ class TSimulationSuivi extends TObjetStd {
 	//Effectue l'action de passer au statut accepter la demande de financement leaser
 	function doActionAccepter(&$PDOdb,&$simulation){
 		global $db;
+		
+		$simulation->accord = 'WAIT';
+		$simulation->save($PDOdb, $db);
 		
 		$this->statut = 'OK';
 		$this->date_selection = 0;
