@@ -213,6 +213,10 @@ class TSimulation extends TObjetStd {
 			}
 		}
 
+		if($this->accord == 'OK') {
+			$simulation->date_validite = strtotime('+ 3 months', $this->date_accord);
+		}
+
 		//pre($this, true);exit;
 		
 		$this->gen_simulation_pdf($db, $doliDB);
