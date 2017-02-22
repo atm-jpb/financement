@@ -198,9 +198,14 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
 			if(!empty($visaauto)) {
 				$dossier->load($PDOdb, $rowid,false,true);
-				
+
+				// On ramène l'échéance leaser sur la même périodicité que le dossier client
+				$equi_periodicite = $dossier->financementLeaser->getiPeriode() / $dossier->financement->getiPeriode();
+				$echeanceClient = $dossier->financement->echeance;
+				$echeanceLeaser = ($dossier->financementLeaser->echeance / $equi_periodicite);
+
 				// Si règle 1 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
-				if($dossier->financement->echeance < $dossier->financementLeaser->echeance) {
+				if($echeanceClient < $echeanceLeaser) {
 					$renta_neg = true;
 				} else {
 					echo 'Dossier '.$dossier->financement->reference.' respecte la règle 1, case "Visa renta négative" cochée automatiquement.<br>';
@@ -260,6 +265,10 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 				$TRes = $PDOdb->ExecuteAsArray($sql);
 				$total_echeances = $TRes[0]->total_echeances;
 				
+				// On ramène l'échéance leaser sur la même périodicité que le dossier client
+				$equi_periodicite = $dossier->financementLeaser->getiPeriode() / $dossier->financement->getiPeriode();
+				$echeanceLeaser = ($total_echeances / $equi_periodicite);
+				
 				// Attention on vérifie les factures et regroupements de factures
 				$montant_facture = 0;
 				foreach($dossier->TFacture as $p => $d) {
@@ -280,7 +289,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 					
 					// Comparaison au loyer leaser
 					// Si règle 2 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
-					if($montant_facture < $total_echeances && !$intercalaireOK) {
+					if($montant_facture < $echeanceLeaser && !$intercalaireOK) {
 						$renta_neg = true;
 					} else {
 						echo 'Dossier '.$dossier->financement->reference.', période '.($p+1).' respecte la règle 2, case "Visa renta facture < loyer leaser" cochée automatiquement.<br>';
