@@ -208,7 +208,7 @@ if(!empty($action)) {
 			
 			// Si l'accord vient d'être donné (par un admin)
 			if($simulation->accord == 'OK' && $simulation->accord != $oldAccord) {
-				$simulation->date_validite = strtotime('+ 2 months');
+				$simulation->date_validite = strtotime('+ 3 months');
 				$simulation->date_accord = time();
 				$simulation->accord_confirme = 1;
 				$simulation->setThirparty();
