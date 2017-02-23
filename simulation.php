@@ -489,6 +489,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'date_simul'=>'calendar'
 			,'accord'=>$simulation->TStatutShort
 			,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
+			,'reference'=>array('recherche'=>true, 'table'=>'s', 'field'=>'rowid')
 		)
 		,'eval'=>array(
 			'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
