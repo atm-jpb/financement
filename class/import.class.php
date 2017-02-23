@@ -763,7 +763,7 @@ class TImport extends TObjetStd {
 	function importLineFactureLocation(&$ATMdb, $data, &$TInfosGlobale) {
 		global $user, $db;
 		
-		if(!in_array($data['ref_service'], array('SSC101','SSC102','SSC106','037004','037003','033741','SSC109','SSC108','SSC104','SSC107','018528','020021'))) {
+		if(!in_array($data['ref_service'], array('SSC101','SSC102','SSC106','037004','037003','033741','SSC109','SSC108','SSC104','SSC107','018528','020021', 'SSC128'))) {
 			//On importe uniquement certaine ref produit
 			//$this->addError($ATMdb, 'InfoRefServiceNotNeededNow', $data['ref_service'], 'WARNING');
 			return false;

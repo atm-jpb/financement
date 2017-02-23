@@ -30,7 +30,7 @@ class ActionsFinancement
 		 $res = printSearchForm(DOL_URL_ROOT.'/custom/financement/dossier.php', DOL_URL_ROOT.'/custom/financement/dossier.php', img_picto('',dol_buildpath('/financement/img/object_financeico.png', 1), '', true).' '.$langs->trans("Dossiers"), 'searchdossier', 'searchdossier');
 		 $res .= printSearchForm(DOL_URL_ROOT.'/compta/facture/list.php', DOL_URL_ROOT.'/compta/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Clients"), 'products', 'search_ref');
 		 $res .= printSearchForm(DOL_URL_ROOT.'/fourn/facture/list.php', DOL_URL_ROOT.'/fourn/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Leasers"), 'products', 'search_ref');
-		 
+		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation.php', DOL_URL_ROOT.'/custom/financement/simulation.php', img_object('','invoice').' N° étude / Accord Leaser', 'searchnumetude', 'searchnumetude');
 		 $hookmanager->resPrint.= $res;
 		 
 		 return 0;

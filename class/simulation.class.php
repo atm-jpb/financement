@@ -216,13 +216,14 @@ class TSimulation extends TObjetStd {
 			}
 		}
 
+		if($this->accord == 'OK') {
+			$this->date_validite = strtotime('+ 3 months', $this->date_accord);
+		}
+
 		//pre($this, true);exit;
 		
 		$this->gen_simulation_pdf($db, $doliDB);
 		
-		if($this->accord == 'OK') {
-			$this->date_validite = strtotime('+ 3 months',$this->date_accord);
-		}
 		parent::save($db);
 		
 		//Création du suivi simulation leaser s'il n'existe pas
@@ -380,7 +381,8 @@ class TSimulation extends TObjetStd {
 		
 		// Simulation non modifiable dans tous les cas si la date de validité est dépassée
 		// Sauf pour les admins
-		if(empty($user->rights->financement->admin->write) && !empty($this->date_validite) && $this->date_validite < time()) {
+		if(empty($user->rights->financement->admin->write)
+			&& $this->accord == 'OK' && !empty($this->date_validite) && $this->date_validite < time()) {
 			$this->modifiable = 0;
 		}
 	}
@@ -1014,13 +1016,13 @@ class TSimulation extends TObjetStd {
 			
 			//$date_prochaine_echeance = $this[]
 			
-			$echeance = $d->_get_num_echeance_from_date($this->dossiers[$idDossier]['date_prochaine_echeance']);
-			$date_debut_periode_m1 = $d->getDateDebutPeriode($echeance-2,$type);
-			$date_fin_periode_m1 = $d->getDateFinPeriode($echeance-2,$type);
-			$date_debut_periode = $d->getDateDebutPeriode($echeance-1,$type);
-			$date_fin_periode = $d->getDateFinPeriode($echeance-1,$type);
-			$date_debut_periode_p1 = $d->getDateDebutPeriode($echeance,$type);
-			$date_fin_periode_p1 = $d->getDateFinPeriode($echeance,$type);
+			$echeance = $d->_get_num_echeance_from_date($this->date_simul);
+			$date_debut_periode_m1 = $d->getDateDebutPeriode($echeance-1,$type);
+			$date_fin_periode_m1 = $d->getDateFinPeriode($echeance-1,$type);
+			$date_debut_periode = $d->getDateDebutPeriode($echeance,$type);
+			$date_fin_periode = $d->getDateFinPeriode($echeance,$type);
+			$date_debut_periode_p1 = $d->getDateDebutPeriode($echeance+1,$type);
+			$date_fin_periode_p1 = $d->getDateFinPeriode($echeance+1,$type);
 			
 			/*echo $d->reference.'<br>';
 			echo $echeance.'<br>';
@@ -1296,6 +1298,12 @@ class TSimulation extends TObjetStd {
 					$options[$k] = $v;
 				}
 			}
+			// Si les paramètre ne sont pas passé par formulaire, on garde les options de l'objet
+			foreach($this as $k => $v) {
+				if(substr($k, 0, 4) == 'opt_' && empty($options[$k])) {
+					$options[$k] = $v;
+				}
+			}
 		}
 		
 		$calcul = $this->calcul_financement($ATMdb, FIN_LEASER_DEFAULT, $options); // Calcul du financement
@@ -1528,9 +1536,6 @@ class TSimulationSuivi extends TObjetStd {
 		global $db;
 		
 		$simulation->accord = 'WAIT';
-		$simulation->coeff_final = '';
-		$simulation->fk_leaser = 0;
-		$simulation->numero_accord = '';
 		$simulation->save($PDOdb, $db);
 		
 		$this->statut = 'OK';
@@ -1541,9 +1546,6 @@ class TSimulationSuivi extends TObjetStd {
 	//Effectue l'action de passer au statut refusé la demande de financement leaser
 	function doActionRefuser(&$PDOdb,&$simulation){
 		global $db;
-
-		/*$simulation->accord = 'KO';
-		$simulation->save($PDOdb, $db);*/
 		
 		$this->statut = 'KO';
 		$this->save($PDOdb);
@@ -1566,7 +1568,7 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		if($simulation->type_financement != "ADOSSEE" && $simulation->type_financement != "MANDATEE" && in_array(5, $TCateg_tiers)){
-			$simulation->coeff_final = $this->coeff_leaser;
+			if(!empty($this->coeff_leaser)) $simulation->coeff_final = $this->coeff_leaser;
 			$simulation->montant = 0;
 			$options = array(
 							'opt_periodicite'=>$simulation->opt_periodicite

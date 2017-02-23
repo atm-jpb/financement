@@ -206,16 +206,8 @@ if(!empty($action)) {
 				$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 			}
 			
-			if($simulation->opt_calage != '') {
-				$simulation->set_date('date_demarrage',$_REQUEST['date_demarrage']);
-			}
-			else{
-				$simulation->set_date('date_demarrage','');
-			}
-			
 			// Si l'accord vient d'être donné (par un admin)
 			if($simulation->accord == 'OK' && $simulation->accord != $oldAccord) {
-				$simulation->date_validite = strtotime('+ 2 months');
 				$simulation->date_accord = time();
 				$simulation->accord_confirme = 1;
 				$simulation->setThirparty();
@@ -391,6 +383,7 @@ llxFooter();
 	
 function _liste(&$ATMdb, &$simulation) {
 	global $langs, $db, $conf, $user;
+	$searchnumetude = GETPOST('searchnumetude');
 	
 	$affaire = new TFin_affaire();
 	
@@ -413,14 +406,19 @@ function _liste(&$ATMdb, &$simulation) {
 	if (!$user->rights->societe->client->voir || !$_REQUEST['socid']) {
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON (sc.fk_soc = soc.rowid)";
 	}
-	
+	if(!empty($searchnumetude)){
+		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_simulation_suivi as fss ON (fk_simulation = s.rowid)";
+	}
 	//$sql.= " WHERE s.entity = ".$conf->entity;
 	$sql.= " WHERE 1=1 ";
-	
 	if ((!$user->rights->societe->client->voir || !$_REQUEST['socid']) && !$user->rights->financement->allsimul->simul_list) //restriction
 	{
 		$sql.= " AND sc.fk_user = " .$user->id;
 	}
+	if(!empty($searchnumetude)){
+		$sql.=" AND fss.numero_accord_leaser='".$searchnumetude."'";
+	}
+	
 
 	if(isset($_REQUEST['socid'])) {
 		$sql.= ' AND s.fk_soc='.$_REQUEST['socid'];
@@ -521,6 +519,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'date_simul'=>'calendar'
 			,'accord'=>$simulation->TStatutShort
 			,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
+			,'reference'=>array('recherche'=>true, 'table'=>'s', 'field'=>'rowid')
 		)
 		,'eval'=>array(
 			'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
@@ -870,6 +869,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$form->Set_typeaff($mode);
 		$simuArray['montant'] = $form->texte('', 'montant', $simulation->montant, 10);
 		$simuArray['echeance'] = $form->texte('', 'echeance', $simulation->echeance, 10);
+		$simuArray['montant_presta_trim'] = $form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10);
 	}
 	
 	print $TBS->render('./tpl/simulation.tpl.php'
@@ -1227,7 +1227,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			}
 			
 			if ($nb_month_passe <= $conf->global->FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH
-				&& $nb_month_passe > $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) {
+				&& $nb_month_passe >= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) {
 				$dossier->display_solde = 0;
 			}
 		}
@@ -1319,6 +1319,9 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			,'incident_paiement'=>$incident_paiement
 			,'numcontrat_entity_leaser'=>$numcontrat_entity_leaser
 		);
+		if($row['type_contrat'] == 'Intégral'){
+			$row['type_contrat']='<a href="dossier_integrale.php?id='.$ATMdb->Get_field('IDDoss').'">Intégral</a>';
+		}
 		//pre($row,true);
 		$TDossier[$dossier->getId()] = $row;
 
