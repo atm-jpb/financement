@@ -114,7 +114,7 @@ class ServiceFinancement {
 		}
 		
 		// TODO à revoir, peut être qu'un test sur code client ou mieux encore sur numéro SIRET
-		if (strpos($this->leaser->name, 'LIXXBAIL') === 0)
+		if ($this->leaser->name == 'LIXXBAIL' || $this->leaser->name == 'LIXXBAIL MANDATE')
 		{
 			return $this->callLixxbail();
 		}
@@ -803,7 +803,10 @@ EOT;
 	 */
 	public function getCodeProduit()
 	{
-		return 'LOCF';
+		if($this->leaser->name == 'LIXXBAIL')
+			return 'LOCF';
+		if($this->leaser->name == 'LIXXBAIL MANDATE')
+			return 'LOC';
 	}
 	
 	/**
@@ -818,7 +821,10 @@ EOT;
 	 */
 	public function getTypeProduit()
 	{
-		return 'STAN';
+		if($this->leaser->name == 'LIXXBAIL')
+			return 'CESS';
+		if($this->leaser->name == 'LIXXBAIL MANDATE')
+			return 'STLM';
 	}
 	
 	/**
