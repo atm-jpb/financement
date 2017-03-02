@@ -806,7 +806,7 @@ EOT;
 		if($this->leaser->name == 'LIXXBAIL')
 			return 'LOCF';
 		if($this->leaser->name == 'LIXXBAIL MANDATE')
-			return 'LOC';
+			return 'LOCF';
 	}
 	
 	/**
@@ -824,7 +824,7 @@ EOT;
 		if($this->leaser->name == 'LIXXBAIL')
 			return 'CESS';
 		if($this->leaser->name == 'LIXXBAIL MANDATE')
-			return 'STLM';
+			return 'LMAF';
 	}
 	
 	/**
