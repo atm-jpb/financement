@@ -790,6 +790,7 @@ function regularisation($dossier,$TIntegrale){
 	global $langs;
 	$periodicite = 0;
 	//Conversion periodicite en nombre
+
 	switch($dossier->financement->periodicite){
 		case 'MOIS':
 			$periodicite=1;
@@ -820,75 +821,65 @@ function regularisation($dossier,$TIntegrale){
 			$ifError[$k] = clone ($v);
 		}
 		*/
-
+		$trimestre='';
+		$trimestre3='';
 		$semestre = '';
 		if($dossier->type_regul==6){
 			$semestre='07';
 		}
-
+		if($dossier->type_regul==3){
+			$trimestre='04';
+			$trimestre3='10';
+			$semestre='07';
+		}
 	
-		$keys = array_keys($TIntegrale);
+	/*	$keys = array_keys($TIntegrale);
 		$tabTemp = explode('/',$keys[0]);
 		$timecompare = dol_mktime(0, 0, 0, $tabTemp[1], $tabTemp[0], $tabTemp[2]);
-		
+		*/
 		foreach($TIntegrale as &$tab){
-			if($isIntercal && !empty($dossier->financement->loyer_intercalaire) && $dossier->date_debut == $timecompare){//Vérification loyer intercalaire
+			if($isIntercal && !empty($dossier->financement->loyer_intercalaire) && !empty($dossier->TFacture[-1])){//Vérification loyer intercalaire et existance facture
 				
 				$isIntercal = false;
-				$volNoirEngag+=$tab->vol_noir_engage;
-				$volCoulEngag+=$tab->vol_coul_engage;
+		
 			}else {
 				$theDate = explode('/',$tab->date_periode);
 				$periode = new DateTime($theDate[2].'-'.$theDate[1].'-'.$theDate[0]);//On met la date au bon format
-				if(empty($dateTemp)){//Si c'est le premier passage
+			/*	if(empty($dateTemp)){//Si c'est le premier passage
 					$dateTemp = $periode;
 					$volNoir+= $tab->vol_noir_realise;
 					$volCoul+= $tab->vol_coul_realise;
-					$volNoirEngag+=$tab->vol_noir_engage;
-					$volCoulEngag+=$tab->vol_coul_engage;
-					$tab->vol_noir_realise = 0;
+				//	$volNoirEngag+=$tab->vol_noir_engage;
+					//$volCoulEngag+=$tab->vol_coul_engage;
+					//$tab->vol_noir_realise = 0;
 					$tab->vol_noir_facture = $tab->vol_noir_engage;
-					$tab->vol_coul_realise = 0;
+				//	$tab->vol_coul_realise = 0;
 					$tab->vol_coul_facture = $tab->vol_coul_engage;
-				} else {
+				} else {*/
 				//	$dateCompare = ($periode->diff($dateTemp));//On compare la date actuelle avec la date d'avant
 				//	if($dateCompare->days <=$periodicite*31 && $dateCompare->days>=$periodicite*30){//On regarde si le nombre de jours est environ au bon nombre de mois
 						$compteur++;
-						if(($theDate[1]!=$semestre)&& ($theDate[1]!='01') ){//On compare les mois
+						if(($theDate[1]!=$trimestre)&&($theDate[1]!=$semestre)&&($theDate[1]!=$trimestre3)&& ($theDate[1]!='01') ){//On compare les mois
 							$volNoir+= $tab->vol_noir_realise;
 							$volCoul+= $tab->vol_coul_realise;
-							$volNoirEngag+=$tab->vol_noir_engage;
-							$volCoulEngag+=$tab->vol_coul_engage;
-							$tab->vol_noir_realise = 0;
+							//$volNoirEngag+=$tab->vol_noir_engage;
+							//$volCoulEngag+=$tab->vol_coul_engage;
+						//	$tab->vol_noir_realise = 0;
 							$tab->vol_noir_facture = $tab->vol_noir_engage;
-							$tab->vol_coul_realise = 0;
+							//$tab->vol_coul_realise = 0;
 							$tab->vol_coul_facture = $tab->vol_coul_engage;
+							
+							setBilledVol($tab);
 						}
 						else {
-							$volNoir+= $tab->vol_noir_realise;//On n'oublie pas de bien prendre en compte les valeurs de la ligne actuelle
-							$volCoul+= $tab->vol_coul_realise;
-							$volNoirEngag+=$tab->vol_noir_engage;
-							$volCoulEngag+=$tab->vol_coul_engage;
+						//	$volNoir+= $tab->vol_noir_realise;//On n'oublie pas de bien prendre en compte les valeurs de la ligne actuelle
+						//	$volCoul+= $tab->vol_coul_realise;
+						//	$volNoirEngag+=$tab->vol_noir_engage;
+						//	$volCoulEngag+=$tab->vol_coul_engage;
+							$tab->vol_noir_realise -= $volNoir;
+							$tab->vol_coul_realise -= $volCoul;
 							$compteur = 0;
-							if($volNoir<$volNoirEngag){//On compare l'engagé total avec le réalisé total
-								$tab->vol_noir_engage = $volNoirEngag;
-								$tab->vol_noir_realise = $volNoir;
-								$tab->vol_noir_facture = $tab->vol_noir_engage;
-							} else {
-								$tab->vol_noir_engage = $volNoirEngag;
-								$tab->vol_noir_realise = $volNoir;
-								$tab->vol_noir_facture = $volNoir;
-							}
-							
-							if($volCoul<$volCoulEngag){//On compare l'engagé total avec le réalisé total
-								$tab->vol_coul_engage = $volCoulEngag;
-								$tab->vol_coul_realise = $volCoul;
-								$tab->vol_coul_facture = $tab->vol_coul_engage;
-							} else {
-								$tab->vol_coul_engage = $volCoulEngag;
-								$tab->vol_coul_realise = $volCoul;
-								$tab->vol_coul_facture = $volCoul;
-							}
+							setBilledVol($tab);
 							//Reinitialisation des variables
 							$volNoir=0;
 							$volCoul=0;
@@ -908,13 +899,30 @@ function regularisation($dossier,$TIntegrale){
 						
 					}*/
 					
-					$dateTemp = $periode;//On récupère la date actuelle
-				}
+				//	$dateTemp = $periode;//On récupère la date actuelle
+			//	}
 			}
 		}
 	}	
 	return $TIntegrale;
 }
+function setBilledVol(&$tab){
+		if($tab->vol_noir_realise<$tab->vol_noir_engage){//On compare l'engagé  avec le réalisé
+							
+				$tab->vol_noir_facture = $tab->vol_noir_engage;
+		} else {
+						
+				$tab->vol_noir_facture = $tab->vol_noir_realise;
+		}
+					
+		if($tab->vol_coul_realise<$tab->vol_coul_engage){								
+				$tab->vol_coul_facture = $tab->vol_coul_engage;
+		} else {
+								
+				$tab->vol_coul_facture = $tab->vol_coul_realise;
+		}
+}
+
 
 function _addAvenantIntegrale(&$dossier) {
 	
