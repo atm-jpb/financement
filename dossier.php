@@ -470,6 +470,7 @@ function _liste(&$PDOdb, &$dossier) {
 			,'refDosLea'=>'Contrat Leaser'
 			,'duree'=>'Durée'
 			,'echeance'=>'Echéance'
+			,'echeanceLeaser'=>'Echéance leaser'
 			,'entity_id'=>'Partenaire'
 			,'nomCli'=>'Client'
 			,'nomLea'=>'Leaser'
@@ -963,7 +964,7 @@ function _getExportXML($sql){
 	$file = fopen($filepath,'w');
 
 	//Ajout première ligne libelle
-	$TLabel = array('Contrat','Entité','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant','Echeance Client','Echeance Leaser','Prochaine','Debut','Fin','Facture Materiel');
+	$TLabel = array('Contrat','Partenaire','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant','Echeance Client','Echeance Leaser','Prochaine','Debut','Fin','Facture Materiel');
 	fputcsv($file, $TLabel,';','"');
 	
 	foreach($TTRes as $TRes){
