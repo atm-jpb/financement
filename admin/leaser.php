@@ -65,7 +65,7 @@ if($action == 'save') {
 		$TNewLine = GETPOST('newline');
 		foreach($TNewLine as $typeLine => $Tline){
 
-			if($typeLine == 'DEFAUT_LOCSIMPLE' || $typeLine == 'DEFAUT_FORFAITGLOBAL' || $typeLine == 'DEFAUT_INTEGRAL'){
+			if(strpos($typeLine,'DEFAULT_') !== false){
 				$Tline = array(
 					"solde" => ($Tline['leaser'] == 0) ? -1 : $Tline['leaser']
 					,"montantbase" => $Tline['ordre']
@@ -93,7 +93,7 @@ if($action == 'save') {
 			
 			foreach($grille_temp as $rowid => $linegrille){				
 				
-				if($typeLine == 'DEFAUT_LOCSIMPLE' || $typeLine == 'DEFAUT_FORFAITGLOBAL' || $typeLine == 'DEFAUT_INTEGRAL'){
+				if(strpos($typeLine,'DEFAULT_') !== false){
 					$linegrille = array(
 						"solde" => ($linegrille['leaser'] == 0) ? -1 : $linegrille['leaser']
 						,"montantbase" => $linegrille['ordre']
