@@ -352,13 +352,14 @@ class TSimulation extends TObjetStd {
 			// Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
 			// Sauf pour les admins
 			if(empty($user->rights->financement->admin->write)) {
-				$cat = new Categorie($doliDB);
-				$cat->fetch(0,'Cession');
-				if($cat->containsObject('supplier', $this->fk_leaser) > 0) {
-					$this->modifiable = 0;
-				} else {
+				// 2017.03.14 MKO : on ne tient plus compte de la règle "Cession"
+				//$cat = new Categorie($doliDB);
+				//$cat->fetch(0,'Cession');
+				//if($cat->containsObject('supplier', $this->fk_leaser) > 0) {
+				//	$this->modifiable = 0;
+				//} else {
 					$this->modifiable = 2;
-				}
+				//}
 			}
 		}
 		
@@ -395,8 +396,9 @@ class TSimulation extends TObjetStd {
 		if(count($TRowid) > 0){
 			// Si une demande a été faite auprès d'un leaser, la simulation n'est plus modifiable
 			// Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
-			$cat = new Categorie($db);
-			$cat->fetch(0,'Cession');
+			// 2017.03.14 MKO : on ne tient plus compte de la règle "Cession"
+			//$cat = new Categorie($db);
+			//$cat->fetch(0,'Cession');
 			
 			foreach($TRowid as $rowid){
 				$simulationSuivi = new TSimulationSuivi;
@@ -408,11 +410,11 @@ class TSimulation extends TObjetStd {
 					// Sauf pour les admins
 					global $user;
 					if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
-						if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
-							$this->modifiable = 0;
-						} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
+						//if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
+						//	$this->modifiable = 0;
+						//} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
 							$this->modifiable = 2;
-						}
+						//}
 					}
 				}
 				else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
