@@ -1252,6 +1252,15 @@ class TSimulation extends TObjetStd {
 		elseif ($simu2->opt_periodicite == 'ANNEE') $simu2->coeff_by_periodicite = $simu2->coeff * 4;
 		else $simu2->coeff_by_periodicite = $simu2->coeff; // TRIMESTRE
 		
+		// Récupération du logo de l'entité correspondant à la simulation
+		$companyconf = $conf;
+		$companyconf->entity = $this->entity;
+		$companyconf->setValues($doliDB);
+		$company = new Societe($doliDB);
+		$company->setMysoc($companyconf);
+		$logo = DOL_DATA_ROOT.'/'.(($this->entity>1)?$this->entity.'/':'').'mycompany/logos/'.$company->logo;
+		$simu2->logo = $logo;
+		
 		$TBS = new TTemplateTBS;
 		$file = $TBS->render('./tpl/doc/simulation.odt'
 			,array(
