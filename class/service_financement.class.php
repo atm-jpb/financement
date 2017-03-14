@@ -1079,7 +1079,7 @@ class MySoapClient extends SoapClient
 		/* create key object, set passphrase and load key */
 		$objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, array('type'=>'private'));
 		//$objKey->passphrase = 'My password.';
-		$objKey->loadKey(dol_buildpath('/financement/crt/CALF/key.pem'), TRUE);
+		$objKey->loadKey('/etc/apache2/ssl/cert.key', TRUE);
 	
 		/* sign message */
 		$options = array('algorithm' => 'http://www.w3.org/2001/04/xmlenc#sha256');
@@ -1087,7 +1087,7 @@ class MySoapClient extends SoapClient
 		$objWSSE->signSoapDoc($objKey, $options);
 		
 		/* add certificate */
-		$token = $objWSSE->addBinaryToken(file_get_contents(dol_buildpath('/financement/crt/CALF/cert.pem')));
+		$token = $objWSSE->addBinaryToken(file_get_contents('/etc/apache2/ssl/cert.preprod.crt'));
 		$objWSSE->attachTokentoSig($token);
 		
 		// this DOES print the header
