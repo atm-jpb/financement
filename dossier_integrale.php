@@ -807,7 +807,7 @@ function regularisation($dossier,$TIntegrale){
 	}
 	
 	//On vérifie que la période de régularisation est supérieur à la periode de facturation
-	if( $dossier->type_regul > $periodicite){
+	if( $dossier->type_regul > $periodicite && !empty($dossier->month_regul)){
 		
 		$dateTemp = '';//date temporaire
 		$compteur=0;
@@ -821,7 +821,7 @@ function regularisation($dossier,$TIntegrale){
 			$ifError[$k] = clone ($v);
 		}
 		*/
-		$trimestre='';
+		/*$trimestre='';
 		$trimestre3='';
 		$semestre = '';
 		if($dossier->type_regul==6){
@@ -831,6 +831,16 @@ function regularisation($dossier,$TIntegrale){
 			$trimestre='04';
 			$trimestre3='10';
 			$semestre='07';
+		}*/
+
+		$TMonthRegul = array($dossier->month_regul);
+		if($dossier->type_regul==6){
+			$TMonthRegul[] = ($dossier->month_regul + 6) % 12;
+		}
+		if($dossier->type_regul==3){
+			$TMonthRegul[] = ($dossier->month_regul + 3) % 12;
+			$TMonthRegul[] = ($dossier->month_regul + 6) % 12;
+			$TMonthRegul[] = ($dossier->month_regul + 9) % 12;
 		}
 	
 	/*	$keys = array_keys($TIntegrale);
@@ -859,33 +869,34 @@ function regularisation($dossier,$TIntegrale){
 				//	$dateCompare = ($periode->diff($dateTemp));//On compare la date actuelle avec la date d'avant
 				//	if($dateCompare->days <=$periodicite*31 && $dateCompare->days>=$periodicite*30){//On regarde si le nombre de jours est environ au bon nombre de mois
 						$compteur++;
-						if(($theDate[1]!=$trimestre)&&($theDate[1]!=$semestre)&&($theDate[1]!=$trimestre3)&& ($theDate[1]!='01') ){//On compare les mois
+						//if(($theDate[1]!=$trimestre)&&($theDate[1]!=$semestre)&&($theDate[1]!=$trimestre3)&& ($theDate[1]!='01') ){//On compare les mois
+						if(!in_array((int)$theDate[1], $TMonthRegul) ){//On compare les mois
 							$volNoir+= $tab->vol_noir_realise;
 							$volCoul+= $tab->vol_coul_realise;
-							//$volNoirEngag+=$tab->vol_noir_engage;
-							//$volCoulEngag+=$tab->vol_coul_engage;
+							$volNoirEngag+=$tab->vol_noir_engage;
+							$volCoulEngag+=$tab->vol_coul_engage;
 						//	$tab->vol_noir_realise = 0;
 							$tab->vol_noir_facture = $tab->vol_noir_engage;
 							//$tab->vol_coul_realise = 0;
 							$tab->vol_coul_facture = $tab->vol_coul_engage;
-							
-							setBilledVol($tab);
+							//setBilledVol($tab);
 						}
 						else {
 						//	$volNoir+= $tab->vol_noir_realise;//On n'oublie pas de bien prendre en compte les valeurs de la ligne actuelle
 						//	$volCoul+= $tab->vol_coul_realise;
 						//	$volNoirEngag+=$tab->vol_noir_engage;
 						//	$volCoulEngag+=$tab->vol_coul_engage;
+							$tab->vol_noir_facture = max(array($tab->vol_noir_realise - $volNoirEngag,$tab->vol_noir_engage));
+							$tab->vol_coul_facture = max(array($tab->vol_coul_realise - $volCoulEngag,$tab->vol_coul_engage));
 							$tab->vol_noir_realise -= $volNoir;
 							$tab->vol_coul_realise -= $volCoul;
 							$compteur = 0;
-							setBilledVol($tab);
+							//setBilledVol($tab);
 							//Reinitialisation des variables
 							$volNoir=0;
 							$volCoul=0;
 							$volNoirEngag=0;
 							$volCoulEngag=0;
-							
 						}
 						
 				/*	}	else {
