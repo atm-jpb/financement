@@ -2130,6 +2130,7 @@ class TSimulationSuivi extends TObjetStd {
 		$codeCommercial = '02'; //02 par défaut; 23 = Top Full; 2Q = Secteur Public
 		$codeFinancier = $codeTypeCalcul = '';
 		
+		dol_include_once('/categories/class/categorie.class.php');
 		$cat = new Categorie($db);
 		$TCats = $cat->containing($this->fk_leaser, 1);
 		foreach($TCats as $categorie){
