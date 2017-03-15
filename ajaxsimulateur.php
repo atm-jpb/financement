@@ -96,6 +96,9 @@ function get_grille(&$ATMdb) {
 		exit();
 	}
 	
+	// 2017.03.15 MKO : si type grand compte, on n'applique pas la pénalité sur le mode de règlement
+	if($fk_type_contrat == 'GRANDCOMPTE') unset($options['opt_mode_reglement']);
+	
 	$grille = new TFin_grille_leaser();
 	$grille->get_grille($ATMdb, $idLeaser, $fk_type_contrat, $opt_periodicite, $options, GETPOST('entity'));
 	
