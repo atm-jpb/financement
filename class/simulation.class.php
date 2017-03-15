@@ -1314,6 +1314,9 @@ class TSimulation extends TObjetStd {
 			}
 		}
 		
+		// 2017.03.14 MKO : si type grand compte, on n'applique pas la pénalité sur le mode de règlement
+		if($this->fk_type_contrat == 'GRANDCOMPTE') unset($options['opt_mode_reglement']);
+		
 		$calcul = $this->calcul_financement($ATMdb, FIN_LEASER_DEFAULT, $options); // Calcul du financement
 			
 		if(!$calcul) { // Si calcul non correct
