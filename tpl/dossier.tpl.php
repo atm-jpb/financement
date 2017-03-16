@@ -166,6 +166,9 @@
 				<td>Visa renta Dossier Multiple</td><td>[dossier.visa_renta_ndossier;strconv=no]</td>
 			</tr>
 			<tr>
+				<td>Anomalie</td><td colspan="3">[dossier.renta_anomalie;strconv=no]</td>
+			</tr>
+			<tr>
 				<td>Commentaire rentabilité</td><td colspan="3">[dossier.commentaire_visa; strconv=no]</td>
 			</tr>
 		[onshow;block=end]

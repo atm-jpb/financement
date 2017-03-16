@@ -138,12 +138,21 @@ class TFinancementTools {
  * 1 - loyer client < loyer leaser (Case à cocher sur le dossier de financement)
  * 2 - facture client < loyer leaser (Case à cocher sur la facture client)
  * 3 - facture client < loyer client (Case à cocher sur la facture client)
- * 4 - facture client impayée (A CONFIRMER)
- * 5 - échéance non facturée (A CONFIRMER)
+ * 4 - facture client impayée
+ * 5 - échéance non facturée
+ * 6 - dossier coché "anomalie"
  ********************************************************************************************************************/
-function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = false) {
+function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = false, $TRule = array()) {
 	$dossier=new TFin_Dossier;
-	$TDossiersError = array('all'=>array(),'err1'=>array(),'err2'=>array(),'err3'=>array(),'err4'=>array(),'err5'=>array());
+	$TDossiersError = array(
+		'all'=>array(),
+		'err1'=>array(),
+		'err2'=>array(),
+		'err3'=>array(),
+		'err4'=>array(),
+		'err5'=>array(),
+		'err6'=>array()
+	);
 	
 	$sqlfields = 'a.reference as refaffaire, a.rowid as fk_affaire, a.fk_soc as fk_client,';
 	$sqlfields.= 'dfcli.reference as refdoscli, dfcli.duree, dfcli.periodicite, dfcli.montant, dfcli.echeance, dfcli.date_debut, dfcli.date_fin, dfcli.date_prochaine_echeance, ';
@@ -171,43 +180,49 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	/***********************************************************************************************************************************************************
 	 * 1 - Récupération de tous les dossiers dont "Visa renta négative" est à non, ce qui signifie que la règle 1 est à contrôler
 	 ***********************************************************************************************************************************************************/
-	$sql = "SELECT d.rowid";
-	$sql.= ", $sqlfields";
-	$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
-	$sql.= $sqljoin;
-	$sql.= " WHERE d.visa_renta = 0";
-	$sql.= $sqlwhere;
-	
-	$PDOdb->Execute($sql);
-	$TRes = $PDOdb->Get_All();
-	
-	foreach($TRes as $res) {
-		$rowid = $res->rowid;
-		$renta_neg = false;
+	if(!empty($TRule['rule1'])) {
+		$sql = "SELECT d.rowid";
+		$sql.= ", $sqlfields";
+		$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
+		$sql.= $sqljoin;
+		$sql.= " WHERE d.visa_renta = 0";
+		$sql.= $sqlwhere;
 		
-		// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
-		if(!empty($visaauto)) {
-			$dossier->load($PDOdb, $rowid,false,true);
+		$PDOdb->Execute($sql);
+		$TRes = $PDOdb->Get_All();
+		
+		foreach($TRes as $res) {
+			$rowid = $res->rowid;
+			$renta_neg = false;
 			
-			// Si règle 1 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
-			if($dossier->financement->echeance < $dossier->financementLeaser->echeance) {
-				$renta_neg = true;
-			} else {
-				echo 'Dossier '.$dossier->financement->reference.' respecte la règle 1, case "Visa renta négative" cochée automatiquement.<br>';
-				$dossier->visa_renta = 1;
-				$dossier->save($PDOdb);
+			// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
+			if(!empty($visaauto)) {
+				$dossier->load($PDOdb, $rowid,false,true);
+
+				// On ramène l'échéance leaser sur la même périodicité que le dossier client
+				$equi_periodicite = $dossier->financementLeaser->getiPeriode() / $dossier->financement->getiPeriode();
+				$echeanceClient = $dossier->financement->echeance;
+				$echeanceLeaser = ($dossier->financementLeaser->echeance / $equi_periodicite);
+
+				// Si règle 1 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
+				if($echeanceClient < $echeanceLeaser) {
+					$renta_neg = true;
+				} else {
+					echo 'Dossier '.$dossier->financement->reference.' respecte la règle 1, case "Visa renta négative" cochée automatiquement.<br>';
+					$dossier->visa_renta = 1;
+					$dossier->save($PDOdb);
+				}
 			}
-		}
-		
-		if($renta_neg || empty($visaauto)) {
-			if(!in_array($rowid, $TDossiersError['all'])) {
-				$TDossiersError['all'][] = $rowid;
-				$TDossiersError['data'][$rowid] = $res;
+			
+			if($renta_neg || empty($visaauto)) {
+				if(!in_array($rowid, $TDossiersError['all'])) {
+					$TDossiersError['all'][] = $rowid;
+					$TDossiersError['data'][$rowid] = $res;
+				}
+				if(!in_array($rowid, $TDossiersError['err1'])) $TDossiersError['err1'][] = $rowid;
 			}
-			if(!in_array($rowid, $TDossiersError['err1'])) $TDossiersError['err1'][] = $rowid;
 		}
 	}
-	
 	//pre($TDossiersError,true);
 	//exit;
 	
@@ -215,171 +230,178 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	 * 2 - Récupération de tous les dossiers dont "Visa renta facture < loyer leaser" est à non
 	 * ce qui signifie que la règle 2 est à contrôler
 	 ***********************************************************************************************************************************************************/
-	$sql = "SELECT DISTINCT d.rowid";
-	$sql.= ", $sqlfields";
-	$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_extrafields fext ON (fext.fk_object = f.rowid)";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (ee.fk_source = d.rowid AND ee.sourcetype = 'dossier')";
-	$sql.= $sqljoin;
-	$sql.= " WHERE (fext.visa_renta_loyer_leaser = 0 OR fext.visa_renta_loyer_leaser IS NULL)";
-	$sql.= $sqlwhere;
-	
-	$PDOdb->Execute($sql);
-	$TRes = $PDOdb->Get_All();
-	
-	foreach($TRes as $res) {
-		$rowid = $res->rowid;
-		$renta_neg = false;
+	if(!empty($TRule['rule2'])) {
+		$sql = "SELECT DISTINCT d.rowid";
+		$sql.= ", $sqlfields";
+		$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_extrafields fext ON (fext.fk_object = f.rowid)";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (ee.fk_source = d.rowid AND ee.sourcetype = 'dossier')";
+		$sql.= $sqljoin;
+		$sql.= " WHERE (fext.visa_renta_loyer_leaser = 0 OR fext.visa_renta_loyer_leaser IS NULL)";
+		$sql.= $sqlwhere;
 		
-		// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
-		if(!empty($visaauto)) {
-			$dossier->load($PDOdb, $rowid, false, true);
-			$dossier->load_facture($PDOdb,true);
+		$PDOdb->Execute($sql);
+		$TRes = $PDOdb->Get_All();
+		
+		foreach($TRes as $res) {
+			$rowid = $res->rowid;
+			$renta_neg = false;
 			
-			// On fait la somme des échéances des dossiers leaser associés à cette référence dossier (prise en compte des adjonctions)
-			$sql = "SELECT SUM(dflea.echeance) as total_echeances";
-			$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
-			$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dfcli.fk_fin_dossier = d.rowid AND dfcli.type='CLIENT')";
-			$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type='LEASER')";
-			$sql.= " WHERE dfcli.reference LIKE '".$dossier->financement->reference."%'";
-			$sql.= " AND dfcli.montant_solde = 0";
-			$sql.= " AND dfcli.date_solde < '1970-00-00 00:00:00'";
-			$sql.= " AND dfcli.reference NOT LIKE '%old%'";
-			$TRes = $PDOdb->ExecuteAsArray($sql);
-			$total_echeances = $TRes[0]->total_echeances;
-			
-			// Attention on vérifie les factures et regroupements de factures
-			$montant_facture = 0;
-			foreach($dossier->TFacture as $p => $d) {
-				// Récupération du montant facturé au client pour comparer aux loyers. Si plusieurs factures, on fait la somme
-				if(is_array($d)) {
-					foreach ($d as $i => $f) {
-						$montant_facture += $f->total_ht;
-					}
-				} else {
-					$montant_facture = $d->total_ht;
-				}
+			// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
+			if(!empty($visaauto)) {
+				$dossier->load($PDOdb, $rowid, false, true);
+				$dossier->load_facture($PDOdb,true);
 				
-				// Si on est sur la facture intercalaire, on compare avec le loyer intercalaire prévu
-				$intercalaireOK = false;
-				if($p == -1 && $montant_facture >= round($dossier->financement->loyer_intercalaire,2)) {
-					$intercalaireOK = true;
-				}
+				// On fait la somme des échéances des dossiers leaser associés à cette référence dossier (prise en compte des adjonctions)
+				$sql = "SELECT SUM(dflea.echeance) as total_echeances";
+				$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
+				$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dfcli.fk_fin_dossier = d.rowid AND dfcli.type='CLIENT')";
+				$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type='LEASER')";
+				$sql.= " WHERE dfcli.reference LIKE '".$dossier->financement->reference."%'";
+				$sql.= " AND dfcli.montant_solde = 0";
+				$sql.= " AND dfcli.date_solde < '1970-00-00 00:00:00'";
+				$sql.= " AND dfcli.reference NOT LIKE '%old%'";
+				$TRes = $PDOdb->ExecuteAsArray($sql);
+				$total_echeances = $TRes[0]->total_echeances;
 				
-				// Comparaison au loyer leaser
-				// Si règle 2 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
-				if($montant_facture < $total_echeances && !$intercalaireOK) {
-					$renta_neg = true;
-				} else {
-					echo 'Dossier '.$dossier->financement->reference.', période '.($p+1).' respecte la règle 2, case "Visa renta facture < loyer leaser" cochée automatiquement.<br>';
+				// On ramène l'échéance leaser sur la même périodicité que le dossier client
+				$equi_periodicite = $dossier->financementLeaser->getiPeriode() / $dossier->financement->getiPeriode();
+				$echeanceLeaser = ($total_echeances / $equi_periodicite);
+				
+				// Attention on vérifie les factures et regroupements de factures
+				$montant_facture = 0;
+				foreach($dossier->TFacture as $p => $d) {
+					// Récupération du montant facturé au client pour comparer aux loyers. Si plusieurs factures, on fait la somme
 					if(is_array($d)) {
 						foreach ($d as $i => $f) {
-							$f->array_options['options_visa_renta_loyer_leaser'] = 1;
-							$f->insertExtraFields();
-							//echo $f->ref.'<br>';
+							$montant_facture += $f->total_ht;
 						}
 					} else {
-						$d->array_options['options_visa_renta_loyer_leaser'] = 1;
-						$d->insertExtraFields();
-						//echo $d->ref.'<br>';
+						$montant_facture = $d->total_ht;
 					}
+					
+					// Si on est sur la facture intercalaire, on compare avec le loyer intercalaire prévu
+					$intercalaireOK = false;
+					if($p == -1 && $montant_facture >= round($dossier->financement->loyer_intercalaire,2)) {
+						$intercalaireOK = true;
+					}
+					
+					// Comparaison au loyer leaser
+					// Si règle 2 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
+					if($montant_facture < $echeanceLeaser && !$intercalaireOK) {
+						$renta_neg = true;
+					} else {
+						echo 'Dossier '.$dossier->financement->reference.', période '.($p+1).' respecte la règle 2, case "Visa renta facture < loyer leaser" cochée automatiquement.<br>';
+						if(is_array($d)) {
+							foreach ($d as $i => $f) {
+								$f->array_options['options_visa_renta_loyer_leaser'] = 1;
+								$f->insertExtraFields();
+								//echo $f->ref.'<br>';
+							}
+						} else {
+							$d->array_options['options_visa_renta_loyer_leaser'] = 1;
+							$d->insertExtraFields();
+							//echo $d->ref.'<br>';
+						}
+					}
+					//echo 'Dossier '.$dossier->financement->reference.', '.$montant_facture.' < '.$total_echeances.'<br>';
 				}
-				//echo 'Dossier '.$dossier->financement->reference.', '.$montant_facture.' < '.$total_echeances.'<br>';
 			}
-		}
-	
-		if($renta_neg || empty($visaauto)) {
-			if(!in_array($rowid, $TDossiersError['all'])) {
-				$TDossiersError['all'][] = $rowid;
-				$TDossiersError['data'][$rowid] = $res;
+		
+			if($renta_neg || empty($visaauto)) {
+				if(!in_array($rowid, $TDossiersError['all'])) {
+					$TDossiersError['all'][] = $rowid;
+					$TDossiersError['data'][$rowid] = $res;
+				}
+				if(!in_array($rowid, $TDossiersError['err2'])) $TDossiersError['err2'][] = $rowid;
 			}
-			if(!in_array($rowid, $TDossiersError['err2'])) $TDossiersError['err2'][] = $rowid;
 		}
 	}
-	
 	/***********************************************************************************************************************************************************
 	 * 3 - Récupération de tous les dossiers dont "Visa renta facture < loyer client" est à non
 	 * ce qui signifie que la règle 3 est à contrôler
 	 ***********************************************************************************************************************************************************/
-	$sql = "SELECT DISTINCT d.rowid";
-	$sql.= ", $sqlfields";
-	$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_extrafields fext ON (fext.fk_object = f.rowid)";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (ee.fk_source = d.rowid AND ee.sourcetype = 'dossier')";
-	$sql.= $sqljoin;
-	$sql.= " WHERE (fext.visa_renta_loyer_client = 0 OR fext.visa_renta_loyer_client IS NULL)";
-	$sql.= $sqlwhere;
-	
-	$PDOdb->Execute($sql);
-	$TRes = $PDOdb->Get_All();
-	
-	foreach($TRes as $res) {
-		$rowid = $res->rowid;
-		$renta_neg = false;
+	if(!empty($TRule['rule3'])) {
+		$sql = "SELECT DISTINCT d.rowid";
+		$sql.= ", $sqlfields";
+		$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_extrafields fext ON (fext.fk_object = f.rowid)";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (ee.fk_source = d.rowid AND ee.sourcetype = 'dossier')";
+		$sql.= $sqljoin;
+		$sql.= " WHERE (fext.visa_renta_loyer_client = 0 OR fext.visa_renta_loyer_client IS NULL)";
+		$sql.= $sqlwhere;
 		
-		// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
-		if(!empty($visaauto)) {
-			$dossier->load($PDOdb, $rowid, false, true);
-			$dossier->load_facture($PDOdb,true);
+		$PDOdb->Execute($sql);
+		$TRes = $PDOdb->Get_All();
+		
+		foreach($TRes as $res) {
+			$rowid = $res->rowid;
+			$renta_neg = false;
 			
-			// On fait la somme des échéances des dossiers client associés à cette référence dossier (prise en compte des adjonctions)
-			$sql = "SELECT SUM(dfcli.echeance) as total_echeances, COUNT(dfcli.reference) as nb_dossiers";
-			$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier_financement dfcli";
-			$sql.= " WHERE dfcli.reference LIKE '".$dossier->financement->reference."%'";
-			$sql.= " AND dfcli.type='CLIENT'";
-			$sql.= " AND dfcli.montant_solde = 0";
-			$sql.= " AND dfcli.date_solde < '1970-00-00 00:00:00'";
-			$sql.= " AND dfcli.reference NOT LIKE '%old%'";
-			$TRes = $PDOdb->ExecuteAsArray($sql);
-			$total_echeances = $TRes[0]->total_echeances;
-			
-			// Attention on vérifie les factures et regroupements de factures
-			$montant_facture = 0;
-			foreach($dossier->TFacture as $p => $d) {
-				// Récupération du montant facturé au client pour comparer aux loyers. Si plusieurs factures, on fait la somme
-				if(is_array($d)) {
-					foreach ($d as $i => $f) {
-						$montant_facture += $f->total_ht;
-					}
-				} else {
-					$montant_facture = $d->total_ht;
-				}
+			// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
+			if(!empty($visaauto)) {
+				$dossier->load($PDOdb, $rowid, false, true);
+				$dossier->load_facture($PDOdb,true);
 				
-				// Si on est sur la facture intercalaire, on compare avec le loyer intercalaire prévu
-				$intercalaireOK = false;
-				if($p == -1 && $montant_facture >= round($dossier->financement->loyer_intercalaire,2)) {
-					$intercalaireOK = true;
-				}
+				// On fait la somme des échéances des dossiers client associés à cette référence dossier (prise en compte des adjonctions)
+				$sql = "SELECT SUM(dfcli.echeance) as total_echeances, COUNT(dfcli.reference) as nb_dossiers";
+				$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier_financement dfcli";
+				$sql.= " WHERE dfcli.reference LIKE '".$dossier->financement->reference."%'";
+				$sql.= " AND dfcli.type='CLIENT'";
+				$sql.= " AND dfcli.montant_solde = 0";
+				$sql.= " AND dfcli.date_solde < '1970-00-00 00:00:00'";
+				$sql.= " AND dfcli.reference NOT LIKE '%old%'";
+				$TRes = $PDOdb->ExecuteAsArray($sql);
+				$total_echeances = $TRes[0]->total_echeances;
 				
-				// Comparaison au loyer client
-				// Si règle 3 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
-				if($montant_facture < $total_echeances && !$intercalaireOK) {
-					$renta_neg = true;
-				} else {
-					echo 'Dossier '.$dossier->financement->reference.', période '.($p+1).' respecte la règle 3, case "Visa renta facture < loyer client" cochée automatiquement.<br>';
+				// Attention on vérifie les factures et regroupements de factures
+				$montant_facture = 0;
+				foreach($dossier->TFacture as $p => $d) {
+					// Récupération du montant facturé au client pour comparer aux loyers. Si plusieurs factures, on fait la somme
 					if(is_array($d)) {
 						foreach ($d as $i => $f) {
-							$f->array_options['options_visa_renta_loyer_client'] = 1;
-							$f->insertExtraFields();
-							//echo $f->ref.'<br>';
+							$montant_facture += $f->total_ht;
 						}
 					} else {
-						$d->array_options['options_visa_renta_loyer_client'] = 1;
-						$d->insertExtraFields();
-						//echo $d->ref.'<br>';
+						$montant_facture = $d->total_ht;
+					}
+					
+					// Si on est sur la facture intercalaire, on compare avec le loyer intercalaire prévu
+					$intercalaireOK = false;
+					if($p == -1 && $montant_facture >= round($dossier->financement->loyer_intercalaire,2)) {
+						$intercalaireOK = true;
+					}
+					
+					// Comparaison au loyer client
+					// Si règle 3 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
+					if($montant_facture < $total_echeances && !$intercalaireOK) {
+						$renta_neg = true;
+					} else {
+						echo 'Dossier '.$dossier->financement->reference.', période '.($p+1).' respecte la règle 3, case "Visa renta facture < loyer client" cochée automatiquement.<br>';
+						if(is_array($d)) {
+							foreach ($d as $i => $f) {
+								$f->array_options['options_visa_renta_loyer_client'] = 1;
+								$f->insertExtraFields();
+								//echo $f->ref.'<br>';
+							}
+						} else {
+							$d->array_options['options_visa_renta_loyer_client'] = 1;
+							$d->insertExtraFields();
+							//echo $d->ref.'<br>';
+						}
 					}
 				}
 			}
-		}
-	
-		if($renta_neg || empty($visaauto)) {
-			if(!in_array($rowid, $TDossiersError['all'])) {
-				$TDossiersError['all'][] = $rowid;
-				$TDossiersError['data'][$rowid] = $res;
+		
+			if($renta_neg || empty($visaauto)) {
+				if(!in_array($rowid, $TDossiersError['all'])) {
+					$TDossiersError['all'][] = $rowid;
+					$TDossiersError['data'][$rowid] = $res;
+				}
+				if(!in_array($rowid, $TDossiersError['err3'])) $TDossiersError['err3'][] = $rowid;
 			}
-			if(!in_array($rowid, $TDossiersError['err3'])) $TDossiersError['err3'][] = $rowid;
 		}
 	}
 	
@@ -387,33 +409,35 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	 * 4 - Récupération de tous les dossiers dont au moins une facture client est impayée et en retard
 	 * ce qui signifie que la règle 4 est à contrôler
 	 ***********************************************************************************************************************************************************/
-	$sql = "SELECT DISTINCT d.rowid";
-	$sql.= ", $sqlfields";
-	$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_extrafields fext ON (fext.fk_object = f.rowid)";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
-	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (ee.fk_source = d.rowid AND ee.sourcetype = 'dossier')";
-	$sql.= $sqljoin;
-	$sql.= " WHERE f.paye = 0";
-	$sql.= " AND f.date_lim_reglement <= '".date('Y-m-d')."'";
-	$sql.= " AND SUBSTR(f.ref_client, -4) >= 2015";
-	$sql.= $sqlwhere;
-	
-	$PDOdb->Execute($sql);
-	$TRes = $PDOdb->Get_All();
-	
-	foreach($TRes as $res) {
-		$rowid = $res->rowid;
-		$renta_neg = false;
+	if(!empty($TRule['rule4'])) {
+		$sql = "SELECT DISTINCT d.rowid";
+		$sql.= ", $sqlfields";
+		$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_extrafields fext ON (fext.fk_object = f.rowid)";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (ee.fk_source = d.rowid AND ee.sourcetype = 'dossier')";
+		$sql.= $sqljoin;
+		$sql.= " WHERE f.paye = 0";
+		$sql.= " AND f.date_lim_reglement <= '".date('Y-m-d')."'";
+		$sql.= " AND SUBSTR(f.ref_client, -4) >= 2015";
+		$sql.= $sqlwhere;
 		
-		// TODO : voir si besoin d'un visa sur la règle concernant les factures impayées, sachant qu'elle passent en payées en automatique via import quotidien
-	
-		if($renta_neg || empty($visaauto)) {
-			if(!in_array($rowid, $TDossiersError['all'])) {
-				$TDossiersError['all'][] = $rowid;
-				$TDossiersError['data'][$rowid] = $res;
+		$PDOdb->Execute($sql);
+		$TRes = $PDOdb->Get_All();
+		
+		foreach($TRes as $res) {
+			$rowid = $res->rowid;
+			$renta_neg = false;
+			
+			// TODO : voir si besoin d'un visa sur la règle concernant les factures impayées, sachant qu'elle passent en payées en automatique via import quotidien
+		
+			if($renta_neg || empty($visaauto)) {
+				if(!in_array($rowid, $TDossiersError['all'])) {
+					$TDossiersError['all'][] = $rowid;
+					$TDossiersError['data'][$rowid] = $res;
+				}
+				if(!in_array($rowid, $TDossiersError['err4'])) $TDossiersError['err4'][] = $rowid;
 			}
-			if(!in_array($rowid, $TDossiersError['err4'])) $TDossiersError['err4'][] = $rowid;
 		}
 	}
 	
@@ -421,63 +445,93 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	 * 5 - Récupération de tous les dossiers pour lesquels il manque une facture
 	 * ce qui signifie que la règle 5 est à contrôler
 	 ***********************************************************************************************************************************************************/
-	$sql = "SELECT d.rowid, dfcli.numero_prochaine_echeance, dfcli.loyer_intercalaire, dfcli.terme";
-		$sql.= ", ( SELECT COUNT(DISTINCT f.ref_client)";
-		$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
-		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture a ON (f.rowid = a.fk_facture_source AND a.type = 2)";
-		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
-		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d2 ON (ee.fk_source = d2.rowid AND ee.sourcetype = 'dossier')";
-		$sql.= " WHERE d.rowid = d2.rowid";
-		$sql.= " AND f.type = 0";
-		$sql.= " AND (f.total + IFNULL(a.total,0)) != 0";
-		$sql.= " AND SUBSTR(f.ref_client,-4) >= 2016";
-		$sql.= ") as nb_echeances_facturees";
-	$sql.= ", $sqlfields";
-	$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
-	$sql.= $sqljoin;
-	$sql.= " WHERE d.reference NOT LIKE '%adj%'";
-	$sql.= $sqlwhere;
-	//echo $sql;
-	$PDOdb->Execute($sql);
-	$TRes = $PDOdb->Get_All();
-	
-	$TPeriodeType = array(
-		'MOIS' => 1
-		,'TRIMESTRE' => 3
-		,'SEMESTRE' => 6
-		,'ANNEE' => 12
-	);
-	
-	foreach($TRes as $res) {
-		$rowid = $res->rowid;
-		$renta_neg = false;
+	if(!empty($TRule['rule5'])) {
+		$sql = "SELECT d.rowid, dfcli.numero_prochaine_echeance, dfcli.loyer_intercalaire, dfcli.terme";
+			$sql.= ", ( SELECT COUNT(DISTINCT f.ref_client)";
+			$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
+			$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture a ON (f.rowid = a.fk_facture_source AND a.type = 2)";
+			$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
+			$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d2 ON (ee.fk_source = d2.rowid AND ee.sourcetype = 'dossier')";
+			$sql.= " WHERE d.rowid = d2.rowid";
+			$sql.= " AND f.type = 0";
+			$sql.= " AND (f.total + IFNULL(a.total,0)) != 0";
+			$sql.= " AND SUBSTR(f.ref_client,-4) >= 2016";
+			$sql.= ") as nb_echeances_facturees";
+		$sql.= ", $sqlfields";
+		$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
+		$sql.= $sqljoin;
+		$sql.= " WHERE d.reference NOT LIKE '%adj%'";
+		$sql.= $sqlwhere;
+		//echo $sql;
+		$PDOdb->Execute($sql);
+		$TRes = $PDOdb->Get_All();
 		
-		// Calcul du nombre de période écoulées entre le début du dossier et le 01/01/2014, date de début d'intégration des factures dans LeaseBoard
-		$nb_periode_sans_fact = 0;
-		$datedeb = strtotime($res->date_debut);
-		$datelimit = strtotime('2016-01-01');
-		$nbmonth = $TPeriodeType[$res->periodicite];
+		$TPeriodeType = array(
+			'MOIS' => 1
+			,'TRIMESTRE' => 3
+			,'SEMESTRE' => 6
+			,'ANNEE' => 12
+		);
 		
-		while($datedeb < $datelimit) {
-			$datedeb = strtotime('+ '.$nbmonth.' month', $datedeb);
-			$nb_periode_sans_fact++;
-		}
-		
-		$intercalaire = ($res->loyer_intercalaire > 0) ? 1 : 0;
-		$echu = ($res->terme == 0) ? 1 : 0;
-		//echo $res->nb_echeances_facturees.' + '.$nb_periode_sans_fact.' != '.$res->numero_prochaine_echeance.' + '.$intercalaire.' - '.$echu;
-		if(($res->nb_echeances_facturees + $nb_periode_sans_fact) < ($res->numero_prochaine_echeance - 1 + $intercalaire - $echu)) {
-			$renta_neg = true;
-		}
-		
-		// TODO : voir si besoin d'un visa sur la règle concernant les factures manquantes, sachant qu'elles sont créées en automatique via import quotidien
-	
-		if($renta_neg) {
-			if(!in_array($rowid, $TDossiersError['all'])) {
-				$TDossiersError['all'][] = $rowid;
-				$TDossiersError['data'][$rowid] = $res;
+		foreach($TRes as $res) {
+			$rowid = $res->rowid;
+			$renta_neg = false;
+			
+			// Calcul du nombre de période écoulées entre le début du dossier et le 01/01/2014, date de début d'intégration des factures dans LeaseBoard
+			$nb_periode_sans_fact = 0;
+			$datedeb = strtotime($res->date_debut);
+			$datelimit = strtotime('2016-01-01');
+			$nbmonth = $TPeriodeType[$res->periodicite];
+			
+			while($datedeb < $datelimit) {
+				$datedeb = strtotime('+ '.$nbmonth.' month', $datedeb);
+				$nb_periode_sans_fact++;
 			}
-			if(!in_array($rowid, $TDossiersError['err5'])) $TDossiersError['err5'][] = $rowid;
+			
+			$intercalaire = ($res->loyer_intercalaire > 0) ? 1 : 0;
+			$echu = ($res->terme == 0) ? 1 : 0;
+			//echo $res->nb_echeances_facturees.' + '.$nb_periode_sans_fact.' != '.$res->numero_prochaine_echeance.' + '.$intercalaire.' - '.$echu;
+			if(($res->nb_echeances_facturees + $nb_periode_sans_fact) < ($res->numero_prochaine_echeance - 1 + $intercalaire - $echu)) {
+				$renta_neg = true;
+			}
+			
+			// TODO : voir si besoin d'un visa sur la règle concernant les factures manquantes, sachant qu'elles sont créées en automatique via import quotidien
+		
+			if($renta_neg) {
+				if(!in_array($rowid, $TDossiersError['all'])) {
+					$TDossiersError['all'][] = $rowid;
+					$TDossiersError['data'][$rowid] = $res;
+				}
+				if(!in_array($rowid, $TDossiersError['err5'])) $TDossiersError['err5'][] = $rowid;
+			}
+		}
+	}
+	
+	/***********************************************************************************************************************************************************
+	 * 6 - Récupération de tous les dossiers dont la case anomalie est cochée
+	 ***********************************************************************************************************************************************************/
+	if(!empty($TRule['rule6'])) {
+		$sql = "SELECT d.rowid";
+		$sql.= ", $sqlfields";
+		$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
+		$sql.= $sqljoin;
+		$sql.= " WHERE d.renta_anomalie = 1";
+		$sql.= $sqlwhere;
+		
+		$PDOdb->Execute($sql);
+		$TRes = $PDOdb->Get_All();
+		
+		foreach($TRes as $res) {
+			$rowid = $res->rowid;
+			$renta_neg = true;
+			
+			if($renta_neg) {
+				if(!in_array($rowid, $TDossiersError['all'])) {
+					$TDossiersError['all'][] = $rowid;
+					$TDossiersError['data'][$rowid] = $res;
+				}
+				if(!in_array($rowid, $TDossiersError['err6'])) $TDossiersError['err6'][] = $rowid;
+			}
 		}
 	}
 	

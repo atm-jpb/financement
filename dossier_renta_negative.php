@@ -9,17 +9,22 @@ dol_include_once('/financement/lib/financement.lib.php');
 $PDOdb=new TPDOdb;
 
 $visaauto = GETPOST('visaauto');
+$TRule = GETPOST('TRule');
+$id_dossier = GETPOST('id_dossier');
+
+// Moulinette pour vérifier automatiquement les renta neg
 if(!empty($visaauto)) {
 	set_time_limit(0);
 	echo date('d/m/Y H:i:s').' - Début de la routine "renta négatives"<br>';
 }
 
-$id_dossier = GETPOST('id_dossier');
-$TDossiersError = get_liste_dossier_renta_negative($PDOdb,$id_dossier,$visaauto);
+$TDossiersError = get_liste_dossier_renta_negative($PDOdb,$id_dossier,$visaauto,$TRule);
 
-if(empty($visaauto)) display_liste($PDOdb, $TDossiersError);
+if(empty($visaauto)) {
+	display_liste($PDOdb, $TDossiersError, $TRule);
+}
 
-function display_liste(&$PDOdb, &$TDossiersError) {
+function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 	$dossier=new TFin_Dossier;
 	
 	/************************************************************************
@@ -41,6 +46,7 @@ function display_liste(&$PDOdb, &$TDossiersError) {
 			,'status_3'					=> (in_array($id_dossier, $TDossiersError['err3']) ? "Oui" : "Non")
 			,'status_4'					=> (in_array($id_dossier, $TDossiersError['err4']) ? "Oui" : "Non")
 			,'status_5'					=> (in_array($id_dossier, $TDossiersError['err5']) ? "Oui" : "Non")
+			,'status_6'					=> (in_array($id_dossier, $TDossiersError['err6']) ? "Oui" : "Non")
 			,'duree'					=> $data->duree
 			,'periodicite'				=> $data->periodicite
 			,'montant'					=> price($data->montant,0,'',1,-1,2)
@@ -67,6 +73,7 @@ function display_liste(&$PDOdb, &$TDossiersError) {
 			,'status_3' => (in_array($id_dossier, $TDossiersError['err3']) ? "Oui" : "Non")
 			,'status_4' => (in_array($id_dossier, $TDossiersError['err4']) ? "Oui" : "Non")
 			,'status_5' => (in_array($id_dossier, $TDossiersError['err5']) ? "Oui" : "Non")
+			,'status_6' => (in_array($id_dossier, $TDossiersError['err6']) ? "Oui" : "Non")
 			,'montants' => price($data->montant,0,'',1,-1,2) . '<br>' . price($data->echeance,0,'',1,2) . '<br>' . $data->duree . ' ' . substr($data->periodicite, 0, 1) 
 			,'dates' => date('d/m/y', strtotime($data->date_debut)) . '<br>' . date('d/m/y', strtotime($data->date_prochaine_echeance)) . '<br>' . date('d/m/y', strtotime($data->date_fin))
 			,'renta_previsionnelle'=>number_format($data->renta_previsionnelle,2, ',', ' ').' <br> '.number_format($data->marge_previsionnelle,2).' %'
@@ -77,6 +84,19 @@ function display_liste(&$PDOdb, &$TDossiersError) {
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	echo $form->hidden('liste_renta_negative', '1');
+	
+	echo $form->checkbox1('Règle 1', 'TRule[rule1]', 1, !empty($TRule['rule1']) ? $TRule['rule1'] : 0);
+	echo $form->checkbox1('Règle 2', 'TRule[rule2]', 1, !empty($TRule['rule2']) ? $TRule['rule2'] : 0);
+	echo $form->checkbox1('Règle 3', 'TRule[rule3]', 1, !empty($TRule['rule3']) ? $TRule['rule3'] : 0);
+	echo $form->checkbox1('Règle 4', 'TRule[rule4]', 1, !empty($TRule['rule4']) ? $TRule['rule4'] : 0);
+	echo $form->checkbox1('Règle 5', 'TRule[rule5]', 1, !empty($TRule['rule5']) ? $TRule['rule5'] : 0);
+	echo $form->checkbox1('Règle 6', 'TRule[rule6]', 1, !empty($TRule['rule6']) ? $TRule['rule6'] : 0);
+	
+	echo $form->btsubmit('Lancer', 'run');
+	if(!empty($TDossiersError['all'])) {
+		echo $form->btsubmit('Exporter ('.count($TDossiersError['all']).' dossiers)', 'export');
+	}
+	
 	$aff = new TFin_affaire;
 	$dos = new TFin_dossier;
 	
@@ -85,7 +105,8 @@ function display_liste(&$PDOdb, &$TDossiersError) {
 		'error_2' => "Facture Client < Loyer leaser",
 		'error_3' => "Facture Client < Loyer client",
 		'error_4' => "Facture Client impayée",
-		'error_5' => "Echéance client non facturée"
+		'error_5' => "Echéance client non facturée",
+		'error_6' => "Anomalie"
 	);
 	$TTitles = array(
 		'refdos'=>'Contrat'
@@ -100,6 +121,7 @@ function display_liste(&$PDOdb, &$TDossiersError) {
 		,'status_3'=>$TErrorStatus['error_3']
 		,'status_4'=>$TErrorStatus['error_4']
 		,'status_5'=>$TErrorStatus['error_5']
+		,'status_6'=>$TErrorStatus['error_6']
 		,'duree'=>'Durée'
 		,'periodicite' => 'Périodicité'
 		,'montant'=>'Montant'
@@ -153,16 +175,11 @@ function display_liste(&$PDOdb, &$TDossiersError) {
 		)
 		
 	));
+	
 	$form->end();
 	
-	?>
-	<div class="tabsAction">
-		<a href="?action=exportListeDossier" class="butAction">Exporter (<?php echo count($TDossiersError['all']); ?> dossiers)</a>
-	</div>
-	<?php
-	
 	$action = GETPOST('action');
-	if($action === 'exportListeDossier'){
+	if(!empty($_REQUEST['export']) && !empty($TDossiersError['all'])){
 		_getExport($TLinesFile,$TTitles);
 	}
 	
