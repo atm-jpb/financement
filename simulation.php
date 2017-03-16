@@ -1055,10 +1055,12 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		//echo $fin->reference.'<br>';
 		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		
-		if($fin->date_solde > 0 && empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['checked'])
+		if($fin->date_solde > 0 && $fin->date_solde < time() && empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['checked'])
 		&& empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['checked'])
 		&& empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['checked'])
-		&& empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['checked'])) continue;
+		&& empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['checked'])
+		&& empty($simulation->dossiers_rachetes_m1[$ATMdb->Get_field('IDDoss')]['checked'])
+		&& empty($simulation->dossiers_rachetes_nr_m1[$ATMdb->Get_field('IDDoss')]['checked'])) continue;
 		//if($fin->duree <= $fin->numero_prochaine_echeance) continue;
 		if(empty($dossier->financementLeaser->reference)) continue;
 		
