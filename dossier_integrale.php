@@ -637,6 +637,10 @@ echo $new_cout_couleur;*/
 																+$integrale->fass
 																+$integrale->frais_bris_machine
 																+$integrale->frais_facturation,10,'',$style)
+				,'total_hors_frais'=>$form->texteRO('','total_hors_frais',$total_noir
+																+$total_couleur
+																+$new_fas + $new_fas_noir + $new_fas_couleur
+																+$integrale->fass,10,'',$style)
 			),
 			'rights'=>array(
 				'voir_couts_unitaires'=>(int)$user->rights->financement->integrale->detail_couts
@@ -712,12 +716,24 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	$fas_max = $integrale->calcul_fas_max($TDetailCoutNoir, $TDetailCoutCouleur, $engagement_noir, $engagement_couleur);
 	
 	$total_global = $integrale->calcul_total_global($TDetailCoutNoir, $TDetailCoutCouleur);
+	$total_hors_frais = $total_global - $integrale->frais_bris_machine - $integrale->frais_facturation;
 	
 	print $form->hidden('action', 'addAvenantIntegrale');
 	print $form->hidden('id', GETPOST('id'));
 	print $form->hidden('id_integrale', $integrale->getId());
 	print $form->hidden('fk_facture', $f->id);
 	print $form->hidden('fk_soc', $f->socid);
+	
+	// Calcul de la période concernée par l'avenant
+	$fin = &$dossier->financement;
+	$ip = $fin->getiPeriode();
+	$nb = ((date('n') - 1) % $ip) * -1;
+	if($fin->terme == 1) $nb += $ip; // A échoir, on prend la période suivante
+	$deb_periode = strtotime('first day of '.$nb.' month');
+	$fin_periode = strtotime('last day of +'.($ip - 1).' month',$deb_periode);
+
+	print $form->hidden('date_deb_periode', $deb_periode);
+	print $form->hidden('date_fin_periode', $fin_periode);
 	
 	// On a également besoin d'afficher 2 hidden contenant la même valeur que les champs Coût unitaire noir & Coût unitaire couleur, pour ensuite vérifier s'ils ont été modifiés à la main par l'utilisateur
 	/*print $form->hidden('old_engagement_noir', $new_engagement_noir);
@@ -778,6 +794,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 				,'frais_bris_machine'=>$form->texteRO('','frais_bris_machine',$integrale->frais_bris_machine  * $pourcentage_sup_mois_decembre,10,'',$style)
 				,'frais_facturation'=>$form->texteRO('','ftc',$integrale->frais_facturation * $pourcentage_sup_mois_decembre,10,'',$style)
 				,'total_global'=>$form->texteRO('','total_global',$total_global,10,'',$style)
+				,'total_hors_frais'=>$form->texteRO('','total_hors_frais',$total_hors_frais,10,'',$style)
 			),
 			'rights'=>array(
 				'voir_couts_unitaires'=>(int)$user->rights->financement->integrale->detail_couts
@@ -984,6 +1001,9 @@ function _addAvenantIntegrale(&$dossier) {
 									,'FASS'=>GETPOST('fass')
 									,'ref_dossier'=>$dossier->financement->reference
 									,'total_global'=>GETPOST('total_global')
+									,'total_hors_frais'=>GETPOST('total_hors_frais')
+									,'date_deb_periode'=>GETPOST('date_deb_periode')
+									,'date_fin_periode'=>GETPOST('date_fin_periode')
 									,'client'=>_getInfosClient($p->socid)
 								  ));
 		
@@ -1093,6 +1113,9 @@ function _genPDF(&$propal, $TData, $print_bloc_locataire=true) {
 				,'FASS'=>price($TData['FASS'])
 				,'ref_dossier'=>$TData['ref_dossier']
 				,'total_global'=>price($TData['total_global'])
+				,'total_hors_frais'=>price($TData['total_hors_frais'])
+				,'date_deb_periode'=>date('d/m/Y', $TData['date_deb_periode'])
+				,'date_fin_periode'=>date('d/m/Y', $TData['date_fin_periode'])
 			)
 			,'bloc_locataire'=>array(
 				'raison_sociale'=>$print_bloc_locataire ? $TData['client']['raison_sociale'] : ''
