@@ -373,7 +373,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	// 2017.03.21 MKO : si type regul trimestriel, on affiche le tableau intégral, sinon non
 	if($dossier->type_regul != 3) {
 		$error = 1;
-		$errmsg = 'Type de régul autre que trimestriel, merci de consulter vos VMM sur Cristal';
+		$errmsg = 'Régule autre que trimestrielle, merci de consulter vos VMM et factures sur Cristal';
 	}
 		
 	echo $TBS->render('./tpl/dossier_integrale.tpl.php'
