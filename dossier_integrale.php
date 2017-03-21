@@ -390,19 +390,22 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	$avenantOK = true;
 	$facIntegral = array_pop($TIntegrale);
 	if(empty($facIntegral->cout_unit_noir_loyer) || (empty($facIntegral->cout_unit_coul_loyer) && !empty($facIntegral->vol_coul_engage))) $avenantOK = false;
-	if($facIntegral->cout_unit_noir !=
-		$facIntegral->cout_unit_noir_loyer
+	if(round($facIntegral->cout_unit_noir,5) !=
+		round($facIntegral->cout_unit_noir_loyer
 		+ $facIntegral->cout_unit_noir_mach
-		+ $facIntegral->cout_unit_noir_tech) $avenantOK = false;
-	if($facIntegral->cout_unit_coul !=
-		$facIntegral->cout_unit_coul_loyer
+		+ $facIntegral->cout_unit_noir_tech,5)) $avenantOK = false;
+	if(round($facIntegral->cout_unit_coul,5) !=
+		round($facIntegral->cout_unit_coul_loyer
 		+ $facIntegral->cout_unit_coul_mach
-		+ $facIntegral->cout_unit_coul_tech) $avenantOK = false;
+		+ $facIntegral->cout_unit_coul_tech,5)) $avenantOK = false;
 
 	print '<div class="tabsAction">';
 	if (!empty($user->rights->financement->integrale->create_new_avenant) && $avenantOK) {
 		$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
 		print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale">'.$label.'</a>';
+	} else if (!empty($user->rights->financement->admin->write)) {
+		$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
+		print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale" style="color: red;">'.$label.'</a>';
 	} else {
 		echo 'Avenant impossible. Merci de contacter le service financement';
 	}
