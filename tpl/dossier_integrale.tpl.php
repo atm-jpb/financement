@@ -36,8 +36,8 @@
 			<td>[fin.duree]</td>
 		</tr>
 		<tr>
-			<td>Régul - Mois de régul</td>
-			<td>[dossier.type_regul] - [dossier.month_regul]</td>
+			<td>Type de régul</td>
+			<td>[dossier.type_regul]</td>
 		</tr>
 	</table>
 	<br>
