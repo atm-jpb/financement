@@ -41,19 +41,18 @@
 		</tr>
 	</table>
 	<br>
-	[onshow;block=begin;when [error]=='0']
 	<table class="border" width="100%">
 		<tr class="liste_titre">
 			<th class="liste_titre" align="center">P&eacute;riode</th>
 			<th class="liste_titre" align="center">Facture</th>
 			<th class="liste_titre" align="center">Date</th>
 			<th class="liste_titre" align="center">Vol noir<br>engag&eacute;</th>
-			<th class="liste_titre" align="center">Vol noir<br>r&eacute;alis&eacute;</th>
-			<th class="liste_titre" align="center">Vol noir<br>factur&eacute;</th>
+			[onshow;block=begin;when [error]=='0']<th class="liste_titre" align="center">Vol noir<br>r&eacute;alis&eacute;</th>[onshow;block=end]
+			[onshow;block=begin;when [error]=='0']<th class="liste_titre" align="center">Vol noir<br>factur&eacute;</th>[onshow;block=end]
 			<th class="liste_titre" align="center">Coût unitaire<br>noir</th>
 			<th class="liste_titre" align="center">Vol couleur<br>engag&eacute;</th>
-			<th class="liste_titre" align="center">Vol couleur<br>r&eacute;alis&eacute;</th>
-			<th class="liste_titre" align="center">Vol couleur<br>factur&eacute;</th>
+			[onshow;block=begin;when [error]=='0']<th class="liste_titre" align="center">Vol couleur<br>r&eacute;alis&eacute;</th>[onshow;block=end]
+			[onshow;block=begin;when [error]=='0']<th class="liste_titre" align="center">Vol couleur<br>factur&eacute;</th>[onshow;block=end]
 			<th class="liste_titre" align="center">Coût unitaire<br>couleur</th>
 			<th class="liste_titre" align="center">FAS</th>
 			<th class="liste_titre" align="center">FASS</th>
@@ -62,7 +61,7 @@
 			<th class="liste_titre" align="center">FTC</th>
 			<th class="liste_titre" align="center">Total HT<br>engag&eacute;</th>
 			<!--<th class="liste_titre" align="center">Total HT r&eacute;alis&eacute;</th>-->
-			<th class="liste_titre" align="center">Total HT<br>factur&eacute;</th>
+			[onshow;block=begin;when [error]=='0']<th class="liste_titre" align="center">Total HT<br>factur&eacute;</th>[onshow;block=end]
 			<th class="liste_titre" align="center">%</th>
 			<th class="liste_titre" align="center">Propositions<br>associées</th>
 		</tr>
@@ -71,12 +70,12 @@
 			<td align="center">[integrale.facnumber;block=tr;noerr;strconv=no]</td>
 			<td align="center">[integrale.date_facture;block=tr;noerr;strconv=no]</td>
 			<td align="center">[integrale.vol_noir_engage;noerr;strconv=no]</td>
-			<td align="center">[integrale.vol_noir_realise;noerr;strconv=no]</td>
-			<td align="center">[integrale.vol_noir_facture;noerr;strconv=no]</td>
+			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_noir_realise;noerr;strconv=no]</td>[onshow;block=end]
+			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_noir_facture;noerr;strconv=no]</td>[onshow;block=end]
 			<td align="right" nowrap="nowrap">[integrale.cout_unit_noir;frm=0,00000;noerr;strconv=no]</td>
 			<td align="center">[integrale.vol_coul_engage;noerr;strconv=no]</td>
-			<td align="center">[integrale.vol_coul_realise;noerr;strconv=no]</td>
-			<td align="center">[integrale.vol_coul_facture;noerr;strconv=no]</td>
+			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_coul_realise;noerr;strconv=no]</td>[onshow;block=end]
+			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_coul_facture;noerr;strconv=no]</td>[onshow;block=end]
 			<td align="right" nowrap="nowrap">[integrale.cout_unit_coul;frm=0,00000;noerr;strconv=no]</td>
 			<td align="right" nowrap="nowrap">[integrale.fas;frm=0 000,00;noerr] &euro;</td>
 			<td align="right" nowrap="nowrap">[integrale.fass;frm=0 000,00;noerr] &euro;</td>
@@ -85,7 +84,7 @@
 			<td align="right" nowrap="nowrap">[integrale.frais_facturation;frm=0 000,00;noerr] &euro;</td>
 			<td align="right" nowrap="nowrap">[integrale.total_ht_engage;frm=0 000,00;noerr] &euro;</td>
 			<!--<td align="right" nowrap="nowrap">[integrale.total_ht_realise;frm=0 000,00;noerr] &euro;</td>-->
-			<td align="right" nowrap="nowrap">[integrale.total_ht_facture;frm=0 000,00;noerr] &euro;</td>
+			[onshow;block=begin;when [error]=='0']<td align="right" nowrap="nowrap">[integrale.total_ht_facture;frm=0 000,00;noerr] &euro;</td>[onshow;block=end]
 			<td align="center" nowrap="nowrap">[integrale.ecart;frm=0 000,00;noerr] %</td>
 			<td align="center" nowrap="nowrap">[integrale.propal;frm=0 000,00;noerr]</td>
 		</tr>
@@ -94,12 +93,12 @@
 			<td align="center">[integrale.facnumber;block=tr;noerr;strconv=no]</td>
 			<td align="center">[integrale.date_facture;block=tr;noerr;strconv=no]</td>
 			<td align="center">[integrale.vol_noir_engage;noerr;strconv=no]</td>
-			<td align="center">[integrale.vol_noir_realise;noerr;strconv=no]</td>
-			<td align="center">[integrale.vol_noir_facture;noerr;strconv=no]</td>
+			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_noir_realise;noerr;strconv=no]</td>[onshow;block=end]
+			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_noir_facture;noerr;strconv=no]</td>[onshow;block=end]
 			<td align="right" nowrap="nowrap">[integrale.cout_unit_noir;frm=0,00000;noerr;strconv=no]</td>
 			<td align="center">[integrale.vol_coul_engage;noerr;strconv=no]</td>
-			<td align="center">[integrale.vol_coul_realise;noerr;strconv=no]</td>
-			<td align="center">[integrale.vol_coul_facture;noerr;strconv=no]</td>
+			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_coul_realise;noerr;strconv=no]</td>[onshow;block=end]
+			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_coul_facture;noerr;strconv=no]</td>[onshow;block=end]
 			<td align="right" nowrap="nowrap">[integrale.cout_unit_coul;frm=0,00000;noerr;strconv=no]</td>
 			<td align="right" nowrap="nowrap">[integrale.fas;frm=0 000,00;noerr] &euro;</td>
 			<td align="right" nowrap="nowrap">[integrale.fass;frm=0 000,00;noerr] &euro;</td>
@@ -108,13 +107,13 @@
 			<td align="right" nowrap="nowrap">[integrale.frais_facturation;frm=0 000,00;noerr] &euro;</td>
 			<td align="right" nowrap="nowrap">[integrale.total_ht_engage;frm=0 000,00;noerr] &euro;</td>
 			<!--<td align="right" nowrap="nowrap">[integrale.total_ht_realise;frm=0 000,00;noerr] &euro;</td>-->
-			<td align="right" nowrap="nowrap">[integrale.total_ht_facture;frm=0 000,00;noerr] &euro;</td>
+			[onshow;block=begin;when [error]=='0']<td align="right" nowrap="nowrap">[integrale.total_ht_facture;frm=0 000,00;noerr] &euro;</td>[onshow;block=end]
 			<td align="center" nowrap="nowrap">[integrale.ecart;frm=0 000,00;noerr] %</td>
 			<td align="center" nowrap="nowrap">[integrale.propal;frm=0 000,00;noerr]</td>
 		</tr>
 	</table>
-	[onshow;block=end]
 	[onshow;block=begin;when [error]=='1']
+	<br>
 	<center>[errormsg]</center>
 	[onshow;block=end]
 </div>

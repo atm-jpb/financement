@@ -375,7 +375,9 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		$error = 1;
 		$errmsg = 'Régule autre que trimestrielle, merci de consulter vos VMM et factures sur Cristal';
 	}
-		
+	
+	if (!empty($user->rights->financement->admin->write)) $error = 0;
+	
 	echo $TBS->render('./tpl/dossier_integrale.tpl.php'
 		,array(
 			'integrale'=>$TIntegrale
