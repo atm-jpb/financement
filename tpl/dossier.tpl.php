@@ -171,6 +171,9 @@
 			<tr>
 				<td>Commentaire rentabilité</td><td colspan="3">[dossier.commentaire_visa; strconv=no]</td>
 			</tr>
+			<tr>
+				<td>Type régul (integral)</td><td colspan="3">[dossier.type_regul; strconv=no]</td>
+			</tr>
 		[onshow;block=end]
 		</table>
 

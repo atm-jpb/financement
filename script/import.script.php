@@ -101,7 +101,6 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 	
 	$filePrefix = 'fin_'.$fileType;
 	$filesToImport = $imp->getListOfFiles($importFolder, $filePrefix); // Récupération des fichiers à importer (dossier todo)
-	
 	print date('Y-m-d H:i:s').' : Récupération fichiers "'.$filePrefix.'", '.count($filesToImport).' fichier(s) trouvé(s)'.$eol;
 
 	foreach($filesToImport as $fileName) { // Pour chaque fichier à importer

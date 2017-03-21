@@ -279,6 +279,7 @@ function _factureAnnuleParAvoir($facnumber){
 }
 
 function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
+	global $user;
 	
 	$fin = &$dossier->financement;
 	
@@ -361,7 +362,20 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		}
 	}
 	
+	// MKO 2016.12.20 : pas d'affichage intégrale si type de régul non trimestriel
+	$error = 0;
+	$errmsg = '';
+	if(!empty($dossier->type_regul)) {
+		$TIntegrale = regularisation($dossier,$TIntegrale);
+	}
+	
 	//pre($TIntegrale,true);
+	// 2017.03.21 MKO : si type regul trimestriel, on affiche le tableau intégral, sinon non
+	if($dossier->type_regul != 3) {
+		$error = 1;
+		$errmsg = 'Type de régul autre que trimestriel, merci de consulter vos VMM sur Cristal';
+	}
+		
 	echo $TBS->render('./tpl/dossier_integrale.tpl.php'
 		,array(
 			'integrale'=>$TIntegrale
@@ -370,30 +384,33 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 			'dossier'=>$dossier
 			,'fin'=>$fin
 			,'client'=>$client
+			,'error'=>$error
+			,'errormsg'=>$errmsg
 		)
 	);
-
-	global $user;
-	
+		
 	// 2016.11.10 MKO : Nouvelles règles : 
 	// - avenant impossible si somme des coûts unitaires détaillés différente du cout unitaire
 	// - avenant impossible si cout unitaire loyer à 0
 	$avenantOK = true;
 	$facIntegral = array_pop($TIntegrale);
 	if(empty($facIntegral->cout_unit_noir_loyer) || (empty($facIntegral->cout_unit_coul_loyer) && !empty($facIntegral->vol_coul_engage))) $avenantOK = false;
-	if($facIntegral->cout_unit_noir !=
-		$facIntegral->cout_unit_noir_loyer
+	if(round($facIntegral->cout_unit_noir,5) !=
+		round($facIntegral->cout_unit_noir_loyer
 		+ $facIntegral->cout_unit_noir_mach
-		+ $facIntegral->cout_unit_noir_tech) $avenantOK = false;
-	if($facIntegral->cout_unit_coul !=
-		$facIntegral->cout_unit_coul_loyer
+		+ $facIntegral->cout_unit_noir_tech,5)) $avenantOK = false;
+	if(round($facIntegral->cout_unit_coul,5) !=
+		round($facIntegral->cout_unit_coul_loyer
 		+ $facIntegral->cout_unit_coul_mach
-		+ $facIntegral->cout_unit_coul_tech) $avenantOK = false;
+		+ $facIntegral->cout_unit_coul_tech,5)) $avenantOK = false;
 
 	print '<div class="tabsAction">';
 	if (!empty($user->rights->financement->integrale->create_new_avenant) && $avenantOK) {
 		$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
 		print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale">'.$label.'</a>';
+	} else if (!empty($user->rights->financement->admin->write)) {
+		$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
+		print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale" style="color: red;">'.$label.'</a>';
 	} else {
 		echo 'Avenant impossible. Merci de contacter le service financement';
 	}
@@ -779,6 +796,155 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	
 	print '<script type="text/javascript" src="./js/avenant_integral.js"></script>';
 }
+
+function regularisation($dossier,$TIntegrale){
+	global $langs;
+	$periodicite = 0;
+	//Conversion periodicite en nombre
+
+	switch($dossier->financement->periodicite){
+		case 'MOIS':
+			$periodicite=1;
+			break;
+		case 'TRIMESTRE':
+			$periodicite=3;
+			break;
+		case 'SEMESTRE':
+			$periodicite=6;
+			break;
+		case 'ANNEE':
+			$periodicite=12;
+			break;
+	}
+	
+	//On vérifie que la période de régularisation est supérieur à la periode de facturation
+	if( $dossier->type_regul > $periodicite && !empty($dossier->month_regul)){
+		
+		$dateTemp = '';//date temporaire
+		$compteur=0;
+		$volNoir= 0;
+		$volCoul=0;
+		$volNoirEngag=0;
+		$volCoulEngag=0;
+		$isIntercal=true;
+		/*$ifError = array();
+		foreach($TIntegrale as $k=>$v){
+			$ifError[$k] = clone ($v);
+		}
+		*/
+		/*$trimestre='';
+		$trimestre3='';
+		$semestre = '';
+		if($dossier->type_regul==6){
+			$semestre='07';
+		}
+		if($dossier->type_regul==3){
+			$trimestre='04';
+			$trimestre3='10';
+			$semestre='07';
+		}*/
+
+		$TMonthRegul = array($dossier->month_regul);
+		if($dossier->type_regul==6){
+			$TMonthRegul[] = ($dossier->month_regul + 6) % 12;
+		}
+		if($dossier->type_regul==3){
+			$TMonthRegul[] = ($dossier->month_regul + 3) % 12;
+			$TMonthRegul[] = ($dossier->month_regul + 6) % 12;
+			$TMonthRegul[] = ($dossier->month_regul + 9) % 12;
+		}
+	
+	/*	$keys = array_keys($TIntegrale);
+		$tabTemp = explode('/',$keys[0]);
+		$timecompare = dol_mktime(0, 0, 0, $tabTemp[1], $tabTemp[0], $tabTemp[2]);
+		*/
+		foreach($TIntegrale as &$tab){
+			if($isIntercal && !empty($dossier->financement->loyer_intercalaire) && !empty($dossier->TFacture[-1])){//Vérification loyer intercalaire et existance facture
+				
+				$isIntercal = false;
+		
+			}else {
+				$theDate = explode('/',$tab->date_periode);
+				$periode = new DateTime($theDate[2].'-'.$theDate[1].'-'.$theDate[0]);//On met la date au bon format
+			/*	if(empty($dateTemp)){//Si c'est le premier passage
+					$dateTemp = $periode;
+					$volNoir+= $tab->vol_noir_realise;
+					$volCoul+= $tab->vol_coul_realise;
+				//	$volNoirEngag+=$tab->vol_noir_engage;
+					//$volCoulEngag+=$tab->vol_coul_engage;
+					//$tab->vol_noir_realise = 0;
+					$tab->vol_noir_facture = $tab->vol_noir_engage;
+				//	$tab->vol_coul_realise = 0;
+					$tab->vol_coul_facture = $tab->vol_coul_engage;
+				} else {*/
+				//	$dateCompare = ($periode->diff($dateTemp));//On compare la date actuelle avec la date d'avant
+				//	if($dateCompare->days <=$periodicite*31 && $dateCompare->days>=$periodicite*30){//On regarde si le nombre de jours est environ au bon nombre de mois
+						$compteur++;
+						//if(($theDate[1]!=$trimestre)&&($theDate[1]!=$semestre)&&($theDate[1]!=$trimestre3)&& ($theDate[1]!='01') ){//On compare les mois
+						if(!in_array((int)$theDate[1], $TMonthRegul) ){//On compare les mois
+							$volNoir+= $tab->vol_noir_realise;
+							$volCoul+= $tab->vol_coul_realise;
+							$volNoirEngag+=$tab->vol_noir_engage;
+							$volCoulEngag+=$tab->vol_coul_engage;
+						//	$tab->vol_noir_realise = 0;
+							$tab->vol_noir_facture = $tab->vol_noir_engage;
+							//$tab->vol_coul_realise = 0;
+							$tab->vol_coul_facture = $tab->vol_coul_engage;
+							//setBilledVol($tab);
+						}
+						else {
+						//	$volNoir+= $tab->vol_noir_realise;//On n'oublie pas de bien prendre en compte les valeurs de la ligne actuelle
+						//	$volCoul+= $tab->vol_coul_realise;
+						//	$volNoirEngag+=$tab->vol_noir_engage;
+						//	$volCoulEngag+=$tab->vol_coul_engage;
+							$tab->vol_noir_facture = max(array($tab->vol_noir_realise - $volNoirEngag,$tab->vol_noir_engage));
+							$tab->vol_coul_facture = max(array($tab->vol_coul_realise - $volCoulEngag,$tab->vol_coul_engage));
+							$tab->vol_noir_realise -= $volNoir;
+							$tab->vol_coul_realise -= $volCoul;
+							$compteur = 0;
+							//setBilledVol($tab);
+							//Reinitialisation des variables
+							$volNoir=0;
+							$volCoul=0;
+							$volNoirEngag=0;
+							$volCoulEngag=0;
+						}
+						
+				/*	}	else {
+						//
+						setEventMessages($langs->trans('DateProblem'),$err,'errors');
+						$volNoir=0;
+						$volCoul=0;
+						$volNoirEngag=0;
+						$volCoulEngag=0;
+						return $ifError;
+						
+					}*/
+					
+				//	$dateTemp = $periode;//On récupère la date actuelle
+			//	}
+			}
+		}
+	}	
+	return $TIntegrale;
+}
+function setBilledVol(&$tab){
+		if($tab->vol_noir_realise<$tab->vol_noir_engage){//On compare l'engagé  avec le réalisé
+							
+				$tab->vol_noir_facture = $tab->vol_noir_engage;
+		} else {
+						
+				$tab->vol_noir_facture = $tab->vol_noir_realise;
+		}
+					
+		if($tab->vol_coul_realise<$tab->vol_coul_engage){								
+				$tab->vol_coul_facture = $tab->vol_coul_engage;
+		} else {
+								
+				$tab->vol_coul_facture = $tab->vol_coul_realise;
+		}
+}
+
 
 function _addAvenantIntegrale(&$dossier) {
 	

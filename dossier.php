@@ -1015,6 +1015,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'quote_part_couleur' => $form->texte('', 'quote_part_couleur', $dossier_for_integral->quote_part_couleur, 10)
 				,'somme_sup_noir' => $sommeCopieSupNoir
 				,'somme_sup_coul' => $sommeCopieSupCouleur
+				,'type_regul' => $dossier->type_regul
 			)
 			,'financement'=>$TFinancement
 			,'financementLeaser'=>$TFinancementLeaser

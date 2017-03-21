@@ -242,7 +242,7 @@ function _fiche(&$ATMdb, &$import, $mode) {
 				,'titre_view'=>img_picto('','object_import.png@financement', '', 0).' '.$langs->trans("Import")
 			
 				,'id'=>$import->getId()
-				,'type_import'=>$form->combo('', 'type_import', ($mode == 'new') ? $import->TType_import : array_merge($import->TType_import, $import->TType_import_interne), $import->type_import) 
+				,'type_import'=>$form->combo('', 'type_import', /*($mode == 'new') ? $import->TType_import : */array_merge($import->TType_import, $import->TType_import_interne), $import->type_import) 
 				,'date'=>date('d/m/Y à H:i:s', $import->date ? $import->date : time())
 				,'filename'=>'<a href="./import/done/'.$import->filename.'" target="_blank">'.$import->filename.'</a>'
 				,'ignore_first_line'=>$form->checkbox1('', 'ignore_first_line', 0)

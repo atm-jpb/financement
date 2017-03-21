@@ -35,8 +35,13 @@
 			<td>Durée</td>
 			<td>[fin.duree]</td>
 		</tr>
+		<tr>
+			<td>Type de régul</td>
+			<td>[dossier.type_regul]</td>
+		</tr>
 	</table>
 	<br>
+	[onshow;block=begin;when [error]=='0']
 	<table class="border" width="100%">
 		<tr class="liste_titre">
 			<th class="liste_titre" align="center">P&eacute;riode</th>
@@ -108,5 +113,8 @@
 			<td align="center" nowrap="nowrap">[integrale.propal;frm=0 000,00;noerr]</td>
 		</tr>
 	</table>
-
+	[onshow;block=end]
+	[onshow;block=begin;when [error]=='1']
+	<center>[errormsg]</center>
+	[onshow;block=end]
 </div>
