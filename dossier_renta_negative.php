@@ -85,6 +85,9 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
 	echo $form->hidden('liste_renta_negative', '1');
 	
+	echo $form->hidden('id_dossier', GETPOST('id_dossier'));
+	echo $form->hidden('visaauto', GETPOST('visaauto'));
+	
 	echo $form->checkbox1('Règle 1', 'TRule[rule1]', 1, !empty($TRule['rule1']) ? $TRule['rule1'] : 0);
 	echo $form->checkbox1('Règle 2', 'TRule[rule2]', 1, !empty($TRule['rule2']) ? $TRule['rule2'] : 0);
 	echo $form->checkbox1('Règle 3', 'TRule[rule3]', 1, !empty($TRule['rule3']) ? $TRule['rule3'] : 0);
