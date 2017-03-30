@@ -41,7 +41,7 @@ class ActionsFinancement
 		  
 		  
 		  
-		if (in_array('thirdpartycard',explode(':',$parameters['context'])) && GETPOST('action') !== 'create') 
+		if (in_array('thirdpartycard',explode(':',$parameters['context'])) && $action !== 'create') 
         { 
          
 		  $listsalesrepresentatives=$object->getSalesRepresentatives($user);
