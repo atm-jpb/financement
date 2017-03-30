@@ -1020,12 +1020,12 @@ class TSimulation extends TObjetStd {
 			//$date_prochaine_echeance = $this[]
 			
 			$echeance = $d->_get_num_echeance_from_date($this->date_simul);
-			$date_debut_periode_m1 = $d->getDateDebutPeriode($echeance-1,$type);
-			$date_fin_periode_m1 = $d->getDateFinPeriode($echeance-1,$type);
-			$date_debut_periode = $d->getDateDebutPeriode($echeance,$type);
-			$date_fin_periode = $d->getDateFinPeriode($echeance,$type);
-			$date_debut_periode_p1 = $d->getDateDebutPeriode($echeance+1,$type);
-			$date_fin_periode_p1 = $d->getDateFinPeriode($echeance+1,$type);
+			$date_debut_periode_m1 = $d->getDateDebutPeriode($echeance-2,$type);
+			$date_fin_periode_m1 = $d->getDateFinPeriode($echeance-2,$type);
+			$date_debut_periode = $d->getDateDebutPeriode($echeance-1,$type);
+			$date_fin_periode = $d->getDateFinPeriode($echeance-1,$type);
+			$date_debut_periode_p1 = $d->getDateDebutPeriode($echeance,$type);
+			$date_fin_periode_p1 = $d->getDateFinPeriode($echeance,$type);
 			
 			/*echo $d->reference.'<br>';
 			echo $echeance.'<br>';
