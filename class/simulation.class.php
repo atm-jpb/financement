@@ -924,6 +924,10 @@ class TSimulation extends TObjetStd {
 			0
 		);*/
 		$r=new TReponseMail($conf->notification->email_from, $mailto, $subject, $mesg);
+		// Spécifique Copy Concept, M. Tizien en copie
+		if($this->entity == 7) {
+			$r->emailtoBcc = "nicolas.tizien@copy-concept.fr";
+		}
 
         foreach($filename as $k=>$file) {
                 $r->add_piece_jointe($filename[$k], $filepath[$k]);
