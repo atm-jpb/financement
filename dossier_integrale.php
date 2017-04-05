@@ -714,8 +714,9 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	$total_noir = $engagement_noir * $cout_noir;
 	$total_couleur = $engagement_couleur * $cout_couleur;
 	
-	$fas_min = $integrale->fas;
+	$fas_min = 0;
 	$fas_max = $integrale->calcul_fas_max($TDetailCoutNoir, $TDetailCoutCouleur, $engagement_noir, $engagement_couleur);
+	$fas_max = max($fas_max, $integrale->fas);
 	
 	$total_global = $integrale->calcul_total_global($TDetailCoutNoir, $TDetailCoutCouleur);
 	$total_hors_frais = $total_global - $integrale->frais_bris_machine - $integrale->frais_facturation;

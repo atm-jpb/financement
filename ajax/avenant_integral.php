@@ -78,8 +78,9 @@ function change_all($case) {
 	$total_global = $integrale->calcul_total_global($TDetailCoutNoir, $TDetailCoutCoul, $fas);
 	$total_hors_frais = $total_global - $integrale->frais_bris_machine - $integrale->frais_facturation;
 	
-	$fas_min = $integrale->fas;
+	$fas_min = 0;
 	$fas_max = $integrale->calcul_fas_max($TDetailCoutNoir, $TDetailCoutCoul, $engagement_noir, $engagement_coul, $fas);
+	$fas_max = max($fas_max, $integrale->fas);
 	
 	$data = array(
 		'couts_noir'	=> $TDetailCoutNoir,
