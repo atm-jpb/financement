@@ -279,7 +279,7 @@ class ServiceFinancement {
 			            <v1:PARTENAIRE>
 			               <v1:SIREN_PARTENAIRE>'.$mysoc->idprof1.'</v1:SIREN_PARTENAIRE>
 			               <v1:NIC_PARTENAIRE>'.substr($mysoc->idprof2, -5, 5).'</v1:NIC_PARTENAIRE>
-			               <v1:COMMERCIAL_EMAIL>'.$this->simulationSuivi->user->email.'</v1:COMMERCIAL_EMAIL>
+			               <v1:COMMERCIAL_EMAIL>financemement@cpro.fr</v1:COMMERCIAL_EMAIL>
 			               <v1:REF_EXT>'.$this->simulation->reference.'</v1:REF_EXT>
 			            </v1:PARTENAIRE>
 			            <v1:BIEN>
