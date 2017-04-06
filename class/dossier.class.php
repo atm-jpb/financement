@@ -1739,7 +1739,7 @@ class TFin_dossier extends TObjetStd {
 	{
 		global $db,$conf;
 		
-		$sql = "SELECT periode, base_solde, percent FROM ".MAIN_DB_PREFIX."c_financement_conf_solde
+		$sql = "SELECT periode, base_solde, percent, percent_nr FROM ".MAIN_DB_PREFIX."c_financement_conf_solde
 				WHERE entity = ".$this->entity." 
 				AND active = 1 
 				AND fk_type_contrat = '".$this->contrat."'
