@@ -880,6 +880,9 @@ class TFin_dossier extends TObjetStd {
 		$CRD = $this->financement->valeur_actuelle($duree_restante_client);
 		$LRD = $this->financement->echeance * $duree_restante_client + $this->financement->reste;
 		
+		// Chargement des règle de solde (dictionnaire)
+		$this->load_c_conf_solde();
+		
 		switch ($type) 
 		{
 			case 'SRBANK': //BANK = leaser sur le PDF
@@ -1711,7 +1714,26 @@ class TFin_dossier extends TObjetStd {
 		
 		return $soldepersointegrale;
 	}
-
+	
+	// Chargement du dictionnaire contenant les règle de calcul de soldes
+	function load_c_conf_solde()
+	{
+		global $db,$conf;
+		
+		$res = array();
+		$resql = $db->query('SELECT periode, base_solde, percent FROM '.MAIN_DB_PREFIX.'c_financement_conf_solde WHERE entity = '.$this->entity.' AND active = 1 AND fk_type_contrat = \''.$this->contrat.'\'');
+		
+		if ($resql)
+		{
+			while ($line = $db->fetch_object($resql))
+			{
+				$res[$line->periode] = $line;
+			}
+		}
+		
+		$this->TConfSolde = $res;
+		return $res;
+	}
 }
 
 /*
