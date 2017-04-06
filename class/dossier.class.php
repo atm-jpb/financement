@@ -752,30 +752,39 @@ class TFin_dossier extends TObjetStd {
 		}
 		else // INTERNE
 		{
-			$temps_restant = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
-			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
-		
-			if (!empty($this->type_financement_affaire['ADOSSEE']) || !empty($this->type_financement_affaire['MANDATEE']))
-			{
-				$solde = $CRD * (1+ $conf->global->FINANCEMENT_PERCENT_AUG_CRD / 100);
-			}
-			elseif (!empty($this->type_financement_affaire['PURE']))
-			{
-				$solde = $LRD;
-			}
-			else // ['FINANCIERE']
-			{
-				$solde = $LRD; // LRD client
-			}
+			$p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
+			$TSoldeRule = $this->getRuleSolde($p);
 			
-			if ($solde > $LRD) return $LRD;
-			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
-			else if($solde < $this->financement->reste){
-				return $this->financement->reste;
+			if($TSoldeRule->base_solde == 'MF') {
+				$solde = $this->financement->montant;
+			} else if($TSoldeRule->base_solde == 'CRD') {
+				$solde = $CRD * (1 + $TSoldeRule->percent / 100);
+			} else if($TSoldeRule->base_solde == 'LRD') {
+				$solde = $LRD * (1 + $TSoldeRule->percent / 100);
+			} else {
+				if ($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+			
+				if (!empty($this->type_financement_affaire['ADOSSEE']) || !empty($this->type_financement_affaire['MANDATEE']))
+				{
+					$solde = $CRD * (1+ $conf->global->FINANCEMENT_PERCENT_AUG_CRD / 100);
+				}
+				elseif (!empty($this->type_financement_affaire['PURE']))
+				{
+					$solde = $LRD;
+				}
+				else // ['FINANCIERE']
+				{
+					$solde = $LRD; // LRD client
+				}
+				
+				if ($solde > $LRD) $solde = $LRD;
+				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+				else if($solde < $this->financement->reste){
+					$solde = $this->financement->reste;
+				}
 			}
-			else return $solde;
+			return $solde;
 		}
-		
 	}
 	
 	/**
@@ -804,29 +813,39 @@ class TFin_dossier extends TObjetStd {
 		}
 		else // INTERNE 
 		{
-			$temps_restant = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
-			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
-		
-		
-			if (!empty($this->type_financement_affaire['ADOSSEE']) || !empty($this->type_financement_affaire['MANDATEE']))
-			{
-				$solde = $CRD * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
-			}
-			elseif (!empty($this->type_financement_affaire['PURE']))
-			{
-				$solde = $LRD;
-			}
-			else // ['FINANCIERE']
-			{
-				$solde = $LRD;
+			$p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
+			$TSoldeRule = $this->getRuleSolde($p);
+			
+			if($TSoldeRule->base_solde == 'MF') {
+				$solde = $this->financement->montant;
+			} else if($TSoldeRule->base_solde == 'CRD') {
+				$solde = $CRD * (1 + $TSoldeRule->percent / 100);
+			} else if($TSoldeRule->base_solde == 'LRD') {
+				$solde = $LRD * (1 + $TSoldeRule->percent / 100);
+			} else {
+				if ($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+			
+				if (!empty($this->type_financement_affaire['ADOSSEE']) || !empty($this->type_financement_affaire['MANDATEE']))
+				{
+					$solde = $CRD * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
+				}
+				elseif (!empty($this->type_financement_affaire['PURE']))
+				{
+					$solde = $LRD;
+				}
+				else // ['FINANCIERE']
+				{
+					$solde = $LRD;
+				}
+				
+				if ($solde > $LRD) return $LRD;
+				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+				else if($solde < $this->financement->reste){
+					return $this->financement->reste;
+				}
 			}
 			
-			if ($solde > $LRD) return $LRD;
-			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
-			else if($solde < $this->financement->reste){
-				return $this->financement->reste;
-			}
-			else return $solde;
+			return $solde;
 		}
 	}
 	
@@ -1720,8 +1739,13 @@ class TFin_dossier extends TObjetStd {
 	{
 		global $db,$conf;
 		
+		$sql = "SELECT periode, base_solde, percent FROM ".MAIN_DB_PREFIX."c_financement_conf_solde
+				WHERE entity = ".$this->entity." 
+				AND active = 1 
+				AND fk_type_contrat = '".$this->contrat."'
+				ORDER BY periode ASC";
 		$res = array();
-		$resql = $db->query('SELECT periode, base_solde, percent FROM '.MAIN_DB_PREFIX.'c_financement_conf_solde WHERE entity = '.$this->entity.' AND active = 1 AND fk_type_contrat = \''.$this->contrat.'\'');
+		$resql = $db->query($sql);
 		
 		if ($resql)
 		{
@@ -1733,6 +1757,13 @@ class TFin_dossier extends TObjetStd {
 		
 		$this->TConfSolde = $res;
 		return $res;
+	}
+	
+	function getRuleSolde($periode) {
+		$confsolde = array_reverse($this->TConfSolde,true);
+		foreach($confsolde as $p => $rule) {
+			if($periode >= $p) return $rule;
+		}
 	}
 }
 
