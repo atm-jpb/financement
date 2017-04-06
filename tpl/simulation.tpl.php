@@ -144,23 +144,15 @@
 		<tr>
 			<td class="fieldrequired">Montant total financ&eacute;</td>
 			<td>[simulation.montant; strconv=no; frm=0 000,00] &euro;</td>
-		
-			<td>
-				Pourcentage valeur résiduelle<br />
-				Montant valeur résiduelle [simulation.info_vr;strconv=no]
-			</td>
-			<td>[simulation.pct_vr; strconv=no; frm=000,00%]<br />[simulation.mt_vr; strconv=no; frm=0 000,00] &euro;</td>
-		
-		
-		</tr>
-		<tr>
-			<td>dont montant rachat</td>
-			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
-			<td colspan="2" rowspan="2" align="center">
+			<td colspan="2" rowspan="3" align="center">
 				[onshow;block=begin;when [view.type]=='simul']
 				<span style="font-size: 16px;">[simulation.accord; strconv=no]</span><br />
 				[onshow;block=end]
 			</td>
+		</tr>
+		<tr>
+			<td>dont montant rachat</td>
+			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
 			<td>Retrait copies sup.</td>
