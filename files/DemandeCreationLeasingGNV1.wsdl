@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+
+<wsdl:definitions 	targetNamespace="http://referentiel.ca.fr/Services/calf/DemandeCreationLeasingGN/V1/"
+					xmlns:serv="http://referentiel.ca.fr/Services/calf/DemandeCreationLeasingGN/V1/"
+					xmlns:ca_erreurs="http://referentiel.ca.fr/ErreursV1"
+					xmlns:ca_header="http://referentiel.ca.fr/SoapHeaderV1"	
+					xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
+					xmlns:wsoap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+					xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+					xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+					xmlns:wsp="http://www.w3.org/ns/ws-policy">
+					
+
+
+					
+					
+  <wsdl:types>
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	    <xsd:import schemaLocation="./Schemas/SchemaCalf/ErreursSOAP/V1/CA_Erreur.xsd" namespace="http://referentiel.ca.fr/ErreursV1"/> 
+		<xsd:import schemaLocation="./Schemas/SchemaCalf/EnTeteSOAP/V1/Calf_Header_GN.xsd" namespace="http://referentiel.ca.fr/SoapHeaderV1"/>
+		<xsd:import schemaLocation="./Schemas/SchemaCalf/DemandeCreationLeasingGN/V1/DemandeCreationLeasingGN_types.xsd" namespace="http://referentiel.ca.fr/Services/calf/DemandeCreationLeasingGN/V1/" />    	      
+    </xsd:schema>
+  </wsdl:types>
+  
+  <wsdl:message name="DemandeCreationLeasingFault">
+  	<wsdl:part name="CATechnicalException" element="ca_erreurs:CATechnicalException"></wsdl:part>  
+  </wsdl:message>
+
+  
+  <wsdl:message name="DemandeCreationLeasingGN">
+  	<wsdl:part name="CalfHeader" element="ca_header:Calf_Header_GN"/>
+  	<wsdl:part name="parameters" element="serv:DemandeCreationLeasingGN"/>
+  </wsdl:message>
+  
+  <wsdl:message name="DemandeCreationLeasingGNResponse">
+  	<wsdl:part name="parameters" element="serv:DemandeCreationLeasingGNResponse"/>
+  </wsdl:message>
+  
+  
+  
+  <wsdl:portType name="DemandeCreationLeasingGNPortV1">
+  	<wsdl:operation name="DemandeCreationLeasingGN">
+  		<wsdl:input  message="serv:DemandeCreationLeasingGN" name="DemandeCreationLeasingGN" />
+  		<wsdl:output message="serv:DemandeCreationLeasingGNResponse" name="DemandeCreationLeasingGNResponse" />
+		<wsdl:fault name="DemandeCreationLeasingFault" message="serv:DemandeCreationLeasingFault" />
+
+  	</wsdl:operation>
+  	
+  </wsdl:portType>
+
+  
+  <wsdl:binding name="DemandeCreationLeasingGNV1SOAP" type="serv:DemandeCreationLeasingGNPortV1">
+  	<wsoap12:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+
+
+ 		<wsp:PolicyReference
+			URI="./Schemas/Policy/CA_Group_ws_security_policies_20130618.xml#CA_Group_ws_security_policy_common_v1" />
+ 
+  	<wsdl:operation name="DemandeCreationLeasingGN">
+  		 <wsoap12:operation soapAction="http://referentiel.ca.fr/Services/calf/demandeCreationLeasing/V1/DemandeCreationLeasingGN"/>
+  		  <wsdl:input name="DemandeCreationLeasingGN">
+ 
+   		  	<wsoap12:body use="literal" parts="parameters"/>
+<wsoap12:header message="serv:DemandeCreationLeasingGN" part="CalfHeader" use="literal"/>
+  		  </wsdl:input>
+  		  <wsdl:output name="DemandeCreationLeasingGNResponse">
+  		  	<wsoap12:body use="literal" parts="parameters"/>
+  		  </wsdl:output>
+		  <wsdl:fault name="DemandeCreationLeasingFault">
+  		  	<wsoap12:fault name="DemandeCreationLeasingFault" use="literal"/>
+  		  </wsdl:fault>
+  	</wsdl:operation>
+  </wsdl:binding>	
+  
+  <wsdl:service name="DemandeCreationLeasingGNV1">
+  	<wsdl:port binding="serv:DemandeCreationLeasingGNV1SOAP" name="DemandeCreationLeasingGNV1SOAP">
+  		<wsoap12:address location="https://hom-archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1" />
+  	</wsdl:port>	
+  </wsdl:service>
+</wsdl:definitions>

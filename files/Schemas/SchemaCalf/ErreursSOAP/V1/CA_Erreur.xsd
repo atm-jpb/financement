@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2009 sp1 (http://www.altova.com) by Michel Prats (CRÉDIT AGRICOLE S.A.) -->
+<!-- Evolutions 2012/04 
+ nommage du namespace des normes  :  R majuscule dans Referentiel remplacé par r minuscule => referentiel.ca.fr 
+ CA_Error: errorLevel et errorType passent de élément à attribut -->
+<!-- Evolutions 2012/06 
+ adoption de la modélisation de CA-Technologies pour le erreurs techniques et business -->
+<!-- Demandes  GT 18/06 
+ Conformité bonnes pratiques (mais les existants et NICE ne sont pas retouchés, voir règle)  
+Nommage des types complexes (userInformation, errorValuesList, variableList, variable ) ou simples (criticite)
+Nommage des éléments (errorValue) -->
+<!-- dernière mise à jour 03/07/2013 - 16h19 -->
+<!-- Fin Evolutions -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://referentiel.ca.fr/ErreursV1" xmlns:soap="http://www.w3.org/2003/05/soap-envelope" targetNamespace="http://referentiel.ca.fr/ErreursV1" elementFormDefault="qualified">
+	<xsd:element name="CATechnicalException" type="tns:CATechnicalException"/>
+	<xsd:element name="CABusinessException" type="tns:CABusinessException"/>
+	<xsd:element name="CABusinessExceptionList" type="tns:CABusinessExceptionList"/>
+	<xsd:complexType name="CATechnicalException">
+		<xsd:attribute name="id" type="xsd:string" use="required"/>
+		<xsd:attribute name="technicalLabel" use="required"/>
+		<xsd:attribute name="criticite" type="tns:Criticite"/>
+	</xsd:complexType>
+	<xsd:complexType name="CABusinessException">
+		<xsd:sequence>
+			<xsd:element name="ErrorValuesList" type="tns:ErrorValuesList" minOccurs="0"/>
+			<xsd:element name="VariablesList" type="tns:VariablesList" minOccurs="0"/>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:string" use="required"/>
+		<xsd:attribute name="technicalLabel" type="xsd:string" use="required"/>
+		<xsd:attribute name="criticite" type="tns:Criticite" use="optional"/>
+	</xsd:complexType>
+	<xsd:complexType name="CABusinessExceptionList">
+		<xsd:sequence>
+			<xsd:element ref="tns:CABusinessException" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ErrorValuesList">
+		<xsd:sequence>
+			<xsd:element name="ErrorValue" maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:simpleContent>
+						<xsd:extension base="xsd:string"/>
+					</xsd:simpleContent>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="VariablesList">
+		<xsd:sequence>
+			<xsd:element name="Variable" type="tns:Variable" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Variable">
+		<xsd:attribute name="variableName" type="xsd:string" use="required"/>
+		<xsd:attribute name="variableValue" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	<xsd:simpleType name="Criticite">
+		<xsd:annotation>
+			<xsd:documentation>01 : erreur bloquante
+02 : erreur forçable</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:integer">
+			<xsd:enumeration value="01"/>
+			<xsd:enumeration value="02"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>

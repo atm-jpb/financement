@@ -129,6 +129,78 @@ class TFinancementTools {
 		
 	}
 	
+	
+	static function getCategorieId()
+	{
+		global $db,$conf;
+		
+		$TRes = array();
+		
+		$sql = 'SELECT cat_id, label FROM '.MAIN_DB_PREFIX.'c_financement_categorie_bien WHERE active = 1 AND entity IN (0, '.$conf->entity.') ORDER BY label, cat_id';
+		$resql = $db->query($sql);
+		
+		if ($resql)
+		{
+			$TRes[] = '';
+			while ($row = $db->fetch_object($resql))
+			{
+				$TRes[$row->cat_id] = $row->label;
+			}
+		}
+		
+		return $TRes;
+	}
+	
+	static function getNatureId()
+	{
+		global $db,$conf;
+		
+		$TRes = array();
+		
+		$sql = 'SELECT nat_id, label FROM '.MAIN_DB_PREFIX.'c_financement_nature_bien WHERE active = 1 AND entity IN (0, '.$conf->entity.') ORDER BY label, nat_id';
+		$resql = $db->query($sql);
+		
+		if ($resql)
+		{
+			$TRes[] = '';
+			while ($row = $db->fetch_object($resql))
+			{
+				$TRes[$row->nat_id] = $row->label;
+			}
+		}
+		
+		return $TRes;
+	}
+	
+	static function getCategorieLabel($fk_categorie)
+	{
+		global $db;
+		
+		$sql = 'SELECT label FROM '.MAIN_DB_PREFIX.'c_financement_categorie_bien WHERE cat_id = '.(int) $fk_categorie;
+		$resql = $db->query($sql);
+		
+		if ($resql && ($row = $db->fetch_object($resql)))
+		{
+			return $row->label;
+		}
+		
+		return '';
+	}
+
+	static function getNatureLabel($fk_nature)
+	{
+		global $db;
+		
+		$sql = 'SELECT label FROM '.MAIN_DB_PREFIX.'c_financement_nature_bien WHERE nat_id = '.(int) $fk_nature;
+		$resql = $db->query($sql);
+		
+		if ($resql && ($row = $db->fetch_object($resql)))
+		{
+			return $row->label;
+		}
+		
+		return '';
+	}
 }
 
 

@@ -109,6 +109,12 @@
 			
 		</tr>
 		<tr>
+			<td>Catégorie du bien</td>
+			<td>[simulation.fk_categorie_bien;strconv=no]</td>
+			<td>Nature du bien</td>
+			<td>[simulation.fk_nature_bien;strconv=no]</td>
+		</tr>
+		<tr>
 			<td><span class="fieldrequired">Type de matériel financé</span></td>
 			<td>[simulation.type_materiel; strconv=no]</td>
 			<td><span class="fieldrequired">Marque de matériel financé</span></td>
@@ -138,7 +144,7 @@
 		<tr>
 			<td class="fieldrequired">Montant total financ&eacute;</td>
 			<td>[simulation.montant; strconv=no; frm=0 000,00] &euro;</td>
-			<td colspan="2" rowspan="2" align="center">
+			<td colspan="2" rowspan="3" align="center">
 				[onshow;block=begin;when [view.type]=='simul']
 				<span style="font-size: 16px;">[simulation.accord; strconv=no]</span><br />
 				[onshow;block=end]
@@ -151,16 +157,17 @@
 		<tr>
 			<td>Retrait copies sup.</td>
 			<td>[simulation.montant_decompte_copies_sup; strconv=no; frm=0 000,00] &euro;</td>
+			
+		</tr>
+		<tr>
+			<td>dont montant rachat concurrence</td>
+			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
 			[onshow;block=begin;when [view.type]=='simul']
 				<td align="right">Service Financement</td>
 				<td align="left">
 					<span style="font-size: 16px;">[simulation.user_suivi; strconv=no]</span><br />
 				</td>
 			[onshow;block=end]
-		</tr>
-		<tr>
-			<td>dont montant rachat concurrence</td>
-			<td>[simulation.montant_rachete_concurrence; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
 			<td>montant rachat final</td>

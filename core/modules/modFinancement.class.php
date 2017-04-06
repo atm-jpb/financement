@@ -151,37 +151,55 @@ class modFinancement extends DolibarrModules
 		,'tabname'=>array(
 			MAIN_DB_PREFIX.'c_financement_type_contrat'
 			,MAIN_DB_PREFIX.'c_financement_marque_materiel'
+			,MAIN_DB_PREFIX.'c_financement_categorie_bien'
+			,MAIN_DB_PREFIX.'c_financement_nature_bien'
 		)
 		,'tablib'=>array(
 			'Type de contrat'
 			,'Marque de materiel'
+			,'Categorie du Bien'
+			,'Nature du Bien'
 		)
 		,'tabsql'=>array(
 			'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_type_contrat as f WHERE entity = '.$conf->entity
 			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_marque_materiel as f WHERE entity = '.$conf->entity
+			,'SELECT f.rowid as rowid, f.cat_id, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_categorie_bien as f WHERE entity IN (0, '.$conf->entity.')'
+			,'SELECT f.rowid as rowid, f.nat_id, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_nature_bien as f WHERE entity IN (0, '.$conf->entity.')'
 		)
 		,'tabsqlsort'=>array(
 			'label ASC'
+			,'label ASC'
+			,'label ASC'
 			,'label ASC'
 		)
 		,'tabfield'=>array(
 			'code,label'
 			,'code,label'
+			,'cat_id,label,entity'
+			,'nat_id,label,entity'
 		)
 		,'tabfieldvalue'=>array(
 			'code,label,entity'
 			,'code,label,entity'
+			,'cat_id,label,entity'
+			,'nat_id,label,entity'
 		)
 		,'tabfieldinsert'=>array(
 			'code,label,entity'
 			,'code,label,entity'
+			,'cat_id,label,entity'
+			,'nat_id,label,entity'
 		)
 		,'tabrowid'=>array(
 			'rowid'
 			,'rowid'
+			,'rowid'
+			,'rowid'
 		)
 		,'tabcond'=>array(
 			$conf->financement->enabled
+			,$conf->financement->enabled
+			,$conf->financement->enabled
 			,$conf->financement->enabled
 		)
 	);
@@ -380,6 +398,12 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][5] = 'create_new_avenant';
 		$r++;
 
+		$this->rights[$r][0] = $this->numero.$r;
+		$this->rights[$r][1] = 'Webservice : autoriser les réponses aux demandes de financement';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'webservice';
+		$this->rights[$r][5] = 'repondre_demande';
+		$r++;
 
 		// Main menu entries
 		$this->menus = array();			// List of menus to add
@@ -722,6 +746,8 @@ class modFinancement extends DolibarrModules
 	 */
 	function init($options='')
 	{
+		global $db;
+		
 		$sql = array();
 
 		$result=$this->load_tables();
@@ -731,6 +757,10 @@ class modFinancement extends DolibarrModules
 		define('INC_FROM_DOLIBARR',true);
 		dol_include_once('/financement/config.php');
 		dol_include_once('/financement/script/create-maj-base.php');
+		
+		dol_include_once('/core/class/extrafields.class.php');
+		$extra = new ExtraFields($db);
+		$extra->addExtraField('fk_leaser_webservice', 'Identifiant du leaser associé pour les réponses de demande de financement', 'int', '1', '', 'user', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		
 		return $this->_init($sql, $options);
 	}

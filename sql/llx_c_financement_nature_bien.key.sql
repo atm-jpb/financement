@@ -1,0 +1,1 @@
+ALTER TABLE llx_c_financement_nature_bien ADD INDEX uk_c_financement_nature_bien_cat_id (nat_id);

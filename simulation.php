@@ -309,20 +309,50 @@ if(!empty($action)) {
 			<?php
 			
 			break;
-		
+		case 'trywebservice':
+			$simulation->load($ATMdb, $db, GETPOST('id'));
+			$id_suivi = GETPOST('id_suivi');
+			$simulation_id = $simulation->getId();
+			if (!empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($user->admin) && $user->entity == 0 && !empty($simulation_id) && !empty($id_suivi))
+			{
+				dol_include_once('/financement/class/service_financement.class.php');
+				$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[$id_suivi]);
+				$service->debug = true; // si tout ce passe bien, on tombera sur un exit avec cet attribut
+				$res = $service->call();
+			}
+			
+			_fiche($ATMdb, $simulation, 'view');
+			break;
 		default:
 			
 			//Actions spécifiques au suivi financement leaser
 			$id_suivi = GETPOST('id_suivi');
 			if($id_suivi){
+				
 				$simulation->load($ATMdb, $db, $_REQUEST['id']);
-				$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$simulation,$action);
 				
-				if(!empty($simulation->TSimulationSuivi[$id_suivi]->errorLabel)){
-					setEventMessage($simulation->TSimulationSuivi[$id_suivi]->errorLabel,'errors');
+				$res = true; // Init à true pour garder le comportement de base si action <> de "demander"
+				if($action == 'demander') 
+				{
+					dol_include_once('/financement/class/service_financement.class.php');
+					$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[$id_suivi]);
+					// La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active) 
+					$res = $service->call();
 				}
-				
-				if($action == 'demander'){
+
+				// La methode call() retournera principalement false, car pour le moment 1 seul leaser est prévu, et dans le cas de l'appel avec le bon leaser il faut tester qu'il n'y a pas d'erreur
+				if (!$res && !empty($service->TError))
+				{
+					setEventMessages('', $service->TError, 'errors');
+				}
+				else
+				{
+					$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$simulation,$action);
+					
+					if(!empty($simulation->TSimulationSuivi[$id_suivi]->errorLabel)){
+						setEventMessage($simulation->TSimulationSuivi[$id_suivi]->errorLabel,'errors');
+					}
+					
 					//$simulation->accord = 'WAIT_LEASER';
 					// Suite retours PR1512_1187, on ne garde plus que le statut WAIT (En étude)
 					$simulation->accord = 'WAIT';
@@ -807,7 +837,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'accord_confirme'=>$simulation->accord_confirme
 		,'total_financement'=>$simulation->montant_total_finance
 		,'type_materiel'=>$form->texte('','type_materiel',$simulation->type_materiel, 50)
-		,'marque_materiel'=>(!in_array($simulation->marque_materiel, $simulation->TMarqueMateriel) ? $langs->trans('Simulation_marque_not_more_available', $simulation->marque_materiel).' - ' : '') . $form->combo('','marque_materiel',$simulation->TMarqueMateriel,$simulation->marque_materiel)
+		,'marque_materiel'=>(!in_array($simulation->marque_materiel, $simulation->TMarqueMateriel) && !empty($simulation->marque_materiel) ? $langs->trans('Simulation_marque_not_more_available', $simulation->marque_materiel).' - ' : '') . $form->combo('','marque_materiel',$simulation->TMarqueMateriel,$simulation->marque_materiel)
 		,'numero_accord'=>($can_preco && GETPOST('action') == 'edit') ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $link_dossier
 		
 		,'no_case_to_settle'=>$form->checkbox1('', 'opt_no_case_to_settle', 1, $simulation->opt_no_case_to_settle) 
@@ -826,6 +856,12 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'display_preco'=>$can_preco
 		,'type_financement'=>$can_preco ? $form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement) : $simulation->type_financement
 		,'leaser'=>($mode=='edit' && $can_preco) ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : (($simulation->fk_leaser > 0) ? $simulation->leaser->getNomUrl(1) : '')
+		
+		,'pct_vr'=>$form->texte('', 'pct_vr', vatrate($simulation->pct_vr), 10)
+		,'mt_vr'=>$form->texte('', 'mt_vr', price2num($simulation->mt_vr), 10)
+		,'info_vr'=>$html->textwithpicto('', $langs->transnoentities('simulation_info_vr'), 1, 'info', '', 0, 3)
+		,'fk_categorie_bien'=>$mode == 'edit' ? $html->selectarray('fk_categorie_bien', TFinancementTools::getCategorieId(), $simulation->fk_categorie_bien) : TFinancementTools::getCategorieLabel($simulation->fk_categorie_bien)
+		,'fk_nature_bien'=>$mode == 'edit' ? $html->selectarray('fk_nature_bien', TFinancementTools::getNatureId(), $simulation->fk_nature_bien) : TFinancementTools::getNatureLabel($simulation->fk_nature_bien)
 	);
 	
 	if($mode == 'edit_montant') {

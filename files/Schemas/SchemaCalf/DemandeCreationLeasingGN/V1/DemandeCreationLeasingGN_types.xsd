@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Creation 2016/06 -->
+
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+			targetNamespace="http://referentiel.ca.fr/Services/calf/DemandeCreationLeasingGN/V1/"
+			      xmlns:tns="http://referentiel.ca.fr/Services/calf/DemandeCreationLeasingGN/V1/" elementFormDefault="qualified">
+											 
+
+	<!-- Définition des elements principaux -->
+
+	<xsd:element name="DemandeCreationLeasingGN" type="tns:DemandeCreationLeasingGN" >
+	</xsd:element>
+
+	<xsd:element name="DemandeCreationLeasingGNResponse" type="tns:DemandeCreationLeasingGNResponse">
+	</xsd:element>
+
+	<!-- Définition des types complexes -->
+
+	
+	<xsd:complexType name="DemandeCreationLeasingGN">
+		<xsd:sequence>
+			<xsd:element name="Request" 	type="tns:Type_Request" 	minOccurs="1" maxOccurs="1"/> 
+		</xsd:sequence>
+	</xsd:complexType>	
+
+	 <xsd:complexType name="Type_Request" >
+		<xsd:sequence>
+	 
+        <xsd:element name="PARTENAIRE">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element type="xsd:string" name="SIREN_PARTENAIRE"/>
+			  <xsd:element type="xsd:string" name="NIC_PARTENAIRE"/>
+			  <xsd:element type="xsd:string" name="COMMERCIAL_EMAIL"/>
+              <xsd:element type="xsd:string" name="REF_EXT"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+		
+        <xsd:element name="BIEN">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element type="xsd:string" name="CATEGORIE_BIEN"/>
+              <xsd:element type="xsd:string" name="NATURE_BIEN" />
+              <xsd:element type="xsd:string" name="MARQUE_BIEN"/>
+              <xsd:element type="xsd:integer" name="ANNEE_BIEN"/>
+              <xsd:element type="xsd:string" name="ETAT_BIEN"/>
+              <xsd:element type="xsd:int" name="QTE_BIEN"/>
+              <xsd:element type="xsd:decimal" name="MT_HT_BIEN"/>
+			  <xsd:element type="xsd:string" name="PAYS_DESTINATION_BIEN"/>
+              <xsd:element type="xsd:string" name="FOURNISSEUR_SIREN"/>
+              <xsd:element type="xsd:string" name="FOURNISSEUR_NIC"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+		
+        <xsd:element name="BIEN_COMPL" maxOccurs="unbounded">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element type="xsd:string" minOccurs="0" name="CATEGORIE_BIEN_COMPL"/>
+              <xsd:element type="xsd:string" minOccurs="0" name="NATURE_BIEN_COMPL"/>
+              <xsd:element type="xsd:string" minOccurs="0" name="MARQUE_BIEN_COMPL"/>
+			  <xsd:element type="xsd:int" minOccurs="0" name="ANNEE_BIEN_COMPL"/>
+			  <xsd:element type="xsd:string" minOccurs="0" name="ETAT_BIEN_COMPL"/>
+			  <xsd:element type="xsd:decimal" minOccurs="0" name="MT_HT_BIEN_COMPL"/>
+			  <xsd:element type="xsd:int" minOccurs="0" name="QTE_BIEN_COMPL"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+		
+        <xsd:element name="CLIENT">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element type="xsd:string" name="CLIENT_SIREN"/>
+			  <xsd:element type="xsd:string" minOccurs="0" name="CLIENT_NIC"/> 
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+		
+        <xsd:element name="FINANCEMENT">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element type="xsd:string" name="CODE_PRODUIT"/>
+              <xsd:element type="xsd:string" name="TYPE_PRODUIT"/>
+              <xsd:element type="xsd:decimal" name="MT_FINANCEMENT_HT"/>
+              <xsd:element type="xsd:decimal" minOccurs="0" name="PCT_VR"/>
+              <xsd:element type="xsd:decimal" minOccurs="0" name="MT_VR"/>
+              <xsd:element type="xsd:string" name="TYPE_REGLEMENT"/>
+              <xsd:element type="xsd:decimal" minOccurs="0" name="MT_PREMIER_LOYER"/>
+              <xsd:element type="xsd:int" name="DUREE_FINANCEMENT"/> 
+              <xsd:element type="xsd:string" name="PERIODICITE_FINANCEMENT"/>
+              <xsd:element type="xsd:string" name="TERME_FINANCEMENT"/>
+              <xsd:element type="xsd:int" minOccurs="0" name="NB_FRANCHISE"/>
+			  <xsd:element type="xsd:string" minOccurs="0" name="NATURE_FINANCEMENT"/>
+			  <xsd:element type="xsd:dateTime" name="DATE_DEMANDE_FINANCEMENT"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+
+      </xsd:sequence>
+	</xsd:complexType>			
+
+
+
+	<xsd:complexType name="DemandeCreationLeasingGNResponse">
+		<xsd:sequence>
+			<xsd:element name="retour"		type="tns:Type_RetourTraitement"  minOccurs="1" maxOccurs="1"/>
+		</xsd:sequence>
+	</xsd:complexType>			
+
+	<xsd:complexType name="Type_RetourTraitement">
+	<xsd:sequence>
+	<xsd:element type="xsd:string" name="REF_EXT"/>
+	<xsd:element type="xsd:string" name="CLIENT_SIREN"/>
+	<xsd:element type="xsd:string" name="CLIENT_NIC" />
+	<xsd:element type="xsd:string" name="STATUT" 	/>
+	 <xsd:element type="xsd:string" name="COMMENTAIRE_STATUT"/>
+        <xsd:element type="xsd:dateTime" name="DATE_DEMANDE_FINANCEMENT"/>
+	  </xsd:sequence>
+			
+	</xsd:complexType>	
+
+
+</xsd:schema>

@@ -1,0 +1,2 @@
+INSERT INTO llx_c_financement_categorie_bien (cat_id, label, entity, active) VALUE (11, 'INFORMATIQUE', 0, 1);
+INSERT INTO llx_c_financement_categorie_bien (cat_id, label, entity, active) VALUE (26, 'BUREAUTIQUE', 0, 1);

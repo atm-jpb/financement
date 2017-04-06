@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2009 sp1 (http://www.altova.com) by Michel Prats (CRÉDIT AGRICOLE S.A.) -->
+<ca_erreurs:CABusinessExceptionList xmlns:ca_erreurs="http://referentiel.ca.fr/ErreursV1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://referentiel.ca.fr/ErreursV1 CA_Erreur.xsd">
+	<ca_erreurs:CABusinessException id="VIR0021450" technicalLabel="Le montant saisi n'est pas correct"/>
+	<ca_erreurs:CABusinessException id="SX00200" technicalLabel="Le compte de destination n'est pas correct" criticite="02">
+		<ca_erreurs:VariablesList>
+				<ca_erreurs:Variable variableName="code" variableValue="5"/>
+				<ca_erreurs:Variable variableName="montant" variableValue="30"/>
+			</ca_erreurs:VariablesList>
+	</ca_erreurs:CABusinessException>
+</ca_erreurs:CABusinessExceptionList>

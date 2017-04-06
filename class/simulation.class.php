@@ -13,7 +13,9 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('dossiers,dossiers_rachetes_m1,dossiers_rachetes_nr_m1,dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
 		parent::add_champs('thirdparty_name,thirdparty_address,thirdparty_zip,thirdparty_town,thirdparty_code_client,thirdparty_idprof2_siret, thirdparty_idprof3_naf','type=chaine;');
 		parent::add_champs('montant_accord','type=float;'); // Sert à stocker le montant pour lequel l'accord a été donné
-
+		parent::add_champs('fk_categorie_bien,fk_nature_bien', array('type'=>'integer'));
+		parent::add_champs('pct_vr,mt_vr', array('type'=>'float'));
+		
 		parent::start();
 		parent::_init_vars();
 		
@@ -96,6 +98,8 @@ class TSimulation extends TObjetStd {
 		$this->opt_calage = '';
 		$this->date_demarrage = '';
 		$this->vr = 0;
+		$this->mt_vr = 0.15;
+		$this->pcr_vr = 0.15;
 		$this->coeff = 0;
 		$this->fk_user_author = $user->id;
 		$this->user = $user;
@@ -1410,6 +1414,7 @@ class TSimulationSuivi extends TObjetStd {
 	
 	//Retourne les actions possible pour ce suivi suivant les règles de gestion
 	function getAction(&$simulation, $just_save=false){
+		global $conf,$user;
 		
 		$actions = '';
 		$ancre = '#suivi_leaser';
@@ -1464,6 +1469,8 @@ class TSimulationSuivi extends TObjetStd {
 				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Annuler"><img src="'.dol_buildpath('/financement/img/OK.png',1).'" /></a>&nbsp;';
 			}
 		}
+		
+		if (!$just_save && !empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($user->admin) && $user->entity == 0) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.img_picto('Webservice', 'call').'</a>&nbsp;';
 		
 		return $actions;
 	}
