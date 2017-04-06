@@ -161,7 +161,7 @@ class modFinancement extends DolibarrModules
 		,'tabsql'=>array(
 			'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_type_contrat as f WHERE entity = '.$conf->entity
 			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_marque_materiel as f WHERE entity = '.$conf->entity
-			,'SELECT f.rowid as rowid, f.fk_type_contrat, f.periode, f.base_solde, f.percent, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_conf_solde as f WHERE entity = '.$conf->entity
+			,'SELECT f.rowid as rowid, f.fk_type_contrat, f.periode, f.base_solde, f.percent, f.percent_nr, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_conf_solde as f WHERE entity = '.$conf->entity
 		)
 		,'tabsqlsort'=>array(
 			'label ASC'
@@ -171,17 +171,17 @@ class modFinancement extends DolibarrModules
 		,'tabfield'=>array(
 			'code,label'
 			,'code,label'
-			,'fk_type_contrat,periode,base_solde,percent'
+			,'fk_type_contrat,periode,base_solde,percent,percent_nr'
 		)
 		,'tabfieldvalue'=>array(
 			'code,label,entity'
 			,'code,label,entity'
-			,'fk_type_contrat,periode,base_solde,percent,entity'
+			,'fk_type_contrat,periode,base_solde,percent,percent_nr,entity'
 		)
 		,'tabfieldinsert'=>array(
 			'code,label,entity'
 			,'code,label,entity'
-			,'fk_type_contrat,periode,base_solde,percent,entity'
+			,'fk_type_contrat,periode,base_solde,percent,percent_nr,entity'
 		)
 		,'tabrowid'=>array(
 			'rowid'

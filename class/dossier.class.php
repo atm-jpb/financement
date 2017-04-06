@@ -819,9 +819,9 @@ class TFin_dossier extends TObjetStd {
 			if($TSoldeRule->base_solde == 'MF') {
 				$solde = $this->financement->montant;
 			} else if($TSoldeRule->base_solde == 'CRD') {
-				$solde = $CRD * (1 + $TSoldeRule->percent / 100);
+				$solde = $CRD * (1 + $TSoldeRule->percent_nr / 100);
 			} else if($TSoldeRule->base_solde == 'LRD') {
-				$solde = $LRD * (1 + $TSoldeRule->percent / 100);
+				$solde = $LRD * (1 + $TSoldeRule->percent_nr / 100);
 			} else {
 				if ($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
 			
