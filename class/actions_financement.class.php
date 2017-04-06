@@ -265,7 +265,7 @@ class ActionsFinancement
 			}
 			elseif ($value == 'base_solde') {
 				print '<td>';
-				print $form->selectarray($value, array('MF'=>'Montant financé', 'CRD'=>'CRD','LRD'=>'LRD'),$object->$value);
+				print $form->selectarray($value, $aff->TBaseSolde,$object->$value);
 				print '</td>';
 			}
 			else
