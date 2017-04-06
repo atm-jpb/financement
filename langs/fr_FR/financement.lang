@@ -152,3 +152,9 @@ ErrorMaterielNonFinance=Facture matériel pour un contrat non financé
 # IHM
 DataSaved=Données enregistrées avec succès
 DateProblem=Problème de date, régularisation annulée.
+
+# DICTIONNAIRE CONF SOLDE
+Fk_type_contrat=Type contrat
+Periode=Période (mois)
+Base_solde=Base de calcul du solde
+Percent=Variation (%%)
