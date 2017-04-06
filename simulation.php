@@ -353,15 +353,17 @@ if(!empty($action)) {
 						setEventMessage($simulation->TSimulationSuivi[$id_suivi]->errorLabel,'errors');
 					}
 					
-					//$simulation->accord = 'WAIT_LEASER';
-					// Suite retours PR1512_1187, on ne garde plus que le statut WAIT (En étude)
-					$simulation->accord = 'WAIT';
-					
-					// Si une demande est formulée auprès d'un leaser, on fige le montant (+- 10%)
-					if(empty($simulation->montant_accord)) {
-						$simulation->montant_accord = $simulation->montant_total_finance;
+					if($action == 'demander'){
+						//$simulation->accord = 'WAIT_LEASER';
+						// Suite retours PR1512_1187, on ne garde plus que le statut WAIT (En étude)
+						$simulation->accord = 'WAIT';
+						
+						// Si une demande est formulée auprès d'un leaser, on fige le montant (+- 10%)
+						if(empty($simulation->montant_accord)) {
+							$simulation->montant_accord = $simulation->montant_total_finance;
+						}
+						$simulation->save($ATMdb, $db);
 					}
-					$simulation->save($ATMdb, $db);
 				}
 				
 				_fiche($ATMdb, $simulation, 'view');
