@@ -31,6 +31,7 @@ class TFin_affaire extends TObjetStd {
 			'MF'=>'Montant financé'
 			,'CRD'=>'CRD'
 			,'LRD'=>'LRD'
+			,'SPE'=>'Spécifique'
 		);
 		
 		$this->TTypeFinancement=array(
