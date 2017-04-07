@@ -182,7 +182,7 @@ function repondreDemande($authentication, $TReponse)
 							$found = false;
 							foreach ($simulation->TSimulationSuivi as &$simulationSuivi)
 							{
-								if ($simulationSuivi->fk_leaser == $fuser->array_options['options_fk_leaser_webservice'])
+								if (in_array($simulationSuivi->fk_leaser, explode(',', $fuser->array_options['options_fk_leaser_webservice'])))
 								{
 									$found = true;
 									break;
