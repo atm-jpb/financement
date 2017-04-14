@@ -262,7 +262,7 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 			$filename=dol_sanitizeFileName($p->ref);
 			$filedir=$conf->propal->dir_output . '/' . dol_sanitizeFileName($p->ref);
 			
-			$links = $p->getNomUrl(1).' '.$p->getLibStatut(3);
+			$links = $p->getNomUrl(1);
 			if($p->fin_validite >= strtotime(date('Y-m-d'))) { // Affichage du PDF si encore valide
 				$links.= $formfile->getDocumentsLink($p->element, '', $filedir, $p->entity);
 			}
