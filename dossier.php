@@ -394,6 +394,7 @@ function _liste(&$PDOdb, &$dossier) {
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.duree ELSE fl.duree END as 'duree', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.montant ELSE fl.montant END as 'Montant', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.echeance ELSE fl.echeance END as 'echeance', ";
+	$sql.="fl.montant as 'montantLeaser', ";
 	$sql.="fl.echeance as 'echeanceLeaser', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END as 'Prochaine', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END as 'date_debut', ";
@@ -450,7 +451,7 @@ function _liste(&$PDOdb, &$dossier) {
 			'nature_financement'=>$aff->TNatureFinancement
 		)
 		,'hide'=>array('fk_soc','ID','ID affaire','fk_fact_materiel')
-		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'Echéance'=>'money')
+		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'echeance'=>'money', 'montantLeaser'=>'money', 'echeanceLeaser'=>'money')
 		,'liste'=>array(
 			'titre'=>"Liste des dossiers"
 			,'image'=>img_picto('','title.png', '', 0)
@@ -467,6 +468,7 @@ function _liste(&$PDOdb, &$dossier) {
 			,'refDosLea'=>'Contrat Leaser'
 			,'duree'=>'Durée'
 			,'echeance'=>'Echéance'
+			,'montantLeaser'=>'Montant leaser'
 			,'echeanceLeaser'=>'Echéance leaser'
 			,'entity_id'=>'Partenaire'
 			,'nomCli'=>'Client'
@@ -660,7 +662,7 @@ function _getExportXML($sql){
 	$file = fopen($filepath,'w');
 
 	//Ajout première ligne libelle
-	$TLabel = array('Contrat','Partenaire','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant','Echeance Client','Echeance Leaser','Prochaine','Debut','Fin','Facture Materiel');
+	$TLabel = array('Contrat','Partenaire','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant Client','Echeance Client','Montant Leaser','Echeance Leaser','Prochaine','Debut','Fin','Facture Materiel');
 	fputcsv($file, $TLabel,';','"');
 	
 	foreach($TTRes as $TRes){
