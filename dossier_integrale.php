@@ -152,7 +152,10 @@ function _formatIntegrale(&$integrale){
 }
 // TODO à refaire, fonction nid à couillons 
 function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
-	global $db;
+	global $db,$conf;
+	
+	dol_include_once('/core/class/html.formfile.class.php');
+	$formfile = new FormFile($db);
 	
 	$integrale = new TIntegrale;
 	$integrale->loadBy($PDOdb, $facture->ref, 'facnumber');
@@ -253,8 +256,19 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 	}
 
 	$facture->fetchObjectLinked('', 'propal', $facture->id, 'facture');
+	
 	if(!empty($facture->linkedObjects['propal'])) {
-		foreach($facture->linkedObjects['propal'] as $p) $TIntegrale[$integrale->date_periode]->propal .= $p->getNomUrl(1).' '.$p->getLibStatut(3)."<br>";
+		foreach($facture->linkedObjects['propal'] as $p) {
+			$filename=dol_sanitizeFileName($p->ref);
+			$filedir=$conf->propal->dir_output . '/' . dol_sanitizeFileName($p->ref);
+			
+			$links = $p->getNomUrl(1).' '.$p->getLibStatut(3);
+			if($p->fin_validite >= strtotime(date('Y-m-d'))) { // Affichage du PDF si encore valide
+				$links.= $formfile->getDocumentsLink($p->element, '', $filedir, $p->entity);
+			}
+			$links.= "<br>";
+			$TIntegrale[$integrale->date_periode]->propal .= $links;
+		}
 	}
 	
 	return $TIntegrale;
