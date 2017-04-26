@@ -347,6 +347,7 @@ class TFin_dossier extends TObjetStd {
 		$sql.= " WHERE sourcetype='dossier'";
 		$sql.= " AND targettype='facture'";
 		$sql.= " AND fk_source=".$this->getId();
+		$sql.= ' AND f.entity IN('.getEntity('fin_dossier', true).')';
 		$sql.= " ORDER BY f.facnumber ASC";
 		//echo $sql;exit;
 		$ATMdb->Execute($sql);
