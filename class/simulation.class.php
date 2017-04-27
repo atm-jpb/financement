@@ -1609,6 +1609,7 @@ class TSimulationSuivi extends TObjetStd {
 		} 
 		
 		$simulation->accord = 'OK';
+		$simulation->date_accord = time();
 		$simulation->numero_accord = $this->numero_accord_leaser;
 		$simulation->fk_leaser = $this->fk_leaser;
 		if(!empty($TTypeFinancement[$TCateg_tiers[0]])) $simulation->type_financement = $TTypeFinancement[$TCateg_tiers[0]];
