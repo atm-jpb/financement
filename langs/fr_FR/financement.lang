@@ -104,6 +104,7 @@ Etude_Vendeur_Short=Étude-Elts Vendeur
 Accord=Accord
 Refus=Refus
 SansSuite=Sans suite
+Error=Erreur
 ErrorNoTypeContratSelected=Merci de sélectionner un type de contrat
 ErrorPeriodiciteRequired=Merci de sélectionner une périodicité
 ErrorDureeRequired=Merci de sélectionner une durée

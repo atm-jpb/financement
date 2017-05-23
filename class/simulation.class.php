@@ -1369,6 +1369,7 @@ class TSimulationSuivi extends TObjetStd {
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 			,'MEL'=>$langs->trans('Mise En Loyé')
+			,'ERR'=>$langs->trans('Error')
 		);
 		
 		$this->TLeaserAuto=array(
@@ -1498,6 +1499,9 @@ class TSimulationSuivi extends TObjetStd {
 				case 'selectionner':
 					$this->doActionSelectionner($PDOdb,$simulation);
 					break;
+				case 'erreur':
+					$this->doActionErreur($PDOdb,$simulation);
+					break;
 				default:
 					
 					break;
@@ -1567,6 +1571,14 @@ class TSimulationSuivi extends TObjetStd {
 		global $db;
 		
 		$this->statut = 'KO';
+		$this->save($PDOdb);
+	}
+	
+	//Effectue l'action de passer au statut refusé la demande de financement leaser
+	function doActionErreur(&$PDOdb,&$simulation){
+		global $db;
+		
+		$this->statut = 'ERR';
 		$this->save($PDOdb);
 	}
 	

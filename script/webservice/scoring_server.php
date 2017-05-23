@@ -269,24 +269,30 @@ function repondreDemande($authentication, $TReponse)
 
 function _getAction(&$fuser, $statut)
 {
-	$action = 'refuser';
+	$action = 'attente';
 	
 	// TODO à faire évoluer si l'utilisateur du webservice change et n'est plus uniquement CAL&F (Lixxbail)
 	switch (strtolower($statut)) {
-		case 'attente':
+		case 'ETUDE':
 			$action = 'attente';
 			break;
 			
-		case 'accepte':
+		case 'ACCEPTE':
 			$action = 'accepter';
 			break;
 			
-		case 'refuse':
-		case 'ajourne':
-		case 'sansuisu':
-		case 'sansuisa':
-		case 'annule':
+		case 'REFUSE':
 			$action = 'refuser';
+			break;
+			
+		case 'ERRTECH':
+		case 'ERRCOMM':
+		case 'ERRBAREME':
+		case 'ERRASSBIEN':
+		case 'ERRINFCONT':
+		case 'ERRLOYER':
+		case 'ERRFONC':
+			$action = 'erreur';
 			break;
 	}
 	
