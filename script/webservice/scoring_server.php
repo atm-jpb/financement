@@ -273,25 +273,25 @@ function _getAction(&$fuser, $statut)
 	
 	// TODO à faire évoluer si l'utilisateur du webservice change et n'est plus uniquement CAL&F (Lixxbail)
 	switch (strtolower($statut)) {
-		case 'ETUDE':
+		case 'etude':
 			$action = 'attente';
 			break;
 			
-		case 'ACCEPTE':
+		case 'accepte':
 			$action = 'accepter';
 			break;
 			
-		case 'REFUSE':
+		case 'refuse':
 			$action = 'refuser';
 			break;
 			
-		case 'ERRTECH':
-		case 'ERRCOMM':
-		case 'ERRBAREME':
-		case 'ERRASSBIEN':
-		case 'ERRINFCONT':
-		case 'ERRLOYER':
-		case 'ERRFONC':
+		case 'errtech':
+		case 'errcomm':
+		case 'errbareme':
+		case 'errassbien':
+		case 'errinfcont':
+		case 'errloyer':
+		case 'errfonc':
 			$action = 'erreur';
 			break;
 	}
