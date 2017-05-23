@@ -135,6 +135,8 @@ function repondreDemande($authentication, $TReponse)
 	global $db,$conf,$langs;
 
 	dol_syslog("WEBSERVICE ".date('Y-m-d H:i:s')." Function: repondreDemande login=".$authentication['login']);
+	//dol_syslog("WEBSERVICE AUTH TAB : ".print_r($authentification,true), LOG_ERR);
+	dol_syslog("WEBSERVICE REP TAB : ".print_r($TReponse,true), LOG_ERR);
 
 	if ($authentication['entity']) $conf->entity=$authentication['entity'];
 
@@ -168,7 +170,7 @@ function repondreDemande($authentication, $TReponse)
 	
 				$PDOdb = new TPDOdb;
 				$simulation = new TSimulation;
-				$reference_simulation = $TReponse['partenaire'][0]['ref_ext'];
+				$reference_simulation = $TReponse['partenaire']['ref_ext'];
 				
 				$TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $simulation->get_table(), array('reference'=>$reference_simulation));
 				if (!empty($TId[0]))
@@ -176,7 +178,7 @@ function repondreDemande($authentication, $TReponse)
 					$simulation->load($PDOdb, $db, $TId[0]);
 					if ($simulation->getId() > 0)
 					{
-						if (strcmp($simulation->societe->idprof1, $TReponse['client'][0]['client_siren']) === 0)
+						if (strcmp($simulation->societe->idprof1, $TReponse['client']['client_siren']) === 0)
 						{
 							
 							$found = false;
@@ -259,6 +261,8 @@ function repondreDemande($authentication, $TReponse)
 	$date = new DateTime();
 	$objectresp['date'] = $date->format('Y-m-d H:i:s');
 	$objectresp['timezone'] = $date->getTimezone()->getName();
+	
+	dol_syslog("WEBSERVICE RESULT TAB : ".print_r($objectresp,true), LOG_ERR);
 
 	return $objectresp;
 }
