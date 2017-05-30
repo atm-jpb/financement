@@ -264,7 +264,7 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 			
 			$links = $p->getNomUrl(1);
 			if($p->fin_validite >= strtotime(date('Y-m-d'))) { // Affichage du PDF si encore valide
-				$links.= $formfile->getDocumentsLink($p->element, '', $filedir, $p->entity);
+				$links.= $formfile->getDocumentsLink($p->element, $filename, $filedir, $p->entity);
 			}
 			$links.= "<br>";
 			$TIntegrale[$integrale->date_periode]->propal .= $links;
