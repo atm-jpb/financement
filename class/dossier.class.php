@@ -1193,6 +1193,8 @@ class TFin_dossier extends TObjetStd {
 				$data['facture_link'] .= $fact->id;
 			//	print $iFacture.' '.$fact->id.'<br />';
 				$data['facture_bg'] = ($fact->paye == 1) ? '#00FF00' : '#FF0000';
+				// Côté client, affichage en bleu si facture créée manuellement
+				$data['facture_bg'] = (!empty($fact->user_author) && $fact->user_author != 1 && $type_echeancier == 'CLIENT') ? '#00CCFF' : $data['facture_bg'];
 			}
 			else if(is_array($fact)) { // Financement Client avec plusieurs factures
 				
