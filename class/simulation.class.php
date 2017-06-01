@@ -1471,7 +1471,7 @@ class TSimulationSuivi extends TObjetStd {
 			}
 		}
 		
-		if (!$just_save && !empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($user->admin) && $user->entity == 0) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.img_picto('Webservice', 'call').'</a>&nbsp;';
+		if (!$just_save && !empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON)) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.img_picto('Webservice', 'call').'</a>&nbsp;';
 		
 		return $actions;
 	}
