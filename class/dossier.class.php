@@ -1326,6 +1326,7 @@ class TFin_dossier extends TObjetStd {
 				$autre['loyer_intercalaire_facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/card.php?facid=';
 				$autre['loyer_intercalaire_facture_link'] .= $fact->id;
 				$autre['loyer_intercalaire_facture_bg'] = ($fact->paye == 1) ? '#00FF00' : '#FF0000';
+				$autre['loyer_intercalaire_facture_bg'] = (!empty($fact->user_author) && $fact->user_author != 1 && $type_echeancier == 'CLIENT') ? '#00CCFF' : $data['loyer_intercalaire_facture_bg'];
 				$autre['total_facture'] += $fact->total_ht;
 				$autre['total_loyer'] += $f->loyer_intercalaire;
 			} else {
