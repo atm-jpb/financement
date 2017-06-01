@@ -1558,11 +1558,7 @@ class TSimulationSuivi extends TObjetStd {
 	function doActionAccepter(&$PDOdb,&$simulation){
 		global $db;
 		
-		$simulation->accord = 'WAIT';
-		$simulation->save($PDOdb, $db);
-		
 		$this->statut = 'OK';
-		$this->date_selection = 0;
 		$this->save($PDOdb);
 	}
 	
