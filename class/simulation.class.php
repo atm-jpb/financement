@@ -1373,13 +1373,13 @@ class TSimulationSuivi extends TObjetStd {
 		);
 		
 		$this->TLeaserAuto=array(
-			'3382'		=> 'BNP PARIBAS LEASE GROUP'
-			,'19553'	=> 'BNP PARIBAS LEASE GROUP (ADOSSE)'
-			,'20113'	=> 'BNP PARIBAS LEASE GROUP (MANDATE)'
-			,'7411'		=> 'GE CAPITAL EQUIPEMENT FINANCE'
-			,'21382'	=> 'GE CAPITAL EQUIPEMENT FINANCE (MANDATEE)'
-			,'6065'		=> 'LIXXBAIL'
-			,'19483'	=> 'LIXXBAIL MANDATE'
+			3382		=> 'BNP PARIBAS LEASE GROUP'
+			,19553		=> 'BNP PARIBAS LEASE GROUP (ADOSSE)'
+			,20113		=> 'BNP PARIBAS LEASE GROUP (MANDATE)'
+			,7411		=> 'GE CAPITAL EQUIPEMENT FINANCE'
+			,21382		=> 'GE CAPITAL EQUIPEMENT FINANCE (MANDATEE)'
+			,6065		=> 'LIXXBAIL'
+			,19483		=> 'LIXXBAIL MANDATE'
 		);
 		
 		$this->simulation = new TSimulation;
@@ -1473,7 +1473,7 @@ class TSimulationSuivi extends TObjetStd {
 			}
 		}
 		
-		if (!$just_save && !empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && in_array($this->fk_leaser, $this->TLeaserAuto)) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.img_picto('Webservice', 'call').'</a>&nbsp;';
+		if (!$just_save && !empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($this->TLeaserAuto[$this->fk_leaser])) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.img_picto('Webservice', 'call').'</a>&nbsp;';
 		
 		return $actions;
 	}
