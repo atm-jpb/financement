@@ -887,8 +887,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 			,'user'=>$user
 			
 		),
-		array(),
-		array('charset'=>OPENTBS_ALREADY_UTF8)
+		array()
+		//,array('charset'=>OPENTBS_ALREADY_UTF8)
 	);
 	
 	echo $form->end_form();
