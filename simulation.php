@@ -312,6 +312,7 @@ if(!empty($action)) {
 		case 'trywebservice':
 			$simulation->load($ATMdb, $db, GETPOST('id'));
 			$id_suivi = GETPOST('id_suivi');
+			$simulation->TSimulationSuivi[$id_suivi]->debug = true;
 			$simulation->TSimulationSuivi[$id_suivi]->_sendDemandeAuto($ATMdb);
 			
 			_fiche($ATMdb, $simulation, 'view');
