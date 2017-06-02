@@ -601,6 +601,7 @@ function getAllStatutSuivi() {
 		$nb_ok = 0;
 		$nb_wait = 0;
 		$nb_refus = 0;
+		$nb_err=  0;
 		
 		foreach($TStatut as $TData) {
 			
@@ -621,6 +622,7 @@ function getAllStatutSuivi() {
 			elseif($TData['statut'] == 'OK') $nb_ok++;
 			elseif($TData['statut'] == 'WAIT') $nb_wait++;
 			elseif($TData['statut'] == 'KO') $nb_refus++;
+			elseif($TData['statut'] == 'ERR') $nb_err++;
 		
 		}
 
@@ -630,6 +632,7 @@ function getAllStatutSuivi() {
 				if($nb_ok > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/OK.png',1).'" />';
 				elseif($nb_refus > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/KO.png',1).'" />';
 				elseif($nb_wait > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
+				elseif($nb_err > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/ERR.png',1).'" />';
 				else $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/KO.png',1).'" />';
 				$TStatutSuiviFinal[$fk_simulation].= '</a>';
 			}
