@@ -92,16 +92,21 @@
 	</tr>
 	
 	<tr class="pair" align="center">
+		<td>Total hors frais</td>
+		<td colspan="2">[global.total_hors_frais;strconv=no]</td>
+	</tr>
+	
+	<tr class="impair" align="center">
 		<td>Frais bris machine</td>
 		<td colspan="2">[global.frais_bris_machine;strconv=no]</td>
 	</tr>
 	
-	<tr class="impair" align="center">
+	<tr class="pair" align="center">
 		<td>FTC</td>
 		<td colspan="2">[global.frais_facturation;strconv=no]</td>
 	</tr>
 	
-	<tr class="pair" align="center">
+	<tr class="impair" align="center">
 		<td>Total</td>
 		<td colspan="2">[global.total_global;strconv=no]</td>
 	</tr>

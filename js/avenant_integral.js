@@ -59,6 +59,8 @@ function update_cout_loyer(action,type) {
 			for (i in data.couts_noir) data.couts_noir[i] = _format_float(data.couts_noir[i],5);
 			for (i in data.couts_coul) data.couts_coul[i] = _format_float(data.couts_coul[i],5);
 			for (i in data) data[i] = _format_float(data[i],2);
+			data.couts_noir.nouveau_cout_total = _format_float(data.couts_noir.nouveau_cout_total,2);
+			data.couts_coul.nouveau_cout_total = _format_float(data.couts_coul.nouveau_cout_total,2);
 			$('input[name="nouveau_cout_unitaire_noir"]').val(data.couts_noir.cout_unitaire);
 			$('input[name="nouveau_cout_unitaire_coul"]').val(data.couts_coul.cout_unitaire);
 			$('input[name="nouveau_cout_unit_noir_tech"]').val(data.couts_noir.nouveau_cout_unitaire_tech);
@@ -70,12 +72,16 @@ function update_cout_loyer(action,type) {
 			$('input[name="montant_total_noir"]').val(data.couts_noir.nouveau_cout_total);
 			$('input[name="montant_total_coul"]').val(data.couts_coul.nouveau_cout_total);
 			$('input[name="total_global"]').val(data.total_global);
+			$('input[name="total_hors_frais"]').val(data.total_hors_frais);
 			$('#nouveau_fas').attr('max', data.fas_max);
+			
+			$('input[name="fass"]').val(_format_float($('input[name="fass"]').val(),2));
+			$('input[name="ftc"]').val(_format_float($('input[name="ftc"]').val(),2));
 		}
 	});
 }
 
 function _format_float(val,dec) {
 	if(isNaN(val)) return val;
-	return val.toFixed(dec);
+	return parseFloat(val).toFixed(dec);
 }

@@ -1,3 +1,3 @@
 cd IN 
- put /var/www/dolibarr-fin/documents/financement/XML/Lixxbail/FP_207_MA01_CPRO_20160929.xml
+ put /var/www/dolibarr-fin/documents/financement/XML/Lixxbail/FP_207_MA01_CPRO_20161027.xml
 

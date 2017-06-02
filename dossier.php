@@ -46,11 +46,9 @@
         if(!empty($Tid)){
     		if(count($Tid) > 1){
     			_liste($PDOdb, $dossier);
-    		}
-		else{
-			$dossier->load($PDOdb, $Tid[0]);
-       			 _fiche($PDOdb,$dossier, 'view');
-		}
+    		} else{
+				header('Location: '.$SERVER['PHP_SELF'].'?id='.$Tid[0]);
+			}
         }
 	}
 	
@@ -335,7 +333,7 @@
 				// Maj échéance dossier
 				$dossier = new TFin_dossier();
 				$dossier->load($PDOdb, $idDossier);
-				$fact = $dossier->create_facture_client(false, true, $echeance);
+				$fact = $dossier->create_facture_client(true, true, $echeance);
 				
 				if($fact->id){
 					$dossier->financement->setProchaineEcheanceClient($PDOdb, $dossier);
@@ -354,8 +352,6 @@
 				
 				break;
 			
-			case 'exportListeDossier' :
-				_liste_renta_negative($PDOdb, $dossier);
 			break;
 		}
 		
@@ -369,7 +365,6 @@
 		 * Liste
 		 */
 		if(isset($_REQUEST['liste_incomplet'])) _liste_dossiers_incomplets($PDOdb, $dossier);
-		else if(isset($_REQUEST['liste_renta_negative'])) _liste_renta_negative($PDOdb,$dossier);
 		else _liste($PDOdb, $dossier);
 	}
 	
@@ -399,6 +394,8 @@ function _liste(&$PDOdb, &$dossier) {
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.duree ELSE fl.duree END as 'duree', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.montant ELSE fl.montant END as 'Montant', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.echeance ELSE fl.echeance END as 'echeance', ";
+	$sql.="fl.montant as 'montantLeaser', ";
+	$sql.="fl.echeance as 'echeanceLeaser', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END as 'Prochaine', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END as 'date_debut', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END as 'Fin' ";
@@ -440,6 +437,7 @@ function _liste(&$PDOdb, &$dossier) {
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
 			,'nbLine'=>'30'
+			,'global'=>'1000'
 		)
 		,'link'=>array(
 			'nomCli'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
@@ -453,7 +451,7 @@ function _liste(&$PDOdb, &$dossier) {
 			'nature_financement'=>$aff->TNatureFinancement
 		)
 		,'hide'=>array('fk_soc','ID','ID affaire','fk_fact_materiel')
-		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'Echéance'=>'money')
+		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'echeance'=>'money', 'montantLeaser'=>'money', 'echeanceLeaser'=>'money')
 		,'liste'=>array(
 			'titre'=>"Liste des dossiers"
 			,'image'=>img_picto('','title.png', '', 0)
@@ -470,6 +468,8 @@ function _liste(&$PDOdb, &$dossier) {
 			,'refDosLea'=>'Contrat Leaser'
 			,'duree'=>'Durée'
 			,'echeance'=>'Echéance'
+			,'montantLeaser'=>'Montant leaser'
+			,'echeanceLeaser'=>'Echéance leaser'
 			,'entity_id'=>'Partenaire'
 			,'nomCli'=>'Client'
 			,'nomLea'=>'Leaser'
@@ -599,307 +599,6 @@ function _getNomCli($fk_soc) {
 				 $TSocieteCache[$fk_soc]->fetch($fk_soc);
 				return  $TSocieteCache[$fk_soc]->nom;
 }
-function _liste_renta_negative(&$PDOdb, &$dossier) {
-	global $conf, $db, $langs;
-	
-	$display_all = false;
-	if (GETPOST('display_all') || GETPOST('action') == 'exportListeDossier') $display_all = true;
-	
-	llxHeader('','Dossiers');
-	
-	$TErrorStatus=array(
-		'error_1' => "Echéance Client <br>< Echéance Leaser",
-		'error_2' => "Echéance client <br>non facturée",
-		'error_3' => "Facture Client <br>< Facture leaser",
-		'error_4' => "Facture Client <br>impayée",
-		'error_5' => "Facture Client <br>< Loyer client"
-	);
-	
-	$TTemplateTBS = new TTemplateTBS;
-	
-	$r = new TListviewTBS('list_'.$dossier->get_table());
-	
-	// Liste des dossiers, ne pas prendre en compte les dossier soldés et/ou avec "old" dans référence -> Doc drive "Retours suite réunion du 29.01.2016"
-	$sql = 'SELECT d.rowid AS iddossier, a.rowid AS idaffaire, a.reference, a.nature_financement, a.fk_soc
-			FROM '.MAIN_DB_PREFIX.'fin_dossier d
-				LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)
-				INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (a.rowid = da.fk_fin_affaire)
-				LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (d.rowid = df.fk_fin_dossier AND df.type = "LEASER")
-				
-			WHERE df.date_solde = "0000-00-00 00:00:00"
-			AND d.montant_solde = "0.00" 
-			AND d.date_solde = "0000-00-00 00:00:00"
-			AND a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')
-			AND d.reference NOT LIKE "%old%"
-			ORDER BY d.rowid
-			';
-	
-	$PDOdb->Execute($sql);	
-	
-	$TListTBS = GETPOST('TListTBS');
-	$page = 1;
-	if (!empty($TListTBS['list_llx_fin_dossier']['page'])) $page = $TListTBS['list_llx_fin_dossier']['page'];
-	
-	while ($PDOdb->Get_line()) {
-		$res['iddossier'] = $PDOdb->Get_field('iddossier');
-		$res['idaffaire'] = $PDOdb->Get_field('idaffaire');
-		$res['reference'] = $PDOdb->Get_field('reference');
-		$res['nature_financement'] = $PDOdb->Get_field('nature_financement');
-		$res['fk_soc'] = $PDOdb->Get_field('fk_soc');
-		
-		$Tres[] = $res;
-	}
-	
-	if(!empty($Tres)) 
-	{
-		$i=0;
-		$maxDisplay = 30 * $page;
-		foreach($Tres as $res)
-		{
-			$renta_negative = false;
-			$TError = array();
-			
-			$dossier_temp = new TFin_dossier;
-			$dossier_temp->load($PDOdb, $res['iddossier'], false); // Laisser le 3eme param à false, on recherchera les infos que si on doit l'afficher
-			
-			if($dossier_temp->financement->echeance < $dossier_temp->financementLeaser->echeance){
-				$renta_negative = true;
-				$TError[$res['iddossier']]['error_1'] = "EcheanceClientEcheanceLeaser";
-				
-				if ($dossier_temp->visa_renta) continue; // Doc drive "Retours suite réunion du 29.01.2016" (Ajouter filtre pour ne pas afficher les dossier où “Visa renta échéance” est à “Oui” ET “Échéance client < échéance leaser”)
-			}
-				
-			//if($dossier_temp->rowid == 434){ pre($TFacturesFourn,true); pre($TFactures,true); }
-			$decalage_echeance_client = 0;
-			if ($dossier_temp->financement->terme != $dossier_temp->financementLeaser->terme)
-			{
-				// Doc drive "Retours suite réunion du 29.01.2016" (Si le terme n’est pas le même des 2 côtés, comparer les période P pour “à échoir” et P-1 pour le échu)
-				// 0 => Echu (fin de periode)
-				// 1 => A Echoir (debut de periode)
-				if ($dossier_temp->financement->terme == 0) $decalage_echeance_client = -1;
-				if ($dossier_temp->financementLeaser->terme == 0) $decalage_echeance_client = 1;
-			}
-			
-			$TFactures = _load_facture($PDOdb, $dossier_temp);
-			$TFacturesFourn = _load_factureFournisseur($PDOdb,$dossier_temp);
-			
-			foreach ($TFacturesFourn as $echeance => $TfactureFourn) 
-			{
-				$date_periode_client = $dossier_temp->getDateDebutPeriode($echeance);
-				if (strtotime($date_periode_client) < strtotime('2015-04-01')) continue; // Doc drive "Retours suite réunion du 29.01.2016"
-				
-				$sql = "SELECT date_fin_periode FROM ".MAIN_DB_PREFIX."facture_fourn WHERE rowid = ".$TfactureFourn['rowid'];
-				$PDOdb->Execute($sql);
-			
-				if($PDOdb->Get_line() && strpos($PDOdb->Get_field('date_fin_periode'), '/')){
-					$date_fin_periode = explode('/',$PDOdb->Get_field('date_fin_periode'));
-					$date_fin_periode = $date_fin_periode[2]."-".$date_fin_periode[1]."-".$date_fin_periode[0];
-				}
-				else{
-					$date_fin_periode = $PDOdb->Get_field('date_fin_periode');
-				}
-				
-				// Si echeance courrante == à la dernière et que le leaser est à echu alors on n'applique pas de décalage vers la P+1 du client
-				if ($dossier_temp->financementLeaser->duree == $echeance+1 && $dossier_temp->financementLeaser->terme == 0) $decalage_echeance_client = 0; // Ceci a une incidence uniquement si les termes client/leaser sont différents
-				
-				$echeance_client = $echeance + $decalage_echeance_client;
-				
-				if(empty($TFactures[$echeance_client]['rowid']) && strtotime($date_fin_periode) > strtotime('2014-04-01')){
-					//echo "1<br>";
-					$TError[$res['iddossier']]['error_2'] = "NoFactureOnEcheance";
-					$renta_negative = true;break;
-				}
-			}
-			
-			foreach($TFactures as $echeanceClient => $Tfacture){
-				
-				$date_fact_client  = explode("/",$Tfacture['ref_client']);
-				$date_fact_client = $date_fact_client[2]."-".$date_fact_client[1]."-".$date_fact_client[0];
-				
-				if($echeanceClient == -1 || strtotime($date_fact_client) > strtotime('2014-04-01')) continue;
-				
-				//Renta négative si une facture échéance client < facture échéance leaser (dossierfinleaser->echeance)
-				if($Tfacture['total_ht'] < $dossier_temp->financementLeaser->echeance && $Tfacture['ref_client']){
-					$TError[$res['iddossier']]['error_3'] = "FactureClientFactureLeaser";
-					$renta_negative = true;
-				}
-				
-				//Renta négative si une facture échéance client STATUS NON PAYE
-				if($Tfacture['paye'] == 0){
-					$TError[$res['iddossier']]['error_4'] = "FactureClientUnpaid";
-					$renta_negative = true;break;
-				}
-				
-				//Renta négative si une facture échéance client < facture échéance leaser (dossierfinleaser->echeance)
-				//echo $Tfacture['total_ht'] .' : '. $dossier_temp->financement->echeance.'<br>';
-				if($Tfacture['total_ht'] < $dossier_temp->financement->echeance && $Tfacture['ref_client']){
-					$TError[$res['iddossier']]['error_5'] = "FactureClientLoyerClient";
-					$renta_negative = true;
-				}
-			}
-			
-			//if($dossier_temp->rowid == 1315){ pre($TError,true);exit; }
-			
-			if($renta_negative){
-				
-				$error_1 = $error_2 = $error_3 = $error_4 = $error_5 = "Non";
-	
-				foreach ($TError as $iddossier => $TLabel) {
-					foreach($TLabel as $key => $label){
-						${$key} = 'Oui';
-					}
-				}
-				
-				$nomCli = _getNomCli($dossier_temp->financement->fk_soc);
-				$nomLea= _getNomCli($dossier_temp->financementLeaser->fk_soc);
-				
-				$affiche = true;
-				if($dossier_temp->visa_renta && $error_1 == 'Oui') $affiche = false;
-				if($dossier_temp->visa_renta_ndossier && ($error_2 == 'Oui' || $error_3 == 'Oui')) $affiche = false; 
-				
-				if($affiche){
-					// On doit l'afficher alors on load les infos manquantes
-					$dossier_temp->load_affaire($PDOdb);
-					$dossier_temp->load_facture($PDOdb);
-					$dossier_temp->load_factureFournisseur($PDOdb);
-					$dossier_temp->calculSolde();
-					$dossier_temp->calculRenta($PDOdb);
-					
-					$TLines[] = array(
-						'ID' => $res['iddossier'],//*
-						'refDosCli' => $dossier_temp->financement->reference,
-						'refDosLea' => $dossier_temp->financementLeaser->reference,
-						'ID affaire' => $res['idaffaire'], //*
-						'Affaire' => $res['reference'],
-						'nature_financement' =>$res['nature_financement'],
-						'fk_soc' => $res['fk_soc'],//*
-						'nomCli' => $nomCli,
-						'nomLea' => $nomLea,
-						'status_1' => $error_1,
-						'status_2' => $error_2,
-						'status_3' => $error_3,
-						'status_4' => $error_4,
-						'status_5' => $error_5,
-						'Durée' => $dossier_temp->financement->duree,
-						'Montant' => $dossier_temp->financement->montant,
-						'Echéance' => $dossier_temp->financement->echeance,
-						'Prochaine' => $dossier_temp->financement->get_date('date_prochaine_echeance'),
-						'date_debut' => $dossier_temp->financement->get_date('date_debut'),
-						'Fin' => $dossier_temp->financement->get_date('date_fin'),
-						'fact_materiel' => '',
-						'visa_renta'=>$dossier_temp->Tvisa[$dossier_temp->visa_renta] // Doc drive "Retours suite réunion du 29.01.2016" 
-						,'renta_previsionnelle'=>number_format($dossier_temp->renta_previsionnelle,2, ',', ' ').' € / '.number_format($dossier_temp->marge_previsionnelle,2).' %'
-						,'renta_attendue'=>number_format($dossier_temp->renta_attendue,2, ',', ' ').' € / '.number_format($dossier_temp->marge_attendue, 2).' %'
-						,'renta_reelle'=>number_format($dossier_temp->renta_reelle,2, ',', ' ').' € / '.number_format($dossier_temp->marge_reelle,2).' %'
-					);
-					
-					$i++;
-					if (!$display_all && $i > $maxDisplay) break;
-				}
-			}
-		}
-
-	}
-
-	//pre($TLines,true);
-	
-	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
-	echo $form->hidden('liste_renta_negative', '1');
-	$aff = new TFin_affaire;
-	$dos = new TFin_dossier;
-	
-	//pre($TLines,true);exit;
-	//echo $sql;
-	print $r->renderArray($PDOdb, $TLines, array(
-		'limit'=>array(
-			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
-			,'nbLine'=>'30'
-		)
-		,'link'=>array(
-			'nomCli'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
-			,'nomLea'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
-			,'refDosCli'=>'<a href="?id=@ID@">@val@</a>'
-			,'refDosLea'=>'<a href="?id=@ID@">@val@</a>'
-			,'Affaire'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/affaire.php?id=@ID affaire@">@val@</a>'
-			//,'fact_materiel'=>'<a href="'.DOL_URL_ROOT.'/compta/facture.php?facid=@fk_fact_materiel@">'.img_object('', 'bill').' @val@</a>'
-		)
-		,'translate'=>array(
-			'nature_financement'=>$aff->TNatureFinancement
-			,'visa_renta'=>$dos->Tvisa
-		)
-		,'hide'=>array('fk_soc','ID','ID affaire','fk_fact_materiel')
-		,'type'=>array()//'date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'Echéance'=>'money')
-		,'liste'=>array(
-			'titre'=>"Liste des dossiers"
-			,'image'=>img_picto('','title.png', '', 0)
-			,'picto_precedent'=>img_picto('','previous.png', '', 0)
-			,'picto_suivant'=>img_picto('','next.png', '', 0)
-			,'order_down'=>img_picto('','1downarrow.png', '', 0)
-			,'order_up'=>img_picto('','1uparrow.png', '', 0)
-			,'noheader'=>FALSE
-			,'messageNothing'=>"Il n'y a aucun dossier"
-			,'picto_search'=>img_picto('','search.png', '', 0)
-			)
-		,'title'=>array(
-			'refDosCli'=>'Contrat'
-			,'refDosLea'=>'Contrat Leaser'
-			,'nomCli'=>'Client'
-			,'nomLea'=>'Leaser'
-			,'nature_financement'=>'Nature'
-			,'date_debut'=>'Début'
-			,'status_1'=>$TErrorStatus['error_1']
-			,'status_2'=>$TErrorStatus['error_2']
-			,'status_3'=>$TErrorStatus['error_3']
-			,'status_4'=>$TErrorStatus['error_4']
-			,'status_5'=>$TErrorStatus['error_5']
-			,'fact_materiel'=>'Facture matériel'
-			,'visa_renta'=>'Visa <br />Rentabilité'
-			,'renta_previsionnelle'=>'Rentabilité <br />Prévisionnelle'
-			,'renta_attendue'=>'Rentabilité <br />Attendue'
-			,'renta_reelle'=>'Rentabilité <br />Réelle'
-		)
-		,'orderBy'=> array('ID'=>'DESC','fc.reference'=>'ASC')
-		/*,'search'=>array(
-			'refDosCli'=>array('recherche'=>true, 'table'=>'fc', 'field'=>'reference')
-			,'refDosLea'=>array('recherche'=>true, 'table'=>'fl', 'field'=>'reference')
-			,'nomCli'=>array('recherche'=>true, 'table'=>'c', 'field'=>'nom')
-			,'nomLea'=>array('recherche'=>true, 'table'=>'l', 'field'=>'nom')
-			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
-			//,'visa_renta'=>array('recherche'=>$dos->Tvisa,'table'=>'d', 'field' => 'visa_renta')
-			//,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
-		)*/
-		,'eval'=>array('fact_materiel'=>'_get_facture_mat(@ID affaire@);')
-		
-	));
-	$form->end();
-	
-	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
-		$fk_leaser = GETPOST('fk_leaser');
-		?>
-		<div class="tabsAction">
-				<a href="?action=exportXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Exporter</a>
-				<a href="?action=generateXML" class="butAction">Générer le XML Lixxbail</a>
-				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Générer le XML Lixxbail et envoyer au Leaser</a>
-				<a href="?action=setnottransfer&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
-		</div>
-		<?php
-	}
-	else{
-		?>
-		<div class="tabsAction">
-				<a href="?liste_renta_negative=1&action=exportListeDossier" class="butAction">Exporter</a><?php print img_warning($langs->trans('CareAboutExportMayBeTakeLongTime', count($Tres))); ?>
-		</div>
-		<?php
-	}
-
-	//Cas action export CSV de la liste des futurs affaire transféré en XML
-	$action = GETPOST('action');
-	if($action === 'exportListeDossier'){
-		_getExport($TLines);
-	}
-	
-	llxFooter();
-}
 
 function _getExport(&$TLines){
 	
@@ -963,7 +662,7 @@ function _getExportXML($sql){
 	$file = fopen($filepath,'w');
 
 	//Ajout première ligne libelle
-	$TLabel = array('Contrat','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant','Echeance','Prochaine','Debut','Fin','Facture Materiel');
+	$TLabel = array('Contrat','Partenaire','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant Client','Echeance Client','Montant Leaser','Echeance Leaser','Prochaine','Debut','Fin','Facture Materiel');
 	fputcsv($file, $TLabel,';','"');
 	
 	foreach($TTRes as $TRes){
@@ -1312,11 +1011,13 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'affaire1'=>$TAffaire[0]
 				,'visa_renta'=>$form->combo('', 'visa_renta', array('1' => 'Oui', '0' => 'Non'), $dossier->visa_renta)
 				,'visa_renta_ndossier'=>$form->combo('', 'visa_renta_ndossier', array('1' => 'Oui', '0' => 'Non'), $dossier->visa_renta_ndossier)
+				,'renta_anomalie'=>$form->combo('', 'renta_anomalie', array('1' => 'Oui', '0' => 'Non'), $dossier->renta_anomalie)
 				,'commentaire_visa'=>$form->zonetexte('', 'commentaire_visa', $dossier->commentaire_visa,100,5,'')
 				,'quote_part_noir' => $form->texte('', 'quote_part_noir', $dossier_for_integral->quote_part_noir, 10)
 				,'quote_part_couleur' => $form->texte('', 'quote_part_couleur', $dossier_for_integral->quote_part_couleur, 10)
 				,'somme_sup_noir' => $sommeCopieSupNoir
 				,'somme_sup_coul' => $sommeCopieSupCouleur
+				,'type_regul' => $dossier->type_regul
 			)
 			,'financement'=>$TFinancement
 			,'financementLeaser'=>$TFinancementLeaser

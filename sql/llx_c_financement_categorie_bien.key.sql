@@ -1,0 +1,1 @@
+ALTER TABLE llx_c_financement_categorie_bien ADD INDEX uk_c_financement_categorie_bien_cat_id (cat_id);

@@ -80,7 +80,7 @@ function _liste(&$PDOdb, &$dossier) {
 	$sql.=" AND a.contrat='INTEGRAL' ";
 	$sql.=" AND fc.duree > 0 ";
 	$sql.=" AND fc.echeance > 0 ";
-	$sql.=" AND fc.date_solde = '0000-00-00 00:00:00' ";
+	$sql.=" AND fc.date_solde < '1970-00-00 00:00:00' ";
 	
 	if (!$user->rights->financement->alldossier->read && $user->rights->financement->mydossier->read) //restriction
 	{
@@ -97,6 +97,7 @@ function _liste(&$PDOdb, &$dossier) {
 		'limit'=>array(
 			'page'=>(isset($_REQUEST['page']) ? $_REQUEST['page'] : 1)
 			,'nbLine'=>'30'
+			,'global'=>'1000'
 		)
 		,'link'=>array(
 			'nomCli'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
@@ -151,7 +152,10 @@ function _formatIntegrale(&$integrale){
 }
 // TODO à refaire, fonction nid à couillons 
 function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
-	global $db;
+	global $db,$conf;
+	
+	dol_include_once('/core/class/html.formfile.class.php');
+	$formfile = new FormFile($db);
 	
 	$integrale = new TIntegrale;
 	$integrale->loadBy($PDOdb, $facture->ref, 'facnumber');
@@ -252,8 +256,19 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 	}
 
 	$facture->fetchObjectLinked('', 'propal', $facture->id, 'facture');
+	
 	if(!empty($facture->linkedObjects['propal'])) {
-		foreach($facture->linkedObjects['propal'] as $p) $TIntegrale[$integrale->date_periode]->propal .= $p->getNomUrl(1).' '.$p->getLibStatut(3)."<br>";
+		foreach($facture->linkedObjects['propal'] as $p) {
+			$filename=dol_sanitizeFileName($p->ref);
+			$filedir=$conf->propal->dir_output . '/' . dol_sanitizeFileName($p->ref);
+			
+			$links = $p->getNomUrl(1);
+			if($p->fin_validite >= strtotime(date('Y-m-d'))) { // Affichage du PDF si encore valide
+				$links.= $formfile->getDocumentsLink($p->element, $filename, $filedir, $p->entity);
+			}
+			$links.= "<br>";
+			$TIntegrale[$integrale->date_periode]->propal .= $links;
+		}
 	}
 	
 	return $TIntegrale;
@@ -278,6 +293,7 @@ function _factureAnnuleParAvoir($facnumber){
 }
 
 function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
+	global $user;
 	
 	$fin = &$dossier->financement;
 	
@@ -290,7 +306,11 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	$fin->_affterme = $fin->TTerme[$fin->terme];
 	$fin->_affperiodicite = $fin->TPeriodicite[$fin->periodicite];
 	
+	// ETAPE 1 : on ne conserve que les factures qui nous intéressent
+	$dossier->format_facture_integrale($PDOdb);
 	//pre($dossier->TFacture[6],true);
+	
+	// ETAPE 2 : on fait tous les calculs pour le tableau intégral
 	$TIntegrale = array();
 	foreach ($dossier->TFacture as $fac) {
 		
@@ -305,8 +325,14 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		}
 	}
 	
+	//On modifie la 1ere et 2nde valeur du tableau si on est à échoir
+	if($dossier->financement->_affterme == 'A Echoir' && $dossier->contrat == 'INTEGRAL'){
+		$TIntegrale  = updateFirstVals($TIntegrale);	
+	}
+	
+	// ETAPE 3 : on finalise le formatage pour l'affichage
+	
 	//$dossier->load_facture($PDOdb,true);
-	$dossier->format_facture_integrale($PDOdb);
 	//pre($dossier->TFacture,true);
 	//pre($TIntegrale,true);
 	foreach($dossier->TFacture as $echeance => $facture){
@@ -350,7 +376,22 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		}
 	}
 	
+	// MKO 2016.12.20 : pas d'affichage intégrale si type de régul non trimestriel
+	$error = 0;
+	$errmsg = '';
+	if(!empty($dossier->type_regul)) {
+		$TIntegrale = regularisation($dossier,$TIntegrale);
+	}
+	
 	//pre($TIntegrale,true);
+	// 2017.03.21 MKO : si type regul trimestriel, on affiche le tableau intégral, sinon non
+	if($dossier->type_regul != 3) {
+		$error = 1;
+		$errmsg = 'Régule autre que trimestrielle, merci de consulter vos VMM et factures sur Cristal';
+	}
+	
+	if (!empty($user->rights->financement->admin->write)) $error = 0;
+	
 	echo $TBS->render('./tpl/dossier_integrale.tpl.php'
 		,array(
 			'integrale'=>$TIntegrale
@@ -359,17 +400,37 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 			'dossier'=>$dossier
 			,'fin'=>$fin
 			,'client'=>$client
+			,'error'=>$error
+			,'errormsg'=>$errmsg
 		)
 	);
+		
+	// 2016.11.10 MKO : Nouvelles règles : 
+	// - avenant impossible si somme des coûts unitaires détaillés différente du cout unitaire
+	// - avenant impossible si cout unitaire loyer à 0
+	$avenantOK = true;
+	$facIntegral = array_pop($TIntegrale);
+	if(empty($facIntegral->cout_unit_noir_loyer) || (empty($facIntegral->cout_unit_coul_loyer) && !empty($facIntegral->vol_coul_engage))) $avenantOK = false;
+	if(round($facIntegral->cout_unit_noir,5) !=
+		round($facIntegral->cout_unit_noir_loyer
+		+ $facIntegral->cout_unit_noir_mach
+		+ $facIntegral->cout_unit_noir_tech,5)) $avenantOK = false;
+	if(round($facIntegral->cout_unit_coul,5) !=
+		round($facIntegral->cout_unit_coul_loyer
+		+ $facIntegral->cout_unit_coul_mach
+		+ $facIntegral->cout_unit_coul_tech,5)) $avenantOK = false;
 
-global $user;
-
-	if (!empty($user->rights->financement->admin->write)) {
-		print '<div class="tabsAction">';
+	print '<div class="tabsAction">';
+	if (!empty($user->rights->financement->integrale->create_new_avenant) && $avenantOK) {
 		$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
 		print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale">'.$label.'</a>';
-		print '</div>';
+	} else if (!empty($user->rights->financement->admin->write)) {
+		$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
+		print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale" style="color: red;">'.$label.'</a>';
+	} else {
+		echo 'Avenant impossible. Merci de contacter le service financement';
 	}
+	print '</div>';
 }
 
 function _printFormAvenantIntegraleOLD(&$PDOdb, &$dossier, &$TBS) {
@@ -592,6 +653,10 @@ echo $new_cout_couleur;*/
 																+$integrale->fass
 																+$integrale->frais_bris_machine
 																+$integrale->frais_facturation,10,'',$style)
+				,'total_hors_frais'=>$form->texteRO('','total_hors_frais',$total_noir
+																+$total_couleur
+																+$new_fas + $new_fas_noir + $new_fas_couleur
+																+$integrale->fass,10,'',$style)
 			),
 			'rights'=>array(
 				'voir_couts_unitaires'=>(int)$user->rights->financement->integrale->detail_couts
@@ -660,19 +725,32 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	$repartition_couleur = $integrale->calcul_percent_couleur();
 	$repartition_noir = 100 - $repartition_couleur;
 
-	$total_noir = price($engagement_noir * $cout_noir);
-	$total_couleur = price($engagement_couleur * $cout_couleur);
+	$total_noir = $engagement_noir * $cout_noir;
+	$total_couleur = $engagement_couleur * $cout_couleur;
 	
 	$fas_min = $integrale->fas;
 	$fas_max = $integrale->calcul_fas_max($TDetailCoutNoir, $TDetailCoutCouleur, $engagement_noir, $engagement_couleur);
+	$fas_max = max($fas_max, $integrale->fas);
 	
 	$total_global = $integrale->calcul_total_global($TDetailCoutNoir, $TDetailCoutCouleur);
+	$total_hors_frais = $total_global - $integrale->frais_bris_machine - $integrale->frais_facturation;
 	
 	print $form->hidden('action', 'addAvenantIntegrale');
 	print $form->hidden('id', GETPOST('id'));
 	print $form->hidden('id_integrale', $integrale->getId());
 	print $form->hidden('fk_facture', $f->id);
 	print $form->hidden('fk_soc', $f->socid);
+	
+	// Calcul de la période concernée par l'avenant
+	$fin = &$dossier->financement;
+	$ip = $fin->getiPeriode();
+	$nb = ((date('n') - 1) % $ip) * -1;
+	if($fin->terme == 1) $nb += $ip; // A échoir, on prend la période suivante
+	$deb_periode = strtotime('first day of '.$nb.' month');
+	$fin_periode = strtotime('last day of +'.($ip - 1).' month',$deb_periode);
+
+	print $form->hidden('date_deb_periode', $deb_periode);
+	print $form->hidden('date_fin_periode', $fin_periode);
 	
 	// On a également besoin d'afficher 2 hidden contenant la même valeur que les champs Coût unitaire noir & Coût unitaire couleur, pour ensuite vérifier s'ils ont été modifiés à la main par l'utilisateur
 	/*print $form->hidden('old_engagement_noir', $new_engagement_noir);
@@ -733,6 +811,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 				,'frais_bris_machine'=>$form->texteRO('','frais_bris_machine',$integrale->frais_bris_machine  * $pourcentage_sup_mois_decembre,10,'',$style)
 				,'frais_facturation'=>$form->texteRO('','ftc',$integrale->frais_facturation * $pourcentage_sup_mois_decembre,10,'',$style)
 				,'total_global'=>$form->texteRO('','total_global',$total_global,10,'',$style)
+				,'total_hors_frais'=>$form->texteRO('','total_hors_frais',$total_hors_frais,10,'',$style)
 			),
 			'rights'=>array(
 				'voir_couts_unitaires'=>(int)$user->rights->financement->integrale->detail_couts
@@ -751,6 +830,155 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	
 	print '<script type="text/javascript" src="./js/avenant_integral.js"></script>';
 }
+
+function regularisation($dossier,$TIntegrale){
+	global $langs;
+	$periodicite = 0;
+	//Conversion periodicite en nombre
+
+	switch($dossier->financement->periodicite){
+		case 'MOIS':
+			$periodicite=1;
+			break;
+		case 'TRIMESTRE':
+			$periodicite=3;
+			break;
+		case 'SEMESTRE':
+			$periodicite=6;
+			break;
+		case 'ANNEE':
+			$periodicite=12;
+			break;
+	}
+	
+	//On vérifie que la période de régularisation est supérieur à la periode de facturation
+	if( $dossier->type_regul > $periodicite && !empty($dossier->month_regul)){
+		
+		$dateTemp = '';//date temporaire
+		$compteur=0;
+		$volNoir= 0;
+		$volCoul=0;
+		$volNoirEngag=0;
+		$volCoulEngag=0;
+		$isIntercal=true;
+		/*$ifError = array();
+		foreach($TIntegrale as $k=>$v){
+			$ifError[$k] = clone ($v);
+		}
+		*/
+		/*$trimestre='';
+		$trimestre3='';
+		$semestre = '';
+		if($dossier->type_regul==6){
+			$semestre='07';
+		}
+		if($dossier->type_regul==3){
+			$trimestre='04';
+			$trimestre3='10';
+			$semestre='07';
+		}*/
+
+		$TMonthRegul = array($dossier->month_regul);
+		if($dossier->type_regul==6){
+			$TMonthRegul[] = ($dossier->month_regul + 6) % 12;
+		}
+		if($dossier->type_regul==3){
+			$TMonthRegul[] = ($dossier->month_regul + 3) % 12;
+			$TMonthRegul[] = ($dossier->month_regul + 6) % 12;
+			$TMonthRegul[] = ($dossier->month_regul + 9) % 12;
+		}
+	
+	/*	$keys = array_keys($TIntegrale);
+		$tabTemp = explode('/',$keys[0]);
+		$timecompare = dol_mktime(0, 0, 0, $tabTemp[1], $tabTemp[0], $tabTemp[2]);
+		*/
+		foreach($TIntegrale as &$tab){
+			if($isIntercal && !empty($dossier->financement->loyer_intercalaire) && !empty($dossier->TFacture[-1])){//Vérification loyer intercalaire et existance facture
+				
+				$isIntercal = false;
+		
+			}else {
+				$theDate = explode('/',$tab->date_periode);
+				$periode = new DateTime($theDate[2].'-'.$theDate[1].'-'.$theDate[0]);//On met la date au bon format
+			/*	if(empty($dateTemp)){//Si c'est le premier passage
+					$dateTemp = $periode;
+					$volNoir+= $tab->vol_noir_realise;
+					$volCoul+= $tab->vol_coul_realise;
+				//	$volNoirEngag+=$tab->vol_noir_engage;
+					//$volCoulEngag+=$tab->vol_coul_engage;
+					//$tab->vol_noir_realise = 0;
+					$tab->vol_noir_facture = $tab->vol_noir_engage;
+				//	$tab->vol_coul_realise = 0;
+					$tab->vol_coul_facture = $tab->vol_coul_engage;
+				} else {*/
+				//	$dateCompare = ($periode->diff($dateTemp));//On compare la date actuelle avec la date d'avant
+				//	if($dateCompare->days <=$periodicite*31 && $dateCompare->days>=$periodicite*30){//On regarde si le nombre de jours est environ au bon nombre de mois
+						$compteur++;
+						//if(($theDate[1]!=$trimestre)&&($theDate[1]!=$semestre)&&($theDate[1]!=$trimestre3)&& ($theDate[1]!='01') ){//On compare les mois
+						if(!in_array((int)$theDate[1], $TMonthRegul) ){//On compare les mois
+							$volNoir+= $tab->vol_noir_realise;
+							$volCoul+= $tab->vol_coul_realise;
+							$volNoirEngag+=$tab->vol_noir_engage;
+							$volCoulEngag+=$tab->vol_coul_engage;
+						//	$tab->vol_noir_realise = 0;
+							$tab->vol_noir_facture = $tab->vol_noir_engage;
+							//$tab->vol_coul_realise = 0;
+							$tab->vol_coul_facture = $tab->vol_coul_engage;
+							//setBilledVol($tab);
+						}
+						else {
+						//	$volNoir+= $tab->vol_noir_realise;//On n'oublie pas de bien prendre en compte les valeurs de la ligne actuelle
+						//	$volCoul+= $tab->vol_coul_realise;
+						//	$volNoirEngag+=$tab->vol_noir_engage;
+						//	$volCoulEngag+=$tab->vol_coul_engage;
+							$tab->vol_noir_facture = max(array($tab->vol_noir_realise - $volNoirEngag,$tab->vol_noir_engage));
+							$tab->vol_coul_facture = max(array($tab->vol_coul_realise - $volCoulEngag,$tab->vol_coul_engage));
+							$tab->vol_noir_realise -= $volNoir;
+							$tab->vol_coul_realise -= $volCoul;
+							$compteur = 0;
+							//setBilledVol($tab);
+							//Reinitialisation des variables
+							$volNoir=0;
+							$volCoul=0;
+							$volNoirEngag=0;
+							$volCoulEngag=0;
+						}
+						
+				/*	}	else {
+						//
+						setEventMessages($langs->trans('DateProblem'),$err,'errors');
+						$volNoir=0;
+						$volCoul=0;
+						$volNoirEngag=0;
+						$volCoulEngag=0;
+						return $ifError;
+						
+					}*/
+					
+				//	$dateTemp = $periode;//On récupère la date actuelle
+			//	}
+			}
+		}
+	}	
+	return $TIntegrale;
+}
+function setBilledVol(&$tab){
+		if($tab->vol_noir_realise<$tab->vol_noir_engage){//On compare l'engagé  avec le réalisé
+							
+				$tab->vol_noir_facture = $tab->vol_noir_engage;
+		} else {
+						
+				$tab->vol_noir_facture = $tab->vol_noir_realise;
+		}
+					
+		if($tab->vol_coul_realise<$tab->vol_coul_engage){								
+				$tab->vol_coul_facture = $tab->vol_coul_engage;
+		} else {
+								
+				$tab->vol_coul_facture = $tab->vol_coul_realise;
+		}
+}
+
 
 function _addAvenantIntegrale(&$dossier) {
 	
@@ -790,6 +1018,9 @@ function _addAvenantIntegrale(&$dossier) {
 									,'FASS'=>GETPOST('fass')
 									,'ref_dossier'=>$dossier->financement->reference
 									,'total_global'=>GETPOST('total_global')
+									,'total_hors_frais'=>GETPOST('total_hors_frais')
+									,'date_deb_periode'=>GETPOST('date_deb_periode')
+									,'date_fin_periode'=>GETPOST('date_fin_periode')
 									,'client'=>_getInfosClient($p->socid)
 								  ));
 		
@@ -817,6 +1048,27 @@ function _getInfosClient($fk_soc) {
 	
 	return $TData;
 	
+}
+//Pour le cas A Echoir modifie les 2 premieres valeurs du tableau
+function updateFirstVals($TIntegrale){
+	$temp = 0; //valeur temporaire afin de modifier uniquement la 1re et 2nde valeur
+	$valNoirEngage = 0;//valeur contenant le noir engagé de la 1ere facture
+	$valCoulEngage = 0;//valeur contenant la couleur engagée de la 1ere facture
+	if(!empty($TIntegrale)){
+		foreach($TIntegrale as $tab){
+			if($temp==0){	
+				$tab->vol_noir_realise = 0;
+				$tab->vol_coul_realise = 0;
+				$valNoirEngage=$tab->vol_noir_engage;
+				$valCoulEngage=$tab->vol_coul_engage;
+			} else if($temp==1){
+				$tab->vol_noir_realise = $tab->vol_noir_realise+$tab->vol_noir_engage-$valNoirEngage;
+				$tab->vol_coul_realise = $tab->vol_coul_realise+$tab->vol_coul_engage-$valCoulEngage;
+			}
+			$temp++;
+		}
+	}
+	return $TIntegrale;
 }
 
 function _addLines(&$p) {
@@ -878,6 +1130,9 @@ function _genPDF(&$propal, $TData, $print_bloc_locataire=true) {
 				,'FASS'=>price($TData['FASS'])
 				,'ref_dossier'=>$TData['ref_dossier']
 				,'total_global'=>price($TData['total_global'])
+				,'total_hors_frais'=>price($TData['total_hors_frais'])
+				,'date_deb_periode'=>date('d/m/Y', $TData['date_deb_periode'])
+				,'date_fin_periode'=>date('d/m/Y', $TData['date_fin_periode'])
 			)
 			,'bloc_locataire'=>array(
 				'raison_sociale'=>$print_bloc_locataire ? $TData['client']['raison_sociale'] : ''

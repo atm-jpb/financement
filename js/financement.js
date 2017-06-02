@@ -1,11 +1,13 @@
 $(document).ready(function() {
 	$('select[name="opt_periodicite"]').bind('change', get_periode);
 	$('select[name="fk_type_contrat"]').bind('change', get_periode);
+	$('select[name="fk_type_contrat"]').bind('change', restrict_grand_compte);
 	$('input[name^="opt_"]').bind('click', get_grille);
 	$('select[name^="opt_"]').bind('change', get_grille);
 
 	if($('select[name="fk_type_contrat"]').length > 0) {
 		get_periode();
+		restrict_grand_compte();
 	}
 	
 	$('input[name^="dossiers_rachetes"]').bind('click', calcul_montant_rachat);
@@ -193,5 +195,21 @@ var select_calage = function() {
 		$('input[name="date_demarrage"]').attr('value','');
 	} else {
 		$('input[name="date_demarrage"]').attr('disabled', false);
+	}
+};
+
+// Modifications spécifique au type GRAND COMPTE
+var restrict_grand_compte = function() {
+	if($('select[name="fk_type_contrat"]').val() == 'GRANDCOMPTE') {
+		// On décoche la case administration au cas ou, et on désactive le champ
+		$('input[name="opt_administration"]').attr('checked',false);
+		$('input[name="opt_administration"]').attr('disabled',true);
+		// On positionne sur Mandat et on désactive le choix
+		$('select[name="opt_mode_reglement"]').val('MDT');
+		$('select[name="opt_mode_reglement"] option').attr('disabled',true);
+		$('select[name="opt_mode_reglement"] option:selected').attr('disabled',false);
+	} else {
+		$('input[name="opt_administration"]').attr('disabled',false);
+		$('select[name="opt_mode_reglement"] option').attr('disabled',false);
 	}
 };

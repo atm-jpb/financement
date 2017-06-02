@@ -14,6 +14,9 @@ class ActionsFinancement
 		
         if (in_array('propalcard',explode(':',$parameters['context']))) 
         {
+        	// Nouvelle regle, uniquement accessible aux admin
+        	if(empty($user->rights->financement->admin->write)) accessforbidden();
+			
         	if($object->fin_validite < strtotime(date('Y-m-d')) && empty($user->rights->financement->integrale->see_past_propal)) {
         		dol_include_once('/core/lib/security.lib.php');
 				$mess = 'Vous ne pouvez consulter une proposition dont la date de fin de validité est dépassée.';
@@ -30,7 +33,7 @@ class ActionsFinancement
 		 $res = printSearchForm(DOL_URL_ROOT.'/custom/financement/dossier.php', DOL_URL_ROOT.'/custom/financement/dossier.php', img_picto('',dol_buildpath('/financement/img/object_financeico.png', 1), '', true).' '.$langs->trans("Dossiers"), 'searchdossier', 'searchdossier');
 		 $res .= printSearchForm(DOL_URL_ROOT.'/compta/facture/list.php', DOL_URL_ROOT.'/compta/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Clients"), 'products', 'search_ref');
 		 $res .= printSearchForm(DOL_URL_ROOT.'/fourn/facture/list.php', DOL_URL_ROOT.'/fourn/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Leasers"), 'products', 'search_ref');
-		 
+		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation.php', DOL_URL_ROOT.'/custom/financement/simulation.php', img_object('','invoice').' N° étude / Accord Leaser', 'searchnumetude', 'searchnumetude');
 		 $hookmanager->resPrint.= $res;
 		 
 		 return 0;
@@ -41,7 +44,7 @@ class ActionsFinancement
 		  
 		  
 		  
-		if (in_array('thirdpartycard',explode(':',$parameters['context'])) && GETPOST('action') !== 'create') 
+		if (in_array('thirdpartycard',explode(':',$parameters['context'])) && $action !== 'create') 
         { 
          
 		  $listsalesrepresentatives=$object->getSalesRepresentatives($user);

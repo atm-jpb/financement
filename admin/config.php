@@ -34,6 +34,8 @@ $langs->load("admin");
 $langs->load("errors");
 $langs->load('other');
 
+$form = new Form($db);
+
 $action = GETPOST('action','alpha');
 $ATMdb = new TPDOdb;
 
@@ -79,9 +81,11 @@ if ($action == 'save_penalites_simulateur') {
 llxHeader('',$langs->trans("FinancementSetup"));
 $head = financement_admin_prepare_head(null);
 
+$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
+print_fiche_titre($langs->trans("GlobalOptionsForFinancementSimulation"), $linkback);
+
 dol_fiche_head($head, 'config', $langs->trans("Financement"), 0, 'financementico@financement');
 
-print_titre($langs->trans("GlobalOptionsForFinancementSimulation"));
 
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';
@@ -258,7 +262,68 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 
-print '</table>';
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("NbMoisSoldeNotAvailable").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH" value="'.$conf->global->FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH.'" /> mois';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_MONTANT_PRESTATION_OBLIGATOIRE" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("SimulationMontantPrestationObligatoire").'</td>';
+print '<td align="right">';
+print $form->selectyesno("FINANCEMENT_MONTANT_PRESTATION_OBLIGATOIRE",$conf->global->FINANCEMENT_MONTANT_PRESTATION_OBLIGATOIRE,1);
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE").'</td>';
+print '<td align="right"><input placeholder="50000" size="10" class="flat" type="text" name="FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE" value="'.$conf->global->FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE.'" /> &euro;';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY").'</td>';
+print '<td align="right"><input size="40" class="flat" type="text" name="FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY" value="'.$conf->global->FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY.'" />';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE").'</td>';
+print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE" value="'.$conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE.'" /> %';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+print '</table><br /><br />';
 
 print_titre($langs->trans("PenalitesForSimulation"));
 
@@ -286,7 +351,7 @@ while($ATMdb->Get_line()) {
 	$var=! $var;
 }
 
-print '</table>';
+print '</table><br />';
 
 print '</form>';
 
@@ -309,7 +374,7 @@ print '<td colspan="2"><input type="text" name="FINANCEMENT_PENALITE_SUIVI_INTEG
 print '</td>';
 print "</tr>\n";
 
-print '</table>';
+print '</table><br />';
 
 print_titre($langs->trans("ScriptsManuallyLaunchable"));
 
@@ -345,8 +410,73 @@ print "</td></tr>\n";
 print '</form>';
 */
 
+print '</table>';
 
 
+print_titre($langs->trans("WebService"));
+
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameter").'</td>';
+print '<td width="80">&nbsp;</td>';
+print '<td align="center">'.$langs->trans("Value").'</td>';
+print "</tr>\n";
+$var=true;
+
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_SHOW_RECETTE_BUTTON").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="600">';
+print ajax_constantonoff('FINANCEMENT_SHOW_RECETTE_BUTTON');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_WEBSERVICE_ACTIVATE").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="600">';
+print ajax_constantonoff('FINANCEMENT_WEBSERVICE_ACTIVATE');
+print '</td></tr>';
+
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="600">';
+print ajax_constantonoff('FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_ENDPOINT_CALF_RECETTE").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_ENDPOINT_CALF_RECETTE">';
+print '<input type="text" name="FINANCEMENT_ENDPOINT_CALF_RECETTE" value="'.$conf->global->FINANCEMENT_ENDPOINT_CALF_RECETTE.'" size="60" placeholder="https://hom-archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_ENDPOINT_CALF_PROD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_ENDPOINT_CALF_PROD">';
+print '<input type="text" name="FINANCEMENT_ENDPOINT_CALF_PROD" value="'.$conf->global->FINANCEMENT_ENDPOINT_CALF_PROD.'" size="60" placeholder="https://archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+
+print '</table>';
 
 
 dol_htmloutput_mesg($mesg);

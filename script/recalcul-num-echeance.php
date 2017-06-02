@@ -52,7 +52,7 @@ foreach($TData as $data) {
 
 $sql = "SELECT fk_fin_dossier 
 		FROM ".MAIN_DB_PREFIX."fin_dossier_financement
-		WHERE date_solde = '0000-00-00 00:00:00' 
+		WHERE date_solde < '1970-00-00 00:00:00' 
 			AND montant_solde = 0
 			AND type = 'CLIENT'
 			AND date_prochaine_echeance NOT LIKE '".date('Y-m-d')."%'";

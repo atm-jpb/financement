@@ -34,6 +34,9 @@ if (!$user->rights->financement->admin->write) accessforbidden();
 llxHeader('',$langs->trans("FinancementSetup"));
 $head = financement_admin_prepare_head(null);
 
+$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
+print_fiche_titre($langs->trans("GlobalOptionsForFinancementSimulation"), $linkback);
+
 dol_fiche_head($head, 'leaser', $langs->trans("Financement"), 0, 'financementico@financement');
 dol_htmloutput_mesg($mesg);
 
@@ -62,7 +65,7 @@ if($action == 'save') {
 		$TNewLine = GETPOST('newline');
 		foreach($TNewLine as $typeLine => $Tline){
 
-			if($typeLine == 'DEFAUT_LOCSIMPLE' || $typeLine == 'DEFAUT_FORFAITGLOBAL' || $typeLine == 'DEFAUT_INTEGRAL'){
+			if(strpos($typeLine,'DEFAUT_') !== false){
 				$Tline = array(
 					"solde" => ($Tline['leaser'] == 0) ? -1 : $Tline['leaser']
 					,"montantbase" => $Tline['ordre']
@@ -90,7 +93,7 @@ if($action == 'save') {
 			
 			foreach($grille_temp as $rowid => $linegrille){				
 				
-				if($typeLine == 'DEFAUT_LOCSIMPLE' || $typeLine == 'DEFAUT_FORFAITGLOBAL' || $typeLine == 'DEFAUT_INTEGRAL'){
+				if(strpos($typeLine,'DEFAUT_') !== false){
 					$linegrille = array(
 						"solde" => ($linegrille['leaser'] == 0) ? -1 : $linegrille['leaser']
 						,"montantbase" => $linegrille['ordre']
@@ -179,21 +182,13 @@ echo '<hr><br><br>';
 /* *************************************************************************
  * Affichage du tableau permettant de définir l'ordre par défaut des leasers
  * ************************************************************************/
- 
-$typeContrat = "DEFAUT_LOCSIMPLE";
-print_titre('Ordre des leasers par défaut Location Simple');
 
-_affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
+foreach ($liste_type_contrat as $typeContrat => $label) {
+	$typeContrat = "DEFAUT_".$typeContrat;
+	print_titre('Ordre des leasers par défaut '.$label);
 
-$typeContrat = "DEFAUT_FORFAITGLOBAL";
-print_titre('Ordre des leasers par défaut Forfait global');
-
-_affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
-
-$typeContrat = "DEFAUT_INTEGRAL";
-print_titre('Ordre des leasers par défaut Integral');
-
-_affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
+	_affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
+}
 
 function _affOrdreLeaser(&$ATMdb,&$TBS,&$TFin_grille_suivi,$mode,$typeContrat){
 	
