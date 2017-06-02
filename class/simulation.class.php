@@ -1681,6 +1681,7 @@ class TSimulationSuivi extends TObjetStd {
 	function _createDemandeLIXXBAIL(&$PDOdb){
 		dol_include_once('/financement/class/service_financement.class.php');
 		$service = new ServiceFinancement($this->simulation, $this);
+		$service->debug = $this->debug;
 		// La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active) 
 		$res = $service->call();
 		
