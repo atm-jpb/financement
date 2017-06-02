@@ -312,14 +312,7 @@ if(!empty($action)) {
 		case 'trywebservice':
 			$simulation->load($ATMdb, $db, GETPOST('id'));
 			$id_suivi = GETPOST('id_suivi');
-			$simulation_id = $simulation->getId();
-			if (!empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($user->admin) && $user->entity == 0 && !empty($simulation_id) && !empty($id_suivi))
-			{
-				dol_include_once('/financement/class/service_financement.class.php');
-				$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[$id_suivi]);
-				$service->debug = true; // si tout ce passe bien, on tombera sur un exit avec cet attribut
-				$res = $service->call();
-			}
+			$simulation->TSimulationSuivi[$id_suivi]->_sendDemandeAuto($ATMdb);
 			
 			_fiche($ATMdb, $simulation, 'view');
 			break;
@@ -329,7 +322,7 @@ if(!empty($action)) {
 			$id_suivi = GETPOST('id_suivi');
 			if($id_suivi){
 				
-				$simulation->load($ATMdb, $db, $_REQUEST['id']);
+				$simulation->load($ATMdb, $db, GETPOST('id'));
 				$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$simulation,$action);
 					
 				if(!empty($simulation->TSimulationSuivi[$id_suivi]->errorLabel)){
