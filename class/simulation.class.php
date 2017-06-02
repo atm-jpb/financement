@@ -1583,7 +1583,9 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		if($simulation->type_financement != "ADOSSEE" && $simulation->type_financement != "MANDATEE" && in_array(5, $TCateg_tiers)){
-			if(!empty($this->coeff_leaser)) $simulation->coeff_final = $this->coeff_leaser;
+			// 2017.06.02 MKO : le coeff transmis par le leaser n'est plus utilisé comme coeff final, on prend le coeff simulation si final non renseigné
+			//if(!empty($this->coeff_leaser)) $simulation->coeff_final = $this->coeff_leaser;
+			if(empty($simulation->coeff_final)) $simulation->coeff_final = $simulation->coeff;
 			$simulation->montant = 0;
 			$options = array(
 							'opt_periodicite'=>$simulation->opt_periodicite
