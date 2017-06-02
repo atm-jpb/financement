@@ -1513,7 +1513,7 @@ class TSimulationSuivi extends TObjetStd {
 	
 	//Effectuer l'action de faire la demande de financement au leaser
 	function doActionDemander(&$PDOdb,&$simulation){
-		global $db;
+		global $db, $conf;
 		
 	    // Leaser ACECOM = demande BNP mandaté et BNP cession + Lixxbail mandaté et Lixxbail cession
 		if($this->fk_leaser == 18305){
@@ -1534,7 +1534,7 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		//Si leaser auto alors on envoye la demande par EDI
-		if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto))){
+		if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto)) && empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON)){
 			$this->_sendDemandeAuto($PDOdb);
 		}
 		
