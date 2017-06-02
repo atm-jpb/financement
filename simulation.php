@@ -313,6 +313,7 @@ if(!empty($action)) {
 			$simulation->load($ATMdb, $db, GETPOST('id'));
 			$id_suivi = GETPOST('id_suivi');
 			$simulation->TSimulationSuivi[$id_suivi]->debug = true;
+			$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb, $simulation, 'demander');
 			$simulation->TSimulationSuivi[$id_suivi]->_sendDemandeAuto($ATMdb);
 			
 			_fiche($ATMdb, $simulation, 'view');
@@ -601,7 +602,7 @@ function getAllStatutSuivi() {
 		$nb_ok = 0;
 		$nb_wait = 0;
 		$nb_refus = 0;
-		$nb_er = 0;
+		$nb_err = 0;
 		
 		foreach($TStatut as $TData) {
 			
@@ -632,7 +633,7 @@ function getAllStatutSuivi() {
 				if($nb_ok > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/OK.png',1).'" />';
 				elseif($nb_refus > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/KO.png',1).'" />';
 				elseif($nb_wait > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
-				elseif($nb_err > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/ERR.png',1).'" />';
+				elseif($nb_err > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="Erreur" src="'.dol_buildpath('/financement/img/ERR.png',1).'" />';
 				else $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/KO.png',1).'" />';
 				$TStatutSuiviFinal[$fk_simulation].= '</a>';
 			}
