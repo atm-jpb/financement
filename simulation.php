@@ -330,40 +330,22 @@ if(!empty($action)) {
 			if($id_suivi){
 				
 				$simulation->load($ATMdb, $db, $_REQUEST['id']);
+				$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$simulation,$action);
+					
+				if(!empty($simulation->TSimulationSuivi[$id_suivi]->errorLabel)){
+					setEventMessage($simulation->TSimulationSuivi[$id_suivi]->errorLabel,'errors');
+				}
 				
-				$res = true; // Init à true pour garder le comportement de base si action <> de "demander"
-				if($action == 'demander') 
-				{
-					dol_include_once('/financement/class/service_financement.class.php');
-					$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[$id_suivi]);
-					// La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active) 
-					$res = $service->call();
-				}
-
-				// La methode call() retournera principalement false, car pour le moment 1 seul leaser est prévu, et dans le cas de l'appel avec le bon leaser il faut tester qu'il n'y a pas d'erreur
-				if (!$res && !empty($service->TError))
-				{
-					setEventMessages('', $service->TError, 'errors');
-				}
-				else
-				{
-					$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$simulation,$action);
+				if($action == 'demander'){
+					//$simulation->accord = 'WAIT_LEASER';
+					// Suite retours PR1512_1187, on ne garde plus que le statut WAIT (En étude)
+					$simulation->accord = 'WAIT';
 					
-					if(!empty($simulation->TSimulationSuivi[$id_suivi]->errorLabel)){
-						setEventMessage($simulation->TSimulationSuivi[$id_suivi]->errorLabel,'errors');
+					// Si une demande est formulée auprès d'un leaser, on fige le montant (+- 10%)
+					if(empty($simulation->montant_accord)) {
+						$simulation->montant_accord = $simulation->montant_total_finance;
 					}
-					
-					if($action == 'demander'){
-						//$simulation->accord = 'WAIT_LEASER';
-						// Suite retours PR1512_1187, on ne garde plus que le statut WAIT (En étude)
-						$simulation->accord = 'WAIT';
-						
-						// Si une demande est formulée auprès d'un leaser, on fige le montant (+- 10%)
-						if(empty($simulation->montant_accord)) {
-							$simulation->montant_accord = $simulation->montant_total_finance;
-						}
-						$simulation->save($ATMdb, $db);
-					}
+					$simulation->save($ATMdb, $db);
 				}
 				
 				_fiche($ATMdb, $simulation, 'view');
