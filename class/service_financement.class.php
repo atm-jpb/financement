@@ -760,7 +760,7 @@ EOT;
 			case 'TOSHIBA':
 				return 'T046';
 				break;
-			case 'HEWLETT PACKARD':
+			case 'HP':
 				return 'H113';
 				break;
 			case 'CANON':
