@@ -169,10 +169,17 @@
 				<td>Anomalie</td><td colspan="3">[dossier.renta_anomalie;strconv=no]</td>
 			</tr>
 			<tr>
+				<td>Non rentable/anomalie</td><td>[dossier.fk_statut_renta_neg_ano;strconv=no]</td>
+				<td>Dossier spécifique</td><td>[dossier.fk_statut_renta_neg_spe;strconv=no]</td>
+			</tr>
+			<tr>
 				<td>Commentaire rentabilité</td><td colspan="3">[dossier.commentaire_visa; strconv=no]</td>
 			</tr>
 			<tr>
 				<td>Type régul (integral)</td><td colspan="3">[dossier.type_regul; strconv=no]</td>
+			</tr>
+			<tr>
+				<td>Statut dossier</td><td colspan="3">[dossier.fk_statut_dossier; strconv=no]</td>
 			</tr>
 		[onshow;block=end]
 		</table>
