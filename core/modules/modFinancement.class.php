@@ -189,9 +189,9 @@ class modFinancement extends DolibarrModules
 			,'code,label'
 			,'cat_id,label,entity'
 			,'nat_id,label,entity'
-			,'code,label'
-			,'code,label'
-			,'code,label'
+			,'code,label,entity'
+			,'code,label,entity'
+			,'code,label,entity'
 		)
 		,'tabfieldvalue'=>array(
 			'code,label,entity'
