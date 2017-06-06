@@ -153,21 +153,33 @@ class modFinancement extends DolibarrModules
 			,MAIN_DB_PREFIX.'c_financement_marque_materiel'
 			,MAIN_DB_PREFIX.'c_financement_categorie_bien'
 			,MAIN_DB_PREFIX.'c_financement_nature_bien'
+			,MAIN_DB_PREFIX.'c_financement_statut_dossier'
+			,MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano'
+			,MAIN_DB_PREFIX.'c_financement_statut_renta_neg_spe'
 		)
 		,'tablib'=>array(
 			'Type de contrat'
 			,'Marque de materiel'
 			,'Categorie du Bien'
 			,'Nature du Bien'
+			,'Statut dossier'
+			,'Statut renta négative anomalie'
+			,'Statut renta négative spécifique'
 		)
 		,'tabsql'=>array(
 			'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_type_contrat as f WHERE entity = '.$conf->entity
 			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_marque_materiel as f WHERE entity = '.$conf->entity
 			,'SELECT f.rowid as rowid, f.cat_id, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_categorie_bien as f WHERE entity IN (0, '.$conf->entity.')'
 			,'SELECT f.rowid as rowid, f.nat_id, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_nature_bien as f WHERE entity IN (0, '.$conf->entity.')'
+			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_statut_dossier as f WHERE entity IN (0, '.$conf->entity.')'
+			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano as f WHERE entity IN (0, '.$conf->entity.')'
+			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_spe as f WHERE entity IN (0, '.$conf->entity.')'
 		)
 		,'tabsqlsort'=>array(
 			'label ASC'
+			,'label ASC'
+			,'label ASC'
+			,'label ASC'
 			,'label ASC'
 			,'label ASC'
 			,'label ASC'
@@ -177,27 +189,42 @@ class modFinancement extends DolibarrModules
 			,'code,label'
 			,'cat_id,label,entity'
 			,'nat_id,label,entity'
+			,'code,label'
+			,'code,label'
+			,'code,label'
 		)
 		,'tabfieldvalue'=>array(
 			'code,label,entity'
 			,'code,label,entity'
 			,'cat_id,label,entity'
 			,'nat_id,label,entity'
+			,'code,label,entity'
+			,'code,label,entity'
+			,'code,label,entity'
 		)
 		,'tabfieldinsert'=>array(
 			'code,label,entity'
 			,'code,label,entity'
 			,'cat_id,label,entity'
 			,'nat_id,label,entity'
+			,'code,label,entity'
+			,'code,label,entity'
+			,'code,label,entity'
 		)
 		,'tabrowid'=>array(
 			'rowid'
 			,'rowid'
 			,'rowid'
 			,'rowid'
+			,'rowid'
+			,'rowid'
+			,'rowid'
 		)
 		,'tabcond'=>array(
 			$conf->financement->enabled
+			,$conf->financement->enabled
+			,$conf->financement->enabled
+			,$conf->financement->enabled
 			,$conf->financement->enabled
 			,$conf->financement->enabled
 			,$conf->financement->enabled
