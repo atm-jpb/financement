@@ -141,7 +141,7 @@ class TFinancementTools {
 		
 		if ($resql)
 		{
-			$TRes[] = '';
+			//$TRes[] = '';
 			while ($row = $db->fetch_object($resql))
 			{
 				$TRes[$row->cat_id] = $row->label;
@@ -162,7 +162,7 @@ class TFinancementTools {
 		
 		if ($resql)
 		{
-			$TRes[] = '';
+			//$TRes[] = '';
 			while ($row = $db->fetch_object($resql))
 			{
 				$TRes[$row->nat_id] = $row->label;

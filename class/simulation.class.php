@@ -111,6 +111,10 @@ class TSimulation extends TObjetStd {
 		$this->dossiers_rachetes_perso = array();
 		
 		$this->modifiable = 1; // 1 = modifiable, 2 = modifiable +- 10%, 0 = non modifiable
+		
+		// Catégorie et nature par défaut pour transfert EDI
+		$this->fk_categorie_bien = 26;
+		$this->fk_nature_bien = 665;
 	}
  
 	function getRef() {
