@@ -60,6 +60,7 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 			,'marge_attendue'			=> number_format($data->marge_attendue, 2)
 			,'renta_reelle'				=> number_format($data->renta_reelle,2, ',', ' ')
 			,'marge_reelle'				=> number_format($data->marge_reelle,2)
+			,'fk_statut_renta_neg_ano'	=> $data->fk_statut_renta_neg_ano
 		);
 		
 		$TLinesDisp[] = array(
@@ -79,6 +80,7 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 			,'renta_previsionnelle'=>number_format($data->renta_previsionnelle,2, ',', ' ').' <br> '.number_format($data->marge_previsionnelle,2).' %'
 			,'renta_attendue'=>number_format($data->renta_attendue,2, ',', ' ').' <br> '.number_format($data->marge_attendue, 2).' %'
 			,'renta_reelle'=>number_format($data->renta_reelle,2, ',', ' ').' <br> '.number_format($data->marge_reelle,2).' %'
+			,'fk_statut_renta_neg_ano'	=> $data->fk_statut_renta_neg_ano
 		);
 	}
 	
@@ -140,6 +142,7 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 		,'marge_previsionnelle'=>'Marge Prévisionnelle'
 		,'marge_attendue'=>'Marge Attendue'
 		,'marge_reelle'=>'Marge Réelle'
+		,'fk_statut_renta_neg_ano'=>'Anomalie'
 	);
 	$limit = !empty($user->conf->MAIN_SIZE_LISTE_LIMIT) ? $user->conf->MAIN_SIZE_LISTE_LIMIT : $conf->global->MAIN_SIZE_LISTE_LIMIT;
 	
@@ -159,6 +162,7 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 		,'translate'=>array(
 			'nature_financement'=>$aff->TNatureFinancement
 			,'visa_renta'=>$dos->Tvisa
+			,'fk_statut_renta_neg_ano'=>$dos->TStatutRentaNegAno
 		)
 		,'hide'=>array('iddos', 'fk_client','fk_leaser','fk_affaire')
 		,'type'=>array()//'date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'Echéance'=>'money')
