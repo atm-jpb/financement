@@ -165,6 +165,7 @@ class ServiceFinancement {
 			
 		try {
 			$this->soapClient = new MySoapClient($this->wsdl, $options);
+			$this->soapClient->ref_ext = $this->simulation->reference;
 			
 			//$response = $this->soapClient->DemandeCreationLeasingGN($TParam);
 			$string_xml_body = $this->getXmlForLixxbail();
@@ -1070,6 +1071,8 @@ class MySoapClient extends SoapClient
 	{		
 		$doc = new DOMDocument('1.0');
 		$doc->loadXML($request);
+		
+		$doc->ref_ext = $this->ref_ext;
 		
 		$objWSSE = new WSSESoap($doc);
 		
