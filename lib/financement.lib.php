@@ -261,7 +261,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
 		$sql.= $sqljoin;
 		$sql.= " WHERE d.visa_renta = 0";
-		$sql.= " AND d.renta_anomalie = 1";
+		$sql.= " AND d.renta_anomalie = 0";
 		$sql.= $sqlwhere;
 		
 		$PDOdb->Execute($sql);
@@ -315,7 +315,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (ee.fk_source = d.rowid AND ee.sourcetype = 'dossier')";
 		$sql.= $sqljoin;
 		$sql.= " WHERE (fext.visa_renta_loyer_leaser = 0 OR fext.visa_renta_loyer_leaser IS NULL)";
-		$sql.= " AND d.renta_anomalie = 1";
+		$sql.= " AND d.renta_anomalie = 0";
 		$sql.= $sqlwhere;
 		
 		$PDOdb->Execute($sql);
@@ -408,7 +408,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (ee.fk_source = d.rowid AND ee.sourcetype = 'dossier')";
 		$sql.= $sqljoin;
 		$sql.= " WHERE (fext.visa_renta_loyer_client = 0 OR fext.visa_renta_loyer_client IS NULL)";
-		$sql.= " AND d.renta_anomalie = 1";
+		$sql.= " AND d.renta_anomalie = 0";
 		$sql.= $sqlwhere;
 		
 		$PDOdb->Execute($sql);
@@ -498,7 +498,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= " WHERE f.paye = 0";
 		$sql.= " AND f.date_lim_reglement <= '".date('Y-m-d')."'";
 		$sql.= " AND SUBSTR(f.ref_client, -4) >= 2015";
-		$sql.= " AND d.renta_anomalie = 1";
+		$sql.= " AND d.renta_anomalie = 0";
 		$sql.= $sqlwhere;
 		
 		$PDOdb->Execute($sql);
@@ -540,7 +540,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
 		$sql.= $sqljoin;
 		$sql.= " WHERE d.reference NOT LIKE '%adj%'";
-		$sql.= " AND d.renta_anomalie = 1";
+		$sql.= " AND d.renta_anomalie = 0";
 		$sql.= $sqlwhere;
 		//echo $sql;
 		$PDOdb->Execute($sql);
