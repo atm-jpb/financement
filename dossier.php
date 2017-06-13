@@ -1013,7 +1013,6 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'visa_renta_ndossier'=>$form->combo('', 'visa_renta_ndossier', array('1' => 'Oui', '0' => 'Non'), $dossier->visa_renta_ndossier)
 				,'renta_anomalie'=>$form->combo('', 'renta_anomalie', array('1' => 'Oui', '0' => 'Non'), $dossier->renta_anomalie)
 				,'fk_statut_renta_neg_ano'=>$form->combo('', 'fk_statut_renta_neg_ano', $dossier->TStatutRentaNegAno, $dossier->fk_statut_renta_neg_ano)
-				,'fk_statut_renta_neg_spe'=>$form->combo('', 'fk_statut_renta_neg_spe', $dossier->TStatutRentaNegSpe, $dossier->fk_statut_renta_neg_spe)
 				,'fk_statut_dossier'=>$form->combo('', 'fk_statut_dossier', $dossier->TStatutDossier, $dossier->fk_statut_dossier)
 				,'commentaire_visa'=>$form->zonetexte('', 'commentaire_visa', $dossier->commentaire_visa,100,5,'')
 				,'quote_part_noir' => $form->texte('', 'quote_part_noir', $dossier_for_integral->quote_part_noir, 10)
