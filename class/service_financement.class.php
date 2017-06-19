@@ -114,7 +114,7 @@ class ServiceFinancement {
 		}
 		
 		// TODO à revoir, peut être qu'un test sur code client ou mieux encore sur numéro SIRET
-		if ($this->leaser->name == 'LIXXBAIL' || $this->leaser->name == 'LIXXBAIL MANDATE')
+		if ($this->leaser->array_options['options_edi_leaser'] == 'LIXXBAIL')
 		{
 			return $this->callLixxbail();
 		}
