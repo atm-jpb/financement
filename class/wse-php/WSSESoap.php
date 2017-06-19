@@ -78,7 +78,7 @@ class WSSESoap
 				//$calfHeader = $this->soapDoc->createElementNS(self::WSUNS, self::WSUPFX.':Calf_Header_GN');
 				$calfHeader = $this->soapDoc->createElementNS(self::WSUNS, 'env1:Calf_Header_GN');
 				$calfHeader->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:env1', 'http://referentiel.ca.fr/SoapHeaderV1');
-				$calfHeader->setAttributeNS('', 'xmlns:correlationId', $this->soapDoc->ref_ext);
+				$calfHeader->setAttributeNS('', 'correlationId', $this->soapDoc->ref_ext);
 				
 				$header->insertBefore($calfHeader, $header->firstChild);
             }
