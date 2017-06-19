@@ -258,7 +258,15 @@ class ServiceFinancement {
 
 	private function getXmlForLixxbail()
 	{
-		global $mysoc;
+		global $db;
+		
+		// Récupération configuration de l'entité de la simulation
+		$confentity = new Conf();
+		$confentity->entity = $this->simulation->entity;
+		$confentity->setValues($db);
+		
+		$mysocentity=new Societe($db);
+		$mysocentity->setMysoc($conf);
 		
 		// Need pour avoir la fonction de calcul de la périodicité
 		$f = new TFin_financement();
@@ -278,9 +286,9 @@ class ServiceFinancement {
 				<v1:DemandeCreationLeasingGN xmlns:v1="http://referentiel.ca.fr/Services/calf/DemandeCreationLeasingGN/V1/">
 			         <v1:Request>
 			            <v1:PARTENAIRE>
-			               <v1:SIREN_PARTENAIRE>'.$mysoc->idprof1.'</v1:SIREN_PARTENAIRE>
-			               <v1:NIC_PARTENAIRE>'.substr($mysoc->idprof2, -5, 5).'</v1:NIC_PARTENAIRE>
-			               <v1:COMMERCIAL_EMAIL>d.ferrazzi@cpro.fr</v1:COMMERCIAL_EMAIL>
+			               <v1:SIREN_PARTENAIRE>'.$mysocentity->idprof1.'</v1:SIREN_PARTENAIRE>
+			               <v1:NIC_PARTENAIRE>'.substr($mysocentity->idprof2, -5, 5).'</v1:NIC_PARTENAIRE>
+			               <v1:COMMERCIAL_EMAIL>'.$mysocentity->email.'</v1:COMMERCIAL_EMAIL>
 			               <v1:REF_EXT>'.$this->simulation->reference.'</v1:REF_EXT>
 			            </v1:PARTENAIRE>
 			            <v1:BIEN>
@@ -292,8 +300,8 @@ class ServiceFinancement {
 			               <v1:QTE_BIEN>1</v1:QTE_BIEN>
 			               <v1:MT_HT_BIEN>'.$this->simulation->montant.'</v1:MT_HT_BIEN>
 			               <v1:PAYS_DESTINATION_BIEN>'.(!empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR').'</v1:PAYS_DESTINATION_BIEN>
-			               <v1:FOURNISSEUR_SIREN>'.$mysoc->idprof1.'</v1:FOURNISSEUR_SIREN>
-			               <v1:FOURNISSEUR_NIC>'.substr($mysoc->idprof2, -5, 5).'</v1:FOURNISSEUR_NIC>
+			               <v1:FOURNISSEUR_SIREN>'.$mysocentity->idprof1.'</v1:FOURNISSEUR_SIREN>
+			               <v1:FOURNISSEUR_NIC>'.substr($mysocentity->idprof2, -5, 5).'</v1:FOURNISSEUR_NIC>
 			            </v1:BIEN>
 			            <!--1 or more repetitions:-->
 			            <v1:BIEN_COMPL>
