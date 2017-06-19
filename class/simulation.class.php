@@ -1630,14 +1630,11 @@ class TSimulationSuivi extends TObjetStd {
 		
 		switch ($this->leaser->array_options['options_edi_leaser']) {
 			//BNP PARIBAS LEASE GROUP
-			case '3382':
-			//case '19553': //On prend pas en compte BNP ADOSSEE car le scoring se fait spécifiquement
-			case '20113':
+			case 'BNP':
 				$this->_createDemandeBNP($PDOdb);
 				break;
 			//GE CAPITAL EQUIPEMENT FINANCE
-			case '7411':
-			case '21382':
+			case 'GE':
 				$this->_createDemandeGE($PDOdb);
 				break;
 			//LIXXBAIL
