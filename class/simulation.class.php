@@ -1376,16 +1376,6 @@ class TSimulationSuivi extends TObjetStd {
 			,'ERR'=>$langs->trans('Error')
 		);
 		
-		$this->TLeaserAuto=array(
-			3382		=> 'BNP PARIBAS LEASE GROUP'
-			,19553		=> 'BNP PARIBAS LEASE GROUP (ADOSSE)'
-			,20113		=> 'BNP PARIBAS LEASE GROUP (MANDATE)'
-			,7411		=> 'GE CAPITAL EQUIPEMENT FINANCE'
-			,21382		=> 'GE CAPITAL EQUIPEMENT FINANCE (MANDATEE)'
-			,6065		=> 'LIXXBAIL'
-			,19483		=> 'LIXXBAIL MANDATE'
-		);
-		
 		$this->simulation = new TSimulation;
 	}
 	
@@ -1446,10 +1436,6 @@ class TSimulationSuivi extends TObjetStd {
 				}
 				else{
 					if($this->statut !== 'KO'){
-						/*if($this->TLeaserAuto[$this->fk_leaser]){	
-							//Envoyer
-							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander" title="Envoyer la demande"><img src="'.dol_buildpath('/financement/img/envoyer.png',1).'" /></a>&nbsp;';
-						}*/
 						if($just_save) {
 							//Enregistrer
 							$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
@@ -1477,7 +1463,7 @@ class TSimulationSuivi extends TObjetStd {
 			}
 		}
 		
-		if (!$just_save && !empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($this->TLeaserAuto[$this->fk_leaser])) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.img_picto('Webservice', 'call').'</a>&nbsp;';
+		if (!$just_save && !empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($this->leaser->array_options['options_edi_leaser'])) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.img_picto('Webservice', 'call').'</a>&nbsp;';
 		
 		return $actions;
 	}
@@ -1535,7 +1521,7 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		//Si leaser auto alors on envoye la demande par EDI
-		if(in_array($this->fk_leaser, array_keys($this->TLeaserAuto)) && empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON)){
+		if(!empty($this->leaser->array_options['options_edi_leaser']) && empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON)){
 			$this->_sendDemandeAuto($PDOdb);
 		}
 		
@@ -1642,7 +1628,7 @@ class TSimulationSuivi extends TObjetStd {
 		$this->simulation->societe = new Societe($db);
 		$this->simulation->societe->fetch($this->simulation->fk_soc);
 		
-		switch ($this->fk_leaser) {
+		switch ($this->leaser->array_options['options_edi_leaser']) {
 			//BNP PARIBAS LEASE GROUP
 			case '3382':
 			//case '19553': //On prend pas en compte BNP ADOSSEE car le scoring se fait spécifiquement
@@ -1655,8 +1641,7 @@ class TSimulationSuivi extends TObjetStd {
 				$this->_createDemandeGE($PDOdb);
 				break;
 			//LIXXBAIL
-			case '6065':
-			case '19483':
+			case 'LIXXBAIL':
 				$this->_createDemandeLIXXBAIL($PDOdb);
 				break;
 			default:
