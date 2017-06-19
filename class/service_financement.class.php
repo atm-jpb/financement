@@ -266,7 +266,7 @@ class ServiceFinancement {
 		$confentity->setValues($db);
 		
 		$mysocentity=new Societe($db);
-		$mysocentity->setMysoc($conf);
+		$mysocentity->setMysoc($confentity);
 		
 		// Need pour avoir la fonction de calcul de la périodicité
 		$f = new TFin_financement();
