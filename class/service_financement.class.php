@@ -610,7 +610,7 @@ EOT;
 		global $langs;
 		
 		$TId = array();
-		if (strpos($this->leaser->name, 'LIXXBAIL') === 0)
+		if (strpos($this->leaser->name, 'LIXXBAIL') !== false)
 		{
 			$TId = array(
 				'CHQ' => 1
@@ -633,7 +633,7 @@ EOT;
 	{
 		global $langs;
 		
-		if (strpos($this->leaser->name, 'LIXXBAIL') === 0)
+		if (strpos($this->leaser->name, 'LIXXBAIL') !== false)
 		{
 			/**
 			 * Autre valeurs possible
@@ -812,10 +812,7 @@ EOT;
 	 */
 	public function getCodeProduit()
 	{
-		if($this->leaser->name == 'LIXXBAIL')
-			return 'LOCF';
-		if($this->leaser->name == 'LIXXBAIL MANDATE')
-			return 'LOCF';
+		return 'LOCF';
 	}
 	
 	/**
@@ -830,10 +827,10 @@ EOT;
 	 */
 	public function getTypeProduit()
 	{
-		if($this->leaser->name == 'LIXXBAIL')
-			return 'CESS';
-		if($this->leaser->name == 'LIXXBAIL MANDATE')
+		if(strpos($this->leaser->name, 'LIXXBAIL MANDATE') !== false)
 			return 'LMAF';
+		if(strpos($this->leaser->name, 'LIXXBAIL') !== false)
+			return 'CESS';
 	}
 	
 	/**
