@@ -228,7 +228,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		'err6'=>array()
 	);
 	
-	$sqlfields = 'a.reference as refaffaire, a.rowid as fk_affaire, a.fk_soc as fk_client,d.fk_statut_renta_neg_ano,';
+	$sqlfields = 'a.reference as refaffaire, a.rowid as fk_affaire, a.fk_soc as fk_client,d.fk_statut_renta_neg_ano,d.fk_statut_dossier,';
 	$sqlfields.= 'dfcli.reference as refdoscli, dfcli.duree, dfcli.periodicite, dfcli.montant, dfcli.echeance, dfcli.date_debut, dfcli.date_fin, dfcli.date_prochaine_echeance, ';
 	$sqlfields.= 'd.renta_previsionnelle, d.renta_attendue, d.renta_reelle, d.marge_previsionnelle, d.marge_attendue, d.marge_reelle, ';
 	$sqlfields.= 'dflea.reference as refdoslea, dflea.fk_soc as fk_leaser, scli.nom as nomcli, slea.nom as nomlea';
