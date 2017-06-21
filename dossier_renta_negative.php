@@ -32,6 +32,9 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 	 ************************************************************************/
 	llxHeader('','Dossiers renta négative');
 	
+	$aff = new TFin_affaire;
+	$dos = new TFin_dossier;
+	
 	foreach($TDossiersError['all'] as $id_dossier) {
 		$data = $TDossiersError['data'][$id_dossier];
 		
@@ -60,6 +63,8 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 			,'marge_attendue'			=> number_format($data->marge_attendue, 2)
 			,'renta_reelle'				=> number_format($data->renta_reelle,2, ',', ' ')
 			,'marge_reelle'				=> number_format($data->marge_reelle,2)
+			,'fk_statut_renta_neg_ano'	=> $dos->TStatutRentaNegAno[$data->fk_statut_renta_neg_ano]
+			,'fk_statut_dossier'		=> $dos->TStatutDossier[$data->fk_statut_dossier]
 		);
 		
 		$TLinesDisp[] = array(
@@ -79,6 +84,8 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 			,'renta_previsionnelle'=>number_format($data->renta_previsionnelle,2, ',', ' ').' <br> '.number_format($data->marge_previsionnelle,2).' %'
 			,'renta_attendue'=>number_format($data->renta_attendue,2, ',', ' ').' <br> '.number_format($data->marge_attendue, 2).' %'
 			,'renta_reelle'=>number_format($data->renta_reelle,2, ',', ' ').' <br> '.number_format($data->marge_reelle,2).' %'
+			,'fk_statut_renta_neg_ano'	=> $data->fk_statut_renta_neg_ano
+			,'fk_statut_dossier'		=> $data->fk_statut_dossier
 		);
 	}
 	
@@ -99,9 +106,6 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 	if(!empty($TDossiersError['all'])) {
 		echo $form->btsubmit('Exporter ('.count($TDossiersError['all']).' dossiers)', 'export');
 	}
-	
-	$aff = new TFin_affaire;
-	$dos = new TFin_dossier;
 	
 	$TErrorStatus=array(
 		'error_1' => "Echéance Client < Echéance Leaser",
@@ -140,6 +144,8 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 		,'marge_previsionnelle'=>'Marge Prévisionnelle'
 		,'marge_attendue'=>'Marge Attendue'
 		,'marge_reelle'=>'Marge Réelle'
+		,'fk_statut_renta_neg_ano'=>'Anomalie'
+		,'fk_statut_dossier'=>'Statut'
 	);
 	$limit = !empty($user->conf->MAIN_SIZE_LISTE_LIMIT) ? $user->conf->MAIN_SIZE_LISTE_LIMIT : $conf->global->MAIN_SIZE_LISTE_LIMIT;
 	
@@ -159,6 +165,8 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 		,'translate'=>array(
 			'nature_financement'=>$aff->TNatureFinancement
 			,'visa_renta'=>$dos->Tvisa
+			,'fk_statut_renta_neg_ano'=>$dos->TStatutRentaNegAno
+			,'fk_statut_dossier'=>$dos->TStatutDossier
 		)
 		,'hide'=>array('iddos', 'fk_client','fk_leaser','fk_affaire')
 		,'type'=>array()//'date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'Echéance'=>'money')

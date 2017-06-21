@@ -11,6 +11,7 @@ class TFin_dossier extends TObjetStd {
 		parent::add_champs('date_relocation,date_solde,dateperso','type=date;');
 		parent::add_champs('entity',array('type'=>'int', 'index'=>true));
 		parent::add_champs('type_regul,month_regul',array('type'=>'int'));
+		parent::add_champs('fk_statut_renta_neg_ano,fk_statut_dossier',array('type'=>'chaine'));
 			
 		parent::start();
 		parent::_init_vars();
@@ -30,6 +31,11 @@ class TFin_dossier extends TObjetStd {
 		
 		$this->TFacture=array();
 		$this->TFactureFournisseur=array();
+		
+		// Dictionnaires
+		$this->TStatutDossier=array();
+		$this->TStatutRentaNegAno=array();
+		$this->load_statut_dossier();
 	}
 	
 	function loadReference(&$db, $reference, $annexe=false) {
@@ -1716,6 +1722,37 @@ class TFin_dossier extends TObjetStd {
 		return $soldepersointegrale;
 	}
 
+
+	// Chargement des dictionnaires
+	function load_statut_dossier() {
+		global $conf,$db;
+		
+		// Statut dossier
+		$sql = 'SELECT code, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_dossier WHERE entity IN (0, '.$conf->entity.') AND active = 1';
+		$resql = $db->query($sql);
+		$this->TStatutDossier[] = '';
+		
+		if ($resql)
+		{
+			while ($row = $db->fetch_object($resql))
+			{
+				$this->TStatutDossier[$row->code] = $row->label;
+			}
+		}
+		
+		// Statut renta neg anomalie
+		$sql = 'SELECT code, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano WHERE entity IN (0, '.$conf->entity.') AND active = 1';
+		$resql = $db->query($sql);
+		$this->TStatutRentaNegAno[] = '';
+		
+		if ($resql)
+		{
+			while ($row = $db->fetch_object($resql))
+			{
+				$this->TStatutRentaNegAno[$row->code] = $row->label;
+			}
+		}
+	}
 }
 
 /*
@@ -1960,6 +1997,7 @@ class TFin_financement extends TObjetStd {
 			}
 		}
 	}
+	
 	function loadReference(&$db, $reference, $type='LEASER') {
 		$Tab = TRequeteCore::get_id_from_what_you_want($db,$this->get_table(),array('reference'=>$reference,'type'=>$type));
 		if(count($Tab)>0) return $this->load($db, $Tab[0]);
