@@ -32,6 +32,9 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 	 ************************************************************************/
 	llxHeader('','Dossiers renta négative');
 	
+	$aff = new TFin_affaire;
+	$dos = new TFin_dossier;
+	
 	foreach($TDossiersError['all'] as $id_dossier) {
 		$data = $TDossiersError['data'][$id_dossier];
 		
@@ -103,9 +106,6 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 	if(!empty($TDossiersError['all'])) {
 		echo $form->btsubmit('Exporter ('.count($TDossiersError['all']).' dossiers)', 'export');
 	}
-	
-	$aff = new TFin_affaire;
-	$dos = new TFin_dossier;
 	
 	$TErrorStatus=array(
 		'error_1' => "Echéance Client < Echéance Leaser",
