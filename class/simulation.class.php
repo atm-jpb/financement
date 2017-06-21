@@ -1869,7 +1869,7 @@ class TSimulationSuivi extends TObjetStd {
 	function _createDemandeBNP(&$PDOdb){
 		
 		if(BNP_TEST){
-			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+			$soapWSDL = BNP_WSDL_URL;
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
@@ -1891,7 +1891,7 @@ class TSimulationSuivi extends TObjetStd {
 
 		}
 		catch(SoapFault $e) {
-			var_dump($e);
+			pre($e,true);
 			exit;
 		}
 		//pre($soap->__getFunctions(),true);exit;
