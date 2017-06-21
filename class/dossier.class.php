@@ -35,7 +35,6 @@ class TFin_dossier extends TObjetStd {
 		// Dictionnaires
 		$this->TStatutDossier=array();
 		$this->TStatutRentaNegAno=array();
-		$this->TStatutRentaNegSpe=array();
 		$this->load_statut_dossier();
 	}
 	
