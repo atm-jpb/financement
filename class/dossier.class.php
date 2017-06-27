@@ -1270,7 +1270,7 @@ class TFin_dossier extends TObjetStd {
 					$SR = $this->getSolde($ATMdb, 'SRCPRO', $i+1);
 					$SNR = $this->getSolde($ATMdb, 'SNRCPRO', $i+1);
 					
-					$duree_restante_client = ($i == 0) ? $this->financement->duree_restante : $this->financement->duree - $i;
+					/*$duree_restante_client = ($i == 0) ? $this->financement->duree_restante : $this->financement->duree - $i;
 					if ((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) > $seuil_solde){
 					
 						list($CRD_client,$LRD_client) = $this->getCRDandLRD('CLIENT',$i+1);
@@ -1280,7 +1280,7 @@ class TFin_dossier extends TObjetStd {
 						//FIN Ticket 3049
 						
 						//echo "après : ".$SR." ".$SNR.'<br>';
-					}
+					}*/
 					
 					$htmlSoldes.= '<tr><td colspan="2" align="center">Apr&egrave;s l\'&eacute;ch&eacute;ance n&deg;'.($i+1).'</td></tr>';
 					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($SR,2,',',' ').' &euro;</strong></td></tr>';
