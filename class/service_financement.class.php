@@ -615,8 +615,8 @@ EOT;
 			$TId = array(
 				'CHQ' => 1
 				,'PRE' => 2
-				//,'MDT' => 0 // Non géré pas cal&f
-				//,'VIR' => 0 // Non géré pas cal&f
+				,'MDT' => 1 // Non géré pas cal&f
+				,'VIR' => 1 // Non géré pas cal&f
 			);	
 		}
 		
