@@ -1743,6 +1743,7 @@ class TFin_dossier extends TObjetStd {
 				WHERE entity = ".$this->entity." 
 				AND active = 1 
 				AND fk_type_contrat = '".$this->contrat."'
+				AND fk_nature = '".$this->nature_financement."'
 				ORDER BY periode ASC";
 		$res = array();
 		$resql = $db->query($sql);

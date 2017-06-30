@@ -263,6 +263,11 @@ class ActionsFinancement
 				print $form->selectarray($value, $aff->TContrat,$object->$value);
 				print '</td>';
 			}
+			elseif ($value == 'fk_nature') {
+				print '<td>';
+				print $form->selectarray($value, $aff->TNatureFinancement,$object->$value);
+				print '</td>';
+			}
 			elseif ($value == 'base_solde') {
 				print '<td>';
 				print $form->selectarray($value, $aff->TBaseSolde,$object->$value);
@@ -298,6 +303,11 @@ class ActionsFinancement
 				print $form->selectarray($value, $aff->TContrat,$object->$value);
 				print '</td>';
 			}
+			elseif ($value == 'fk_nature') {
+				print '<td>';
+				print $form->selectarray($value, $aff->TNatureFinancement,$object->$value);
+				print '</td>';
+			}
 			elseif ($value == 'base_solde') {
 				print '<td>';
 				print $form->selectarray($value, $aff->TBaseSolde,$object->$value);
@@ -331,6 +341,11 @@ class ActionsFinancement
 			if ($value == 'fk_type_contrat') {
 				print '<td>';
 				print $aff->TContrat[$object->$value];
+				print '</td>';
+			}
+			elseif ($value == 'fk_nature') {
+				print '<td>';
+				print $aff->TNatureFinancement[$object->$value];
 				print '</td>';
 			}
 			elseif ($value == 'base_solde') {
