@@ -732,23 +732,34 @@ class TFin_dossier extends TObjetStd {
 	function getSolde_SR_CLIENT(&$PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $LRD_Leaser, $nature_financement='EXTERNE')
 	{
 		global $conf;
+		$solde = 0;
 		
 		if ($nature_financement == 'EXTERNE')
 		{
-			$temps_restant = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
-			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
-		
-			if ($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste; // TODO check si ça doit rester
+			$p = ($this->financementLeaser->duree - $duree_restante_client) * $this->financementLeaser->getiPeriode();
+			$TSoldeRule = $this->getRuleSolde($p);
 			
-			// Add Pen Leaser + CPro
-			$date_deb_periode = $this->getDateDebutPeriode($iPeriode-1);
-			$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode) / 100) * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
-			if ($solde > $LRD_Leaser && $this->financementLeaser->fk_soc != 18305) return $LRD_Leaser; // Capé LRD sauf si ACECOM
-			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
-			else if($solde < $this->financementLeaser->reste){
-				return $this->financementLeaser->reste;
+			if($TSoldeRule->base_solde == 'MF') {
+				$solde = $this->financementLeaser->montant;
+			} else if($TSoldeRule->base_solde == 'CRD') {
+				$solde = $CRD_Leaser * (1 + $TSoldeRule->percent / 100);
+			} else if($TSoldeRule->base_solde == 'LRD') {
+				$solde = $LRD_Leaser * (1 + $TSoldeRule->percent / 100);
+			} else {
+				if ($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+			
+				if ($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste; // TODO check si ça doit rester
+				
+				// Add Pen Leaser + CPro
+				$date_deb_periode = $this->getDateDebutPeriode($iPeriode-1);
+				$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode) / 100) * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
+				if ($solde > $LRD_Leaser && $this->financementLeaser->fk_soc != 18305) return $LRD_Leaser; // Capé LRD sauf si ACECOM
+				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+				else if($solde < $this->financementLeaser->reste){
+					return $this->financementLeaser->reste;
+				}
+				else return $solde;
 			}
-			else return $solde;
 		}
 		else // INTERNE
 		{
@@ -783,8 +794,9 @@ class TFin_dossier extends TObjetStd {
 					$solde = $this->financement->reste;
 				}
 			}
-			return $solde;
 		}
+
+		return $solde;
 	}
 	
 	/**
@@ -799,17 +811,28 @@ class TFin_dossier extends TObjetStd {
 	function getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $nature_financement='EXTERNE')
 	{
 		global $conf;
+		$solde = 0;
 		
 		if ($nature_financement == 'EXTERNE')
 		{
-			$temps_restant = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
-			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+			$p = ($this->financementLeaser->duree - $duree_restante_client) * $this->financementLeaser->getiPeriode();
+			$TSoldeRule = $this->getRuleSolde($p);
 			
-			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
-			if($LRD_Leaser < $this->financement->reste){
-				return $this->financementLeaser->reste;
+			if($TSoldeRule->base_solde == 'MF') {
+				$solde = $this->financementLeaser->montant;
+			} else if($TSoldeRule->base_solde == 'CRD') {
+				$solde = $CRD_Leaser * (1 + $TSoldeRule->percent / 100);
+			} else if($TSoldeRule->base_solde == 'LRD') {
+				$solde = $LRD_Leaser * (1 + $TSoldeRule->percent / 100);
+			} else {
+				if ($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+				
+				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+				if($LRD_Leaser < $this->financement->reste){
+					return $this->financementLeaser->reste;
+				}
+				else return $LRD_Leaser;
 			}
-			else return $LRD_Leaser;
 		}
 		else // INTERNE 
 		{
@@ -844,9 +867,9 @@ class TFin_dossier extends TObjetStd {
 					$solde = $this->financement->reste;
 				}
 			}
-			
-			return $solde;
 		}
+			
+		return $solde;
 	}
 	
 	function getSolde_SR_NR_SAME($iPeriode, $duree_restante_client, $LRD, $LRD_leaser, $nature_financement='EXTERNE')
