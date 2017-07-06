@@ -16,7 +16,7 @@ require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 // TODO inclure les class nécessaire pour le scoring
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 
-dol_syslog("FINANCEMENT SOAP : start calling webservice");
+dol_syslog("FINANCEMENT SOAP : start calling webservice", LOG_ERR, 0, 'EDI');
 
 $langs->load("main");
 
@@ -134,9 +134,9 @@ function repondreDemande($authentication, $TReponse)
 {
 	global $db,$conf,$langs;
 
-	dol_syslog("WEBSERVICE ".date('Y-m-d H:i:s')." Function: repondreDemande login=".$authentication['login']);
+	dol_syslog("WEBSERVICE ".date('Y-m-d H:i:s')." Function: repondreDemande login=".$authentication['login'], LOG_ERR, 0, 'EDI');
 	//dol_syslog("WEBSERVICE AUTH TAB : ".print_r($authentification,true), LOG_ERR);
-	dol_syslog("WEBSERVICE REP TAB : ".print_r($TReponse,true), LOG_ERR);
+	dol_syslog("WEBSERVICE REP TAB : ".print_r($TReponse,true), LOG_ERR, 0, 'EDI');
 
 	if ($authentication['entity']) $conf->entity=$authentication['entity'];
 
@@ -262,7 +262,7 @@ function repondreDemande($authentication, $TReponse)
 	$objectresp['date'] = $date->format('Y-m-d H:i:s');
 	$objectresp['timezone'] = $date->getTimezone()->getName();
 	
-	dol_syslog("WEBSERVICE RESULT TAB : ".print_r($objectresp,true), LOG_ERR);
+	dol_syslog("WEBSERVICE RESULT TAB : ".print_r($objectresp,true), LOG_ERR, 0, 'EDI');
 
 	return $objectresp;
 }
