@@ -1475,9 +1475,9 @@ class TSimulationSuivi extends TObjetStd {
 		
 			switch ($action) {
 				case 'demander':
-					//if(empty($this->statut)){ //Possibilité d'effectuer le demande une seule fois uniquement
+					if(empty($this->statut)){ //Possibilité d'effectuer le demande une seule fois uniquement
 						$this->doActionDemander($PDOdb,$simulation);
-					//}
+					}
 					break;
 				case 'accepter':
 					$this->doActionAccepter($PDOdb,$simulation);
