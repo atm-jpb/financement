@@ -760,6 +760,9 @@ EOT;
 	 */
 	public function getIdMarqueBien()
 	{
+		// Envoi GENERIQUE car marque dépend de nature et catégorie
+		return 'Z999';
+		
 		$label = $this->getMarqueLabel($this->simulation->marque_materiel);
 		
 		switch ($label) {
@@ -1095,7 +1098,7 @@ class MySoapClient extends SoapClient
 		$objWSSE->signSoapDoc($objKey, $options);
 		
 		/* add certificate */
-		$token = $objWSSE->addBinaryToken(file_get_contents('/etc/apache2/ssl/cert.preprod.crt'));
+		$token = $objWSSE->addBinaryToken(file_get_contents('/etc/apache2/ssl/cert.prod.crt'));
 		$objWSSE->attachTokentoSig($token);
 		
 		// this DOES print the header
