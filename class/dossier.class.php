@@ -839,6 +839,9 @@ class TFin_dossier extends TObjetStd {
 				}
 				else return $LRD_Leaser;
 			}
+			
+			// Capé LRD
+			if($solde > $LRD_Leaser) return $LRD_Leaser;
 		}
 		else // INTERNE 
 		{
@@ -873,6 +876,9 @@ class TFin_dossier extends TObjetStd {
 					$solde = $this->financement->reste;
 				}
 			}
+			
+			// Capé LRD
+			if($solde > $LRD) return $LRD;
 		}
 			
 		return $solde;
