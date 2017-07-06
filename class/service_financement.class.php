@@ -167,6 +167,8 @@ class ServiceFinancement {
 			$this->soapClient = new MySoapClient($this->wsdl, $options);
 			$this->soapClient->ref_ext = $this->simulation->reference;
 			
+			dol_syslog("WEBSERVICE SENDING LIXXBAIL : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_CALF');
+			
 			//$response = $this->soapClient->DemandeCreationLeasingGN($TParam);
 			$string_xml_body = $this->getXmlForLixxbail();
 			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, null, null, null);
@@ -212,8 +214,10 @@ class ServiceFinancement {
 			
 			return true;
 		} catch (SoapFault $e) {
+				
+			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_CALF');
 			
-			 echo '<b>Caught exception:</b> ',  $e->getMessage(), "\n"; 
+			echo '<b>Caught exception:</b> ',  $e->getMessage(), "\n"; 
 			
 			$trace = $e->getTrace();
 			var_dump('ERROR TRACE 1: $trace[0]["args"][0] => ');
