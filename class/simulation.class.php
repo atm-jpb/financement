@@ -958,28 +958,40 @@ class TSimulation extends TObjetStd {
 		$TDossier = array();
 		//pre($this,true);exit;
 		foreach($this->dossiers_rachetes_m1 as $idDossier => $TData){
-			if($this->dossiers_rachetes_m1[$idDossier]['checked'])
+			if(!empty($this->dossiers_rachetes_m1[$idDossier]['checked'])) {
 				$TDossier[$idDossier] = $idDossier;
+				$this->dossiers[$idDossier]['solde_vendeur'] = $this->dossiers_rachetes_m1[$idDossier]['montant'];
+			}
 		}
 		foreach($this->dossiers_rachetes as $idDossier => $TData){
-			if($this->dossiers_rachetes[$idDossier]['checked'])
+			if(!empty($this->dossiers_rachetes[$idDossier]['checked'])) {
 				$TDossier[$idDossier] = $idDossier;
+				$this->dossiers[$idDossier]['solde_vendeur'] = $this->dossiers_rachetes[$idDossier]['montant'];
+			}
 		}
 		foreach($this->dossiers_rachetes_p1 as $idDossier => $TData){
-			if($this->dossiers_rachetes_p1[$idDossier]['checked'])
+			if(!empty($this->dossiers_rachetes_p1[$idDossier]['checked'])) {
 				$TDossier[$idDossier] = $idDossier;
+				$this->dossiers[$idDossier]['solde_vendeur'] = $this->dossiers_rachetes_p1[$idDossier]['montant'];
+			}
 		}
 		foreach($this->dossiers_rachetes_nr_m1 as $idDossier => $TData){
-			if($this->dossiers_rachetes_nr_m1[$idDossier]['checked'])
+			if(!empty($this->dossiers_rachetes_nr_m1[$idDossier]['checked'])) {
 				$TDossier[$idDossier] = $idDossier;
+				$this->dossiers[$idDossier]['solde_vendeur'] = $this->dossiers_rachetes_nr_m1[$idDossier]['montant'];
+			}
 		}
 		foreach($this->dossiers_rachetes_nr as $idDossier => $TData){
-			if($this->dossiers_rachetes_nr[$idDossier]['checked'])
+			if(!empty($this->dossiers_rachetes_nr[$idDossier]['checked'])) {
 				$TDossier[$idDossier] = $idDossier;
+				$this->dossiers[$idDossier]['solde_vendeur'] = $this->dossiers_rachetes_nr[$idDossier]['montant'];
+			}
 		}
 		foreach($this->dossiers_rachetes_nr_p1 as $idDossier => $TData){
-			if($this->dossiers_rachetes_nr_p1[$idDossier]['checked'])
+			if(!empty($this->dossiers_rachetes_nr_p1[$idDossier]['checked'])) {
 				$TDossier[$idDossier] = $idDossier;
+				$this->dossiers[$idDossier]['solde_vendeur'] = $this->dossiers_rachetes_nr_p1[$idDossier]['montant'];
+			}
 		}
 		
 		return $TDossier;
