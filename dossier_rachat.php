@@ -10,7 +10,8 @@ $simu = new TSimulation();
 
 $sql = "SELECT rowid ";
 $sql.= "FROM ".MAIN_DB_PREFIX."fin_simulation ";
-//$sql.= "WHERE rowid = 3920";
+// Filtrer par entité sauf admin
+$sql.= "WHERE rowid = 3895";
 
 $resql = $PDOdb->Execute($sql);
 $i = $j = 0;
@@ -30,9 +31,10 @@ while($PDOdb->Get_line()) {
 		$TDossier = $simu->_getDossierSelected();
 		//pre($TDossier,true);
 		//var_dump($simu->dossiers);
+		//pre($simu,true);exit;
 		
 		foreach($TDossier as $id_dossier) {
-			
+			//pre($TDossier,true);
 			if(!empty($simu->dossiers[$id_dossier])) {
 				$details = $simu->dossiers[$id_dossier];
 				$TLine = array();
@@ -45,6 +47,7 @@ while($PDOdb->Get_line()) {
 				$TLine['date_fin_periode_leaser'] = $details['date_fin_periode_leaser'];
 				$TLine['decompte_copies_sup'] = $details['decompte_copies_sup'];
 				$TLine['solde_banque_a_periode_identique'] = $details['solde_banque_a_periode_identique'];
+				$TLine['solde_vendeur'] = $details['solde_vendeur'];
 				$TLine['type_contrat'] = $details['type_contrat'];
 				$TLine['duree'] = $details['duree'];
 				$TLine['echeance'] = $details['echeance'];
@@ -59,6 +62,8 @@ while($PDOdb->Get_line()) {
 				$TLine['assurance'] = $details['assurance'];
 				$TLine['assurance_actualise'] = $details['assurance_actualise'];
 				$TLine['montant'] = $details['montant'];
+				
+				//pre($TLine,true);
 
 				if(empty($line)) $line = implode(';', array_keys($TLine)) . "<br>\r\n";
 				$line.= implode(';', $TLine) . "<br>\r\n";
