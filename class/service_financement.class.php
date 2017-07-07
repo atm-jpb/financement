@@ -285,6 +285,12 @@ class ServiceFinancement {
 		$pct_vr = $this->simulation->pct_vr;
 		$mt_vr = $this->simulation->mt_vr;
 		
+		// SIRET / NIC
+		$sirenCPRO = substr($mysocentity->idprof2,0,9);
+		$nicCPRO = substr($mysocentity->idprof2, -5, 5);
+		$sirenCLIENT = substr($this->simulation->societe->idprof2, 0, 9);
+		$nicCLIENT = strlen($this->simulation->societe->idprof2) == 14 ? substr($this->simulation->societe->idprof2, -5, 5) : '';
+		
 		if (!empty($pct_vr) && !empty($mt_vr)) $pct_vr = 0; // Si les 2 sont renseignés alors je garde que le montant
 		//<soap1:Calf_Header_GN xmlns:soap1="http://referentiel.ca.fr/SoapHeaderV1" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" correlationId="12345" wsu:Id="id-11"/></soap:Header>
 		$xml = '
@@ -292,8 +298,8 @@ class ServiceFinancement {
 				<v1:DemandeCreationLeasingGN xmlns:v1="http://referentiel.ca.fr/Services/calf/DemandeCreationLeasingGN/V1/">
 			         <v1:Request>
 			            <v1:PARTENAIRE>
-			               <v1:SIREN_PARTENAIRE>'.$mysocentity->idprof1.'</v1:SIREN_PARTENAIRE>
-			               <v1:NIC_PARTENAIRE>'.substr($mysocentity->idprof2, -5, 5).'</v1:NIC_PARTENAIRE>
+			               <v1:SIREN_PARTENAIRE>'.$sirenCPRO.'</v1:SIREN_PARTENAIRE>
+			               <v1:NIC_PARTENAIRE>'.$nicCPRO.'</v1:NIC_PARTENAIRE>
 			               <v1:COMMERCIAL_EMAIL>'.$mysocentity->email.'</v1:COMMERCIAL_EMAIL>
 			               <v1:REF_EXT>'.$this->simulation->reference.'</v1:REF_EXT>
 			            </v1:PARTENAIRE>
@@ -306,8 +312,8 @@ class ServiceFinancement {
 			               <v1:QTE_BIEN>1</v1:QTE_BIEN>
 			               <v1:MT_HT_BIEN>'.$this->simulation->montant.'</v1:MT_HT_BIEN>
 			               <v1:PAYS_DESTINATION_BIEN>'.(!empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR').'</v1:PAYS_DESTINATION_BIEN>
-			               <v1:FOURNISSEUR_SIREN>'.$mysocentity->idprof1.'</v1:FOURNISSEUR_SIREN>
-			               <v1:FOURNISSEUR_NIC>'.substr($mysocentity->idprof2, -5, 5).'</v1:FOURNISSEUR_NIC>
+			               <v1:FOURNISSEUR_SIREN>'.$sirenCPRO.'</v1:FOURNISSEUR_SIREN>
+			               <v1:FOURNISSEUR_NIC>'.$nicCPRO.'</v1:FOURNISSEUR_NIC>
 			            </v1:BIEN>
 			            <!--1 or more repetitions:-->
 			            <v1:BIEN_COMPL>
@@ -321,8 +327,8 @@ class ServiceFinancement {
 			            -->
 			            </v1:BIEN_COMPL> 
 			            <v1:CLIENT>
-			               <v1:CLIENT_SIREN>'.$this->simulation->societe->idprof1.'</v1:CLIENT_SIREN>
-			               <v1:CLIENT_NIC>'.substr($this->simulation->societe->idprof2, -5, 5).'</v1:CLIENT_NIC>
+			               <v1:CLIENT_SIREN>'.$sirenCLIENT.'</v1:CLIENT_SIREN>
+			               <v1:CLIENT_NIC>'.$nicCLIENT.'</v1:CLIENT_NIC>
 			            </v1:CLIENT>
 			            <v1:FINANCEMENT>
 			               <v1:CODE_PRODUIT>'.$this->getCodeProduit().'</v1:CODE_PRODUIT>
