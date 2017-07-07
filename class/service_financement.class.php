@@ -276,6 +276,8 @@ class ServiceFinancement {
 		$f = new TFin_financement();
 		$f->periodicite = $this->simulation->opt_periodicite;
 		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
+		// Spéficique CALF, maximum 21 T / 63 M
+		if($dureeInMonth > 63) $dureeInMonth = 63;
 		
 		$mode_reglement_id = $this->getIdModeRglt($this->simulation->opt_mode_reglement);
 		$periodicite_code = $this->getCodePeriodiciteFinancement($this->simulation->opt_periodicite);
