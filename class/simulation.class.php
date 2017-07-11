@@ -1475,9 +1475,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 			switch ($action) {
 				case 'demander':
-					if(empty($this->statut)){ //Possibilité d'effectuer le demande une seule fois uniquement
-						$this->doActionDemander($PDOdb,$simulation);
-					}
+					$this->doActionDemander($PDOdb,$simulation);
 					break;
 				case 'accepter':
 					$this->doActionAccepter($PDOdb,$simulation);
@@ -1521,7 +1519,9 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		//Si leaser auto alors on envoye la demande par EDI
-		if(!empty($this->leaser->array_options['options_edi_leaser']) && empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON)){
+		if(!empty($this->leaser->array_options['options_edi_leaser'])
+			&& empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON)
+			&& (empty($this->statut))){ // On n'envoie le scoring par EDI que la 1ère fois
 			$this->_sendDemandeAuto($PDOdb);
 		}
 		
