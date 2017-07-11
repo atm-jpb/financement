@@ -10,8 +10,9 @@ $simu = new TSimulation();
 
 $sql = "SELECT rowid ";
 $sql.= "FROM ".MAIN_DB_PREFIX."fin_simulation ";
+$sql.= "WHERE 1";
 // Filtrer par entité sauf admin
-$sql.= "WHERE rowid = 3895";
+$sql.= ' AND entity IN('.getEntity('fin_simulation', TFinancementTools::user_courant_est_admin_financement()).')';
 
 $resql = $PDOdb->Execute($sql);
 $i = $j = 0;
