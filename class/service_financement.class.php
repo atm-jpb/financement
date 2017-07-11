@@ -278,6 +278,9 @@ class ServiceFinancement {
 		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
 		// Spéficique CALF, maximum 21 T / 63 M
 		if($dureeInMonth > 63) $dureeInMonth = 63;
+		// Montant minimum 1000 €
+		$montant = $this->simulation->montant;
+		if($montant < 1000) $montant = 1000;
 		
 		$mode_reglement_id = $this->getIdModeRglt($this->simulation->opt_mode_reglement);
 		$periodicite_code = $this->getCodePeriodiciteFinancement($this->simulation->opt_periodicite);
@@ -310,7 +313,7 @@ class ServiceFinancement {
 			               <v1:ANNEE_BIEN>'.date('Y').'</v1:ANNEE_BIEN>
 			               <v1:ETAT_BIEN>NEUF</v1:ETAT_BIEN>
 			               <v1:QTE_BIEN>1</v1:QTE_BIEN>
-			               <v1:MT_HT_BIEN>'.$this->simulation->montant.'</v1:MT_HT_BIEN>
+			               <v1:MT_HT_BIEN>'.$montant.'</v1:MT_HT_BIEN>
 			               <v1:PAYS_DESTINATION_BIEN>'.(!empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR').'</v1:PAYS_DESTINATION_BIEN>
 			               <v1:FOURNISSEUR_SIREN>'.$sirenCPRO.'</v1:FOURNISSEUR_SIREN>
 			               <v1:FOURNISSEUR_NIC>'.$nicCPRO.'</v1:FOURNISSEUR_NIC>
