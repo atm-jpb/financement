@@ -3,6 +3,7 @@
 set_time_limit(0);
 require('config.php');
 require('./class/simulation.class.php');
+require('./lib/financement.lib.php');
 
 $PDOdb = new TPDOdb();
 $PDOdb2 = new TPDOdb();
