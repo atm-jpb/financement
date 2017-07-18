@@ -736,7 +736,7 @@ class TFin_dossier extends TObjetStd {
 		
 		if ($nature_financement == 'EXTERNE')
 		{
-			$p = ($this->financementLeaser->duree - $duree_restante_client) * $this->financementLeaser->getiPeriode();
+			$p = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
 			$TSoldeRule = $this->getRuleSolde($p);
 			
 			if($TSoldeRule->base_solde == 'MF') {
@@ -821,7 +821,7 @@ class TFin_dossier extends TObjetStd {
 		
 		if ($nature_financement == 'EXTERNE')
 		{
-			$p = ($this->financementLeaser->duree - $duree_restante_client) * $this->financementLeaser->getiPeriode();
+			$p = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
 			$TSoldeRule = $this->getRuleSolde($p);
 			
 			if($TSoldeRule->base_solde == 'MF') {
