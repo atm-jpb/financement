@@ -1277,6 +1277,11 @@ class TFin_dossier extends TObjetStd {
 					//Ticket 3049
 					$SR = $this->getSolde($ATMdb, 'SRBANK', $i+1);
 					$SNR = $this->getSolde($ATMdb, 'SNRBANK', $i+1);
+					
+					if($this->nature_financement == 'EXTERNE') {
+						$SRcpro = $this->getSolde($ATMdb, 'SRCPRO', $i+1);
+						$SNRcpro = $this->getSolde($ATMdb, 'SNRCPRO', $i+1);
+					}
 
 					/* TODO remove : depuis la réécriture de la fonction getSolde() ce bout de code est maintenant inutile mais il faut garder lese 2 appels à getSolde() du dessus
 					$duree_restante_leaser = ($i == 0) ? $this->financement->duree_restante : $this->financement->duree - $i;
@@ -1289,8 +1294,12 @@ class TFin_dossier extends TObjetStd {
 						//FIN Ticket 3049
 					}*/
 					$htmlSoldes.= '<tr><td colspan="2" align="center">Apr&egrave;s l\'&eacute;ch&eacute;ance n&deg;'.($i+1).'</td></tr>';
-					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($SR,2,',',' ').' &euro;</strong></td></tr>';
-					$htmlSoldes.= '<tr><td>Solde non renouvellant : </td><td align="right"><strong>'.number_format($SNR,2,',',' ').' &euro;</strong></td></tr>';
+					if($this->nature_financement == 'EXTERNE') {
+						$htmlSoldes.= '<tr><td>Solde renouvellant CPRO : </td><td align="right"><strong>'.number_format($SRcpro,2,',',' ').' &euro;</strong></td></tr>';
+						$htmlSoldes.= '<tr><td>Solde non renouvellant CPRO : </td><td align="right"><strong>'.number_format($SNRcpro,2,',',' ').' &euro;</strong></td></tr>';
+					}
+					$htmlSoldes.= '<tr><td>Solde renouvellant LEASER : </td><td align="right"><strong>'.number_format($SR,2,',',' ').' &euro;</strong></td></tr>';
+					$htmlSoldes.= '<tr><td>Solde non renouvellant LEASER : </td><td align="right"><strong>'.number_format($SNR,2,',',' ').' &euro;</strong></td></tr>';
 				}
 				$htmlSoldes.= '</table>';
 				$data['soldes'] = htmlentities($htmlSoldes);
