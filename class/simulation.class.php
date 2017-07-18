@@ -1934,10 +1934,12 @@ class TSimulationSuivi extends TObjetStd {
 	function _consulterDemandeBNP($num_accord_leaser){
 		
 		if(BNP_TEST){
-			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+			$soapWSDL = BNP_WSDL_URL;
+			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
 			$soapWSDL = BNP_WSDL_URL;
+			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-Prod.crt";
 		}
 
 		try{
@@ -2189,7 +2191,7 @@ class TSimulationSuivi extends TObjetStd {
 				}
 			}
 			elseif(strtoupper($categorie->label) == 'MANDATEE'){
-				$codeFinancier = '024';
+				$codeFinancier = '021';
 				$codeTypeCalcul = 'L';
 				$codeCommercial = '02';
 			}
