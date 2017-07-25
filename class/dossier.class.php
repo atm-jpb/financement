@@ -733,6 +733,7 @@ class TFin_dossier extends TObjetStd {
 	{
 		global $conf;
 		$solde = 0;
+		$capeLRD = true;
 		
 		if ($nature_financement == 'EXTERNE')
 		{
@@ -741,6 +742,7 @@ class TFin_dossier extends TObjetStd {
 			
 			if($TSoldeRule->base_solde == 'MF') {
 				$solde = $this->financementLeaser->montant;
+				$capeLRD = false;
 			} else if($TSoldeRule->base_solde == 'CRD') {
 				$solde = $CRD_Leaser * (1 + $TSoldeRule->percent / 100);
 			} else if($TSoldeRule->base_solde == 'LRD') {
@@ -762,7 +764,7 @@ class TFin_dossier extends TObjetStd {
 			}
 			
 			// Capé LRD
-			if($solde > $LRD_Leaser) return $LRD_Leaser;
+			if($solde > $LRD_Leaser && $capeLRD) return $LRD_Leaser;
 		}
 		else // INTERNE
 		{
@@ -771,6 +773,7 @@ class TFin_dossier extends TObjetStd {
 			
 			if($TSoldeRule->base_solde == 'MF') {
 				$solde = $this->financement->montant;
+				$capeLRD = false;
 			} else if($TSoldeRule->base_solde == 'CRD') {
 				$solde = $CRD * (1 + $TSoldeRule->percent / 100);
 			} else if($TSoldeRule->base_solde == 'LRD') {
@@ -799,7 +802,7 @@ class TFin_dossier extends TObjetStd {
 			}
 			
 			// Capé LRD
-			if($solde > $LRD) return $LRD;
+			if($solde > $LRD && $capeLRD) return $LRD;
 		}
 
 		return $solde;
@@ -818,6 +821,7 @@ class TFin_dossier extends TObjetStd {
 	{
 		global $conf;
 		$solde = 0;
+		$capeLRD = true;
 		
 		if ($nature_financement == 'EXTERNE')
 		{
@@ -826,6 +830,7 @@ class TFin_dossier extends TObjetStd {
 			
 			if($TSoldeRule->base_solde == 'MF') {
 				$solde = $this->financementLeaser->montant;
+				$capeLRD = false;
 			} else if($TSoldeRule->base_solde == 'CRD') {
 				$solde = $CRD_Leaser * (1 + $TSoldeRule->percent_nr / 100);
 			} else if($TSoldeRule->base_solde == 'LRD') {
@@ -841,7 +846,7 @@ class TFin_dossier extends TObjetStd {
 			}
 			
 			// Capé LRD
-			if($solde > $LRD_Leaser) return $LRD_Leaser;
+			if($solde > $LRD_Leaser && $capeLRD) return $LRD_Leaser;
 		}
 		else // INTERNE 
 		{
@@ -850,6 +855,7 @@ class TFin_dossier extends TObjetStd {
 			
 			if($TSoldeRule->base_solde == 'MF') {
 				$solde = $this->financement->montant;
+				$capeLRD = false;
 			} else if($TSoldeRule->base_solde == 'CRD') {
 				$solde = $CRD * (1 + $TSoldeRule->percent_nr / 100);
 			} else if($TSoldeRule->base_solde == 'LRD') {
@@ -878,7 +884,7 @@ class TFin_dossier extends TObjetStd {
 			}
 			
 			// Capé LRD
-			if($solde > $LRD) return $LRD;
+			if($solde > $LRD && $capeLRD) return $LRD;
 		}
 			
 		return $solde;
