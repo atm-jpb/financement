@@ -249,4 +249,122 @@ class ActionsFinancement
 			
 		}
 	}
+
+	// Affichage valeur spéciale dans dictionnaire
+	function createDictionaryFieldlist($parameters, &$object, &$action, $hookmanager) {
+		global $db,$form;
+		
+		define('INC_FROM_DOLIBARR', true);
+		dol_include_once('/financement/config.php');
+		dol_include_once('/financement/class/affaire.class.php');
+		$aff = new TFin_affaire();
+	
+		foreach ($parameters['fieldlist'] as $field => $value)
+		{
+			if ($value == 'fk_type_contrat') {
+				print '<td>';
+				print $form->selectarray($value, $aff->TContrat,$object->$value);
+				print '</td>';
+			}
+			elseif ($value == 'fk_nature') {
+				print '<td>';
+				print $form->selectarray($value, $aff->TNatureFinancement,$object->$value);
+				print '</td>';
+			}
+			elseif ($value == 'base_solde') {
+				print '<td>';
+				print $form->selectarray($value, $aff->TBaseSolde,$object->$value);
+				print '</td>';
+			}
+			else
+			{
+				print '<td>';
+				$size='';
+				if ($value=='periode') $size='size="10" ';
+				if ($value=='percent') $size='size="10" ';
+				print '<input type="text" '.$size.' class="flat" value="'.(isset($object->$value)?$object->$value:'').'" name="'.$value.'">';
+				print '</td>';
+			}
+		}
+
+		$hookmanager->resPrint = '1';
+		return 1;
+	}
+	
+	function editDictionaryFieldlist($parameters, &$object, &$action, $hookmanager) {
+		global $db,$form;
+		
+		define('INC_FROM_DOLIBARR', true);
+		dol_include_once('/financement/config.php');
+		dol_include_once('/financement/class/affaire.class.php');
+		$aff = new TFin_affaire();
+	
+		foreach ($parameters['fieldlist'] as $field => $value)
+		{
+			if ($value == 'fk_type_contrat') {
+				print '<td>';
+				print $form->selectarray($value, $aff->TContrat,$object->$value);
+				print '</td>';
+			}
+			elseif ($value == 'fk_nature') {
+				print '<td>';
+				print $form->selectarray($value, $aff->TNatureFinancement,$object->$value);
+				print '</td>';
+			}
+			elseif ($value == 'base_solde') {
+				print '<td>';
+				print $form->selectarray($value, $aff->TBaseSolde,$object->$value);
+				print '</td>';
+			}
+			else
+			{
+				print '<td>';
+				$size='';
+				if ($value=='periode') $size='size="10" ';
+				if ($value=='percent') $size='size="10" ';
+				print '<input type="text" '.$size.' class="flat" value="'.(isset($object->$value)?$object->$value:'').'" name="'.$value.'">';
+				print '</td>';
+			}
+		}
+
+		$hookmanager->resPrint = '1';
+		return 1;
+	}
+	
+	function viewDictionaryFieldlist($parameters, &$object, &$action, $hookmanager) {
+		global $db,$form;
+		
+		define('INC_FROM_DOLIBARR', true);
+		dol_include_once('/financement/config.php');
+		dol_include_once('/financement/class/affaire.class.php');
+		$aff = new TFin_affaire();
+		
+		foreach ($parameters['fieldlist'] as $field => $value)
+		{
+			if ($value == 'fk_type_contrat') {
+				print '<td>';
+				print $aff->TContrat[$object->$value];
+				print '</td>';
+			}
+			elseif ($value == 'fk_nature') {
+				print '<td>';
+				print $aff->TNatureFinancement[$object->$value];
+				print '</td>';
+			}
+			elseif ($value == 'base_solde') {
+				print '<td>';
+				print $aff->TBaseSolde[$object->$value];
+				print '</td>';
+			}
+			else
+			{
+				print '<td>';
+				print $object->$value;
+				print '</td>';
+			}
+		}
+
+		$hookmanager->resPrint = '1';
+		return 1;
+	}
 }

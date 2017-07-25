@@ -168,3 +168,10 @@ webservice_financement_msg_scoring_send=Demande de scoring transmise au leaser :
 # WEBSERVICE ERROR
 webservice_financement_error_mode_reglement=Erreur : le mode de règlement [%s] n'est pas un choix valide pour ce leaser
 webservice_financement_error_periodicite=Erreur : la périodicité [%s] n'est pas un choix valide pour ce leaser
+
+# DICTIONNAIRE CONF SOLDE
+Fk_type_contrat=Type contrat
+Periode=A partir du mois
+Base_solde=Base de calcul du solde
+Percent=Variation solde R(%%)
+Percent_nr=Variation solde NR (%%)

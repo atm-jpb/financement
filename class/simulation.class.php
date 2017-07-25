@@ -1303,7 +1303,7 @@ class TSimulation extends TObjetStd {
 			,array()
 			,array(
 				'outFile' => $filePath.'/'.$fileName
-				//,'charset'=>OPENTBS_ALREADY_UTF8
+				,'charset'=>'utf-8'
 			)
 		);
 		

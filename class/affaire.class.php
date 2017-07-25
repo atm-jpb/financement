@@ -27,6 +27,12 @@ class TFin_affaire extends TObjetStd {
 		);*/
 		
 		$this->TContrat=$this->load_c_type_contrat();
+		$this->TBaseSolde=array(
+			'MF'=>'Montant financé'
+			,'CRD'=>'CRD'
+			,'LRD'=>'LRD'
+			,'SPE'=>'Spécifique'
+		);
 		
 		$this->TTypeFinancement=array(
 			'PURE'=>'Location Pure'
