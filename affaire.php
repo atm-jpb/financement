@@ -44,7 +44,7 @@
 			case 'save':
 				$affaire->load($ATMdb, $_REQUEST['id']);
 				$affaire->set_values($_REQUEST);
-				$affaire->fk_soc = $_REQUEST['socid'];
+				$affaire->fk_soc = isset($_REQUEST['socid']) ? $_REQUEST['socid'] : $_REQUEST['fk_soc'];
 				//$ATMdb->db->debug=true;
 				//print_r($_REQUEST);
 				
@@ -452,8 +452,8 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 				,'solde'=>$affaire->solde // montant à financer - somme des dossiers	
 				,'date_maj'=>$affaire->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$affaire->get_date('date_cre','d/m/Y')
-//				,'societe'=>$affaire->societe->getNomUrl(1)
-				,'societe'=>$mode == "edit" && $mode_aff_fLeaser == "edit"? $doliform->select_company($affaire->societe->id) : $affaire->societe->getNomUrl(1)
+				,'societe'=>$affaire->societe->getNomUrl(1)
+//				,'societe'=>$mode == "edit" && $mode_aff_fLeaser == "edit"? $doliform->select_company($affaire->societe->id,'socid','',0,0,0,array(),0) : $affaire->societe->getNomUrl(1)
 				,'montant_val'=>$affaire->montant
 				,'force_update'=>$formRestricted->checkbox1('', 'force_update', 1)
 				,'nature_financement_val'=>$affaire->nature_financement
