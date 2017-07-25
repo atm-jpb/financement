@@ -1799,7 +1799,7 @@ class TFin_dossier extends TObjetStd {
 		global $conf,$db;
 		
 		// Statut dossier
-		$sql = 'SELECT code, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_dossier WHERE entity IN (0, '.$conf->entity.') AND active = 1';
+		$sql = 'SELECT rowid, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_dossier WHERE entity IN (0, '.$conf->entity.') AND active = 1';
 		$resql = $db->query($sql);
 		$this->TStatutDossier[] = '';
 		
@@ -1807,12 +1807,12 @@ class TFin_dossier extends TObjetStd {
 		{
 			while ($row = $db->fetch_object($resql))
 			{
-				$this->TStatutDossier[$row->code] = $row->label;
+				$this->TStatutDossier[$row->rowid] = $row->label;
 			}
 		}
 		
 		// Statut renta neg anomalie
-		$sql = 'SELECT code, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano WHERE entity IN (0, '.$conf->entity.') AND active = 1';
+		$sql = 'SELECT rowid, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano WHERE entity IN (0, '.$conf->entity.') AND active = 1';
 		$resql = $db->query($sql);
 		$this->TStatutRentaNegAno[] = '';
 		
@@ -1820,7 +1820,7 @@ class TFin_dossier extends TObjetStd {
 		{
 			while ($row = $db->fetch_object($resql))
 			{
-				$this->TStatutRentaNegAno[$row->code] = $row->label;
+				$this->TStatutRentaNegAno[$row->rowid] = $row->label;
 			}
 		}
 	}
