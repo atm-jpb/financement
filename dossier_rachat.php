@@ -54,9 +54,9 @@ while($PDOdb->Get_line()) {
 				$TLine['duree'] = $details['duree'];
 				$TLine['echeance'] = $details['echeance'];
 				$TLine['loyer_actualise'] = $details['loyer_actualise'];
-				$TLine['date_debut'] = $details['date_debut'];
-				$TLine['date_fin'] = $details['date_fin'];
-				$TLine['date_prochaine_echeance'] = $details['date_prochaine_echeance'];
+				$TLine['date_debut'] = !empty($details['date_debut']) ? date('d/m/Y',$details['date_debut']) : '';
+				$TLine['date_fin'] = !empty($details['date_fin']) ? date('d/m/Y',$details['date_fin']) : '';
+				$TLine['date_prochaine_echeance'] = !empty($details['date_prochaine_echeance']) ? $details['date_prochaine_echeance'] : '';
 				$TLine['numero_prochaine_echeance'] = $details['numero_prochaine_echeance'];
 				$TLine['terme'] = $details['terme'];
 				$TLine['reloc'] = $details['reloc'];
