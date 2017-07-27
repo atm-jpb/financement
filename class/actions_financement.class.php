@@ -15,7 +15,8 @@ class ActionsFinancement
         if (in_array('propalcard',explode(':',$parameters['context']))) 
         {
         	// Nouvelle regle, uniquement accessible aux admin
-        	if(empty($user->rights->financement->admin->write)) accessforbidden();
+		// 2017.07.27 MKO : activation de l'accès aux autres
+        	//if(empty($user->rights->financement->admin->write)) accessforbidden();
 			
         	if($object->fin_validite < strtotime(date('Y-m-d')) && empty($user->rights->financement->integrale->see_past_propal)) {
         		dol_include_once('/core/lib/security.lib.php');
