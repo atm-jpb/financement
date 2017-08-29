@@ -97,7 +97,7 @@ class TSimulation extends TObjetStd {
 		$this->opt_terme = '1';
 		$this->opt_calage = '';
 		$this->date_demarrage = '';
-		$this->vr = 0;
+		$this->vr = 1;
 		$this->mt_vr = 0.15;
 		$this->pcr_vr = 0.15;
 		$this->coeff = 0;
@@ -724,7 +724,7 @@ class TSimulation extends TObjetStd {
 
 		if(!empty($this->montant_total_finance)) { // Calcul à partir du montant
 			if($typeCalcul=='cpro') { // Les coefficient sont trimestriel, à adapter en fonction de la périodicité de la simulation
-				$this->echeance = ($this->montant_total_finance - $this->vr) * ($this->coeff / 100);
+				$this->echeance = ($this->montant_total_finance) * ($this->coeff / 100);
 				if($this->opt_periodicite == 'ANNEE') $this->echeance *= 4;
 				else if($this->opt_periodicite == 'MOIS') $this->echeance /= 3;
 			} else {
@@ -737,7 +737,7 @@ class TSimulation extends TObjetStd {
 		} 
 		else if(!empty($this->echeance)) { // Calcul à partir de l'échéance
 			if($typeCalcul=='cpro') {
-				$this->montant = $this->echeance / ($this->coeff / 100) + $this->vr;
+				$this->montant = $this->echeance / ($this->coeff / 100);
 				if($this->opt_periodicite == 'ANNEE') $this->montant /= 4;
 				else if($this->opt_periodicite == 'MOIS') $this->montant *= 3;
 			} else {
