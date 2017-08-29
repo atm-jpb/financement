@@ -36,13 +36,13 @@ while($PDOdb->Get_line()) {
 		//pre($simu,true);exit;
 		
 		foreach($TDossier as $id_dossier) {
-			//pre($TDossier,true);
 			if(!empty($simu->dossiers[$id_dossier])) {
 				$details = $simu->dossiers[$id_dossier];
 				$TLine = array();
 				$TLine['ref_simulation'] = $simu->reference;
 				$TLine['num_contrat'] = $details['num_contrat'];
 				$TLine['num_contrat_leaser'] = $details['num_contrat_leaser'];
+				$TLine['leaser'] = $details['leaser'];
 				$TLine['date_debut_periode_client'] = $details['date_debut_periode_client'];
 				$TLine['date_fin_periode_client'] = $details['date_fin_periode_client'];
 				$TLine['date_debut_periode_leaser'] = $details['date_debut_periode_leaser'];
@@ -64,6 +64,11 @@ while($PDOdb->Get_line()) {
 				$TLine['assurance'] = $details['assurance'];
 				$TLine['assurance_actualise'] = $details['assurance_actualise'];
 				$TLine['montant'] = $details['montant'];
+				
+				$TEch = explode('/', $details['numero_prochaine_echeance']);
+				$TLine['numero_echeance'] = !empty($TEch[0]) ? (int)$TEch[0] - 1 : 0;
+				
+				$TLine['retrait_copie_supp'] = $details['retrait_copie_supp'];
 				
 				//pre($TLine,true);
 
