@@ -109,9 +109,9 @@
 			
 		</tr>
 		<tr>
-			<td>Catégorie du bien</td>
+			<td class="fieldrequired">Catégorie du bien</td>
 			<td>[simulation.fk_categorie_bien;strconv=no]</td>
-			<td>Nature du bien</td>
+			<td class="fieldrequired">Nature du bien</td>
 			<td>[simulation.fk_nature_bien;strconv=no]</td>
 		</tr>
 		<tr>
@@ -196,6 +196,10 @@
 		<tr>
 			<td>Montant périodique prestation</td>
 			<td>[simulation.montant_presta_trim; strconv=no; frm=0 000,00] &euro;</td>
+		</tr>
+		<tr>
+			<td>VR</td>
+			<td>[simulation.vr; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		[onshow;block=begin;when [view.mode]=='edit']
 		<tr>
