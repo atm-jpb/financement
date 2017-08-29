@@ -394,6 +394,18 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		
 		$otherFactureMat = '["'. implode('","', $Tab). '"]';
 		
+		$sql = "SELECT rowid, nom 
+				FROM ".MAIN_DB_PREFIX."societe s
+				WHERE 1";
+	//	print $sql;
+		$Tab = TRequeteCore::_get_id_by_sql($ATMdb, $sql,'nom', 'rowid');
+		
+		foreach ($Tab as $key => $value) {
+			$data = '{ value: "'.$key.'", label: "'.htmlspecialchars($value).'"}';
+			$TSoc[] = $data;
+		}
+		$otherSoc = '['. implode(',', $TSoc). ']';
+		
 		$ATMdb->close(); 
 	}
 	
@@ -452,8 +464,9 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 				,'solde'=>$affaire->solde // montant à financer - somme des dossiers	
 				,'date_maj'=>$affaire->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$affaire->get_date('date_cre','d/m/Y')
-				,'societe'=>$affaire->societe->getNomUrl(1)
-//				,'societe'=>$mode == "edit" && $mode_aff_fLeaser == "edit"? $doliform->select_company($affaire->societe->id,'socid','',0,0,0,array(),0) : $affaire->societe->getNomUrl(1)
+				,'societe'=>$affaire->societe->nom
+				,'socid'=>$affaire->societe->id
+				,'societe'=>$mode == "edit" ? $affaire->societe->nom : $affaire->societe->getNomUrl(1)
 				,'montant_val'=>$affaire->montant
 				,'force_update'=>$formRestricted->checkbox1('', 'force_update', 1)
 				,'nature_financement_val'=>$affaire->nature_financement
@@ -465,6 +478,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 				'mode'=>$mode
 				,'otherDossier'=>$otherDossier
 				,'otherFactureMat'=>$otherFactureMat
+				,'otherSoc'=>$otherSoc
 				,'userRight'=>((int)$user->rights->financement->affaire->write)
 				,'financement_verouille'=>($affaire->TLien[0]->dossier->financementLeaser->okPourFacturation === 'AUTO' && $user->rights->financement->admin->write) ? 'verrouille' : ''
 				,'creer_affaire' => ($affaire->nature_financement && $affaire->montant && $affaire->type_financement && $affaire->contrat) ? 'ok' : 'ko'
