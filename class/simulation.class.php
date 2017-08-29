@@ -1561,6 +1561,20 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$this->statut = 'KO';
 		$this->save($PDOdb);
+		
+		// Lance l'appel EDI du prochain leaser sur la liste
+		// On parcours le tableau de suivi, une fois trouvé le suivi pour lequel on vient d'avoir un refus, on lance la demande de celui d'après
+		// Sera activé lorsqu'un 2e leaser sera en EDI
+		/*
+		$found = false;
+		foreach ($this->simulation->TSimulationSuivi as $id_suivi => $suivi) {
+			if($found) {
+				$this->_sendDemandeAuto($PDOdb);
+				break;
+			}
+			if($id_suivi == $this->getId()) $found = true;
+		}
+		*/
 	}
 	
 	//Effectue l'action de passer au statut erreur la demande de financement leaser
