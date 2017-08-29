@@ -268,7 +268,7 @@ class TSimulation extends TObjetStd {
 			$simulationSuivi->save($PDOdb);
 			
 			// Lancement de la demande automatique via EDI pour le leaser prioritaire
-			$simulationSuivi->_sendDemandeAuto($PDOdb);
+			$simulationSuivi->doAction($PDOdb, $this, 'demander');
 		}
 		
 		// Ajout des autres leasers de la liste (sauf le prio)
