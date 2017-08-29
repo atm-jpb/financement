@@ -266,6 +266,9 @@ class TSimulation extends TObjetStd {
 			$simulationSuivi = new TSimulationSuivi;
 			$simulationSuivi->init($PDOdb,$leaser,$this->getId());
 			$simulationSuivi->save($PDOdb);
+			
+			// Lancement de la demande automatique via EDI pour le leaser prioritaire
+			$simulationSuivi->_sendDemandeAuto($PDOdb);
 		}
 		
 		// Ajout des autres leasers de la liste (sauf le prio)
@@ -1639,6 +1642,11 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$this->simulation->societe = new Societe($db);
 		$this->simulation->societe->fetch($this->simulation->fk_soc);
+		
+		if(empty($this->leaser)) {
+			$this->leaser = new Fournisseur($db);
+			$this->leaser->fetch($this->fk_leaser);
+		}
 		
 		switch ($this->leaser->array_options['options_edi_leaser']) {
 			//BNP PARIBAS LEASE GROUP
