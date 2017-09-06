@@ -1571,7 +1571,7 @@ class TSimulationSuivi extends TObjetStd {
 		$found = false;
 		foreach ($this->simulation->TSimulationSuivi as $id_suivi => $suivi) {
 			if($found) {
-				$this->_sendDemandeAuto($PDOdb);
+				$this->doAction($PDOdb, $this->simulation, 'demander');
 				break;
 			}
 			if($id_suivi == $this->getId()) $found = true;
