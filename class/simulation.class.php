@@ -2124,24 +2124,21 @@ class TSimulationSuivi extends TObjetStd {
 		elseif($typeClient == "entreprise") $codeTypeClient = 4;
 		else $codeTypeClient = 0; //Général
 		
-		$this->simulation->societe->fetch_optionals($this->simulation->societe->id);
+		$siretCLIENT = $this->simulation->societe->idprof2;
+		if(empty($siretCLIENT)) $siretCLIENT = $this->simulation->societe->idprof1;
 		
-		$arraySearch = array(
-			'  ',
-			'.',
-			"'",
+		$TTrans = array(
+			'  ' => ' ',
+			'.' => '',
+			"'" => '',
 		);
-		$arrayToReplace = array(
-			' ',
-			'',
-			'',
-		);
+		$nomCLIENT = strtr($this->simulation->societe->name, $TTrans);
 		
 		$TClient = array(
-			'idNationnalEntreprise' => $this->simulation->societe->idprof2//($this->simulation->societe->idprof1) ? $this->simulation->societe->idprof1 : $this->simulation->societe->array_options['options_other_siren']
+			'idNationnalEntreprise' => $siretCLIENT
 			,'codeTypeClient' => $codeTypeClient
 			,'codeFormeJuridique' => '5499' //TODO
-			,'raisonSociale' => str_replace($arraySearch, $arrayToReplace, $this->simulation->societe->name)
+			,'raisonSociale' => $nomCLIENT
 			//,'specificiteClientPays' => array(
 				//'specificiteClientFrance' => array(
 					//'dirigeant' => array(
@@ -2155,8 +2152,8 @@ class TSimulationSuivi extends TObjetStd {
 			,'adresse' => array(
 				'adresse' => 'A'//substr(str_replace($arraySearch,$arrayToReplace,preg_replace("/\n|\ -\ |[\,\ ]{1}/", ' ', $this->simulation->societe->address)),0,31)
 				//,'adresseComplement' => ''
-				,'codePostal' => str_replace($arraySearch, $arrayToReplace, $this->simulation->societe->zip)
-				,'ville' => str_replace($arraySearch, $arrayToReplace, $this->simulation->societe->town)
+				,'codePostal' => $this->simulation->societe->zip
+				,'ville' => strtr($this->simulation->societe->town, $TTrans)
 			)
 		);
 		
