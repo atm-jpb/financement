@@ -396,7 +396,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		
 		$sql = "SELECT rowid, nom 
 				FROM ".MAIN_DB_PREFIX."societe s
-				WHERE entity = ".$affaire->entity;
+				WHERE entity IN (".getEntity('societe', 1).")";
 	//	print $sql;
 		$Tab = TRequeteCore::_get_id_by_sql($ATMdb, $sql,'nom', 'rowid');
 		
