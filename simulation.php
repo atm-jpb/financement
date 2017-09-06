@@ -767,7 +767,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	if(empty($id_dossier)) $link_dossier = $simulation->numero_accord;
 	else $link_dossier = '<a href="'.dol_buildpath('/financement/dossier.php?id='.$id_dossier, 2).'" >'.$simulation->numero_accord.'</a>';
 	
-	$TOptCalageLabel = array('1M'=>'1 mois', '2M'=>'2 mois', '3M'=>'3 mois');
+	$TOptCalageLabel = array('' => '', '1M'=>'1 mois', '2M'=>'2 mois', '3M'=>'3 mois');
 	
 	/**
 	 * Calcul à la volé pour connaitre le coef en fonction de la périodicité
@@ -796,7 +796,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $financement->TPeriodicite, $simulation->opt_periodicite) 
 		//,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 1, $simulation->opt_creditbail)
 		,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement)
-		,'opt_calage_label'=>$form->texte('', 'opt_calage_label', $TOptCalageLabel[$simulation->opt_calage], 5, 0, 'readonly')
+		,'opt_calage_label'=>$form->combo('', 'opt_calage_label', $TOptCalageLabel, $simulation->opt_calage, 0, '', TFinancementTools::user_courant_est_admin_financement() ? '' : 'disabled')
 		,'opt_calage'=>$form->hidden('opt_calage', $simulation->opt_calage)
 		,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme)
 		,'date_demarrage'=>$form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12)
@@ -807,7 +807,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'montant_rachete_concurrence'=>$form->texte('', 'montant_rachete_concurrence', $simulation->montant_rachete_concurrence, 10)
 		,'duree'=>$form->combo('', 'duree', $TDuree, $simulation->duree)
 		,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
-		,'vr'=>$form->texte('', 'vr', $simulation->vr, 10)
+		,'vr'=>$form->texte('', 'vr', $simulation->vr, 10, 0, TFinancementTools::user_courant_est_admin_financement() ? '' : 'readonly')
 		,'coeff'=>$form->texteRO('', 'coeff', $coeff, 6)
 		,'coeff_final'=>$can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 6) : $simulation->coeff_final
 		,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10)
@@ -893,8 +893,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 			,'user'=>$user
 			
 		),
-		array()
-		//,array('charset'=>OPENTBS_ALREADY_UTF8)
+		array(),
+		array('charset'=>'utf-8')
 	);
 	
 	echo $form->end_form();

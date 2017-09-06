@@ -36,11 +36,15 @@ $(document).ready(function() {
 		var diff_jours = Math.ceil(diff_time/(1000*60*60*24));
 		if(diff_jours > 30 && diff_jours < 125) {
 			$('#opt_calage').val(Math.floor(diff_jours/31)+'M');
-			$('#opt_calage_label').val(Math.floor(diff_jours/31)+' mois');
+			$('#opt_calage_label').val(Math.floor(diff_jours/31)+'M');
 		} else {
 			$('#opt_calage').val('');
 			$('#opt_calage_label').val('');
 		}
+	});
+	
+	$('select[name="opt_calage_label"]').bind('change', function() {
+		$('#opt_calage').val($(this).val());
 	});
 	
 	// Rachat dossier ou case aucun

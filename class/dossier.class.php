@@ -719,7 +719,7 @@ class TFin_dossier extends TObjetStd {
 		
 		$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, $type_penalite, $iPeriode) / 100); // Même avec un $this->nature_financement == 'INTERNE' on passe la valeur EXTERNE (l'ancien code renvoyé la même chose)
 		
-		if ($solde > $LRD_Leaser) return $LRD_Leaser;
+		if ($solde > $LRD_Leaser && $this->financementLeaser->fk_soc != 18305) return $LRD_Leaser; // Capé LRD sauf si ACECOM
 		//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 		else if($solde < $this->financementLeaser->reste){
 			return $this->financementLeaser->reste;
@@ -739,50 +739,80 @@ class TFin_dossier extends TObjetStd {
 	function getSolde_SR_CLIENT(&$PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $LRD_Leaser, $nature_financement='EXTERNE')
 	{
 		global $conf;
+		$solde = 0;
+		$capeLRD = true;
 		
 		if ($nature_financement == 'EXTERNE')
 		{
-			$temps_restant = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
-			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
-		
-			if ($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste; // TODO check si ça doit rester
+			$p = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
+			$TSoldeRule = $this->getRuleSolde($p);
 			
-			// Add Pen Leaser + CPro
-			$date_deb_periode = $this->getDateDebutPeriode($iPeriode-1);
-			$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode) / 100) * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
-			if ($solde > $LRD_Leaser) return $LRD_Leaser;
-			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
-			else if($solde < $this->financementLeaser->reste){
-				return $this->financementLeaser->reste;
+			if($TSoldeRule->base_solde == 'MF') {
+				$solde = $this->financementLeaser->montant;
+				$capeLRD = false;
+			} else if($TSoldeRule->base_solde == 'CRD') {
+				$solde = $CRD_Leaser * (1 + $TSoldeRule->percent / 100);
+			} else if($TSoldeRule->base_solde == 'LRD') {
+				$solde = $LRD_Leaser * (1 + $TSoldeRule->percent / 100);
+			} else {
+				if ($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+			
+				if ($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste; // TODO check si ça doit rester
+				
+				// Add Pen Leaser + CPro
+				$date_deb_periode = $this->getDateDebutPeriode($iPeriode-1);
+				$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode) / 100) * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
+				if ($solde > $LRD_Leaser && $this->financementLeaser->fk_soc != 18305) return $LRD_Leaser; // Capé LRD sauf si ACECOM
+				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+				else if($solde < $this->financementLeaser->reste){
+					return $this->financementLeaser->reste;
+				}
+				else return $solde;
 			}
-			else return $solde;
+			
+			// Capé LRD
+			if($solde > $LRD_Leaser && $capeLRD) return $LRD_Leaser;
 		}
 		else // INTERNE
 		{
-			$temps_restant = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
-			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
-		
-			if (!empty($this->type_financement_affaire['ADOSSEE']) || !empty($this->type_financement_affaire['MANDATEE']))
-			{
-				$solde = $CRD * (1+ $conf->global->FINANCEMENT_PERCENT_AUG_CRD / 100);
-			}
-			elseif (!empty($this->type_financement_affaire['PURE']))
-			{
-				$solde = $LRD;
-			}
-			else // ['FINANCIERE']
-			{
-				$solde = $LRD; // LRD client
+			$p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
+			$TSoldeRule = $this->getRuleSolde($p);
+			
+			if($TSoldeRule->base_solde == 'MF') {
+				$solde = $this->financement->montant;
+				$capeLRD = false;
+			} else if($TSoldeRule->base_solde == 'CRD') {
+				$solde = $CRD * (1 + $TSoldeRule->percent / 100);
+			} else if($TSoldeRule->base_solde == 'LRD') {
+				$solde = $LRD * (1 + $TSoldeRule->percent / 100);
+			} else {
+				if ($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+			
+				if (!empty($this->type_financement_affaire['ADOSSEE']) || !empty($this->type_financement_affaire['MANDATEE']))
+				{
+					$solde = $CRD * (1+ $conf->global->FINANCEMENT_PERCENT_AUG_CRD / 100);
+				}
+				elseif (!empty($this->type_financement_affaire['PURE']))
+				{
+					$solde = $LRD;
+				}
+				else // ['FINANCIERE']
+				{
+					$solde = $LRD; // LRD client
+				}
+				
+				if ($solde > $LRD && $this->financementLeaser->fk_soc != 18305) $solde = $LRD; // Capé LRD sauf si ACECOM
+				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+				else if($solde < $this->financement->reste){
+					$solde = $this->financement->reste;
+				}
 			}
 			
-			if ($solde > $LRD) return $LRD;
-			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
-			else if($solde < $this->financement->reste){
-				return $this->financement->reste;
-			}
-			else return $solde;
+			// Capé LRD
+			if($solde > $LRD && $capeLRD) return $LRD;
 		}
-		
+
+		return $solde;
 	}
 	
 	/**
@@ -797,44 +827,74 @@ class TFin_dossier extends TObjetStd {
 	function getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $nature_financement='EXTERNE')
 	{
 		global $conf;
+		$solde = 0;
+		$capeLRD = true;
 		
 		if ($nature_financement == 'EXTERNE')
 		{
-			$temps_restant = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
-			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+			$p = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
+			$TSoldeRule = $this->getRuleSolde($p);
 			
-			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
-			if($LRD_Leaser < $this->financement->reste){
-				return $this->financementLeaser->reste;
+			if($TSoldeRule->base_solde == 'MF') {
+				$solde = $this->financementLeaser->montant;
+				$capeLRD = false;
+			} else if($TSoldeRule->base_solde == 'CRD') {
+				$solde = $CRD_Leaser * (1 + $TSoldeRule->percent_nr / 100);
+			} else if($TSoldeRule->base_solde == 'LRD') {
+				$solde = $LRD_Leaser * (1 + $TSoldeRule->percent_nr / 100);
+			} else {
+				if ($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
+				
+				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+				if($LRD_Leaser < $this->financement->reste){
+					return $this->financementLeaser->reste;
+				}
+				else return $LRD_Leaser;
 			}
-			else return $LRD_Leaser;
+			
+			// Capé LRD
+			if($solde > $LRD_Leaser && $capeLRD) return $LRD_Leaser;
 		}
 		else // INTERNE 
 		{
-			$temps_restant = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
-			if ($temps_restant <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
-		
-		
-			if (!empty($this->type_financement_affaire['ADOSSEE']) || !empty($this->type_financement_affaire['MANDATEE']))
-			{
-				$solde = $CRD * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
-			}
-			elseif (!empty($this->type_financement_affaire['PURE']))
-			{
-				$solde = $LRD;
-			}
-			else // ['FINANCIERE']
-			{
-				$solde = $LRD;
+			$p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
+			$TSoldeRule = $this->getRuleSolde($p);
+			
+			if($TSoldeRule->base_solde == 'MF') {
+				$solde = $this->financement->montant;
+				$capeLRD = false;
+			} else if($TSoldeRule->base_solde == 'CRD') {
+				$solde = $CRD * (1 + $TSoldeRule->percent_nr / 100);
+			} else if($TSoldeRule->base_solde == 'LRD') {
+				$solde = $LRD * (1 + $TSoldeRule->percent_nr / 100);
+			} else {
+				if ($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+			
+				if (!empty($this->type_financement_affaire['ADOSSEE']) || !empty($this->type_financement_affaire['MANDATEE']))
+				{
+					$solde = $CRD * (1 + ( FINANCEMENT_PERCENT_AUG_CRD/100));
+				}
+				elseif (!empty($this->type_financement_affaire['PURE']))
+				{
+					$solde = $LRD;
+				}
+				else // ['FINANCIERE']
+				{
+					$solde = $LRD;
+				}
+				
+				if ($solde > $LRD && $this->financementLeaser->fk_soc != 18305) $solde = $LRD; // Capé LRD sauf si ACECOM
+				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
+				else if($solde < $this->financement->reste){
+					$solde = $this->financement->reste;
+				}
 			}
 			
-			if ($solde > $LRD) return $LRD;
-			//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
-			else if($solde < $this->financement->reste){
-				return $this->financement->reste;
-			}
-			else return $solde;
+			// Capé LRD
+			if($solde > $LRD && $capeLRD) return $LRD;
 		}
+			
+		return $solde;
 	}
 	
 	function getSolde_SR_NR_SAME($iPeriode, $duree_restante_client, $LRD, $LRD_leaser, $nature_financement='EXTERNE')
@@ -886,6 +946,9 @@ class TFin_dossier extends TObjetStd {
 		
 		$CRD = $this->financement->valeur_actuelle($duree_restante_client);
 		$LRD = $this->financement->echeance * $duree_restante_client + $this->financement->reste;
+		
+		// Chargement des règle de solde (dictionnaire)
+		$this->load_c_conf_solde();
 		
 		switch ($type) 
 		{
@@ -1257,7 +1320,7 @@ class TFin_dossier extends TObjetStd {
 					$SR = $this->getSolde($ATMdb, 'SRCPRO', $i+1);
 					$SNR = $this->getSolde($ATMdb, 'SNRCPRO', $i+1);
 					
-					$duree_restante_client = ($i == 0) ? $this->financement->duree_restante : $this->financement->duree - $i;
+					/*$duree_restante_client = ($i == 0) ? $this->financement->duree_restante : $this->financement->duree - $i;
 					if ((($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode()) > $seuil_solde){
 					
 						list($CRD_client,$LRD_client) = $this->getCRDandLRD('CLIENT',$i+1);
@@ -1267,7 +1330,7 @@ class TFin_dossier extends TObjetStd {
 						//FIN Ticket 3049
 						
 						//echo "après : ".$SR." ".$SNR.'<br>';
-					}
+					}*/
 					
 					$htmlSoldes.= '<tr><td colspan="2" align="center">Apr&egrave;s l\'&eacute;ch&eacute;ance n&deg;'.($i+1).'</td></tr>';
 					$htmlSoldes.= '<tr><td>Solde renouvellant : </td><td align="right"><strong>'.number_format($SR,2,',',' ').' &euro;</strong></td></tr>';
@@ -1731,13 +1794,12 @@ class TFin_dossier extends TObjetStd {
 		return $soldepersointegrale;
 	}
 
-
 	// Chargement des dictionnaires
 	function load_statut_dossier() {
 		global $conf,$db;
 		
 		// Statut dossier
-		$sql = 'SELECT code, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_dossier WHERE entity IN (0, '.$conf->entity.') AND active = 1';
+		$sql = 'SELECT rowid, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_dossier WHERE entity IN (0, '.$conf->entity.') AND active = 1';
 		$resql = $db->query($sql);
 		$this->TStatutDossier[] = '';
 		
@@ -1745,12 +1807,12 @@ class TFin_dossier extends TObjetStd {
 		{
 			while ($row = $db->fetch_object($resql))
 			{
-				$this->TStatutDossier[$row->code] = $row->label;
+				$this->TStatutDossier[$row->rowid] = $row->label;
 			}
 		}
 		
 		// Statut renta neg anomalie
-		$sql = 'SELECT code, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano WHERE entity IN (0, '.$conf->entity.') AND active = 1';
+		$sql = 'SELECT rowid, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano WHERE entity IN (0, '.$conf->entity.') AND active = 1';
 		$resql = $db->query($sql);
 		$this->TStatutRentaNegAno[] = '';
 		
@@ -1758,8 +1820,41 @@ class TFin_dossier extends TObjetStd {
 		{
 			while ($row = $db->fetch_object($resql))
 			{
-				$this->TStatutRentaNegAno[$row->code] = $row->label;
+				$this->TStatutRentaNegAno[$row->rowid] = $row->label;
 			}
+		}
+	}
+	
+	// Chargement du dictionnaire contenant les règle de calcul de soldes
+	function load_c_conf_solde()
+	{
+		global $db,$conf;
+		
+		$sql = "SELECT periode, base_solde, percent, percent_nr FROM ".MAIN_DB_PREFIX."c_financement_conf_solde
+				WHERE entity = ".$this->entity." 
+				AND active = 1 
+				AND fk_type_contrat = '".$this->contrat."'
+				AND fk_nature = '".$this->nature_financement."'
+				ORDER BY periode ASC";
+		$res = array();
+		$resql = $db->query($sql);
+		
+		if ($resql)
+		{
+			while ($line = $db->fetch_object($resql))
+			{
+				$res[$line->periode] = $line;
+			}
+		}
+		
+		$this->TConfSolde = $res;
+		return $res;
+	}
+	
+	function getRuleSolde($periode) {
+		$confsolde = array_reverse($this->TConfSolde,true);
+		foreach($confsolde as $p => $rule) {
+			if($periode >= $p) return $rule;
 		}
 	}
 }

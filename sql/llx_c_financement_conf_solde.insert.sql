@@ -1,0 +1,9 @@
+INSERT INTO llx_c_financement_conf_solde (rowid, fk_type_contrat, periode, base_solde, percent, percent_nr, entity, active) VALUES (1, 'LOCSIMPLE', 13, 'LRD', -2.00000000, -2.50000000, 1, 1);
+INSERT INTO llx_c_financement_conf_solde (rowid, fk_type_contrat, periode, base_solde, percent, percent_nr, entity, active) VALUES (2, 'LOCSIMPLE', 1, 'MF', 0.00000000, 0.00000000, 1, 1);
+INSERT INTO llx_c_financement_conf_solde (rowid, fk_type_contrat, periode, base_solde, percent, percent_nr, entity, active) VALUES (3, 'INTEGRAL', 13, 'LRD', -2.00000000, -2.50000000, 1, 1);
+INSERT INTO llx_c_financement_conf_solde (rowid, fk_type_contrat, periode, base_solde, percent, percent_nr, entity, active) VALUES (4, 'INTEGRAL', 1, 'MF', 0.00000000, 0.00000000, 1, 1);
+INSERT INTO llx_c_financement_conf_solde (rowid, fk_type_contrat, periode, base_solde, percent, percent_nr, entity, active) VALUES (5, 'LOCSIMPLE', 25, 'SPE', 0.00000000, 0.00000000, 1, 1);
+INSERT INTO llx_c_financement_conf_solde (rowid, fk_type_contrat, periode, base_solde, percent, percent_nr, entity, active) VALUES (6, 'INTEGRAL', 25, 'SPE', 0.00000000, 0.00000000, 1, 1);
+INSERT INTO llx_c_financement_conf_solde (rowid, fk_type_contrat, periode, base_solde, percent, percent_nr, entity, active) VALUES (7, 'FORFAITGLOBAL', 1, 'MF', 0.00000000, 0.00000000, 1, 1);
+INSERT INTO llx_c_financement_conf_solde (rowid, fk_type_contrat, periode, base_solde, percent, percent_nr, entity, active) VALUES (8, 'FORFAITGLOBAL', 13, 'LRD', -2.00000000, -2.50000000, 1, 1);
+INSERT INTO llx_c_financement_conf_solde (rowid, fk_type_contrat, periode, base_solde, percent, percent_nr, entity, active) VALUES (9, 'FORFAITGLOBAL', 25, 'SPE', 0.00000000, 0.00000000, 1, 1);

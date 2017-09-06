@@ -1,0 +1,1 @@
+ALTER TABLE llx_c_financement_conf_solde ADD INDEX uk_c_financement_conf_solde_type (fk_type_contrat);

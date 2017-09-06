@@ -97,7 +97,7 @@ class TSimulation extends TObjetStd {
 		$this->opt_terme = '1';
 		$this->opt_calage = '';
 		$this->date_demarrage = '';
-		$this->vr = 0;
+		$this->vr = 1;
 		$this->mt_vr = 0.15;
 		$this->pcr_vr = 0.15;
 		$this->coeff = 0;
@@ -264,13 +264,18 @@ class TSimulation extends TObjetStd {
 		$idLeaserPrio = $this->getIdLeaserPrioritaire($PDOdb);
 		
 		if($idLeaserPrio > 0) {
-			$leaser = new Fournisseur($db);
-			$leaser->id = $idLeaserPrio;
 			//echo 'PRIO = '.$idLeaserPrio;
 			// Ajout du leaser prioritaire
 			$simulationSuivi = new TSimulationSuivi;
-			$simulationSuivi->init($PDOdb,$leaser,$this->getId());
+			$simulationSuivi->leaser = new Fournisseur($db);
+			$simulationSuivi->leaser->fetch($idLeaserPrio);
+			$simulationSuivi->init($PDOdb,$simulationSuivi->leaser,$this->getId());
 			$simulationSuivi->save($PDOdb);
+			
+			// Lancement de la demande automatique via EDI pour le leaser prioritaire
+			if($simulationSuivi->leaser->array_options['options_edi_leaser'] == 'LIXXBAIL') {
+				$simulationSuivi->doAction($PDOdb, $this, 'demander');
+			}
 		}
 		
 		// Ajout des autres leasers de la liste (sauf le prio)
@@ -729,7 +734,7 @@ class TSimulation extends TObjetStd {
 
 		if(!empty($this->montant_total_finance)) { // Calcul à partir du montant
 			if($typeCalcul=='cpro') { // Les coefficient sont trimestriel, à adapter en fonction de la périodicité de la simulation
-				$this->echeance = ($this->montant_total_finance - $this->vr) * ($this->coeff / 100);
+				$this->echeance = ($this->montant_total_finance) * ($this->coeff / 100);
 				if($this->opt_periodicite == 'ANNEE') $this->echeance *= 4;
 				else if($this->opt_periodicite == 'MOIS') $this->echeance /= 3;
 			} else {
@@ -742,7 +747,7 @@ class TSimulation extends TObjetStd {
 		} 
 		else if(!empty($this->echeance)) { // Calcul à partir de l'échéance
 			if($typeCalcul=='cpro') {
-				$this->montant = $this->echeance / ($this->coeff / 100) + $this->vr;
+				$this->montant = $this->echeance / ($this->coeff / 100);
 				if($this->opt_periodicite == 'ANNEE') $this->montant /= 4;
 				else if($this->opt_periodicite == 'MOIS') $this->montant *= 3;
 			} else {
@@ -1308,7 +1313,7 @@ class TSimulation extends TObjetStd {
 			,array()
 			,array(
 				'outFile' => $filePath.'/'.$fileName
-				//,'charset'=>OPENTBS_ALREADY_UTF8
+				,'charset'=>'utf-8'
 			)
 		);
 		
@@ -1563,6 +1568,20 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$this->statut = 'KO';
 		$this->save($PDOdb);
+		
+		// Lance l'appel EDI du prochain leaser sur la liste
+		// On parcours le tableau de suivi, une fois trouvé le suivi pour lequel on vient d'avoir un refus, on lance la demande de celui d'après
+		// Sera activé lorsqu'un 2e leaser sera en EDI
+		/*
+		$found = false;
+		foreach ($this->simulation->TSimulationSuivi as $id_suivi => $suivi) {
+			if($found) {
+				$this->doAction($PDOdb, $this->simulation, 'demander');
+				break;
+			}
+			if($id_suivi == $this->getId()) $found = true;
+		}
+		*/
 	}
 	
 	//Effectue l'action de passer au statut erreur la demande de financement leaser
@@ -1645,14 +1664,19 @@ class TSimulationSuivi extends TObjetStd {
 		$this->simulation->societe = new Societe($db);
 		$this->simulation->societe->fetch($this->simulation->fk_soc);
 		
+		if(empty($this->leaser)) {
+			$this->leaser = new Fournisseur($db);
+			$this->leaser->fetch($this->fk_leaser);
+		}
+		
 		switch ($this->leaser->array_options['options_edi_leaser']) {
 			//BNP PARIBAS LEASE GROUP
 			case 'BNP':
-				$this->_createDemandeBNP($PDOdb);
+				//$this->_createDemandeBNP($PDOdb);
 				break;
 			//GE CAPITAL EQUIPEMENT FINANCE
 			case 'GE':
-				$this->_createDemandeGE($PDOdb);
+				//$this->_createDemandeGE($PDOdb);
 				break;
 			//LIXXBAIL
 			case 'LIXXBAIL':
@@ -2105,24 +2129,21 @@ class TSimulationSuivi extends TObjetStd {
 		elseif($typeClient == "entreprise") $codeTypeClient = 4;
 		else $codeTypeClient = 0; //Général
 		
-		$this->simulation->societe->fetch_optionals($this->simulation->societe->id);
+		$siretCLIENT = $this->simulation->societe->idprof2;
+		if(empty($siretCLIENT)) $siretCLIENT = $this->simulation->societe->idprof1;
 		
-		$arraySearch = array(
-			'  ',
-			'.',
-			"'",
+		$TTrans = array(
+			'  ' => ' ',
+			'.' => '',
+			"'" => '',
 		);
-		$arrayToReplace = array(
-			' ',
-			'',
-			'',
-		);
+		$nomCLIENT = strtr($this->simulation->societe->name, $TTrans);
 		
 		$TClient = array(
-			'idNationnalEntreprise' => $this->simulation->societe->idprof2//($this->simulation->societe->idprof1) ? $this->simulation->societe->idprof1 : $this->simulation->societe->array_options['options_other_siren']
+			'idNationnalEntreprise' => $siretCLIENT
 			,'codeTypeClient' => $codeTypeClient
 			,'codeFormeJuridique' => '5499' //TODO
-			,'raisonSociale' => str_replace($arraySearch, $arrayToReplace, $this->simulation->societe->name)
+			,'raisonSociale' => $nomCLIENT
 			//,'specificiteClientPays' => array(
 				//'specificiteClientFrance' => array(
 					//'dirigeant' => array(
@@ -2136,8 +2157,8 @@ class TSimulationSuivi extends TObjetStd {
 			,'adresse' => array(
 				'adresse' => 'A'//substr(str_replace($arraySearch,$arrayToReplace,preg_replace("/\n|\ -\ |[\,\ ]{1}/", ' ', $this->simulation->societe->address)),0,31)
 				//,'adresseComplement' => ''
-				,'codePostal' => str_replace($arraySearch, $arrayToReplace, $this->simulation->societe->zip)
-				,'ville' => str_replace($arraySearch, $arrayToReplace, $this->simulation->societe->town)
+				,'codePostal' => $this->simulation->societe->zip
+				,'ville' => strtr($this->simulation->societe->town, $TTrans)
 			)
 		);
 		

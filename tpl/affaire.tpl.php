@@ -13,10 +13,26 @@
 			<table width="100%" class="border">
 			<tr><td width="20%">Partenaire</td><td>[affaire.entity; strconv=no]</td></tr>
 			<tr><td width="20%">Numéro d'affaire Artis</td><td>[affaire.reference; strconv=no]</td></tr>
-			<tr><td width="20%">Client</td><td>[affaire.societe; strconv=no]</td></tr>
-			
-			
-			
+			<tr><td width="20%">Client</td><td>
+				[onshow;block=begin;when [view.mode]=='view']
+				[affaire.societe; strconv=no]
+				[onshow;block=end]
+				[onshow;block=begin;when [view.mode]!='view']
+				<input type="text" value="[affaire.societe]" name="soc" id="soc" />
+				<input type="hidden" value="[affaire.socid]" name="socid" id="socid" />
+				<script language="javascript">
+					$('#soc').autocomplete({
+						source: [view.otherSoc; strconv=no; protect=no]
+						,minLength: 3
+						,select: function(event, ui) {
+							$('#socid').val(ui.item.value);
+							$('#soc').val(ui.item.label);
+							return false;
+						}
+					});
+				</script>
+				[onshow;block=end]
+				</td></tr>
 			<tr><td>Montant de l'affaire</td><td>[affaire.montant; strconv=no; frm=0 000,00] &euro;</td></tr>
 			<tr><td>Nature du financement</td><td>[affaire.nature_financement; strconv=no]</td></tr>
 			<tr><td>Type de financement</td><td>[affaire.type_financement; strconv=no]</td></tr>
