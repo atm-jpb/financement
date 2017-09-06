@@ -43,6 +43,10 @@ $(document).ready(function() {
 		}
 	});
 	
+	$('select[name="opt_calage_label"]').bind('change', function() {
+		$('#opt_calage').val($(this).val());
+	});
+	
 	// Rachat dossier ou case aucun
 	$('#opt_no_case_to_settle').bind('click', function() {
 		if($(this).attr('checked') == 'checked') {
