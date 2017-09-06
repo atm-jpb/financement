@@ -1906,6 +1906,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		if(BNP_TEST){
 			$soapWSDL = BNP_WSDL_URL;
+			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
@@ -1943,11 +1944,11 @@ class TSimulationSuivi extends TObjetStd {
 
 			$reponseDemandeFinancement = $soap->__call('transmettreDemandeFinancement',$TtransmettreDemandeFinancementRequest);
 			
-			//pre($reponseDemandeFinancement,true);exit;
+			pre($reponseDemandeFinancement,true);exit;
 		}
 		catch(SoapFault $reponseDemandeFinancement) {
-			//echo '<pre>';
-			//var_dump($reponseDemandeFinancement->detail);exit;
+			echo '<pre>';
+			var_dump($reponseDemandeFinancement->detail);exit;
 			$this->errorLabel = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail);
 			return 0;
 		}
@@ -1959,6 +1960,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		if(BNP_TEST){
 			$soapWSDL = BNP_WSDL_URL;
+			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
