@@ -259,12 +259,12 @@ class TSimulation extends TObjetStd {
 		$idLeaserPrio = $this->getIdLeaserPrioritaire($PDOdb);
 		
 		if($idLeaserPrio > 0) {
-			$leaser = new Fournisseur($db);
-			$leaser->id = $idLeaserPrio;
 			//echo 'PRIO = '.$idLeaserPrio;
 			// Ajout du leaser prioritaire
 			$simulationSuivi = new TSimulationSuivi;
-			$simulationSuivi->init($PDOdb,$leaser,$this->getId());
+			$simulationSuivi->leaser = new Fournisseur($db);
+			$simulationSuivi->leaser->fetch($idLeaserPrio);
+			$simulationSuivi->init($PDOdb,$simulationSuivi->leaser,$this->getId());
 			$simulationSuivi->save($PDOdb);
 			
 			// Lancement de la demande automatique via EDI pour le leaser prioritaire
