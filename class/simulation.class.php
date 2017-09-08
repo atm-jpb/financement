@@ -195,7 +195,7 @@ class TSimulation extends TObjetStd {
 				if(empty($dossier->display_solde)) $soldeperso = 0;
 				if(!$dossier->getSolde($db, 'perso')) $soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100));
 				
-				$leaser = new Societe($db);
+				$leaser = new Societe($doliDB);
 				$leaser->fetch($fin_leaser->fk_soc);
 				
 				$this->dossiers[$k]['ref_simulation'] = $this->reference;
