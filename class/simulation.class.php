@@ -1952,6 +1952,7 @@ class TSimulationSuivi extends TObjetStd {
 			//pre($reponseDemandeFinancement,true);exit;
 		}
 		catch(SoapFault $reponseDemandeFinancement) {
+			pre($TtransmettreDemandeFinancementRequest,true);
 			echo '<pre>';
 			var_dump($reponseDemandeFinancement->detail);exit;
 			$this->errorLabel = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail);
