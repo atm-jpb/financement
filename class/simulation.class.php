@@ -2267,7 +2267,12 @@ class TSimulationSuivi extends TObjetStd {
 		foreach($TCats as $categorie){
 			if($TData['codeFamilleMateriel'] == 'H'){ // => BUREAUTIQUE
 				if(strtoupper($categorie->label) == 'MANDATEE'){
-					$codeBareme = (BNP_TEST) ? '00004046' : '00002368';
+					if($this->simulation->opt_periodicite == 'TRIMESTRE'){
+						$codeBareme = (BNP_TEST) ? '00004050' : 'XXX';
+					}
+					elseif($this->simulation->opt_periodicite == 'MOIS'){
+						$codeBareme = (BNP_TEST) ? '00004046' : 'XXX';
+					}
 				}
 				elseif(strtoupper($categorie->label) == 'CESSION'){
 					switch ($codeCommercial) {
