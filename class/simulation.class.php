@@ -1672,7 +1672,7 @@ class TSimulationSuivi extends TObjetStd {
 		switch ($this->leaser->array_options['options_edi_leaser']) {
 			//BNP PARIBAS LEASE GROUP
 			case 'BNP':
-				//$this->_createDemandeBNP($PDOdb);
+				$this->_createDemandeBNP($PDOdb);
 				break;
 			//GE CAPITAL EQUIPEMENT FINANCE
 			case 'GE':
@@ -1911,6 +1911,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		if(BNP_TEST){
 			$soapWSDL = BNP_WSDL_URL;
+			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
@@ -1951,8 +1952,8 @@ class TSimulationSuivi extends TObjetStd {
 			//pre($reponseDemandeFinancement,true);exit;
 		}
 		catch(SoapFault $reponseDemandeFinancement) {
-			//echo '<pre>';
-			//var_dump($reponseDemandeFinancement->detail);exit;
+			echo '<pre>';
+			var_dump($reponseDemandeFinancement->detail);exit;
 			$this->errorLabel = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail);
 			return 0;
 		}
@@ -1964,6 +1965,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		if(BNP_TEST){
 			$soapWSDL = BNP_WSDL_URL;
+			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
