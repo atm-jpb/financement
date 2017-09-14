@@ -16,11 +16,14 @@
 	$TSimulationSuivi = new TSimulationSuivi;
 	
 	$sql = "SELECT rowid, numero_accord_leaser 
-			FROM ".MAIN_DB_PREFIX."fin_simulation_suivi 
-			WHERE (fk_leaser = 3382 OR fk_leaser = 19553 OR fk_leaser = 20113)
-				AND numero_accord_leaser IS NOT NULL 
-				AND numero_accord_leaser != ''
-				AND statut_demande = 1 AND statut = 'WAIT'";
+			FROM ".MAIN_DB_PREFIX."fin_simulation_suivi suivi
+			LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (suivi.fk_soc = s.rowid)
+			LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields sext ON (s.rowid = sext.fk_object)
+			WHERE sext.edi_leaser = 'BNP'
+				AND suivi.numero_accord_leaser IS NOT NULL 
+				AND suivi.numero_accord_leaser != ''
+				AND suivi.statut_demande = 1
+				AND suivi.statut = 'WAIT'";
 	echo $sql.'<br>';
 	$TRes = $PDOdb->ExecuteAsArray($sql);
 	
