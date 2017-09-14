@@ -195,9 +195,14 @@ class TSimulation extends TObjetStd {
 				if(empty($dossier->display_solde)) $soldeperso = 0;
 				if(!$dossier->getSolde($db, 'perso')) $soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100));
 				
+				$leaser = new Societe($doliDB);
+				$leaser->fetch($fin_leaser->fk_soc);
+				
 				$this->dossiers[$k]['ref_simulation'] = $this->reference;
 				$this->dossiers[$k]['num_contrat'] = $fin->reference;
 				$this->dossiers[$k]['num_contrat_leaser'] = $fin_leaser->reference;
+				$this->dossiers[$k]['leaser'] = $leaser->nom;
+				$this->dossiers[$k]['retrait_copie_supp'] = $dossier->soldeperso;
 				$this->dossiers[$k]['date_debut_periode_client'] = $date_debut_periode_client;
 				$this->dossiers[$k]['date_fin_periode_client'] = $date_fin_periode_client;
 				$this->dossiers[$k]['date_debut_periode_leaser'] = $date_debut_periode_leaser;
@@ -1667,7 +1672,7 @@ class TSimulationSuivi extends TObjetStd {
 		switch ($this->leaser->array_options['options_edi_leaser']) {
 			//BNP PARIBAS LEASE GROUP
 			case 'BNP':
-				//$this->_createDemandeBNP($PDOdb);
+				$this->_createDemandeBNP($PDOdb);
 				break;
 			//GE CAPITAL EQUIPEMENT FINANCE
 			case 'GE':
@@ -1944,7 +1949,7 @@ class TSimulationSuivi extends TObjetStd {
 
 			$reponseDemandeFinancement = $soap->__call('transmettreDemandeFinancement',$TtransmettreDemandeFinancementRequest);
 			
-			pre($reponseDemandeFinancement,true);exit;
+			//pre($reponseDemandeFinancement,true);exit;
 		}
 		catch(SoapFault $reponseDemandeFinancement) {
 			echo '<pre>';
