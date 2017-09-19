@@ -2206,6 +2206,7 @@ class TSimulationSuivi extends TObjetStd {
 		$codeFinancier = '021';
 		$codeTypeCalcul = 'L';
 		
+		// Durée et périodicité recalculée car Cession peut être en trimestre ou mois, mais mandaté uniquement en trimestre
 		$periodicite = 'TRIMESTRE';
 		if($this->_getBNPType() == 'CESSION') {
 			if($this->simulation->opt_periodicite == 'MOIS') {
@@ -2215,6 +2216,11 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$fin_temp = new TFin_financement;
 		$fin_temp->periodicite = $this->simulation->opt_periodicite;
+		$p1 = $fin_temp->getiPeriode();
+		$fin_temp->periodicite = $periodicite;
+		$p2 = $fin_temp->getiPeriode();
+		
+		$duree = $this->simulation->duree / ($p2 / $p1);
 		
 		$TFinancement = array(
 			'codeTypeCalcul' => $codeTypeCalcul
@@ -2233,8 +2239,8 @@ class TSimulationSuivi extends TObjetStd {
 			//,'presenceFranchiseDeLoyer' => ''
 			,'paliersDeLoyer' => array(
 				'palierDeLoyer' => array(
-					'nombreDeLoyers' => $this->simulation->duree
-					,'periodicite' => $fin_temp->getiPeriode()
+					'nombreDeLoyers' => $duree
+					,'periodicite' => $p2
 					//,'montantLoyers' => ''
 					//,'poidsDuPalier' => ''
 				)
