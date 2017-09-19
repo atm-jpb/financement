@@ -2203,26 +2203,13 @@ class TSimulationSuivi extends TObjetStd {
 	function _getBNPDataTabFinancement(&$TData){
 		global $db;
 		$codeCommercial = '02'; //02 par défaut; 23 = Top Full; 2Q = Secteur Public
-		$codeFinancier = $codeTypeCalcul = '';
+		$codeFinancier = '021';
+		$codeTypeCalcul = 'L';
 		
-		dol_include_once('/categories/class/categorie.class.php');
-		$cat = new Categorie($db);
-		$TCats = $cat->containing($this->fk_leaser, 1);
-		foreach($TCats as $categorie){
-			if(strtoupper($categorie->label) == 'CESSION'){
-				$codeFinancier = '021';
-				$codeTypeCalcul = 'L';
-				if($this->simulation->getLabelCategorieClient() == 'administration'){
-					$codeCommercial = '2Q';
-				}
-				elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
-					$codeCommercial = '23';
-				}
-			}
-			elseif(strtoupper($categorie->label) == 'MANDATEE'){
-				$codeFinancier = '021';
-				$codeTypeCalcul = 'L';
-				$codeCommercial = '02';
+		$periodicite = 'TRIMESTRE';
+		if($this->_getBNPType() == 'CESSION') {
+			if($this->simulation->opt_periodicite == 'MOIS') {
+				$periodicite = 'MOIS';
 			}
 		}
 		
@@ -2256,62 +2243,26 @@ class TSimulationSuivi extends TObjetStd {
 		
 		return $TFinancement;
 	}
+
+	function _getBNPType() {
+		if(strpos($this->leaser->name, 'BNP PARIBAS LEASE GROUP MANDATE') !== false)
+			return 'MANDATE';
+		if(strpos($this->leaser->name, 'BNP PARIBAS LEASE GROUP') !== false)
+			return 'CESSION';
+	}
 	
 	//CF drive -> Barème pour webservice CPRO.xlsx
 	function _getBNPBareme(&$TData,$codeCommercial){
 		global $db;
 		$codeBareme = '';
 		
-		$cat = new Categorie($db);
-		$TCats = $cat->containing($this->fk_leaser, 1);
-		
-		foreach($TCats as $categorie){
-			if($TData['codeFamilleMateriel'] == 'H'){ // => BUREAUTIQUE
-				if(strtoupper($categorie->label) == 'MANDATEE'){
-					if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-						$codeBareme = (BNP_TEST) ? '00004050' : 'XXX';
-					}
-					elseif($this->simulation->opt_periodicite == 'MOIS'){
-						$codeBareme = (BNP_TEST) ? '00004046' : 'XXX';
-					}
-				}
-				elseif(strtoupper($categorie->label) == 'CESSION'){
-					switch ($codeCommercial) {
-						case '02': // = ''
-								if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-									$codeBareme = (BNP_TEST) ? '00000868' : '00002061';
-								}
-								elseif($this->simulation->opt_periodicite == 'MOIS'){
-									$codeBareme = (BNP_TEST) ? '00004028' : '00002063';
-								}
-							break;
-						case '23': // = Top Full
-								if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-									$codeBareme = (BNP_TEST) ? '00004049' : '00002369';
-								}
-								elseif($this->simulation->opt_periodicite == 'MOIS'){
-									$codeBareme = (BNP_TEST) ? '00004050' : '00002467';
-								}
-							break;
-						case '2Q': // = Secteur Public
-								$codeBareme = (BNP_TEST) ? '00004051' : '00006710';
-							break;
-						default:
-							
-							break;
-					}
-				}
+		if($this->_getBNPType() == 'CESSION') {
+			$codeBareme = (BNP_TEST) ? '00004048' : '00011188';
+			if($this->simulation->opt_periodicite == 'MOIS') {
+				$codeBareme = (BNP_TEST) ? '00004028' : '00011185';
 			}
-			elseif($TData['codeFamilleMateriel'] == 'T'){ // => INFORMATIQUE
-				if(strtoupper($categorie->label) == 'CESSION'){ //Uniquement FINANCIERE pour INFORMATIQUE
-					if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-						$codeBareme = '00004043';
-					}
-					elseif($this->simulation->opt_periodicite == 'MOIS'){
-						$codeBareme = '00004048';
-					}
-				}
-			}
+		} else {
+			$codeBareme = (BNP_TEST) ? '00004050' : 'SE006710';
 		}
 		
 		return $codeBareme;
