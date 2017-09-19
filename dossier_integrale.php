@@ -763,9 +763,19 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 	
 	$style = 'style="background-color: #C0C0C0; text-align: right;"';
 	if($integrale->vol_coul_engage > 0) {
-		$input_engagement_couleur = $form->texte('','nouvel_engagement_couleur',$engagement_couleur,10,0,' style="text-align: center;" engagement_type="coul" autocomplete="off"');
+		if(TFinancementTools::user_courant_est_admin_financement()) {
+			$input_engagement_couleur = $form->texte('','nouvel_engagement_couleur',$engagement_couleur,10,0,' style="text-align: center;" engagement_type="coul" autocomplete="off"');
+		} else {
+			$input_engagement_couleur = '<input type="number" id="nouvel_engagement_couleur" name="nouvel_engagement_couleur" min="'.$engagement_couleur.'" value="'.$engagement_couleur.'" step=1" style="text-align: center;" />';
+		}
 	} else {
 		$input_engagement_couleur = $form->texteRO('','nouvel_engagement_couleur',$engagement_couleur,10,0,' style="text-align: center; background-color: #C0C0C0;" engagement_type="coul" autocomplete="off"');
+	}
+
+	if(TFinancementTools::user_courant_est_admin_financement()) {
+		$input_engagement_noir = $form->texte('','nouvel_engagement_noir',$engagement_noir,10,0,' style="text-align: center;" engagement_type="noir" autocomplete="off"');
+	} else {
+		$input_engagement_noir = '<input type="number" id="nouvel_engagement_noir" name="nouvel_engagement_noir" min="'.$engagement_noir.'" value="'.$engagement_noir.'" step=1" style="text-align: center;" />';
 	}
 	
 	print '<div id="calculateur">';
@@ -781,7 +791,7 @@ function _printFormAvenantIntegrale(&$PDOdb, &$dossier, &$TBS) {
 				,'cout_unit_tech'=>$integrale->cout_unit_noir_tech
 				,'cout_unit_mach'=>$integrale->cout_unit_noir_mach
 				,'cout_unit_loyer'=>$integrale->cout_unit_noir_loyer
-				,'nouvel_engagement'=>$form->texte('','nouvel_engagement_noir',$engagement_noir,10,0,' style="text-align: center;" engagement_type="noir" autocomplete="off"')
+				,'nouvel_engagement'=>$input_engagement_noir
 				,'nouveau_cout_unitaire'=>$form->texteRO('','nouveau_cout_unitaire_noir', $TDetailCoutNoir['cout_unitaire'],10,'',$style)
 				,'nouveau_cout_unit_tech'=>$form->texteRO('','nouveau_cout_unit_noir_tech', $TDetailCoutNoir['nouveau_cout_unitaire_tech'],10,'',$style)  // Identique à l'ancien dans tous les cas
 				,'nouveau_cout_unit_mach'=>$form->texteRO('','nouveau_cout_unit_noir_mach', $TDetailCoutNoir['nouveau_cout_unitaire_mach'],10,'',$style)
