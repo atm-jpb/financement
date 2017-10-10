@@ -2334,6 +2334,7 @@ class TFin_financement extends TObjetStd {
 		$fact->fetch($idClone);
 		
 		$fact->type = 2;
+		$fact->entity = $origine->entity;
 		$fact->fk_facture_source = $origine->id;
 		$fact->facnumber = 'AV'.$origine->ref_supplier;
 		$fact->ref_supplier = 'AV'.$origine->ref_supplier;
