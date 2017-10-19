@@ -2263,12 +2263,12 @@ class TSimulationSuivi extends TObjetStd {
 		$codeBareme = '';
 		
 		if($this->_getBNPType() == 'CESSION') {
-			$codeBareme = (BNP_TEST) ? '00004048' : '00011188';
+			$codeBareme = (BNP_TEST) ? '00004048' : '00011657';
 			if($this->simulation->opt_periodicite == 'MOIS') {
-				$codeBareme = (BNP_TEST) ? '00004028' : '00011185';
+				$codeBareme = (BNP_TEST) ? '00004028' : '00011658';
 			}
 		} else {
-			$codeBareme = (BNP_TEST) ? '00004050' : 'SE006710';
+			$codeBareme = (BNP_TEST) ? '00004050' : '00006710';
 		}
 		
 		return $codeBareme;
