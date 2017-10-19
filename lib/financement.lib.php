@@ -557,23 +557,43 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			$rowid = $res->rowid;
 			$renta_neg = false;
 			
-			// Calcul du nombre de période écoulées entre le début du dossier et le 01/01/2014, date de début d'intégration des factures dans LeaseBoard
+			// Calcul du nombre de période écoulées entre le début du dossier et le 01/01/2016,
+			// date de début d'intégration des factures dans LeaseBoard
 			$nb_periode_sans_fact = 0;
-			$datedeb = strtotime($res->date_debut);
-			$datelimit = strtotime('2016-01-01');
+			
 			$nbmonth = $TPeriodeType[$res->periodicite];
 			
+			$d1 = new DateTime($res->date_debut);
+			$d2 = new DateTime('2016-01-01');
+			$diff = $d1->diff($d2);
+
+			$nb_periode_sans_fact = $diff->y * 12 / $nbmonth + $diff->m / $nbmonth + ceil($diff->d / 31);
+			
+			// Intercalaire ?
+			$intercalaire = ($res->loyer_intercalaire > 0) ? 1 : 0;
+			
+			// Si intercalaire et dossier démarrant avant le 01/01/2016
+			/*$datedeb = strtotime($res->date_debut);
+			$datelimit = strtotime('2016-01-01');
+			if(!empty($intercalaire) && $datedeb < $datelimit) $nb_periode_sans_fact++;
 			while($datedeb < $datelimit) {
 				$datedeb = strtotime('+ '.$nbmonth.' month', $datedeb);
 				$nb_periode_sans_fact++;
-			}
+			}*/
 			
-			$intercalaire = ($res->loyer_intercalaire > 0) ? 1 : 0;
+			// Si échu, décalage
 			$echu = ($res->terme == 0) ? 1 : 0;
 			// Si l'échéance n'est pas calée sur le civil, la facture étant faite en fin de mois, on enleve 1 si pas d'intercalaire
 			$decal = (date('d',strtotime($res->date_debut)) == '01' || $intercalaire) ? 0 : 1;
 			
-			//echo $res->nb_echeances_facturees.' + '.$nb_periode_sans_fact.' != '.$res->numero_prochaine_echeance.' + '.$intercalaire.' - '.$echu;
+			/*echo 'ECH FACT : '.$res->nb_echeances_facturees;
+			echo ' + PERIODE NON FACT : '.$nb_periode_sans_fact;
+			echo ' = <b>'. ($res->nb_echeances_facturees + $nb_periode_sans_fact) . '</b><br>-----<br>';
+			echo 'ECH PASSEES : '.($res->numero_prochaine_echeance - 1);
+			echo ' + INTERCALAIRE : '.$intercalaire;
+			echo ' - ECHU : '.$echu;
+			echo ' - DECALAGE : '.$decal;
+			echo ' = <b>'. ($res->numero_prochaine_echeance - 1 + $intercalaire - $echu - $decal). '</b>';*/
 			if(($res->nb_echeances_facturees + $nb_periode_sans_fact) < ($res->numero_prochaine_echeance - 1 + $intercalaire - $echu - $decal)) {
 				$renta_neg = true;
 			}

@@ -2153,7 +2153,11 @@ class TFin_financement extends TObjetStd {
 				$a->montant = $data['montant'];
 				$a->fk_soc = $idClient;
 				$a->nature_financement = 'EXTERNE';
-				if ($data['montant_prestation'] > 0 && !empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE) && in_array($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE, $a->TContrat)) $a->contrat = $conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE;
+				if ($data['montant_prestation'] > 0
+					&& !empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE)
+					&& !empty($a->TContrat[$conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE])) {
+						$a->contrat = $conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE;
+				}
 				$a->addDossier($db, $d->getId());
 				$a->save($db);
 				//echo $a->getId().'<br>';
@@ -2178,7 +2182,11 @@ class TFin_financement extends TObjetStd {
 					$a->montant = $data['montant'];
 					$a->fk_soc = $idClient;
 					$a->nature_financement = 'EXTERNE';
-					if ($data['montant_prestation'] > 0 && !empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE) && in_array($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE, $a->TContrat)) $a->contrat = $conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE;
+					if ($data['montant_prestation'] > 0
+						&& !empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE)
+						&& !empty($a->TContrat[$conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE])) {
+							$a->contrat = $conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE;
+					}
 					$a->addDossier($db, $d->getId());
 					$a->save($db);
 					//echo $a->getId().'<br>';
@@ -2334,6 +2342,7 @@ class TFin_financement extends TObjetStd {
 		$fact->fetch($idClone);
 		
 		$fact->type = 2;
+		$fact->entity = $origine->entity;
 		$fact->fk_facture_source = $origine->id;
 		$fact->facnumber = 'AV'.$origine->ref_supplier;
 		$fact->ref_supplier = 'AV'.$origine->ref_supplier;
