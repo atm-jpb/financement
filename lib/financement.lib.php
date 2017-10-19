@@ -573,7 +573,14 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			// Si l'échéance n'est pas calée sur le civil, la facture étant faite en fin de mois, on enleve 1 si pas d'intercalaire
 			$decal = (date('d',strtotime($res->date_debut)) == '01' || $intercalaire) ? 0 : 1;
 			
-			//echo $res->nb_echeances_facturees.' + '.$nb_periode_sans_fact.' != '.$res->numero_prochaine_echeance.' + '.$intercalaire.' - '.$echu;
+			/*echo 'ECH FACT : '.$res->nb_echeances_facturees;
+			echo ' + PERIODE NON FACT : '.$nb_periode_sans_fact;
+			echo ' = <b>'. ($res->nb_echeances_facturees + $nb_periode_sans_fact) . '</b><br>-----<br>';
+			echo 'ECH PASSEES : '.($res->numero_prochaine_echeance - 1);
+			echo ' + INTERCALAIRE : '.$intercalaire;
+			echo ' - ECHU : '.$echu;
+			echo ' - DECALAGE : '.$decal;
+			echo ' = <b>'. ($res->numero_prochaine_echeance - 1 + $intercalaire - $echu - $decal). '</b>';*/
 			if(($res->nb_echeances_facturees + $nb_periode_sans_fact) < ($res->numero_prochaine_echeance - 1 + $intercalaire - $echu - $decal)) {
 				$renta_neg = true;
 			}
