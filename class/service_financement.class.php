@@ -278,6 +278,8 @@ class ServiceFinancement {
 		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
 		// Spéficique CALF, maximum 21 T / 63 M
 		if($dureeInMonth > 63) $dureeInMonth = 63;
+		// Spéficique CALF, minimum 8 T / 21 M
+		if($dureeInMonth < 24) $dureeInMonth = 24;
 		// Montant minimum 1000 €
 		$montant = $this->simulation->montant;
 		if($montant < 1000) $montant = 1000;
