@@ -1077,7 +1077,22 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		$dossier->load($ATMdb2, $ATMdb->Get_field('IDDoss'));
 		$leaser = new Societe($db);
 		$leaser->fetch($dossier->financementLeaser->fk_soc);
-
+		
+		// Chargement des équipements
+		if(!empty($dossier->TLien[0])) {
+			dol_include_once('/asset/class/asset.class.php');
+			$dossier->TLien[0]->affaire->loadEquipement($ATMdb2);
+			$TSerial = array();
+			
+			foreach($dossier->TLien[0]->affaire->TAsset as $linkAsset) {
+				$serial = $linkAsset->asset->serial_number;
+				$TSerial[] = $serial;
+				if(count($TSerial) >= 3) {
+					$TSerial[] = '...';
+					break;
+				}
+			}
+		}
 		
 		if($dossier->nature_financement == 'INTERNE') {
 			$fin = &$dossier->financement;
@@ -1324,6 +1339,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			
 			,'incident_paiement'=>$incident_paiement
 			,'numcontrat_entity_leaser'=>$numcontrat_entity_leaser
+			
+			,'serial' => implode(', ', $TSerial)
 		);
 		if($row['type_contrat'] == 'Intégral'){
 			$row['type_contrat']='<a href="dossier_integrale.php?id='.$ATMdb->Get_field('IDDoss').'">Intégral</a>';
