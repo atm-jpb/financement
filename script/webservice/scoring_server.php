@@ -178,7 +178,9 @@ function repondreDemande($authentication, $TReponse)
 					$simulation->load($PDOdb, $db, $TId[0]);
 					if ($simulation->getId() > 0)
 					{
-						if (strcmp($simulation->societe->idprof1, $TReponse['client']['client_siren']) === 0)
+						$siren = $TReponse['client']['client_siren'];
+						$siren = str_pad($siren, 9, '0', STR_PAD_LEFT);
+						if (strcmp($simulation->societe->idprof1, $siren) === 0)
 						{
 							
 							$found = false;

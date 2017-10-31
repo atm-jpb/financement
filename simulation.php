@@ -856,6 +856,12 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$simuArray['type_materiel'] = $form->texte('','type_materiel',$simulation->type_materiel, 50);
 	}
 	
+	// Recherche par SIREN
+	$search_by_siren = true;
+	if(!empty($simulation->societe->array_options['options_no_regroup_fin_siren'])) {
+		$search_by_siren = false;
+	}
+	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
@@ -878,7 +884,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				
 				,'contact_externe'=>empty($simulation->societe) ? '' : $simulation->societe->score->get_nom_externe()
 				
-				,'liste_dossier'=>_liste_dossier($ATMdb, $simulation, $mode)
+				,'liste_dossier'=>_liste_dossier($ATMdb, $simulation, $mode, $search_by_siren)
 				
 				,'nom'=>$simulation->societe->nom
 				,'siren'=>(($simulation->societe->idprof1) ? $simulation->societe->idprof1 : $simulation->societe->idprof2)
@@ -987,7 +993,7 @@ function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	$form->end_form();
 }
 
-function _liste_dossier(&$ATMdb, &$simulation, $mode) {
+function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 	//if(!empty($simulation->date_accord) && $simulation->date_accord < strtotime('-15 days')) return ''; // Ticket 916 -15 jours
 	
 	//pre($simulation,true);
@@ -1012,7 +1018,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')';
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
 	$sql.= " AND (a.fk_soc = ".$simulation->fk_soc;
-	if(!empty($simulation->societe->idprof1)) {
+	if(!empty($simulation->societe->idprof1) && $search_by_siren) {
 		$sql.= " OR a.fk_soc IN
 					(
 						SELECT s.rowid 

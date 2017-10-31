@@ -567,7 +567,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			$d2 = new DateTime('2016-01-01');
 			$diff = $d1->diff($d2);
 
-			$nb_periode_sans_fact = $diff->y * 12 / $nbmonth + $diff->m / $nbmonth + ceil($diff->d / 31);
+			$nb_periode_sans_fact = $diff->y * 12 / $nbmonth + ceil($diff->m / $nbmonth) + ceil($diff->d / 31);
 			
 			// Intercalaire ?
 			$intercalaire = ($res->loyer_intercalaire > 0) ? 1 : 0;
