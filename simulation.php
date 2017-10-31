@@ -58,8 +58,19 @@ if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive 
 	}
 }
 
-if(!empty($_REQUEST['fk_soc'])) {
-	$simulation->fk_soc = $_REQUEST['fk_soc'];
+$fk_soc = $_REQUEST['fk_soc'];
+
+if(!empty($_REQUEST['mode_search']) && $_REQUEST['mode_search'] == 'search_matricule' && !empty($_REQUEST['search_matricule'])) {
+	// Recherche du client associé au matricule pour ensuite créer une nouvelle simulation
+	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset', array('serial_number' => $_REQUEST['search_matricule']), 'fk_soc');
+	if(!empty($TId[0])) {
+		$fk_soc = $TId[0];
+		$action = 'new';
+	}
+}
+
+if(!empty($fk_soc)) {
+	$simulation->fk_soc = $fk_soc;
 	$simulation->load_annexe($ATMdb, $db);
 
 	// Si l'utilisateur n'a pas le droit d'accès à tous les tiers
