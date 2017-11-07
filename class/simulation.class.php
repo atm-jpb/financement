@@ -1910,12 +1910,13 @@ class TSimulationSuivi extends TObjetStd {
 	function _createDemandeBNP(&$PDOdb){
 		
 		if(BNP_TEST){
-			$soapWSDL = BNP_WSDL_URL;
-			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+			//$soapWSDL = BNP_WSDL_URL_TEST;
+			$soapWSDL = dol_buildpath('/financement/files/EDI_BNP_demandeFinancement_TEST.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
-			$soapWSDL = BNP_WSDL_URL;
+			//$soapWSDL = BNP_WSDL_URL_PROD;
+			$soapWSDL = dol_buildpath('/financement/files/EDI_BNP_demandeFinancement_PROD.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-Prod.crt";
 		}
 
@@ -1965,18 +1966,19 @@ class TSimulationSuivi extends TObjetStd {
 	function _consulterDemandeBNP($num_accord_leaser){
 		
 		if(BNP_TEST){
-			$soapWSDL = BNP_WSDL_URL;
-			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
+			//$soapWSDL = BNP_WSDL_URL_TEST;
+			$soapWSDL = dol_buildpath('/financement/files/EDI_BNP_demandeFinancement_TEST.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
-			$soapWSDL = BNP_WSDL_URL;
+			//$soapWSDL = BNP_WSDL_URL_PROD;
+			$soapWSDL = dol_buildpath('/financement/files/EDI_BNP_demandeFinancement_PROD.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-Prod.crt";
 		}
 
 		try{
 			$soap = new SoapClient($soapWSDL,array(
-									'local_cert'=>"/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt"
+									'local_cert'=>$local_cert
 									,'trace'=>1
 									,'stream_context' => stream_context_create(array(
 										    'ssl' => array(
