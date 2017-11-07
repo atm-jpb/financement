@@ -1,0 +1,849 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:sch0="http://leasegroup.bnpparibas.com/ELO/v1" xmlns:sch1="http://leasegroup.bnpparibas.com/ELO/v1/common" xmlns:sch10="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/etat" xmlns:sch11="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/client" xmlns:sch12="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/financement" xmlns:sch13="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/rapportSuivis" xmlns:sch14="http://leasegroup.bnpparibas.com/ELO/v1/listeErreurs" xmlns:sch2="http://leasegroup.bnpparibas.com/ELO/v1/prescripteur" xmlns:sch3="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/client" xmlns:sch4="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/materiel" xmlns:sch5="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/prestation" xmlns:sch6="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/financement" xmlns:sch7="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/demandeFinancement" xmlns:sch8="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/response/rapportTransmission" xmlns:sch9="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/request/demandeSuivis" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://leasegroup.bnpparibas.com/ELO/v1">
+   <wsdl:types>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/endpoint" xmlns:cdq="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/request/demandeSuivis" xmlns:cds="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/rapportSuivis" xmlns:ler="http://leasegroup.bnpparibas.com/ELO/v1/listeErreurs" xmlns:tdq="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/demandeFinancement" xmlns:tds="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/response/rapportTransmission">
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/demandeFinancement"/>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/response/rapportTransmission"/>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/request/demandeSuivis"/>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/rapportSuivis"/>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/listeErreurs"/>
+         <xs:element name="transmettreDemandeFinancementRequest">
+            <xs:complexType>
+               <xs:complexContent>
+                  <xs:extension base="tdq:demandeFinancement"/>
+               </xs:complexContent>
+            </xs:complexType>
+         </xs:element>
+         <xs:element name="transmettreDemandeFinancementResponse">
+            <xs:complexType>
+               <xs:complexContent>
+                  <xs:extension base="tds:rapportTransmission"/>
+               </xs:complexContent>
+            </xs:complexType>
+         </xs:element>
+         <xs:element name="consulterSuivisDemandesRequest">
+            <xs:complexType>
+               <xs:complexContent>
+                  <xs:extension base="cdq:demandeSuivis"/>
+               </xs:complexContent>
+            </xs:complexType>
+         </xs:element>
+         <xs:element name="consulterSuivisDemandesResponse">
+            <xs:complexType>
+               <xs:complexContent>
+                  <xs:extension base="cds:rapportSuivis"/>
+               </xs:complexContent>
+            </xs:complexType>
+         </xs:element>
+         <xs:element name="retourErreur">
+            <xs:complexType>
+               <xs:complexContent>
+                  <xs:extension base="ler:listeErreurs"/>
+               </xs:complexContent>
+            </xs:complexType>
+         </xs:element>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/common" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/common">
+         <xs:annotation>
+            <xs:documentation>Types simples m�tiers utilis�s par tous le mod�le ELO.</xs:documentation>
+         </xs:annotation>
+         <xs:simpleType name="texte">
+            <xs:annotation>
+               <xs:documentation>Format de base des textes.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="xs:string">
+               <xs:minLength value="1"/>
+               <xs:pattern value="[\S\s]*"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="ligneDeTexte">
+            <xs:annotation>
+               <xs:documentation>Format des lignes de textes. C base des champs alphanum�riques.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="xs:string">
+               <xs:minLength value="1"/>
+               <xs:pattern value="[\S\t ]*"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="alphanumerique">
+            <xs:annotation>
+               <xs:documentation>Format de base des champs alphanum�riques.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="texte">
+               <xs:pattern value="[\S\d]*"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="montant">
+            <xs:annotation>
+               <xs:documentation>Format des montants : 9 digites pour la partie enti�re et 2 digites pour la partie d�cimales; ne peut avoir de valeur n�gative.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="xs:decimal">
+               <xs:totalDigits value="11"/>
+               <xs:fractionDigits value="2"/>
+               <xs:minInclusive value="0"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="pourcentage">
+            <xs:annotation>
+               <xs:documentation>Format des pourcentages : de 0 (inclu) � 100 (inclu) avec 3 digites maximum pour la partie d�cimales.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="xs:decimal">
+               <xs:minInclusive value="0"/>
+               <xs:maxInclusive value="100"/>
+               <xs:fractionDigits value="3"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="idPrescripteur">
+            <xs:annotation>
+               <xs:documentation>Format des identifiants des prescripteurs : "FRAFT00064", "ITCCN00002"</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:maxLength value="10"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="codeCivilite">
+            <xs:annotation>
+               <xs:documentation>Format des codes de civilit�s.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:enumeration value="C1">
+                  <xs:annotation>
+                     <xs:documentation>Monsieur</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+               <xs:enumeration value="C2">
+                  <xs:annotation>
+                     <xs:documentation>Madame</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+               <xs:enumeration value="C3">
+                  <xs:annotation>
+                     <xs:documentation>Mademoiselle</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="codeFamilleMateriel">
+            <xs:annotation>
+               <xs:documentation>Format des codes des familles des mat�riels.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:maxLength value="3"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="codeMateriel">
+            <xs:annotation>
+               <xs:documentation>Format des codes des mat�riels.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:maxLength value="8"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="codeMarque">
+            <xs:annotation>
+               <xs:documentation>Format des codes des marques.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:length value="3"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="codeEtatDemande">
+            <xs:annotation>
+               <xs:documentation>Format des codes des �tats des demandes.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:enumeration value="E1">
+                  <xs:annotation>
+                     <xs:documentation>Accord</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+               <xs:enumeration value="E2">
+                  <xs:annotation>
+                     <xs:documentation>Refus</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+               <xs:enumeration value="E3">
+                  <xs:annotation>
+                     <xs:documentation>� l'�tude</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+               <xs:enumeration value="E4">
+                  <xs:annotation>
+                     <xs:documentation>Sans suite</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+               <xs:enumeration value="E5">
+                  <xs:annotation>
+                     <xs:documentation>Mise en loyer</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="idNationnalEntreprise">
+            <xs:annotation>
+               <xs:documentation>Format des identifiants nationnal des entreprises. Pour la France, c'est le siret : "38425575800029"</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:maxLength value="20"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="numeroDemandeProvisoire">
+            <xs:annotation>
+               <xs:documentation>Format des num�ros provisoire de demande : "0001EXU000012345"</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:maxLength value="17"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="numeroDemandeDefinitif">
+            <xs:annotation>
+               <xs:documentation>Format des num�ros d�finitifs de demande : "R0001592"</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:maxLength value="17"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="numeroDemandePatenaire">
+            <xs:annotation>
+               <xs:documentation>Format des num�ros partenaire de demande"</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique"/>
+         </xs:simpleType>
+         <xs:complexType name="numeroIdentifiantDemande">
+            <xs:annotation>
+               <xs:documentation>Num�ro identifiant une demande de financement transmise.</xs:documentation>
+            </xs:annotation>
+            <xs:choice>
+               <xs:element name="numeroDemandeDefinitif" type="numeroDemandeDefinitif"/>
+               <xs:element name="numeroDemandeProvisoire" type="numeroDemandeProvisoire"/>
+            </xs:choice>
+         </xs:complexType>
+         <xs:simpleType name="raisonSociale">
+            <xs:annotation>
+               <xs:documentation>Raison sociale d'un client.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="ligneDeTexte">
+               <xs:maxLength value="50"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:complexType name="adresse">
+            <xs:annotation>
+               <xs:documentation>Repr�sente une adresse.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element minOccurs="0" name="adresse">
+                  <xs:simpleType>
+                     <xs:restriction base="ligneDeTexte">
+                        <xs:maxLength value="32"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:element>
+               <xs:element minOccurs="0" name="adresseComplement">
+                  <xs:simpleType>
+                     <xs:restriction base="ligneDeTexte">
+                        <xs:maxLength value="32"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:element>
+               <xs:element minOccurs="0" name="codePostal">
+                  <xs:simpleType>
+                     <xs:restriction base="alphanumerique">
+                        <xs:maxLength value="8"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:element>
+               <xs:element minOccurs="0" name="ville">
+                  <xs:simpleType>
+                     <xs:restriction base="ligneDeTexte">
+                        <xs:maxLength value="32"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:element>
+            </xs:all>
+         </xs:complexType>
+         <xs:simpleType name="commentairesELO">
+            <xs:annotation>
+               <xs:documentation>Commentaire de r�ponse ELO.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="texte"/>
+         </xs:simpleType>
+         <xs:simpleType name="codeTypeClient">
+            <xs:annotation>
+               <xs:documentation>Format des code de types de client.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:length value="1"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="codeFormeJuridique">
+            <xs:annotation>
+               <xs:documentation>Format des codes de formes juridiques : "7355".</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:length value="4"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="codeBareme">
+            <xs:annotation>
+               <xs:documentation>Format des codes de bar�me : "00003167".</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:maxLength value="8"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="codeTypeCalcul">
+            <xs:annotation>
+               <xs:documentation>Format des codes repr�sentants les types de calculs.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:enumeration value="L">
+                  <xs:annotation>
+                     <xs:documentation>Recherche de loyers / �ch�ances</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+               <xs:enumeration value="M">
+                  <xs:annotation>
+                     <xs:documentation>Recherche de montant financ�</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="codeTerme">
+            <xs:annotation>
+               <xs:documentation>Format des codes repr�sentants le terme d'un plan de financement.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:enumeration value="A">
+                  <xs:annotation>
+                     <xs:documentation>A �choir</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+               <xs:enumeration value="E">
+                  <xs:annotation>
+                     <xs:documentation>Echu</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="codeProduitFinancier">
+            <xs:annotation>
+               <xs:documentation>Format des codes des produits financiers.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:length value="3"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="codeProduitCommercial">
+            <xs:annotation>
+               <xs:documentation>Format des codes des produits commerciaux.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:length value="2"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="codeEtatMateriel">
+            <xs:annotation>
+               <xs:documentation>Format des codes repr�sentants les �tats de mat�riels.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="alphanumerique">
+               <xs:enumeration value="N">
+                  <xs:annotation>
+                     <xs:documentation>Neuf</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+               <xs:enumeration value="O">
+                  <xs:annotation>
+                     <xs:documentation>Occasion</xs:documentation>
+                  </xs:annotation>
+               </xs:enumeration>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="commentairesPartenaire">
+            <xs:annotation>
+               <xs:documentation>Format des commentaires partenaire.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="texte">
+               <xs:maxLength value="750"/>
+            </xs:restriction>
+         </xs:simpleType>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/prescripteur" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/prescripteur" xmlns:cmn="http://leasegroup.bnpparibas.com/ELO/v1/common">
+         <xs:annotation>
+            <xs:documentation>Prescripteurs des demandes de financement.</xs:documentation>
+         </xs:annotation>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/common"/>
+         <xs:complexType name="prescripteur">
+            <xs:annotation>
+               <xs:documentation>Repr�sente le prescripteur d'une demande de financement.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element name="prescripteurId" type="cmn:idPrescripteur"/>
+            </xs:all>
+         </xs:complexType>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/client" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/client" xmlns:cmn="http://leasegroup.bnpparibas.com/ELO/v1/common">
+         <xs:annotation>
+            <xs:documentation>Clients des demandes de financement.</xs:documentation>
+         </xs:annotation>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/common"/>
+         <xs:simpleType name="nomDirigeant">
+            <xs:annotation>
+               <xs:documentation>Nom du dirigeant.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="cmn:ligneDeTexte">
+               <xs:maxLength value="32"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="prenomDirigeant">
+            <xs:annotation>
+               <xs:documentation>Pr�nom du dirigeant.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="cmn:ligneDeTexte">
+               <xs:maxLength value="32"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:complexType name="dirigeant">
+            <xs:annotation>
+               <xs:documentation>Repr�sente le dirigeant du client d'une demande de financement.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element minOccurs="0" name="codeCivilite" type="cmn:codeCivilite"/>
+               <xs:element minOccurs="0" name="nom" type="nomDirigeant"/>
+               <xs:element minOccurs="0" name="prenom" type="prenomDirigeant"/>
+               <xs:element minOccurs="0" name="dateNaissance" type="xs:date"/>
+            </xs:all>
+         </xs:complexType>
+         <xs:complexType name="specificiteClientFrance">
+            <xs:annotation>
+               <xs:documentation>Repr�sente les �l�ments des clients sp�cifiques  aux clients france.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element minOccurs="0" name="dirigeant" type="dirigeant"/>
+            </xs:all>
+         </xs:complexType>
+         <xs:complexType name="specificiteClientPays">
+            <xs:annotation>
+               <xs:documentation>Repr�sente les �l�ments des clients sp�cifiques aux diff�rents pays.</xs:documentation>
+            </xs:annotation>
+            <xs:choice>
+               <xs:element name="specificiteClientFrance" type="specificiteClientFrance"/>
+            </xs:choice>
+         </xs:complexType>
+         <xs:complexType name="client">
+            <xs:annotation>
+               <xs:documentation>Repr�sente l'identification client d'une demande de financement.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element name="idNationnalEntreprise" type="cmn:idNationnalEntreprise"/>
+               <xs:element name="codeTypeClient" type="cmn:codeTypeClient"/>
+               <xs:element minOccurs="0" name="raisonSociale" type="cmn:raisonSociale"/>
+               <xs:element minOccurs="0" name="codeFormeJuridique" type="cmn:codeFormeJuridique"/>
+               <xs:element minOccurs="0" name="adresse" type="cmn:adresse"/>
+               <xs:element minOccurs="0" name="specificiteClientPays" type="specificiteClientPays"/>
+            </xs:all>
+         </xs:complexType>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/materiel" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/materiel" xmlns:cmn="http://leasegroup.bnpparibas.com/ELO/v1/common">
+         <xs:annotation>
+            <xs:documentation>Materiels des demandes de financement.</xs:documentation>
+         </xs:annotation>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/common"/>
+         <xs:simpleType name="type">
+            <xs:annotation>
+               <xs:documentation>Type du mat�riel.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="cmn:ligneDeTexte">
+               <xs:maxLength value="20"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="modele">
+            <xs:annotation>
+               <xs:documentation>Mod�le du mat�riel.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="cmn:ligneDeTexte">
+               <xs:maxLength value="26"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="anneeFabrication">
+            <xs:annotation>
+               <xs:documentation>Ann�e de fabrication du mat�riel.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="xs:nonNegativeInteger">
+               <xs:totalDigits value="4"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="nombreHeuresUtilisation">
+            <xs:annotation>
+               <xs:documentation>Nombre d'heure d'utilisation du mat�riel.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="xs:nonNegativeInteger">
+               <xs:totalDigits value="6"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="kilometrage">
+            <xs:annotation>
+               <xs:documentation>Kilom�trage du mat�riel.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="xs:nonNegativeInteger">
+               <xs:totalDigits value="6"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:complexType name="materiel">
+            <xs:annotation>
+               <xs:documentation>Repr�sente le materiel d'une demande de financement.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element minOccurs="0" name="codeMateriel" type="cmn:codeMateriel"/>
+               <xs:element minOccurs="0" name="codeEtatMateriel" type="cmn:codeEtatMateriel"/>
+               <xs:element minOccurs="0" name="prixDeVente" type="cmn:montant"/>
+               <xs:element minOccurs="0" name="prixTarif" type="cmn:montant"/>
+               <xs:element minOccurs="0" name="anneeFabrication" type="anneeFabrication"/>
+               <xs:element name="codeMarque" type="cmn:codeMarque"/>
+               <xs:element minOccurs="0" name="type" type="type"/>
+               <xs:element minOccurs="0" name="modele" type="modele"/>
+               <xs:element minOccurs="0" name="dateDeMiseEnCirculation" type="xs:date"/>
+               <xs:element minOccurs="0" name="nombreHeuresUtilisation" type="nombreHeuresUtilisation"/>
+               <xs:element minOccurs="0" name="kilometrage" type="kilometrage"/>
+            </xs:all>
+         </xs:complexType>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/prestation" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/prestation" xmlns:cmn="http://leasegroup.bnpparibas.com/ELO/v1/common">
+         <xs:annotation>
+            <xs:documentation>Prestations des demandes de financement.</xs:documentation>
+         </xs:annotation>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/common"/>
+         <xs:simpleType name="codeTypePrestation">
+            <xs:annotation>
+               <xs:documentation>Format des codes types de prestations.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="cmn:alphanumerique">
+               <xs:length value="2"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:complexType name="prestation">
+            <xs:annotation>
+               <xs:documentation>Repr�sente une prestation d'une demande de financement.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element name="codeTypePrestation" type="codeTypePrestation"/>
+               <xs:element name="montantPrestation" type="cmn:montant"/>
+            </xs:all>
+         </xs:complexType>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/financement" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/financement" xmlns:cmn="http://leasegroup.bnpparibas.com/ELO/v1/common" xmlns:mat="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/materiel" xmlns:pre="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/prestation">
+         <xs:annotation>
+            <xs:documentation>El�ments du financement d'une demande.</xs:documentation>
+         </xs:annotation>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/common"/>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/prestation"/>
+         <xs:simpleType name="periodicite">
+            <xs:annotation>
+               <xs:documentation>P�riodicit�s en nombre de mois.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="xs:positiveInteger">
+               <xs:totalDigits value="2"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:simpleType name="nombreDeLoyers">
+            <xs:annotation>
+               <xs:documentation>Nombre de loyers d'un palier de loyer.</xs:documentation>
+            </xs:annotation>
+            <xs:restriction base="xs:positiveInteger">
+               <xs:totalDigits value="3"/>
+            </xs:restriction>
+         </xs:simpleType>
+         <xs:complexType name="typeFinancement">
+            <xs:annotation>
+               <xs:documentation>Repr�sente un type de financement d'une demande.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element minOccurs="0" name="codeProduitFinancier" type="cmn:codeProduitFinancier"/>
+               <xs:element minOccurs="0" name="codeProduitCommercial" type="cmn:codeProduitCommercial"/>
+            </xs:all>
+         </xs:complexType>
+         <xs:complexType name="valeurResiduelle">
+            <xs:annotation>
+               <xs:documentation>Valeur r�siduelle d'un plan de financement.</xs:documentation>
+            </xs:annotation>
+            <xs:sequence>
+               <xs:element minOccurs="0" name="montant" type="cmn:montant"/>
+               <xs:element minOccurs="0" name="pourcentage" type="cmn:pourcentage"/>
+               <xs:element minOccurs="0" name="periodicite">
+                  <xs:simpleType>
+                     <xs:restriction base="xs:positiveInteger">
+                        <xs:totalDigits value="3"/>
+                     </xs:restriction>
+                  </xs:simpleType>
+               </xs:element>
+            </xs:sequence>
+         </xs:complexType>
+         <xs:complexType name="palierDeLoyer">
+            <xs:annotation>
+               <xs:documentation>Repr�sente un palier de loyers d'un plan de financement.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element name="nombreDeLoyers" type="nombreDeLoyers"/>
+               <xs:element name="periodicite" type="periodicite"/>
+               <xs:element minOccurs="0" name="montantLoyers" type="cmn:montant"/>
+               <xs:element minOccurs="0" name="pourcentageLoyers" type="cmn:pourcentage"/>
+               <xs:element minOccurs="0" name="poidsDuPalier" type="xs:positiveInteger"/>
+            </xs:all>
+         </xs:complexType>
+         <xs:complexType name="paliersDeLoyer">
+            <xs:annotation>
+               <xs:documentation>Repr�sente les paliers de loyers d'une demande.</xs:documentation>
+            </xs:annotation>
+            <xs:sequence>
+               <xs:element maxOccurs="3" name="palierDeLoyer" type="palierDeLoyer"/>
+            </xs:sequence>
+         </xs:complexType>
+         <xs:complexType name="prestations">
+            <xs:annotation>
+               <xs:documentation>Liste de prestations de la demande.</xs:documentation>
+            </xs:annotation>
+            <xs:sequence>
+               <xs:element maxOccurs="5" name="prestation" type="pre:prestation"/>
+            </xs:sequence>
+         </xs:complexType>
+         <xs:complexType name="presenceFranchiseDeLoyer">
+            <xs:annotation>
+               <xs:documentation>Indique la pr�sence d'une franchise de loyer.</xs:documentation>
+            </xs:annotation>
+         </xs:complexType>
+         <xs:complexType name="financement">
+            <xs:annotation>
+               <xs:documentation>Repr�sente les �l�ments du financement d'une demande.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element name="codeTypeCalcul" type="cmn:codeTypeCalcul"/>
+               <xs:element minOccurs="0" name="typeFinancement" type="typeFinancement"/>
+               <xs:element minOccurs="0" name="montantFinance" type="cmn:montant"/>
+               <xs:element minOccurs="0" name="codeTerme" type="cmn:codeTerme"/>
+               <xs:element minOccurs="0" name="valeurResiduelle" type="valeurResiduelle"/>
+               <xs:element name="codeBareme" type="cmn:codeBareme"/>
+               <xs:element minOccurs="0" name="presenceFranchiseDeLoyer" type="presenceFranchiseDeLoyer"/>
+               <xs:element name="paliersDeLoyer" type="paliersDeLoyer"/>
+               <xs:element minOccurs="0" name="prestations" type="prestations"/>
+            </xs:all>
+         </xs:complexType>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/demandeFinancement" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/demandeFinancement" xmlns:clt="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/client" xmlns:cmn="http://leasegroup.bnpparibas.com/ELO/v1/common" xmlns:fin="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/financement" xmlns:mat="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/materiel" xmlns:psc="http://leasegroup.bnpparibas.com/ELO/v1/prescripteur">
+         <xs:annotation>
+            <xs:documentation>Demande de financement.</xs:documentation>
+         </xs:annotation>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/common"/>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/prescripteur"/>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/client"/>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/materiel"/>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/request/financement"/>
+         <xs:complexType name="demandeFinancement">
+            <xs:annotation>
+               <xs:documentation>Repr�sente une demande de financement.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element name="prescripteur" type="psc:prescripteur"/>
+               <xs:element name="numeroDemandePartenaire" type="cmn:numeroDemandePatenaire"/>
+               <xs:element minOccurs="0" name="codeFamilleMateriel" type="cmn:codeFamilleMateriel"/>
+               <xs:element name="client" type="clt:client"/>
+               <xs:element name="materiel" type="mat:materiel"/>
+               <xs:element name="financement" type="fin:financement"/>
+               <xs:element minOccurs="0" name="commentairesPartenaire" type="cmn:commentairesPartenaire"/>
+            </xs:all>
+         </xs:complexType>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/response/rapportTransmission" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/transmettreDemandeFinancement/response/rapportTransmission" xmlns:cmn="http://leasegroup.bnpparibas.com/ELO/v1/common">
+         <xs:annotation>
+            <xs:documentation>Rapport de transmission d'une demande de financement.</xs:documentation>
+         </xs:annotation>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/common"/>
+         <xs:complexType name="rapportTransmission">
+            <xs:annotation>
+               <xs:documentation>Repr�sente un rapport de transmission d'une demande de financement.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element name="numeroDemandeProvisoire" type="cmn:numeroDemandeProvisoire"/>
+               <xs:element name="numeroDemandePartenaire" type="cmn:numeroDemandePatenaire"/>
+            </xs:all>
+         </xs:complexType>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/request/demandeSuivis" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/request/demandeSuivis" xmlns:cmn="http://leasegroup.bnpparibas.com/ELO/v1/common" xmlns:nid="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/numeroIdentifiantDemande" xmlns:psc="http://leasegroup.bnpparibas.com/ELO/v1/prescripteur">
+         <xs:annotation>
+            <xs:documentation>Demande de suivi de demandes de financement.</xs:documentation>
+         </xs:annotation>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/common"/>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/prescripteur"/>
+         <xs:complexType name="listeNumerosIdentifiantsDemandes">
+            <xs:annotation>
+               <xs:documentation>Liste de num�ros identifiants les demandes dont les suivis sont recherch�s.</xs:documentation>
+            </xs:annotation>
+            <xs:sequence>
+               <xs:element maxOccurs="50" name="numeroIdentifiantDemande" type="cmn:numeroIdentifiantDemande"/>
+            </xs:sequence>
+         </xs:complexType>
+         <xs:complexType name="demandeSuivis">
+            <xs:annotation>
+               <xs:documentation>Demande de suivis de num�ros identifiants les demandes dont les suivis sont recherch�s.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element name="prescripteur" type="psc:prescripteur"/>
+               <xs:element name="numerosDemande" type="listeNumerosIdentifiantsDemandes"/>
+            </xs:all>
+         </xs:complexType>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/etat" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/etat" xmlns:cmn="http://leasegroup.bnpparibas.com/ELO/v1/common">
+         <xs:annotation>
+            <xs:documentation>Etat d'une demande de financement transmise lors d'un suivi.</xs:documentation>
+         </xs:annotation>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/common"/>
+         <xs:complexType name="etat">
+            <xs:annotation>
+               <xs:documentation>Repr�sente l'�tat d'une demande de financement transmise lors d'un suivi.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element minOccurs="0" name="situationAu" type="xs:dateTime"/>
+               <xs:element name="codeStatutDemande" type="cmn:codeEtatDemande"/>
+               <xs:element name="libelleStatutDemande" type="cmn:ligneDeTexte"/>
+            </xs:all>
+         </xs:complexType>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/client" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/client" xmlns:cmn="http://leasegroup.bnpparibas.com/ELO/v1/common">
+         <xs:annotation>
+            <xs:documentation>Clients d'un suivi d'une demande de financement transmise.</xs:documentation>
+         </xs:annotation>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/common"/>
+         <xs:complexType name="client">
+            <xs:annotation>
+               <xs:documentation>Repr�sente le clients d'un suivi d'une demande de financement transmise.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element name="raisonSociale" type="cmn:raisonSociale"/>
+            </xs:all>
+         </xs:complexType>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/financement" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/financement" xmlns:cmn="http://leasegroup.bnpparibas.com/ELO/v1/common">
+         <xs:annotation>
+            <xs:documentation>El�ments financiers d'un suivi d'une demande transmise.</xs:documentation>
+         </xs:annotation>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/common"/>
+         <xs:complexType name="financement">
+            <xs:annotation>
+               <xs:documentation>Repr�sente les �l�ments financiers d'un suivi d'une demande transmise.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element name="montantFinance" type="cmn:montant"/>
+               <xs:element name="montantLoyerPrincial" type="cmn:montant"/>
+            </xs:all>
+         </xs:complexType>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/rapportSuivis" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/rapportSuivis" xmlns:clt="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/client" xmlns:cmn="http://leasegroup.bnpparibas.com/ELO/v1/common" xmlns:ett="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/etat" xmlns:fin="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/financement">
+         <xs:annotation>
+            <xs:documentation>Rapport de suivi de demandes de financement transmises.</xs:documentation>
+         </xs:annotation>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/common"/>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/etat"/>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/client"/>
+         <xs:import namespace="http://leasegroup.bnpparibas.com/ELO/v1/consulterSuivisDemandes/response/financement"/>
+         <xs:complexType name="suiviDemande">
+            <xs:annotation>
+               <xs:documentation>Suivi d'une demande de financement transmise retrouv�.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element minOccurs="0" name="numeroDemandeProvisoire" type="cmn:numeroDemandeProvisoire"/>
+               <xs:element minOccurs="0" name="numeroDemandeDefinitif" type="cmn:numeroDemandeDefinitif"/>
+               <xs:element name="etat" type="ett:etat"/>
+               <xs:element name="client" type="clt:client"/>
+               <xs:element name="financement" type="fin:financement"/>
+               <xs:element minOccurs="0" name="demandeInformationsComplementaires" type="cmn:commentairesELO"/>
+            </xs:all>
+         </xs:complexType>
+         <xs:complexType name="rapportSuivi">
+            <xs:annotation>
+               <xs:documentation>Rapport de suivi d'une demande d'une demande de financement transmise. Ce rapport peut concerner une demande retrouv� ou non.</xs:documentation>
+            </xs:annotation>
+            <xs:choice>
+               <xs:element name="suiviDemande" type="suiviDemande"/>
+               <xs:element name="demandeNonTrouve" type="cmn:numeroIdentifiantDemande"/>
+            </xs:choice>
+         </xs:complexType>
+         <xs:complexType name="rapportSuivis">
+            <xs:annotation>
+               <xs:documentation>Rapport de suivi d'une liste de de demandes de financement transmise. Ce rapport concerne les demandes retrouv�s et celle qui ne le sont pas.</xs:documentation>
+            </xs:annotation>
+            <xs:sequence>
+               <xs:element maxOccurs="unbounded" minOccurs="0" name="rapportSuivi" type="rapportSuivi"/>
+            </xs:sequence>
+         </xs:complexType>
+      </xs:schema>
+      <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://leasegroup.bnpparibas.com/ELO/v1/listeErreurs" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://leasegroup.bnpparibas.com/ELO/v1/listeErreurs">
+         <xs:annotation>
+            <xs:documentation>Erreurs d'appels aux web-services</xs:documentation>
+         </xs:annotation>
+         <xs:complexType name="erreur">
+            <xs:annotation>
+               <xs:documentation>Repr�sente une erreur ayant eu lieu lors d'un appel web-service.</xs:documentation>
+            </xs:annotation>
+            <xs:all>
+               <xs:element minOccurs="0" name="codeErreur" type="xs:string"/>
+               <xs:element minOccurs="0" name="message" type="xs:string"/>
+               <xs:element minOccurs="0" name="champs" type="xs:string"/>
+            </xs:all>
+         </xs:complexType>
+         <xs:complexType name="listeErreurs">
+            <xs:annotation>
+               <xs:documentation>Repr�sente une liste d'erreurs ayant eu lieu lors d'un appel web-service.</xs:documentation>
+            </xs:annotation>
+            <xs:sequence>
+               <xs:element maxOccurs="unbounded" name="erreur" type="erreur"/>
+            </xs:sequence>
+         </xs:complexType>
+      </xs:schema>
+   </wsdl:types>
+   <wsdl:message name="transmettreDemandeFinancementRequest">
+      <wsdl:part element="tns:transmettreDemandeFinancementRequest" name="transmettreDemandeFinancementRequest"/>
+   </wsdl:message>
+   <wsdl:message name="transmettreDemandeFinancementResponse">
+      <wsdl:part element="tns:transmettreDemandeFinancementResponse" name="transmettreDemandeFinancementResponse"/>
+   </wsdl:message>
+   <wsdl:message name="consulterSuivisDemandesResponse">
+      <wsdl:part element="tns:consulterSuivisDemandesResponse" name="consulterSuivisDemandesResponse"/>
+   </wsdl:message>
+   <wsdl:message name="consulterSuivisDemandesRequest">
+      <wsdl:part element="tns:consulterSuivisDemandesRequest" name="consulterSuivisDemandesRequest"/>
+   </wsdl:message>
+   <wsdl:portType name="demandeDeFinancementService">
+      <wsdl:operation name="consulterSuivisDemandes">
+         <wsdl:input message="tns:consulterSuivisDemandesRequest" name="consulterSuivisDemandesRequest"/>
+         <wsdl:output message="tns:consulterSuivisDemandesResponse" name="consulterSuivisDemandesResponse"/>
+      </wsdl:operation>
+      <wsdl:operation name="transmettreDemandeFinancement">
+         <wsdl:input message="tns:transmettreDemandeFinancementRequest" name="transmettreDemandeFinancementRequest"/>
+         <wsdl:output message="tns:transmettreDemandeFinancementResponse" name="transmettreDemandeFinancementResponse"/>
+      </wsdl:operation>
+   </wsdl:portType>
+   <wsdl:binding name="demandeDeFinancementServiceSoap11" type="tns:demandeDeFinancementService">
+      <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+      <wsdl:operation name="consulterSuivisDemandes">
+         <soap:operation soapAction=""/>
+         <wsdl:input name="consulterSuivisDemandesRequest">
+            <soap:body use="literal"/>
+         </wsdl:input>
+         <wsdl:output name="consulterSuivisDemandesResponse">
+            <soap:body use="literal"/>
+         </wsdl:output>
+      </wsdl:operation>
+      <wsdl:operation name="transmettreDemandeFinancement">
+         <soap:operation soapAction=""/>
+         <wsdl:input name="transmettreDemandeFinancementRequest">
+            <soap:body use="literal"/>
+         </wsdl:input>
+         <wsdl:output name="transmettreDemandeFinancementResponse">
+            <soap:body use="literal"/>
+         </wsdl:output>
+      </wsdl:operation>
+   </wsdl:binding>
+   <wsdl:service name="demandeDeFinancementServiceService">
+      <wsdl:port binding="tns:demandeDeFinancementServiceSoap11" name="demandeDeFinancementServiceSoap11">
+         <soap:address location="https://leaseoffers.leasingsolutions.bnpparibas.fr:4494/ExtranetEuroWS/services/demandeDeFinancementService "/>
+      </wsdl:port>
+   </wsdl:service>
+</wsdl:definitions>
