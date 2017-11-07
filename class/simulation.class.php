@@ -1910,12 +1910,12 @@ class TSimulationSuivi extends TObjetStd {
 	function _createDemandeBNP(&$PDOdb){
 		
 		if(BNP_TEST){
-			$soapWSDL = BNP_WSDL_URL;
+			$soapWSDL = BNP_WSDL_URL_TEST;
 			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
-			$soapWSDL = BNP_WSDL_URL;
+			$soapWSDL = BNP_WSDL_URL_PROD;
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-Prod.crt";
 		}
 
@@ -1965,12 +1965,12 @@ class TSimulationSuivi extends TObjetStd {
 	function _consulterDemandeBNP($num_accord_leaser){
 		
 		if(BNP_TEST){
-			$soapWSDL = BNP_WSDL_URL;
+			$soapWSDL = BNP_WSDL_URL_TEST;
 			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
-			$soapWSDL = BNP_WSDL_URL;
+			$soapWSDL = BNP_WSDL_URL_PROD;
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-Prod.crt";
 		}
 

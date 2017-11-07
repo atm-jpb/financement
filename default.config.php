@@ -71,7 +71,8 @@
 	
 	define('BNP_TEST',1);
 	define('BNP_PRESCRIPTEUR_ID','FRAFT00256');
-	define('BNP_WSDL_URL','https://leaseoffersu.leasingsolutions.bnpparibas.fr:4444/ExtranetEuroWS/services/demandeDeFinancementService/demandeDeFinancementWSDLv1.wsdl');
+	define('BNP_WSDL_URL_PROD','https://leaseoffers.leasingsolutions.bnpparibas.fr:4494/ExtranetEuroWS/services/demandeDeFinancementService/demandeDeFinancementWSDLv1.wsdl');
+	define('BNP_WSDL_URL_TEST','https://leaseoffersu.leasingsolutions.bnpparibas.fr:4444/ExtranetEuroWS/services/demandeDeFinancementService/demandeDeFinancementWSDLv1.wsdl');
 	
 	define('GE_TEST',0);
 	define('GE_WSDL_URL','https://minervademouat.fr/imanageB2B/ws/dealws.wsdl');
