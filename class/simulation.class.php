@@ -1976,7 +1976,7 @@ class TSimulationSuivi extends TObjetStd {
 
 		try{
 			$soap = new SoapClient($soapWSDL,array(
-									'local_cert'=>"/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt"
+									'local_cert'=>$local_cert
 									,'trace'=>1
 									,'stream_context' => stream_context_create(array(
 										    'ssl' => array(
