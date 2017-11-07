@@ -63,6 +63,17 @@ $fk_soc = $_REQUEST['fk_soc'];
 if(!empty($_REQUEST['mode_search']) && $_REQUEST['mode_search'] == 'search_matricule' && !empty($_REQUEST['search_matricule'])) {
 	// Recherche du client associé au matricule pour ensuite créer une nouvelle simulation
 	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset', array('serial_number' => $_REQUEST['search_matricule']), 'fk_soc');
+	
+	if(empty($TId)) { // Matricule non trouvé
+		setEventMessage('Matricule '.$_REQUEST['search_matricule'].' non trouvé', 'warnings');
+		header(header('Location: '.dol_buildpath('index.php',1))); exit;
+	}
+	
+	if(count($TId) > 1) { // Plusieurs matricules trouvés
+		setEventMessage('Plusieurs matricules trouvés pour la recherche '.$_REQUEST['search_matricule'].'. Merci de chercher par client', 'warnings');
+		header(header('Location: '.dol_buildpath('index.php',1))); exit;
+	}
+	
 	if(!empty($TId[0])) {
 		$fk_soc = $TId[0];
 		$action = 'new';
