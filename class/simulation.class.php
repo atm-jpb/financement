@@ -1910,12 +1910,13 @@ class TSimulationSuivi extends TObjetStd {
 	function _createDemandeBNP(&$PDOdb){
 		
 		if(BNP_TEST){
-			$soapWSDL = BNP_WSDL_URL_TEST;
+			//$soapWSDL = BNP_WSDL_URL_TEST;
 			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
-			$soapWSDL = BNP_WSDL_URL_PROD;
+			//$soapWSDL = BNP_WSDL_URL_PROD;
+			$soapWSDL = dol_buildpath('/financement/files/demandeFinancement.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-Prod.crt";
 		}
 
