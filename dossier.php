@@ -264,6 +264,7 @@
 				$fact->fk_facture_source = $origine->id;
 				$fact->facnumber = 'AV'.$origine->ref_supplier;
 				$fact->ref_supplier = 'AV'.$origine->ref_supplier;
+				$fact->entity = $origine->entity;
 				$fact->update($user);
 				foreach($fact->lines as $line) {
 					$line->pu_ht *= -1;
