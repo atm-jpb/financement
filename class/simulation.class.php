@@ -928,11 +928,11 @@ class TSimulation extends TObjetStd {
 				$accord = 'Demande de financement refusée';
 				
 				$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-				$mesg.= 'La demande de financement pour le client '.$this->societe->name.' d\'un montant de '.$this->montant_total_finance.' n’est pas acceptée.'."\n";
+				$mesg.= 'La demande de financement pour le client '.$this->societe->name.' d\'un montant de '.price($this->montant_total_finance).' € n\'est pas acceptée.'."\n";
 				$mesg.= 'Nous n\'avons que des refus pour le ou les motifs suivants :'."\n";
 				$mesg.= $retourLeaser."\n";
-				$mesg.= 'Nous allons réétudier la demande en interne afin de voir s’il est possible de trouver une solution favorable au financement de ton dossier.'."\n";
-				$mesg.= 'Si c\'est le cas, le coeff de la demande sera augmenté en fonction du risque que porte C’PRO.'."\n\n";
+				$mesg.= 'Nous allons réétudier la demande en interne afin de voir s\'il est possible de trouver une solution favorable au financement de ton dossier.'."\n";
+				$mesg.= 'Si c\'est le cas, le coeff de la demande sera augmenté en fonction du risque que porte C\'PRO.'."\n\n";
 
 				$mesg.= 'Pour cela merci de nous faire parvenir le dernier bilan du client.'."\n\n";
 
