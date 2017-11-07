@@ -843,7 +843,7 @@
    </wsdl:binding>
    <wsdl:service name="demandeDeFinancementServiceService">
       <wsdl:port binding="tns:demandeDeFinancementServiceSoap11" name="demandeDeFinancementServiceSoap11">
-         <soap:address location="https://leaseoffers.leasingsolutions.bnpparibas.fr:4494/ExtranetEuroWS/services/demandeDeFinancementService "/>
+         <soap:address location="https://leaseoffers.leasingsolutions.bnpparibas.fr:4494/ExtranetEuroWS/services/demandeDeFinancementService"/>
       </wsdl:port>
    </wsdl:service>
 </wsdl:definitions>
