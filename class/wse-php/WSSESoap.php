@@ -131,10 +131,10 @@ class WSSESoap
         $timestamp = $this->soapDoc->createElementNS(self::WSUNS, self::WSUPFX.':Timestamp');
         $security->insertBefore($timestamp, $security->firstChild);
         $currentTime = time();
-        $created = $this->soapDoc->createElementNS(self::WSUNS,  self::WSUPFX.':Created', gmdate("Y-m-d\TH:i:s", $currentTime).'Z');
+        $created = $this->soapDoc->createElementNS(self::WSUNS,  self::WSUPFX.':Created', date("Y-m-d\TH:i:s", $currentTime).'Z');
         $timestamp->appendChild($created);
         if (!is_null($secondsToExpire)) {
-            $expire = $this->soapDoc->createElementNS(self::WSUNS,  self::WSUPFX.':Expires', gmdate("Y-m-d\TH:i:s", $currentTime + $secondsToExpire).'Z');
+            $expire = $this->soapDoc->createElementNS(self::WSUNS,  self::WSUPFX.':Expires', date("Y-m-d\TH:i:s", $currentTime + $secondsToExpire).'Z');
             $timestamp->appendChild($expire);
         }
     }
@@ -159,7 +159,7 @@ class WSSESoap
         $objKey = new XMLSecurityKey(XMLSecurityKey::AES256_CBC);
         $nonce = $objKey->generateSessionKey();
         unset($objKey);
-        $createdate = gmdate("Y-m-d\TH:i:s").'Z';
+        $createdate = date("Y-m-d\TH:i:s").'Z';
 
         if ($password) {
             $passType = self::WSUNAME.'#PasswordText';
