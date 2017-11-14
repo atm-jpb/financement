@@ -914,39 +914,38 @@ class TSimulation extends TObjetStd {
 			$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
 			$mesg.= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n '.$this->reference.'.'."\n\n";
 			if(!empty($this->commentaire)) $mesg.= 'Commentaire : '."\n".$this->commentaire."\n\n";
-			$mesg.= 'Cordialement,'."\n\n";
-			$mesg.= 'La cellule financement'."\n\n";
 		} else {
-			if(in_array($this->entity, array(1,2,3))) {
-				$retourLeaser = '';
-				foreach($this->TSimulationSuivi as $suivi) {
-					if(!empty($suivi->commentaire)) {
-						$retourLeaser .= ' - '.$suivi->commentaire."\n";
-					}
+			$retourLeaser = '';
+			foreach($this->TSimulationSuivi as $suivi) {
+				if(!empty($suivi->commentaire)) {
+					$retourLeaser .= ' - '.$suivi->commentaire."\n";
 				}
-				
-				$accord = 'Demande de financement refusée';
-				
-				$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-				$mesg.= 'La demande de financement pour le client '.$this->societe->name.' d\'un montant de '.price($this->montant_total_finance).' € n\'est pas acceptée.'."\n";
-				$mesg.= 'Nous n\'avons que des refus pour le ou les motifs suivants :'."\n";
-				$mesg.= $retourLeaser."\n";
-				$mesg.= 'Nous allons réétudier la demande en interne afin de voir s\'il est possible de trouver une solution favorable au financement de ton dossier.'."\n";
+			}
+			
+			$accord = 'Demande de financement refusée';
+			$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
+			$mesg.= 'La demande de financement pour le client '.$this->societe->name.' d\'un montant de '.price($this->montant_total_finance).' € n\'est pas acceptée.'."\n";
+			$mesg.= 'Nous n\'avons que des refus pour le ou les motifs suivants :'."\n";
+			$mesg.= $retourLeaser."\n";
+			
+			// Message spécifique CPRO
+			if(in_array($this->entity, array(1,2,3))) {
+				$mesg.= 'Nous allons réétudier la demande en interne afin de voir s\'il est possible de trouver une solution favorable au financement du dossier.'."\n";
 				$mesg.= 'Si c\'est le cas, le coeff de la demande sera augmenté en fonction du risque que porte C\'PRO.'."\n\n";
 
 				$mesg.= 'Pour cela merci de nous faire parvenir le dernier bilan du client.'."\n\n";
-
-				$mesg.= 'Cordialement,'."\n\n";
-				$mesg.= 'La cellule financement'."\n\n";
-			} else {
-				$accord = 'Demande de financement refusée';
+			} else if(in_array($this->entity, array(5,6,7,9))) { // Idem OUEST sans la mention réétude
+				$mesg.= '';
+			} else { // Message générique
 				$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
 				$mesg.= 'Votre demande de financement via la simulation n '.$this->reference.' n\'a pas été acceptée.'."\n\n";
 				if(!empty($this->commentaire)) $mesg.= 'Commentaire : '."\n".$this->commentaire."\n\n";
-				$mesg.= 'Cordialement,'."\n\n";
-				$mesg.= 'La cellule financement'."\n\n";
 			}
 		}
+
+		$mesg.= 'Cordialement,'."\n\n";
+		$mesg.= 'La cellule financement'."\n\n";
+		
 		$subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance,2,',',' ').' Euros - '.$accord;
 		
 		if(empty($mailto))$mailto = $this->user->email;
