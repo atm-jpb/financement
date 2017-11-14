@@ -18,17 +18,24 @@ $user->getrights();
 
 $PDOdb = new TPDOdb();
 
-$sql = "SELECT s.reference, cli.nom as client, cli.siren, s.fk_type_contrat, s.montant_total_finance, s.echeance, s.duree, s.opt_periodicite, s.date_simul, CONCAT(CONCAT(u.firstname, ' '), u.lastname) as user, s.accord, s.type_financement, leaser.nom as leaser, s.numero_accord, (SELECT CONCAT(sc.civilite_externe, ' ', sc.prenom_externe, ' ', sc.nom_externe) FROM llx_fin_score sc WHERE sc.fk_soc = cli.rowid ORDER BY sc.date_score DESC LIMIT 1) as contact
-FROM llx_fin_simulation s
-LEFT JOIN llx_entity ent ON (ent.rowid = s.entity)
-LEFT JOIN llx_societe cli ON cli.rowid = s.fk_soc
-LEFT JOIN llx_societe leaser ON leaser.rowid = s.fk_leaser
-LEFT JOIN llx_user u ON u.rowid = s.fk_user_author
-WHERE 1 = 1 
-AND ent.rowid = 9";
+$sql = "SELECT s.reference, cli.nom as client, cli.siren, s.fk_type_contrat,
+				s.montant_total_finance, s.echeance, s.duree, s.opt_periodicite,
+				DATE_FORMAT(s.date_simul, '%d/%m/%y %H:%i'), CONCAT(CONCAT(u.firstname, ' '), u.lastname) as user,
+				s.accord, s.type_financement, leaser.nom as leaser, s.numero_accord,
+				(SELECT CONCAT(sc.civilite_externe, ' ', sc.prenom_externe, ' ', sc.nom_externe)
+					FROM llx_fin_score sc
+					WHERE sc.fk_soc = cli.rowid
+					ORDER BY sc.date_score
+					DESC LIMIT 1) as contact
+		FROM llx_fin_simulation s
+		LEFT JOIN llx_societe cli ON cli.rowid = s.fk_soc
+		LEFT JOIN llx_societe leaser ON leaser.rowid = s.fk_leaser
+		LEFT JOIN llx_user u ON u.rowid = s.fk_user_author
+		WHERE 1 = 1 
+		AND s.entity = 9";
 
 $PDOdb->Execute($sql);
-$TData = $PDOdb->Get_All();
+$TData = $PDOdb->Get_All(PDO::FETCH_ASSOC);
 
 $filename = DOL_DATA_ROOT . '/9/financement/extract_simul/quadra_simulations_'.date('Ymd').'.csv';
 $handle = fopen($filename, 'w');
