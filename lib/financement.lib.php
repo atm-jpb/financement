@@ -366,7 +366,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 					
 					// Comparaison au loyer leaser
 					// Si règle 2 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
-					if($montant_facture < $echeanceLeaser && !$intercalaireOK) {
+					if($montant_facture < $echeanceLeaser && !$intercalaireOK && $dossier->fk_statut_renta_neg_ano != '17') {
 						$renta_neg = true;
 					} else {
 						echo 'Dossier '.$dossier->financement->reference.', période '.($p+1).' respecte la règle 2, case "Visa renta facture < loyer leaser" cochée automatiquement.<br>';
