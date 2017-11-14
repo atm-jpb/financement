@@ -84,8 +84,8 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 			,'renta_previsionnelle'=>number_format($data->renta_previsionnelle,2, ',', ' ').' <br> '.number_format($data->marge_previsionnelle,2).' %'
 			,'renta_attendue'=>number_format($data->renta_attendue,2, ',', ' ').' <br> '.number_format($data->marge_attendue, 2).' %'
 			,'renta_reelle'=>number_format($data->renta_reelle,2, ',', ' ').' <br> '.number_format($data->marge_reelle,2).' %'
-			,'fk_statut_renta_neg_ano'	=> $data->fk_statut_renta_neg_ano
-			,'fk_statut_dossier'		=> $data->fk_statut_dossier
+			,'fk_statut_renta_neg_ano'	=> $dos->TStatutRentaNegAno[$data->fk_statut_renta_neg_ano]
+			,'fk_statut_dossier'		=> $dos->TStatutDossier[$data->fk_statut_dossier]
 		);
 	}
 	
