@@ -130,7 +130,7 @@ class WSSESoap
 
         $timestamp = $this->soapDoc->createElementNS(self::WSUNS, self::WSUPFX.':Timestamp');
         $security->insertBefore($timestamp, $security->firstChild);
-        $currentTime = time('-1 hour');
+        $currentTime = strtotime('-1 hour');
         $created = $this->soapDoc->createElementNS(self::WSUNS,  self::WSUPFX.':Created', date("Y-m-d\TH:i:s\Z", $currentTime));
         $timestamp->appendChild($created);
         if (!is_null($secondsToExpire)) {
