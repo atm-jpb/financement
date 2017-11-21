@@ -1,6 +1,7 @@
 <?php
 
 // Include Dolibarr environment
+$path=dirname(__FILE__).'/';
 define('INC_FROM_CRON_SCRIPT', true);
 require_once($path."../config.php");
 

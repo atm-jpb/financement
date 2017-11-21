@@ -1,8 +1,9 @@
 <?php
 
-	define('INC_FROM_CRON_SCRIPT',true);
-
-	require('../config.php');
+	$path=dirname(__FILE__).'/';
+	define('INC_FROM_CRON_SCRIPT', true);
+	require_once($path."../config.php");
+	
 	dol_include_once('financement/class/simulation.class.php');
 	dol_include_once('financement/class/affaire.class.php');
 	dol_include_once('financement/class/score.class.php');
