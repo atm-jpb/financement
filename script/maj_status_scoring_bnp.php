@@ -15,9 +15,9 @@
 	
 	$TSimulationSuivi = new TSimulationSuivi;
 	
-	$sql = "SELECT rowid, numero_accord_leaser 
+	$sql = "SELECT suivi.rowid, suivi.numero_accord_leaser 
 			FROM ".MAIN_DB_PREFIX."fin_simulation_suivi suivi
-			LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (suivi.fk_soc = s.rowid)
+			LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (suivi.fk_leaser = s.rowid)
 			LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields sext ON (s.rowid = sext.fk_object)
 			WHERE sext.edi_leaser = 'BNP'
 				AND suivi.numero_accord_leaser IS NOT NULL 

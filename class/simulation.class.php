@@ -2110,12 +2110,15 @@ class TSimulationSuivi extends TObjetStd {
 	}
 
 	function _getBNPDataTabForDemande(&$PDOdb){
+		global $db;
+		$entity = new DaoMulticompany($db);
+		$entity->fetch($this->entity);
 		
 		$TData = array();
 		
 		//Tableau Prescripteur
 		$TPrescripteur = array(
-			'prescripteurId' => BNP_PRESCRIPTEUR_ID //en attente de la communication par BNP
+			'prescripteurId' => $entity->array_options['options_code_prescripteur_bnp']
 		);
 
 		$TData['prescripteur'] = $TPrescripteur;
@@ -2299,12 +2302,15 @@ class TSimulationSuivi extends TObjetStd {
 	}
 
 	function _getBNPDataTabForConsultation($num_accord_leaser){
+		global $db;
+		$entity = new DaoMulticompany($db);
+		$entity->fetch($this->entity);
 		
 		$TData = array();
 		
 		//Tableau Prescripteur
 		$TPrescripteur = array(
-			'prescripteurId' => BNP_PRESCRIPTEUR_ID
+			'prescripteurId' => $entity->array_options['options_code_prescripteur_bnp']
 		);
 
 		$TData['prescripteur'] = $TPrescripteur;
