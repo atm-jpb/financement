@@ -37,8 +37,11 @@ $sql = "SELECT s.reference, cli.nom as client, cli.siren, s.fk_type_contrat,
 $PDOdb->Execute($sql);
 $TData = $PDOdb->Get_All(PDO::FETCH_ASSOC);
 
-$filename = DOL_DATA_ROOT . '/9/financement/extract_simul/quadra_simulations_'.date('Ymd').'.csv';
+$filename = DOL_DATA_ROOT . '/9/financement/extract_simul/quadra_simulations.csv';
 $handle = fopen($filename, 'w');
+
+$head = explode(";", "Ref Simulation;Client;Siren;Type Contrat;Montant Total;Echeance;Duree;Periodicite;Date Simulation;Utilisateur;Statut;Type Financement;Leaser;Numero Accord;Contact");
+fputcsv($handle, $head, ';');
 
 foreach ($TData as $data) {
 	fputcsv($handle, $data, ';');
