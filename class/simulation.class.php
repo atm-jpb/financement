@@ -2114,6 +2114,7 @@ class TSimulationSuivi extends TObjetStd {
 					$this->doActionAccepter($PDOdb,$simulation);
 					break;
 				case 'KO':
+					$this->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
 					$this->doActionRefuser($PDOdb,$simulation);
 					break;
 				default:
