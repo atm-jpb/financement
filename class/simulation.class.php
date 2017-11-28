@@ -1567,13 +1567,13 @@ class TSimulationSuivi extends TObjetStd {
 			&& empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON)
 			&& (empty($this->statut))){ // On n'envoie le scoring par EDI que la 1ère fois
 			$this->_sendDemandeAuto($PDOdb);
+		} else {
+			$this->statut_demande = 1;
+			$this->date_demande = time();
+			$this->statut = 'WAIT';
+			$this->date_selection = 0;
+			$this->save($PDOdb);
 		}
-		
-		$this->statut_demande = 1;
-		$this->date_demande = time();
-		$this->statut = 'WAIT';
-		$this->date_selection = 0;
-		$this->save($PDOdb);
 	}
 	
 	//Effectue l'action de passer au statut accepter la demande de financement leaser
@@ -1708,6 +1708,11 @@ class TSimulationSuivi extends TObjetStd {
 				return 1;
 				break;
 		}
+		
+		$this->statut_demande = 1;
+		$this->date_demande = time();
+		$this->date_selection = 0;
+		$this->save($PDOdb);
 	}
 	
 	function _createDemandeLIXXBAIL(&$PDOdb){
@@ -1718,7 +1723,8 @@ class TSimulationSuivi extends TObjetStd {
 		$res = $service->call();
 		
 		if (!$res && !empty($service->TError)) {
-			$this->errorLabel = $service->TError;
+			$this->commentaire = $service->TError;
+			$this->statut = 'ERR';
 		}
 	}
 	
@@ -1956,8 +1962,10 @@ class TSimulationSuivi extends TObjetStd {
 
 		}
 		catch(SoapFault $e) {
-			pre($e,true);
-			exit;
+			//pre($e,true);
+			$this->commentaire = $e;
+			$this->statut = 'ERR';
+			return 0;
 		}
 		//pre($soap->__getFunctions(),true);exit;
 //		echo "1<br>";
@@ -1975,10 +1983,11 @@ class TSimulationSuivi extends TObjetStd {
 			//pre($reponseDemandeFinancement,true);exit;
 		}
 		catch(SoapFault $reponseDemandeFinancement) {
-			pre($TtransmettreDemandeFinancementRequest,true);
+			/*pre($TtransmettreDemandeFinancementRequest,true);
 			echo '<pre>';
-			var_dump($reponseDemandeFinancement->detail);exit;
-			$this->errorLabel = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail);
+			var_dump($reponseDemandeFinancement->detail);exit;*/
+			$this->commentaire = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail);
+			$this->statut = 'ERR';
 			return 0;
 		}
 
@@ -2091,9 +2100,11 @@ class TSimulationSuivi extends TObjetStd {
 		$simulation = new TSimulation;
 		$simulation->load($PDOdb, $db, $this->fk_simulation);
 		
-		if($TreponseSuivisDemandes->rapportSuivi->suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
-			$this->statut = $TCodeStatut[$TreponseSuivisDemandes->rapportSuivi->suiviDemande->etat->codeStatutDemande];
-			$suiviDemande = $TreponseSuivisDemandes->rapportSuivi->suiviDemande;
+		$suiviDemande = $TreponseSuivisDemandes->rapportSuivi->suiviDemande;
+		
+		if($suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
+			$this->statut = $TCodeStatut[$$suiviDemande->etat->codeStatutDemande];
+			$this->commentaire = $suiviDemande->etat->libelleStatutDemande;
 			switch ($this->statut) {
 				case 'OK':
 					$this->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
@@ -2104,6 +2115,7 @@ class TSimulationSuivi extends TObjetStd {
 					$this->doActionRefuser($PDOdb,$simulation);
 					break;
 				default:
+					$this->save($PDOdb);
 					break;
 			}
 		}
