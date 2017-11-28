@@ -1691,6 +1691,8 @@ class TSimulationSuivi extends TObjetStd {
 			$this->leaser->fetch($this->fk_leaser);
 		}
 		
+		$this->statut = 'WAIT';
+		
 		switch ($this->leaser->array_options['options_edi_leaser']) {
 			//BNP PARIBAS LEASE GROUP
 			case 'BNP':
