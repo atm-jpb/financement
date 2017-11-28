@@ -2103,7 +2103,7 @@ class TSimulationSuivi extends TObjetStd {
 		$suiviDemande = $TreponseSuivisDemandes->rapportSuivi->suiviDemande;
 		
 		if($suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
-			$this->statut = $TCodeStatut[$$suiviDemande->etat->codeStatutDemande];
+			$this->statut = $TCodeStatut[$suiviDemande->etat->codeStatutDemande];
 			$this->commentaire = $suiviDemande->etat->libelleStatutDemande;
 			switch ($this->statut) {
 				case 'OK':
