@@ -498,7 +498,7 @@ class TImport extends TObjetStd {
 
 		// Mise à jour ou création
 		if($socid > 0) {
-			$res = $societe->update($socid, $user);
+			$res = $societe->update($socid, $user, 1, 1);
 			
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
