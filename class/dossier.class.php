@@ -1486,7 +1486,10 @@ class TFin_dossier extends TObjetStd {
 		if(($echeance==0 && $f->loyer_intercalaire == 0) || ($echeance == -1 && $f->loyer_intercalaire > 0)) {
 			/* Ajoute les frais de dossier uniquement sur la 1ère facture */
 			$res.= "Ajout des frais de dossier<br />";
-			$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
+			$fk_product = FIN_PRODUCT_FRAIS_DOSSIER;
+			// Pour export compta ABG
+			if($object->entity == 5) $fk_product = FIN_PRODUCT_ABG;
+			$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, $fk_product);
 		}
 		
 		/* Ajout la ligne de l'échéance	*/
@@ -1495,6 +1498,9 @@ class TFin_dossier extends TObjetStd {
 			if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
 			elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
 		}
+		
+		// Pour export compta ABG
+		if($object->entity == 5) $fk_product = FIN_PRODUCT_ABG;
 		
 		if($echeance == -1 && $f->loyer_intercalaire > 0) {
 			$result=$object->addline("Echéance de loyer intercalaire banque", $f->loyer_intercalaire, $tva, 0, 0, 1, $fk_product);
