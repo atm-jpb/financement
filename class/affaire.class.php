@@ -440,42 +440,43 @@ class TFin_affaire extends TObjetStd {
 	function getEnTeteByEntity(){
 		
 		$date = date('Ymd');
+		$entity = getEntity();
 		
-		switch (getEntity()) {
+		switch ($entity) {
 			case 1: //CPRO Impression
 				$name2 = "FP_207_MA01_CPRO_".$date;
-				$nomFichier = "CPROMA01IMMA".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 2: //CPRO Informatique
 				$name2 = "FP_207_MA01_CPRO_".$date;
-				$nomFichier = "CPROMA01IMMA".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 3: //CPRO Télécom
 				$name2 = "FP_207_MA01_CPRO_".$date;
-				$nomFichier = "CPROMA01IMMA".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 4: //Bougogne Copie
 				$name2 = "FP_207_MA01_CPRO_".$date;
-				$nomFichier = "CPROMA01IMMA".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 5: //ABG
 				$name2 = "FP_207_MA01_ABG_".$date;
-				$nomFichier = "ABGMA01IMMA".$date;
+				$nomFichier = "ABGMA0".$entity."IMMA".$date;
 				$refPartenaire = "ABGMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			
 			default:
 				$name2 = "FP_207_MA01_CPRO_".$date;
-				$nomFichier = "CPROMA01IMMA".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
