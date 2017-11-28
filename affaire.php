@@ -343,6 +343,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 			,'incident_paiement'=>$dossier->TIncidentPaiement[$dossier->incident_paiement]
 			,'duree'=>$dossier->duree
 			,'echeance'=>$dossier->echeance
+			,'modif_dossier'=>'<a href="dossier.php?id='.$dossier->getId().'&action=edit">'.img_edit().'</a>'
 		);
 	}
 	
