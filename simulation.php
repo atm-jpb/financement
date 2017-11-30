@@ -619,6 +619,7 @@ function getAllStatutSuivi() {
 				$TStatutSuiviFinal[$fk_simulation].= '<img title="Accord" src="'.dol_buildpath('/financement/img/super_ok.png',1).'" />';
 				$TStatutSuiviFinal[$fk_simulation].= '</a>';
 				$super_ok = true;
+				$nb_ok++;
 				break;
 			}
 			elseif($TData['statut'] == 'OK') $nb_ok++;
@@ -639,6 +640,10 @@ function getAllStatutSuivi() {
 				$TStatutSuiviFinal[$fk_simulation].= '</a>';
 			}
 		}
+
+		$TStatutSuiviFinal[$fk_simulation].= ' <span style="color: #00FF00;">' . $nb_ok . '</span>';
+		$TStatutSuiviFinal[$fk_simulation].= ' <span style="color: #FF0000;">' . $nb_refus . '</span>';
+		$TStatutSuiviFinal[$fk_simulation].= ' <span>' . ($nb_ok + $nb_refus + $nb_wait + $nb_err) . '</span>';
 
 	}
 	
