@@ -438,6 +438,8 @@ function _liste(&$ATMdb, &$simulation) {
 		$THide[] = 'suivi';
 	}
 	
+	$THide[] = 'type_financement';
+	
 	$TOrder = array('date_simul'=>'DESC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
 	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
