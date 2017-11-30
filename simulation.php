@@ -641,7 +641,7 @@ function getAllStatutSuivi() {
 			}
 		}
 
-		$TStatutSuiviFinal[$fk_simulation].= ' <span style="color: #00FF00;">' . $nb_ok . '</span>';
+		$TStatutSuiviFinal[$fk_simulation].= ' <span style="color: #00AA00;">' . $nb_ok . '</span>';
 		$TStatutSuiviFinal[$fk_simulation].= ' <span style="color: #FF0000;">' . $nb_refus . '</span>';
 		$TStatutSuiviFinal[$fk_simulation].= ' <span>' . ($nb_ok + $nb_refus + $nb_wait + $nb_err) . '</span>';
 
