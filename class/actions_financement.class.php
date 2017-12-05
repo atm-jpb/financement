@@ -35,6 +35,7 @@ class ActionsFinancement
 		 $res .= printSearchForm(DOL_URL_ROOT.'/compta/facture/list.php', DOL_URL_ROOT.'/compta/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Clients"), 'products', 'search_ref');
 		 $res .= printSearchForm(DOL_URL_ROOT.'/fourn/facture/list.php', DOL_URL_ROOT.'/fourn/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Leasers"), 'products', 'search_ref');
 		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation.php', DOL_URL_ROOT.'/custom/financement/simulation.php', img_object('','invoice').' N° étude / Accord Leaser', 'searchnumetude', 'searchnumetude');
+		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation.php', DOL_URL_ROOT.'/custom/financement/simulation.php', img_object('','resource').' Matricule', 'search_matricule', 'search_matricule');
 		 $hookmanager->resPrint.= $res;
 		 
 		 return 0;

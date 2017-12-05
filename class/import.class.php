@@ -426,18 +426,16 @@ class TImport extends TObjetStd {
 					$serial = trim($refBien);
 				
 					$asset=new TAsset;
-					if(!$asset->loadReference($ATMdb, $serial)) {
-						
+					if(!$asset->loadReference($ATMdb, $serial)) { // Non trouvé dans la base, on créé
+						$asset->entity = $dossier->entity;
+						$asset->serial_number = $serial;
 						$asset->fk_soc = $dossier->TLien[0]->affaire->fk_soc;
 						$asset->save($ATMdb);
 					}
-					else{
 					
-						//pre($dossier,true);
-						//Ajout du lien à l'affaire
-						if($dossier->TLien[0]->affaire){
-							$asset->add_link($dossier->TLien[0]->affaire->getId(),'affaire');
-						}
+					//Ajout du lien à l'affaire
+					if($dossier->TLien[0]->affaire){
+						$asset->add_link($dossier->TLien[0]->affaire->getId(),'affaire');
 					}
 
 					$asset->save($ATMdb);

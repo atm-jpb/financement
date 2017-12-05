@@ -58,8 +58,30 @@ if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive 
 	}
 }
 
-if(!empty($_REQUEST['fk_soc'])) {
-	$simulation->fk_soc = $_REQUEST['fk_soc'];
+$fk_soc = $_REQUEST['fk_soc'];
+
+if(!empty($_REQUEST['mode_search']) && $_REQUEST['mode_search'] == 'search_matricule' && !empty($_REQUEST['search_matricule'])) {
+	// Recherche du client associé au matricule pour ensuite créer une nouvelle simulation
+	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset', array('serial_number' => $_REQUEST['search_matricule']), 'fk_soc');
+	
+	if(empty($TId)) { // Matricule non trouvé
+		setEventMessage('Matricule '.$_REQUEST['search_matricule'].' non trouvé', 'warnings');
+		header(header('Location: '.dol_buildpath('index.php',1))); exit;
+	}
+	
+	if(count($TId) > 1) { // Plusieurs matricules trouvés
+		setEventMessage('Plusieurs matricules trouvés pour la recherche '.$_REQUEST['search_matricule'].'. Merci de chercher par client', 'warnings');
+		header(header('Location: '.dol_buildpath('index.php',1))); exit;
+	}
+	
+	if(!empty($TId[0])) {
+		$fk_soc = $TId[0];
+		$action = 'new';
+	}
+}
+
+if(!empty($fk_soc)) {
+	$simulation->fk_soc = $fk_soc;
 	$simulation->load_annexe($ATMdb, $db);
 
 	// Si l'utilisateur n'a pas le droit d'accès à tous les tiers
@@ -1073,7 +1095,22 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		$dossier->load($ATMdb2, $ATMdb->Get_field('IDDoss'));
 		$leaser = new Societe($db);
 		$leaser->fetch($dossier->financementLeaser->fk_soc);
-
+		
+		// Chargement des équipements
+		if(!empty($dossier->TLien[0])) {
+			dol_include_once('/asset/class/asset.class.php');
+			$dossier->TLien[0]->affaire->loadEquipement($ATMdb2);
+			$TSerial = array();
+			
+			foreach($dossier->TLien[0]->affaire->TAsset as $linkAsset) {
+				$serial = $linkAsset->asset->serial_number;
+				$TSerial[] = $serial;
+				if(count($TSerial) >= 3) {
+					$TSerial[] = '...';
+					break;
+				}
+			}
+		}
 		
 		if($dossier->nature_financement == 'INTERNE') {
 			$fin = &$dossier->financement;
@@ -1320,6 +1357,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			
 			,'incident_paiement'=>$incident_paiement
 			,'numcontrat_entity_leaser'=>$numcontrat_entity_leaser
+			
+			,'serial' => implode(', ', $TSerial)
 		);
 		if($row['type_contrat'] == 'Intégral'){
 			$row['type_contrat']='<a href="dossier_integrale.php?id='.$ATMdb->Get_field('IDDoss').'">Intégral</a>';
