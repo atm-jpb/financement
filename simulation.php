@@ -460,6 +460,8 @@ function _liste(&$ATMdb, &$simulation) {
 		$THide[] = 'suivi';
 	}
 	
+	$THide[] = 'type_financement';
+	
 	$TOrder = array('date_simul'=>'DESC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
 	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
@@ -641,6 +643,7 @@ function getAllStatutSuivi() {
 				$TStatutSuiviFinal[$fk_simulation].= '<img title="Accord" src="'.dol_buildpath('/financement/img/super_ok.png',1).'" />';
 				$TStatutSuiviFinal[$fk_simulation].= '</a>';
 				$super_ok = true;
+				$nb_ok++;
 				break;
 			}
 			elseif($TData['statut'] == 'OK') $nb_ok++;
@@ -661,6 +664,10 @@ function getAllStatutSuivi() {
 				$TStatutSuiviFinal[$fk_simulation].= '</a>';
 			}
 		}
+
+		$TStatutSuiviFinal[$fk_simulation].= ' <span style="color: #00AA00;">' . $nb_ok . '</span>';
+		$TStatutSuiviFinal[$fk_simulation].= ' <span style="color: #FF0000;">' . $nb_refus . '</span>';
+		$TStatutSuiviFinal[$fk_simulation].= ' <span>' . ($nb_ok + $nb_refus + $nb_wait + $nb_err) . '</span>';
 
 	}
 	

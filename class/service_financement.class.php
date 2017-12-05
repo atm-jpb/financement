@@ -252,8 +252,8 @@ class ServiceFinancement {
 	        $total_rounded = bcadd($total, '0.' . str_repeat('0', $precision) . '5', $precision);
 	        @list($integer, $fraction) = explode('.', $total_rounded);
 	        $format = $precision == 0
-	            ? "Y-m-d\TH:i:s\Z"
-	            : "Y-m-d\TH:i:s.".$fraction."\Z";
+	            ? "Y-m-d\TH:i:s"
+	            : "Y-m-d\TH:i:s.".$fraction."";
 	        return gmdate($format, $integer);
 	    }
 	

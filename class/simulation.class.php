@@ -914,16 +914,38 @@ class TSimulation extends TObjetStd {
 			$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
 			$mesg.= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n '.$this->reference.'.'."\n\n";
 			if(!empty($this->commentaire)) $mesg.= 'Commentaire : '."\n".$this->commentaire."\n\n";
-			$mesg.= 'Cordialement,'."\n\n";
-			$mesg.= 'La cellule financement'."\n\n";
 		} else {
+			$retourLeaser = '';
+			foreach($this->TSimulationSuivi as $suivi) {
+				if(!empty($suivi->commentaire)) {
+					$retourLeaser .= ' - '.$suivi->commentaire."\n";
+				}
+			}
+			
 			$accord = 'Demande de financement refusée';
 			$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-			$mesg.= 'Votre demande de financement via la simulation n '.$this->reference.' n\'a pas été acceptée.'."\n\n";
-			if(!empty($this->commentaire)) $mesg.= 'Commentaire : '."\n".$this->commentaire."\n\n";
-			$mesg.= 'Cordialement,'."\n\n";
-			$mesg.= 'La cellule financement'."\n\n";
+			$mesg.= 'La demande de financement pour le client '.$this->societe->name.' d\'un montant de '.price($this->montant_total_finance).' € n\'est pas acceptée.'."\n";
+			$mesg.= 'Nous n\'avons que des refus pour le ou les motifs suivants :'."\n";
+			$mesg.= $retourLeaser."\n";
+			
+			// Message spécifique CPRO
+			if(in_array($this->entity, array(1,2,3))) {
+				$mesg.= 'Nous allons réétudier la demande en interne afin de voir s\'il est possible de trouver une solution favorable au financement du dossier.'."\n";
+				$mesg.= 'Si c\'est le cas, le coeff de la demande sera augmenté en fonction du risque que porte C\'PRO.'."\n\n";
+
+				$mesg.= 'Pour cela merci de nous faire parvenir le dernier bilan du client.'."\n\n";
+			} else if(in_array($this->entity, array(5,6,7,9))) { // Idem OUEST sans la mention réétude
+				$mesg.= '';
+			} else { // Message générique
+				$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
+				$mesg.= 'Votre demande de financement via la simulation n '.$this->reference.' n\'a pas été acceptée.'."\n\n";
+				if(!empty($this->commentaire)) $mesg.= 'Commentaire : '."\n".$this->commentaire."\n\n";
+			}
 		}
+
+		$mesg.= 'Cordialement,'."\n\n";
+		$mesg.= 'La cellule financement'."\n\n";
+		
 		$subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance,2,',',' ').' Euros - '.$accord;
 		
 		if(empty($mailto))$mailto = $this->user->email;
@@ -1545,13 +1567,13 @@ class TSimulationSuivi extends TObjetStd {
 			&& empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON)
 			&& (empty($this->statut))){ // On n'envoie le scoring par EDI que la 1ère fois
 			$this->_sendDemandeAuto($PDOdb);
+		} else {
+			$this->statut_demande = 1;
+			$this->date_demande = time();
+			$this->statut = 'WAIT';
+			$this->date_selection = 0;
+			$this->save($PDOdb);
 		}
-		
-		$this->statut_demande = 1;
-		$this->date_demande = time();
-		$this->statut = 'WAIT';
-		$this->date_selection = 0;
-		$this->save($PDOdb);
 	}
 	
 	//Effectue l'action de passer au statut accepter la demande de financement leaser
@@ -1669,6 +1691,8 @@ class TSimulationSuivi extends TObjetStd {
 			$this->leaser->fetch($this->fk_leaser);
 		}
 		
+		$this->statut = 'WAIT';
+		
 		switch ($this->leaser->array_options['options_edi_leaser']) {
 			//BNP PARIBAS LEASE GROUP
 			case 'BNP':
@@ -1686,6 +1710,11 @@ class TSimulationSuivi extends TObjetStd {
 				return 1;
 				break;
 		}
+		
+		$this->statut_demande = 1;
+		$this->date_demande = time();
+		$this->date_selection = 0;
+		$this->save($PDOdb);
 	}
 	
 	function _createDemandeLIXXBAIL(&$PDOdb){
@@ -1696,7 +1725,8 @@ class TSimulationSuivi extends TObjetStd {
 		$res = $service->call();
 		
 		if (!$res && !empty($service->TError)) {
-			$this->errorLabel = $service->TError;
+			$this->commentaire = $service->TError;
+			$this->statut = 'ERR';
 		}
 	}
 	
@@ -1934,8 +1964,10 @@ class TSimulationSuivi extends TObjetStd {
 
 		}
 		catch(SoapFault $e) {
-			pre($e,true);
-			exit;
+			//pre($e,true);
+			$this->commentaire = $e;
+			$this->statut = 'ERR';
+			return 0;
 		}
 		//pre($soap->__getFunctions(),true);exit;
 //		echo "1<br>";
@@ -1953,10 +1985,11 @@ class TSimulationSuivi extends TObjetStd {
 			//pre($reponseDemandeFinancement,true);exit;
 		}
 		catch(SoapFault $reponseDemandeFinancement) {
-			pre($TtransmettreDemandeFinancementRequest,true);
+			/*pre($TtransmettreDemandeFinancementRequest,true);
 			echo '<pre>';
-			var_dump($reponseDemandeFinancement->detail);exit;
-			$this->errorLabel = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail);
+			var_dump($reponseDemandeFinancement->detail);exit;*/
+			$this->commentaire = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail);
+			$this->statut = 'ERR';
 			return 0;
 		}
 
@@ -2069,9 +2102,11 @@ class TSimulationSuivi extends TObjetStd {
 		$simulation = new TSimulation;
 		$simulation->load($PDOdb, $db, $this->fk_simulation);
 		
-		if($TreponseSuivisDemandes->rapportSuivi->suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
-			$this->statut = $TCodeStatut[$TreponseSuivisDemandes->rapportSuivi->suiviDemande->etat->codeStatutDemande];
-			$suiviDemande = $TreponseSuivisDemandes->rapportSuivi->suiviDemande;
+		$suiviDemande = $TreponseSuivisDemandes->rapportSuivi->suiviDemande;
+		
+		if($suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
+			$this->statut = $TCodeStatut[$suiviDemande->etat->codeStatutDemande];
+			$this->commentaire = $suiviDemande->etat->libelleStatutDemande;
 			switch ($this->statut) {
 				case 'OK':
 					$this->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
@@ -2079,21 +2114,26 @@ class TSimulationSuivi extends TObjetStd {
 					$this->doActionAccepter($PDOdb,$simulation);
 					break;
 				case 'KO':
+					$this->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
 					$this->doActionRefuser($PDOdb,$simulation);
 					break;
 				default:
+					$this->save($PDOdb);
 					break;
 			}
 		}
 	}
 
 	function _getBNPDataTabForDemande(&$PDOdb){
+		global $db;
+		$entity = new DaoMulticompany($db);
+		$entity->fetch($this->entity);
 		
 		$TData = array();
 		
 		//Tableau Prescripteur
 		$TPrescripteur = array(
-			'prescripteurId' => BNP_PRESCRIPTEUR_ID //en attente de la communication par BNP
+			'prescripteurId' => $entity->array_options['options_code_prescripteur_bnp']
 		);
 
 		$TData['prescripteur'] = $TPrescripteur;
@@ -2277,12 +2317,15 @@ class TSimulationSuivi extends TObjetStd {
 	}
 
 	function _getBNPDataTabForConsultation($num_accord_leaser){
+		global $db;
+		$entity = new DaoMulticompany($db);
+		$entity->fetch($this->entity);
 		
 		$TData = array();
 		
 		//Tableau Prescripteur
 		$TPrescripteur = array(
-			'prescripteurId' => BNP_PRESCRIPTEUR_ID
+			'prescripteurId' => $entity->array_options['options_code_prescripteur_bnp']
 		);
 
 		$TData['prescripteur'] = $TPrescripteur;
