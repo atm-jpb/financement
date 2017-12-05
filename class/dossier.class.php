@@ -948,6 +948,7 @@ class TFin_dossier extends TObjetStd {
 		$LRD = $this->financement->echeance * $duree_restante_client + $this->financement->reste;
 		
 		// Capé LRD sauf si ACECOM ou LOCAM
+		dol_include_once('/categorie/class/categorie.class.php');
 		$this->financementLeaser->cape_lrd = true;
 		$cat = new Categorie($db);
 		$cat->fetch(0, 'Acecom');
