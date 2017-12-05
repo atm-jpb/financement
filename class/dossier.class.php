@@ -719,7 +719,7 @@ class TFin_dossier extends TObjetStd {
 		
 		$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, $type_penalite, $iPeriode) / 100); // Même avec un $this->nature_financement == 'INTERNE' on passe la valeur EXTERNE (l'ancien code renvoyé la même chose)
 		
-		if ($solde > $LRD_Leaser && $this->financementLeaser->fk_soc != 18305) return $LRD_Leaser; // Capé LRD sauf si ACECOM
+		if ($solde > $LRD_Leaser && $this->financementLeaser->cape_lrd) return $LRD_Leaser; // Capé LRD sauf si règle spécifique
 		//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 		else if($solde < $this->financementLeaser->reste){
 			return $this->financementLeaser->reste;
@@ -762,7 +762,7 @@ class TFin_dossier extends TObjetStd {
 				// Add Pen Leaser + CPro
 				$date_deb_periode = $this->getDateDebutPeriode($iPeriode-1);
 				$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode) / 100) * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
-				if ($solde > $LRD_Leaser && $this->financementLeaser->fk_soc != 18305) return $LRD_Leaser; // Capé LRD sauf si ACECOM
+				if ($solde > $LRD_Leaser && $this->financementLeaser->cape_lrd) return $LRD_Leaser; // Capé LRD sauf si règle spécifique
 				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 				else if($solde < $this->financementLeaser->reste){
 					return $this->financementLeaser->reste;
@@ -771,7 +771,7 @@ class TFin_dossier extends TObjetStd {
 			}
 			
 			// Capé LRD
-			if($solde > $LRD_Leaser && $capeLRD) return $LRD_Leaser;
+			if($solde > $LRD_Leaser && $capeLRD && $this->financementLeaser->cape_lrd) return $LRD_Leaser;
 		}
 		else // INTERNE
 		{
@@ -801,7 +801,7 @@ class TFin_dossier extends TObjetStd {
 					$solde = $LRD; // LRD client
 				}
 				
-				if ($solde > $LRD && $this->financementLeaser->fk_soc != 18305) $solde = $LRD; // Capé LRD sauf si ACECOM
+				if ($solde > $LRD && $this->financementLeaser->cape_lrd) return $LRD; // Capé LRD sauf si règle spécifique
 				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 				else if($solde < $this->financement->reste){
 					$solde = $this->financement->reste;
@@ -809,7 +809,7 @@ class TFin_dossier extends TObjetStd {
 			}
 			
 			// Capé LRD
-			if($solde > $LRD && $capeLRD) return $LRD;
+			if($solde > $LRD && $capeLRD && $this->financementLeaser->cape_lrd) return $LRD;
 		}
 
 		return $solde;
@@ -927,7 +927,7 @@ class TFin_dossier extends TObjetStd {
 	/*****************************************************************************************/
 	function getSolde(&$PDOdb, $type='SRBANK', $iPeriode=0)
 	{
-		global $conf;
+		global $conf,$db;
 		
 		$duree_restante_leaser = ($iPeriode == 0) ? $this->financementLeaser->duree_restante : $this->financementLeaser->duree - $iPeriode;
 		
@@ -946,6 +946,17 @@ class TFin_dossier extends TObjetStd {
 		
 		$CRD = $this->financement->valeur_actuelle($duree_restante_client);
 		$LRD = $this->financement->echeance * $duree_restante_client + $this->financement->reste;
+		
+		// Capé LRD sauf si ACECOM ou LOCAM
+		$this->financementLeaser->cape_lrd = true;
+		$cat = new Categorie($db);
+		$cat->fetch(0, 'Acecom');
+		$is_acecom = $cat->containsObject('supplier', $this->financementLeaser->fk_soc);
+		if($is_acecom) $this->financementLeaser->cape_lrd = false;
+		$cat = new Categorie($db);
+		$cat->fetch(0, 'Locam');
+		$is_locam = $cat->containsObject('supplier', $this->financementLeaser->fk_soc);
+		if($is_locam) $this->financementLeaser->cape_lrd = false;
 		
 		// Chargement des règle de solde (dictionnaire)
 		$this->load_c_conf_solde();
