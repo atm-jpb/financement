@@ -17,7 +17,16 @@ while($dataline = fgetcsv($fileHandler, 4096, FIN_IMPORT_FIELD_DELIMITER, FIN_IM
 }
 fclose($fileHandler);
 
+// Nettoyage des doublons Cristal
+/*$file = dol_buildpath('/financement/script/fix-clients-doublons/').'clients_code_cristal';
+$fileHandler = fopen($file, 'r');
 
+while($dataline = fgetcsv($fileHandler, 4096, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
+	$codeArtis = $dataline[7];
+	$codeCristal = $dataline[10];
+	fusion_doublon_client($PDOdb, $codeArtis, $codeCristal);
+}
+fclose($fileHandler);*/
 
 
 function fusion_doublon_client(&$PDOdb, $codeClient, $codeDoublon) {
