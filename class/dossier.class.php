@@ -762,7 +762,7 @@ class TFin_dossier extends TObjetStd {
 				// Add Pen Leaser + CPro
 				$date_deb_periode = $this->getDateDebutPeriode($iPeriode-1);
 				$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode) / 100) * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
-				if ($solde > $LRD_Leaser && $this->financementLeaser->cape_lrd) return $LRD_Leaser; // Capé LRD sauf si règle spécifique
+				if ($solde > $LRD_Leaser) return $LRD_Leaser; // Capé LRD dans tous les cas car solde vendeur
 				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 				else if($solde < $this->financementLeaser->reste){
 					return $this->financementLeaser->reste;
@@ -771,7 +771,7 @@ class TFin_dossier extends TObjetStd {
 			}
 			
 			// Capé LRD
-			if($solde > $LRD_Leaser && $capeLRD && $this->financementLeaser->cape_lrd) return $LRD_Leaser;
+			if($solde > $LRD_Leaser && $capeLRD) return $LRD_Leaser;
 		}
 		else // INTERNE
 		{
@@ -801,7 +801,7 @@ class TFin_dossier extends TObjetStd {
 					$solde = $LRD; // LRD client
 				}
 				
-				if ($solde > $LRD && $this->financementLeaser->cape_lrd) return $LRD; // Capé LRD sauf si règle spécifique
+				if ($solde > $LRD) return $LRD; // Capé LRD dans tous les cas car solde vendeur
 				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 				else if($solde < $this->financement->reste){
 					$solde = $this->financement->reste;
@@ -809,7 +809,7 @@ class TFin_dossier extends TObjetStd {
 			}
 			
 			// Capé LRD
-			if($solde > $LRD && $capeLRD && $this->financementLeaser->cape_lrd) return $LRD;
+			if($solde > $LRD && $capeLRD) return $LRD;
 		}
 
 		return $solde;
@@ -883,7 +883,7 @@ class TFin_dossier extends TObjetStd {
 					$solde = $LRD;
 				}
 				
-				if ($solde > $LRD && $this->financementLeaser->fk_soc != 18305) $solde = $LRD; // Capé LRD sauf si ACECOM
+				if ($solde > $LRD) $solde = $LRD; // Capé LRD sauf si ACECOM
 				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 				else if($solde < $this->financement->reste){
 					$solde = $this->financement->reste;

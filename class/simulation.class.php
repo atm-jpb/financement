@@ -2219,6 +2219,7 @@ class TSimulationSuivi extends TObjetStd {
 			,'KYOCERA' => '347'
 			,'LEXMARK' => '341'
 			,'HEWLETT-PACKARD' => '321'
+			,'HP' => '321'
 			,'OCE' => '336'
 			,'OKI' => '930'
 			,'SAMSUNG' => 'F80'
@@ -2231,7 +2232,7 @@ class TSimulationSuivi extends TObjetStd {
 			,'prixDeVente' => $this->simulation->montant
 			//,'prixTarif' => ''
 			//,'anneeFabrication' => ''
-			,'codeMarque' => ($TCodeMarque[$this->simulation->marque_materiel]) ? $TCodeMarque[$this->simulation->marque_materiel] : '335' //909 = Divers informatique TODO
+			,'codeMarque' => ($TCodeMarque[$this->simulation->marque_materiel]) ? $TCodeMarque[$this->simulation->marque_materiel] : '910' //909 = Divers informatique, 910 = Divers bureautique
 			//,'type' => ''
 			//,'modele' => ''
 			//,'dateDeMiseEnCirculation' => ''

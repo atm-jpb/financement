@@ -420,16 +420,22 @@ class TFin_affaire extends TObjetStd {
 				return "M000355961";
 				break;
 			case 2: //CPRO Informatique
-				return "M000355961";
+				return "M000317069";
 				break;
 			case 3: //CPRO Télécom
-				return "M000355961";
+				return "M001155746";
 				break;
 			case 4: //Bougogne Copie
 				return "M000355961";
 				break;
 			case 5: //ABG
 				return "M000290985";
+				break;
+			case 7: //Copy Concept
+				return "M000252940";
+				break;
+			case 9: //Quadra
+				return "M000355473";
 				break;
 			default:
 				return "M000355961";
