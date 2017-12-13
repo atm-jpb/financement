@@ -126,8 +126,10 @@ if(!empty($fk_soc)) {
 
 }
 
-if($action == 'list') $TDossierLink = _getListIDDossierByNumAccord();
-$TStatutSuivi = getAllStatutSuivi(); // Défini ici pour optimiser l'affichage des simulations
+if($action == 'list') {
+	$TDossierLink = _getListIDDossierByNumAccord();
+	$TStatutSuivi = getAllStatutSuivi(); // Défini ici pour optimiser l'affichage des simulations
+}
 
 if(!empty($action)) {
 	switch($action) {
@@ -611,8 +613,8 @@ function getAllStatutSuivi() {
 	$ATMdb = new TPDOdb;
 
 	$sql = "SELECT fk_simulation, statut, date_selection 
-			FROM ".MAIN_DB_PREFIX."fin_simulation_suivi";
-			//"WHERE fk_simulation = ".$idSimulation;
+			FROM ".MAIN_DB_PREFIX."fin_simulation_suivi
+			WHERE statut != ''";
 	$ATMdb->Execute($sql);
 	
 	$TStatutSuivi = array();
