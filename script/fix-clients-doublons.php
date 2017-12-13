@@ -65,6 +65,11 @@ function fusion_doublon_client(&$PDOdb, $codeClient, $codeDoublon) {
 		$sql.= 'SET fk_soc = '.$TCli[0].' ';
 		$sql.= 'WHERE fk_soc = '.$TDbl[0].' ';
 		
+		// Fusion des commerciaux
+		$sql = 'UPDATE '.MAIN_DB_PREFIX.'societe_commerciaux ';
+		$sql.= 'SET fk_soc = '.$TCli[0].' ';
+		$sql.= 'WHERE fk_soc = '.$TDbl[0].' ';
+		
 		$PDOdb->Execute($sql);
 		
 		$dbl = new Societe($db);
