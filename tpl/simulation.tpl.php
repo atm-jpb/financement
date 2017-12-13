@@ -199,7 +199,7 @@
 		</tr>
 		<tr>
 			<td>VR</td>
-			<td>[simulation.vr; strconv=no; frm=0 000,00] &euro;</td>
+			<td>[simulation.pct_vr; strconv=no; frm=0 000,00] % ([simulation.vr; strconv=no; frm=0 000,00] &euro;)</td>
 		</tr>
 		[onshow;block=begin;when [view.mode]=='edit']
 		<tr>
