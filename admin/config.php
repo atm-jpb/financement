@@ -431,7 +431,7 @@ print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("FINANCEMENT_SHOW_RECETTE_BUTTON").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="600">';
-print ajax_constantonoff('FINANCEMENT_SHOW_RECETTE_BUTTON');
+print ajax_constantonoff('FINANCEMENT_SHOW_RECETTE_BUTTON',array(),0);
 print '</td></tr>';
 
 $var=!$var;
@@ -439,7 +439,7 @@ print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("FINANCEMENT_WEBSERVICE_ACTIVATE").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="600">';
-print ajax_constantonoff('FINANCEMENT_WEBSERVICE_ACTIVATE');
+print ajax_constantonoff('FINANCEMENT_WEBSERVICE_ACTIVATE',array(),0);
 print '</td></tr>';
 
 
@@ -448,7 +448,7 @@ print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="600">';
-print ajax_constantonoff('FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD');
+print ajax_constantonoff('FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD',array(),0);
 print '</td></tr>';
 
 $var=!$var;
