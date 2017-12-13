@@ -376,6 +376,8 @@ print "</tr>\n";
 
 print '</table><br />';
 
+print '</form>';
+
 print_titre($langs->trans("ScriptsManuallyLaunchable"));
 
 print '<table class="noborder" width="100%">';
