@@ -97,7 +97,7 @@ class TSimulation extends TObjetStd {
 		$this->opt_terme = '1';
 		$this->opt_calage = '';
 		$this->date_demarrage = '';
-		$this->vr = 1;
+		$this->vr = 0;
 		$this->mt_vr = 0.15;
 		$this->pct_vr = 0;
 		$this->coeff = 0;
