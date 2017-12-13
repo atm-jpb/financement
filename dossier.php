@@ -470,6 +470,7 @@ function _liste(&$PDOdb, &$dossier) {
 			,'refDosLea'=>'Contrat Leaser'
 			,'duree'=>'Durée'
 			,'echeance'=>'Echéance'
+			,'dureeLeaser'=>'Durée leaser'
 			,'montantLeaser'=>'Montant leaser'
 			,'echeanceLeaser'=>'Echéance leaser'
 			,'entity_id'=>'Partenaire'
