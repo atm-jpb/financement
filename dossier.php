@@ -395,6 +395,7 @@ function _liste(&$PDOdb, &$dossier) {
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.duree ELSE fl.duree END as 'duree', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.montant ELSE fl.montant END as 'Montant', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.echeance ELSE fl.echeance END as 'echeance', ";
+	$sql.="fl.duree as 'dureeLeaser', ";
 	$sql.="fl.montant as 'montantLeaser', ";
 	$sql.="fl.echeance as 'echeanceLeaser', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END as 'Prochaine', ";
@@ -663,7 +664,7 @@ function _getExportXML($sql){
 	$file = fopen($filepath,'w');
 
 	//Ajout première ligne libelle
-	$TLabel = array('Contrat','Partenaire','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant Client','Echeance Client','Montant Leaser','Echeance Leaser','Prochaine','Debut','Fin','Facture Materiel');
+	$TLabel = array('Contrat','Partenaire','Contrat Leaser','Affaire','Nature','Client','Leaser','Duree','Montant Client','Echeance Client','Duree Leaser', 'Montant Leaser','Echeance Leaser','Prochaine','Debut','Fin','Facture Materiel');
 	fputcsv($file, $TLabel,';','"');
 	
 	foreach($TTRes as $TRes){
