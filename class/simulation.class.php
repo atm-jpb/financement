@@ -99,7 +99,7 @@ class TSimulation extends TObjetStd {
 		$this->date_demarrage = '';
 		$this->vr = 1;
 		$this->mt_vr = 0.15;
-		$this->pct_vr = 0.15;
+		$this->pct_vr = 0;
 		$this->coeff = 0;
 		$this->fk_user_author = $user->id;
 		$this->user = $user;
