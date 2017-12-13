@@ -126,7 +126,7 @@ if(!empty($fk_soc)) {
 
 }
 
-if($action == 'list') {
+if(empty($action) || $action == 'list') {
 	$TDossierLink = _getListIDDossierByNumAccord();
 	$TStatutSuivi = getAllStatutSuivi(); // Défini ici pour optimiser l'affichage des simulations
 }
