@@ -99,7 +99,7 @@ class TSimulation extends TObjetStd {
 		$this->date_demarrage = '';
 		$this->vr = 1;
 		$this->mt_vr = 0.15;
-		$this->pcr_vr = 0.15;
+		$this->pct_vr = 0.15;
 		$this->coeff = 0;
 		$this->fk_user_author = $user->id;
 		$this->user = $user;
@@ -1374,7 +1374,11 @@ class TSimulation extends TObjetStd {
 		if($this->fk_type_contrat == 'GRANDCOMPTE') unset($options['opt_mode_reglement']);
 		
 		$calcul = $this->calcul_financement($ATMdb, FIN_LEASER_DEFAULT, $options); // Calcul du financement
-			
+		
+		// 2017.12.13
+		// Calcul VR
+		$this->vr = round($this->montant_total_finance * $this->pct_vr / 100, 2);
+		
 		if(!$calcul) { // Si calcul non correct
 			$this->montant_total_finance = 0;
 			$mesg = $langs->trans($this->error);

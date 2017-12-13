@@ -839,7 +839,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'montant_rachete_concurrence'=>$form->texte('', 'montant_rachete_concurrence', $simulation->montant_rachete_concurrence, 10)
 		,'duree'=>$form->combo('', 'duree', $TDuree, $simulation->duree)
 		,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10)
-		,'vr'=>$form->texte('', 'vr', $simulation->vr, 10, 0, TFinancementTools::user_courant_est_admin_financement() ? '' : 'readonly')
+		,'vr'=>price($simulation->vr)
 		,'coeff'=>$form->texteRO('', 'coeff', $coeff, 6)
 		,'coeff_final'=>$can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 6) : $simulation->coeff_final
 		,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10)
@@ -871,7 +871,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'type_financement'=>$can_preco ? $form->combo('', 'type_financement', array_merge(array(''=> ''), $affaire->TTypeFinancement), $simulation->type_financement) : $simulation->type_financement
 		,'leaser'=>($mode=='edit' && $can_preco) ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : (($simulation->fk_leaser > 0) ? $simulation->leaser->getNomUrl(1) : '')
 		
-		,'pct_vr'=>$form->texte('', 'pct_vr', vatrate($simulation->pct_vr), 10)
+		//,'pct_vr'=>$form->texte('', 'pct_vr', vatrate($simulation->pct_vr), 10)
+		,'pct_vr'=>$form->texte('', 'pct_vr', $simulation->pct_vr, 5, 0, TFinancementTools::user_courant_est_admin_financement() ? '' : 'readonly')
 		,'mt_vr'=>$form->texte('', 'mt_vr', price2num($simulation->mt_vr), 10)
 		,'info_vr'=>$html->textwithpicto('', $langs->transnoentities('simulation_info_vr'), 1, 'info', '', 0, 3)
 		,'fk_categorie_bien'=>$mode == 'edit' ? $html->selectarray('fk_categorie_bien', TFinancementTools::getCategorieId(), $simulation->fk_categorie_bien) : TFinancementTools::getCategorieLabel($simulation->fk_categorie_bien)
