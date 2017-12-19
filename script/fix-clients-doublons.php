@@ -11,22 +11,26 @@ $file = dol_buildpath('/financement/script/fix-clients-doublons/').'clients_code
 $fileHandler = fopen($file, 'r');
 
 while($dataline = fgetcsv($fileHandler, 4096, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
-	$codeArtis = $dataline[7];
-	$codeWb = $dataline[10];
-	fusion_doublon_client($PDOdb, $codeArtis, $codeWb);
+	$codeArtis = trim($dataline[7]);
+	$codeWb = trim($dataline[10]);
+	if(strlen($codeArtis) == 6 && strlen($codeWb) == 6) {
+		fusion_doublon_client($PDOdb, $codeArtis, $codeWb);
+	}
 }
 fclose($fileHandler);
 
 // Nettoyage des doublons Cristal
-/*$file = dol_buildpath('/financement/script/fix-clients-doublons/').'clients_code_cristal';
+$file = dol_buildpath('/financement/script/fix-clients-doublons/').'clients_code_cristal';
 $fileHandler = fopen($file, 'r');
 
 while($dataline = fgetcsv($fileHandler, 4096, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
-	$codeArtis = $dataline[7];
-	$codeCristal = $dataline[10];
-	fusion_doublon_client($PDOdb, $codeArtis, $codeCristal);
+	$codeArtis = trim($dataline[7]);
+	$codeCristal = trim($dataline[10]);
+	if(strlen($codeArtis) == 6 && strlen($codeCristal) == 6) {
+		fusion_doublon_client($PDOdb, $codeArtis, $codeCristal);
+	}
 }
-fclose($fileHandler);*/
+fclose($fileHandler);
 
 
 function fusion_doublon_client(&$PDOdb, $codeClient, $codeDoublon) {
