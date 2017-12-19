@@ -126,7 +126,7 @@ if(!empty($fk_soc)) {
 
 }
 
-if($action == 'list') {
+if(empty($action) || $action == 'list') {
 	$TDossierLink = _getListIDDossierByNumAccord();
 	$TStatutSuivi = getAllStatutSuivi(); // Défini ici pour optimiser l'affichage des simulations
 }
@@ -521,7 +521,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'login'=>array('recherche'=>true, 'table'=>'u')
 			,'entity_id'=>array( 'recherche'=>$TEntityName, 'table'=>'e', 'field'=>'rowid')
 			,'fk_type_contrat'=>$affaire->TContrat
-			,'type_financement'=>$affaire->TTypeFinancementShort
+			//,'type_financement'=>$affaire->TTypeFinancementShort
 			,'date_simul'=>'calendar'
 			,'accord'=>$simulation->TStatutShort
 			,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
@@ -670,6 +670,8 @@ function getAllStatutSuivi() {
 		$TStatutSuiviFinal[$fk_simulation].= ' <span style="color: #00AA00;">' . $nb_ok . '</span>';
 		$TStatutSuiviFinal[$fk_simulation].= ' <span style="color: #FF0000;">' . $nb_refus . '</span>';
 		$TStatutSuiviFinal[$fk_simulation].= ' <span>' . ($nb_ok + $nb_refus + $nb_wait + $nb_err) . '</span>';
+		
+		//$TStatutSuiviFinal[$fk_simulation] = '<center>' . $TStatutSuiviFinal[$fk_simulation] . '</center>';
 
 	}
 	
