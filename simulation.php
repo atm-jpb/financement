@@ -874,7 +874,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'leaser'=>($mode=='edit' && $can_preco) ? $html->select_company($simulation->fk_leaser,'fk_leaser','fournisseur=1',1,0,1) : (($simulation->fk_leaser > 0) ? $simulation->leaser->getNomUrl(1) : '')
 		
 		//,'pct_vr'=>$form->texte('', 'pct_vr', vatrate($simulation->pct_vr), 10)
-		,'pct_vr'=>$form->texte('', 'pct_vr', $simulation->pct_vr, 5, 0, TFinancementTools::user_courant_est_admin_financement() ? '' : 'readonly')
+		,'pct_vr'=>($mode == 'edit') ? '<input name="pct_vr" type="number" value="'.$simulation->pct_vr.'" min="0" max="100" '.(TFinancementTools::user_courant_est_admin_financement() ? '' : 'readonly').' />' : $simulation->pct_vr
 		,'mt_vr'=>$form->texte('', 'mt_vr', price2num($simulation->mt_vr), 10)
 		,'info_vr'=>$html->textwithpicto('', $langs->transnoentities('simulation_info_vr'), 1, 'info', '', 0, 3)
 		,'fk_categorie_bien'=>$mode == 'edit' ? $html->selectarray('fk_categorie_bien', TFinancementTools::getCategorieId(), $simulation->fk_categorie_bien) : TFinancementTools::getCategorieLabel($simulation->fk_categorie_bien)
