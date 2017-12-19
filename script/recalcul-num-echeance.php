@@ -55,7 +55,8 @@ $sql = "SELECT fk_fin_dossier
 		WHERE date_solde < '1970-00-00 00:00:00' 
 			AND montant_solde = 0
 			AND type = 'CLIENT'
-			AND date_prochaine_echeance NOT LIKE '".date('Y-m-d')."%'";
+			AND date_prochaine_echeance <= '".date('Y-m-d')."%'
+			AND date_fin >= '".date('Y-m-d')."%'";
 			//AND date_prochaine_echeance BETWEEN '2015-01-01 00:00:00' AND '".date('Y-m-d')." 00:00:00'";
 
 echo $sql.'<br>';
@@ -66,24 +67,12 @@ $TData = $PDOdb->Get_All();
 foreach($TData as $data){
 	$dossier = new TFin_dossier;
 	$dossier->load($PDOdb, $data->fk_fin_dossier);
-	$dossier->load_facture($PDOdb);
-	//pre($dossier,true);
 	
-	//On récupère le numéro de la dernière échéance facturée +1
-	$echeance = array_pop(array_keys($dossier->TFacture));
-	$echeance++;
+	echo $dossier->financement->reference." ==> ".date('d/m/Y', $dossier->financement->date_prochaine_echeance);
 	
-	//On récupère la date de prochaine échéance
-	$date_echeance = $dossier->getDateDebutPeriode($echeance,'CLIENT');
-	$date_echeance = date('d/m/Y',strtotime($date_echeance));
+	$dossier->save($PDOdb,false);
 	
-	$echeance ++;
-	
-	$dossier->financement->numero_prochaine_echeance = $echeance;
-	$dossier->financement->set_date('date_prochaine_echeance', $date_echeance);
-	
-	$dossier->financement->save($PDOdb,false);
-	echo $dossier->financement->reference." ==> ".$echeance." ==> ".$date_echeance.'<br>';
+	echo $dossier->financement->reference." ==> ".date('d/m/Y', $dossier->financement->date_prochaine_echeance);
 	$cpt ++;
 }
 
