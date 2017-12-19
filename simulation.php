@@ -42,6 +42,7 @@ if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive 
 		$societe->address = $_REQUEST['adresse'];
 		$societe->zip = $_REQUEST['cp'];
 		$societe->town = $_REQUEST['ville'];
+		$societe->country_id = 1;
 		//$societe->country = $_REQUEST['pays'];
 		$societe->idprof1 = $_REQUEST['siren'];
 		$societe->idprof2 = $_REQUEST['siren'];
@@ -57,8 +58,30 @@ if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive 
 	}
 }
 
-if(!empty($_REQUEST['fk_soc'])) {
-	$simulation->fk_soc = $_REQUEST['fk_soc'];
+$fk_soc = $_REQUEST['fk_soc'];
+
+if(!empty($_REQUEST['mode_search']) && $_REQUEST['mode_search'] == 'search_matricule' && !empty($_REQUEST['search_matricule'])) {
+	// Recherche du client associé au matricule pour ensuite créer une nouvelle simulation
+	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset', array('serial_number' => $_REQUEST['search_matricule']), 'fk_soc');
+	
+	if(empty($TId)) { // Matricule non trouvé
+		setEventMessage('Matricule '.$_REQUEST['search_matricule'].' non trouvé', 'warnings');
+		header(header('Location: '.dol_buildpath('index.php',1))); exit;
+	}
+	
+	if(count($TId) > 1) { // Plusieurs matricules trouvés
+		setEventMessage('Plusieurs matricules trouvés pour la recherche '.$_REQUEST['search_matricule'].'. Merci de chercher par client', 'warnings');
+		header(header('Location: '.dol_buildpath('index.php',1))); exit;
+	}
+	
+	if(!empty($TId[0])) {
+		$fk_soc = $TId[0];
+		$action = 'new';
+	}
+}
+
+if(!empty($fk_soc)) {
+	$simulation->fk_soc = $fk_soc;
 	$simulation->load_annexe($ATMdb, $db);
 
 	// Si l'utilisateur n'a pas le droit d'accès à tous les tiers
@@ -103,8 +126,10 @@ if(!empty($_REQUEST['fk_soc'])) {
 
 }
 
-if($action == 'list') $TDossierLink = _getListIDDossierByNumAccord();
-$TStatutSuivi = getAllStatutSuivi(); // Défini ici pour optimiser l'affichage des simulations
+if(empty($action) || $action == 'list') {
+	$TDossierLink = _getListIDDossierByNumAccord();
+	$TStatutSuivi = getAllStatutSuivi(); // Défini ici pour optimiser l'affichage des simulations
+}
 
 if(!empty($action)) {
 	switch($action) {
@@ -437,6 +462,8 @@ function _liste(&$ATMdb, &$simulation) {
 		$THide[] = 'suivi';
 	}
 	
+	$THide[] = 'type_financement';
+	
 	$TOrder = array('date_simul'=>'DESC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
 	if(isset($_REQUEST['orderUp']))$TOrder = array($_REQUEST['orderUp']=>'ASC');
@@ -494,7 +521,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'login'=>array('recherche'=>true, 'table'=>'u')
 			,'entity_id'=>array( 'recherche'=>$TEntityName, 'table'=>'e', 'field'=>'rowid')
 			,'fk_type_contrat'=>$affaire->TContrat
-			,'type_financement'=>$affaire->TTypeFinancementShort
+			//,'type_financement'=>$affaire->TTypeFinancementShort
 			,'date_simul'=>'calendar'
 			,'accord'=>$simulation->TStatutShort
 			,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
@@ -586,8 +613,8 @@ function getAllStatutSuivi() {
 	$ATMdb = new TPDOdb;
 
 	$sql = "SELECT fk_simulation, statut, date_selection 
-			FROM ".MAIN_DB_PREFIX."fin_simulation_suivi";
-			//"WHERE fk_simulation = ".$idSimulation;
+			FROM ".MAIN_DB_PREFIX."fin_simulation_suivi
+			WHERE statut != ''";
 	$ATMdb->Execute($sql);
 	
 	$TStatutSuivi = array();
@@ -618,6 +645,7 @@ function getAllStatutSuivi() {
 				$TStatutSuiviFinal[$fk_simulation].= '<img title="Accord" src="'.dol_buildpath('/financement/img/super_ok.png',1).'" />';
 				$TStatutSuiviFinal[$fk_simulation].= '</a>';
 				$super_ok = true;
+				$nb_ok++;
 				break;
 			}
 			elseif($TData['statut'] == 'OK') $nb_ok++;
@@ -638,6 +666,12 @@ function getAllStatutSuivi() {
 				$TStatutSuiviFinal[$fk_simulation].= '</a>';
 			}
 		}
+
+		$TStatutSuiviFinal[$fk_simulation].= ' <span style="color: #00AA00;">' . $nb_ok . '</span>';
+		$TStatutSuiviFinal[$fk_simulation].= ' <span style="color: #FF0000;">' . $nb_refus . '</span>';
+		$TStatutSuiviFinal[$fk_simulation].= ' <span>' . ($nb_ok + $nb_refus + $nb_wait + $nb_err) . '</span>';
+		
+		//$TStatutSuiviFinal[$fk_simulation] = '<center>' . $TStatutSuiviFinal[$fk_simulation] . '</center>';
 
 	}
 	
@@ -855,6 +889,12 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$simuArray['type_materiel'] = $form->texte('','type_materiel',$simulation->type_materiel, 50);
 	}
 	
+	// Recherche par SIREN
+	$search_by_siren = true;
+	if(!empty($simulation->societe->array_options['options_no_regroup_fin_siren'])) {
+		$search_by_siren = false;
+	}
+	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
 			
@@ -877,7 +917,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				
 				,'contact_externe'=>empty($simulation->societe) ? '' : $simulation->societe->score->get_nom_externe()
 				
-				,'liste_dossier'=>_liste_dossier($ATMdb, $simulation, $mode)
+				,'liste_dossier'=>_liste_dossier($ATMdb, $simulation, $mode, $search_by_siren)
 				
 				,'nom'=>$simulation->societe->nom
 				,'siren'=>(($simulation->societe->idprof1) ? $simulation->societe->idprof1 : $simulation->societe->idprof2)
@@ -986,7 +1026,7 @@ function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	$form->end_form();
 }
 
-function _liste_dossier(&$ATMdb, &$simulation, $mode) {
+function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 	//if(!empty($simulation->date_accord) && $simulation->date_accord < strtotime('-15 days')) return ''; // Ticket 916 -15 jours
 	
 	//pre($simulation,true);
@@ -1011,7 +1051,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')';
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
 	$sql.= " AND (a.fk_soc = ".$simulation->fk_soc;
-	if(!empty($simulation->societe->idprof1)) {
+	if(!empty($simulation->societe->idprof1) && $search_by_siren) {
 		$sql.= " OR a.fk_soc IN
 					(
 						SELECT s.rowid 
@@ -1059,7 +1099,22 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 		$dossier->load($ATMdb2, $ATMdb->Get_field('IDDoss'));
 		$leaser = new Societe($db);
 		$leaser->fetch($dossier->financementLeaser->fk_soc);
-
+		
+		// Chargement des équipements
+		if(!empty($dossier->TLien[0])) {
+			dol_include_once('/asset/class/asset.class.php');
+			$dossier->TLien[0]->affaire->loadEquipement($ATMdb2);
+			$TSerial = array();
+			
+			foreach($dossier->TLien[0]->affaire->TAsset as $linkAsset) {
+				$serial = $linkAsset->asset->serial_number;
+				$TSerial[] = $serial;
+				if(count($TSerial) >= 3) {
+					$TSerial[] = '...';
+					break;
+				}
+			}
+		}
 		
 		if($dossier->nature_financement == 'INTERNE') {
 			$fin = &$dossier->financement;
@@ -1306,6 +1361,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode) {
 			
 			,'incident_paiement'=>$incident_paiement
 			,'numcontrat_entity_leaser'=>$numcontrat_entity_leaser
+			
+			,'serial' => implode(', ', $TSerial)
 		);
 		if($row['type_contrat'] == 'Intégral'){
 			$row['type_contrat']='<a href="dossier_integrale.php?id='.$ATMdb->Get_field('IDDoss').'">Intégral</a>';

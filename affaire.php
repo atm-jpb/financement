@@ -343,6 +343,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 			,'incident_paiement'=>$dossier->TIncidentPaiement[$dossier->incident_paiement]
 			,'duree'=>$dossier->duree
 			,'echeance'=>$dossier->echeance
+			,'modif_dossier'=>'<a href="dossier.php?id='.$dossier->getId().'&action=edit">'.img_edit().'</a>'
 		);
 	}
 	
@@ -352,10 +353,16 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		$row = $link->asset->get_values();
 		
 		// Lien produit
-		$product = new Product($db);
-		$product->fetch($link->asset->fk_product);
+		$row['produit'] = '';
 		
-		$row['produit'] = $product->getNomUrl(true).' '.$product->label;
+		if(!empty($link->asset->fk_product)) {
+			$product = new Product($db);
+			$product->fetch($link->asset->fk_product);
+			
+			$row['produit'] = $product->getNomUrl(true).' '.$product->label;
+		}
+		
+		// Lien facture
 		$row['facture'] = '';
 		
 		$TIdFacture = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'asset_link',array('fk_asset'=>$link->asset->getId(), 'type_document'=>'facture'),'fk_document');

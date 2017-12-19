@@ -420,16 +420,22 @@ class TFin_affaire extends TObjetStd {
 				return "M000355961";
 				break;
 			case 2: //CPRO Informatique
-				return "M000355961";
+				return "M000317069";
 				break;
 			case 3: //CPRO Télécom
-				return "M000355961";
+				return "M001155746";
 				break;
 			case 4: //Bougogne Copie
 				return "M000355961";
 				break;
 			case 5: //ABG
 				return "M000290985";
+				break;
+			case 7: //Copy Concept
+				return "M000252940";
+				break;
+			case 9: //Quadra
+				return "M000355473";
 				break;
 			default:
 				return "M000355961";
@@ -440,42 +446,43 @@ class TFin_affaire extends TObjetStd {
 	function getEnTeteByEntity(){
 		
 		$date = date('Ymd');
+		$entity = getEntity();
 		
-		switch (getEntity()) {
+		switch ($entity) {
 			case 1: //CPRO Impression
 				$name2 = "FP_207_MA01_CPRO_".$date;
-				$nomFichier = "CPROMA01IMMA".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 2: //CPRO Informatique
 				$name2 = "FP_207_MA01_CPRO_".$date;
-				$nomFichier = "CPROMA01IMMA".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 3: //CPRO Télécom
 				$name2 = "FP_207_MA01_CPRO_".$date;
-				$nomFichier = "CPROMA01IMMA".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 4: //Bougogne Copie
 				$name2 = "FP_207_MA01_CPRO_".$date;
-				$nomFichier = "CPROMA01IMMA".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 5: //ABG
 				$name2 = "FP_207_MA01_ABG_".$date;
-				$nomFichier = "ABGMA01IMMA".$date;
+				$nomFichier = "ABGMA0".$entity."IMMA".$date;
 				$refPartenaire = "ABGMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			
 			default:
 				$name2 = "FP_207_MA01_CPRO_".$date;
-				$nomFichier = "CPROMA01IMMA".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;

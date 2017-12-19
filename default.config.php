@@ -40,6 +40,7 @@
 	define('FIN_PRODUCT_FRAIS_DOSSIER', '3');
 	define('FIN_PRODUCT_LOC_ADOSSEE', '1');
 	define('FIN_PRODUCT_LOC_MANDATEE', '2');
+	define('FIN_PRODUCT_ABG', '1593');
 	
 	define('FIN_THEREFORE_AFFAIRE_URL','http://srvtherefore/TWA/TheGetDoc.aspx?CtgryNo=4&N_Affaire=');
 	define('FIN_THEREFORE_DOSSIER_URL','http://srvtherefore/TWA/TheGetDoc.aspx?CtgryNo=4&N_Affaire=');
@@ -69,9 +70,9 @@
 	
 	define('BASE_TEST', 0);
 	
-	define('BNP_TEST',0);
-	define('BNP_PRESCRIPTEUR_ID','FRAFT03559');
-	define('BNP_WSDL_URL','https://leaseoffersu.leasingsolutions.bnpparibas.fr:4444/ExtranetEuroWS/services/demandeDeFinancementService/demandeDeFinancementWSDLv1.wsdl');
+	define('BNP_TEST',empty($conf->global->FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD));
+	define('BNP_WSDL_URL_PROD','https://leaseoffers.leasingsolutions.bnpparibas.fr:4494/ExtranetEuroWS/services/demandeDeFinancementService/demandeDeFinancementWSDLv1.wsdl');
+	define('BNP_WSDL_URL_TEST','https://leaseoffersu.leasingsolutions.bnpparibas.fr:4444/ExtranetEuroWS/services/demandeDeFinancementService/demandeDeFinancementWSDLv1.wsdl');
 	
 	define('GE_TEST',0);
 	define('GE_WSDL_URL','https://minervademouat.fr/imanageB2B/ws/dealws.wsdl');

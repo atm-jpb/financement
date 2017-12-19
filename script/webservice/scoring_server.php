@@ -74,7 +74,7 @@ $server->wsdl->addComplexType(
     'all',
     '',
     array(
-        'client_siren' => array('name'=>'client_siren','type'=>'xsd:int') // O - Numéro SIREN du client de C'PRO - numérique entier de longueur fixe 9
+        'client_siren' => array('name'=>'client_siren','type'=>'xsd:string') // O - Numéro SIREN du client de C'PRO - numérique entier de longueur fixe 9
         ,'client_nic' => array('name'=>'client_nic','type'=>'xsd:string') // NO - NIC du client de C'PRO - chaîne de caractères de longueur fixe 5 composée exclusivement de chiffres
     )
 );
@@ -178,7 +178,9 @@ function repondreDemande($authentication, $TReponse)
 					$simulation->load($PDOdb, $db, $TId[0]);
 					if ($simulation->getId() > 0)
 					{
-						if (strcmp($simulation->societe->idprof1, $TReponse['client']['client_siren']) === 0)
+						$siren = $TReponse['client']['client_siren'];
+						$siren = str_pad($siren, 9, '0', STR_PAD_LEFT);
+						if (strcmp($simulation->societe->idprof1, $siren) === 0)
 						{
 							
 							$found = false;

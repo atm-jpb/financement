@@ -719,7 +719,7 @@ class TFin_dossier extends TObjetStd {
 		
 		$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, $type_penalite, $iPeriode) / 100); // Même avec un $this->nature_financement == 'INTERNE' on passe la valeur EXTERNE (l'ancien code renvoyé la même chose)
 		
-		if ($solde > $LRD_Leaser && $this->financementLeaser->fk_soc != 18305) return $LRD_Leaser; // Capé LRD sauf si ACECOM
+		if ($solde > $LRD_Leaser && $this->financementLeaser->cape_lrd) return $LRD_Leaser; // Capé LRD sauf si règle spécifique
 		//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 		else if($solde < $this->financementLeaser->reste){
 			return $this->financementLeaser->reste;
@@ -762,7 +762,7 @@ class TFin_dossier extends TObjetStd {
 				// Add Pen Leaser + CPro
 				$date_deb_periode = $this->getDateDebutPeriode($iPeriode-1);
 				$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode) / 100) * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
-				if ($solde > $LRD_Leaser && $this->financementLeaser->fk_soc != 18305) return $LRD_Leaser; // Capé LRD sauf si ACECOM
+				if ($solde > $LRD_Leaser) return $LRD_Leaser; // Capé LRD dans tous les cas car solde vendeur
 				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 				else if($solde < $this->financementLeaser->reste){
 					return $this->financementLeaser->reste;
@@ -801,7 +801,7 @@ class TFin_dossier extends TObjetStd {
 					$solde = $LRD; // LRD client
 				}
 				
-				if ($solde > $LRD && $this->financementLeaser->fk_soc != 18305) $solde = $LRD; // Capé LRD sauf si ACECOM
+				if ($solde > $LRD) return $LRD; // Capé LRD dans tous les cas car solde vendeur
 				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 				else if($solde < $this->financement->reste){
 					$solde = $this->financement->reste;
@@ -883,7 +883,7 @@ class TFin_dossier extends TObjetStd {
 					$solde = $LRD;
 				}
 				
-				if ($solde > $LRD && $this->financementLeaser->fk_soc != 18305) $solde = $LRD; // Capé LRD sauf si ACECOM
+				if ($solde > $LRD) $solde = $LRD; // Capé LRD sauf si ACECOM
 				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
 				else if($solde < $this->financement->reste){
 					$solde = $this->financement->reste;
@@ -927,7 +927,7 @@ class TFin_dossier extends TObjetStd {
 	/*****************************************************************************************/
 	function getSolde(&$PDOdb, $type='SRBANK', $iPeriode=0)
 	{
-		global $conf;
+		global $conf,$db;
 		
 		$duree_restante_leaser = ($iPeriode == 0) ? $this->financementLeaser->duree_restante : $this->financementLeaser->duree - $iPeriode;
 		
@@ -946,6 +946,18 @@ class TFin_dossier extends TObjetStd {
 		
 		$CRD = $this->financement->valeur_actuelle($duree_restante_client);
 		$LRD = $this->financement->echeance * $duree_restante_client + $this->financement->reste;
+		
+		// Capé LRD sauf si ACECOM ou LOCAM
+		dol_include_once('/categories/class/categorie.class.php');
+		$this->financementLeaser->cape_lrd = true;
+		$cat = new Categorie($db);
+		$cat->fetch(0, 'Acecom');
+		$is_acecom = $cat->containsObject('supplier', $this->financementLeaser->fk_soc);
+		if($is_acecom) $this->financementLeaser->cape_lrd = false;
+		$cat = new Categorie($db);
+		$cat->fetch(0, 'Locam');
+		$is_locam = $cat->containsObject('supplier', $this->financementLeaser->fk_soc);
+		if($is_locam) $this->financementLeaser->cape_lrd = false;
 		
 		// Chargement des règle de solde (dictionnaire)
 		$this->load_c_conf_solde();
@@ -1486,7 +1498,10 @@ class TFin_dossier extends TObjetStd {
 		if(($echeance==0 && $f->loyer_intercalaire == 0) || ($echeance == -1 && $f->loyer_intercalaire > 0)) {
 			/* Ajoute les frais de dossier uniquement sur la 1ère facture */
 			$res.= "Ajout des frais de dossier<br />";
-			$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, FIN_PRODUCT_FRAIS_DOSSIER);
+			$fk_product = FIN_PRODUCT_FRAIS_DOSSIER;
+			// Pour export compta ABG
+			if($object->entity == 5) $fk_product = FIN_PRODUCT_ABG;
+			$result=$object->addline("", $f->frais_dossier, $tva, 0, 0, 1, $fk_product);
 		}
 		
 		/* Ajout la ligne de l'échéance	*/
@@ -1495,6 +1510,9 @@ class TFin_dossier extends TObjetStd {
 			if($d->TLien[0]->affaire->type_financement == 'ADOSSEE') $fk_product = FIN_PRODUCT_LOC_ADOSSEE;
 			elseif($d->TLien[0]->affaire->type_financement == 'MANDATEE') $fk_product = FIN_PRODUCT_LOC_MANDATEE;
 		}
+		
+		// Pour export compta ABG
+		if($object->entity == 5) $fk_product = FIN_PRODUCT_ABG;
 		
 		if($echeance == -1 && $f->loyer_intercalaire > 0) {
 			$result=$object->addline("Echéance de loyer intercalaire banque", $f->loyer_intercalaire, $tva, 0, 0, 1, $fk_product);
@@ -2153,7 +2171,11 @@ class TFin_financement extends TObjetStd {
 				$a->montant = $data['montant'];
 				$a->fk_soc = $idClient;
 				$a->nature_financement = 'EXTERNE';
-				if ($data['montant_prestation'] > 0 && !empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE) && in_array($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE, $a->TContrat)) $a->contrat = $conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE;
+				if ($data['montant_prestation'] > 0
+					&& !empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE)
+					&& !empty($a->TContrat[$conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE])) {
+						$a->contrat = $conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE;
+				}
 				$a->addDossier($db, $d->getId());
 				$a->save($db);
 				//echo $a->getId().'<br>';
@@ -2178,7 +2200,11 @@ class TFin_financement extends TObjetStd {
 					$a->montant = $data['montant'];
 					$a->fk_soc = $idClient;
 					$a->nature_financement = 'EXTERNE';
-					if ($data['montant_prestation'] > 0 && !empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE) && in_array($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE, $a->TContrat)) $a->contrat = $conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE;
+					if ($data['montant_prestation'] > 0
+						&& !empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE)
+						&& !empty($a->TContrat[$conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE])) {
+							$a->contrat = $conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE;
+					}
 					$a->addDossier($db, $d->getId());
 					$a->save($db);
 					//echo $a->getId().'<br>';
@@ -2334,6 +2360,7 @@ class TFin_financement extends TObjetStd {
 		$fact->fetch($idClone);
 		
 		$fact->type = 2;
+		$fact->entity = $origine->entity;
 		$fact->fk_facture_source = $origine->id;
 		$fact->facnumber = 'AV'.$origine->ref_supplier;
 		$fact->ref_supplier = 'AV'.$origine->ref_supplier;

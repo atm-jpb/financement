@@ -252,8 +252,8 @@ class ServiceFinancement {
 	        $total_rounded = bcadd($total, '0.' . str_repeat('0', $precision) . '5', $precision);
 	        @list($integer, $fraction) = explode('.', $total_rounded);
 	        $format = $precision == 0
-	            ? "Y-m-d\TH:i:s\Z"
-	            : "Y-m-d\TH:i:s.".$fraction."\Z";
+	            ? "Y-m-d\TH:i:s"
+	            : "Y-m-d\TH:i:s.".$fraction."";
 	        return gmdate($format, $integer);
 	    }
 	
@@ -278,6 +278,8 @@ class ServiceFinancement {
 		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
 		// Spéficique CALF, maximum 21 T / 63 M
 		if($dureeInMonth > 63) $dureeInMonth = 63;
+		// Spéficique CALF, minimum 8 T / 21 M
+		if($dureeInMonth < 24) $dureeInMonth = 24;
 		// Montant minimum 1000 €
 		$montant = $this->simulation->montant;
 		if($montant < 1000) $montant = 1000;
@@ -336,7 +338,7 @@ class ServiceFinancement {
 			            <v1:FINANCEMENT>
 			               <v1:CODE_PRODUIT>'.$this->getCodeProduit().'</v1:CODE_PRODUIT>
 			               <v1:TYPE_PRODUIT>'.$this->getTypeProduit().'</v1:TYPE_PRODUIT>
-			               <v1:MT_FINANCEMENT_HT>'.$this->simulation->montant.'</v1:MT_FINANCEMENT_HT>
+			               <v1:MT_FINANCEMENT_HT>'.$montant.'</v1:MT_FINANCEMENT_HT>
 			               <v1:PCT_VR>'.$pct_vr.'</v1:PCT_VR>
 			               <v1:MT_VR>'.$mt_vr.'</v1:MT_VR>
 			               <v1:TYPE_REGLEMENT>'.$mode_reglement_id.'</v1:TYPE_REGLEMENT>

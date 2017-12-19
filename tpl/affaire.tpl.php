@@ -61,7 +61,8 @@
 			[onshow;block=end]	
 			
 			<table width="100%" class="border" style="margin-top:20px;">
-			<tr><td width="20%">Dossier numéro <!-- [dossier.id] --></td><td><a href="dossier.php?id=[dossier.id]">[dossier.reference; block=table; strconv=no]</a></td></tr>
+			<tr><td width="20%">Dossier numéro <!-- [dossier.id] -->[dossier.modif_dossier;strconv=no]</td>
+					<td><a href="dossier.php?id=[dossier.id]">[dossier.reference; block=table; strconv=no]</a></td></tr>
 			<tr><td width="20%">Montant</td><td>[dossier.montant;strconv=no; frm=0 000,00] &euro; à [dossier.taux;strconv=no] %</td></tr>
 			<tr><td width="20%">Date de début - fin</td><td>[dossier.date_debut; strconv=no] - [dossier.date_fin; strconv=no]</td></tr>
 			<tr><td width="20%">Durée / Périodicité</td><td>[dossier.duree; strconv=no;]</td></tr>

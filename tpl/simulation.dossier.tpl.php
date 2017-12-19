@@ -19,7 +19,7 @@
 		<td align="center">NR. P+1</td>
 		<td align="center">Retrait<br>copies</td>
 	</tr>
-	<tr [champs.class; strconv=no]>
+	<tr [champs.class; strconv=no] title="N° de série : [champs.serial]">
 		<td id="numcontrat_entity_leaser" style="width:150px">[champs.numcontrat_entity_leaser;block=tr; strconv=no]</td>
 		<td id="type_contrat">[champs.type_contrat; strconv=no]</td>
 		[onshow;block=begin;when [liste.display_montant]=='1']

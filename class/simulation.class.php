@@ -914,16 +914,38 @@ class TSimulation extends TObjetStd {
 			$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
 			$mesg.= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n '.$this->reference.'.'."\n\n";
 			if(!empty($this->commentaire)) $mesg.= 'Commentaire : '."\n".$this->commentaire."\n\n";
-			$mesg.= 'Cordialement,'."\n\n";
-			$mesg.= 'La cellule financement'."\n\n";
 		} else {
+			$retourLeaser = '';
+			foreach($this->TSimulationSuivi as $suivi) {
+				if(!empty($suivi->commentaire)) {
+					$retourLeaser .= ' - '.$suivi->commentaire."\n";
+				}
+			}
+			
 			$accord = 'Demande de financement refusée';
 			$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-			$mesg.= 'Votre demande de financement via la simulation n '.$this->reference.' n\'a pas été acceptée.'."\n\n";
-			if(!empty($this->commentaire)) $mesg.= 'Commentaire : '."\n".$this->commentaire."\n\n";
-			$mesg.= 'Cordialement,'."\n\n";
-			$mesg.= 'La cellule financement'."\n\n";
+			$mesg.= 'La demande de financement pour le client '.$this->societe->name.' d\'un montant de '.price($this->montant_total_finance).' € n\'est pas acceptée.'."\n";
+			$mesg.= 'Nous n\'avons que des refus pour le ou les motifs suivants :'."\n";
+			$mesg.= $retourLeaser."\n";
+			
+			// Message spécifique CPRO
+			if(in_array($this->entity, array(1,2,3))) {
+				$mesg.= 'Nous allons réétudier la demande en interne afin de voir s\'il est possible de trouver une solution favorable au financement du dossier.'."\n";
+				$mesg.= 'Si c\'est le cas, le coeff de la demande sera augmenté en fonction du risque que porte C\'PRO.'."\n\n";
+
+				$mesg.= 'Pour cela merci de nous faire parvenir le dernier bilan du client.'."\n\n";
+			} else if(in_array($this->entity, array(5,6,7,9))) { // Idem OUEST sans la mention réétude
+				$mesg.= '';
+			} else { // Message générique
+				$mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
+				$mesg.= 'Votre demande de financement via la simulation n '.$this->reference.' n\'a pas été acceptée.'."\n\n";
+				if(!empty($this->commentaire)) $mesg.= 'Commentaire : '."\n".$this->commentaire."\n\n";
+			}
 		}
+
+		$mesg.= 'Cordialement,'."\n\n";
+		$mesg.= 'La cellule financement'."\n\n";
+		
 		$subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance,2,',',' ').' Euros - '.$accord;
 		
 		if(empty($mailto))$mailto = $this->user->email;
@@ -1545,13 +1567,13 @@ class TSimulationSuivi extends TObjetStd {
 			&& empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON)
 			&& (empty($this->statut))){ // On n'envoie le scoring par EDI que la 1ère fois
 			$this->_sendDemandeAuto($PDOdb);
+		} else {
+			$this->statut_demande = 1;
+			$this->date_demande = time();
+			$this->statut = 'WAIT';
+			$this->date_selection = 0;
+			$this->save($PDOdb);
 		}
-		
-		$this->statut_demande = 1;
-		$this->date_demande = time();
-		$this->statut = 'WAIT';
-		$this->date_selection = 0;
-		$this->save($PDOdb);
 	}
 	
 	//Effectue l'action de passer au statut accepter la demande de financement leaser
@@ -1669,10 +1691,12 @@ class TSimulationSuivi extends TObjetStd {
 			$this->leaser->fetch($this->fk_leaser);
 		}
 		
+		$this->statut = 'WAIT';
+		
 		switch ($this->leaser->array_options['options_edi_leaser']) {
 			//BNP PARIBAS LEASE GROUP
 			case 'BNP':
-				//$this->_createDemandeBNP($PDOdb);
+				$this->_createDemandeBNP($PDOdb);
 				break;
 			//GE CAPITAL EQUIPEMENT FINANCE
 			case 'GE':
@@ -1686,6 +1710,11 @@ class TSimulationSuivi extends TObjetStd {
 				return 1;
 				break;
 		}
+		
+		$this->statut_demande = 1;
+		$this->date_demande = time();
+		$this->date_selection = 0;
+		$this->save($PDOdb);
 	}
 	
 	function _createDemandeLIXXBAIL(&$PDOdb){
@@ -1696,7 +1725,8 @@ class TSimulationSuivi extends TObjetStd {
 		$res = $service->call();
 		
 		if (!$res && !empty($service->TError)) {
-			$this->errorLabel = $service->TError;
+			$this->commentaire = $service->TError;
+			$this->statut = 'ERR';
 		}
 	}
 	
@@ -1910,11 +1940,13 @@ class TSimulationSuivi extends TObjetStd {
 	function _createDemandeBNP(&$PDOdb){
 		
 		if(BNP_TEST){
-			$soapWSDL = BNP_WSDL_URL;
+			//$soapWSDL = BNP_WSDL_URL_TEST;
+			$soapWSDL = dol_buildpath('/financement/files/EDI_BNP_demandeFinancement_TEST.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
-			$soapWSDL = BNP_WSDL_URL;
+			//$soapWSDL = BNP_WSDL_URL_PROD;
+			$soapWSDL = dol_buildpath('/financement/files/EDI_BNP_demandeFinancement_PROD.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-Prod.crt";
 		}
 
@@ -1932,8 +1964,10 @@ class TSimulationSuivi extends TObjetStd {
 
 		}
 		catch(SoapFault $e) {
-			pre($e,true);
-			exit;
+			//pre($e,true);
+			$this->commentaire = $e;
+			$this->statut = 'ERR';
+			return 0;
 		}
 		//pre($soap->__getFunctions(),true);exit;
 //		echo "1<br>";
@@ -1951,9 +1985,11 @@ class TSimulationSuivi extends TObjetStd {
 			//pre($reponseDemandeFinancement,true);exit;
 		}
 		catch(SoapFault $reponseDemandeFinancement) {
-			//echo '<pre>';
-			//var_dump($reponseDemandeFinancement->detail);exit;
-			$this->errorLabel = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail);
+			/*pre($TtransmettreDemandeFinancementRequest,true);
+			echo '<pre>';
+			var_dump($reponseDemandeFinancement->detail);exit;*/
+			$this->commentaire = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail);
+			$this->statut = 'ERR';
 			return 0;
 		}
 
@@ -1963,17 +1999,19 @@ class TSimulationSuivi extends TObjetStd {
 	function _consulterDemandeBNP($num_accord_leaser){
 		
 		if(BNP_TEST){
-			$soapWSDL = BNP_WSDL_URL;
+			//$soapWSDL = BNP_WSDL_URL_TEST;
+			$soapWSDL = dol_buildpath('/financement/files/EDI_BNP_demandeFinancement_TEST.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		else{
-			$soapWSDL = BNP_WSDL_URL;
+			//$soapWSDL = BNP_WSDL_URL_PROD;
+			$soapWSDL = dol_buildpath('/financement/files/EDI_BNP_demandeFinancement_PROD.wsdl',2);
 			$local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-Prod.crt";
 		}
 
 		try{
 			$soap = new SoapClient($soapWSDL,array(
-									'local_cert'=>"/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt"
+									'local_cert'=>$local_cert
 									,'trace'=>1
 									,'stream_context' => stream_context_create(array(
 										    'ssl' => array(
@@ -2064,9 +2102,11 @@ class TSimulationSuivi extends TObjetStd {
 		$simulation = new TSimulation;
 		$simulation->load($PDOdb, $db, $this->fk_simulation);
 		
-		if($TreponseSuivisDemandes->rapportSuivi->suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
-			$this->statut = $TCodeStatut[$TreponseSuivisDemandes->rapportSuivi->suiviDemande->etat->codeStatutDemande];
-			$suiviDemande = $TreponseSuivisDemandes->rapportSuivi->suiviDemande;
+		$suiviDemande = $TreponseSuivisDemandes->rapportSuivi->suiviDemande;
+		
+		if($suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
+			$this->statut = $TCodeStatut[$suiviDemande->etat->codeStatutDemande];
+			$this->commentaire = $suiviDemande->etat->libelleStatutDemande;
 			switch ($this->statut) {
 				case 'OK':
 					$this->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
@@ -2074,21 +2114,26 @@ class TSimulationSuivi extends TObjetStd {
 					$this->doActionAccepter($PDOdb,$simulation);
 					break;
 				case 'KO':
+					$this->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
 					$this->doActionRefuser($PDOdb,$simulation);
 					break;
 				default:
+					$this->save($PDOdb);
 					break;
 			}
 		}
 	}
 
 	function _getBNPDataTabForDemande(&$PDOdb){
+		global $db;
+		$entity = new DaoMulticompany($db);
+		$entity->fetch($this->entity);
 		
 		$TData = array();
 		
 		//Tableau Prescripteur
 		$TPrescripteur = array(
-			'prescripteurId' => BNP_PRESCRIPTEUR_ID //en attente de la communication par BNP
+			'prescripteurId' => $entity->array_options['options_code_prescripteur_bnp']
 		);
 
 		$TData['prescripteur'] = $TPrescripteur;
@@ -2174,6 +2219,7 @@ class TSimulationSuivi extends TObjetStd {
 			,'KYOCERA' => '347'
 			,'LEXMARK' => '341'
 			,'HEWLETT-PACKARD' => '321'
+			,'HP' => '321'
 			,'OCE' => '336'
 			,'OKI' => '930'
 			,'SAMSUNG' => 'F80'
@@ -2186,7 +2232,7 @@ class TSimulationSuivi extends TObjetStd {
 			,'prixDeVente' => $this->simulation->montant
 			//,'prixTarif' => ''
 			//,'anneeFabrication' => ''
-			,'codeMarque' => ($TCodeMarque[$this->simulation->marque_materiel]) ? $TCodeMarque[$this->simulation->marque_materiel] : '335' //909 = Divers informatique TODO
+			,'codeMarque' => ($TCodeMarque[$this->simulation->marque_materiel]) ? $TCodeMarque[$this->simulation->marque_materiel] : '910' //909 = Divers informatique, 910 = Divers bureautique
 			//,'type' => ''
 			//,'modele' => ''
 			//,'dateDeMiseEnCirculation' => ''
@@ -2200,31 +2246,24 @@ class TSimulationSuivi extends TObjetStd {
 	function _getBNPDataTabFinancement(&$TData){
 		global $db;
 		$codeCommercial = '02'; //02 par défaut; 23 = Top Full; 2Q = Secteur Public
-		$codeFinancier = $codeTypeCalcul = '';
+		$codeFinancier = '021';
+		$codeTypeCalcul = 'L';
 		
-		dol_include_once('/categories/class/categorie.class.php');
-		$cat = new Categorie($db);
-		$TCats = $cat->containing($this->fk_leaser, 1);
-		foreach($TCats as $categorie){
-			if(strtoupper($categorie->label) == 'CESSION'){
-				$codeFinancier = '021';
-				$codeTypeCalcul = 'L';
-				if($this->simulation->getLabelCategorieClient() == 'administration'){
-					$codeCommercial = '2Q';
-				}
-				elseif($this->simulation->fk_type_contrat == 'FORFAITGLOBAL'){
-					$codeCommercial = '23';
-				}
-			}
-			elseif(strtoupper($categorie->label) == 'MANDATEE'){
-				$codeFinancier = '021';
-				$codeTypeCalcul = 'L';
-				$codeCommercial = '02';
+		// Durée et périodicité recalculée car Cession peut être en trimestre ou mois, mais mandaté uniquement en trimestre
+		$periodicite = 'TRIMESTRE';
+		if($this->_getBNPType() == 'CESSION') {
+			if($this->simulation->opt_periodicite == 'MOIS') {
+				$periodicite = 'MOIS';
 			}
 		}
 		
 		$fin_temp = new TFin_financement;
 		$fin_temp->periodicite = $this->simulation->opt_periodicite;
+		$p1 = $fin_temp->getiPeriode();
+		$fin_temp->periodicite = $periodicite;
+		$p2 = $fin_temp->getiPeriode();
+		
+		$duree = $this->simulation->duree / ($p2 / $p1);
 		
 		$TFinancement = array(
 			'codeTypeCalcul' => $codeTypeCalcul
@@ -2243,8 +2282,8 @@ class TSimulationSuivi extends TObjetStd {
 			//,'presenceFranchiseDeLoyer' => ''
 			,'paliersDeLoyer' => array(
 				'palierDeLoyer' => array(
-					'nombreDeLoyers' => $this->simulation->duree
-					,'periodicite' => $fin_temp->getiPeriode()
+					'nombreDeLoyers' => $duree
+					,'periodicite' => $p2
 					//,'montantLoyers' => ''
 					//,'poidsDuPalier' => ''
 				)
@@ -2253,69 +2292,41 @@ class TSimulationSuivi extends TObjetStd {
 		
 		return $TFinancement;
 	}
+
+	function _getBNPType() {
+		if(strpos($this->leaser->name, 'BNP PARIBAS LEASE GROUP MANDATE') !== false)
+			return 'MANDATE';
+		if(strpos($this->leaser->name, 'BNP PARIBAS LEASE GROUP') !== false)
+			return 'CESSION';
+	}
 	
 	//CF drive -> Barème pour webservice CPRO.xlsx
 	function _getBNPBareme(&$TData,$codeCommercial){
 		global $db;
 		$codeBareme = '';
 		
-		$cat = new Categorie($db);
-		$TCats = $cat->containing($this->fk_leaser, 1);
-		
-		foreach($TCats as $categorie){
-			if($TData['codeFamilleMateriel'] == 'H'){ // => BUREAUTIQUE
-				if(strtoupper($categorie->label) == 'MANDATEE'){
-					$codeBareme = (BNP_TEST) ? '00004046' : '00002368';
-				}
-				elseif(strtoupper($categorie->label) == 'CESSION'){
-					switch ($codeCommercial) {
-						case '02': // = ''
-								if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-									$codeBareme = (BNP_TEST) ? '00000868' : '00002061';
-								}
-								elseif($this->simulation->opt_periodicite == 'MOIS'){
-									$codeBareme = (BNP_TEST) ? '00004028' : '00002063';
-								}
-							break;
-						case '23': // = Top Full
-								if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-									$codeBareme = (BNP_TEST) ? '00004049' : '00002369';
-								}
-								elseif($this->simulation->opt_periodicite == 'MOIS'){
-									$codeBareme = (BNP_TEST) ? '00004050' : '00002467';
-								}
-							break;
-						case '2Q': // = Secteur Public
-								$codeBareme = (BNP_TEST) ? '00004051' : '00006710';
-							break;
-						default:
-							
-							break;
-					}
-				}
+		if($this->_getBNPType() == 'CESSION') {
+			$codeBareme = (BNP_TEST) ? '00004048' : '00011657';
+			if($this->simulation->opt_periodicite == 'MOIS') {
+				$codeBareme = (BNP_TEST) ? '00004028' : '00011658';
 			}
-			elseif($TData['codeFamilleMateriel'] == 'T'){ // => INFORMATIQUE
-				if(strtoupper($categorie->label) == 'CESSION'){ //Uniquement FINANCIERE pour INFORMATIQUE
-					if($this->simulation->opt_periodicite == 'TRIMESTRE'){
-						$codeBareme = '00004043';
-					}
-					elseif($this->simulation->opt_periodicite == 'MOIS'){
-						$codeBareme = '00004048';
-					}
-				}
-			}
+		} else {
+			$codeBareme = (BNP_TEST) ? '00004050' : '00006710';
 		}
 		
 		return $codeBareme;
 	}
 
 	function _getBNPDataTabForConsultation($num_accord_leaser){
+		global $db;
+		$entity = new DaoMulticompany($db);
+		$entity->fetch($this->entity);
 		
 		$TData = array();
 		
 		//Tableau Prescripteur
 		$TPrescripteur = array(
-			'prescripteurId' => BNP_PRESCRIPTEUR_ID
+			'prescripteurId' => $entity->array_options['options_code_prescripteur_bnp']
 		);
 
 		$TData['prescripteur'] = $TPrescripteur;

@@ -84,8 +84,8 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 			,'renta_previsionnelle'=>number_format($data->renta_previsionnelle,2, ',', ' ').' <br> '.number_format($data->marge_previsionnelle,2).' %'
 			,'renta_attendue'=>number_format($data->renta_attendue,2, ',', ' ').' <br> '.number_format($data->marge_attendue, 2).' %'
 			,'renta_reelle'=>number_format($data->renta_reelle,2, ',', ' ').' <br> '.number_format($data->marge_reelle,2).' %'
-			,'fk_statut_renta_neg_ano'	=> $data->fk_statut_renta_neg_ano
-			,'fk_statut_dossier'		=> $data->fk_statut_dossier
+			,'fk_statut_renta_neg_ano'	=> $dos->TStatutRentaNegAno[$data->fk_statut_renta_neg_ano]
+			,'fk_statut_dossier'		=> $dos->TStatutDossier[$data->fk_statut_dossier]
 		);
 	}
 	
@@ -95,12 +95,12 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 	echo $form->hidden('id_dossier', GETPOST('id_dossier'));
 	echo $form->hidden('visaauto', GETPOST('visaauto'));
 	
-	echo $form->checkbox1('Règle 1', 'TRule[rule1]', 1, !empty($TRule['rule1']) ? $TRule['rule1'] : 0);
-	echo $form->checkbox1('Règle 2', 'TRule[rule2]', 1, !empty($TRule['rule2']) ? $TRule['rule2'] : 0);
-	echo $form->checkbox1('Règle 3', 'TRule[rule3]', 1, !empty($TRule['rule3']) ? $TRule['rule3'] : 0);
-	echo $form->checkbox1('Règle 4', 'TRule[rule4]', 1, !empty($TRule['rule4']) ? $TRule['rule4'] : 0);
-	echo $form->checkbox1('Règle 5', 'TRule[rule5]', 1, !empty($TRule['rule5']) ? $TRule['rule5'] : 0);
-	echo $form->checkbox1('Règle 6', 'TRule[rule6]', 1, !empty($TRule['rule6']) ? $TRule['rule6'] : 0);
+	echo $form->checkbox1('Règle 1', 'TRule[rule1]', 1, !empty($TRule['rule1']) ? $TRule['rule1'] : 0, 'title="Echéance Client < Echéance Leaser"');
+	echo $form->checkbox1('Règle 2', 'TRule[rule2]', 1, !empty($TRule['rule2']) ? $TRule['rule2'] : 0, 'title="Facture Client < Loyer leaser"');
+	echo $form->checkbox1('Règle 3', 'TRule[rule3]', 1, !empty($TRule['rule3']) ? $TRule['rule3'] : 0, 'title="Facture Client < Loyer client"');
+	echo $form->checkbox1('Règle 4', 'TRule[rule4]', 1, !empty($TRule['rule4']) ? $TRule['rule4'] : 0, 'title="Facture Client impayée"');
+	echo $form->checkbox1('Règle 5', 'TRule[rule5]', 1, !empty($TRule['rule5']) ? $TRule['rule5'] : 0, 'title="Echéance client non facturée"');
+	echo $form->checkbox1('Règle 6', 'TRule[rule6]', 1, !empty($TRule['rule6']) ? $TRule['rule6'] : 0, 'title="Anomalie"');
 	
 	echo $form->btsubmit('Lancer', 'run');
 	if(!empty($TDossiersError['all'])) {
