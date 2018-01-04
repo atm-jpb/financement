@@ -614,7 +614,8 @@ function getAllStatutSuivi() {
 
 	$sql = "SELECT fk_simulation, statut, date_selection 
 			FROM ".MAIN_DB_PREFIX."fin_simulation_suivi
-			WHERE statut != ''";
+			WHERE statut != ''
+			AND date_historization < '1970-00-00 00:00:00'";
 	$ATMdb->Execute($sql);
 	
 	$TStatutSuivi = array();
