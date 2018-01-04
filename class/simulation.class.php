@@ -1601,7 +1601,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$found = false;
 		foreach ($this->simulation->TSimulationSuivi as $id_suivi => $suivi) {
-			if($found) {
+			if($found && empty($suivi->statut)) {
 				if(in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP'))) {
 					$suivi->doAction($PDOdb, $this->simulation, 'demander');
 				}
