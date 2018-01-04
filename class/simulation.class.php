@@ -273,7 +273,7 @@ class TSimulation extends TObjetStd {
 			$simulationSuivi->save($PDOdb);
 			
 			// Lancement de la demande automatique via EDI pour le leaser prioritaire
-			if($simulationSuivi->leaser->array_options['options_edi_leaser'] == 'LIXXBAIL') {
+			if(in_array($simulationSuivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP'))) {
 				$simulationSuivi->doAction($PDOdb, $this, 'demander');
 			}
 		}
