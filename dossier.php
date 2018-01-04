@@ -217,6 +217,8 @@
 					$dirname = DOL_DATA_ROOT.'/'.$conf->entity.'/financement/XML/Lixxbail/'.$filename.'.xml';
 				else
 					$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
+				
+				dol_mkdir($dirname);
 
 				//$affaire->uploadXMLOnLeaserServer($host,$user,$directory,$dirname,$filename.'.xml');
 //echo $dirname;exit;
@@ -660,6 +662,8 @@ function _getExportXML($sql){
 		$url = DOL_DATA_ROOT.'/'.$conf->entity.'/financement/XML/Lixxbail/';
 	else
 		$url = DOL_DATA_ROOT.'/financement/XML/Lixxbail/';
+	
+	dol_mkdir($url);
 	
 	$filepath = $url.$filename;
 	$file = fopen($filepath,'w');

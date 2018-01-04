@@ -44,7 +44,7 @@ if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive 
 		$societe->town = $_REQUEST['ville'];
 		$societe->country_id = 1;
 		//$societe->country = $_REQUEST['pays'];
-		$societe->idprof1 = $_REQUEST['siren'];
+		$societe->idprof1 = substr($_REQUEST['siren'],0,9);
 		$societe->idprof2 = $_REQUEST['siren'];
 		$societe->idprof3 = $_REQUEST['naf'];
 		$societe->client = 2;
@@ -614,7 +614,8 @@ function getAllStatutSuivi() {
 
 	$sql = "SELECT fk_simulation, statut, date_selection 
 			FROM ".MAIN_DB_PREFIX."fin_simulation_suivi
-			WHERE statut != ''";
+			WHERE statut != ''
+			AND date_historization < '1970-00-00 00:00:00'";
 	$ATMdb->Execute($sql);
 	
 	$TStatutSuivi = array();

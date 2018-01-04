@@ -131,7 +131,7 @@ class ServiceFinancement {
 	{
 		global $conf,$langs;
 		
-		$this->wsdl = dol_buildpath('/financement/files/DemandeCreationLeasingGNV1.wsdl', 2);
+		$this->wsdl = dol_buildpath('/financement/files/DemandeCreationLeasingGNV1.wsdl');
 		
 		// Production ou Test
 		if ($this->production) $this->endpoint = !empty($conf->global->FINANCEMENT_ENDPOINT_CALF_PROD) ? $conf->global->FINANCEMENT_ENDPOINT_CALF_PROD : 'https://archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1';
