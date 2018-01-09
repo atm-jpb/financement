@@ -30,10 +30,23 @@ if(!empty($_REQUEST['cancel'])) { // Annulation
 if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive de Wonderbase, direction nouvelle simulation
 	if(!empty($_REQUEST['code_artis'])) { // Client
 		$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe', array('code_client'=>$_REQUEST['code_artis'],'client'=>1));
-		header('Location: ?action=new&fk_soc='.$TId[0]); exit;
+		// Si le client a une simulation en cours de validité, on va sur la liste de ses simulations
+		$hasValidSimu = _has_valid_simulations($ATMdb, $TId[0]);
+		if ($hasValidSimu) {
+		    header('Location: ?socid='.$TId[0]); exit;
+		} else {
+		    header('Location: ?action=new&fk_soc='.$TId[0]); exit;
+		}
+		
 	} else if(!empty($_REQUEST['code_wb'])) { // Prospect
 		$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe', array('code_client'=>$_REQUEST['code_wb'],'client'=>2));
-		if(!empty($TId[0])) { header('Location: ?action=new&fk_soc='.$TId[0]); exit; }
+		if(!empty($TId[0])) { 
+		    // Si le prospect a une simulation en cours de validité, on va sur la liste de ses simulations
+		    $hasValidSimu = _has_valid_simulations($ATMdb, $TId[0]);
+		    if ($hasValidSimu) {
+		        header('Location: ?socid='.$TId[0]); exit;
+		    } else { header('Location: ?action=new&fk_soc='.$TId[0]); exit; }
+		}
 		//pre($_REQUEST);
 		// Création du prospect s'il n'existe pas
 		$societe = new Societe($db);
@@ -400,7 +413,7 @@ function _liste(&$ATMdb, &$simulation) {
 	//$sql = "SELECT DISTINCT s.rowid, s.reference, e.rowid as entity_id, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql = "SELECT DISTINCT s.rowid, s.reference, e.rowid as entity_id, s.fk_soc, CONCAT(SUBSTR(soc.nom, 1, 25), '...') as nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'M' WHEN s.opt_periodicite = 'ANNEE' THEN 'A' WHEN s.opt_periodicite = 'SEMESTRE' THEN 'S' ELSE 'T' END) as 'duree',";
-	$sql.= " s.date_simul, u.login, s.accord, s.type_financement, lea.nom as leaser, '' as suivi, '' as loupe";
+	$sql.= " s.date_simul, s.date_validite, u.login, s.accord, s.type_financement, lea.nom as leaser, '' as suivi, '' as loupe";
 	$sql.= " FROM @table@ s ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON (s.fk_user_author = u.rowid)";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc ON (s.fk_soc = soc.rowid)";
@@ -463,6 +476,7 @@ function _liste(&$ATMdb, &$simulation) {
 	}
 	
 	$THide[] = 'type_financement';
+	$THide[] = 'date_validite';
 	
 	$TOrder = array('date_simul'=>'DESC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
@@ -483,6 +497,7 @@ function _liste(&$ATMdb, &$simulation) {
 			'reference'=>'<a href="?id=@rowid@">@val@</a>'
 			,'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
 			,'login'=>'<a href="'.DOL_URL_ROOT.'/user/card.php?id=@fk_user_author@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
+		    //,'loupe'=>'<a href="?id=@rowid@"&action=edit>'.img_picto('','button_edit.png', '', 0).' @date_validite@</a>'
 		)
 		,'translate'=>array(
 			'fk_type_contrat'=>$affaire->TContrat
@@ -529,6 +544,7 @@ function _liste(&$ATMdb, &$simulation) {
 		)
 		,'eval'=>array(
 			'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
+		    ,'loupe' => '_simu_edit_link(@rowid@, \'@date_validite@\')'
 		)
 		,'size'=>array(
 			'width'=>array(
@@ -1438,3 +1454,33 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		)
 	));
 }
+
+function _has_valid_simulations(&$ATMdb, $socid){
+    
+    global $db;
+
+    $simu = new TSimulation();
+    $TSimulations = $simu->load_by_soc($ATMdb, $db, $socid);
+    
+    foreach ($TSimulations as $simulation){
+        if($simulation->date_validite > dol_now()) {
+            return true;
+        }
+    }
+        return false;
+    
+}
+
+function _simu_edit_link($simulId, $date){
+    
+    global $db, $ATMdb;
+    
+    if(strtotime($date) > dol_now()){
+        $return = '<a href="?id='.$simulId.'"&action=edit>'.img_picto('','button_edit.png', '', 0).'</a>';
+    } else {
+        $return = '';
+    }
+    return $return;
+    
+}
+
