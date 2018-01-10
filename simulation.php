@@ -729,6 +729,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	$html=new Form($db);
 	$form=new TFormCore($_SERVER['PHP_SELF'].'#calculateur','formSimulation','POST'); //,FALSE,'onsubmit="return soumettreUneSeuleFois(this);"'
 	$form->Set_typeaff($mode);
+	//$form->Set_typeaff('edit');
 
 	echo $form->hidden('id', $simulation->getId());
 	echo $form->hidden('action', 'save');
@@ -903,8 +904,13 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$form->Set_typeaff($mode);
 		$simuArray['montant'] = $form->texte('', 'montant', $simulation->montant, 10);
 		$simuArray['echeance'] = $form->texte('', 'echeance', $simulation->echeance, 10);
-		$simuArray['montant_presta_trim'] = $form->texte('', 'montant_presta_trim', $simuation->montant_presta_trim, 10);
+		$simuArray['montant_presta_trim'] = $form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10);
 		$simuArray['type_materiel'] = $form->texte('','type_materiel',$simulation->type_materiel, 50);
+		$simuArray['opt_periodicite'] = $form->combo('', 'opt_periodicite', $financement->TPeriodicite, $simulation->opt_periodicite);
+		$simuArray['duree'] = $form->combo('', 'duree', $TDuree, $simulation->duree);
+		$simuArray['fk_type_contrat'] = $form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat);
+		$simuArray['opt_mode_reglement'] = $form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement);
+		$simuArray['opt_terme'] = $form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme);
 	}
 	
 	// Recherche par SIREN
