@@ -797,8 +797,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	}
 	else{
 		$rachat_autres = "texteRO";
-		$link_user = '<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>';
-		$link_user_suivi = '<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$simulation->fk_user_suivi.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user_suivi->login.'</a>';
+		$link_user = '<a href="'.DOL_URL_ROOT.'/user/card.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>';
+		$link_user_suivi = '<a href="'.DOL_URL_ROOT.'/user/info.php?id='.$simulation->fk_user_suivi.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user_suivi->login.'</a>';
 	}
 	
 	$e = new DaoMulticompany($db);
@@ -1408,7 +1408,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		,'link'=>array(
 			'num_affaire'=>'<a href="affaire.php?id=@id_affaire@">@val@</a>'
 			,'num_contrat'=>'<a href="dossier.php?id=@id_dossier@">@val@</a>'
-			,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
+			,'user'=>'<a href="'.DOL_URL_ROOT.'/user/card.php?id=@fk_user@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
 		)
 		,'hide'=>$THide
 		,'type'=>array('Début'=>'date', 'Fin'=>'date')
@@ -1437,7 +1437,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		)
 		,'link'=>array(
 			'N° affaire'=>'<a href="affaire.php?id=@IDAff@">@val@</a>'
-			,'Utilisateur'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id=@fk_user@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
+			,'Utilisateur'=>'<a href="'.DOL_URL_ROOT.'/user/card.php?id=@fk_user@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
 		)
 		,'hide'=>$THide
 		,'type'=>array('Début'=>'date', 'Fin'=>'date')
