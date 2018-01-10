@@ -798,7 +798,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	else{
 		$rachat_autres = "texteRO";
 		$link_user = '<a href="'.DOL_URL_ROOT.'/user/card.php?id='.$simulation->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user->login.'</a>';
-		$link_user_suivi = '<a href="'.DOL_URL_ROOT.'/user/info.php?id='.$simulation->fk_user_suivi.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user_suivi->login.'</a>';
+		$link_user_suivi = '<a href="'.DOL_URL_ROOT.'/user/card.php?id='.$simulation->fk_user_suivi.'">'.img_picto('','object_user.png', '', 0).' '.$simulation->user_suivi->login.'</a>';
 	}
 	
 	$e = new DaoMulticompany($db);
