@@ -10,7 +10,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_decompte_copies_sup,montant_rachat_final,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
 		parent::add_champs('date_simul,date_validite,date_accord,date_demarrage','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,marque_materiel,numero_accord,reference,opt_calage','type=chaine;');
-		parent::add_champs('dossiers,dossiers_rachetes_m1,dossiers_rachetes_nr_m1,dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
+		parent::add_champs('modifs,dossiers,dossiers_rachetes_m1,dossiers_rachetes_nr_m1,dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
 		parent::add_champs('thirdparty_name,thirdparty_address,thirdparty_zip,thirdparty_town,thirdparty_code_client,thirdparty_idprof2_siret, thirdparty_idprof3_naf','type=chaine;');
 		parent::add_champs('montant_accord','type=float;'); // Sert à stocker le montant pour lequel l'accord a été donné
 		parent::add_champs('fk_categorie_bien,fk_nature_bien', array('type'=>'integer'));
@@ -111,7 +111,7 @@ class TSimulation extends TObjetStd {
 		$this->dossiers_rachetes_p1 = array();
 		$this->dossiers_rachetes_nr_p1 = array();
 		$this->dossiers_rachetes_perso = array();
-		
+		$this->modifs = array();
 		$this->modifiable = 1; // 1 = modifiable, 2 = modifiable +- 10%, 0 = non modifiable
 		
 		// Catégorie et nature par défaut pour transfert EDI
@@ -420,27 +420,27 @@ class TSimulation extends TObjetStd {
 			// 2017.03.14 MKO : on ne tient plus compte de la règle "Cession"
 			//$cat = new Categorie($db);
 			//$cat->fetch(0,'Cession');
-			
-			foreach($TRowid as $rowid){
-				$simulationSuivi = new TSimulationSuivi;
-				$simulationSuivi->load($PDOdb, $rowid);
-				// Attention les type date via abricot, c'est du timestamp
-				if ($simulationSuivi->date_historization <= 0) {
-					$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
-					// Si une demande a déjà été lancée, la simulation n'est plus modifiable
-					// Sauf pour les admins
-					global $user;
-					if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
-						//if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
-						//	$this->modifiable = 0;
-						//} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
-							$this->modifiable = 2;
-						//}
-					}
-				}
-				else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
-			}
-			
+		    if (empty($this->TSimulationSuivi)){
+    			foreach($TRowid as $rowid){
+    				$simulationSuivi = new TSimulationSuivi;
+    				$simulationSuivi->load($PDOdb, $rowid);
+    				// Attention les type date via abricot, c'est du timestamp
+    				if ($simulationSuivi->date_historization <= 0) {
+    					$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+    					// Si une demande a déjà été lancée, la simulation n'est plus modifiable
+    					// Sauf pour les admins
+    					global $user;
+    					if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
+    						//if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
+    						//	$this->modifiable = 0;
+    						//} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
+    							$this->modifiable = 2;
+    						//}
+    					}
+    				}
+    				else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
+    			}
+		    }
 			if (empty($this->TSimulationSuivi)) $this->create_suivi_simulation($PDOdb);
 		}
 		elseif($this->rowid > 0){
