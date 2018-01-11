@@ -248,6 +248,7 @@ if(!empty($action)) {
 			if($simulation->accord == 'OK' && $simulation->accord != $oldAccord) {
 				$simulation->date_accord = time();
 				$simulation->accord_confirme = 1;
+				$simulation->montant_accord = $_REQUEST['montant'];
 				$simulation->setThirparty();
 			} 
 			else if($simulation->accord == 'KO' && $simulation->accord != $oldAccord) {
@@ -273,12 +274,11 @@ if(!empty($action)) {
 			if($error) {
 				_fiche($ATMdb, $simulation,'edit');
 			} else {
-				
 				// Modification du type de contrat => save du suivi
 				if (strcmp($fk_type_contrat_old, $fk_type_contrat_new) != 0)
 				{
-					$simulation->load_suivi_simulation($ATMdb);
-					if (!empty($simulation->TSimulationSuivi))
+				    $simulation->load_suivi_simulation($ATMdb);
+				    if (!empty($simulation->TSimulationSuivi))
 					{
 						$now = time();
 						$nowFr = date('d/m/Y H:i');
@@ -289,12 +289,13 @@ if(!empty($action)) {
 								$simuSuivi->delete($ATMdb);
 							}
 							else 
-							{
+							{							    
 								if (!empty($simuSuivi->commentaire)) $simuSuivi->commentaire .= "\n";
 								$simuSuivi->commentaire .= "[$fk_type_contrat_old] suivi historisé le $nowFr";
 								$simuSuivi->date_historization = $now;
 								
 								$simuSuivi->save($ATMdb);
+								
 							}
 						}
 					}
@@ -305,6 +306,20 @@ if(!empty($action)) {
 				// Si le leaser préconisé est renseigné, on enregistre le montant pour le figer (+- 10%)
 				if(empty($simulation->montant_accord) && $simulation->fk_leaser > 0) {
 					$simulation->montant_accord = $simulation->montant_total_finance;
+				}
+				
+				if($_REQUEST['mode'] == 'edit_montant') { // si le commercial a fait une modif
+				    if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
+				        if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
+				            $diff = round($_REQUEST['coeff'], 3) - $simulation->coeff;
+				            $simulation->coeff_final = $simulation->coeff_final + $diff;
+				        }
+				        
+				    } else {
+				        $simulation->accord = 'MODIF';
+				        $simulation->coeff_final = 0;
+				    }
+				    
 				}
 				
 				//$ATMdb->db->debug=true;
@@ -908,9 +923,10 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$simuArray['type_materiel'] = $form->texte('','type_materiel',$simulation->type_materiel, 50);
 		$simuArray['opt_periodicite'] = $form->combo('', 'opt_periodicite', $financement->TPeriodicite, $simulation->opt_periodicite);
 		$simuArray['duree'] = $form->combo('', 'duree', $TDuree, $simulation->duree);
-		$simuArray['fk_type_contrat'] = $form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat);
+		//$simuArray['fk_type_contrat'] = $form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat);
 		$simuArray['opt_mode_reglement'] = $form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement);
 		$simuArray['opt_terme'] = $form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme);
+		$simuArray['coeff'] = $form->texteRO('', 'coeff', $coeff, 6);
 	}
 	
 	// Recherche par SIREN

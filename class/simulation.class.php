@@ -408,7 +408,8 @@ class TSimulation extends TObjetStd {
 	//Charge dans un tableau les différents suivis de demande leaser concernant la simulation
 	function load_suivi_simulation(&$PDOdb){
 		global $db;
-		$this->TSimulationSuivi = array();
+		
+		//$this->TSimulationSuivi = array();
 		$this->TSimulationSuiviHistorized = array();
 		
 		$TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
