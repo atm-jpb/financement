@@ -27,9 +27,9 @@ class TSimulation extends TObjetStd {
 		$this->TStatut=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
+			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser')
+		    ,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur')
 		    ,'MODIF'=>$langs->trans('Modif')
-			/*,'WAIT_LEASER'=>$langs->trans('Etude_Leaser')
-			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur')*/
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
@@ -37,9 +37,9 @@ class TSimulation extends TObjetStd {
 		$this->TStatutShort=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
+			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser_Short')
+		    ,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur_Short')
 		    ,'MODIF'=>$langs->trans('Modif')
-			/*,'WAIT_LEASER'=>$langs->trans('Etude_Leaser_Short')
-			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur_Short')*/
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
@@ -1392,6 +1392,9 @@ class TSimulation extends TObjetStd {
 				$this->date_accord = time();
 				//$this->date_validite = strtotime('+ 3 months');
 			}
+			
+			if(($this->accord == 'WAIT') && ($_REQUEST['accord'] == 'WAIT_LEASER' || $_REQUEST['accord'] == 'WAIT_SELLER')) $this->accord = $_REQUEST['accord'];
+			
 			if($mode == 'save' && ($this->accord == 'OK' || $this->accord == 'KO')) { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
 				$this->send_mail_vendeur(true);
 			}

@@ -219,16 +219,16 @@ if(!empty($action)) {
 			//pre($_REQUEST,true);
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			
-			if($_REQUEST['montant'] !== $simulation->montant) $simulation->modifs['montant'] = $simulation->montant;
-			if($_REQUEST['echeance'] !== $simulation->echeance) $simulation->modifs['echeance'] = $simulation->echeance;
-			if($_REQUEST['montant_presta_trim'] !== $simulation->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $simulation->montant_presta_trim;
+			if((float)$_REQUEST['montant'] !== $simulation->montant) $simulation->modifs['montant'] = $simulation->montant;
+			if((float)$_REQUEST['echeance'] !== $simulation->echeance) $simulation->modifs['echeance'] = $simulation->echeance;
+			if((float)$_REQUEST['montant_presta_trim'] !== $simulation->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $simulation->montant_presta_trim;
 			if($_REQUEST['type_materiel'] !== $simulation->type_materiel) $simulation->modifs['type_materiel'] = $simulation->type_materiel;
 			if($_REQUEST['opt_periodicite'] !== $simulation->opt_periodicite) $simulation->modifs['opt_periodicite'] = $simulation->opt_periodicite;
-			if($_REQUEST['duree'] !== $simulation->duree) $simulation->modifs['duree'] = $simulation->duree;
+			if((int)$_REQUEST['duree'] !== $simulation->duree) $simulation->modifs['duree'] = $simulation->duree;
 			if($_REQUEST['fk_type_contrat'] !== $simulation->fk_type_contrat) $simulation->modifs['fk_type_contrat'] = $simulation->fk_type_contrat;
 			if($_REQUEST['opt_mode_reglement'] !== $simulation->opt_mode_reglement) $simulation->modifs['opt_mode_reglement'] = $simulation->opt_mode_reglement;
 			if($_REQUEST['opt_terme'] !== $simulation->opt_terme) $simulation->modifs['opt_terme'] = $simulation->opt_terme;
-			if($_REQUEST['coeff'] !== $simulation->coeff) $simulation->modifs['coeff'] = $simulation->coeff;
+			if((float)$_REQUEST['coeff'] !== $simulation->coeff) $simulation->modifs['coeff'] = $simulation->coeff;
 			
 			$oldAccord = $simulation->accord;
 			//pre($_REQUEST,true);
@@ -395,6 +395,12 @@ if(!empty($action)) {
 			if($id_suivi){
 				
 				$simulation->load($ATMdb, $db, GETPOST('id'));
+				foreach ($simulation->TSimulationSuivi as $k => $simulationSuivi) {
+				    if ($simulationSuivi->rowid == $id_suivi){
+				        $id_suivi = $k;
+				        break;
+				    }
+				}
 				$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb,$simulation,$action);
 					
 				if(!empty($simulation->TSimulationSuivi[$id_suivi]->errorLabel)){
@@ -529,7 +535,6 @@ function _liste(&$ATMdb, &$simulation) {
 			'reference'=>'<a href="?id=@rowid@">@val@</a>'
 			,'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
 			,'login'=>'<a href="'.DOL_URL_ROOT.'/user/card.php?id=@fk_user_author@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
-		    //,'loupe'=>'<a href="?id=@rowid@"&action=edit>'.img_picto('','button_edit.png', '', 0).' @date_validite@</a>'
 		)
 		,'translate'=>array(
 			'fk_type_contrat'=>$affaire->TContrat
@@ -656,7 +661,7 @@ function getStatutSuivi($idSimulation) {
 }
 
 function getAllStatutSuivi() {
-	global $db, $TDossierLink;
+	global $db, $TDossierLink, $langs;
 
 	$ATMdb = new TPDOdb;
 
@@ -671,6 +676,12 @@ function getAllStatutSuivi() {
 	
 	$res = '';
 	while($ATMdb->Get_line()) $TStatutSuivi[$ATMdb->Get_field('fk_simulation')][] = array('statut'=>$ATMdb->Get_field('statut'), 'date_selection'=>$ATMdb->Get_field('date_selection'));
+	
+	$TAccords = array();
+	$sql = "SELECT rowid, accord FROM " . MAIN_DB_PREFIX . "fin_simulation WHERE rowid in (" . implode(",", array_keys($TStatutSuivi)) . ")";
+	$ATMdb->Execute($sql);
+	
+	while($ATMdb->Get_line()) $TAccords[$ATMdb->Get_field('rowid')] = $ATMdb->Get_field('accord');
 	
 	foreach ($TStatutSuivi as $fk_simulation => $TStatut) {
 		
@@ -703,15 +714,17 @@ function getAllStatutSuivi() {
 			elseif($TData['statut'] == 'ERR') $nb_err++;
 		
 		}
-
+		
 		if(!$super_ok) {
 			if($nb_ok > 0 || $nb_wait > 0 || $nb_refus > 0 || $nb_err > 0) {
 				$TStatutSuiviFinal[$fk_simulation] = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$fk_simulation, 1).'#suivi_leaser">';
-				if($nb_ok > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/OK.png',1).'" />';
-				elseif($nb_refus > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/KO.png',1).'" />';
-				elseif($nb_wait > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
+				if ($TAccords[$fk_simulation] == 'WAIT_SELLER') $TStatutSuiviFinal[$fk_simulation].= '<img title="'.$langs->trans('Etude_Vendeur').'" src="'.dol_buildpath('/financement/img/WAIT_VENDEUR.png',1).'" />';
+				elseif ($TAccords[$fk_simulation] == 'WAIT_LEASER') $TStatutSuiviFinal[$fk_simulation].= '<img title="'.$langs->trans('Etude_Leaser').'" src="'.dol_buildpath('/financement/img/WAIT_LEASER.png',1).'" />';
+				elseif($nb_ok > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="'.$langs->trans('Etude').'" src="'.dol_buildpath('/financement/img/OK.png',1).'" />';
+				elseif($nb_refus > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="'.$langs->trans('Refus').'" src="'.dol_buildpath('/financement/img/KO.png',1).'" />';
+				elseif($nb_wait > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="'.$langs->trans('Etude').'" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
 				elseif($nb_err > 0) $TStatutSuiviFinal[$fk_simulation].= '<img title="Erreur" src="'.dol_buildpath('/financement/img/ERR.png',1).'" />';
-				else $TStatutSuiviFinal[$fk_simulation].= '<img title="En étude" src="'.dol_buildpath('/financement/img/KO.png',1).'" />';
+				else $TStatutSuiviFinal[$fk_simulation].= '<img title="'.$langs->trans('Etude').'" src="'.dol_buildpath('/financement/img/KO.png',1).'" />';
 				$TStatutSuiviFinal[$fk_simulation].= '</a>';
 			}
 		}
@@ -934,16 +947,16 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	if($mode == 'edit_montant') {
 		$mode = 'edit';
 		$form->Set_typeaff($mode);
-		$simuArray['montant'] = $form->texte('', 'montant', $simulation->montant, 10);
-		$simuArray['echeance'] = $form->texte('', 'echeance', $simulation->echeance, 10);
-		$simuArray['montant_presta_trim'] = $form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10);
-		$simuArray['type_materiel'] = $form->texte('','type_materiel',$simulation->type_materiel, 50);
-		$simuArray['opt_periodicite'] = $form->combo('', 'opt_periodicite', $financement->TPeriodicite, $simulation->opt_periodicite);
-		$simuArray['duree'] = $form->combo('', 'duree', $TDuree, $simulation->duree);
-		$simuArray['fk_type_contrat'] = $form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat);
-		$simuArray['opt_mode_reglement'] = $form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement);
-		$simuArray['opt_terme'] = $form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme);
-		$simuArray['coeff'] = $form->texteRO('', 'coeff', $coeff, 6);
+		$simuArray['montant'] = $form->texte('', 'montant', (empty($simulation->modifs['montant']) ? $simulation->montant : $simulation->modifs['montant']), 10);
+		$simuArray['echeance'] = $form->texte('', 'echeance', (empty($simulation->modifs['echeance']) ? $simulation->echeance : $simulation->modifs['echeance']), 10);
+		$simuArray['montant_presta_trim'] = $form->texte('', 'montant_presta_trim', (empty($simulation->modifs['montant_presta_trim']) ? $simulation->montant_presta_trim : $simulation->modifs['montant_presta_trim']), 10);
+		$simuArray['type_materiel'] = $form->texte('','type_materiel', (empty($simulation->modifs['type_materiel']) ? $simulation->type_materiel : $simulation->modifs['type_materiel']), 50);
+		$simuArray['opt_periodicite'] = $form->combo('', 'opt_periodicite', $financement->TPeriodicite, (empty($simulation->modifs['opt_periodicite']) ? $simulation->opt_periodicite : $simulation->modifs['opt_periodicite'] ));
+		$simuArray['duree'] = $form->combo('', 'duree', $TDuree, (empty($simulation->modifs['duree']) ? $simulation->duree : $simulation->modifs['duree']));
+		$simuArray['fk_type_contrat'] = $form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), (empty($simulation->modifs['fk_type_contrat']) ? $simulation->fk_type_contrat : $simulation->modifs['fk_type_contrat']));
+		$simuArray['opt_mode_reglement'] = $form->combo('', 'opt_mode_reglement', $financement->TReglement, (empty($simulation->modifs['opt_mode_reglement']) ? $simulation->opt_mode_reglement : $simulation->modifs['opt_mode_reglement']));
+		$simuArray['opt_terme'] = $form->combo('', 'opt_terme', $financement->TTerme, (empty($simulation->modifs['opt_terme']) ? $simulation->opt_terme : $simulation->modifs['opt_terme']));
+		$simuArray['coeff'] = $form->texteRO('', 'coeff', (empty($simulation->modifs['coeff']) ? $coeff : $simulation->modifs['coeff']), 6);
 	}
 	
 	// Recherche par SIREN
