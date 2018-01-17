@@ -1883,8 +1883,7 @@ class TImport extends TObjetStd {
 					LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON (ee.fk_target = f.rowid AND targettype = 'facture' AND sourcetype = 'dossier')
 					LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier as d ON (d.rowid = ee.fk_source)
 					LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as df ON (df.fk_fin_dossier = d.rowid)
-				WHERE d.entity = ".$conf->entity."
-					AND df.type = 'CLIENT' AND df.reference = '".$val['reference_dossier_interne']."' AND f.facnumber LIKE '".$val['facnumber']."%'";
+				WHERE  df.type = 'CLIENT' AND df.reference = '".$val['reference_dossier_interne']."' AND f.facnumber LIKE '".$val['facnumber']."%'";
 		
 		$TRes = $ATMdb->ExecuteAsArray($sql);
 		
