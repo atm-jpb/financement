@@ -347,6 +347,12 @@ if(!empty($action)) {
 					$simulation->send_mail_vendeur();
 				}
 				
+				if (empty($oldAccord) || $oldAccord !== $simulation->accord) {
+				    $sql = "INSERT INTO ".MAIN_DB_PREFIX."fin_simulation_accord_log (`entity`, `fk_simulation`, `fk_user_author`, `datechange`, `accord`)"
+                    $sql.= " VALUES ('".$conf->entity."', '".$simulation->getId()."', '".$user->id."', '".dol_now()."', '".$simulation->accord."');";
+				    
+				}
+				
 				$simulation->load_annexe($ATMdb, $db);
 				
 				_fiche($ATMdb, $simulation,'view');
