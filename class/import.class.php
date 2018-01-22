@@ -760,7 +760,7 @@ class TImport extends TObjetStd {
 	function importLineFactureLocation(&$ATMdb, $data, &$TInfosGlobale) {
 		global $user, $db;
 		
-		if(!in_array($data['ref_service'], array('SSC101','SSC102','SSC106','037004','037003','033741','SSC109','SSC108','SSC104','SSC107','018528','020021', 'SSC128'))) {
+		if(!in_array($data['ref_service'], array('SSC101','SSC102','SSC106','037004','037003','033741','SSC109','SSC108','SSC104','SSC107','018528','020021', 'SSC128','SSC151'))) {
 			//On importe uniquement certaine ref produit
 			//$this->addError($ATMdb, 'InfoRefServiceNotNeededNow', $data['ref_service'], 'WARNING');
 			return false;
@@ -1424,7 +1424,7 @@ class TImport extends TObjetStd {
 		if(empty($TInfosGlobales['user'][$data[$this->mapping['search_key']]])) {
 			$fk_user = $this->_recherche_user($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 			if($fk_user === false) return false;
-			if($fk_user === 0) $fk_user = $user->id;
+			if($fk_user === 0) return false;
 			
 			$TInfosGlobale['user'][$data[$this->mapping['search_key']]] = $fk_user;
 		} else {
@@ -1883,8 +1883,7 @@ class TImport extends TObjetStd {
 					LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON (ee.fk_target = f.rowid AND targettype = 'facture' AND sourcetype = 'dossier')
 					LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier as d ON (d.rowid = ee.fk_source)
 					LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as df ON (df.fk_fin_dossier = d.rowid)
-				WHERE d.entity = ".$conf->entity."
-					AND df.type = 'CLIENT' AND df.reference = '".$val['reference_dossier_interne']."' AND f.facnumber LIKE '".$val['facnumber']."%'";
+				WHERE  df.type = 'CLIENT' AND df.reference = '".$val['reference_dossier_interne']."' AND f.facnumber LIKE '".$val['facnumber']."%'";
 		
 		$TRes = $ATMdb->ExecuteAsArray($sql);
 		
