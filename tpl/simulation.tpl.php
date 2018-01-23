@@ -234,6 +234,13 @@
 			<td>Numéro accord</td>
 			<td>[simulation.numero_accord; strconv=utf8]</td>
 		</tr>
+		[onshow;block=begin; when [simulation.can_preco]==1]
+    	<tr>
+    		<td>Compteur d'attente</td>
+    		<td>[simulation.attente]</td>
+    		<td colspan="2"></td>
+    	</tr>
+    	[onshow;block=end]
 	</table>	
 	</div>
 </td>

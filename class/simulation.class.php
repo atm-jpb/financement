@@ -1401,6 +1401,137 @@ class TSimulation extends TObjetStd {
 		}
 		
 	}
+	
+	function delete_accord_history(&$ATMdb){
+	    $sql = "DELETE FROM " . MAIN_DB_PREFIX . "fin_simulation_accord_log WHERE fk_simulation = " . $this->getId();
+	    $ATMdb->Execute($sql);
+	}
+	
+	function historise_accord(&$ATMdb, $date = ''){
+	    global $user, $conf;
+	    
+	    if(empty($date)) $date = date("Y-m-d H:i:s", dol_now());
+	    $sql = "INSERT INTO ".MAIN_DB_PREFIX."fin_simulation_accord_log (`entity`, `fk_simulation`, `fk_user_author`, `datechange`, `accord`)";
+	    $sql.= " VALUES ('".$conf->entity."', '".$this->getId()."', '".$user->id."', '". $date ."', '".$this->accord."');";
+	    $ATMdb->Execute($sql);
+	}
+	
+	function get_attente(&$ATMdb){
+	    global $conf;
+	    
+	    dol_include_once('/jouroff/class/jouroff.class.php');
+	    if ($this->getId() == '') return 0;
+	    
+	    $Jo = new TRH_JoursFeries();
+	    
+	    $sql = "SELECT datechange, accord FROM " . MAIN_DB_PREFIX . "fin_simulation_accord_log ";
+	    $sql.= " WHERE fk_simulation = " . $this->getId();
+	    $sql.= " AND entity = " . $conf->entity;
+	    $sql.= " ORDER BY datechange ASC";
+	    $ATMdb->Execute($sql);
+	    
+	    $TTimes = array();
+	    $lastdate = '';
+	    $i = 0;
+	    
+	    while($ATMdb->Get_line()){
+	        $TTimes[$i] = array('last' => $ATMdb->Get_field('datechange'), 'accord' => $ATMdb->Get_field('accord'), 'change' => date("Y-04-d H:i:s", dol_now()));
+	        if (!empty($i)) $TTimes[$i-1]['change'] = $ATMdb->Get_field('datechange');
+	        $i++;
+	    }
+	    
+	    if (count($TTimes) == 0) {
+	        if ($this->accord !== 'OK') {
+	            $this->historise_accord($ATMdb, date("Y-m-d H:i:s", $this->date_simul));
+	            return $this->get_attente($ATMdb);
+	        } else {
+	            $this->accord = "WAIT";
+	            $this->historise_accord($ATMdb, date("Y-m-d H:i:s", $this->date_simul));
+	            $this->accord = "OK";
+	            $this->historise_accord($ATMdb, date("Y-m-d H:i:s", $this->date_accord));
+	            return $this->get_attente($ATMdb);
+	        }
+	    }
+	    else {
+	        $compteur = 0; 
+	        
+	        foreach ($TTimes as $time) {	  
+	            
+	            while (strtotime($time['last']) < strtotime($time['change'])){
+	                $searchjourouvre = true;
+	                
+	                while ($searchjourouvre){
+	                    
+	                    $heuredeb1 = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_DEBUT_MATIN.":00", strtotime($time['last'])));
+	                    $heurefin1 = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_FIN_MATIN.":00", strtotime($time['last'])));
+	                    $heuredeb2 = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_DEBUT_APREM.":00", strtotime($time['last'])));
+	                    $heurefin2 = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_FIN_APREM.":00", strtotime($time['last'])));
+	                    
+	                    $ferie = $Jo->estFerie($ATMdb, date("Y-m-d 00:00:00", strtotime($time['last'])));
+	                    
+	                    $tms = strtotime($time['last']);
+	                    $nextdays = mktime(date("H", $heuredeb1), date("i", $heuredeb1), 0, date("m", $tms)  , date("d", $tms)+1, date("Y", $tms));
+	                    
+	                    $heure = date("H:i", strtotime($time['last']));
+	                    $dateheure = date("Y-m-d ", strtotime($time['last'])) . $heure . ":00";
+	                    $joursemaine = date("N", strtotime($time['last']));
+	                    
+	                    if ($ferie || strtotime($dateheure) >= $heurefin2 || $joursemaine == '6' || $joursemaine == '7') {
+	                        $time['last'] = date("Y-m-d H:i:s", $nextdays);
+	                    } else {
+	                        $searchjourouvre = false;
+	                    }
+	                }
+	                
+	                if ($time['accord'] == "WAIT" || $time['accord'] == "WAIT_LEASER" || $time['accord'] == "MODIF") {
+	                    if(strtotime($time['last']) < $heurefin1) {
+	                        if(strtotime($time['change']) < $heurefin1) {
+	                            $compteur += strtotime($time['change']) - strtotime($time['last']);
+	                            $time['last'] = $time['change'];
+	                        } else {
+	                            $compteur += $heurefin1 - strtotime($time['last']);
+	                            if(strtotime($time['change']) > $heuredeb2 && strtotime($time['change']) < $heurefin2) {
+	                                $compteur += strtotime($time['change']) - $heuredeb2;
+	                                $time['last'] = $time['change'];
+	                            } elseif(strtotime($time['change']) > $heurefin2) {
+	                                $compteur += $heurefin2 - $heuredeb2;
+	                                $time['last'] = date("Y-m-d H:i:01", $heurefin2);
+	                            }
+	                        }
+	                    } elseif(strtotime($time['last']) < $heurefin2) {
+	                        if(strtotime($time['change']) > $heurefin2) {
+	                            if (strtotime($time['last']) > $heuredeb2) $compteur += $heurefin2 - strtotime($time['last']);
+	                            else $compteur += $heurefin2 - $heuredeb2;
+	                            $time['last'] = date("Y-m-d H:i:01", $heurefin2);
+	                        } else {
+	                            if (strtotime($time['last']) > $heuredeb2) $compteur += strtotime($time['change']) - strtotime($time['last']) ;
+	                            else $compteur += strtotime($time['change']) - $heuredeb2 ;
+	                            $time['last'] = $time['change'];
+	                        }
+	                        
+	                    }
+	                } else {
+	                    $time['last'] = $time['change'];
+	                }
+	                
+	                if (strtotime($time['last']) > strtotime($time['change'])) $time['last'] = $time['change'];
+	            }
+	            
+	        }
+	        
+	        //var_dump($TTimes);
+	        $min = ($compteur / 60) % 60;
+	        $heures = abs(round((($compteur / 60)-$min)/60));
+	        $jours = round($heures/24);
+	        $heures = $heures - ($jours * 24);
+	        $ret = '';
+	        $ret .= (!empty($jours) ? $jours . " jours " : "");
+	        $ret .= (!empty($heures) ? $heures . " h " : "");
+	        $ret .= (!empty($min) ? $min . " min" : "");
+	        return  $ret;
+	    }
+
+	}
 
 }
 
