@@ -69,7 +69,10 @@ class TFin_dossier extends TObjetStd {
 	function load(&$db, $id, $annexe=true, $annexe_fin = true) {
 		
 		$res = parent::load($db, $id);
-		if($annexe_fin) $this->load_financement($db);
+		if($annexe_fin) {
+			$this->load_financement($db);
+			$this->load_categ();
+		}
 		$this->reference_contrat_interne = (!empty($this->financement)) ? $this->financement->reference : '';
 		
 		if($annexe) {
@@ -84,6 +87,24 @@ class TFin_dossier extends TObjetStd {
 		}
 		
 		return $res;
+	}
+	function load_categ() {
+		global $db;
+		
+		dol_include_once('/categories/class/categorie.class.php');
+
+		$cat = new Categorie($db);
+		$cat->fetch(0, 'Acecom');
+		$this->financementLeaser->is_acecom = $cat->containsObject('supplier', $this->financementLeaser->fk_soc);
+		
+		$cat = new Categorie($db);
+		$cat->fetch(0, 'Locam');
+		$this->financementLeaser->is_locam = $cat->containsObject('supplier', $this->financementLeaser->fk_soc);
+		
+		// Capé LRD sauf si ACECOM ou LOCAM
+		$this->financementLeaser->cape_lrd = true;
+		if($this->financementLeaser->is_acecom) $this->financementLeaser->cape_lrd = false;
+		if($this->financementLeaser->is_locam) $this->financementLeaser->cape_lrd = false;
 	}
 	function load_financement(&$db) {
 		
@@ -946,18 +967,6 @@ class TFin_dossier extends TObjetStd {
 		
 		$CRD = $this->financement->valeur_actuelle($duree_restante_client);
 		$LRD = $this->financement->echeance * $duree_restante_client + $this->financement->reste;
-		
-		// Capé LRD sauf si ACECOM ou LOCAM
-		dol_include_once('/categories/class/categorie.class.php');
-		$this->financementLeaser->cape_lrd = true;
-		$cat = new Categorie($db);
-		$cat->fetch(0, 'Acecom');
-		$is_acecom = $cat->containsObject('supplier', $this->financementLeaser->fk_soc);
-		if($is_acecom) $this->financementLeaser->cape_lrd = false;
-		$cat = new Categorie($db);
-		$cat->fetch(0, 'Locam');
-		$is_locam = $cat->containsObject('supplier', $this->financementLeaser->fk_soc);
-		if($is_locam) $this->financementLeaser->cape_lrd = false;
 		
 		// Chargement des règle de solde (dictionnaire)
 		$this->load_c_conf_solde();
@@ -2410,7 +2419,7 @@ class TFin_financement extends TObjetStd {
 		
 		
 		//Cas spécifique Leaser = LOCAM
-		if($this->type == "LEASER" && $this->fk_soc == FK_SOC_LOCAM && !empty($capital_restant_du) && $this->terme == 1){
+		if($this->type == "LEASER" && $this->is_locam && !empty($capital_restant_du) && $this->terme == 1){
 			
 			/*echo '<pre>';
 			print_r($capital_restant);
