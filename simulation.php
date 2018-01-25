@@ -618,7 +618,7 @@ function _liste(&$ATMdb, &$simulation) {
 		$tab['title']['suivi'] = 'Statut<br>Leaser';
 		$tab['eval']['suivi'] = 'getStatutSuivi(@rowid@);';
 	}
-
+	
 	$r->liste($ATMdb, $sql, $tab);
 	
 	$form->end();
@@ -924,6 +924,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'marque_materiel'=>(!in_array($simulation->marque_materiel, $simulation->TMarqueMateriel) && !empty($simulation->marque_materiel) ? $langs->trans('Simulation_marque_not_more_available', $simulation->marque_materiel).' - ' : '') . $form->combo('','marque_materiel',$simulation->TMarqueMateriel,$simulation->marque_materiel)
 		,'numero_accord'=>($can_preco && GETPOST('action') == 'edit') ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $link_dossier
 		,'attente' => $simulation->get_attente($ATMdb)
+	    ,'attente_style' => (empty($simulation->attente_style)) ? 'none' : $simulation->attente_style
 		,'no_case_to_settle'=>$form->checkbox1('', 'opt_no_case_to_settle', 1, $simulation->opt_no_case_to_settle) 
 		
 		,'accord_val'=>$simulation->accord

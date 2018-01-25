@@ -108,6 +108,26 @@ if ($action =='save_horaires_travail'){
     }
 }
 
+if ($action == 'save_seuils_alerte'){
+    $first = (int)GETPOST('FINANCEMENT_FIRST_WAIT_ALARM');
+    $second = (int)GETPOST('FINANCEMENT_SECOND_WAIT_ALARM');
+    
+    $res = dolibarr_set_const($db,'FINANCEMENT_FIRST_WAIT_ALARM',$first,'chaine',0,'',$conf->entity);
+    if (! $res > 0) $error++;
+    
+    $res = dolibarr_set_const($db,'FINANCEMENT_SECOND_WAIT_ALARM',$second,'chaine',0,'',$conf->entity);
+    if (! $res > 0) $error++;
+    
+    if (! $error)
+    {
+        $mesg = "<font class=\"ok\">".$langs->trans("SetupSaved")."</font>";
+    }
+    else
+    {
+        $mesg = "<font class=\"error\">".$langs->trans("Error")."</font>";
+    }
+}
+
 /*
  * View
  */
@@ -439,6 +459,36 @@ print '<tr '.$bc[$var].'><td>';
 print 'Après-midi </td>';
 print '<td>'. _select_time($conf->global->FINANCEMENT_HEURE_DEBUT_APREM, 'DebutAprem');
 print '<td colspan="2">'. _select_time($conf->global->FINANCEMENT_HEURE_FIN_APREM, 'FinAprem');
+print '</td>';
+print "</tr>\n";
+
+print '</table><br />';
+
+print '</form>';
+
+print_titre("Seuils d'attente simulation");
+
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="save_seuils_alerte" />';
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameter").'</td>';
+print '<td align="center">'.$langs->trans("Value").'</td>';
+print '<td width="80"><input type="submit" class="button" value="'.$langs->trans("Enregistrer").'" /></td>';
+print "</tr>\n";
+$var=true;
+
+print '<tr '.$bc[$var].'><td>';
+print 'Seuil d\'attente moyen</td>';
+print '<td colspan="2"><input type="text" name="FINANCEMENT_FIRST_WAIT_ALARM" value="'.$conf->global->FINANCEMENT_FIRST_WAIT_ALARM.'" size="5"/> minutes';
+print '</td>';
+print "</tr>\n";
+$var=!$var;
+
+print '<tr '.$bc[$var].'><td>';
+print 'Seuil d\'attente alerte (supérieur au moyen)</td>';
+print '<td colspan="2"><input type="text" name="FINANCEMENT_SECOND_WAIT_ALARM" value="'.$conf->global->FINANCEMENT_SECOND_WAIT_ALARM.'" size="5"/> minutes';
 print '</td>';
 print "</tr>\n";
 

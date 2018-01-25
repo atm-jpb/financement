@@ -1519,15 +1519,23 @@ class TSimulation extends TObjetStd {
 	            
 	        }
 	        
+	        $style ='';
+	        $min = (int)($compteur / 60);
+	        if (!empty($conf->global->FINANCEMENT_FIRST_WAIT_ALARM) && $min >= (int)$conf->global->FINANCEMENT_FIRST_WAIT_ALARM) $style = 'color:orange';
+	        if (!empty($conf->global->FINANCEMENT_SECOND_WAIT_ALARM) && $min >= (int)$conf->global->FINANCEMENT_SECOND_WAIT_ALARM) $style = 'color:red';
+	        if (!empty($style)) $this->attente_style = $style;
+	        
 	        //var_dump($TTimes);
 	        $min = ($compteur / 60) % 60;
 	        $heures = abs(round((($compteur / 60)-$min)/60));
 	        $jours = round($heures/24);
 	        $heures = $heures - ($jours * 24);
+	        
 	        $ret = '';
 	        $ret .= (!empty($jours) ? $jours . " jours " : "");
 	        $ret .= (!empty($heures) ? $heures . " h " : "");
 	        $ret .= (!empty($min) ? $min . " min" : "");
+	        
 	        return  $ret;
 	    }
 

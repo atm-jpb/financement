@@ -237,7 +237,7 @@
 		[onshow;block=begin; when [simulation.can_preco]==1]
     	<tr>
     		<td>Compteur d'attente</td>
-    		<td>[simulation.attente]</td>
+    		<td><span style='[simulation.attente_style]'>[simulation.attente]</span></td>
     		<td colspan="2"></td>
     	</tr>
     	[onshow;block=end]
