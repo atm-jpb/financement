@@ -1534,7 +1534,7 @@ function _simu_edit_link($simulId, $date){
     global $db, $ATMdb;
     
     if(strtotime($date) > dol_now()){
-        $return = '<a href="?id='.$simulId.'"&action=edit>'.img_picto('','button_edit.png', '', 0).'</a>';
+        $return = '<a href="?id='.$simulId.'&action=edit">'.img_picto('','button_edit.png', '', 0).'</a>';
     } else {
         $return = '';
     }
