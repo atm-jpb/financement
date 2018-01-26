@@ -6,7 +6,7 @@ class TSimulation extends TObjetStd {
 		
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation');
 		parent::add_champs('entity,fk_soc,fk_user_author,fk_user_suivi,fk_leaser,accord_confirme','type=entier;');
-		parent::add_champs('duree,opt_administration,opt_creditbail,opt_adjonction,opt_no_case_to_settle','type=entier;');
+		parent::add_champs('attente,duree,opt_administration,opt_creditbail,opt_adjonction,opt_no_case_to_settle','type=entier;');
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_decompte_copies_sup,montant_rachat_final,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
 		parent::add_champs('date_simul,date_validite,date_accord,date_demarrage','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,marque_materiel,numero_accord,reference,opt_calage','type=chaine;');
@@ -1417,7 +1417,7 @@ class TSimulation extends TObjetStd {
 	}
 	
 	function get_attente(&$ATMdb){
-	    global $conf;
+	    global $conf, $db;
 	    
 	    dol_include_once('/jouroff/class/jouroff.class.php');
 	    if ($this->getId() == '') return 0;
@@ -1518,6 +1518,9 @@ class TSimulation extends TObjetStd {
 	            }
 	            
 	        }
+	        
+	        $this->attente = $compteur;
+	        $this->save($ATMdb, $db);
 	        
 	        $style ='';
 	        $min = (int)($compteur / 60);

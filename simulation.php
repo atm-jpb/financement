@@ -456,7 +456,7 @@ function _liste(&$ATMdb, &$simulation) {
 	//$sql = "SELECT DISTINCT s.rowid, s.reference, e.rowid as entity_id, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql = "SELECT DISTINCT s.rowid, s.reference, e.rowid as entity_id, s.fk_soc, CONCAT(SUBSTR(soc.nom, 1, 25), '...') as nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'M' WHEN s.opt_periodicite = 'ANNEE' THEN 'A' WHEN s.opt_periodicite = 'SEMESTRE' THEN 'S' ELSE 'T' END) as 'duree',";
-	$sql.= " s.date_simul, s.date_validite, u.login, s.accord, s.type_financement, lea.nom as leaser, '' as suivi, '' as loupe";
+	$sql.= " s.date_simul, s.date_validite, u.login, s.accord, s.type_financement, lea.nom as leaser, s.attente, '' as suivi, '' as loupe";
 	$sql.= " FROM @table@ s ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON (s.fk_user_author = u.rowid)";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc ON (s.fk_soc = soc.rowid)";
@@ -516,6 +516,7 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	if(!$user->rights->financement->allsimul->suivi_leaser){
 		$THide[] = 'suivi';
+		$THide[] = 'attente';
 	}
 	
 	$THide[] = 'type_financement';
@@ -586,6 +587,7 @@ function _liste(&$ATMdb, &$simulation) {
 		)
 		,'eval'=>array(
 			'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
+		    ,'attente' => 'print_attente(@val@)'
 		    ,'loupe' => '_simu_edit_link(@rowid@, \'@date_validite@\')'
 		)
 		,'size'=>array(
@@ -656,6 +658,31 @@ function _liste(&$ATMdb, &$simulation) {
 
 	return $res;
 }*/
+
+function print_attente($compteur){
+    global $conf;
+
+    $style ='';
+    $min = (int)($compteur / 60);
+    if (!empty($conf->global->FINANCEMENT_FIRST_WAIT_ALARM) && $min >= (int)$conf->global->FINANCEMENT_FIRST_WAIT_ALARM) $style = 'color:orange';
+    if (!empty($conf->global->FINANCEMENT_SECOND_WAIT_ALARM) && $min >= (int)$conf->global->FINANCEMENT_SECOND_WAIT_ALARM) $style = 'color:red';
+    
+    
+    //var_dump($TTimes);
+    $min = ($compteur / 60) % 60;
+    $heures = abs(round((($compteur / 60)-$min)/60));
+    $jours = round($heures/24);
+    $heures = $heures - ($jours * 24);
+    
+    $ret = '';
+    $ret .= (!empty($jours) ? $jours . " jours " : "");
+    $ret .= (!empty($heures) ? $heures . " h " : "");
+    $ret .= (!empty($min) ? $min . " min" : "");
+    
+    if (!empty($style)) $ret = '<span style="'.$style.'">'.$ret.'</span>';
+    
+    return  $ret;
+}
 
 function getStatutSuivi($idSimulation) {
 	
