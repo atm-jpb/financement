@@ -158,6 +158,18 @@ if(!empty($action)) {
 			break;
 		case 'calcul':
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
+			
+			if((float)$_REQUEST['montant'] !== $simulation->montant) $simulation->modifs['montant'] = $simulation->montant;
+			if((float)$_REQUEST['echeance'] !== $simulation->echeance) $simulation->modifs['echeance'] = $simulation->echeance;
+			if((float)$_REQUEST['montant_presta_trim'] !== $simulation->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $simulation->montant_presta_trim;
+			if($_REQUEST['type_materiel'] !== $simulation->type_materiel) $simulation->modifs['type_materiel'] = $simulation->type_materiel;
+			if($_REQUEST['opt_periodicite'] !== $simulation->opt_periodicite) $simulation->modifs['opt_periodicite'] = $simulation->opt_periodicite;
+			if((int)$_REQUEST['duree'] !== $simulation->duree) $simulation->modifs['duree'] = $simulation->duree;
+			if($_REQUEST['fk_type_contrat'] !== $simulation->fk_type_contrat) $simulation->modifs['fk_type_contrat'] = $simulation->fk_type_contrat;
+			if($_REQUEST['opt_mode_reglement'] !== $simulation->opt_mode_reglement) $simulation->modifs['opt_mode_reglement'] = $simulation->opt_mode_reglement;
+			if($_REQUEST['opt_terme'] !== $simulation->opt_terme) $simulation->modifs['opt_terme'] = $simulation->opt_terme;
+			if((float)$_REQUEST['coeff'] !== $simulation->coeff) $simulation->modifs['coeff'] = $simulation->coeff;
+			
 			$simulation->set_values($_REQUEST);
 			
 			// Si on ne modifie que le montant, les autres champs ne sont pas présent, il faut conserver ceux de la simu
@@ -175,6 +187,22 @@ if(!empty($action)) {
 				$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
 				$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
 				$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
+				
+				if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
+				    if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
+				        $diff = round($_REQUEST['coeff'], 3) - $simulation->coeff;
+				        $simulation->coeff_final = $simulation->coeff_final + $diff;
+				    }
+				    
+				} else {
+				    $simulation->accord = 'MODIF';
+				    $simulation->coeff_final = 0;
+				    
+				}
+			}
+			
+			if ($simulation->accord !== 'MODIF'){
+			    $simulation->modifs = array();
 			}
 
 			$simulation->_calcul($ATMdb);
@@ -347,7 +375,7 @@ if(!empty($action)) {
 					$simulation->send_mail_vendeur();
 				}
 				
-				if (empty($oldAccord) || $oldAccord !== $simulation->accord) {
+				if (empty($oldAccord) || ($oldAccord !== $simulation->accord)) {
 				    $simulation->historise_accord($ATMdb);
 				}
 				

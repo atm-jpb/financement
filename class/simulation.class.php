@@ -1435,7 +1435,7 @@ class TSimulation extends TObjetStd {
 	    $i = 0;
 	    
 	    while($ATMdb->Get_line()){
-	        $TTimes[$i] = array('last' => $ATMdb->Get_field('datechange'), 'accord' => $ATMdb->Get_field('accord'), 'change' => date("Y-04-d H:i:s", dol_now()));
+	        $TTimes[$i] = array('last' => $ATMdb->Get_field('datechange'), 'accord' => $ATMdb->Get_field('accord'), 'change' => date("Y-m-d H:i:s", dol_now()));
 	        if (!empty($i)) $TTimes[$i-1]['change'] = $ATMdb->Get_field('datechange');
 	        $i++;
 	    }
@@ -1483,7 +1483,7 @@ class TSimulation extends TObjetStd {
 	                    }
 	                }
 	                
-	                if ($time['accord'] == "WAIT" || $time['accord'] == "WAIT_LEASER" || $time['accord'] == "MODIF") {
+	                if ($time['accord'] == "WAIT" || $time['accord'] == "WAIT_LEASER") {
 	                    if(strtotime($time['last']) < $heurefin1) {
 	                        if(strtotime($time['change']) < $heurefin1) {
 	                            $compteur += strtotime($time['change']) - strtotime($time['last']);
@@ -1518,6 +1518,8 @@ class TSimulation extends TObjetStd {
 	            }
 	            
 	        }
+	        
+	        if($compteur < 0) $compteur = 0;
 	        
 	        $this->attente = $compteur;
 	        $this->save($ATMdb, $db);
