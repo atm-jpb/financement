@@ -1483,6 +1483,8 @@ class TSimulation extends TObjetStd {
 	                    }
 	                }
 	                
+	                if (strtotime($time['last']) > time() || $time['accord'] == 'OK') break 2;
+	                
 	                if ($time['accord'] == "WAIT" || $time['accord'] == "WAIT_LEASER") {
 	                    if(strtotime($time['last']) < $heurefin1) {
 	                        if(strtotime($time['change']) < $heurefin1) {
