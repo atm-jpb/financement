@@ -1440,14 +1440,16 @@ class TSimulation extends TObjetStd {
 	        $i++;
 	    }
 	    
+	    $closed = array('OK', 'KO', 'SS');
 	    if (count($TTimes) == 0) {
-	        if ($this->accord !== 'OK') {
+	        if(!in_array($this->accord, $closed)) {
 	            $this->historise_accord($ATMdb, date("Y-m-d H:i:s", $this->date_simul));
 	            return $this->get_attente($ATMdb);
 	        } else {
+	            $oldAccord = $this->accord;
 	            $this->accord = "WAIT";
 	            $this->historise_accord($ATMdb, date("Y-m-d H:i:s", $this->date_simul));
-	            $this->accord = "OK";
+	            $this->accord = $oldAccord;
 	            $this->historise_accord($ATMdb, date("Y-m-d H:i:s", $this->date_accord));
 	            return $this->get_attente($ATMdb);
 	        }
