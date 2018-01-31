@@ -71,6 +71,17 @@ if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive 
 	}
 }
 
+// le problème de ce comportement c'est que si le tiers n'a pas de simulation valid et qu'on veut juste voir la liste de c'est simulations, on ne peut pas...
+if(!empty($_REQUEST['from']) && $_REQUEST['from']=='search' && !empty($_REQUEST['socid'])) {
+    $fk_soc = (int)$_REQUEST['socid'];
+    $hasValidSimu = _has_valid_simulations($ATMdb, $fk_soc);
+    if(!$hasValidSimu){
+        header('Location: ?action=new&fk_soc='.$fk_soc); exit;
+    } else {
+        header('Location: ?socid='.$fk_soc); exit;
+    }
+}
+
 $fk_soc = $_REQUEST['fk_soc'];
 
 if(!empty($_REQUEST['mode_search']) && $_REQUEST['mode_search'] == 'search_matricule' && !empty($_REQUEST['search_matricule'])) {
@@ -600,6 +611,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'accord'=>'Statut'
 			,'type_financement'=>'Type<br>financement'
 			,'leaser'=>'Leaser'
+		    ,'attente' => 'Délai'
 			,'loupe'=>''
 		)
 		,'search'=>array(
