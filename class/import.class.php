@@ -23,7 +23,8 @@ class TImport extends TObjetStd {
 			,'facture_materiel' => 'Fichier facture matériel'
 			,'facture_location' => 'Fichier facture location'
 			,'facture_lettree' => 'Fichier facture lettrée'
-			,'facture_rejetee' => 'Fichier règlement rejeté'
+			,'ecritures_non_lettrees' => 'Fichier facture non lettrées'
+			,'facture_nonlettree' => 'Fichier facture avec incident de paiement'
 			,'score' => 'Fichier score'
 		);
 		$this->TType_import = array(
@@ -154,10 +155,13 @@ class TImport extends TObjetStd {
 				$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
 				break;
 			case 'facture_lettree':
-				$this->importLineFactureLettree($ATMdb, $data);
+				$this->importLineLettrage($ATMdb, $data, 'lettree');
 				break;
-			case 'facture_rejetee':
-				$this->importLineFactureRejetee($ATMdb, $data);
+			case 'ecritures_non_lettrees':
+				$this->importLineLettrage($ATMdb, $data, 'non_lettree');
+				break;
+			case 'facture_nonlettree':
+				$this->importLineLettrage($ATMdb, $data, 'delettree');
 				break;
 			case 'commercial':
 				$this->importLineCommercial($ATMdb, $data, $TInfosGlobale);
@@ -1212,6 +1216,38 @@ class TImport extends TObjetStd {
 
 		fclose($csvfile);
 	}
+	
+	function importLineLettrage(&$ATMdb, $data, $mode) {
+		global $user, $db;
+		
+		// Recherche si facture existante dans la base
+		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
+		if(!$facid) return false;
+		
+		// Construction de l'objet final
+		$facture = new Facture($db);
+		$facture->fetch($facid);
+		
+		// 3 cas possibles : lettree, non lettree (pas encore reglée), délettrée (rejet)
+		if($mode == 'lettree') {
+			$res = $facture->set_paid($user, '', $data['code_lettrage']);
+		} else if ($mode == 'non_lettree') {
+			$res = $facture->set_unpaid($user);
+		} else if ($mode == 'delettree') {
+			$res = $facture->set_unpaid($user);
+			// + dossier en incident de paiement
+		}
+		
+		if($res < 0) {
+			$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture->error);
+			return false;
+		} else {
+			$this->nb_update++;
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture), $facture->id,'update',$data);
+		}
+
+		return true;
+	}
 
 	function importLineFactureLettree(&$ATMdb, $data) {
 		global $user, $db;
@@ -1988,6 +2024,18 @@ class TImport extends TObjetStd {
 		
 		$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe WHERE fournisseur = 1";
 		$TInfosGlobale['TIdLeaser'] = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+	}
+	
+	
+	function classifyPaidAllInvoices(&$PDOdb) {
+		$sql = 'UPDATE '.MAIN_DB_PREFIX.'facture ';
+		$sql.= 'SET paye = 1, fk_statut = 2 ';
+		$sql.= 'WHERE paye = 0 ';
+		$sql.= 'AND fk_statut = 1 ';
+		$sql.= 'AND type = 0 ';
+		$sql.= 'AND entity IN (1,2,3,4) ';
+		
+		$PDOdb->Execute($sql);
 	}
 }
 
