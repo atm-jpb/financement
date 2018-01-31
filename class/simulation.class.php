@@ -1535,11 +1535,8 @@ class TSimulation extends TObjetStd {
 	        //var_dump($TTimes);
 	        $min = ($compteur / 60) % 60;
 	        $heures = abs(round((($compteur / 60)-$min)/60));
-	        $jours = round($heures/24);
-	        $heures = $heures - ($jours * 24);
 	        
 	        $ret = '';
-	        $ret .= (!empty($jours) ? $jours . " jours " : "");
 	        $ret .= (!empty($heures) ? $heures . " h " : "");
 	        $ret .= (!empty($min) ? $min . " min" : "");
 	        
