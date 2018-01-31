@@ -603,7 +603,7 @@ class TFin_affaire extends TObjetStd {
 			$TDesignation = array("Bien manquant");
 		}
 
-		$bien = $this->_getBiensXML($xml,$Affaire->TAsset[0],$Affaire,0,$serial_numbers,$TDesignation);
+		$bien = $this->_getBiensXML($xml,$Affaire->TAsset[0],$Affaire,0,$serial_numbers,$TDesignation,$Tdata->dossier->financementLeaser);
 		$element->appendChild($bien);
 		
 		$paliers = $this->_getPaliersXML($xml,$Tdata->dossier->financementLeaser,$Affaire,$AssetId,0);
@@ -684,7 +684,7 @@ class TFin_affaire extends TObjetStd {
 		return $facture;
 	}
 	
-	function _getBiensXML(&$xml,&$assetLink,&$Affaire,$a,$serial_numbers='',$TDesignation=array()){
+	function _getBiensXML(&$xml,&$assetLink,&$Affaire,$a,$serial_numbers='',$TDesignation=array(),$financementleaser){
 		global $db;
 		
 		dol_include_once('/product/class/product.class.php');
@@ -769,7 +769,7 @@ class TFin_affaire extends TObjetStd {
 			$bien->appendChild($xml->createElement("montant",round(($facture->total_ht / $nbAsset),2)));
 		}*/
 		//$bien->appendChild($xml->createElement("montant",round((($assetLink->asset->fk_product) ? $facture->total_ht : $Affaire->TLien[0]->dossier->financementLeaser->montant),2)));
-		$bien->appendChild($xml->createElement("montant",round($Affaire->TLien[0]->dossier->financementLeaser->montant,2)));
+		$bien->appendChild($xml->createElement("montant",round($financementleaser->montant,2)));
 		
 		return $bien;
 	}
@@ -819,7 +819,7 @@ class TFin_affaire extends TObjetStd {
 		$palier->appendChild($xml->createElement("terme",substr($financementLeaser->TTerme[$financementLeaser->terme],0,1)));
 		$palier->appendChild($xml->createElement("periodicite",$periodicite));
 		//$palier->appendChild($xml->createElement("mtVnf",$Affaire->montant));
-		$palier->appendChild($xml->createElement("mtVnf",round($Affaire->TLien[0]->dossier->financementLeaser->montant,2)));
+		$palier->appendChild($xml->createElement("mtVnf",round($financementLeaser->montant,2)));
 		
 		//$palier->appendChild($xml->createElement("pourcVnf",round((($Affaire->montant * 100) / $facture->total_ht),2)));
 		$palier->appendChild($xml->createElement("pourcVnf",100));
