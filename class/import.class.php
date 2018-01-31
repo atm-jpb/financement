@@ -1216,11 +1216,6 @@ class TImport extends TObjetStd {
 	function importLineFactureLettree(&$ATMdb, $data) {
 		global $user, $db;
 		
-		if (!preg_match('/^[A-Z]+$/', $data['code_lettrage'])) {
-			// Code lettrage en minuscule = pré-lettrage = ne pas prendre en compte (ajout d'un addWarning ou addInfo ?)
-			return false;
-		}
-		
 		// Recherche si facture existante dans la base
 		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 		if(!$facid) return false;
