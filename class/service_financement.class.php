@@ -295,6 +295,7 @@ class ServiceFinancement {
 		$nicCPRO = substr($mysocentity->idprof2, -5, 5);
 		$sirenCLIENT = substr($this->simulation->societe->idprof2, 0, 9);
 		$nicCLIENT = strlen($this->simulation->societe->idprof2) == 14 ? substr($this->simulation->societe->idprof2, -5, 5) : '';
+		$nicCLIENT = ''; // On envoie vide car depuis correction des SIRET si on envoie pas le bon établissement, LIXXBAIL renvoie une erreur
 		
 		if (!empty($pct_vr) && !empty($mt_vr)) $pct_vr = 0; // Si les 2 sont renseignés alors je garde que le montant
 		//<soap1:Calf_Header_GN xmlns:soap1="http://referentiel.ca.fr/SoapHeaderV1" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" correlationId="12345" wsu:Id="id-11"/></soap:Header>
