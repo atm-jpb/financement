@@ -234,6 +234,7 @@ if(!empty($action)) {
 			// Si l'accord vient d'être donné (par un admin)
 			if($simulation->accord == 'OK' && $simulation->accord != $oldAccord) {
 				$simulation->date_accord = time();
+				$simulation->montant_accord = $simulation->montant_total_finance;
 				$simulation->accord_confirme = 1;
 				$simulation->setThirparty();
 			} 
