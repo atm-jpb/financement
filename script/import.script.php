@@ -109,30 +109,22 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		$imp->save($ATMdb); // Création de l'import
 		
 		$fileHandler = fopen($importFolder.$fileName, 'r');
+		
+		// Traitement du fichier contenant toutes les factures non payées, on classe d'abord payées toutes les factures Dolibarr
+		if($imp->type_import == 'ecritures_non_lettrees') {
+			$nbfact = filesize($importFolder.$fileName) / 42;
+			if($nbfact < 4000) continue;
+			
+			$imp->classifyPaidAllInvoices($ATMdb);
+		}
+		
 		$TInfosGlobale = array();
 		while($dataline = fgetcsv($fileHandler, 4096, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
 			$imp->importLine($ATMdb, $dataline, $TInfosGlobale);
 		}
 		fclose($fileHandler);
-		//echo $imp->type_import;exit;
-		/*if($imp->type_import === 'commercial' && !empty($TInfosGlobale['commerciauxLinksId'])){
-			//Si un fichier fin_commercial vient de passer alors on vire les commerciaux qui ne sont plus attribuer aux tiers
-			$imp->deleteCommerciauxLinks($ATMdb,$TInfosGlobale);
-		}*/
 		
 		$imp->save($ATMdb); // Mise à jour pour nombre de lignes et nombre d'erreurs
-		
-		// Traitement spécifique sur les factures location : envoi e-mail à la fin de l'intégration du fichier pour alertes dépassement (ticket 551)
-		if($fileType == 'facture_location') {
-			//$imp->sendAlertEmailIntegrale($ATMdb, $TInfosGlobale);
-		}
-		
-		//pre($TInfosGlobale,true);exit;
-		
-		// fonction deleteCommerciauxLinks maintenant remplacée par la fonction deleteSocieteCommerciauxLinks
-		/*if($fileType == 'commercial') {
-			$imp->deleteCommerciauxLinks($ATMdb, $TInfosGlobale);
-		}*/
 		
 		print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;
 		
