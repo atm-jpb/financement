@@ -155,7 +155,7 @@ class TImport extends TObjetStd {
 				$this->importLineFactureIntegrale($ATMdb, $data, $TInfosGlobale);
 				break;
 			case 'facture_lettree':
-				$this->importLineLettrage($ATMdb, $data, 'lettree');
+				//$this->importLineLettrage($ATMdb, $data, 'lettree');
 				break;
 			case 'ecritures_non_lettrees':
 				$this->importLineLettrage($ATMdb, $data, 'non_lettree');
@@ -1235,7 +1235,7 @@ class TImport extends TObjetStd {
 			$res = $facture->set_unpaid($user);
 		} else if ($mode == 'delettree') {
 			$res = $facture->set_unpaid($user);
-			// + dossier en incident de paiement
+			// + mettre dossier en incident de paiement et enregistrer motif
 		}
 		
 		if($res < 0) {
