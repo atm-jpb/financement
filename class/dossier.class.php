@@ -2480,7 +2480,7 @@ class TFin_financement extends TObjetStd {
 		if($duree==0) $duree = $this->duree_restante;
 		
 		//Cas spécifique Leaser = LOCAM
-		if($this->type == "LEASER" && $this->fk_soc == FK_SOC_LOCAM){
+		if($this->type == "LEASER" && $this->is_locam){
 			
 			$capital_amorti = 0;
 			$catpital_restant = $this->montant;
