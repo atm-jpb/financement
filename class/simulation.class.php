@@ -34,6 +34,16 @@ class TSimulation extends TObjetStd {
 			,'SS'=>$langs->trans('SansSuite')
 		);
 		
+		$this->TStatutIcons=array(
+		    'OK'=>'./img/super_ok.png'
+		    ,'WAIT'=>'./img/WAIT.png'
+		    ,'WAIT_LEASER'=>'./img/Leaser.png'
+		    ,'WAIT_SELLER'=>'./img/Vendeur.png'
+		    ,'MODIF'=>'./img/pencil.png'
+		    ,'KO'=>'./img/KO.png'
+		    ,'SS'=>'./img/KO.png'
+		);
+		
 		$this->TStatutShort=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
