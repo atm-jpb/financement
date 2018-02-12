@@ -1419,10 +1419,7 @@ class TSimulation extends TObjetStd {
 	function get_attente(&$ATMdb){
 	    global $conf, $db;
 	    
-	    dol_include_once('/jouroff/class/jouroff.class.php');
 	    if ($this->getId() == '') return 0;
-	    
-	    $Jo = new TRH_JoursFeries();
 	    
 	    $sql = "SELECT datechange, accord FROM " . MAIN_DB_PREFIX . "fin_simulation_accord_log ";
 	    $sql.= " WHERE fk_simulation = " . $this->getId();
@@ -1430,18 +1427,16 @@ class TSimulation extends TObjetStd {
 	    $sql.= " ORDER BY datechange ASC";
 	    $ATMdb->Execute($sql);
 	    
-	    $TTimes = array();
-	    $lastdate = '';
+	    $TDates = array();
 	    $i = 0;
-	    
 	    while($ATMdb->Get_line()){
-	        $TTimes[$i] = array('last' => $ATMdb->Get_field('datechange'), 'accord' => $ATMdb->Get_field('accord'), 'change' => date("Y-m-d H:i:s", dol_now()));
-	        if (!empty($i)) $TTimes[$i-1]['change'] = $ATMdb->Get_field('datechange');
+	        $TDates[$i] = array('start' => $ATMdb->Get_field('datechange'), 'accord' => $ATMdb->Get_field('accord'), 'end' => date("Y-m-d H:i:s", dol_now()));
+	        if (!empty($i)) $TDates[$i-1]['end'] = $ATMdb->Get_field('datechange');
 	        $i++;
 	    }
 	    
 	    $closed = array('OK', 'KO', 'SS');
-	    if (count($TTimes) == 0) {
+	    if (count($TDates) == 0) {
 	        if(!in_array($this->accord, $closed)) {
 	            $this->historise_accord($ATMdb, date("Y-m-d H:i:s", $this->date_simul));
 	            return $this->get_attente($ATMdb);
@@ -1456,71 +1451,21 @@ class TSimulation extends TObjetStd {
 	    }
 	    else {
 	        $compteur = 0; 
-	        
-	        foreach ($TTimes as $time) {	  
-	            
-	            while (strtotime($time['last']) < strtotime($time['change'])){
-	                $searchjourouvre = true;
+	        foreach ($TDates as $interval) {	
+	            if ($interval['accord'] == "WAIT" || $interval['accord'] == "WAIT_LEASER"){
+	                $start = strtotime($interval['start']);
+	                $end = strtotime($interval['end']);
 	                
-	                while ($searchjourouvre){
-	                    
-	                    $heuredeb1 = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_DEBUT_MATIN.":00", strtotime($time['last'])));
-	                    $heurefin1 = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_FIN_MATIN.":00", strtotime($time['last'])));
-	                    $heuredeb2 = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_DEBUT_APREM.":00", strtotime($time['last'])));
-	                    $heurefin2 = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_FIN_APREM.":00", strtotime($time['last'])));
-	                    
-	                    $ferie = $Jo->estFerie($ATMdb, date("Y-m-d 00:00:00", strtotime($time['last'])));
-	                    
-	                    $tms = strtotime($time['last']);
-	                    $nextdays = mktime(date("H", $heuredeb1), date("i", $heuredeb1), 0, date("m", $tms)  , date("d", $tms)+1, date("Y", $tms));
-	                    
-	                    $heure = date("H:i", strtotime($time['last']));
-	                    $dateheure = date("Y-m-d ", strtotime($time['last'])) . $heure . ":00";
-	                    $joursemaine = date("N", strtotime($time['last']));
-	                    
-	                    if ($ferie || strtotime($dateheure) >= $heurefin2 || $joursemaine == '6' || $joursemaine == '7') {
-	                        $time['last'] = date("Y-m-d H:i:s", $nextdays);
-	                    } else {
-	                        $searchjourouvre = false;
-	                    }
+	                $cpt = 0;
+	                while ($start < $end && $cpt < 40){
+	                    $start = $this->_jourouvre($ATMdb, $start);
+	                    if ($start > dol_now()) break 2;
+                        if ($start > $end) $start = $end;
+                        if ($start !== $end) $start = $this->_calcul_interval($compteur, $start, $end);
+	                    $cpt++;
 	                }
-	                
-	                if (strtotime($time['last']) > time() || $time['accord'] == 'OK') break 2;
-	                
-	                if ($time['accord'] == "WAIT" || $time['accord'] == "WAIT_LEASER") {
-	                    if(strtotime($time['last']) < $heurefin1) {
-	                        if(strtotime($time['change']) < $heurefin1) {
-	                            $compteur += strtotime($time['change']) - strtotime($time['last']);
-	                            $time['last'] = $time['change'];
-	                        } else {
-	                            $compteur += $heurefin1 - strtotime($time['last']);
-	                            if(strtotime($time['change']) > $heuredeb2 && strtotime($time['change']) < $heurefin2) {
-	                                $compteur += strtotime($time['change']) - $heuredeb2;
-	                                $time['last'] = $time['change'];
-	                            } elseif(strtotime($time['change']) > $heurefin2) {
-	                                $compteur += $heurefin2 - $heuredeb2;
-	                                $time['last'] = date("Y-m-d H:i:01", $heurefin2);
-	                            }
-	                        }
-	                    } elseif(strtotime($time['last']) < $heurefin2) {
-	                        if(strtotime($time['change']) > $heurefin2) {
-	                            if (strtotime($time['last']) > $heuredeb2) $compteur += $heurefin2 - strtotime($time['last']);
-	                            else $compteur += $heurefin2 - $heuredeb2;
-	                            $time['last'] = date("Y-m-d H:i:01", $heurefin2);
-	                        } else {
-	                            if (strtotime($time['last']) > $heuredeb2) $compteur += strtotime($time['change']) - strtotime($time['last']) ;
-	                            else $compteur += strtotime($time['change']) - $heuredeb2 ;
-	                            $time['last'] = $time['change'];
-	                        }
-	                        
-	                    }
-	                } else {
-	                    $time['last'] = $time['change'];
-	                }
-	                
-	                if (strtotime($time['last']) > strtotime($time['change'])) $time['last'] = $time['change'];
 	            }
-	            
+
 	        }
 	        
 	        if($compteur < 0) $compteur = 0;
@@ -1534,7 +1479,6 @@ class TSimulation extends TObjetStd {
 	        if (!empty($conf->global->FINANCEMENT_SECOND_WAIT_ALARM) && $min >= (int)$conf->global->FINANCEMENT_SECOND_WAIT_ALARM) $style = 'color:red';
 	        if (!empty($style)) $this->attente_style = $style;
 	        
-	        //var_dump($TTimes);
 	        $min = ($compteur / 60) % 60;
 	        $heures = abs(round((($compteur / 60)-$min)/60));
 	        
@@ -1545,6 +1489,80 @@ class TSimulation extends TObjetStd {
 	        return  $ret;
 	    }
 
+	}
+	
+	/**
+	 * Retourne le prochain jour ouvré ou le timestamp entré si celui-ci est dans un jour ouvré et dans un interval d'ouverture
+	 * @param timestamp $start
+	 * @return timestamp
+	 */
+	function _jourouvre($ATMdb, $start){
+	    global $conf;
+	    
+	    dol_include_once('/jouroff/class/jouroff.class.php');
+	    $Jo = new TRH_JoursFeries();
+	    $cp = 0;
+	    $searchjourouvre = true;
+	    // on cherche un jour ouvré jusqu'à ce qu'on en trouve un ou qu'on excède le nombre de 10 tentatives
+	    while ($searchjourouvre && $cp < 10){
+	        $matindebut = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_DEBUT_MATIN.":00", $start));
+	        $matinfin = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_FIN_MATIN.":00", $start));
+	        $apremdebut = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_DEBUT_APREM.":00", $start));
+	        $apremfin = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_FIN_APREM.":00", $start));
+	        
+	        $ferie = $Jo->estFerie($ATMdb, date("Y-m-d 00:00:00", $start)); // retourne true si c'est un jour férié
+	        $nextday = mktime(date("H", $matindebut), date("i", $matindebut), 0, date("m", $start)  , date("d", $start)+1, date("Y", $start));
+	        $joursemaine = date("N", $start);
+	        
+	        if ($ferie || $start >= $apremfin || $joursemaine == '6' || $joursemaine == '7') {
+	            $start = $nextday;
+	        } elseif($start < $matindebut) {
+	            $start = $matindebut;
+	            $searchjourouvre = false;
+	        } else {
+	            $searchjourouvre = false;
+	        }
+	        $cp++;
+	    }
+	    
+	    return $start;
+	}
+	
+	function _calcul_interval(&$compteur, $start, $end){
+	    global $conf;
+	    $matindebut = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_DEBUT_MATIN.":00", $start));
+	    $matinfin = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_FIN_MATIN.":00", $start));
+	    $apremdebut = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_DEBUT_APREM.":00", $start));
+	    $apremfin = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_FIN_APREM.":00", $start));
+	    
+	    if($start < $matindebut) $start = $matindebut;
+	    if($start < $matinfin) {
+	        if($end < $matinfin) {
+	            $compteur += $end - $start;
+	            $start = $end;
+	        } else {
+	            $compteur += $matinfin - $start;
+	            if($end > $apremdebut && $end < $apremfin) {
+	                $compteur += $end - $apremdebut;
+	                $start = $end;
+	            } elseif($end > $apremfin) {
+	                $compteur += $apremfin - $apremdebut;
+	                $start = strtotime(date("Y-m-d H:i:01", $apremfin));
+	            }
+	        }
+	    } elseif($start < $apremfin) {
+	        if($end > $apremfin) {
+	            if ($start > $apremdebut) $compteur += $apremfin - $start;
+	            else $compteur += $apremfin - $apremdebut;
+	            $start = strtotime(date("Y-m-d H:i:01", $apremfin));
+	        } else {
+	            if ($start > $apremdebut) $compteur += $end - $start ;
+	            else $compteur += $end - $apremdebut ;
+	            $start = $end;
+	        }
+	        
+	    }
+	    return $start;
 	}
 
 }
