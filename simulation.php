@@ -316,9 +316,6 @@ if(!empty($action)) {
 			
 			//pre($_REQUEST,true);
 			
-			
-			
-			
 			// On refait le calcul avant d'enregistrer
 			$simulation->_calcul($ATMdb, 'save');
 			//var_dump(count($simulation->TSimulationSuivi), $error);exit;
@@ -399,6 +396,16 @@ if(!empty($action)) {
 			
 			break;
 		
+		case 'changeAccord':
+		    $newAccord = GETPOST('accord');
+		    $simulation->load($ATMdb, $db, $_REQUEST['id']);
+		    
+		    $simulation->accord = $newAccord;
+		    $simulation->save($ATMdb, $db);
+		    $simulation->historise_accord($ATMdb);
+		    header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->id); exit;
+		    break;
+		    
 		case 'send_accord':
 			if(!empty($_REQUEST['id'])) {
 				$simulation->load($ATMdb, $db, $_REQUEST['id']);
@@ -978,7 +985,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'coeff_final'=>$can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 6) : $simulation->coeff_final
 	    ,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10) .(!empty($simulation->modifs['montant_presta_trim']) ? ' (Ancienne valeur : '.$simulation->modifs['montant_presta_trim'].')' : '')
 		,'cout_financement'=>$simulation->cout_financement
-		,'accord'=>$user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]
+	    ,'accord'=> img_picto('lol', $simulation->TStatutIcons[$simulation->accord], '', 1) . '<br />' . ($user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord])
 		,'can_resend_accord'=>$simulation->accord
 		,'date_validite'=>$simulation->accord == 'OK' ? 'Validité : '.$simulation->get_date('date_validite') : ''
 		,'commentaire'=>$form->zonetexte('', 'commentaire', $mode == 'edit' ? $simulation->commentaire : nl2br($simulation->commentaire), 50,3)
@@ -1029,6 +1036,12 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$simuArray['coeff'] = $form->texteRO('', 'coeff', (empty($simulation->modifs['coeff']) ? $coeff : $simulation->modifs['coeff']), 6);
 	}
 	
+	if(TFinancementTools::user_courant_est_admin_financement()) {
+	    $simuArray['accord'] .= '<br />';
+	    foreach ($simulation->TStatutIcons as $k => $icon) {
+	        if ($k !== $simulation->accord) $simuArray['accord'] .= '<a href="'.$_SERVER['PHP_SELF'].'?id='.$simulation->id.'&action=changeAccord&accord='.$k.'">'.img_picto('Changer vers ' . $simulation->TStatut[$k], $icon, '', 1) . '</a>&nbsp;&nbsp;';
+	    }
+	}
 	// Recherche par SIREN
 	$search_by_siren = true;
 	if(!empty($simulation->societe->array_options['options_no_regroup_fin_siren'])) {
@@ -1598,7 +1611,7 @@ function _simu_edit_link($simulId, $date){
     global $db, $ATMdb;
     
     if(strtotime($date) > dol_now()){
-        $return = '<a href="?id='.$simulId.'&action=edit">'.img_picto('','button_edit.png', '', 0).'</a>';
+        $return = '<a href="?id='.$simulId.'&action=edit">'.img_picto('modifier','./img/pencil.png', '', 1).'</a>';
     } else {
         $return = '';
     }
