@@ -19,13 +19,15 @@ $sql.= " WHERE 1=1 ";
 $sql.= " AND accord NOT IN ('OK', 'KO', 'SS') ";
 $sql.= " ORDER BY date_simul DESC";
 $res = $db->query($sql);
-
+print "Début du calcul " . date("d-m-Y H:i:s")."\r";
 while($obj = $db->fetch_object($res)){
     
     $simulation = new TSimulation();
     $simulation->load($ATMdb, $db, $obj->rowid);
-    
+    print "Calcul simulation n°".$obj->rowid;
     $simulation->get_attente($ATMdb);
-    echo $obj->rowid.'<br>';
+    print " terminé \r";
 }
+print "Fin du calcul " . date("d-m-Y H:i:s")."\r";
 
+$db->free($res);
