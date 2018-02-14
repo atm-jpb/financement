@@ -181,6 +181,8 @@ if(!empty($action)) {
 			if($_REQUEST['opt_terme'] !== $simulation->opt_terme) $simulation->modifs['opt_terme'] = $simulation->opt_terme;
 			if((float)$_REQUEST['coeff'] !== $simulation->coeff) $simulation->modifs['coeff'] = $simulation->coeff;
 			
+			$oldAccord = $simulation->accord;
+			
 			$simulation->set_values($_REQUEST);
 			
 			// Si on ne modifie que le montant, les autres champs ne sont pas présent, il faut conserver ceux de la simu
@@ -217,6 +219,11 @@ if(!empty($action)) {
 			}
 
 			$simulation->_calcul($ATMdb);
+			
+			if (empty($oldAccord) || ($oldAccord !== $simulation->accord)) {
+			    $simulation->historise_accord($ATMdb);
+			}
+			
 			//C'est dégueu mais sa marche
 			$simulation->commentaire = utf8_decode($simulation->commentaire);
 			_fiche($ATMdb, $simulation,'edit');
