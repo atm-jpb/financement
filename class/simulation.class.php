@@ -41,7 +41,7 @@ class TSimulation extends TObjetStd {
 		    ,'WAIT_SELLER'=>'./img/Vendeur.png'
 		    ,'MODIF'=>'./img/pencil.png'
 		    ,'KO'=>'./img/KO.png'
-		    ,'SS'=>'./img/KO.png'
+		    ,'SS'=>'./img/SANSSUITE.png'
 		);
 		
 		$this->TStatutShort=array(
