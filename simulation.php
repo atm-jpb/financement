@@ -207,6 +207,16 @@ if(!empty($action)) {
 				        $simulation->coeff_final = $simulation->coeff_final + $diff;
 				    }
 				    
+				    if(($simulation->modifiable == 0 || $simulation->modifiable == 2) && !empty($simulation->montant_accord) && $simulation->montant_accord != $simulation->montant_total_finance) {
+				        $diffmontant = abs($simulation->montant_total_finance - $simulation->montant_accord);
+				        if(($diffmontant / $simulation->montant_accord) * 100 > $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE) {
+				            $simulation->accord = 'MODIF';
+				        } else {
+				            $simulation->accord = 'OK';
+				            $simulation->montant_accord = $simulation->montant_total_finance;
+				        }
+				    }
+				    
 				} else {
 				    $simulation->accord = 'MODIF';
 				    $simulation->coeff_final = 0;
@@ -368,6 +378,16 @@ if(!empty($action)) {
 				        if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
 				            $diff = round($_REQUEST['coeff'], 3) - $simulation->coeff;
 				            $simulation->coeff_final = $simulation->coeff_final + $diff;
+				        }
+				        
+				        if(($simulation->modifiable == 0 || $simulation->modifiable == 2) && !empty($simulation->montant_accord) && $simulation->montant_accord != $simulation->montant_total_finance) {
+				            $diffmontant = abs($simulation->montant_total_finance - $simulation->montant_accord);
+				            if(($diffmontant / $simulation->montant_accord) * 100 > $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE) {
+				                $simulation->accord = 'MODIF';
+				            } else {
+				                $simulation->accord = 'OK';
+				                $simulation->montant_accord = $simulation->montant_total_finance;
+				            }
 				        }
 				        
 				    } else {
@@ -1028,6 +1048,13 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'fk_nature_bien'=>$mode == 'edit' ? $html->selectarray('fk_nature_bien', TFinancementTools::getNatureId(), $simulation->fk_nature_bien) : TFinancementTools::getNatureLabel($simulation->fk_nature_bien)
 	);
 	
+	if(TFinancementTools::user_courant_est_admin_financement() && $mode !== "edit") {
+	    $simuArray['accord'] .= '<br />';
+	    foreach ($simulation->TStatutIcons as $k => $icon) {
+	        if ($k !== $simulation->accord) $simuArray['accord'] .= '<a href="'.$_SERVER['PHP_SELF'].'?id='.$simulation->id.'&action=changeAccord&accord='.$k.'">'.img_picto('Changer vers ' . $simulation->TStatut[$k], $icon, '', 1) . '</a>&nbsp;&nbsp;';
+	    }
+	}
+	
 	if($mode == 'edit_montant') {
 		$mode = 'edit';
 		$form->Set_typeaff($mode);
@@ -1043,12 +1070,6 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$simuArray['coeff'] = $form->texteRO('', 'coeff', (empty($simulation->modifs['coeff']) ? $coeff : $simulation->modifs['coeff']), 6);
 	}
 	
-	if(TFinancementTools::user_courant_est_admin_financement()) {
-	    $simuArray['accord'] .= '<br />';
-	    foreach ($simulation->TStatutIcons as $k => $icon) {
-	        if ($k !== $simulation->accord) $simuArray['accord'] .= '<a href="'.$_SERVER['PHP_SELF'].'?id='.$simulation->id.'&action=changeAccord&accord='.$k.'">'.img_picto('Changer vers ' . $simulation->TStatut[$k], $icon, '', 1) . '</a>&nbsp;&nbsp;';
-	    }
-	}
 	// Recherche par SIREN
 	$search_by_siren = true;
 	if(!empty($simulation->societe->array_options['options_no_regroup_fin_siren'])) {
