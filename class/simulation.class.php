@@ -142,7 +142,7 @@ class TSimulation extends TObjetStd {
 		}
 	}
 	
-	function save(&$db, &$doliDB) {
+	function save(&$db, &$doliDB, $generatePDF = true) {
 		//parent::save($db);
 		//pre($this,true);exit;
 	//	var_dump($this->dossiers_rachetes, $_REQUEST);exit;
@@ -244,7 +244,7 @@ class TSimulation extends TObjetStd {
 
 		//pre($this, true);exit;
 		
-		$this->gen_simulation_pdf($db, $doliDB);
+		if($generatePDF) $this->gen_simulation_pdf($db, $doliDB);
 		
 		parent::save($db);
 		
@@ -1422,7 +1422,7 @@ class TSimulation extends TObjetStd {
 	    
 	    if(empty($date)) $date = date("Y-m-d H:i:s", dol_now());
 	    $sql = "INSERT INTO ".MAIN_DB_PREFIX."fin_simulation_accord_log (`entity`, `fk_simulation`, `fk_user_author`, `datechange`, `accord`)";
-	    $sql.= " VALUES ('".$conf->entity."', '".$this->getId()."', '".$user->id."', '". $date ."', '".$this->accord."');";
+	    $sql.= " VALUES ('".$this->entity."', '".$this->getId()."', '".$user->id."', '". $date ."', '".$this->accord."');";
 	    $ATMdb->Execute($sql);
 	}
 	
@@ -1433,7 +1433,7 @@ class TSimulation extends TObjetStd {
 	    
 	    $sql = "SELECT datechange, accord FROM " . MAIN_DB_PREFIX . "fin_simulation_accord_log ";
 	    $sql.= " WHERE fk_simulation = " . $this->getId();
-	    $sql.= " AND entity = " . $conf->entity;
+	    $sql.= " AND entity = " . $this->entity;
 	    $sql.= " ORDER BY datechange ASC";
 	    $ATMdb->Execute($sql);
 	    
@@ -1481,7 +1481,7 @@ class TSimulation extends TObjetStd {
 	        if($compteur < 0) $compteur = 0;
 	        
 	        $this->attente = $compteur;
-	        $this->save($ATMdb, $db);
+	        $this->save($ATMdb, $db, false);
 	        
 	        $style ='';
 	        $min = (int)($compteur / 60);
