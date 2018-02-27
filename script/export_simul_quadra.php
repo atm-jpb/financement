@@ -33,7 +33,7 @@ $sql = "SELECT s.reference, cli.nom as client, cli.siren, s.fk_type_contrat,
 		LEFT JOIN llx_societe leaser ON leaser.rowid = s.fk_leaser
 		LEFT JOIN llx_user u ON u.rowid = s.fk_user_author
 		WHERE 1 = 1 
-		AND s.entity = 9";
+		AND s.entity IN (9,11)";
 
 $PDOdb->Execute($sql);
 $TData = $PDOdb->Get_All(PDO::FETCH_ASSOC);
