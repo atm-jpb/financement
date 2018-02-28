@@ -35,7 +35,7 @@ $TLeaserCat = TRequeteCore::get_keyval_by_sql($PDOdb, $sql, 'fk_societe', 'fk_ca
 $sql = "SELECT s.rowid
 		FROM llx_fin_simulation s
 		WHERE 1 = 1 
-		AND s.entity = 9
+		AND s.entity IN (9,11)
 		AND s.accord = 'OK'
 		";
 
@@ -47,7 +47,7 @@ $handle = fopen($filename, 'w');
 
 $head = explode(";", "Ref Simulation;Ref Contrat;Montant Solde;Date Solde;Type Solde");
 fputcsv($handle, $head, ';');
-echo '<pre>';
+//echo '<pre>';
 foreach ($TData as $res) {
 	$simu = new TSimulation();
 	$simu->load($PDOdb, $db, $res['rowid'], false);
@@ -66,7 +66,7 @@ foreach ($TData as $res) {
 				,$solde
 			);
 			
-			echo implode(' || ', $data).'<br>';
+			//echo implode(' || ', $data).'<br>';
 			fputcsv($handle, $data, ';');
 		}
 	}
