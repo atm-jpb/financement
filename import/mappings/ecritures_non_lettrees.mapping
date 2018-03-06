@@ -5,8 +5,9 @@ search_key=facnumber
 2=code_client
 3=code_lettrage
 4=date_facture
-5=debit
-6=credit
+5=code_societe
+6=debit
+7=credit
 
 [format]
 debit=float
