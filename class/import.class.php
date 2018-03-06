@@ -1232,6 +1232,9 @@ class TImport extends TObjetStd {
 		if($mode == 'lettree') {
 			$res = $facture->set_paid($user, '', $data['code_lettrage']);
 		} else if ($mode == 'non_lettree') {
+			$montant_total_ttc = $data['debit'] - $data['credit'];
+			$facture->array_options['options_total_ttc'] = $montant_total_ttc;
+			$facture->insertExtraFields();
 			$res = $facture->set_unpaid($user);
 		} else if ($mode == 'delettree') {
 			$res = $facture->set_unpaid($user);
