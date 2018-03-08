@@ -32,7 +32,9 @@ class TImport extends TObjetStd {
 			'dossier_init_adossee'=>'Import initial adosées',
 			'dossier_init_mandatee'=>'Import initial mandatées',
 			'dossier_init_all'=>'Import initial',
-			'dossier_init_loc_pure'=>'Import initial Loc Pures');
+			'dossier_init_loc_pure'=>'Import initial Loc Pures',
+			'materiel_parc'=>'Import matricules parc'
+		);
 		$this->current_line = array();
 		
 		if (!empty($conf->global->FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY))
@@ -144,6 +146,9 @@ class TImport extends TObjetStd {
 				break;
 			case 'materiel':
 				$this->importLineMateriel($ATMdb, $data);
+				break;
+			case 'materiel_parc':
+				$this->importLineMaterielParc($ATMdb, $data);
 				break;
 			case 'facture_materiel':
 				$this->getLeaserList($ATMdb, $TInfosGlobale);
@@ -1447,6 +1452,28 @@ class TImport extends TObjetStd {
 			$asset->entity = $conf->entity;
 			
 			$asset->save($ATMdb);
+		}
+			
+		return true;
+	}
+
+	function importLineMaterielParc(&$ATMdb, $data) {
+		global $user,$conf;
+	
+		if(strlen($data['matricule']) < 3) {
+			
+			return false;
+		} else {
+			$asset=new TAsset;
+			$asset->loadReference($ATMdb,$data['matricule']);
+			
+			// Matériel existe déjà, vérification si c'est sur le même contrat et même entité
+			if($asset->getId() > 0) {
+				pre($asset,true);
+			} else { // Création du matériel et rattachement au contrat
+				
+				$asset->save($ATMdb);
+			}
 		}
 			
 		return true;
