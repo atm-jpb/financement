@@ -1303,6 +1303,9 @@ class TImport extends TObjetStd {
 	function importSoldeClient(&$ATMdb, $data) {
 		global $user, $db;
 		
+		// Si solde à 0, on n'importe pas la donnée, inutile
+		if(empty($data['solde'])) return false;
+		
 		// Recherche si tiers existant dans la base via code client Artis
 		$socid = 0;
 		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$data['code_client']));
