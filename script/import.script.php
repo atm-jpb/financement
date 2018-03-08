@@ -118,6 +118,12 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 			$imp->classifyPaidAllInvoices($ATMdb);
 		}
 		
+		// Traitement du fichier contenant tous les soldes client, on vide d'abord la table
+		if($imp->type_import == 'solde_client') {
+			$sql = 'TRUNCATE TABLE '.MAIN_DB_PREFIX.'societe_solde';
+			$ATMdb->Execute($sql);
+		}
+		
 		$TInfosGlobale = array();
 		while($dataline = fgetcsv($fileHandler, 4096, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
 			$imp->importLine($ATMdb, $dataline, $TInfosGlobale);

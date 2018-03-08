@@ -1304,17 +1304,14 @@ class TImport extends TObjetStd {
 		global $user, $db;
 		
 		// Recherche si tiers existant dans la base via code client Artis
-		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		if($socid === false) return false;
+		$socid = 0;
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$data['code_client']));
+		if(count($TRes) == 1) $socid = $TRes[0];
 		
 		// Mise à jour du solde sur la fiche client en fonction de l'entité
 		if($socid > 0) {
 			$entity = $data['code_societe'];
 			$solde = $data['solde'];
-			
-			$sql = 'DELETE FROM '.MAIN_DB_PREFIX.'societe_solde WHERE fk_soc = '.$socid.' ';
-			$sql.= 'AND entity = '.$entity;
-			$ATMdb->Execute($sql);
 			
 			$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'societe_solde (entity, fk_soc, solde) ';
 			$sql.= 'VALUES ('.$entity.', '.$socid.', '.$solde.')';
@@ -1328,7 +1325,7 @@ class TImport extends TObjetStd {
 				$this->nb_create++;
 			}			
 		} else {
-			
+			return false;
 		}
 		
 		return true;
