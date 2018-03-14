@@ -25,6 +25,7 @@ class TImport extends TObjetStd {
 			,'facture_lettree' => 'Fichier facture lettrée'
 			,'ecritures_non_lettrees' => 'Fichier facture non lettrées'
 			,'facture_nonlettree' => 'Fichier facture avec incident de paiement'
+			,'solde_client' => 'Fichier des soldes client'
 			,'score' => 'Fichier score'
 		);
 		$this->TType_import = array(
@@ -167,6 +168,9 @@ class TImport extends TObjetStd {
 				break;
 			case 'facture_nonlettree':
 				$this->importLineLettrage($ATMdb, $data, 'delettree');
+				break;
+			case 'solde_client':
+				$this->importSoldeClient($ATMdb, $data);
 				break;
 			case 'commercial':
 				$this->importLineCommercial($ATMdb, $data, $TInfosGlobale);
@@ -1298,6 +1302,40 @@ class TImport extends TObjetStd {
 			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture), $facture->id,'update',$data);
 		}
 
+		return true;
+	}
+	
+	function importSoldeClient(&$ATMdb, $data) {
+		global $user, $db;
+		
+		// Si solde à 0, on n'importe pas la donnée, inutile
+		if(empty($data['solde'])) return false;
+		
+		// Recherche si tiers existant dans la base via code client Artis
+		$socid = 0;
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array('code_client'=>$data['code_client']));
+		if(count($TRes) == 1) $socid = $TRes[0];
+		
+		// Mise à jour du solde sur la fiche client en fonction de l'entité
+		if($socid > 0) {
+			$entity = $data['code_societe'];
+			$solde = $data['solde'];
+			
+			$sql = 'INSERT INTO '.MAIN_DB_PREFIX.'societe_solde (entity, fk_soc, solde) ';
+			$sql.= 'VALUES ('.$entity.', '.$socid.', '.$solde.')';
+			$res = $ATMdb->Execute($sql);
+			
+			// Erreur
+			if($res < 0) {
+				echo 'ERR '.$sql;
+				return false;
+			} else {
+				$this->nb_create++;
+			}			
+		} else {
+			return false;
+		}
+		
 		return true;
 	}
 
