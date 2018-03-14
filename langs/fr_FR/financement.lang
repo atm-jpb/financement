@@ -157,6 +157,7 @@ ErrorClientDifferent=Dossier rattaché à un autre client
 leaserNotAllgood=Leaser du dossier différent
 ErrorCreatingLinkAffaireFactureMaterielAlreidyExist=Facture matériel déjà rattaché à une affaire
 ErrorMaterielNonFinance=Facture matériel pour un contrat non financé
+AssetWithWrongDossier=Matricule trouvé mais associé à un autre dossier
 
 # IHM
 DataSaved=Données enregistrées avec succès

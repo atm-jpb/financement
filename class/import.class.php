@@ -32,7 +32,9 @@ class TImport extends TObjetStd {
 			'dossier_init_adossee'=>'Import initial adosées',
 			'dossier_init_mandatee'=>'Import initial mandatées',
 			'dossier_init_all'=>'Import initial',
-			'dossier_init_loc_pure'=>'Import initial Loc Pures');
+			'dossier_init_loc_pure'=>'Import initial Loc Pures',
+			'materiel_parc'=>'Import matricules parc'
+		);
 		$this->current_line = array();
 		
 		if (!empty($conf->global->FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY))
@@ -144,6 +146,9 @@ class TImport extends TObjetStd {
 				break;
 			case 'materiel':
 				$this->importLineMateriel($ATMdb, $data);
+				break;
+			case 'materiel_parc':
+				$this->importLineMaterielParc($ATMdb, $data);
 				break;
 			case 'facture_materiel':
 				$this->getLeaserList($ATMdb, $TInfosGlobale);
@@ -1449,6 +1454,63 @@ class TImport extends TObjetStd {
 			$asset->save($ATMdb);
 		}
 			
+		return true;
+	}
+
+	function importLineMaterielParc(&$ATMdb, $data) {
+		global $user,$conf;
+		//echo '<hr>'.$data['matricule'].'<hr>';	
+		if(strlen($data['matricule']) < 3) {			
+			return false;
+		} else {
+			$asset=new TAsset;
+			$asset->loadReference($ATMdb,$data['matricule']);
+			
+			// Matériel existe déjà, vérification si c'est sur le même contrat et même entité
+			if($asset->getId() > 0) {
+				//pre($asset,true);
+				$link = $asset->getLink('affaire');
+				
+				if(!empty($link->fk_document)) {
+					$aff = new TFin_affaire();
+					$aff->load($ATMdb, $link->fk_document, false);
+					$aff->loadDossier($ATMdb);
+					
+					$ref = $aff->TLien[0]->dossier->financementLeaser->reference;
+					
+					if($ref != $data['reference']) {
+						$msg = 'Matricule '.$data['matricule'].' trouvé mais associé au dossier '.$ref;
+						$this->addError($ATMdb, 'AssetWithWrongDossier', $data['matricule'].' - '.$ref, 'WARNING');
+					}
+				}
+				
+			} else { // Création du matériel et rattachement au contrat
+				$fin = new TFin_financement();
+				$fin->loadReference($ATMdb, $data['reference']);
+				
+				if($fin->getId() > 0) {
+					$doss = new TFin_dossier();
+					$doss->load($ATMdb, $fin->fk_fin_dossier, false, false);
+					$doss->load_affaire($ATMdb);
+					
+					if($doss->TLien[0]->getId() > 0) {
+						$asset->serial_number = $data['matricule'];
+						$asset->add_link($doss->TLien[0]->affaire->getId(),'affaire');
+						$asset->save($ATMdb);
+						
+						$msg = 'Matricule '.$data['matricule'].' créé et associé au dossier '.$data['reference'];
+						$this->nb_create++;
+					} else {
+						$msg = 'Affaire non trouvée';
+						$this->addError($ATMdb, 'ErrorAffaireNotFound', $data['reference']);
+					}
+				} else {
+					$msg = 'Dossier '.$data['reference'].' non trouvé';
+					$this->addError($ATMdb, 'ErrorDossierNotFound', $data['reference']);
+				}
+			}
+		}
+		//echo $msg;
 		return true;
 	}
 
