@@ -303,7 +303,7 @@ class TSimulation extends TObjetStd {
 		dol_include_once('/categories/class/categorie.class.php');
 		
 		if(!empty($this->fk_soc)) {
-			// Récupếration des infos du client
+			// Récupération des infos du client
 			if(empty($this->societe)) {
 				$this->societe = new Societe($doliDB);
 				$this->societe->fetch($this->fk_soc);
