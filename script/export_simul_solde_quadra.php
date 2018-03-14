@@ -45,7 +45,7 @@ $TData = $PDOdb->Get_All(PDO::FETCH_ASSOC);
 $filename = DOL_DATA_ROOT . '/9/financement/extract_simul/quadra_simulations_soldes.csv';
 $handle = fopen($filename, 'w');
 
-$head = explode(";", "Ref Simulation;Ref Contrat;Montant Solde;Date Solde;Type Solde");
+$head = explode(";", "Ref unique;Ref simulation;Ref contrat;Montant solde vendeur;Date fin periode;Montant solde banque;Type solde;Client;Type contrat");
 fputcsv($handle, $head, ';');
 //echo '<pre>';
 foreach ($TData as $res) {
