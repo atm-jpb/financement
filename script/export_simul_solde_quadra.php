@@ -51,19 +51,25 @@ fputcsv($handle, $head, ';');
 foreach ($TData as $res) {
 	$simu = new TSimulation();
 	$simu->load($PDOdb, $db, $res['rowid'], false);
+	$simu->societe = new Societe($db);
+	$simu->societe->fetch($simu->fk_soc);
 	$simu->load_suivi_simulation($PDOdb);
 	$TDossiers = $simu->_getDossierSelected();
 	//pre($simu,true);
 	if(!empty($TDossiers)) {
 		foreach ($TDossiers as $idDossier) {
 			$d = $simu->dossiers[$idDossier];
-			list($date, $solde) = get_date_et_solde($PDOdb, $simu, $idDossier);
+			list($date, $solde, $typesolde) = get_date_et_solde($PDOdb, $simu, $idDossier);
 			$data = array(
-				$simu->reference
-				,$d['num_contrat_leaser']
-				,$d['solde_vendeur']
-				,$date
-				,$solde
+				$simu->reference . '-' . $d['num_contrat_leaser']	// Clé unique pour eux
+				,$simu->reference									// Ref simulation
+				,$d['num_contrat_leaser']							// Ref contrat leaser
+				,$d['solde_vendeur']								// Solde coché vendeur
+				,$date												// Période concernée
+				,$solde												// Solde calculé (R ou NR)
+				,$typesolde											// R ou NR
+				,$simu->societe->name								// Client
+				,$d['type_contrat']									// Type contrat
 			);
 			
 			//echo implode(' || ', $data).'<br>';
@@ -94,6 +100,7 @@ function get_date_et_solde(&$PDOdb, &$simu, $idDossier) {
 	}
 	
 	$date_periode = $d->getDateDebutPeriode($echeance);
+	$date_fin = $d->getDateFinPeriode($echeance);
 	
 	// Solde final : si LEASER dossier = LEASER PRECO => SOLDE R
 	// Sinon, si LEASER DOSSIER A REFUSÉ (dans le suivi) => SOLDE R
@@ -115,9 +122,11 @@ function get_date_et_solde(&$PDOdb, &$simu, $idDossier) {
 	
 	if($sameLeaser || $refus) {
 		$solde = $d->getSolde($PDOdb, 'SRCPRO', $echeance + 1);
+		$typesolde = 'R';
 	} else {
 		$solde = $d->getSolde($PDOdb, 'SNRCPRO', $echeance + 1);
+		$typesolde = 'NR';
 	}
 	
-	return array($date_periode, round($solde,2));
+	return array($date_fin, round($solde,2), $typesolde);
 }
