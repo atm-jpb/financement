@@ -29,6 +29,7 @@ $PDOdb = new TPDOdb();
 $sql = "SELECT rowid
 		FROM ".MAIN_DB_PREFIX."fin_dossier d
 		WHERE 1 = 1
+		AND d.date_solde < '1970-00-00 00:00:00'
 		AND (d.quote_part_couleur > 0 OR d.quote_part_noir > 0)
 		ORDER BY reference_contrat_interne ASC";
 
