@@ -201,11 +201,27 @@ if(!empty($action)) {
 				$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
 				$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 				
+				if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
+			        $diff = round($_REQUEST['coeff'], 3) - $simulation->coeff;
+			        $simulation->coeff_final = $simulation->coeff_final + $diff;
+			    }
+				
 				if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
-				    if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
-				        $diff = round($_REQUEST['coeff'], 3) - $simulation->coeff;
-				        $simulation->coeff_final = $simulation->coeff_final + $diff;
+				    if ($simulation->accord == 'OK'){
+				        var_dump($simulation->modifs);
+				        foreach ($simulation->modifs as $k =>$v){
+				            $modifAccord = array('echeance', 'duree', 'montant_presta_trim', 'type_materiel');
+				            if (in_array($k, $modifAccord)) $simulation->accord = 'MODIF';
+    				    }
+    				    var_dump($simulation->accord );
+    				    $diffmontant = abs($simulation->montant_total_finance - $simulation->montant_accord);
+    				    if(($diffmontant / $simulation->montant_accord) * 100 > $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE) {
+    				        $simulation->accord = 'MODIF';
+    				    }
+    				    var_dump($simulation->accord );
+    				    
 				    }
+				    
 				    
 				    if(($simulation->modifiable == 0 || $simulation->modifiable == 2) && !empty($simulation->montant_accord) && $simulation->montant_accord != $simulation->montant_total_finance) {
 				        $diffmontant = abs($simulation->montant_total_finance - $simulation->montant_accord);
