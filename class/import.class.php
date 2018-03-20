@@ -410,6 +410,7 @@ class TImport extends TObjetStd {
 				}
 				else {
 					$dossier->financementLeaser->okPourFacturation='OUI';
+					$dossier->financement->incident_paiement=$data['incident_paiement'];
 				}
 			}
 			
