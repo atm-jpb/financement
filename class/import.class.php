@@ -387,31 +387,9 @@ class TImport extends TObjetStd {
 				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
 				//pre($dossier->financementLeaser,true);echo '<hr>';flush();
 			} else { // Dossier interne => Vérification des informations
-			
-				if(!empty($f->fk_soc) && $f->fk_soc!=$data['idLeaser']) { // Si le dossier de financement récupéré n'est pas lié au bon leaser, erreur
-					$this->addError($ATMdb, 'leaserNotAllgood', $data['idLeaser']);
-					return false;
-				}
-			
-				$echeance = $data['echeance'];
-				$montant = $data['montant'];
-				$date_debut = $data['date_debut'];
-				$date_fin = $data['date_fin'];
-				
-				if(
-						$echeance != $dossier->financementLeaser->echeance
-						|| $montant > ($dossier->financementLeaser->montant + 0.01)
-						|| $montant < ($dossier->financementLeaser->montant - 0.01)
-						|| $date_debut != $dossier->financementLeaser->date_debut
-						//|| $date_fin != $dossier->financementLeaser->date_fin
-					) {
-					$this->addError($ATMdb, 'cantMatchDataLine', $data['reference'], 'WARNING');
-					return false;
-				}
-				else {
-					$dossier->financementLeaser->okPourFacturation='OUI';
-					$dossier->financement->incident_paiement=$data['incident_paiement'];
-				}
+				// On ne vérifie plus les données pour mettre Oui dans Bon pour facturation (fait manuellement)
+				// Mais on permet de mettre à jour l'incident de paiement
+				$dossier->financement->incident_paiement=$data['incident_paiement'];
 			}
 			
 			/*if($dossier->entity != $data['entity']) {
