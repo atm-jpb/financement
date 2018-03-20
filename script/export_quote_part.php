@@ -46,6 +46,7 @@ echo implode(';', $head) . '<br>';
 foreach ($TData as $data) {
 	$dossier = new TFin_dossier();
 	$dossier->load($PDOdb, $data['rowid'],false,false);
+	$dossier->load_financement($PDOdb);
 	$dossier->load_facture($PDOdb,true);
 	
 	$sommeCopieSupCouleur = $sommeCopieSupNoir = 0;
