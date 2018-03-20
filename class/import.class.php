@@ -379,6 +379,7 @@ class TImport extends TObjetStd {
 				}*/
 				
 				foreach ($data as $key => $value) {
+					if($value == '') continue;
 					$dossier->financementLeaser->{$key} = $value;
 				}
 				$dossier->financementLeaser->fk_soc = $data['idLeaser'];
