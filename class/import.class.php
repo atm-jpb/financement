@@ -237,7 +237,7 @@ class TImport extends TObjetStd {
 				if($avoirid === false) return false;
 				
 				$facture_loc->type = 2;
-				$facture_loc->fk_facture_source = $avoirid;
+				if(!empty($avoirid)) $facture_loc->fk_facture_source = $avoirid;
 			}
 			
 			$res = $facture_loc->create($user);
