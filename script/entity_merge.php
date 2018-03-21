@@ -5,62 +5,115 @@ ini_set('display_errors', true);
 // Include Dolibarr environment
 require_once("../config.php");
 
-?>
-Script déplaçant tous les éléments de la base de l\'entité "entity_source" vers l\'entité "entity_target"
-<br><br>
-<?php
-
-// Récupération des paramètres
+// R&eacute;cup&eacute;ration des paramètres
 $entitySource = GETPOST('entity_source');
 $entityTarget = GETPOST('entity_target');
-$confirm = GETPOST('confirm');
 
 if(empty($entitySource) || empty($entityTarget)) {
-	echo 'Ce script nécessite 2 paramètres : "entity_source" et "entity_target"';
+	echo 'Ce script n&eacute;cessite 2 paramètres : "entity_source" et "entity_target"';
 	exit();
 }
 
-// Chargement des entités
+$PDOdb = new TPDOdb();
+
+// Chargement des entit&eacute;s
 $e1 = new DaoMulticompany($db);
 $e1->fetch($entitySource);
 //pre($e1,true);
 $e2 = new DaoMulticompany($db);
 $e2->fetch($entityTarget);
 
-?>
-Tous les éléments de l'entité <strong><?php echo $entitySource . ' - ' .$e1->label ?></strong>
-vont être transférés sur l'entité <strong><?php echo $entityTarget . ' - ' .$e2->label ?></strong>.
-<br><br>
-<?php
+// Get all tables
+$TTable = get_tables($PDOdb);
 
-// Demande de confirmation
-if(empty($confirm)) {
-?>
-	<form method="POST">
-		<input type="hidden" name="entity_source" value="<?php echo $entitySource ?>" />
-		<input type="hidden" name="entity_target" value="<?php echo $entityTarget ?>" />
-		
-		<input type="submit" name="confirm" value="Confirmer" />
-	</form>
-<?php
-	exit();
-}
-
-// Go
-$PDOdb = new TPDOdb();
-
-$TTables = get_tables($PDOdb);
-
-foreach ($TTables as $table) {
+$TRes = array();
+foreach ($TTable as $table) {
+	// Deal only with table with entity column in it
 	if(has_entity($PDOdb, $table)) {
-		
 		$sql = "SELECT count(*) as nb FROM ".$table." WHERE entity = ".$entitySource;
 		$PDOdb->Execute($sql);
 		$PDOdb->Get_line();
 		$nb = $PDOdb->Get_field('nb');
-		if($nb > 0) echo $table.' - '.$nb.' records<br>';
+		$TRes[] = array('table' => $table, 'records' => $nb);
 	}
 }
+
+/**
+ * Action
+ */
+$TabAction = GETPOST('TTable', 'array');
+$TReq = array();
+if(!empty($TabAction)) {
+	foreach ($TabAction as $table => $action) {
+		if($action == 'delete') {
+			$TReq[] = delete_record_with_entity($PDOdb, $table, $entitySource);
+		} else if ($action == 'move') {
+			$TReq[] = update_record_with_entity($PDOdb, $table, $entitySource, $entityTarget);
+		}
+	}
+}
+
+/**
+ * View
+ */
+llxHeader();
+
+dol_fiche_head();
+
+?>
+Tous les &eacute;l&eacute;ments de l'entit&eacute; <strong><?php echo $entitySource . ' - ' .$e1->label ?></strong>
+vont être supprim&eacute;s ou transf&eacute;r&eacute;s sur l'entit&eacute; <strong><?php echo $entityTarget . ' - ' .$e2->label ?></strong>.
+<br><br>
+
+<form method="POST">
+<input type="hidden" name="entity_source" value="<?php echo $entitySource ?>" />
+<input type="hidden" name="entity_target" value="<?php echo $entityTarget ?>" />
+
+<?php
+if(!empty($TReq)) {
+	echo 'Requêtes à exécuter :<hr>';
+	echo implode('<br>', $TReq);
+	echo '<hr>';
+}
+?>
+
+<table class="liste">
+	<tr class="liste_titre">
+		<th>Table</th>
+		<th>Nb records</th>
+		<th>Action</th>
+	</tr>
+<?php
+$var = true;
+foreach($TRes as $data) {
+	if(empty($data['records'])) continue;
+?>
+	<tr <?php echo $bc[$var] ?>>
+		<td><?php echo $data['table'] ?></td>
+		<td><?php echo $data['records'] ?></td>
+		<td>
+			Move <input type="radio" name="TTable[<?php echo $data['table'] ?>]" value="move" />
+			Delete <input type="radio" name="TTable[<?php echo $data['table'] ?>]" value="delete" />
+			None <input type="radio" name="TTable[<?php echo $data['table'] ?>]" value="none" checked="checked" />
+		</td>
+	</tr>
+<?php
+	$var = !$var;
+}
+?>
+</table>
+
+<div class="tabsAction">
+	<input type="submit" value="Fusionner" class="butAction" />
+</div>
+
+</form>
+<?php
+
+dol_fiche_end();
+
+llxFooter();
+
 
 // Get list of all tables in database
 function get_tables(&$PDOdb) {
@@ -85,4 +138,18 @@ function has_entity(&$PDOdb, $table) {
 	}
 	
 	return false;
+}
+
+// Delete all records in a table with an entity
+function delete_record_with_entity(&$PDOdb, $table, $entitySource) {
+	$sql = "DELETE FROM $table WHERE entity = $entitySource;";
+	//$PDOdb->Execute($sql);
+	return $sql;
+}
+
+// Update all records in a table with an entity
+function update_record_with_entity(&$PDOdb, $table, $entitySource, $entityTarget) {
+	$sql = "UPDATE $table SET entity = $entityTarget WHERE entity = $entitySource;";
+	//$PDOdb->Execute($sql);
+	return $sql;
 }
