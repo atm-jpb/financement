@@ -170,21 +170,23 @@ if(!empty($action)) {
 		case 'calcul':
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			
-			if((float)$_REQUEST['montant'] !== $simulation->montant) $simulation->modifs['montant'] = $simulation->montant;
-			if((float)$_REQUEST['echeance'] !== $simulation->echeance) $simulation->modifs['echeance'] = $simulation->echeance;
-			if((float)$_REQUEST['montant_presta_trim'] !== $simulation->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $simulation->montant_presta_trim;
-			if($_REQUEST['type_materiel'] !== $simulation->type_materiel) $simulation->modifs['type_materiel'] = $simulation->type_materiel;
-			if($_REQUEST['opt_periodicite'] !== $simulation->opt_periodicite) $simulation->modifs['opt_periodicite'] = $simulation->opt_periodicite;
-			if((int)$_REQUEST['duree'] !== $simulation->duree) $simulation->modifs['duree'] = $simulation->duree;
-			if($_REQUEST['fk_type_contrat'] !== $simulation->fk_type_contrat) $simulation->modifs['fk_type_contrat'] = $simulation->fk_type_contrat;
-			if($_REQUEST['opt_mode_reglement'] !== $simulation->opt_mode_reglement) $simulation->modifs['opt_mode_reglement'] = $simulation->opt_mode_reglement;
-			if($_REQUEST['opt_terme'] !== $simulation->opt_terme) $simulation->modifs['opt_terme'] = $simulation->opt_terme;
-			if((float)$_REQUEST['coeff'] !== $simulation->coeff) $simulation->modifs['coeff'] = $simulation->coeff;
+			if((float)$_REQUEST['montant'] !== $simulation->montant) $simulation->modifs['montant'] = $_REQUEST['montant'];
+			if((float)$_REQUEST['echeance'] !== $simulation->echeance) $simulation->modifs['echeance'] = $_REQUEST['echeance'];
+			if((float)$_REQUEST['montant_presta_trim'] !== $simulation->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $_REQUEST['montant_presta_trim'];
+			if($_REQUEST['type_materiel'] !== $simulation->type_materiel) $simulation->modifs['type_materiel'] = $_REQUEST['type_materiel'];
+			if($_REQUEST['opt_periodicite'] !== $simulation->opt_periodicite) $simulation->modifs['opt_periodicite'] = $_REQUEST['opt_periodicite'];
+			if((int)$_REQUEST['duree'] !== $simulation->duree) $simulation->modifs['duree'] = $_REQUEST['duree'];
+			if($_REQUEST['fk_type_contrat'] !== $simulation->fk_type_contrat) $simulation->modifs['fk_type_contrat'] = $_REQUEST['fk_type_contrat'];
+			if($_REQUEST['opt_mode_reglement'] !== $simulation->opt_mode_reglement) $simulation->modifs['opt_mode_reglement'] = $_REQUEST['opt_mode_reglement'];
+			if($_REQUEST['opt_terme'] !== $simulation->opt_terme) $simulation->modifs['opt_terme'] = $_REQUEST['opt_terme'];
+			if((float)$_REQUEST['coeff'] !== $simulation->coeff) $simulation->modifs['coeff'] = $_REQUEST['coeff'];
 			
 			$oldAccord = $simulation->accord;
 			
 			$simulation->set_values($_REQUEST);
 			
+			$simulation->_calcul($ATMdb);
+			var_dump($simulation->modifs, $simulation->montant, $simulation->accord); exit;
 			// Si on ne modifie que le montant, les autres champs ne sont pas présent, il faut conserver ceux de la simu
 			if($_REQUEST['mode'] != 'edit_montant') {
 				// On vérifie que les dossiers sélectionnés n'ont pas été décochés
@@ -206,8 +208,8 @@ if(!empty($action)) {
 			        $simulation->coeff_final = $simulation->coeff_final + $diff;
 			    }
 				
-				if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
-				    if ($simulation->accord == 'OK'){
+			    if ($simulation->accord == 'OK'){
+				    if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
 				        var_dump($simulation->modifs);
 				        foreach ($simulation->modifs as $k =>$v){
 				            $modifAccord = array('echeance', 'duree', 'montant_presta_trim', 'type_materiel');
@@ -233,18 +235,15 @@ if(!empty($action)) {
 				        }
 				    }
 				    
-				} else {
+			    } elseif ($simulation->accord == 'WAIT' || $simulation->accord == 'WAIT_LEASER' || $simulation->accord == 'WAIT_SELLER') {
 				    $simulation->accord = 'MODIF';
 				    $simulation->coeff_final = 0;
-				    
 				}
 			}
 			
 			if ($simulation->accord !== 'MODIF'){
 			    $simulation->modifs = array();
 			}
-
-			$simulation->_calcul($ATMdb);
 			
 			if (empty($oldAccord) || ($oldAccord !== $simulation->accord)) {
 			    $simulation->historise_accord($ATMdb);
@@ -291,16 +290,16 @@ if(!empty($action)) {
 			//pre($_REQUEST,true);
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			
-			if((float)$_REQUEST['montant'] !== $simulation->montant) $simulation->modifs['montant'] = $simulation->montant;
-			if((float)$_REQUEST['echeance'] !== $simulation->echeance) $simulation->modifs['echeance'] = $simulation->echeance;
-			if((float)$_REQUEST['montant_presta_trim'] !== $simulation->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $simulation->montant_presta_trim;
-			if($_REQUEST['type_materiel'] !== $simulation->type_materiel) $simulation->modifs['type_materiel'] = $simulation->type_materiel;
-			if($_REQUEST['opt_periodicite'] !== $simulation->opt_periodicite) $simulation->modifs['opt_periodicite'] = $simulation->opt_periodicite;
-			if((int)$_REQUEST['duree'] !== $simulation->duree) $simulation->modifs['duree'] = $simulation->duree;
-			if($_REQUEST['fk_type_contrat'] !== $simulation->fk_type_contrat) $simulation->modifs['fk_type_contrat'] = $simulation->fk_type_contrat;
-			if($_REQUEST['opt_mode_reglement'] !== $simulation->opt_mode_reglement) $simulation->modifs['opt_mode_reglement'] = $simulation->opt_mode_reglement;
-			if($_REQUEST['opt_terme'] !== $simulation->opt_terme) $simulation->modifs['opt_terme'] = $simulation->opt_terme;
-			if((float)$_REQUEST['coeff'] !== $simulation->coeff) $simulation->modifs['coeff'] = $simulation->coeff;
+			if((float)$_REQUEST['montant'] !== $simulation->montant) $simulation->modifs['montant'] = $_REQUEST['montant'];
+			if((float)$_REQUEST['echeance'] !== $simulation->echeance) $simulation->modifs['echeance'] = $_REQUEST['echeance'];
+			if((float)$_REQUEST['montant_presta_trim'] !== $simulation->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $_REQUEST['montant_presta_trim'];
+			if($_REQUEST['type_materiel'] !== $simulation->type_materiel) $simulation->modifs['type_materiel'] = $_REQUEST['type_materiel'];
+			if($_REQUEST['opt_periodicite'] !== $simulation->opt_periodicite) $simulation->modifs['opt_periodicite'] = $_REQUEST['opt_periodicite'];
+			if((int)$_REQUEST['duree'] !== $simulation->duree) $simulation->modifs['duree'] = $_REQUEST['duree'];
+			if($_REQUEST['fk_type_contrat'] !== $simulation->fk_type_contrat) $simulation->modifs['fk_type_contrat'] = $_REQUEST['fk_type_contrat'];
+			if($_REQUEST['opt_mode_reglement'] !== $simulation->opt_mode_reglement) $simulation->modifs['opt_mode_reglement'] = $_REQUEST['opt_mode_reglement'];
+			if($_REQUEST['opt_terme'] !== $simulation->opt_terme) $simulation->modifs['opt_terme'] = $_REQUEST['opt_terme'];
+			if((float)$_REQUEST['coeff'] !== $simulation->coeff) $simulation->modifs['coeff'] = $_REQUEST['coeff'];
 			
 			$oldAccord = $simulation->accord;
 			//pre($_REQUEST,true);
@@ -442,7 +441,7 @@ if(!empty($action)) {
 		case 'changeAccord':
 		    $newAccord = GETPOST('accord');
 		    $simulation->load($ATMdb, $db, $_REQUEST['id']);
-		    
+		    if($newAccord == 'OK') $simulation->montant_accord = $simulation->montant_total_finance;
 		    $simulation->accord = $newAccord;
 		    $simulation->save($ATMdb, $db);
 		    $simulation->historise_accord($ATMdb);
@@ -988,10 +987,12 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	/**
 	 * Calcul à la volé pour connaitre le coef en fonction de la périodicité
 	 */
-	if ($simulation->opt_periodicite == 'MOIS') $coeff = $simulation->coeff / 3;
-	elseif ($simulation->opt_periodicite == 'SEMESTRE') $coeff = $simulation->coeff * 2;
-	elseif ($simulation->opt_periodicite == 'ANNEE') $coeff = $simulation->coeff * 4;
-	else $coeff = $simulation->coeff; // TRIMESTRE
+	$tempCoeff = (!empty($simulation->modifs['coeff']) ? $simulation->modifs['coeff'] : $simulation->coeff);
+	
+	if ($simulation->opt_periodicite == 'MOIS') $coeff = $tempCoeff / 3;
+	elseif ($simulation->opt_periodicite == 'SEMESTRE') $coeff = $tempCoeff * 2;
+	elseif ($simulation->opt_periodicite == 'ANNEE') $coeff = $tempCoeff * 4;
+	else $coeff = $tempCoeff; // TRIMESTRE
 	
 	if($simulation->montant_decompte_copies_sup < 0) $simulation->montant_decompte_copies_sup = 0;
 	
@@ -1008,27 +1009,27 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'ref'=>$simulation->reference
 		,'doc'=>($simulation->getId() > 0) ? $formfile->getDocumentsLink('financement', $filename, $filedir, 1) : ''
 		,'fk_soc'=>$simulation->fk_soc
-	    ,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat).(!empty($simulation->modifs['fk_type_contrat']) ? ' (Ancienne valeur : '.$affaire->TContrat[$simulation->modifs['fk_type_contrat']].')' : '')
+	    ,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), !empty($simulation->modifs['fk_type_contrat']) ? $simulation->modifs['fk_type_contrat'] : $simulation->fk_type_contrat).(!empty($simulation->modifs['fk_type_contrat']) ? ' (Ancienne valeur : '.$affaire->TContrat[$simulation->fk_type_contrat].')' : '')
 		,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
 		,'opt_adjonction'=>$form->checkbox1('', 'opt_adjonction', 1, $simulation->opt_adjonction) 
-	    ,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $financement->TPeriodicite, $simulation->opt_periodicite) .(!empty($simulation->modifs['opt_periodicite']) ? ' (Ancienne valeur : '.$financement->TPeriodicite[$simulation->modifs['opt_periodicite']].')' : '')
+	    ,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $financement->TPeriodicite, !empty($simulation->modifs['opt_periodicite']) ? $simulation->modifs['opt_periodicite'] : $simulation->opt_periodicite) .(!empty($simulation->modifs['opt_periodicite']) ? ' (Ancienne valeur : '.$financement->TPeriodicite[$simulation->opt_periodicite].')' : '')
 		//,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 1, $simulation->opt_creditbail)
-	    ,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement) .(!empty($simulation->modifs['opt_mode_reglement']) ? ' (Ancienne valeur : '.$financement->TReglement[$simulation->modifs['opt_mode_reglement']].')' : '')
+	    ,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, !empty($simulation->modifs['opt_mode_reglement']) ? $simulation->modifs['opt_mode_reglement'] : $simulation->opt_mode_reglement) .(!empty($simulation->modifs['opt_mode_reglement']) ? ' (Ancienne valeur : '.$financement->TReglement[$simulation->opt_mode_reglement].')' : '')
 		,'opt_calage_label'=>$form->combo('', 'opt_calage_label', $TOptCalageLabel, $simulation->opt_calage, 0, '', TFinancementTools::user_courant_est_admin_financement() ? '' : 'disabled')
 		,'opt_calage'=>$form->hidden('opt_calage', $simulation->opt_calage)
-	    ,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme) .(!empty($simulation->modifs['opt_terme']) ? ' (Ancienne valeur : '.$financement->TTerme[$simulation->modifs['opt_terme']].')' : '')
+	    ,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, !empty($simulation->modifs['opt_terme']) ? $simulation->modifs['opt_terme'] : $simulation->opt_terme) .(!empty($simulation->modifs['opt_terme']) ? ' (Ancienne valeur : '.$financement->TTerme[$simulation->opt_terme].')' : '')
 		,'date_demarrage'=>$form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12)
-	    ,'montant'=>$form->texte('', 'montant', $simulation->montant, 10) .(!empty($simulation->modifs['montant']) ? ' (Ancienne valeur : '.$simulation->modifs['montant'].')' : '')
+	    ,'montant'=>$form->texte('', 'montant', !empty($simulation->modifs['montant']) ? $simulation->modifs['montant'] : $simulation->montant, 10) .(!empty($simulation->modifs['montant']) ? ' (Ancienne valeur : '.$simulation->montant.')' : '')
 		,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)
 		,'montant_decompte_copies_sup'=>$form->texteRO('', 'montant_decompte_copies_sup', $simulation->montant_decompte_copies_sup, 10)
 		,'montant_rachat_final'=>$form->texteRO('', 'montant_rachat_final', $simulation->montant_rachat_final, 10)
 		,'montant_rachete_concurrence'=>$form->texte('', 'montant_rachete_concurrence', $simulation->montant_rachete_concurrence, 10)
-	    ,'duree'=>$form->combo('', 'duree', $TDuree, $simulation->duree) .(!empty($simulation->modifs['duree']) ? ' (Ancienne valeur : '.$TDuree[$simulation->modifs['duree']].')' : '')
-	    ,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10) .(!empty($simulation->modifs['echeance']) ? ' (Ancienne valeur : '.$simulation->modifs['echeance'].')' : '')
+	    ,'duree'=>$form->combo('', 'duree', $TDuree, !empty($simulation->modifs['duree']) ? $simulation->modifs['duree'] : $simulation->duree) .(!empty($simulation->modifs['duree']) ? ' (Ancienne valeur : '.$TDuree[$simulation->duree].')' : '')
+	    ,'echeance'=>$form->texte('', 'echeance', !empty($simulation->modifs['echeance']) ? $simulation->modifs['echeance'] : $simulation->echeance, 10) .(!empty($simulation->modifs['echeance']) ? ' (Ancienne valeur : '.$simulation->echeance.')' : '')
 		,'vr'=>price($simulation->vr)
-	    ,'coeff'=>$form->texteRO('', 'coeff', $coeff, 6) .(!empty($simulation->modifs['coeff']) ? ' (Ancienne valeur : '.$simulation->modifs['coeff'].')' : '')
+	    ,'coeff'=>$form->texteRO('', 'coeff', $coeff, 6) .(!empty($simulation->modifs['coeff']) ? ' (Ancienne valeur : '.$simulation->coeff.')' : '')
 		,'coeff_final'=>$can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 6) : $simulation->coeff_final
-	    ,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10) .(!empty($simulation->modifs['montant_presta_trim']) ? ' (Ancienne valeur : '.$simulation->modifs['montant_presta_trim'].')' : '')
+	    ,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', (!empty($simulation->modifs['montant_presta_trim']) ? $simulation->modifs['montant_presta_trim'] : $simulation->montant_presta_trim), 10) .(!empty($simulation->modifs['montant_presta_trim']) ? ' (Ancienne valeur : '.$simulation->montant_presta_trim.')' : '')
 		,'cout_financement'=>$simulation->cout_financement
 	    ,'accord'=> $accordIcon . '<br />' . ($user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]) . '<br>'
 		,'can_resend_accord'=>$simulation->accord
