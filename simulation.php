@@ -222,19 +222,17 @@ if(!empty($action)) {
 				$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
 				$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 				
-				if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
+				
+
+			} else {
+			    
+			    if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
 			        $diff = round($_REQUEST['coeff'], 3) - $simulation->coeff;
 			        $simulation->coeff_final = $simulation->coeff_final + $diff;
 			    }
-
-			} else {
+			    
 			    if ($oldAccord == 'OK'){
 				    if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
-
-				        foreach ($simulation->modifs as $k =>$v){
-				            $modifAccord = array('echeance', 'duree', 'montant_presta_trim', 'type_materiel');
-				            if (in_array($k, $modifAccord)) $simulation->accord = 'MODIF';
-    				    }
     				    
     				    $diffmontant = abs($simulation->montant - $simulation->montant_accord);
     				    if (empty($simulation->montant_accord)) $simulation->montant_accord = 1;
@@ -243,6 +241,11 @@ if(!empty($action)) {
     				    } else {
     				        $simulation->accord = 'OK';
     				        $simulation->montant_accord = $simulation->montant;
+    				    }
+    				    
+    				    foreach ($simulation->modifs as $k =>$v){
+    				        $modifAccord = array('echeance', 'duree', 'montant_presta_trim', 'type_materiel');
+    				        if (in_array($k, $modifAccord)) $simulation->accord = 'MODIF';
     				    }
     				    
 				    }
@@ -352,6 +355,7 @@ if(!empty($action)) {
 			elseif (isset($simulation->modifs['coeff'])) unset($simulation->modifs['coeff']);
 			
 			$oldAccord = $simulation->accord;
+			$oldsimu = clone $simulation;
 			//pre($_REQUEST,true);
 			
 			$fk_type_contrat_old = $simulation->fk_type_contrat;
@@ -439,32 +443,56 @@ if(!empty($action)) {
 				}
 				
 				if($_REQUEST['mode'] == 'edit_montant') { // si le commercial a fait une modif
-				    if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
-				        if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
-				            $diff = round($_REQUEST['coeff'], 3) - $simulation->coeff;
-				            $simulation->coeff_final = $simulation->coeff_final + $diff;
-				        }
-				        
-				        if(($simulation->modifiable == 0 || $simulation->modifiable == 2) && !empty($simulation->montant_accord) && $simulation->montant_accord != $simulation->montant_total_finance) {
-				            $diffmontant = abs($simulation->montant_total_finance - $simulation->montant_accord);
+				    
+				    if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
+				        $diff = round($_REQUEST['coeff'], 3) - $simulation->coeff;
+				        $simulation->coeff_final = $simulation->coeff_final + $diff;
+				    }
+				    
+				    if ($oldAccord == 'OK'){
+				        if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
+				            
+				            $diffmontant = abs($simulation->montant - $simulation->montant_accord);
+				            if (empty($simulation->montant_accord)) $simulation->montant_accord = 1;
 				            if(($diffmontant / $simulation->montant_accord) * 100 > $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE) {
 				                $simulation->accord = 'MODIF';
 				            } else {
 				                $simulation->accord = 'OK';
-				                $simulation->montant_accord = $simulation->montant_total_finance;
+				                $simulation->montant_accord = $simulation->montant;
 				            }
+				            
+				            foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
+				                $modifAccord = array('echeance', 'duree', 'montant_presta_trim', 'type_materiel');
+				                if (in_array($k, $modifAccord)) $simulation->accord = 'MODIF';
+				            }
+				            
 				        }
 				        
-				    } else {
+				    } elseif ($oldAccord == 'WAIT' || $oldAccord == 'WAIT_LEASER' || $oldAccord == 'WAIT_SELLER') {
+				        
 				        $simulation->accord = 'MODIF';
 				        $simulation->coeff_final = 0;
-				        
 				    }
 				    
 				} 
 				
+				if ($_REQUEST['mode'] == 'edit_montant'
+				    && ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE')
+				    && $oldAccord == 'OK'
+				    && $simulation->error == 'ErrorMontantModifNotAuthorized') // diff montant > 10%
+				{
+				    $simulation->accord = 'MODIF';
+				}
+				
+				if($simulation->accord == 'OK'){
+				    $simulation->montant_accord = $simulation->montant;
+				}
+				
 				if ($simulation->accord !== 'MODIF'){
 				    $simulation->modifs = array();
+				} else {
+				    $oldsimu->accord = 'MODIF';
+				    $simulation = $oldsimu;
 				}
 				
 				//$ATMdb->db->debug=true;
