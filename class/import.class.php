@@ -207,9 +207,8 @@ class TImport extends TObjetStd {
 
 	function createFacture(&$ATMdb,&$data,&$TInfosGlobale){
 		global $db,$user;
-		
 		// Recherche si facture existante dans la base
-		$facid = $this->_recherche_facture_2($ATMdb, $this->mapping['search_key'], $data);
+		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
 		//pre($facid,true).'<br>';
 		//Si existe pas alors on la créé
@@ -217,14 +216,6 @@ class TImport extends TObjetStd {
 			//echo '-'.$socid.'<br>';
 			$data['socid'] = $socid;
 			$facture_loc = new Facture($db);
-			
-			//On test de fetch sur la facnumber pour savoir s'il s'agit d'une facturation multi-contrats
-			$isMultipleContrat = false;
-			if($facture_loc->fetch('',$data['facnumber'])){
-				$isMultipleContrat = true;
-				$facture_loc = new Facture($db);
-			}
-			
 			//pre($facture_loc,true);
 			foreach ($data as $key => $value) {
 				$facture_loc->{$key} = $value;
@@ -252,7 +243,7 @@ class TImport extends TObjetStd {
 			}
 			
 			// Force la validation avec numéro de facture
-			$facture_loc->validate($user, ($isMultipleContrat) ? $data['facnumber'].'-'.$data['reference_dossier_interne'] : $data[$this->mapping['search_key']]);
+			$facture_loc->validate($user, $data[$this->mapping['search_key']]);
 			
 			// La validation entraine le recalcul de la date d'échéance de la facture, on remet celle fournie
 			$facture_loc->date_lim_reglement = $data['date_lim_reglement'];
@@ -334,7 +325,7 @@ class TImport extends TObjetStd {
 					$facture_loc->add_object_linked('dossier', $facture_loc->linked_objects['dossier']);
 				}
 			}
-
+			
 			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facture_loc->id;
 		}
 		else{
@@ -813,7 +804,7 @@ class TImport extends TObjetStd {
 			// On ajoute la ligne
 			$facture_loc->addline($data['libelle_ligne'], $data['pu'], $data['quantite'], $taux_tva,0,0,$fk_service, 0, '', '', 0, 0, '', 'HT', 0, 0, -1, 0, '', 0, 0, null, 0, $data['libelle_ligne']);
 			// Force la validation avec numéro de facture
-			$facture_loc->validate($user, $facture_loc->facnumber);
+			$facture_loc->validate($user, $data[$this->mapping['search_key']]);
 			
 			// La validation entraine le recalcul de la date d'échéance de la facture, on remet celle fournie
 			$facture_loc->date_lim_reglement = $data['date_lim_reglement'];
@@ -1990,7 +1981,7 @@ class TImport extends TObjetStd {
 
 	function _recherche_facture(&$ATMdb, $key, $val, $errorNotFound = false) {
 		global $conf;
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'facture',array($key=>$val, 'entity' => $conf->entity));
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'facture',array($key=>$val));
 		
 		$rowid = 0;
 		$num = count($TRes);
@@ -2006,6 +1997,7 @@ class TImport extends TObjetStd {
 		
 		return $rowid;
 	}
+/*
 	
 	//Nouvelle version de la fonction précédente
 	//Maintenant on recherche une association ref_facture + num_dossier pour gérer la facturation multi-dossiers
@@ -2035,6 +2027,7 @@ class TImport extends TObjetStd {
 		
 		return $rowid;
 	}
+*/
 
 	function _recherche_client(&$ATMdb, $key, $val, $errorNotFound = false, $errorMultipleFound = true) {
 		global $conf;
