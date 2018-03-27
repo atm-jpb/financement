@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Class used to call Lixbail Soap service
+ */
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 
