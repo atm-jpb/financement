@@ -450,50 +450,50 @@ class TFin_affaire extends TObjetStd {
 		
 		switch ($entity) {
 			case 1: //CPRO Impression
-				$name2 = "FP_207_MA01_CPRO_".$date;
+				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 2: //CPRO Informatique
-				$name2 = "FP_207_MA01_CPRO_".$date;
+				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 3: //CPRO Télécom
-				$name2 = "FP_207_MA01_CPRO_".$date;
+				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 4: //Bougogne Copie
-				$name2 = "FP_207_MA01_CPRO_".$date;
+				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 5: //ABG
-				$name2 = "FP_207_MA01_ABG_".$date;
+				$name2 = "FP_207_MA01_ABG".$entity."_".$date;
 				$nomFichier = "ABGMA0".$entity."IMMA".$date;
 				$refPartenaire = "ABGMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 7: //Copie concept
-				$name2 = "FP_207_MA01_CPRO_".$date;
+				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CYCPMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 9: //Quadra
-				$name2 = "FP_207_MA01_CPRO_".$date;
+				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			
 			default:
-				$name2 = "FP_207_MA01_CPRO_".$date;
+				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
