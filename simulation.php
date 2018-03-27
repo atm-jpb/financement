@@ -1158,13 +1158,6 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'fk_nature_bien'=>$mode == 'edit' ? $html->selectarray('fk_nature_bien', TFinancementTools::getNatureId(), $simulation->fk_nature_bien) : TFinancementTools::getNatureLabel($simulation->fk_nature_bien)
 	);
 	
-	if(TFinancementTools::user_courant_est_admin_financement() && $mode !== "edit") {
-	    $simuArray['accord'] .= '<br />';
-	    foreach ($simulation->TStatutIcons as $k => $icon) {
-	        if ($k !== $simulation->accord) $simuArray['accord'] .= '<a href="'.$_SERVER['PHP_SELF'].'?id='.$simulation->id.'&action=changeAccord&accord='.$k.'">'.img_picto('Changer vers ' . $simulation->TStatut[$k], $icon, '', 1) . '</a>&nbsp;&nbsp;';
-	    }
-	}
-	
 	if($mode == 'edit_montant') {
 		$mode = 'edit';
 		$form->Set_typeaff($mode);
