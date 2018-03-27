@@ -1180,6 +1180,12 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$simuArray['coeff'] = $form->texteRO('', 'coeff', (empty($simulation->modifs['coeff']) ? $coeff : $simulation->modifs['coeff']), 6).(!empty($simulation->modifs['coeff']) ? ' (Ancienne valeur : '.$coeff.')' : '');
 	}
 	
+	if(TFinancementTools::user_courant_est_admin_financement()) {
+	    $simuArray['accord'] .= '<br />';
+	    foreach ($simulation->TStatutIcons as $k => $icon) {
+	        if ($k !== $simulation->accord) $simuArray['accord'] .= '<a href="'.$_SERVER['PHP_SELF'].'?id='.$simulation->id.'&action=changeAccord&accord='.$k.'">'.img_picto('Changer vers ' . $simulation->TStatut[$k], $icon, '', 1) . '</a>&nbsp;&nbsp;';
+	    }
+	}
 	// Recherche par SIREN
 	$search_by_siren = true;
 	if(!empty($simulation->societe->array_options['options_no_regroup_fin_siren'])) {
