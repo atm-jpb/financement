@@ -4,3 +4,4 @@ import/done/
 import/todo/
 config.php
 *.log
+/nbproject
