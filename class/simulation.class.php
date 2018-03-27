@@ -1709,7 +1709,10 @@ class TSimulationSuivi extends TObjetStd {
 				break;
 			//LIXXBAIL
 			case 'LIXXBAIL':
-				$this->_createDemandeLIXXBAIL($PDOdb);
+				$this->_createDemandeServiceFinancement();
+				break;
+			case 'CMCIC':
+				$this->_createDemandeServiceFinancement();
 				break;
 			default:
 				return 1;
@@ -1722,7 +1725,7 @@ class TSimulationSuivi extends TObjetStd {
 		$this->save($PDOdb);
 	}
 	
-	function _createDemandeLIXXBAIL(&$PDOdb){
+	function _createDemandeServiceFinancement(){
 		dol_include_once('/financement/class/service_financement.class.php');
 		$service = new ServiceFinancement($this->simulation, $this);
 		$service->debug = $this->debug;
