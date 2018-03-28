@@ -141,28 +141,19 @@ class ServiceFinancement {
 		global $conf,$langs;
 		
 		// Production ou Test
-		if ($this->production)
-		{
-			$endpoint = 'https://www.espacepartenaires.cmcic-leasing.fr';
-			$this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CMCIC_PROD) ? $conf->global->FINANCEMENT_WSDL_CMCIC_PROD : 'https://www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl';
-		}
-		else
-		{
-			$endpoint = 'https://uat-www.espacepartenaires.cmcic-leasing.fr';
-			$this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CMCIC_RECETTE) ? $conf->global->FINANCEMENT_WSDL_CMCIC_RECETTE : 'https://uat-www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl';
-		}
+		if ($this->production) $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CMCIC_PROD) ? $conf->global->FINANCEMENT_WSDL_CMCIC_PROD : 'https://www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl';
+		else $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CMCIC_RECETTE) ? $conf->global->FINANCEMENT_WSDL_CMCIC_RECETTE : 'https://uat-www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl';
 		
 		if ($this->debug) var_dump('DEBUG :: Function callCMCIC(): Production = '.json_encode($this->production).' ; WSDL = '.$this->wsdl.' ; endpoint = '.$this->endpoint);
 		
 		try {
-			$this->soapClient = new nusoap_client($endpoint, $this->wsdl);
-//			$this->soapClient->setDebugLevel(1); // 0 - 9
+			$this->soapClient = new SoapClient($this->wsdl);
 			
 			dol_syslog("WEBSERVICE SENDING CMCIC : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_CMCIC');
 			
 			$TParam = $this->getTParamForCMCIC();
 
-			$response = $this->soapClient->CreateDemFinRequest($TParam);
+			$response = $this->soapClient->CreateDemFin($TParam);
 
 //var_dump($response);
 //exit;
@@ -394,6 +385,7 @@ class ServiceFinancement {
 				'B2B_CTR_REN_ADJ' => !empty($this->simulation->opt_adjonction) ? $dossier_origin->num_contrat : ''
 				,'B2B_ECTR_FLG' => false
 				,'B2B_NATURE_DEMANDE' => !empty($this->simulation->opt_adjonction) ? 'A' : 'S'
+				,'B2B_TYPE_DEMANDE' => 'E'
 			)
 			,'Infos_Apporteur' => array(
 				'B2B_APPORTEUR_ID' => '' // TODO à déterminer [char 9]*
@@ -415,6 +407,13 @@ class ServiceFinancement {
 				,'B2B_TERME' => $this->simulation->opt_terme == 0 ? 2 : 1
 			)
 			,'Infos_Materiel' => array(
+				'B2B_MARQMAT' => ''
+				,'B2B_MT_UNIT' => ''
+				,'B2B_QTE' => ''
+				,'B2B_TYPMAT' => ''
+				,'B2B_ETAT' => 'N'
+			)
+			,'APP_Reponse_B2B' => array(
 				'B2B_CLIENT_ASYNC' => '' // wsdl du module financement (/financement/script/webservice/scoring_server.php)
 				,'B2B_INF_EXT' => $this->simulation->reference
 				,'B2B_MODE' => 'A' // Toujours "A"
