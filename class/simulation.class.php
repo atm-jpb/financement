@@ -419,7 +419,7 @@ class TSimulation extends TObjetStd {
 	function load_suivi_simulation(&$PDOdb){
 		global $db;
 		
-		//$this->TSimulationSuivi = array();
+		$this->TSimulationSuivi = array();
 		$this->TSimulationSuiviHistorized = array();
 		
 		$TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
@@ -430,27 +430,27 @@ class TSimulation extends TObjetStd {
 			// 2017.03.14 MKO : on ne tient plus compte de la règle "Cession"
 			//$cat = new Categorie($db);
 			//$cat->fetch(0,'Cession');
-		    if (empty($this->TSimulationSuivi)){
-    			foreach($TRowid as $rowid){
-    				$simulationSuivi = new TSimulationSuivi;
-    				$simulationSuivi->load($PDOdb, $rowid);
-    				// Attention les type date via abricot, c'est du timestamp
-    				if ($simulationSuivi->date_historization <= 0) {
-    					$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
-    					// Si une demande a déjà été lancée, la simulation n'est plus modifiable
-    					// Sauf pour les admins
-    					global $user;
-    					if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
-    						//if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
-    						//	$this->modifiable = 0;
-    						//} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
-    							$this->modifiable = 2;
-    						//}
-    					}
-    				}
-    				else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
-    			}
-		    }
+
+			foreach($TRowid as $rowid){
+				$simulationSuivi = new TSimulationSuivi;
+				$simulationSuivi->load($PDOdb, $rowid);
+				// Attention les type date via abricot, c'est du timestamp
+				if ($simulationSuivi->date_historization <= 0) {
+					$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+					// Si une demande a déjà été lancée, la simulation n'est plus modifiable
+					// Sauf pour les admins
+					global $user;
+					if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
+						//if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
+						//	$this->modifiable = 0;
+						//} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
+							$this->modifiable = 2;
+						//}
+					}
+				}
+				else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
+			}
+
 			if (empty($this->TSimulationSuivi)) $this->create_suivi_simulation($PDOdb);
 		}
 		elseif($this->rowid > 0){
