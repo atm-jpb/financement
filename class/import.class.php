@@ -1219,8 +1219,20 @@ class TImport extends TObjetStd {
 			$facture->insertExtraFields();
 			$res = $facture->set_unpaid($user);
 		} else if ($mode == 'delettree') {
+			// On stocke le motif du rejet
+			$facture->array_options['options_motif_impaye'] = $data['motif'];
+			$facture->insertExtraFields();
+			// On remet la facture en impayée
 			$res = $facture->set_unpaid($user);
-			// + mettre dossier en incident de paiement et enregistrer motif
+			// On met le dossier associé en "Incident de paiement"
+			$facture->fetchObjectLinked(0,'dossier',$facid,'facture');
+			if(!empty($facture->linkedObjectsIds['dossier'][0])) {
+				$doss = new TFin_dossier();
+				$doss->load($ATMdb, $facture->linkedObjectsIds['dossier'][0],false,false);
+				$doss->load_financement($ATMdb);
+				$doss->financement->incident_paiement = 'OUI';
+				$doss->save($ATMdb);
+			}
 		}
 		
 		if($res < 0) {
