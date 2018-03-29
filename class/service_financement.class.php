@@ -359,7 +359,7 @@ class ServiceFinancement {
 
 	private function getTParamForCMCIC()
 	{
-		global $db,$mysoc;
+		global $db,$mysoc,$conf;
 		
 		$frequence = 1;
 		if ($this->simulation->opt_periodicite == 'TRIMESTRE') $frequence = 3;
@@ -369,6 +369,9 @@ class ServiceFinancement {
 		$u = new User($db);
 		$u->fetch($this->simulation->fk_user_author);
 		$dossier_origin = current($this->simulation->dossiers);
+		
+		$our_wsdl = $conf->global->FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC;
+		if (empty($our_wsdl)) $our_wsdl = dol_buildpath('/financement/script/webservice/scoring_server.php?wsdl', 2);
 		
 //		var_dump($this->simulation->montant);exit;
 		$TParam = array(
@@ -408,7 +411,7 @@ class ServiceFinancement {
 				,'B2B_ETAT' => 'N' // *
 			)
 			,'APP_Reponse_B2B' => array(
-				'B2B_CLIENT_ASYNC' => '' // wsdl du module financement (/financement/script/webservice/scoring_server.php) *
+				'B2B_CLIENT_ASYNC' => $our_wsdl // wsdl du module financement (/financement/script/webservice/scoring_server.php) *
 				,'B2B_INF_EXT' => $this->simulation->reference // *
 				,'B2B_MODE' => 'A' // Toujours "A" *
 			)

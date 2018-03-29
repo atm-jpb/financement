@@ -56,6 +56,7 @@ FINANCEMENT_ENDPOINT_CALF_RECETTE=URL de <b>recette</b> pour CAL&f (endpoint)
 FINANCEMENT_ENDPOINT_CALF_PROD=URL de <b>production</b> CAL&f (endpoint)
 FINANCEMENT_WSDL_CMCIC_RECETTE=WSDL de <b>recette</b> de CM-CIC
 FINANCEMENT_WSDL_CMCIC_PROD=WSDL de <b>production</b> de CM-CIC
+FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC=URL du WSDL du module financement pour CM-CIC
 
 # SIMULATIONS
 Simulations=Simulations
