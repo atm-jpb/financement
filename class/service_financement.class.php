@@ -153,8 +153,7 @@ class ServiceFinancement {
 			
 			$TParam = $this->getTParamForCMCIC();
 
-			$response = $this->soapClient->CreateDemFin($TParam);
-
+			$response = $this->soapClient->__soapCall('CreateDemFin', $TParam);
 //var_dump($response);
 //exit;
 	
@@ -378,45 +377,44 @@ class ServiceFinancement {
 //		var_dump($this->simulation->montant);exit;
 		$TParam = array(
 			'APP_Infos_B2B' => array(
-				'B2B_CLIENT' => '' // TODO à déterminer [char 10]*
+				'B2B_CLIENT' => '' // TODO à déterminer par CMCIC [char 10]*
 				,'B2B_TIMESTAMP' => date('c') // Date au format ISO 8601 (2004-02-12T15:19:21+00:00)
 			)
 			,'APP_CREA_Demande' => array(
 				'B2B_CTR_REN_ADJ' => !empty($this->simulation->opt_adjonction) ? $dossier_origin->num_contrat : ''
 				,'B2B_ECTR_FLG' => false
 				,'B2B_NATURE_DEMANDE' => !empty($this->simulation->opt_adjonction) ? 'A' : 'S'
-				,'B2B_TYPE_DEMANDE' => 'E'
+				,'B2B_TYPE_DEMANDE' => 'E' // *
 			)
 			,'Infos_Apporteur' => array(
-				'B2B_APPORTEUR_ID' => '' // TODO à déterminer [char 9]*
-				,'B2B_PROT_ID' => '' // TODO à déterminer [char 4]*
-				,'B2B_VENDEUR_EMAIL' => $u->email
-				
+				'B2B_APPORTEUR_ID' => '' // TODO à déterminer par CMCIC [char 9]*
+				,'B2B_PROT_ID' => '' // TODO à déterminer par CMCIC [char 4]*
+				,'B2B_VENDEUR_EMAIL' => $u->email // Si vide alors il faut renseigner B2B_VENDEUR_ID
 			)
 			,'Infos_Client' => array(
-				'B2B_SIREN' => $mysoc->idprof1
+				'B2B_SIREN' => $mysoc->idprof1  // [char 9]*
 			)
 			,'Infos_Financieres' => array(
 				'B2B_FREQ' => $frequence
 				,'B2B_NB_ECH' => $this->simulation->duree
-				,'B2B_MODPAIE' => $this->getIdModeRglt($this->simulation->opt_mode_reglement)
+				,'B2B_MODPAIE' => $this->getIdModeRglt($this->simulation->opt_mode_reglement) // *
 				,'B2B_MT_DEMANDE' => $this->simulation->montant
 			
-				,'B2B_MINERVAFPID' => '' // TODO à déterminer *
+				,'B2B_MINERVAFPID' => '' // TODO par CMCIC à déterminer *
 				// Dolibarr [echu = 0; à échoir = 1] et CMCIC [echu = 2; à échoir = 1] 
 				,'B2B_TERME' => $this->simulation->opt_terme == 0 ? 2 : 1
 			)
 			,'Infos_Materiel' => array(
-				'B2B_MARQMAT' => ''
-				,'B2B_MT_UNIT' => ''
-				,'B2B_QTE' => ''
-				,'B2B_TYPMAT' => ''
-				,'B2B_ETAT' => 'N'
+				'B2B_MARQMAT' => $this->simulation->marque_materiel // *
+				,'B2B_MT_UNIT' => '' // TODO à déterminer *
+				,'B2B_QTE' => '' // TODO à déterminer *
+				,'B2B_TYPMAT' => '' // TODO à déterminer par CMCIC *
+				,'B2B_ETAT' => 'N' // *
 			)
 			,'APP_Reponse_B2B' => array(
-				'B2B_CLIENT_ASYNC' => '' // wsdl du module financement (/financement/script/webservice/scoring_server.php)
-				,'B2B_INF_EXT' => $this->simulation->reference
-				,'B2B_MODE' => 'A' // Toujours "A"
+				'B2B_CLIENT_ASYNC' => '' // wsdl du module financement (/financement/script/webservice/scoring_server.php) *
+				,'B2B_INF_EXT' => $this->simulation->reference // *
+				,'B2B_MODE' => 'A' // Toujours "A" *
 			)
 		);
 		
