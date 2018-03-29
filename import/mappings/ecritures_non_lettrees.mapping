@@ -8,7 +8,24 @@ search_key=facnumber
 5=code_societe
 6=debit
 7=credit
+8=mode_rglt
 
 [format]
 debit=float
 credit=float
+
+[transco]
+mode_rglt=1
+
+[mode_rglt]
+CHQ=7
+VIR=2
+LCR=52
+LCRA=57
+BO=56
+MAND=55
+LIT=58
+PRE=3
+PREATT=59
+PREATTANO=60
+VIR_CLT=61

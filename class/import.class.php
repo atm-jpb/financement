@@ -1217,6 +1217,7 @@ class TImport extends TObjetStd {
 			$montant_total_ttc = $data['debit'] - $data['credit'];
 			$facture->array_options['options_total_ttc'] = $montant_total_ttc;
 			$facture->insertExtraFields();
+			$facture->setPaymentMethods($data['mode_rglt']);
 			$res = $facture->set_unpaid($user);
 		} else if ($mode == 'delettree') {
 			// On stocke le motif du rejet
