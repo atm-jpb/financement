@@ -526,6 +526,9 @@ class TSimulation extends TObjetStd {
 				break;
 		}
 		
+		// On envoie toujours "entreprise" à BNP
+		$labelCategorie = 'entreprise';
+		
 		return $labelCategorie;
 	}
 	
