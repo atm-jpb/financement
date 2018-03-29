@@ -417,44 +417,58 @@ class TSimulation extends TObjetStd {
 	
 	//Charge dans un tableau les différents suivis de demande leaser concernant la simulation
 	function load_suivi_simulation(&$PDOdb){
-		global $db;
+		global $db, $user;
 		
-		$this->TSimulationSuivi = array();
+		$TSimulationSuivi = array();
 		$this->TSimulationSuiviHistorized = array();
-		
-		$TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
-	
-		if(count($TRowid) > 0){
-			// Si une demande a été faite auprès d'un leaser, la simulation n'est plus modifiable
-			// Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
-			// 2017.03.14 MKO : on ne tient plus compte de la règle "Cession"
-			//$cat = new Categorie($db);
-			//$cat->fetch(0,'Cession');
+		if (!empty($this->TSimulationSuivi)){
+		    foreach ($this->TSimulationSuivi as $suivi) {
+		        if ($suivi->date_historization <= 0) {
+		            $TSimulationSuivi[$suivi->getId()] = $suivi;
+		            if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
+		                $this->modifiable = 2;
+		            }
+		        } else $this->TSimulationSuiviHistorized[$suivi->getId()] = $suivi;
+		    }
+		    $this->TSimulationSuivi = $TSimulationSuivi;
+            //var_dump($this->TSimulationSuivi, $this->TSimulationSuiviHistorized);
 
-			foreach($TRowid as $rowid){
-				$simulationSuivi = new TSimulationSuivi;
-				$simulationSuivi->load($PDOdb, $rowid);
-				// Attention les type date via abricot, c'est du timestamp
-				if ($simulationSuivi->date_historization <= 0) {
-					$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
-					// Si une demande a déjà été lancée, la simulation n'est plus modifiable
-					// Sauf pour les admins
-					global $user;
-					if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
-						//if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
-						//	$this->modifiable = 0;
-						//} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
-							$this->modifiable = 2;
-						//}
-					}
-				}
-				else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
-			}
+		} else {
+		    $TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
+		    
+		    if(count($TRowid) > 0){
+		        // Si une demande a été faite auprès d'un leaser, la simulation n'est plus modifiable
+		        // Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
+		        // 2017.03.14 MKO : on ne tient plus compte de la règle "Cession"
+		        //$cat = new Categorie($db);
+		        //$cat->fetch(0,'Cession');
+		        
+		        foreach($TRowid as $rowid){
+		            $simulationSuivi = new TSimulationSuivi;
+		            $simulationSuivi->load($PDOdb, $rowid);
+		            // Attention les type date via abricot, c'est du timestamp
+		            if ($simulationSuivi->date_historization <= 0) {
+		                $this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+		                // Si une demande a déjà été lancée, la simulation n'est plus modifiable
+		                // Sauf pour les admins
+		                if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
+		                    //if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
+		                    //	$this->modifiable = 0;
+		                    //} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
+		                    $this->modifiable = 2;
+		                    //}
+		                }
+		            }
+		            else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
+		        }
+		        
+		        if (empty($this->TSimulationSuivi)) $this->create_suivi_simulation($PDOdb);
+		    }
+		    
+		    if($this->rowid > 0 && empty($this->TSimulationSuivi)){
+		        $this->create_suivi_simulation($PDOdb);
+		    }
 
-			if (empty($this->TSimulationSuivi)) $this->create_suivi_simulation($PDOdb);
-		}
-		elseif($this->rowid > 0){
-			$this->create_suivi_simulation($PDOdb);
 		}
 	}
 	
