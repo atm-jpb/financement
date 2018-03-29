@@ -1984,7 +1984,10 @@ class TSimulationSuivi extends TObjetStd {
 		//pre($TtransmettreDemandeFinancementRequest,true);exit;
 		try{
 //		echo "2<br>";
-
+			if($this->debug) {
+				echo 'DONNEES DEMANDE :<hr>';
+				pre($TtransmettreDemandeFinancementRequest,true);
+			}
 			$reponseDemandeFinancement = $soap->__call('transmettreDemandeFinancement',$TtransmettreDemandeFinancementRequest);
 			
 			//pre($reponseDemandeFinancement,true);exit;
@@ -2053,10 +2056,18 @@ class TSimulationSuivi extends TObjetStd {
 //		pre($reponseDemandeFinancemnent,true);exit;
 		$this->numero_accord_leaser = $reponseDemandeFinancement->numeroDemandeProvisoire;
 		$this->save($PDOdb);
+		
+		if($this->debug) {
+			echo 'REPONSE OK :<hr>';
+			pre($reponseDemandeFinancement,true);
+		}
 	}
 	
 	function traiteErrorsDemandeBNP($TObjError){
-		
+		if($this->debug) {
+			echo 'REPONSE ERREUR :<hr>';
+			pre($TtransmettreDemandeFinancementRequest,true);
+		}
 		//Erreur sur les données transmisent
 		$errorLabel = '';
 		if($TObjError->retourErreur->erreur){
