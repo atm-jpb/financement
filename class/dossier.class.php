@@ -496,10 +496,9 @@ class TFin_dossier extends TObjetStd {
 		
 		//On ajoute 10 jours à la date pour le cas ou la facture à été facturé en fin de mois précédent la période que l'on souhaite
 		//Ex: 30/09 correspond à la période du 01/10
-		$date = strtotime('+3 day',$date);
+		//$date = strtotime('+3 day',$date);
 		// Règle précédente inutile, la date de début période est maintenant sotckée sur la facture client (ref_client)
 		// Engendrait des décalages de solde 3 jours avant l'échéance...
-		$date = time();
 		
 		$flag = true; $cpt = 0; 
 		$t = $f->date_debut + $f->calage; 
