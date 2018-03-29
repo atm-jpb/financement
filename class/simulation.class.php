@@ -1397,7 +1397,7 @@ class TSimulation extends TObjetStd {
 			$mesg = $langs->trans($this->error);
 			$error = true;
 		} else if($this->accord_confirme == 0) { // Sinon, vérification accord à partir du calcul
-			$this->demande_accord();
+			//$this->demande_accord();
 			if($this->accord == 'OK') {
 				$this->date_accord = time();
 				//$this->date_validite = strtotime('+ 3 months');
@@ -1426,7 +1426,7 @@ class TSimulation extends TObjetStd {
 	    $ATMdb->Execute($sql);
 	}
 	
-	function get_attente(&$ATMdb){
+	function get_attente(&$ATMdb, $nosave = 0){
 	    global $conf, $db;
 	    
 	    if ($this->getId() == '') return 0;
@@ -1481,7 +1481,7 @@ class TSimulation extends TObjetStd {
 	        if($compteur < 0) $compteur = 0;
 	        
 	        $this->attente = $compteur;
-	        $this->save($ATMdb, $db, false);
+	        if(!$nosave) $this->save($ATMdb, $db, false);
 	        
 	        $style ='';
 	        $min = (int)($compteur / 60);
