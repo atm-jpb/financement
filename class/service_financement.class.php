@@ -373,10 +373,12 @@ class ServiceFinancement {
 		$our_wsdl = $conf->global->FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC;
 		if (empty($our_wsdl)) $our_wsdl = dol_buildpath('/financement/script/webservice/scoring_server.php?wsdl', 2);
 		
+		list($apporteur_id, $protocole_id) = $this->getApporteurAndProtocolID();
+		
 //		var_dump($this->simulation->montant);exit;
 		$TParam = array(
 			'APP_Infos_B2B' => array(
-				'B2B_CLIENT' => '' // TODO à déterminer par CMCIC [char 10]*
+				'B2B_CLIENT' => 'CPR0001' // TODO à déterminer [char 10]*
 				,'B2B_TIMESTAMP' => date('c') // Date au format ISO 8601 (2004-02-12T15:19:21+00:00)
 			)
 			,'APP_CREA_Demande' => array(
@@ -386,12 +388,12 @@ class ServiceFinancement {
 				,'B2B_TYPE_DEMANDE' => 'E' // *
 			)
 			,'Infos_Apporteur' => array(
-				'B2B_APPORTEUR_ID' => '' // TODO à déterminer par CMCIC [char 9]*
-				,'B2B_PROT_ID' => '' // TODO à déterminer par CMCIC [char 4]*
+				'B2B_APPORTEUR_ID' => $apporteur_id // [char 9]*
+				,'B2B_PROT_ID' => $protocole_id // [char 4]*
 				,'B2B_VENDEUR_EMAIL' => $u->email // Si vide alors il faut renseigner B2B_VENDEUR_ID
 			)
 			,'Infos_Client' => array(
-				'B2B_SIREN' => $mysoc->idprof1  // [char 9]*
+				'B2B_SIREN' => $mysoc->idprof1 // [char 9]*
 			)
 			,'Infos_Financieres' => array(
 				'B2B_FREQ' => $frequence
@@ -405,9 +407,9 @@ class ServiceFinancement {
 			)
 			,'Infos_Materiel' => array(
 				'B2B_MARQMAT' => $this->simulation->marque_materiel // *
-				,'B2B_MT_UNIT' => '' // TODO à déterminer *
-				,'B2B_QTE' => '' // TODO à déterminer *
-				,'B2B_TYPMAT' => '' // TODO à déterminer par CMCIC *
+				,'B2B_MT_UNIT' => $this->simulation->montant // TODO à déterminer *
+				,'B2B_QTE' => 1 // *
+				,'B2B_TYPMAT' => '' // TODO *
 				,'B2B_ETAT' => 'N' // *
 			)
 			,'APP_Reponse_B2B' => array(
@@ -418,6 +420,33 @@ class ServiceFinancement {
 		);
 		
 		return $TParam;
+	}
+	
+	/**
+	 * Renvoie l'id de l'apporteur et l'id du protocole (conditionné actuellement à l'entité de la simulation)
+	 */
+	private function getApporteurAndProtocolID()
+	{
+		global $db;
+		
+		$dao = new DaoMulticompany($db);
+		$dao->fetch($this->simulation->entity);
+		$dao->getEntities();
+		
+		if (strpos($dao->label, 'Télécom') !== false) return array('672730000', '0251');
+		else if (strpos($dao->label, 'ABG') !== false) return array('000485004', '0251');
+		else if (strpos($dao->label, 'Copy Concept') !== false) return array('003822000', '0251');
+		else if (strpos($dao->label, 'QUADRA') !== false) return array('205643000', '0251');
+		else if (strpos($dao->label, 'QSIGD') !== false) return array('000889002', '0251'); // QUADRA SIGD ???
+		else if (strpos($dao->label, 'Copem') !== false) return array('079644000', '0251');
+		else if (strpos($dao->label, 'SADOUX') !== false) return array('000969001', '0251');
+//		else if (strpos($dao->label, 'Impression') !== false) {}
+//		else if (strpos($dao->label, 'Informatique') !== false) {}
+//		else if (strpos($dao->label, 'Bourgogne Copie') !== false) {}
+//		else if (strpos($dao->label, 'EBM') !== false) {}
+		
+		// Error if empty
+		return '';
 	}
 	
 	private function getXmlForLixxbail()
