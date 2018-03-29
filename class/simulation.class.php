@@ -2066,7 +2066,7 @@ class TSimulationSuivi extends TObjetStd {
 	function traiteErrorsDemandeBNP($TObjError){
 		if($this->debug) {
 			echo 'REPONSE ERREUR :<hr>';
-			pre($TtransmettreDemandeFinancementRequest,true);
+			pre($TObjError,true);
 		}
 		//Erreur sur les données transmisent
 		$errorLabel = '';
