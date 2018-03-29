@@ -156,10 +156,6 @@ class ServiceFinancement {
 			$response = $this->soapClient->__soapCall('CreateDemFin', $TParam);
 //var_dump($response);
 //exit;
-	
-//			$string_xml_body = $this->getXmlForLixxbail();
-//			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, null, null, null);
-//			$response = $this->soapClient->DemandeCreationLeasingGN($soap_var_body);
   
 			// TODO : issue de la doc => Dans l’éventualité où l’utilisateur est invalide, un message d’erreur est envoyé au partenaire
 	
