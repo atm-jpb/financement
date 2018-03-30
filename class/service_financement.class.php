@@ -374,6 +374,7 @@ class ServiceFinancement {
 		if (empty($our_wsdl)) $our_wsdl = dol_buildpath('/financement/script/webservice/scoring_server.php?wsdl', 2);
 		
 		list($apporteur_id, $protocole_id) = $this->getApporteurAndProtocolID();
+		list($marqmat, $typmat) = $this->getMarqmatAndTypmat($protocole_id);
 		
 //		var_dump($this->simulation->montant);exit;
 		$TParam = array(
@@ -388,8 +389,8 @@ class ServiceFinancement {
 				,'B2B_TYPE_DEMANDE' => 'E' // *
 			)
 			,'Infos_Apporteur' => array(
-				'B2B_APPORTEUR_ID' => $apporteur_id // [char 9]*
-				,'B2B_PROT_ID' => $protocole_id // [char 4]*
+				'B2B_APPORTEUR_ID' => $apporteur_id // [char 9]* TODO à vérifier
+				,'B2B_PROT_ID' => $protocole_id // [char 4]* TODO à vérifier
 				,'B2B_VENDEUR_EMAIL' => $u->email // Si vide alors il faut renseigner B2B_VENDEUR_ID
 			)
 			,'Infos_Client' => array(
@@ -401,15 +402,15 @@ class ServiceFinancement {
 				,'B2B_MODPAIE' => $this->getIdModeRglt($this->simulation->opt_mode_reglement) // *
 				,'B2B_MT_DEMANDE' => $this->simulation->montant
 			
-				,'B2B_MINERVAFPID' => '' // TODO par CMCIC à déterminer *
+				,'B2B_MINERVAFPID' => ($protocole_id == '0251') ? '983' : '9782' // TODO à vérifier si le context de la simulation ne me demande pas de renseigner l'autre code (9782)
 				// Dolibarr [echu = 0; à échoir = 1] et CMCIC [echu = 2; à échoir = 1] 
 				,'B2B_TERME' => $this->simulation->opt_terme == 0 ? 2 : 1
 			)
 			,'Infos_Materiel' => array(
-				'B2B_MARQMAT' => $this->simulation->marque_materiel // *
-				,'B2B_MT_UNIT' => $this->simulation->montant // TODO à déterminer *
+				'B2B_MARQMAT' => $marqmat // * TODO à vérifier
+				,'B2B_TYPMAT' => $typmat // * TODO à vérifier
+				,'B2B_MT_UNIT' => $this->simulation->montant // *
 				,'B2B_QTE' => 1 // *
-				,'B2B_TYPMAT' => '' // TODO *
 				,'B2B_ETAT' => 'N' // *
 			)
 			,'APP_Reponse_B2B' => array(
@@ -447,6 +448,34 @@ class ServiceFinancement {
 		
 		// Error if empty
 		return '';
+	}
+	
+	private function getMarqmatAndTypmat()
+	{
+		$TMarque = array(
+			'HP' => 'HP'
+			,'KONICA MINOLTA' => 'KM'
+			,'KYOCERA' => 'KYO'
+			,'OCE' => 'OCE'
+			,'OKI' => 'OKI'
+			,'TOSHIBA' => 'TOS'
+			,'CANON' => 'CAN'
+		);
+
+		$TType = array(
+			663 => 'MATINFO' // Ensemble de matériels bureautique
+			,117 => 'CONFINF' // Logiciels
+			,107 => 'MATINFO' // Micro ordinateur
+			,665 => 'PHOTOCO' // Photocopieur
+			,113 => 'SERVEUR' // Serveur vocal
+			,114 => 'IMPRIM' // Station
+			,116 => 'TRACPLA' // Traceur
+		);
+		
+		$m = !empty($TMarque[$this->simulation->marque_materiel]) ? $TMarque[$this->simulation->marque_materiel] : '';
+		$t = !empty($TType[$this->simulation->fk_nature_bien]) ? $TType[$this->simulation->fk_nature_bien] : '';
+		
+		return array($m, $t);
 	}
 	
 	private function getXmlForLixxbail()
