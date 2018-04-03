@@ -1582,7 +1582,7 @@ class TSimulationSuivi extends TObjetStd {
 		parent::_init_vars();
 		
 		//Reset des dates car par défaut = time() à l'instanciation de la classe
-		$this->date_demande = $this->date_accord = $this->date_selection = $this->date_historization = time();
+		$this->date_demande = $this->date_accord = $this->date_selection = $this->date_historization = '';
 
 		$this->TStatut=array(
 			'OK'=>$langs->trans('Accord')
