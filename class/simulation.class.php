@@ -34,6 +34,16 @@ class TSimulation extends TObjetStd {
 			,'SS'=>$langs->trans('SansSuite')
 		);
 		
+		$this->TStatutIcons=array(
+		    'OK'=>'./img/super_ok.png'
+		    ,'WAIT'=>'./img/WAIT.png'
+		    ,'WAIT_LEASER'=>'./img/Leaser.png'
+		    ,'WAIT_SELLER'=>'./img/Vendeur.png'
+		    ,'MODIF'=>'./img/pencil.png'
+		    ,'KO'=>'./img/KO.png'
+		    ,'SS'=>'./img/SANSSUITE.png'
+		);
+		
 		$this->TStatutShort=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
@@ -132,7 +142,7 @@ class TSimulation extends TObjetStd {
 		}
 	}
 	
-	function save(&$db, &$doliDB) {
+	function save(&$db, &$doliDB, $generatePDF = true) {
 		//parent::save($db);
 		//pre($this,true);exit;
 	//	var_dump($this->dossiers_rachetes, $_REQUEST);exit;
@@ -234,7 +244,7 @@ class TSimulation extends TObjetStd {
 
 		//pre($this, true);exit;
 		
-		$this->gen_simulation_pdf($db, $doliDB);
+		if($generatePDF) $this->gen_simulation_pdf($db, $doliDB);
 		
 		parent::save($db);
 		
@@ -407,44 +417,58 @@ class TSimulation extends TObjetStd {
 	
 	//Charge dans un tableau les différents suivis de demande leaser concernant la simulation
 	function load_suivi_simulation(&$PDOdb){
-		global $db;
+		global $db, $user;
 		
-		//$this->TSimulationSuivi = array();
+		$TSimulationSuivi = array();
 		$this->TSimulationSuiviHistorized = array();
-		
-		$TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
-	
-		if(count($TRowid) > 0){
-			// Si une demande a été faite auprès d'un leaser, la simulation n'est plus modifiable
-			// Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
-			// 2017.03.14 MKO : on ne tient plus compte de la règle "Cession"
-			//$cat = new Categorie($db);
-			//$cat->fetch(0,'Cession');
-		    if (empty($this->TSimulationSuivi)){
-    			foreach($TRowid as $rowid){
-    				$simulationSuivi = new TSimulationSuivi;
-    				$simulationSuivi->load($PDOdb, $rowid);
-    				// Attention les type date via abricot, c'est du timestamp
-    				if ($simulationSuivi->date_historization <= 0) {
-    					$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
-    					// Si une demande a déjà été lancée, la simulation n'est plus modifiable
-    					// Sauf pour les admins
-    					global $user;
-    					if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
-    						//if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
-    						//	$this->modifiable = 0;
-    						//} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
-    							$this->modifiable = 2;
-    						//}
-    					}
-    				}
-    				else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
-    			}
+		if (!empty($this->TSimulationSuivi)){
+		    foreach ($this->TSimulationSuivi as $suivi) {
+		        if ($suivi->date_historization <= 0) {
+		            $TSimulationSuivi[$suivi->getId()] = $suivi;
+		            if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
+		                $this->modifiable = 2;
+		            }
+		        } else $this->TSimulationSuiviHistorized[$suivi->getId()] = $suivi;
 		    }
-			if (empty($this->TSimulationSuivi)) $this->create_suivi_simulation($PDOdb);
-		}
-		elseif($this->rowid > 0){
-			$this->create_suivi_simulation($PDOdb);
+		    $this->TSimulationSuivi = $TSimulationSuivi;
+            //var_dump($this->TSimulationSuivi, $this->TSimulationSuiviHistorized);
+
+		} else {
+		    $TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
+		    
+		    if(count($TRowid) > 0){
+		        // Si une demande a été faite auprès d'un leaser, la simulation n'est plus modifiable
+		        // Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
+		        // 2017.03.14 MKO : on ne tient plus compte de la règle "Cession"
+		        //$cat = new Categorie($db);
+		        //$cat->fetch(0,'Cession');
+		        
+		        foreach($TRowid as $rowid){
+		            $simulationSuivi = new TSimulationSuivi;
+		            $simulationSuivi->load($PDOdb, $rowid);
+		            // Attention les type date via abricot, c'est du timestamp
+		            if ($simulationSuivi->date_historization <= 0) {
+		                $this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+		                // Si une demande a déjà été lancée, la simulation n'est plus modifiable
+		                // Sauf pour les admins
+		                if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
+		                    //if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
+		                    //	$this->modifiable = 0;
+		                    //} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
+		                    $this->modifiable = 2;
+		                    //}
+		                }
+		            }
+		            else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
+		        }
+		        
+		        if (empty($this->TSimulationSuivi)) $this->create_suivi_simulation($PDOdb);
+		    }
+		    
+		    if($this->rowid > 0 && empty($this->TSimulationSuivi)){
+		        $this->create_suivi_simulation($PDOdb);
+		    }
+
 		}
 	}
 	
@@ -765,7 +789,7 @@ class TSimulation extends TObjetStd {
 		// Si la simulation n'est pas modifiable (demande déjà formulée à un leaser) on vérifie la règle +- 10%
 		if(($this->modifiable == 0 || $this->modifiable == 2) && $this->montant_accord != $this->montant_total_finance) {
 		    $diff = abs($this->montant_total_finance - $this->montant_accord);
-			if(($diff / $this->montant_accord) * 100 > $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE) {
+			if(($diff / $this->montant_accord) * 100 > (float) $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE) {
 				$this->error = 'ErrorMontantModifNotAuthorized';
 				return false;
 			}
@@ -1387,7 +1411,7 @@ class TSimulation extends TObjetStd {
 			$mesg = $langs->trans($this->error);
 			$error = true;
 		} else if($this->accord_confirme == 0) { // Sinon, vérification accord à partir du calcul
-			$this->demande_accord();
+			//$this->demande_accord();
 			if($this->accord == 'OK') {
 				$this->date_accord = time();
 				//$this->date_validite = strtotime('+ 3 months');
@@ -1412,18 +1436,18 @@ class TSimulation extends TObjetStd {
 	    
 	    if(empty($date)) $date = date("Y-m-d H:i:s", dol_now());
 	    $sql = "INSERT INTO ".MAIN_DB_PREFIX."fin_simulation_accord_log (`entity`, `fk_simulation`, `fk_user_author`, `datechange`, `accord`)";
-	    $sql.= " VALUES ('".$conf->entity."', '".$this->getId()."', '".$user->id."', '". $date ."', '".$this->accord."');";
+	    $sql.= " VALUES ('".$this->entity."', '".$this->getId()."', '".$user->id."', '". $date ."', '".$this->accord."');";
 	    $ATMdb->Execute($sql);
 	}
 	
-	function get_attente(&$ATMdb){
+	function get_attente(&$ATMdb, $nosave = 0){
 	    global $conf, $db;
 	    
 	    if ($this->getId() == '') return 0;
 	    
 	    $sql = "SELECT datechange, accord FROM " . MAIN_DB_PREFIX . "fin_simulation_accord_log ";
 	    $sql.= " WHERE fk_simulation = " . $this->getId();
-	    $sql.= " AND entity = " . $conf->entity;
+	    $sql.= " AND entity = " . $this->entity;
 	    $sql.= " ORDER BY datechange ASC";
 	    $ATMdb->Execute($sql);
 	    
@@ -1471,7 +1495,7 @@ class TSimulation extends TObjetStd {
 	        if($compteur < 0) $compteur = 0;
 	        
 	        $this->attente = $compteur;
-	        $this->save($ATMdb, $db);
+	        if(!$nosave) $this->save($ATMdb, $db, false);
 	        
 	        $style ='';
 	        $min = (int)($compteur / 60);
