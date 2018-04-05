@@ -595,6 +595,51 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
+print '<tr '.$bc[$var].'><td>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_WSDL_CMCIC_RECETTE").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_WSDL_CMCIC_RECETTE">';
+print '<input type="text" name="FINANCEMENT_WSDL_CMCIC_RECETTE" value="'.$conf->global->FINANCEMENT_WSDL_CMCIC_RECETTE.'" size="60" placeholder="https://uat-www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_WSDL_CMCIC_PROD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_WSDL_CMCIC_PROD">';
+print '<input type="text" name="FINANCEMENT_WSDL_CMCIC_PROD" value="'.$conf->global->FINANCEMENT_WSDL_CMCIC_PROD.'" size="60" placeholder="https://www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC">';
+print '<input type="text" name="FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC" value="'.$conf->global->FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC.'" size="60" placeholder="'.dol_buildpath('/financement/script/webservice/scoring_server.php?wsdl', 2).'" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+print '<tr '.$bc[$var].'><td>';
+print '</td></tr>';
+
 
 print '</table>';
 
