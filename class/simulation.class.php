@@ -1666,6 +1666,7 @@ class TSimulationSuivi extends TObjetStd {
 		$simulation->date_accord = time();
 		$simulation->numero_accord = $this->numero_accord_leaser;
 		$simulation->fk_leaser = $this->fk_leaser;
+		$simulation->montant_accord = $simulation->montant_total_finance;
 		if(!empty($TTypeFinancement[$TCateg_tiers[0]])) $simulation->type_financement = $TTypeFinancement[$TCateg_tiers[0]];
 		$simulation->save($PDOdb, $db);
 
