@@ -420,7 +420,7 @@ class ServiceFinancement {
 			)
 		);
 		
-		return $TParam;
+		return array($TParam);
 	}
 	
 	/**
