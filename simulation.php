@@ -366,7 +366,7 @@ if(!empty($action)) {
 						}
 						// Si MANDATEE ou ADOSSEE, on vérifie si les données modifiées font patie de la liste
 						else if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
-							$keepAccord = array('fk_type_contrat', 'opt_periodicite', 'opt_mode_reglement', 'opt_terme');
+							$keepAccord = array('montant', 'fk_type_contrat', 'opt_periodicite', 'opt_mode_reglement', 'opt_terme');
 							foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
 								if (!in_array($k, $keepAccord)) $simulation->accord = 'MODIF';
 							}
