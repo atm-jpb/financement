@@ -366,7 +366,7 @@ if(!empty($action)) {
 						}
 						// Si MANDATEE ou ADOSSEE, on vérifie si les données modifiées font patie de la liste
 						else if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
-							$keepAccord = array('montant', 'fk_type_contrat', 'opt_periodicite', 'opt_mode_reglement', 'opt_terme');
+							$keepAccord = array('montant', 'echeance', 'fk_type_contrat', 'opt_periodicite', 'opt_mode_reglement', 'opt_terme');
 							foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
 								if (!in_array($k, $keepAccord)) $simulation->accord = 'MODIF';
 							}
@@ -427,17 +427,8 @@ if(!empty($action)) {
 		case 'changeAccord':
 		    $newAccord = GETPOST('accord');
 		    $simulation->load($ATMdb, $db, $_REQUEST['id']);
-
-		    // Si le nouvel accord est ok et l'ancien est modif, on applique toutes les modifs avant de sauvegarder
-		    if($simulation->accord == 'MODIF' && $newAccord == 'OK'){
-		        foreach ($simulation->modifs as $key => $value){
-		            $simulation->$key = $value;
-		        }
-		        $simulation->montant_total_finance = $simulation->montant;
-		    }
 		    
 		    if ($newAccord == 'OK') $simulation->montant_accord = $simulation->montant_total_finance;
-		    if ($newAccord !== 'MODIF') $simulation->modifs = array();
 
 		    $simulation->accord = $newAccord;
 		    $simulation->save($ATMdb, $db);
