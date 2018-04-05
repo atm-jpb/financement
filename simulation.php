@@ -367,6 +367,8 @@ if(!empty($action)) {
 				                if (in_array($k, $modifAccord)) $simulation->accord = 'MODIF';
 				            }
 				            
+				        } else {
+				        	$simulation->accord = 'MODIF';
 				        }
 				        
 				    } elseif ($oldAccord == 'WAIT' || $oldAccord == 'WAIT_LEASER' || $oldAccord == 'WAIT_SELLER') {
