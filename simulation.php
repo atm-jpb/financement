@@ -351,32 +351,31 @@ if(!empty($action)) {
 				    }
 				    
 				    if ($oldAccord == 'OK'){
-				        if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
-				            
-				            $diffmontant = abs($simulation->montant - $simulation->montant_accord);
-				            if (empty($simulation->montant_accord)) $simulation->montant_accord = 1;
-				            if(($diffmontant / $simulation->montant_accord) * 100 > $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE) {
-				                $simulation->accord = 'MODIF';
-				            } else {
-				                $simulation->accord = 'OK';
-				                $simulation->montant_accord = $simulation->montant;
-				            }
-				            
-				            foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
-				                $modifAccord = array('echeance', 'duree', 'montant_presta_trim', 'type_materiel');
-				                if (in_array($k, $modifAccord)) $simulation->accord = 'MODIF';
-				            }
-				            
-				        } else {
-				        	$simulation->accord = 'MODIF';
-				        }
-				        
-				    } elseif ($oldAccord == 'WAIT' || $oldAccord == 'WAIT_LEASER' || $oldAccord == 'WAIT_SELLER') {
-				        
-				        $simulation->accord = 'MODIF';
-				        $simulation->coeff_final = 0;
-				    }
-				    
+				    	// Si il y avait un accord avant et qu'on fait une modif, on vérifie les règles suivantes pour passer ou non le statut à "MODIF"
+						
+				    	// Vérification de la variation du montant
+				    	$diffmontant = abs($simulation->montant - $simulation->montant_accord);
+			            if (empty($simulation->montant_accord)) $simulation->montant_accord = 1;
+						$montantOK = ($diffmontant / $simulation->montant_accord) * 100 <= $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE;
+						
+						// Si le montant ne respecte pas la règle (+- 10 %) => MODIF
+						if(!$montantOK) {
+							$simulation->accord = 'MODIF';
+						}
+						// Si MANDATEE ou ADOSSEE, on vérifie si les données modifiées font patie de la liste
+						else if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
+							$keepAccord = array('fk_type_contrat', 'opt_periodicite', 'opt_mode_reglement', 'opt_terme');
+							foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
+								if (!in_array($k, $keepAccord)) $simulation->accord = 'MODIF';
+							}
+						// Sinon (type non MANDATEE ou ADOSSEE)
+						} else {
+							$simulation->accord = 'MODIF';
+						}
+					} elseif ($oldAccord == 'WAIT' || $oldAccord == 'WAIT_LEASER' || $oldAccord == 'WAIT_SELLER') {
+						$simulation->accord = 'MODIF';
+						$simulation->coeff_final = 0;
+					}
 				} 
 				
 				if ($_REQUEST['mode'] == 'edit_montant'
