@@ -6,11 +6,11 @@ class TSimulation extends TObjetStd {
 		
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation');
 		parent::add_champs('entity,fk_soc,fk_user_author,fk_user_suivi,fk_leaser,accord_confirme','type=entier;');
-		parent::add_champs('duree,opt_administration,opt_creditbail,opt_adjonction,opt_no_case_to_settle','type=entier;');
+		parent::add_champs('attente,duree,opt_administration,opt_creditbail,opt_adjonction,opt_no_case_to_settle','type=entier;');
 		parent::add_champs('montant,montant_rachete,montant_rachete_concurrence,montant_decompte_copies_sup,montant_rachat_final,montant_total_finance,echeance,vr,coeff,cout_financement,coeff_final,montant_presta_trim','type=float;');
 		parent::add_champs('date_simul,date_validite,date_accord,date_demarrage','type=date;');
 		parent::add_champs('opt_periodicite,opt_mode_reglement,opt_terme,fk_type_contrat,accord,type_financement,commentaire,type_materiel,marque_materiel,numero_accord,reference,opt_calage','type=chaine;');
-		parent::add_champs('dossiers,dossiers_rachetes_m1,dossiers_rachetes_nr_m1,dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
+		parent::add_champs('modifs,dossiers,dossiers_rachetes_m1,dossiers_rachetes_nr_m1,dossiers_rachetes,dossiers_rachetes_nr,dossiers_rachetes_p1,dossiers_rachetes_nr_p1,dossiers_rachetes_perso', 'type=tableau;');
 		parent::add_champs('thirdparty_name,thirdparty_address,thirdparty_zip,thirdparty_town,thirdparty_code_client,thirdparty_idprof2_siret, thirdparty_idprof3_naf','type=chaine;');
 		parent::add_champs('montant_accord','type=float;'); // Sert à stocker le montant pour lequel l'accord a été donné
 		parent::add_champs('fk_categorie_bien,fk_nature_bien', array('type'=>'integer'));
@@ -27,17 +27,29 @@ class TSimulation extends TObjetStd {
 		$this->TStatut=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
-			/*,'WAIT_LEASER'=>$langs->trans('Etude_Leaser')
-			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur')*/
+			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser')
+		    ,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur')
+		    ,'MODIF'=>$langs->trans('Modif')
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
+		);
+		
+		$this->TStatutIcons=array(
+		    'OK'=>'./img/super_ok.png'
+		    ,'WAIT'=>'./img/WAIT.png'
+		    ,'WAIT_LEASER'=>'./img/Leaser.png'
+		    ,'WAIT_SELLER'=>'./img/Vendeur.png'
+		    ,'MODIF'=>'./img/pencil.png'
+		    ,'KO'=>'./img/KO.png'
+		    ,'SS'=>'./img/SANSSUITE.png'
 		);
 		
 		$this->TStatutShort=array(
 			'OK'=>$langs->trans('Accord')
 			,'WAIT'=>$langs->trans('Etude')
-			/*,'WAIT_LEASER'=>$langs->trans('Etude_Leaser_Short')
-			,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur_Short')*/
+			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser_Short')
+		    ,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur_Short')
+		    ,'MODIF'=>$langs->trans('Modif')
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
@@ -109,7 +121,7 @@ class TSimulation extends TObjetStd {
 		$this->dossiers_rachetes_p1 = array();
 		$this->dossiers_rachetes_nr_p1 = array();
 		$this->dossiers_rachetes_perso = array();
-		
+		$this->modifs = array();
 		$this->modifiable = 1; // 1 = modifiable, 2 = modifiable +- 10%, 0 = non modifiable
 		
 		// Catégorie et nature par défaut pour transfert EDI
@@ -130,7 +142,7 @@ class TSimulation extends TObjetStd {
 		}
 	}
 	
-	function save(&$db, &$doliDB) {
+	function save(&$db, &$doliDB, $generatePDF = true) {
 		//parent::save($db);
 		//pre($this,true);exit;
 	//	var_dump($this->dossiers_rachetes, $_REQUEST);exit;
@@ -232,7 +244,7 @@ class TSimulation extends TObjetStd {
 
 		//pre($this, true);exit;
 		
-		$this->gen_simulation_pdf($db, $doliDB);
+		if($generatePDF) $this->gen_simulation_pdf($db, $doliDB);
 		
 		parent::save($db);
 		
@@ -405,43 +417,58 @@ class TSimulation extends TObjetStd {
 	
 	//Charge dans un tableau les différents suivis de demande leaser concernant la simulation
 	function load_suivi_simulation(&$PDOdb){
-		global $db;
-		$this->TSimulationSuivi = array();
-		$this->TSimulationSuiviHistorized = array();
+		global $db, $user;
 		
-		$TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
-	
-		if(count($TRowid) > 0){
-			// Si une demande a été faite auprès d'un leaser, la simulation n'est plus modifiable
-			// Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
-			// 2017.03.14 MKO : on ne tient plus compte de la règle "Cession"
-			//$cat = new Categorie($db);
-			//$cat->fetch(0,'Cession');
-			
-			foreach($TRowid as $rowid){
-				$simulationSuivi = new TSimulationSuivi;
-				$simulationSuivi->load($PDOdb, $rowid);
-				// Attention les type date via abricot, c'est du timestamp
-				if ($simulationSuivi->date_historization <= 0) {
-					$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
-					// Si une demande a déjà été lancée, la simulation n'est plus modifiable
-					// Sauf pour les admins
-					global $user;
-					if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
-						//if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
-						//	$this->modifiable = 0;
-						//} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
-							$this->modifiable = 2;
-						//}
-					}
-				}
-				else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
-			}
-			
-			if (empty($this->TSimulationSuivi)) $this->create_suivi_simulation($PDOdb);
-		}
-		elseif($this->rowid > 0){
-			$this->create_suivi_simulation($PDOdb);
+		$TSimulationSuivi = array();
+		$this->TSimulationSuiviHistorized = array();
+		if (!empty($this->TSimulationSuivi)){
+		    foreach ($this->TSimulationSuivi as $suivi) {
+		        if ($suivi->date_historization <= 0) {
+		            $TSimulationSuivi[$suivi->getId()] = $suivi;
+		            if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
+		                $this->modifiable = 2;
+		            }
+		        } else $this->TSimulationSuiviHistorized[$suivi->getId()] = $suivi;
+		    }
+		    $this->TSimulationSuivi = $TSimulationSuivi;
+            //var_dump($this->TSimulationSuivi, $this->TSimulationSuiviHistorized);
+
+		} else {
+		    $TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
+		    
+		    if(count($TRowid) > 0){
+		        // Si une demande a été faite auprès d'un leaser, la simulation n'est plus modifiable
+		        // Modifiable à +- 10 % sauf si leaser dans la catégorie "Cession"
+		        // 2017.03.14 MKO : on ne tient plus compte de la règle "Cession"
+		        //$cat = new Categorie($db);
+		        //$cat->fetch(0,'Cession');
+		        
+		        foreach($TRowid as $rowid){
+		            $simulationSuivi = new TSimulationSuivi;
+		            $simulationSuivi->load($PDOdb, $rowid);
+		            // Attention les type date via abricot, c'est du timestamp
+		            if ($simulationSuivi->date_historization <= 0) {
+		                $this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
+		                // Si une demande a déjà été lancée, la simulation n'est plus modifiable
+		                // Sauf pour les admins
+		                if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
+		                    //if($cat->containsObject('supplier', $simulationSuivi->fk_leaser) > 0) {
+		                    //	$this->modifiable = 0;
+		                    //} else if($this->modifiable == 1 && empty($user->rights->financement->admin->write)) {
+		                    $this->modifiable = 2;
+		                    //}
+		                }
+		            }
+		            else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
+		        }
+		        
+		        if (empty($this->TSimulationSuivi)) $this->create_suivi_simulation($PDOdb);
+		    }
+		    
+		    if($this->rowid > 0 && empty($this->TSimulationSuivi)){
+		        $this->create_suivi_simulation($PDOdb);
+		    }
+
 		}
 	}
 	
@@ -760,16 +787,17 @@ class TSimulation extends TObjetStd {
 			$this->montant = round($this->montant, 3);
 			$this->montant_total_finance = $this->montant;
 		}
-		
+		/*
+		 * 2018.04.05 PLUS D'ERREUR SI +- 10 % => statut "MODIF"
 		// Cas de la modification de la simulation à +- 10 %
 		// Si la simulation n'est pas modifiable (demande déjà formulée à un leaser) on vérifie la règle +- 10%
 		if(($this->modifiable == 0 || $this->modifiable == 2) && $this->montant_accord != $this->montant_total_finance) {
-			$diff = abs($this->montant_total_finance - $this->montant_accord);
-			if(($diff / $this->montant_accord) * 100 > $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE) {
+		    $diff = abs($this->montant_total_finance - $this->montant_accord);
+			if(($diff / $this->montant_accord) * 100 > (float) $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE) {
 				$this->error = 'ErrorMontantModifNotAuthorized';
 				return false;
 			}
-		}
+		}*/
 		
 		return true;
 	}
@@ -1387,16 +1415,182 @@ class TSimulation extends TObjetStd {
 			$mesg = $langs->trans($this->error);
 			$error = true;
 		} else if($this->accord_confirme == 0) { // Sinon, vérification accord à partir du calcul
-			$this->demande_accord();
+			//$this->demande_accord();
 			if($this->accord == 'OK') {
 				$this->date_accord = time();
 				//$this->date_validite = strtotime('+ 3 months');
 			}
+			
+			if(($this->accord == 'WAIT') && ($_REQUEST['accord'] == 'WAIT_LEASER' || $_REQUEST['accord'] == 'WAIT_SELLER')) $this->accord = $_REQUEST['accord'];
+			
 			if($mode == 'save' && ($this->accord == 'OK' || $this->accord == 'KO')) { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
 				$this->send_mail_vendeur(true);
 			}
 		}
 		
+	}
+	
+	function delete_accord_history(&$ATMdb){
+	    $sql = "DELETE FROM " . MAIN_DB_PREFIX . "fin_simulation_accord_log WHERE fk_simulation = " . $this->getId();
+	    $ATMdb->Execute($sql);
+	}
+	
+	function historise_accord(&$ATMdb, $date = ''){
+	    global $user, $conf;
+	    
+	    if(empty($date)) $date = date("Y-m-d H:i:s", dol_now());
+	    $sql = "INSERT INTO ".MAIN_DB_PREFIX."fin_simulation_accord_log (`entity`, `fk_simulation`, `fk_user_author`, `datechange`, `accord`)";
+	    $sql.= " VALUES ('".$this->entity."', '".$this->getId()."', '".$user->id."', '". $date ."', '".$this->accord."');";
+	    $ATMdb->Execute($sql);
+	}
+	
+	function get_attente(&$ATMdb, $nosave = 0){
+	    global $conf, $db;
+	    
+	    if ($this->getId() == '') return 0;
+	    
+	    $sql = "SELECT datechange, accord FROM " . MAIN_DB_PREFIX . "fin_simulation_accord_log ";
+	    $sql.= " WHERE fk_simulation = " . $this->getId();
+	    $sql.= " AND entity = " . $this->entity;
+	    $sql.= " ORDER BY datechange ASC";
+	    $ATMdb->Execute($sql);
+	    
+	    $TDates = array();
+	    $i = 0;
+	    while($ATMdb->Get_line()){
+	        $TDates[$i] = array('start' => $ATMdb->Get_field('datechange'), 'accord' => $ATMdb->Get_field('accord'), 'end' => date("Y-m-d H:i:s", dol_now()));
+	        if (!empty($i)) $TDates[$i-1]['end'] = $ATMdb->Get_field('datechange');
+	        $i++;
+	    }
+	    
+	    $closed = array('OK', 'KO', 'SS');
+	    if (count($TDates) == 0) {
+	        if(!in_array($this->accord, $closed)) {
+	            $this->historise_accord($ATMdb, date("Y-m-d H:i:s", $this->date_simul));
+	            return $this->get_attente($ATMdb);
+	        } else {
+	            $oldAccord = $this->accord;
+	            $this->accord = "WAIT";
+	            $this->historise_accord($ATMdb, date("Y-m-d H:i:s", $this->date_simul));
+	            $this->accord = $oldAccord;
+	            $this->historise_accord($ATMdb, date("Y-m-d H:i:s", $this->date_accord));
+	            return $this->get_attente($ATMdb);
+	        }
+	    }
+	    else {
+	        $compteur = 0; 
+	        foreach ($TDates as $interval) {	
+	            if ($interval['accord'] == "WAIT" || $interval['accord'] == "WAIT_LEASER"){
+	                $start = strtotime($interval['start']);
+	                $end = strtotime($interval['end']);
+	                
+	                $cpt = 0;
+	                while ($start < $end && $cpt < 40){
+	                    $start = $this->_jourouvre($ATMdb, $start);
+	                    if ($start > dol_now()) break 2;
+                        if ($start > $end) $start = $end;
+                        if ($start !== $end) $start = $this->_calcul_interval($compteur, $start, $end);
+	                    $cpt++;
+	                }
+	            }
+
+	        }
+	        
+	        if($compteur < 0) $compteur = 0;
+	        
+	        $this->attente = $compteur;
+	        if(!$nosave) $this->save($ATMdb, $db, false);
+	        
+	        $style ='';
+	        $min = (int)($compteur / 60);
+	        if (!empty($conf->global->FINANCEMENT_FIRST_WAIT_ALARM) && $min >= (int)$conf->global->FINANCEMENT_FIRST_WAIT_ALARM) $style = 'color:orange';
+	        if (!empty($conf->global->FINANCEMENT_SECOND_WAIT_ALARM) && $min >= (int)$conf->global->FINANCEMENT_SECOND_WAIT_ALARM) $style = 'color:red';
+	        if (!empty($style)) $this->attente_style = $style;
+	        
+	        $min = ($compteur / 60) % 60;
+	        $heures = abs(round((($compteur / 60)-$min)/60));
+	        
+	        $ret = '';
+	        $ret .= (!empty($heures) ? $heures . " h " : "");
+	        $ret .= (!empty($min) ? $min . " min" : "");
+	        
+	        return  $ret;
+	    }
+
+	}
+	
+	/**
+	 * Retourne le prochain jour ouvré ou le timestamp entré si celui-ci est dans un jour ouvré et dans un interval d'ouverture
+	 * @param timestamp $start
+	 * @return timestamp
+	 */
+	function _jourouvre($ATMdb, $start){
+	    global $conf;
+	    
+	    dol_include_once('/jouroff/class/jouroff.class.php');
+	    $Jo = new TRH_JoursFeries();
+	    $cp = 0;
+	    $searchjourouvre = true;
+	    // on cherche un jour ouvré jusqu'à ce qu'on en trouve un ou qu'on excède le nombre de 10 tentatives
+	    while ($searchjourouvre && $cp < 10){
+	        $matindebut = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_DEBUT_MATIN.":00", $start));
+	        $matinfin = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_FIN_MATIN.":00", $start));
+	        $apremdebut = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_DEBUT_APREM.":00", $start));
+	        $apremfin = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_FIN_APREM.":00", $start));
+	        
+	        $ferie = $Jo->estFerie($ATMdb, date("Y-m-d 00:00:00", $start)); // retourne true si c'est un jour férié
+	        $nextday = mktime(date("H", $matindebut), date("i", $matindebut), 0, date("m", $start)  , date("d", $start)+1, date("Y", $start));
+	        $joursemaine = date("N", $start);
+	        
+	        if ($ferie || $start >= $apremfin || $joursemaine == '6' || $joursemaine == '7') {
+	            $start = $nextday;
+	        } elseif($start < $matindebut) {
+	            $start = $matindebut;
+	            $searchjourouvre = false;
+	        } else {
+	            $searchjourouvre = false;
+	        }
+	        $cp++;
+	    }
+	    
+	    return $start;
+	}
+	
+	function _calcul_interval(&$compteur, $start, $end){
+	    global $conf;
+	    $matindebut = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_DEBUT_MATIN.":00", $start));
+	    $matinfin = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_FIN_MATIN.":00", $start));
+	    $apremdebut = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_DEBUT_APREM.":00", $start));
+	    $apremfin = strtotime(date("Y-m-d " . $conf->global->FINANCEMENT_HEURE_FIN_APREM.":00", $start));
+	    
+	    if($start < $matindebut) $start = $matindebut;
+	    if($start < $matinfin) {
+	        if($end < $matinfin) {
+	            $compteur += $end - $start;
+	            $start = $end;
+	        } else {
+	            $compteur += $matinfin - $start;
+	            if($end > $apremdebut && $end < $apremfin) {
+	                $compteur += $end - $apremdebut;
+	                $start = $end;
+	            } elseif($end > $apremfin) {
+	                $compteur += $apremfin - $apremdebut;
+	                $start = strtotime(date("Y-m-d H:i:01", $apremfin));
+	            }
+	        }
+	    } elseif($start < $apremfin) {
+	        if($end > $apremfin) {
+	            if ($start > $apremdebut) $compteur += $apremfin - $start;
+	            else $compteur += $apremfin - $apremdebut;
+	            $start = strtotime(date("Y-m-d H:i:01", $apremfin));
+	        } else {
+	            if ($start > $apremdebut) $compteur += $end - $start ;
+	            else $compteur += $end - $apremdebut ;
+	            $start = $end;
+	        }
+	        
+	    }
+	    return $start;
 	}
 
 }
