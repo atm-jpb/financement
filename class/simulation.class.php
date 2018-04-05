@@ -784,7 +784,8 @@ class TSimulation extends TObjetStd {
 			$this->montant = round($this->montant, 3);
 			$this->montant_total_finance = $this->montant;
 		}
-		
+		/*
+		 * 2018.04.05 PLUS D'ERREUR SI +- 10 % => statut "MODIF"
 		// Cas de la modification de la simulation à +- 10 %
 		// Si la simulation n'est pas modifiable (demande déjà formulée à un leaser) on vérifie la règle +- 10%
 		if(($this->modifiable == 0 || $this->modifiable == 2) && $this->montant_accord != $this->montant_total_finance) {
@@ -793,7 +794,7 @@ class TSimulation extends TObjetStd {
 				$this->error = 'ErrorMontantModifNotAuthorized';
 				return false;
 			}
-		}
+		}*/
 		
 		return true;
 	}

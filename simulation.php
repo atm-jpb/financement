@@ -389,12 +389,12 @@ if(!empty($action)) {
 				    $simulation->montant_accord = $simulation->montant;
 				}
 				
-				if ($simulation->accord !== 'MODIF'){
+				/*if ($simulation->accord !== 'MODIF'){
 				    $simulation->modifs = array();
 				} else {
 				    $oldsimu->accord = 'MODIF';
 				    $simulation = $oldsimu;
-				}
+				}*/
 				
 				//$ATMdb->db->debug=true;
 				$simulation->save($ATMdb, $db);
