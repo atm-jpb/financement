@@ -244,7 +244,7 @@ if(!empty($action)) {
 			//pre($_REQUEST,true);
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			
-			if($simulation->accord == 'OK') { // On enregistre les modifs que si on était déjà en accord
+			if($simulation->accord == 'OK' || $simulation->accord == 'MODIF') { // On enregistre les modifs que si on était déjà en accord ou en modif
 				if(empty($simulation->modifs['montant']) && (float)$_REQUEST['montant'] !== $simulation->montant) $simulation->modifs['montant'] = $simulation->montant;
 				if(empty($simulation->modifs['echeance']) && (float)$_REQUEST['echeance'] !== $simulation->echeance) $simulation->modifs['echeance'] = $simulation->echeance;
 				if(empty($simulation->modifs['montant_presta_trim']) && (float)$_REQUEST['montant_presta_trim'] !== $simulation->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $simulation->montant_presta_trim;
@@ -347,10 +347,10 @@ if(!empty($action)) {
 				
 				if($_REQUEST['mode'] == 'edit_montant') { // si le commercial a fait une modif
 				    
-				    if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
+				    /*if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
 				        $diff = round($_REQUEST['coeff'], 3) - $simulation->coeff;
 				        $simulation->coeff_final = $simulation->coeff_final + $diff;
-				    }
+				    }*/
 				    
 				    if ($oldAccord == 'OK'){
 				    	// Si il y avait un accord avant et qu'on fait une modif, on vérifie les règles suivantes pour passer ou non le statut à "MODIF"
@@ -366,7 +366,7 @@ if(!empty($action)) {
 						}
 						// Si MANDATEE ou ADOSSEE, on vérifie si les données modifiées font patie de la liste
 						else if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
-							$keepAccord = array('montant', 'echeance', 'fk_type_contrat', 'opt_periodicite', 'opt_mode_reglement', 'opt_terme');
+							$keepAccord = array('montant', 'echeance', 'coeff', 'fk_type_contrat', 'opt_periodicite', 'opt_mode_reglement', 'opt_terme');
 							foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
 								if (!in_array($k, $keepAccord)) $simulation->accord = 'MODIF';
 							}
