@@ -349,22 +349,21 @@ if(!empty($action)) {
 					$simulation->montant_accord = $simulation->montant_total_finance;
 				}
 				
-				if($simulation->accord == 'OK' || $simulation->accord == 'MODIF') { // On enregistre les modifs que si on était déjà en accord ou en modif
-					if(empty($simulation->modifs['montant']) && $simulation->montant !== $oldsimu->montant) $simulation->modifs['montant'] = $oldsimu->montant;
-					if(empty($simulation->modifs['echeance']) && $simulation->echeance !== $oldsimu->echeance) $simulation->modifs['echeance'] = $oldsimu->echeance;
-					if(empty($simulation->modifs['montant_presta_trim']) && $simulation->montant_presta_trim !== $oldsimu->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $oldsimu->montant_presta_trim;
-					if(empty($simulation->modifs['type_materiel']) && $simulation->type_materiel !== $oldsimu->type_materiel) $simulation->modifs['type_materiel'] = $oldsimu->type_materiel;
-					if(empty($simulation->modifs['opt_periodicite']) && $simulation->opt_periodicite !== $oldsimu->opt_periodicite) $simulation->modifs['opt_periodicite'] = $oldsimu->opt_periodicite;
-					if(empty($simulation->modifs['duree']) && $simulation->duree !== $oldsimu->duree) $simulation->modifs['duree'] = $oldsimu->duree;
-					if(empty($simulation->modifs['fk_type_contrat']) && $simulation->fk_type_contrat !== $oldsimu->fk_type_contrat) $simulation->modifs['fk_type_contrat'] = $oldsimu->fk_type_contrat;
-					if(empty($simulation->modifs['opt_mode_reglement']) && $simulation->opt_mode_reglement !== $oldsimu->opt_mode_reglement) $simulation->modifs['opt_mode_reglement'] = $oldsimu->opt_mode_reglement;
-					if(empty($simulation->modifs['opt_terme']) && $simulation->opt_terme !== $oldsimu->opt_terme) $simulation->modifs['opt_terme'] = $oldsimu->opt_terme;
-					if(empty($simulation->modifs['coeff']) && $simulation->coeff !== $oldsimu->coeff) $simulation->modifs['coeff'] = $oldsimu->coeff;
-					if(empty($simulation->modifs['coeff_final']) && $simulation->coeff_final !== $oldsimu->coeff_final) $simulation->modifs['coeff_final'] = $oldsimu->coeff_final;
-				}
-				
 				if($_REQUEST['mode'] == 'edit_montant') { // si le commercial a fait une modif
-				    
+				
+					if($simulation->accord == 'OK' || $simulation->accord == 'MODIF') { // On enregistre les modifs que si on était déjà en accord ou en modif
+						if(empty($simulation->modifs['montant']) && $simulation->montant !== $oldsimu->montant) $simulation->modifs['montant'] = $oldsimu->montant;
+						if(empty($simulation->modifs['echeance']) && $simulation->echeance !== $oldsimu->echeance) $simulation->modifs['echeance'] = $oldsimu->echeance;
+						if(empty($simulation->modifs['montant_presta_trim']) && $simulation->montant_presta_trim !== $oldsimu->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $oldsimu->montant_presta_trim;
+						if(empty($simulation->modifs['type_materiel']) && $simulation->type_materiel !== $oldsimu->type_materiel) $simulation->modifs['type_materiel'] = $oldsimu->type_materiel;
+						if(empty($simulation->modifs['opt_periodicite']) && $simulation->opt_periodicite !== $oldsimu->opt_periodicite) $simulation->modifs['opt_periodicite'] = $oldsimu->opt_periodicite;
+						if(empty($simulation->modifs['duree']) && $simulation->duree !== $oldsimu->duree) $simulation->modifs['duree'] = $oldsimu->duree;
+						if(empty($simulation->modifs['fk_type_contrat']) && $simulation->fk_type_contrat !== $oldsimu->fk_type_contrat) $simulation->modifs['fk_type_contrat'] = $oldsimu->fk_type_contrat;
+						if(empty($simulation->modifs['opt_mode_reglement']) && $simulation->opt_mode_reglement !== $oldsimu->opt_mode_reglement) $simulation->modifs['opt_mode_reglement'] = $oldsimu->opt_mode_reglement;
+						if(empty($simulation->modifs['opt_terme']) && $simulation->opt_terme !== $oldsimu->opt_terme) $simulation->modifs['opt_terme'] = $oldsimu->opt_terme;
+						if(empty($simulation->modifs['coeff']) && $simulation->coeff !== $oldsimu->coeff) $simulation->modifs['coeff'] = $oldsimu->coeff;
+						if(empty($simulation->modifs['coeff_final']) && $simulation->coeff_final !== $oldsimu->coeff_final) $simulation->modifs['coeff_final'] = $oldsimu->coeff_final;
+					}
 				    
 				    if ($oldAccord == 'OK'){
 				    	// Si il y avait un accord avant et qu'on fait une modif, on vérifie les règles suivantes pour passer ou non le statut à "MODIF"
