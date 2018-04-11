@@ -246,7 +246,6 @@ if(!empty($action)) {
 			
 			$oldAccord = $simulation->accord;
 			$oldsimu = clone $simulation;
-			//pre($_REQUEST,true);
 			
 			$fk_type_contrat_old = $simulation->fk_type_contrat;
 			
@@ -269,6 +268,24 @@ if(!empty($action)) {
 				$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
 				$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
 				$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
+			}
+			
+			if($_REQUEST['mode'] == 'edit_montant') {
+				// Si la simulation avait un coeff final de renseigné, il s'agit d'une dérogation
+			    // On doit calculer donc la différence entre le coeff de la simiulation et celui de l'ancienne sans tenir compte de la dérogation
+			    // Puis appliquer la différence sur le coeff final
+			    if(!empty($simulation->coeff_final)) {
+			    	$oldsimu->coeff_final = 0;
+					$oldsimu->_calcul($ATMdb);
+					$cpysimu = clone $simulation;
+					$cpysimu->coeff_final = 0;
+					$cpysimu->_calcul($ATMdb);
+					$diffcoeff = $oldsimu->coeff - $cpysimu->coeff;
+					
+					if(!empty($diffcoeff)) {
+						$simulation->coeff_final += $diffcoeff;
+					}
+			    }
 			}
 			
 			// Si l'accord vient d'être donné (par un admin)
@@ -347,10 +364,6 @@ if(!empty($action)) {
 				
 				if($_REQUEST['mode'] == 'edit_montant') { // si le commercial a fait une modif
 				    
-				    /*if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
-				        $diff = round($_REQUEST['coeff'], 3) - $simulation->coeff;
-				        $simulation->coeff_final = $simulation->coeff_final + $diff;
-				    }*/
 				    
 				    if ($oldAccord == 'OK'){
 				    	// Si il y avait un accord avant et qu'on fait une modif, on vérifie les règles suivantes pour passer ou non le statut à "MODIF"
@@ -360,26 +373,9 @@ if(!empty($action)) {
 			            if (empty($simulation->montant_accord)) $simulation->montant_accord = 1;
 						$montantOK = ($diffmontant / $simulation->montant_accord) * 100 <= $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE;
 						
-						// Vérification de si la modification concerne certains champs
-						$keepAccord = array('montant', 'echeance', 'coeff', 'fk_type_contrat', 'opt_periodicite', 'opt_mode_reglement', 'opt_terme');
-						$modifOK = true;
-						foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
-							if (!in_array($k, $keepAccord)) $modifOK = false;
-						}
-						
 						// Si le montant ne respecte pas la règle (+- 10 %) => MODIF
 						if(!$montantOK) {
 							$simulation->accord = 'MODIF';
-						}
-						else {
-							// Si MANDATEE ou ADOSSEE, on vérifie si les données modifiées font patie de la liste
-							if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
-								if(!$modifOK) {
-									$simulation->accord = 'MODIF';
-								}
-							} else {
-								$simulation->accord = 'MODIF';
-							}
 						}
 					} elseif ($oldAccord == 'WAIT' || $oldAccord == 'WAIT_LEASER' || $oldAccord == 'WAIT_SELLER') {
 						$simulation->accord = 'MODIF';
