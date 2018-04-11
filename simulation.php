@@ -360,6 +360,7 @@ if(!empty($action)) {
 					if(empty($simulation->modifs['opt_mode_reglement']) && $simulation->opt_mode_reglement !== $oldsimu->opt_mode_reglement) $simulation->modifs['opt_mode_reglement'] = $oldsimu->opt_mode_reglement;
 					if(empty($simulation->modifs['opt_terme']) && $simulation->opt_terme !== $oldsimu->opt_terme) $simulation->modifs['opt_terme'] = $oldsimu->opt_terme;
 					if(empty($simulation->modifs['coeff']) && $simulation->coeff !== $oldsimu->coeff) $simulation->modifs['coeff'] = $oldsimu->coeff;
+					if(empty($simulation->modifs['coeff_final']) && $simulation->coeff_final !== $oldsimu->coeff_final) $simulation->modifs['coeff_final'] = $oldsimu->coeff_final;
 				}
 				
 				if($_REQUEST['mode'] == 'edit_montant') { // si le commercial a fait une modif
@@ -1021,7 +1022,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	    ,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10) .(!empty($simulation->modifs['echeance']) ? ' (Ancienne valeur : '.$simulation->modifs['echeance'].')' : '')
 		,'vr'=>price($simulation->vr)
 	    ,'coeff'=>$form->texteRO('', 'coeff', $coeff, 6) .(!empty($simulation->modifs['coeff']) ? ' (Ancienne valeur : '.$simulation->modifs['coeff'].')' : '')
-		,'coeff_final'=>$can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 6) : $simulation->coeff_final
+		,'coeff_final'=>($can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 6) : $simulation->coeff_final) .(!empty($simulation->modifs['coeff_final']) ? ' (Ancienne valeur : '.$simulation->modifs['coeff_final'].')' : '')
 	    ,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10) .(!empty($simulation->modifs['montant_presta_trim']) ? ' (Ancienne valeur : '.$simulation->modifs['montant_presta_trim'].')' : '')
 		,'cout_financement'=>$simulation->cout_financement
 	    ,'accord'=> $accordIcon . '<br />' . ($user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]) . '<br>'
