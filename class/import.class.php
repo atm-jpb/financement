@@ -2123,7 +2123,7 @@ class TImport extends TObjetStd {
 		$sql.= 'SET paye = 1, fk_statut = 2 ';
 		$sql.= 'WHERE paye = 0 ';
 		$sql.= 'AND fk_statut = 1 ';
-		$sql.= 'AND type = 0 ';
+		//$sql.= 'AND type = 0 ';
 		$sql.= 'AND entity IN (1,2,3,4) ';
 		
 		$PDOdb->Execute($sql);
