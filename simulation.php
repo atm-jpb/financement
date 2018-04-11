@@ -280,7 +280,7 @@ if(!empty($action)) {
 					$cpysimu = clone $simulation;
 					$cpysimu->coeff_final = 0;
 					$cpysimu->_calcul($ATMdb, 'calcul', array(), true);
-					$diffcoeff = $oldsimu->coeff - $cpysimu->coeff;
+					$diffcoeff = $cpysimu->coeff - $oldsimu->coeff;
 					
 					if(!empty($diffcoeff)) {
 						$simulation->coeff_final += $diffcoeff;
