@@ -1381,7 +1381,7 @@ class TSimulation extends TObjetStd {
 		$res = ob_get_clean();
 	}
 
-	function _calcul(&$ATMdb, $mode='calcul', $options=array()) {
+	function _calcul(&$ATMdb, $mode='calcul', $options=array(), $forceoptions=false) {
 		global $mesg, $error, $langs, $db;
 		
 		if(empty($options)) {
@@ -1392,7 +1392,7 @@ class TSimulation extends TObjetStd {
 			}
 			// Si les paramètre ne sont pas passé par formulaire, on garde les options de l'objet
 			foreach($this as $k => $v) {
-				if(substr($k, 0, 4) == 'opt_' && empty($options[$k])) {
+				if(substr($k, 0, 4) == 'opt_' && (empty($options[$k]) || $forceoptions)) {
 					$options[$k] = $v;
 				}
 			}

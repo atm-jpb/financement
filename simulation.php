@@ -276,10 +276,10 @@ if(!empty($action)) {
 			    // Puis appliquer la différence sur le coeff final
 			    if(!empty($simulation->coeff_final)) {
 			    	$oldsimu->coeff_final = 0;
-					$oldsimu->_calcul($ATMdb);
+					$oldsimu->_calcul($ATMdb, 'calcul', array(), true);
 					$cpysimu = clone $simulation;
 					$cpysimu->coeff_final = 0;
-					$cpysimu->_calcul($ATMdb);
+					$cpysimu->_calcul($ATMdb, 'calcul', array(), true);
 					$diffcoeff = $oldsimu->coeff - $cpysimu->coeff;
 					
 					if(!empty($diffcoeff)) {
