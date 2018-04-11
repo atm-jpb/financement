@@ -244,19 +244,6 @@ if(!empty($action)) {
 			//pre($_REQUEST,true);
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			
-			if($simulation->accord == 'OK' || $simulation->accord == 'MODIF') { // On enregistre les modifs que si on était déjà en accord ou en modif
-				if(empty($simulation->modifs['montant']) && (float)$_REQUEST['montant'] !== $simulation->montant) $simulation->modifs['montant'] = $simulation->montant;
-				if(empty($simulation->modifs['echeance']) && (float)$_REQUEST['echeance'] !== $simulation->echeance) $simulation->modifs['echeance'] = $simulation->echeance;
-				if(empty($simulation->modifs['montant_presta_trim']) && (float)$_REQUEST['montant_presta_trim'] !== $simulation->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $simulation->montant_presta_trim;
-				if(empty($simulation->modifs['type_materiel']) && $_REQUEST['type_materiel'] !== $simulation->type_materiel) $simulation->modifs['type_materiel'] = $simulation->type_materiel;
-				if(empty($simulation->modifs['opt_periodicite']) && $_REQUEST['opt_periodicite'] !== $simulation->opt_periodicite) $simulation->modifs['opt_periodicite'] = $simulation->opt_periodicite;
-				if(empty($simulation->modifs['duree']) && (int)$_REQUEST['duree'] !== $simulation->duree) $simulation->modifs['duree'] = $simulation->duree;
-				if(empty($simulation->modifs['fk_type_contrat']) && $_REQUEST['fk_type_contrat'] !== $simulation->fk_type_contrat) $simulation->modifs['fk_type_contrat'] = $simulation->fk_type_contrat;
-				if(empty($simulation->modifs['opt_mode_reglement']) && $_REQUEST['opt_mode_reglement'] !== $simulation->opt_mode_reglement) $simulation->modifs['opt_mode_reglement'] = $simulation->opt_mode_reglement;
-				if(empty($simulation->modifs['opt_terme']) && $_REQUEST['opt_terme'] !== $simulation->opt_terme) $simulation->modifs['opt_terme'] = $simulation->opt_terme;
-				if(empty($simulation->modifs['coeff']) && (float)$_REQUEST['coeff'] !== $simulation->coeff) $simulation->modifs['coeff'] = $simulation->coeff;
-			}
-			
 			$oldAccord = $simulation->accord;
 			$oldsimu = clone $simulation;
 			//pre($_REQUEST,true);
@@ -345,6 +332,19 @@ if(!empty($action)) {
 					$simulation->montant_accord = $simulation->montant_total_finance;
 				}
 				
+				if($simulation->accord == 'OK' || $simulation->accord == 'MODIF') { // On enregistre les modifs que si on était déjà en accord ou en modif
+					if(empty($simulation->modifs['montant']) && $simulation->montant !== $oldsimu->montant) $simulation->modifs['montant'] = $oldsimu->montant;
+					if(empty($simulation->modifs['echeance']) && $simulation->echeance !== $oldsimu->echeance) $simulation->modifs['echeance'] = $oldsimu->echeance;
+					if(empty($simulation->modifs['montant_presta_trim']) && $simulation->montant_presta_trim !== $oldsimu->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $oldsimu->montant_presta_trim;
+					if(empty($simulation->modifs['type_materiel']) && $simulation->type_materiel !== $oldsimu->type_materiel) $simulation->modifs['type_materiel'] = $oldsimu->type_materiel;
+					if(empty($simulation->modifs['opt_periodicite']) && $simulation->opt_periodicite !== $oldsimu->opt_periodicite) $simulation->modifs['opt_periodicite'] = $oldsimu->opt_periodicite;
+					if(empty($simulation->modifs['duree']) && $simulation->duree !== $oldsimu->duree) $simulation->modifs['duree'] = $oldsimu->duree;
+					if(empty($simulation->modifs['fk_type_contrat']) && $simulation->fk_type_contrat !== $oldsimu->fk_type_contrat) $simulation->modifs['fk_type_contrat'] = $oldsimu->fk_type_contrat;
+					if(empty($simulation->modifs['opt_mode_reglement']) && $simulation->opt_mode_reglement !== $oldsimu->opt_mode_reglement) $simulation->modifs['opt_mode_reglement'] = $oldsimu->opt_mode_reglement;
+					if(empty($simulation->modifs['opt_terme']) && $simulation->opt_terme !== $oldsimu->opt_terme) $simulation->modifs['opt_terme'] = $oldsimu->opt_terme;
+					if(empty($simulation->modifs['coeff']) && $simulation->coeff !== $oldsimu->coeff) $simulation->modifs['coeff'] = $oldsimu->coeff;
+				}
+				
 				if($_REQUEST['mode'] == 'edit_montant') { // si le commercial a fait une modif
 				    
 				    /*if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
@@ -360,19 +360,26 @@ if(!empty($action)) {
 			            if (empty($simulation->montant_accord)) $simulation->montant_accord = 1;
 						$montantOK = ($diffmontant / $simulation->montant_accord) * 100 <= $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE;
 						
+						// Vérification de si la modification concerne certains champs
+						$keepAccord = array('montant', 'echeance', 'coeff', 'fk_type_contrat', 'opt_periodicite', 'opt_mode_reglement', 'opt_terme');
+						$modifOK = true;
+						foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
+							if (!in_array($k, $keepAccord)) $modifOK = false;
+						}
+						
 						// Si le montant ne respecte pas la règle (+- 10 %) => MODIF
 						if(!$montantOK) {
 							$simulation->accord = 'MODIF';
 						}
-						// Si MANDATEE ou ADOSSEE, on vérifie si les données modifiées font patie de la liste
-						else if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
-							$keepAccord = array('montant', 'echeance', 'coeff', 'fk_type_contrat', 'opt_periodicite', 'opt_mode_reglement', 'opt_terme');
-							foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
-								if (!in_array($k, $keepAccord)) $simulation->accord = 'MODIF';
+						else {
+							// Si MANDATEE ou ADOSSEE, on vérifie si les données modifiées font patie de la liste
+							if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
+								if(!$modifOK) {
+									$simulation->accord = 'MODIF';
+								}
+							} else {
+								$simulation->accord = 'MODIF';
 							}
-						// Sinon (type non MANDATEE ou ADOSSEE)
-						} else {
-							$simulation->accord = 'MODIF';
 						}
 					} elseif ($oldAccord == 'WAIT' || $oldAccord == 'WAIT_LEASER' || $oldAccord == 'WAIT_SELLER') {
 						$simulation->accord = 'MODIF';
