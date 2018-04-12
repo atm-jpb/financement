@@ -270,6 +270,8 @@ class TSimulation extends TObjetStd {
 	function create_suivi_simulation(&$PDOdb){
 		global $db, $conf;
 		
+		$this->TSimulationSuivi = array();
+		
 		// Pour créer le suivi leaser simulation, on prend les leaser définis dans la conf et parmi ceux-la, on met en 1er le leaser prioritaire
 		$TFinGrilleSuivi = new TFin_grille_suivi;
 		$grille = $TFinGrilleSuivi->get_grille($PDOdb, 'DEFAUT_'.$this->fk_type_contrat,false,$this->entity);
@@ -288,6 +290,8 @@ class TSimulation extends TObjetStd {
 			if(in_array($simulationSuivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP'))) {
 				$simulationSuivi->doAction($PDOdb, $this, 'demander');
 			}
+			
+			$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 		}
 		
 		// Ajout des autres leasers de la liste (sauf le prio)
@@ -297,6 +301,8 @@ class TSimulation extends TObjetStd {
 			$simulationSuivi = new TSimulationSuivi;
 			$simulationSuivi->init($PDOdb,$leaser,$this->getId());
 			$simulationSuivi->save($PDOdb);
+			
+			$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 		}
 	}
 	
