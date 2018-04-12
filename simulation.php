@@ -341,7 +341,12 @@ if(!empty($action)) {
 						}
 					}
 					
+					// Changement de type de contrat, on vide les préconisations
 					$simulation->montant_accord = 0;
+					$simulation->type_financement = '';
+					$simulation->fk_leaser = 0;
+					$simulation->coeff_final = 0;
+					$simulation->numero_accord = '';
 				}
 				
 				// Si le leaser préconisé est renseigné, on enregistre le montant pour le figer (+- 10%)
