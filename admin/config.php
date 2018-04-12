@@ -74,6 +74,60 @@ if ($action == 'save_penalites_simulateur') {
 	}
 }
 
+if ($action =='save_horaires_travail'){
+    $debutMatin = GETPOST('DebutMatin');
+    $finMatin = GETPOST('FinMatin');
+    $debutAprem = GETPOST('DebutAprem');
+    $finAprem = GETPOST('FinAprem');
+
+    // valeurs par défaut au cas où
+    if($debutMatin == '') $debutMatin = '08:30';
+    if($finMatin == '') $finMatin = '12:30';
+    if($debutAprem == '') $debutAprem = '14:00';
+    if($finAprem == '') $finAprem = '18:00';
+    
+    $res = dolibarr_set_const($db,'FINANCEMENT_HEURE_DEBUT_MATIN',$debutMatin,'chaine',0,'',$conf->entity);
+    if (! $res > 0) $error++;
+    
+    $res = dolibarr_set_const($db,'FINANCEMENT_HEURE_FIN_MATIN',$finMatin,'chaine',0,'',$conf->entity);
+    if (! $res > 0) $error++;
+    
+    $res = dolibarr_set_const($db,'FINANCEMENT_HEURE_DEBUT_APREM',$debutAprem,'chaine',0,'',$conf->entity);
+    if (! $res > 0) $error++;
+    
+    $res = dolibarr_set_const($db,'FINANCEMENT_HEURE_FIN_APREM',$finAprem,'chaine',0,'',$conf->entity);
+    if (! $res > 0) $error++;
+    
+    if (! $error)
+    {
+        $mesg = "<font class=\"ok\">".$langs->trans("SetupSaved")."</font>";
+    }
+    else
+    {
+        $mesg = "<font class=\"error\">".$langs->trans("Error")."</font>";
+    }
+}
+
+if ($action == 'save_seuils_alerte'){
+    $first = (int)GETPOST('FINANCEMENT_FIRST_WAIT_ALARM');
+    $second = (int)GETPOST('FINANCEMENT_SECOND_WAIT_ALARM');
+    
+    $res = dolibarr_set_const($db,'FINANCEMENT_FIRST_WAIT_ALARM',$first,'chaine',0,'',$conf->entity);
+    if (! $res > 0) $error++;
+    
+    $res = dolibarr_set_const($db,'FINANCEMENT_SECOND_WAIT_ALARM',$second,'chaine',0,'',$conf->entity);
+    if (! $res > 0) $error++;
+    
+    if (! $error)
+    {
+        $mesg = "<font class=\"ok\">".$langs->trans("SetupSaved")."</font>";
+    }
+    else
+    {
+        $mesg = "<font class=\"error\">".$langs->trans("Error")."</font>";
+    }
+}
+
 /*
  * View
  */
@@ -378,6 +432,70 @@ print '</table><br />';
 
 print '</form>';
 
+print_titre("Horaires de travail");
+
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="save_horaires_travail" />';
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameter").'</td>';
+print '<td>	Heure de début</td>';
+print '<td>	Heure de fin</td>';
+print '<td width="80"><input type="submit" class="button" value="'.$langs->trans("Enregistrer").'" /></td>';
+print "</tr>\n";
+$var=true;
+
+print '<tr '.$bc[$var].'><td>';
+print 'Matin </td>';
+print '<td>'. _select_time($conf->global->FINANCEMENT_HEURE_DEBUT_MATIN, 'DebutMatin');
+print '<td colspan="2">'. _select_time($conf->global->FINANCEMENT_HEURE_FIN_MATIN, 'FinMatin');
+print '</td>';
+print "</tr>\n";
+
+$var=!$var;
+
+print '<tr '.$bc[$var].'><td>';
+print 'Après-midi </td>';
+print '<td>'. _select_time($conf->global->FINANCEMENT_HEURE_DEBUT_APREM, 'DebutAprem');
+print '<td colspan="2">'. _select_time($conf->global->FINANCEMENT_HEURE_FIN_APREM, 'FinAprem');
+print '</td>';
+print "</tr>\n";
+
+print '</table><br />';
+
+print '</form>';
+
+print_titre("Seuils d'attente simulation");
+
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="save_seuils_alerte" />';
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameter").'</td>';
+print '<td align="center">'.$langs->trans("Value").'</td>';
+print '<td width="80"><input type="submit" class="button" value="'.$langs->trans("Enregistrer").'" /></td>';
+print "</tr>\n";
+$var=true;
+
+print '<tr '.$bc[$var].'><td>';
+print 'Seuil d\'attente moyen</td>';
+print '<td colspan="2"><input type="text" name="FINANCEMENT_FIRST_WAIT_ALARM" value="'.$conf->global->FINANCEMENT_FIRST_WAIT_ALARM.'" size="5"/> minutes';
+print '</td>';
+print "</tr>\n";
+$var=!$var;
+
+print '<tr '.$bc[$var].'><td>';
+print 'Seuil d\'attente alerte (supérieur au moyen)</td>';
+print '<td colspan="2"><input type="text" name="FINANCEMENT_SECOND_WAIT_ALARM" value="'.$conf->global->FINANCEMENT_SECOND_WAIT_ALARM.'" size="5"/> minutes';
+print '</td>';
+print "</tr>\n";
+
+print '</table><br />';
+
+print '</form>';
+
 print_titre($langs->trans("ScriptsManuallyLaunchable"));
 
 print '<table class="noborder" width="100%">';
@@ -488,3 +606,32 @@ dol_fiche_end();
 $db->close();
 
 llxFooter();
+
+function _select_time($selectval = '', $htmlname = 'period', $enabled = 1) {
+    $time = 5;
+    $heuref = 23;
+    $min = 0;
+    $options = '<option value=""></option>' . "\n";
+    while ( $time < $heuref ) {
+        if ($min == 60) {
+            $min = 0;
+            $time ++;
+        }
+        
+        $ftime = sprintf("%02d", $time) . ':' . sprintf("%02d", $min);
+        
+        if ($selectval == $ftime)
+            $selected = ' selected="selected"';
+            else
+                $selected = '';
+                $options .= '<option value="' . $ftime . '"' . $selected . '>' . $ftime . '</option>' . "\n";
+                $min += 15;
+    }
+    if (empty($enabled)) {
+        $disabled = ' disabled="disabeld" ';
+    } else {
+        $disabled = '';
+    }
+    
+    return '<select class="flat" ' . $disabled . ' name="' . $htmlname . '">' . "\n" . $options . "\n" . '</select>' . "\n";
+}
