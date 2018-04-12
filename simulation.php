@@ -377,6 +377,20 @@ if(!empty($action)) {
 						if(!$montantOK) {
 							$simulation->accord = 'MODIF';
 						}
+						
+						// Si MANDATEE ou ADOSSEE, on passe en modif uniquement si changement de durée / périodicité
+						if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
+							if(!empty($simulation->modifs['duree']) || !empty($simulation->modifs['opt_periodicite'])) {
+								$simulation->accord = 'MODIF';
+							}
+						}
+						// Sinon on passe en modif si autre chose que le montant a été modifié (montant, echeance, coeff)
+						else {
+							$keepAccord = array('montant', 'echeance', 'coeff');
+							foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
+								if (!in_array($k, $keepAccord)) $simulation->accord = 'MODIF';
+							}
+						}
 					} elseif ($oldAccord == 'WAIT' || $oldAccord == 'WAIT_LEASER' || $oldAccord == 'WAIT_SELLER') {
 						$simulation->accord = 'MODIF';
 						$simulation->coeff_final = 0;
