@@ -391,7 +391,7 @@ if(!empty($action)) {
 						}
 						// Sinon on passe en modif si autre chose que le montant a été modifié (montant, echeance, coeff)
 						else {
-							$keepAccord = array('montant', 'echeance', 'coeff');
+							$keepAccord = array('montant', 'echeance', 'coeff', 'coeff_final');
 							foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
 								if (!in_array($k, $keepAccord)) $simulation->accord = 'MODIF';
 							}
@@ -402,13 +402,13 @@ if(!empty($action)) {
 					}
 				} 
 				
-				if ($_REQUEST['mode'] == 'edit_montant'
+				/*if ($_REQUEST['mode'] == 'edit_montant'
 				    && ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE')
 				    && $oldAccord == 'OK'
 				    && $simulation->error == 'ErrorMontantModifNotAuthorized') // diff montant > 10%
 				{
 				    $simulation->accord = 'MODIF';
-				}
+				}*/
 				
 				if($simulation->accord == 'OK'){
 				    $simulation->montant_accord = $simulation->montant;
