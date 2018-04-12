@@ -415,7 +415,7 @@ if(!empty($action)) {
 				    $simulation->montant_accord = $simulation->montant;
 				}
 				
-				if(empty($simulation->accord)) {
+				if(empty($simulation->accord) || empty($simulation->rowid)) {
 					$simulation->accord = 'WAIT';
 				}
 				
