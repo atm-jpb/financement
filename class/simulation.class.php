@@ -1799,6 +1799,7 @@ class TSimulationSuivi extends TObjetStd {
 		$found = false;
 		foreach ($this->simulation->TSimulationSuivi as $id_suivi => $suivi) {
 			if($found && empty($suivi->statut)) {
+				// [PH] TODO ajouter ici les noms de leaser pour déclancher en automatique l'appel
 				if(in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP'))) {
 					$suivi->doAction($PDOdb, $this->simulation, 'demander');
 				}
@@ -1905,10 +1906,9 @@ class TSimulationSuivi extends TObjetStd {
 			case 'GE':
 				//$this->_createDemandeGE($PDOdb);
 				break;
-			//LIXXBAIL
+			// [PH] TODO ajouter ici les leaser devant faire un appel SOAP
+			//LIXXBAIL, CMCIC
 			case 'LIXXBAIL':
-				$this->_createDemandeServiceFinancement();
-				break;
 			case 'CMCIC':
 				$this->_createDemandeServiceFinancement();
 				break;

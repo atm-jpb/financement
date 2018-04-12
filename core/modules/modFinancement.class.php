@@ -802,6 +802,8 @@ class modFinancement extends DolibarrModules
 		dol_include_once('/core/class/extrafields.class.php');
 		$extra = new ExtraFields($db);
 		$extra->addExtraField('fk_leaser_webservice', 'Identifiant du leaser associé pour les réponses de demande de financement', 'int', '1', '', 'user', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
+		$extra->addExtraField('cmcic_apporteur_id', 'Apporteur ID', 'varchar', 10, 255, 'entity');
+		
 		
 		return $this->_init($sql, $options);
 	}

@@ -373,13 +373,13 @@ class ServiceFinancement {
 		$our_wsdl = $conf->global->FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC;
 		if (empty($our_wsdl)) $our_wsdl = dol_buildpath('/financement/script/webservice/scoring_server.php?wsdl', 2);
 		
-		list($apporteur_id, $protocole_id) = $this->getApporteurAndProtocolID();
+		$protocole_id = $this->getProtocolID();
 		list($marqmat, $typmat) = $this->getMarqmatAndTypmat($protocole_id);
 		
 //		var_dump($this->simulation->montant);exit;
 		$TParam = array(
 			'APP_Infos_B2B' => array(
-				'B2B_CLIENT' => 'CPR0001' // TODO à déterminer [char 10]*
+				'B2B_CLIENT' => 'CPRO001' // TODO à déterminer [char 10]*
 				,'B2B_TIMESTAMP' => date('c') // Date au format ISO 8601 (2004-02-12T15:19:21+00:00)
 			)
 			,'APP_CREA_Demande' => array(
@@ -389,7 +389,7 @@ class ServiceFinancement {
 				,'B2B_TYPE_DEMANDE' => 'E' // *
 			)
 			,'Infos_Apporteur' => array(
-				'B2B_APPORTEUR_ID' => $apporteur_id // [char 9]* TODO à vérifier
+				'B2B_APPORTEUR_ID' => $this->getApporteurId() // [char 9]* TODO à vérifier
 				,'B2B_PROT_ID' => $protocole_id // [char 4]* TODO à vérifier
 				,'B2B_VENDEUR_EMAIL' => $u->email // Si vide alors il faut renseigner B2B_VENDEUR_ID
 			)
@@ -424,30 +424,32 @@ class ServiceFinancement {
 	}
 	
 	/**
-	 * Renvoie l'id de l'apporteur et l'id du protocole (conditionné actuellement à l'entité de la simulation)
+	 * Renvoi l'identifiant de l'apporteur d'affaire (extrafield "entity")
+	 * @global type $db
+	 * @return type
 	 */
-	private function getApporteurAndProtocolID()
+	private function getApporteurId()
 	{
 		global $db;
 		
 		$dao = new DaoMulticompany($db);
 		$dao->fetch($this->simulation->entity);
-		$dao->getEntities();
 		
-		if (strpos($dao->label, 'Télécom') !== false) return array('672730000', '0251');
-		else if (strpos($dao->label, 'ABG') !== false) return array('000485004', '0251');
-		else if (strpos($dao->label, 'Copy Concept') !== false) return array('003822000', '0251');
-		else if (strpos($dao->label, 'QUADRA') !== false) return array('205643000', '0251');
-		else if (strpos($dao->label, 'QSIGD') !== false) return array('000889002', '0251'); // QUADRA SIGD ???
-		else if (strpos($dao->label, 'Copem') !== false) return array('079644000', '0251');
-		else if (strpos($dao->label, 'SADOUX') !== false) return array('000969001', '0251');
-//		else if (strpos($dao->label, 'Impression') !== false) {}
-//		else if (strpos($dao->label, 'Informatique') !== false) {}
-//		else if (strpos($dao->label, 'Bourgogne Copie') !== false) {}
-//		else if (strpos($dao->label, 'EBM') !== false) {}
+		return $dao->array_options['options_cmcic_apporteur_id'];
+	}
+	/**
+	 * Renvoie l'id de l'apporteur et l'id du protocole (conditionné actuellement à l'entité de la simulation)
+	 */
+	private function getProtocolID()
+	{
+		$name = $this->simulationSuivi->leaser->name;
+		if (empty($name)) $this->simulationSuivi->leaser->nom;
 		
-		// Error if empty
-		return '';
+		
+		$id = '0251';
+		if (preg_match('/MANDATEE|mandatée|MANDATÉE|mandatee/', $name)) $id = '0240';
+		
+		return $id;
 	}
 	
 	private function getMarqmatAndTypmat()
