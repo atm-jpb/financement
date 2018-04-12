@@ -613,6 +613,7 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$THide[] = 'type_financement';
 	$THide[] = 'date_validite';
+	$THide[] = 'leaser';
 	
 	$TOrder = array('date_simul'=>'DESC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
@@ -705,6 +706,7 @@ function _liste(&$ATMdb, &$simulation) {
 				,'type_financement'=>'center'
 				,'leaser'=>'center'
 				,'suivi'=>'center'
+				,'attente'=>'right'
 			)
 		)
 	);
@@ -766,8 +768,8 @@ function print_attente($compteur){
     $heures = abs(round((($compteur / 60)-$min)/60));
     
     $ret = '';
-    $ret .= (!empty($heures) ? $heures . " h " : "");
-    $ret .= (!empty($min) ? $min . " min" : "");
+    $ret .= (!empty($heures) ? $heures . "h" : "0h");
+    $ret .= (!empty($min) ? $min : "00");
     
     if (!empty($style)) $ret = '<span style="'.$style.'">'.$ret.'</span>';
     
