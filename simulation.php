@@ -581,6 +581,13 @@ function _liste(&$ATMdb, &$simulation) {
 		$formDoli = new Form($db);
 		
 		$TBS=new TTemplateTBS();
+		
+		// Infos sur SIREN
+		$info = '';
+		if(!empty($societe->idprof1)) {
+			if ($societe->id_prof_check(1,$societe) > 0) $info = ' &nbsp; '.$societe->id_prof_url(1,$societe);
+			else $info = ' <font class="error">('.$langs->trans("ErrorWrongValue").')</font>';
+		}
 	
 		print $TBS->render('./tpl/client_entete.tpl.php'
 			,array(
@@ -590,7 +597,8 @@ function _liste(&$ATMdb, &$simulation) {
 				'client'=>array(
 					'dolibarr_societe_head'=>dol_get_fiche_head(societe_prepare_head($societe), 'simulation', $langs->trans("ThirdParty"),0,'company')
 					,'showrefnav'=>$formDoli->showrefnav($societe,'socid','',($user->societe_id?0:1),'rowid','nom')
-					,'idprof1'=>$societe->idprof1
+					,'code_client'=>$societe->code_client
+					,'idprof1'=>$societe->idprof1 . $info
 					,'adresse'=>$societe->address
 					,'cpville'=>$societe->zip.($societe->zip && $societe->town ? " / ":"").$societe->town
 					,'pays'=>picto_from_langcode($societe->country_code).' '.$societe->country
