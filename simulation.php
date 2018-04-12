@@ -219,24 +219,17 @@ if(!empty($action)) {
 		case 'save_suivi':
 			
 			$simulation->load($ATMdb, $db, $_REQUEST['id']);
-			$simulation_suivi = new TSimulationSuivi;
-			
-			//pre($_REQUEST,true);exit;
-			
-			foreach($_REQUEST as $key => $value){
-				if($key == 'TSuivi'){
-					foreach ($value as $id_suivi => $Tval) {
-						$simulation_suivi->load($ATMdb, $id_suivi);
-						
-						$Tab['numero_accord_leaser'] = $Tval['num_accord'];
-						$Tab['coeff_leaser'] = $Tval['coeff_accord'];
-						$Tab['commentaire'] = $Tval['commentaire'];
-						$simulation_suivi->set_values($Tab);
-						$simulation_suivi->save($ATMdb);	
+			if(!empty($_REQUEST['TSuivi'])) {
+				foreach($_REQUEST['TSuivi'] as $id_suivi => $Tval) {
+					if(!empty($simulation->TSimulationSuivi[$id_suivi])) {
+						$simulation->TSimulationSuivi[$id_suivi]->set_values($TVal);
+						$simulation->TSimulationSuivi[$id_suivi]->save($ATMdb);
 					}
 				}
+				
+				setEventMessage($langs->trans('DataSaved'));
 			}
-			setEventMessage($langs->trans('DataSaved'));
+			
 			_fiche($ATMdb, $simulation,'view');
 			break;
 		
