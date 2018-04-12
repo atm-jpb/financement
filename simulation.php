@@ -220,7 +220,7 @@ if(!empty($action)) {
 			
 			$simulation->load($ATMdb, $db, $_REQUEST['id']);
 			if(!empty($_REQUEST['TSuivi'])) {
-				foreach($_REQUEST['TSuivi'] as $id_suivi => $Tval) {
+				foreach($_REQUEST['TSuivi'] as $id_suivi => $TVal) {
 					if(!empty($simulation->TSimulationSuivi[$id_suivi])) {
 						$simulation->TSimulationSuivi[$id_suivi]->set_values($TVal);
 						$simulation->TSimulationSuivi[$id_suivi]->save($ATMdb);
