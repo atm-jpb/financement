@@ -148,8 +148,9 @@ class ServiceFinancement {
 		
 		$options = array(
 			'exceptions'=>0
+			,'location' => $this->wsdl
 			,'trace' => 1
-		  	,'soap_version' => SOAP_1_2
+		  	,'soap_version' => SOAP_1_1
 		  	,'connection_timeout' => 20
 		  	,'cache_wsdl' => WSDL_CACHE_NONE
 		  	,'user_agent' => 'MySoapCmCic'
@@ -364,79 +365,6 @@ class ServiceFinancement {
 
 		return false;
 	}
-
-	/**
-	 * TODO à voir si je conserve
-	 * 
-	 * @global type $db
-	 * @global type $mysoc
-	 * @global type $conf
-	 * @return string
-	 */
-	private function getXmlParamForCMCIC()
-	{
-		global $db,$mysoc,$conf;
-		
-		$frequence = 1;
-		if ($this->simulation->opt_periodicite == 'TRIMESTRE') $frequence = 3;
-		else if ($this->simulation->opt_periodicite == 'SEMESTRE') $frequence = 6;
-		else if ($this->simulation->opt_periodicite == 'ANNEE') $frequence = 12;
-		
-		$u = new User($db);
-		$u->fetch($this->simulation->fk_user_author);
-		$dossier_origin = current($this->simulation->dossiers);
-		
-		$our_wsdl = $conf->global->FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC;
-		if (empty($our_wsdl)) $our_wsdl = dol_buildpath('/financement/script/webservice/scoring_server.php?wsdl', 2);
-		
-		$protocole_id = $this->getProtocolID();
-		list($marqmat, $typmat) = $this->getMarqmatAndTypmat($protocole_id);
-		
-//		var_dump($this->simulation->montant);exit;
-		$xml = '
-<doc:CreateDemFinRequest>
-	<doc:APP_Infos_B2B>
-		<doc:B2B_CLIENT>CPRO001</doc:B2B_CLIENT>
-		<doc:B2B_TIMESTAMP>'.date('c').'</doc:B2B_TIMESTAMP>
-	</doc:APP_Infos_B2B>
-	<doc:APP_CREA_Demande>
-		<doc:B2B_CTR_REN_ADJ>'.(!empty($this->simulation->opt_adjonction) ? $dossier_origin->num_contrat : '').'</doc:B2B_CTR_REN_ADJ>
-		<doc:B2B_ECTR_FLG>false</doc:B2B_ECTR_FLG>
-		<doc:B2B_NATURE_DEMANDE>'.(!empty($this->simulation->opt_adjonction) ? 'A' : 'S').'</doc:B2B_NATURE_DEMANDE>
-		<doc:B2B_TYPE_DEMANDE>E</doc:B2B_TYPE_DEMANDE>
-	</doc:APP_CREA_Demande>
-	<doc:Infos_Apporteur>
-		<doc:B2B_APPORTEUR_ID>'.$this->getApporteurId().'</doc:B2B_APPORTEUR_ID>
-		<doc:B2B_PROT_ID>'.$protocole_id.'</doc:B2B_PROT_ID>
-		<doc:B2B_VENDEUR_EMAIL>'.$u->email.'</doc:B2B_VENDEUR_EMAIL>
-	</doc:Infos_Apporteur>
-	<doc:Infos_Client>
-		<doc:B2B_SIREN>'.$mysoc->idprof1.'</doc:B2B_SIREN>
-	</doc:Infos_Client>
-	<doc:Infos_Financieres>
-		<doc:B2B_FREQ>'.$frequence.'</doc:B2B_FREQ>
-		<doc:B2B_NB_ECH>'.$this->simulation->duree.'</doc:B2B_NB_ECH>
-		<doc:B2B_MODPAIE>'.$this->getIdModeRglt($this->simulation->opt_mode_reglement).'</doc:B2B_MODPAIE>
-		<doc:B2B_MT_DEMANDE>'.$this->simulation->montant.'</doc:B2B_MT_DEMANDE>
-		<doc:B2B_MINERVAFPID>'.($protocole_id == '0251' ? '983' : '9782').'</doc:B2B_MINERVAFPID>
-		<doc:B2B_TERME>'.($this->simulation->opt_terme == 0 ? 2 : 1).'</doc:B2B_TERME>
-	</doc:Infos_Financieres>
-	<doc:Infos_Materiel>
-		<doc:B2B_MARQMAT>'.$marqmat.'</doc:B2B_MARQMAT>
-		<doc:B2B_TYPMAT>'.$typmat.'</doc:B2B_TYPMAT>
-		<doc:B2B_MT_UNIT>'.$this->simulation->montant.'</doc:B2B_MT_UNIT>
-		<doc:B2B_QTE>1</doc:B2B_QTE>
-		<doc:B2B_ETAT>N</doc:B2B_ETAT>
-	</doc:Infos_Materiel>
-	<doc:APP_Reponse_B2B>
-		<doc:B2B_CLIENT_ASYNC>'.$our_wsdl.'</doc:B2B_CLIENT_ASYNC>
-		<doc:B2B_INF_EXT>'.$this->simulation->reference.'</doc:B2B_INF_EXT>
-		<doc:B2B_MODE>A</doc:B2B_MODE>
-	</doc:APP_Reponse_B2B>
-</doc:CreateDemFinRequest>
-';
-		return $xml;
-	}
 	
 	private function getTParamForCMCIC()
 	{
@@ -482,7 +410,7 @@ class ServiceFinancement {
 				,'B2B_MODPAIE' => $this->getIdModeRglt($this->simulation->opt_mode_reglement) // *
 				,'B2B_MT_DEMANDE' => $this->simulation->montant
 			
-				,'B2B_MINERVAFPID' => ($protocole_id == '0251') ? '983' : '9782' // TODO à vérifier si le context de la simulation ne me demande pas de renseigner l'autre code (9782)
+				,'B2B_MINERVAFPID' => ($protocole_id == '0251') ? '983' : '9782'
 				// Dolibarr [echu = 0; à échoir = 1] et CMCIC [echu = 2; à échoir = 1] 
 				,'B2B_TERME' => $this->simulation->opt_terme == 0 ? 2 : 1
 			)
