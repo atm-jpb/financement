@@ -385,6 +385,8 @@ class ServiceFinancement {
 		$protocole_id = $this->getProtocolID();
 		list($marqmat, $typmat) = $this->getMarqmatAndTypmat($protocole_id);
 		
+	// B2B_VENDEUR_EMAIL test : abc@abc.fr
+	// B2B_SIREN test : 320991250
 		$TParam = array(
 			'APP_Infos_B2B' => array(
 				'B2B_CLIENT' => 'CPRO001' // TODO à déterminer [char 10]*
