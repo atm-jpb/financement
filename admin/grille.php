@@ -41,6 +41,14 @@ print_fiche_titre($langs->trans("GlobalOptionsForFinancementSimulation"), $linkb
 dol_fiche_head($head, 'grille', $langs->trans("Financement"), 0, 'financementico@financement');
 dol_htmloutput_mesg($mesg);
 
+
+
+print '<div class="warning">Cette page de configuration a était déplacé vers : <a href="'.dol_buildpath('/financement/grille.php', 1).'?socid='.FIN_LEASER_DEFAULT.'">ici</a></div>';
+
+llxFooter();
+$db->close;
+exit;
+
 /**
  * ACTIONS
  */
