@@ -1325,13 +1325,8 @@ class TSimulation extends TObjetStd {
 		}
 		
 		$simu2 = $simu;
-		//exit(htmlentities($simu->type_contrat));
-		$simu2->type_contrat = html_entity_decode($simu2->type_contrat,ENT_QUOTES,'ISO-8859-1');
-		//$simu2->commentaire = utf8_decode($simu2->commentaire);
-		//$simu2->numero_accord = utf8_decode($simu2->numero_accord);
-		/*echo '<pre>';
-		print_r($TDossier);
-		echo '</pre>';exit;*/
+		// Le type de contrat est en utf8 (libellé vient de la table), contrairement au mode de prélèvement qui vient d'un fichier de langue.
+		$simu2->type_contrat = utf8_decode($simu2->type_contrat);
 		// Génération en ODT
 		
 		if (!empty($this->thirdparty_address)) $this->societe->address = $this->thirdparty_address;
