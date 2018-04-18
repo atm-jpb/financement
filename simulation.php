@@ -352,7 +352,7 @@ if(!empty($action)) {
 				
 				if($_REQUEST['mode'] == 'edit_montant') { // si le commercial a fait une modif
 				
-					if($simulation->accord == 'OK' || $simulation->accord == 'MODIF') { // On enregistre les modifs que si on était déjà en accord ou en modif
+					if($simulation->accord == 'OK' || $simulation->accord == 'WAIT_MODIF') { // On enregistre les modifs que si on était déjà en accord ou en modif
 						if(empty($simulation->modifs['montant']) && $simulation->montant !== $oldsimu->montant) $simulation->modifs['montant'] = $oldsimu->montant;
 						if(empty($simulation->modifs['echeance']) && $simulation->echeance !== $oldsimu->echeance) $simulation->modifs['echeance'] = $oldsimu->echeance;
 						if(empty($simulation->modifs['montant_presta_trim']) && $simulation->montant_presta_trim !== $oldsimu->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $oldsimu->montant_presta_trim;
@@ -376,24 +376,24 @@ if(!empty($action)) {
 						
 						// Si le montant ne respecte pas la règle (+- 10 %) => MODIF
 						if(!$montantOK) {
-							$simulation->accord = 'MODIF';
+							$simulation->accord = 'WAIT_MODIF';
 						}
 						
 						// Si MANDATEE ou ADOSSEE, on passe en modif uniquement si changement de durée / périodicité
 						if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
 							if(!empty($simulation->modifs['duree']) || !empty($simulation->modifs['opt_periodicite'])) {
-								$simulation->accord = 'MODIF';
+								$simulation->accord = 'WAIT_MODIF';
 							}
 						}
 						// Sinon on passe en modif si autre chose que le montant a été modifié (montant, echeance, coeff)
 						else {
 							$keepAccord = array('montant', 'echeance', 'coeff', 'coeff_final');
 							foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
-								if (!in_array($k, $keepAccord)) $simulation->accord = 'MODIF';
+								if (!in_array($k, $keepAccord)) $simulation->accord = 'WAIT_MODIF';
 							}
 						}
 					} elseif ($oldAccord == 'WAIT' || $oldAccord == 'WAIT_LEASER' || $oldAccord == 'WAIT_SELLER') {
-						$simulation->accord = 'MODIF';
+						$simulation->accord = 'WAIT_MODIF';
 						$simulation->coeff_final = 0;
 					}
 				} 
@@ -403,7 +403,7 @@ if(!empty($action)) {
 				    && $oldAccord == 'OK'
 				    && $simulation->error == 'ErrorMontantModifNotAuthorized') // diff montant > 10%
 				{
-				    $simulation->accord = 'MODIF';
+				    $simulation->accord = 'WAIT_MODIF';
 				}*/
 				
 				if($simulation->accord == 'OK'){
@@ -414,10 +414,10 @@ if(!empty($action)) {
 					$simulation->accord = 'WAIT';
 				}
 				
-				/*if ($simulation->accord !== 'MODIF'){
+				/*if ($simulation->accord !== 'WAIT_MODIF'){
 				    $simulation->modifs = array();
 				} else {
-				    $oldsimu->accord = 'MODIF';
+				    $oldsimu->accord = 'WAIT_MODIF';
 				    $simulation = $oldsimu;
 				}*/
 				

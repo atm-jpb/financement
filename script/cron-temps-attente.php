@@ -16,7 +16,7 @@ $ATMdb = new TPDOdb;
 
 $sql = "SELECT rowid FROM " . MAIN_DB_PREFIX . "fin_simulation";
 $sql.= " WHERE 1=1 ";
-$sql.= " AND accord NOT IN ('OK', 'KO', 'SS', 'MODIF') ";
+$sql.= " AND accord NOT IN ('OK', 'KO', 'SS', 'WAIT_MODIF') ";
 $sql.= " ORDER BY date_simul DESC";
 $res = $db->query($sql);
 print "Début du calcul " . date("d-m-Y H:i:s")."\r";

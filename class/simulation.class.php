@@ -29,7 +29,7 @@ class TSimulation extends TObjetStd {
 			,'WAIT'=>$langs->trans('Etude')
 			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser')
 		    ,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur')
-		    ,'MODIF'=>$langs->trans('Modif')
+		    ,'WAIT_MODIF'=>$langs->trans('Modif')
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
@@ -39,7 +39,7 @@ class TSimulation extends TObjetStd {
 		    ,'WAIT'=>'./img/WAIT.png'
 		    ,'WAIT_LEASER'=>'./img/Leaser.png'
 		    ,'WAIT_SELLER'=>'./img/Vendeur.png'
-		    ,'MODIF'=>'./img/pencil.png'
+		    ,'WAIT_MODIF'=>'./img/pencil.png'
 		    ,'KO'=>'./img/KO.png'
 		    ,'SS'=>'./img/SANSSUITE.png'
 		);
@@ -49,7 +49,7 @@ class TSimulation extends TObjetStd {
 			,'WAIT'=>$langs->trans('Etude')
 			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser_Short')
 		    ,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur_Short')
-		    ,'MODIF'=>$langs->trans('Modif')
+		    ,'WAIT_MODIF'=>$langs->trans('Modif')
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
