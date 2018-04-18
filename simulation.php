@@ -687,7 +687,7 @@ function _liste(&$ATMdb, &$simulation) {
 			//,'type_financement'=>$affaire->TTypeFinancementShort
 			,'date_simul'=>'calendar'
 			,'accord'=>$simulation->TStatutShort
-			//,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
+			,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
 			,'reference'=>array('recherche'=>true, 'table'=>'s', 'field'=>'reference')
 		)
 		,'eval'=>array(

@@ -83,7 +83,7 @@ class TFinancementTools {
 		
 		?>
 			<style type="text/css">
-				td[field="Montant"] {white-space:nowrap;}
+				td[field="montant_total_finance"] {white-space:nowrap;}
 				td[field="reference"] {text-align:center;}
 				td[field="duree"] {text-align:center;}
 				td[field="date_simul"] {text-align:center;}
