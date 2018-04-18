@@ -96,7 +96,7 @@ class TFinancementTools {
 				td[field="refDosLea"] {text-align:center;}
 				td[field="Affaire"] {text-align:center;}
 				td[field="nature_financement"] {text-align:center;}
-				td[field="Montant"] {text-align:center;}
+				td[field="montant_total_finance"] {text-align:center;}
 				td[field="duree"] {text-align:center;}
 				td[field="echeance"] {text-align:center;}
 				td[field="Prochaine"] {text-align:center;}
@@ -104,12 +104,14 @@ class TFinancementTools {
 				td[field="Fin"] {text-align:center;}
 				td[field="fact_materiel"] {text-align:center;}
 				td[field="attente"] {text-align:right;}
+				td[field="suivi"] {text-align:center;}
+				td[field="loupe"] {text-align:center;}
 				
 				td[id="num_contrat"] {text-align:center;}
 				td[id="entity_dossier"] {text-align:center;}
 				td[id="leaser"] {text-align:center;}
 				td[id="type_contrat"] {text-align:center;}
-				td[id="Montant"] {text-align:center;}
+				td[id="montant_total_finance"] {text-align:center;}
 				td[id="duree"] {text-align:center;}
 				td[id="echeance"] {text-align:center;}
 				td[id="debut_fin"] {text-align:center;}

@@ -548,7 +548,7 @@ function _liste(&$ATMdb, &$simulation) {
 	$THide = array('fk_soc', 'fk_user_author', 'rowid');
 	
 	//$sql = "SELECT DISTINCT s.rowid, s.reference, e.rowid as entity_id, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
-	$sql = "SELECT DISTINCT s.rowid, s.reference, e.rowid as entity_id, s.fk_soc, CONCAT(SUBSTR(soc.nom, 1, 25), '...') as nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
+	$sql = "SELECT DISTINCT s.rowid, s.reference, e.rowid as entity_id, s.fk_soc, CONCAT(SUBSTR(soc.nom, 1, 25), '...') as nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance, s.echeance,";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'M' WHEN s.opt_periodicite = 'ANNEE' THEN 'A' WHEN s.opt_periodicite = 'SEMESTRE' THEN 'S' ELSE 'T' END) as 'duree',";
 	$sql.= " s.date_simul, s.date_validite, u.login, s.accord, s.type_financement, lea.nom as leaser, s.attente, '' as suivi, '' as loupe";
 	$sql.= " FROM @table@ s ";
@@ -623,7 +623,6 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$THide[] = 'type_financement';
 	$THide[] = 'date_validite';
-	$THide[] = 'leaser';
 	
 	$TOrder = array('date_simul'=>'DESC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
@@ -650,7 +649,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'accord'=>$simulation->TStatutShort
 		)
 		,'hide'=>$THide
-		,'type'=>array('date_simul'=>'date','Montant'=>'money','Echéance'=>'money')
+		,'type'=>array('date_simul'=>'date','montant_total_finance'=>'money','echeance'=>'money')
 		,'liste'=>array(
 			'titre'=>'Liste des simulations'
 			,'image'=>img_picto('','simul32.png@financement', '', 0)
@@ -669,6 +668,8 @@ function _liste(&$ATMdb, &$simulation) {
 			,'reference'=>'Ref.'
 			,'entity_id'=>'Partenaire'
 			,'duree'=>'Durée'
+			,'montant_total_finance'=>'Montant'
+			,'echeance'=>'Échéance'
 			,'login'=>'Utilisateur'
 			,'fk_type_contrat'=> 'Type<br>de<br>contrat'
 			,'date_simul'=>'Date<br>simulation'
@@ -709,6 +710,8 @@ function _liste(&$ATMdb, &$simulation) {
 				,'reference'=>'center'
 				,'entity_id'=>'center'
 				,'duree'=>'center'
+				,'montant_total_finance'=>'center'
+				,'echeance'=>'center'
 				,'login'=>'center'
 				,'fk_type_contrat'=>'center'
 				,'date_simul'=>'center'
