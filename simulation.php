@@ -781,8 +781,9 @@ function print_attente($compteur){
     $heures = abs(round((($compteur / 60)-$min)/60));
     
     $ret = '';
-    $ret .= (!empty($heures) ? $heures . "h" : "0h");
-    $ret .= (!empty($min) ? $min : "00");
+    $ret .= (!empty($heures) ? $heures : "0");
+	$ret .= "h";
+    $ret .= (($min < 10) ? "0" : "") . $min;
     
     if (!empty($style)) $ret = '<span style="'.$style.'">'.$ret.'</span>';
     
