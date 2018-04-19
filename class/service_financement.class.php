@@ -162,7 +162,16 @@ class ServiceFinancement {
 			$this->soapClient = new MySoapCmCic($this->wsdl, $options);
 
 			dol_syslog("WEBSERVICE SENDING CMCIC : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_CMCIC');
-	
+			
+			// Create header
+			$security = new stdClass();
+			$security->UsernameToken = new stdClass();
+			$security->UsernameToken->Username = $conf->global->FINANCEMENT_USERNAME_CMCIC;
+			$security->UsernameToken->Password = $conf->global->FINANCEMENT_PASSWORD_CMCIC;
+			$header = new SoapHeader($this->wsdl, 'Security', $security);
+			
+			$this->soapClient->__setSoapHeaders($header);
+			
 			$TParam = $this->getTParamForCMCIC();
 			$response = $this->soapClient->__soapCall('CreateDemFin', $TParam);
   
@@ -407,8 +416,9 @@ class ServiceFinancement {
 				'B2B_SIREN' => $mysoc->idprof1 // [char 9]*
 			)
 			,'Infos_Financieres' => array(
-				'B2B_FREQ' => $frequence
-				,'B2B_NB_ECH' => $this->simulation->duree
+				'B2B_DUREE' => $this->simulation->duree * $frequence
+				,'B2B_FREQ' => $frequence
+//				,'B2B_NB_ECH' => $this->simulation->duree
 				,'B2B_MODPAIE' => $this->getIdModeRglt($this->simulation->opt_mode_reglement) // *
 				,'B2B_MT_DEMANDE' => $this->simulation->montant
 			
@@ -1066,9 +1076,10 @@ class MySoapCmCic extends SoapClient
 	function __doRequest($request, $location, $saction, $version)
 	{
 		$this->realXML = $request;
-		$this->realXML = str_replace(array('SOAP-ENV', 'ns1'), array('soapenv', 'doc'), $this->realXML);
+		$this->realXML = str_replace(array('SOAP-ENV', 'ns1', 'ns2:'), array('soapenv', 'doc', ''), $this->realXML);
+		$this->realXML = preg_replace('/ xmlns:ns2=".*"/', '', $this->realXML);
 		
-		$this->realXML = str_replace('<soapenv:Body>', '<soapenv:Header/><soapenv:Body>', $this->realXML);
+//		$this->realXML = str_replace('<soapenv:Body>', '<soapenv:Header/><soapenv:Body>', $this->realXML);
 		/*$this->realXML = str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $this->realXML);*/
 		
 		return parent::__doRequest($this->realXML, $location, $saction, $version);
