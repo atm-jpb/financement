@@ -1626,7 +1626,7 @@ class TSimulation extends TObjetStd {
 		$TMethod = explode(',', $conf->global->FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI);
 		
 		// TODO faire le calcul de toutes les valeurs nécessaires (surfact, surfact+, Comme, ...)
-		$min_turn_over = 0;
+		$min_turn_over = null;
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
 			foreach ($TMethod as $method_name)
@@ -1634,20 +1634,18 @@ class TSimulation extends TObjetStd {
 				$this->{$method_name}($PDOdb, $suivi);
 			}
 			
-			if ($suivi->turn_over < $min_turn_over) $min_turn_over = $suivi->turn_over;
+			if ($suivi->turn_over < $min_turn_over || is_null($min_turn_over)) $min_turn_over = $suivi->turn_over;
 		}
-		
 		
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
-			// TODO calculer le montant de la renta par ligne de suivi
 			$suivi->renta_amount = $suivi->surfact + $suivi->surfactplus + $suivi->commission + $suivi->intercalaire + $suivi->diff_solde + $suivi->prime_volume + ($min_turn_over - $suivi->turn_over);
-			// TODO calculer le %tage de renta par ligne de suivi
 			$suivi->renta_percent = $suivi->renta_amount / $this->montant;
 		}
 		
 		uasort($this->TSimulationSuivi, array($this, 'aiguillageSuivi'));
 		
+		// Update du rang pour priorisation
 		$i=0;
 		foreach ($this->TSimulationSuivi as &$suivi)
 		{
