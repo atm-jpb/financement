@@ -236,8 +236,8 @@ if(!empty($action)) {
 			break;
 		
 		case 'save':
-		//TODO delete
-	$ATMdb->beginTransaction();
+//TODO delete
+$ATMdb->beginTransaction();
 			
 			//pre($_REQUEST,true);
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
