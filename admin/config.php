@@ -53,6 +53,7 @@ if(substr($action,0,4) == 'set_') {
 
 if ($action == 'setvalue')
 {
+	if ($key == 'FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI' && !empty($value)) $value = implode(',', $value);
 	$res = dolibarr_set_const($db,$key,$value,'chaine',0,'',$conf->entity);
 
 	if (! $res > 0) $error++;
@@ -131,8 +132,15 @@ if ($action == 'save_seuils_alerte'){
 /*
  * View
  */
+$TJs = $TCss = array();
+if (empty($conf->global->MAIN_USE_JQUERY_MULTISELECT))
+{
+	$conf->global->MAIN_USE_JQUERY_MULTISELECT = 'select2';
+	$TJS[] = '/financement/js/select2.full.min.js';
+	$TCss[] = '/financement/css/select2.min.css';
+}
 
-llxHeader('',$langs->trans("FinancementSetup"));
+llxHeader('',$langs->trans("FinancementSetup"), '', '', 0, 0, $TJS, $TCss);
 $head = financement_admin_prepare_head(null);
 
 $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
@@ -372,6 +380,21 @@ print '<input type="hidden" name="action" value="set_FINANCEMENT_PERCENT_MODIF_S
 print '<tr '.$bc[$var].'><td>';
 print $langs->trans("FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE").'</td>';
 print '<td align="right"><input size="10" class="flat" type="text" name="FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE" value="'.$conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE.'" /> %';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI").'</td>';
+print '<td align="right">';
+// L'ordre défini ici sera aussi celui qui sera respecté lors d'un save, ce qui veux dire qu'on peut mettre via l'interface les methode dans le désordre elle seront sauvegardé dans le sens de ce tableau
+$TMethod = array('calcSurfact' => 'Surfact', 'calcSurfactPlus' => 'Surfact+', 'calcComm' => 'Commission', 'calcIntercalaire' => 'Intercalaire', 'calcDiffSolde' => 'Différence solde', 'calcPrimeVolume' => 'Prime Volume', 'calcTurnOver' => 'Turn over');
+print $form->multiselectarray('FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI', $TMethod, explode(',', $conf->global->FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI), 0, 0, '', 0, 300);
 print '</td><td align="right">';
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
 print "</td></tr>\n";
