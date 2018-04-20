@@ -464,7 +464,7 @@ class TFin_affaire extends TObjetStd {
 			case 3: //CPRO Télécom
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
-				$refPartenaire = "CPROMA01";
+				$refPartenaire = "AGTMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 4: //Bougogne Copie
@@ -488,7 +488,7 @@ class TFin_affaire extends TObjetStd {
 			case 9: //Quadra
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
-				$refPartenaire = "CPROMA01";
+				$refPartenaire = "QUABMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			

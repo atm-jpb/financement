@@ -219,24 +219,19 @@ if(!empty($action)) {
 		case 'save_suivi':
 			
 			$simulation->load($ATMdb, $db, $_REQUEST['id']);
-			$simulation_suivi = new TSimulationSuivi;
-			
-			//pre($_REQUEST,true);exit;
-			
-			foreach($_REQUEST as $key => $value){
-				if($key == 'TSuivi'){
-					foreach ($value as $id_suivi => $Tval) {
-						$simulation_suivi->load($ATMdb, $id_suivi);
-						
-						$Tab['numero_accord_leaser'] = $Tval['num_accord'];
-						$Tab['coeff_leaser'] = $Tval['coeff_accord'];
-						$Tab['commentaire'] = $Tval['commentaire'];
-						$simulation_suivi->set_values($Tab);
-						$simulation_suivi->save($ATMdb);	
+			if(!empty($_REQUEST['TSuivi'])) {
+				foreach($_REQUEST['TSuivi'] as $id_suivi => $TVal) {
+					if(!empty($simulation->TSimulationSuivi[$id_suivi])) {
+						$simulation->TSimulationSuivi[$id_suivi]->numero_accord_leaser = $TVal['num_accord'];
+						$simulation->TSimulationSuivi[$id_suivi]->coeff_leaser = $TVal['coeff_accord'];
+						$simulation->TSimulationSuivi[$id_suivi]->commentaire = $TVal['commentaire'];
+						$simulation->TSimulationSuivi[$id_suivi]->save($ATMdb);
 					}
 				}
+				
+				setEventMessage($langs->trans('DataSaved'));
 			}
-			setEventMessage($langs->trans('DataSaved'));
+			
 			_fiche($ATMdb, $simulation,'view');
 			break;
 		
@@ -244,20 +239,8 @@ if(!empty($action)) {
 			//pre($_REQUEST,true);
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
 			
-			if(empty($simulation->modifs['montant']) && (float)$_REQUEST['montant'] !== $simulation->montant) $simulation->modifs['montant'] = $simulation->montant;
-			if(empty($simulation->modifs['echeance']) && (float)$_REQUEST['echeance'] !== $simulation->echeance) $simulation->modifs['echeance'] = $simulation->echeance;
-			if(empty($simulation->modifs['montant_presta_trim']) && (float)$_REQUEST['montant_presta_trim'] !== $simulation->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $simulation->montant_presta_trim;
-			if(empty($simulation->modifs['type_materiel']) && $_REQUEST['type_materiel'] !== $simulation->type_materiel) $simulation->modifs['type_materiel'] = $simulation->type_materiel;
-			if(empty($simulation->modifs['opt_periodicite']) && $_REQUEST['opt_periodicite'] !== $simulation->opt_periodicite) $simulation->modifs['opt_periodicite'] = $simulation->opt_periodicite;
-			if(empty($simulation->modifs['duree']) && (int)$_REQUEST['duree'] !== $simulation->duree) $simulation->modifs['duree'] = $simulation->duree;
-			if(empty($simulation->modifs['fk_type_contrat']) && $_REQUEST['fk_type_contrat'] !== $simulation->fk_type_contrat) $simulation->modifs['fk_type_contrat'] = $simulation->fk_type_contrat;
-			if(empty($simulation->modifs['opt_mode_reglement']) && $_REQUEST['opt_mode_reglement'] !== $simulation->opt_mode_reglement) $simulation->modifs['opt_mode_reglement'] = $simulation->opt_mode_reglement;
-			if(empty($simulation->modifs['opt_terme']) && $_REQUEST['opt_terme'] !== $simulation->opt_terme) $simulation->modifs['opt_terme'] = $simulation->opt_terme;
-			if(empty($simulation->modifs['coeff']) && (float)$_REQUEST['coeff'] !== $simulation->coeff) $simulation->modifs['coeff'] = $simulation->coeff;
-			
 			$oldAccord = $simulation->accord;
 			$oldsimu = clone $simulation;
-			//pre($_REQUEST,true);
 			
 			$fk_type_contrat_old = $simulation->fk_type_contrat;
 			
@@ -280,6 +263,24 @@ if(!empty($action)) {
 				$simulation->opt_adjonction = (int)isset($_REQUEST['opt_adjonction']);
 				$simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
 				$simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
+			}
+			
+			if($_REQUEST['mode'] == 'edit_montant') {
+				// Si la simulation avait un coeff final de renseigné, il s'agit d'une dérogation
+			    // On doit calculer donc la différence entre le coeff de la simiulation et celui de l'ancienne sans tenir compte de la dérogation
+			    // Puis appliquer la différence sur le coeff final
+			    if(!empty($simulation->coeff_final)) {
+			    	$oldsimu->coeff_final = 0;
+					$oldsimu->_calcul($ATMdb, 'calcul', array(), true);
+					$cpysimu = clone $simulation;
+					$cpysimu->coeff_final = 0;
+					$cpysimu->_calcul($ATMdb, 'calcul', array(), true);
+					$diffcoeff = $cpysimu->coeff - $oldsimu->coeff;
+					
+					if(!empty($diffcoeff)) {
+						$simulation->coeff_final += $diffcoeff;
+					}
+			    }
 			}
 			
 			// Si l'accord vient d'être donné (par un admin)
@@ -336,7 +337,12 @@ if(!empty($action)) {
 						}
 					}
 					
+					// Changement de type de contrat, on vide les préconisations
 					$simulation->montant_accord = 0;
+					$simulation->type_financement = '';
+					$simulation->fk_leaser = 0;
+					$simulation->coeff_final = 0;
+					$simulation->numero_accord = '';
 				}
 				
 				// Si le leaser préconisé est renseigné, on enregistre le montant pour le figer (+- 10%)
@@ -345,51 +351,67 @@ if(!empty($action)) {
 				}
 				
 				if($_REQUEST['mode'] == 'edit_montant') { // si le commercial a fait une modif
-				    
-				    if (round($_REQUEST['coeff'], 3) !== $simulation->coeff) {
-				        $diff = round($_REQUEST['coeff'], 3) - $simulation->coeff;
-				        $simulation->coeff_final = $simulation->coeff_final + $diff;
-				    }
+				
+					if($simulation->accord == 'OK' || $simulation->accord == 'MODIF') { // On enregistre les modifs que si on était déjà en accord ou en modif
+						if(empty($simulation->modifs['montant']) && $simulation->montant !== $oldsimu->montant) $simulation->modifs['montant'] = $oldsimu->montant;
+						if(empty($simulation->modifs['echeance']) && $simulation->echeance !== $oldsimu->echeance) $simulation->modifs['echeance'] = $oldsimu->echeance;
+						if(empty($simulation->modifs['montant_presta_trim']) && $simulation->montant_presta_trim !== $oldsimu->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $oldsimu->montant_presta_trim;
+						if(empty($simulation->modifs['type_materiel']) && $simulation->type_materiel !== $oldsimu->type_materiel) $simulation->modifs['type_materiel'] = $oldsimu->type_materiel;
+						if(empty($simulation->modifs['opt_periodicite']) && $simulation->opt_periodicite !== $oldsimu->opt_periodicite) $simulation->modifs['opt_periodicite'] = $oldsimu->opt_periodicite;
+						if(empty($simulation->modifs['duree']) && $simulation->duree !== $oldsimu->duree) $simulation->modifs['duree'] = $oldsimu->duree;
+						if(empty($simulation->modifs['fk_type_contrat']) && $simulation->fk_type_contrat !== $oldsimu->fk_type_contrat) $simulation->modifs['fk_type_contrat'] = $oldsimu->fk_type_contrat;
+						if(empty($simulation->modifs['opt_mode_reglement']) && $simulation->opt_mode_reglement !== $oldsimu->opt_mode_reglement) $simulation->modifs['opt_mode_reglement'] = $oldsimu->opt_mode_reglement;
+						if(empty($simulation->modifs['opt_terme']) && $simulation->opt_terme !== $oldsimu->opt_terme) $simulation->modifs['opt_terme'] = $oldsimu->opt_terme;
+						if(empty($simulation->modifs['coeff']) && $simulation->coeff !== $oldsimu->coeff) $simulation->modifs['coeff'] = $oldsimu->coeff;
+						if(empty($simulation->modifs['coeff_final']) && $simulation->coeff_final !== $oldsimu->coeff_final) $simulation->modifs['coeff_final'] = $oldsimu->coeff_final;
+					}
 				    
 				    if ($oldAccord == 'OK'){
-				        if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
-				            
-				            $diffmontant = abs($simulation->montant - $simulation->montant_accord);
-				            if (empty($simulation->montant_accord)) $simulation->montant_accord = 1;
-				            if(($diffmontant / $simulation->montant_accord) * 100 > $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE) {
-				                $simulation->accord = 'MODIF';
-				            } else {
-				                $simulation->accord = 'OK';
-				                $simulation->montant_accord = $simulation->montant;
-				            }
-				            
-				            foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
-				                $modifAccord = array('echeance', 'duree', 'montant_presta_trim', 'type_materiel');
-				                if (in_array($k, $modifAccord)) $simulation->accord = 'MODIF';
-				            }
-				            
-				        } else {
-				        	$simulation->accord = 'MODIF';
-				        }
-				        
-				    } elseif ($oldAccord == 'WAIT' || $oldAccord == 'WAIT_LEASER' || $oldAccord == 'WAIT_SELLER') {
-				        
-				        $simulation->accord = 'MODIF';
-				        $simulation->coeff_final = 0;
-				    }
-				    
+				    	// Si il y avait un accord avant et qu'on fait une modif, on vérifie les règles suivantes pour passer ou non le statut à "MODIF"
+						
+				    	// Vérification de la variation du montant
+				    	$diffmontant = abs($simulation->montant - $simulation->montant_accord);
+			            if (empty($simulation->montant_accord)) $simulation->montant_accord = 1;
+						$montantOK = ($diffmontant / $simulation->montant_accord) * 100 <= $conf->global->FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE;
+						
+						// Si le montant ne respecte pas la règle (+- 10 %) => MODIF
+						if(!$montantOK) {
+							$simulation->accord = 'MODIF';
+						}
+						
+						// Si MANDATEE ou ADOSSEE, on passe en modif uniquement si changement de durée / périodicité
+						if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
+							if(!empty($simulation->modifs['duree']) || !empty($simulation->modifs['opt_periodicite'])) {
+								$simulation->accord = 'MODIF';
+							}
+						}
+						// Sinon on passe en modif si autre chose que le montant a été modifié (montant, echeance, coeff)
+						else {
+							$keepAccord = array('montant', 'echeance', 'coeff', 'coeff_final');
+							foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
+								if (!in_array($k, $keepAccord)) $simulation->accord = 'MODIF';
+							}
+						}
+					} elseif ($oldAccord == 'WAIT' || $oldAccord == 'WAIT_LEASER' || $oldAccord == 'WAIT_SELLER') {
+						$simulation->accord = 'MODIF';
+						$simulation->coeff_final = 0;
+					}
 				} 
 				
-				if ($_REQUEST['mode'] == 'edit_montant'
+				/*if ($_REQUEST['mode'] == 'edit_montant'
 				    && ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE')
 				    && $oldAccord == 'OK'
 				    && $simulation->error == 'ErrorMontantModifNotAuthorized') // diff montant > 10%
 				{
 				    $simulation->accord = 'MODIF';
-				}
+				}*/
 				
 				if($simulation->accord == 'OK'){
 				    $simulation->montant_accord = $simulation->montant;
+				}
+				
+				if(empty($simulation->accord) || empty($simulation->rowid)) {
+					$simulation->accord = 'WAIT';
 				}
 				
 				/*if ($simulation->accord !== 'MODIF'){
@@ -423,17 +445,8 @@ if(!empty($action)) {
 		case 'changeAccord':
 		    $newAccord = GETPOST('accord');
 		    $simulation->load($ATMdb, $db, $_REQUEST['id']);
-
-		    // Si le nouvel accord est ok et l'ancien est modif, on applique toutes les modifs avant de sauvegarder
-		    if($simulation->accord == 'MODIF' && $newAccord == 'OK'){
-		        foreach ($simulation->modifs as $key => $value){
-		            $simulation->$key = $value;
-		        }
-		        $simulation->montant_total_finance = $simulation->montant;
-		    }
 		    
 		    if ($newAccord == 'OK') $simulation->montant_accord = $simulation->montant_total_finance;
-		    if ($newAccord !== 'MODIF') $simulation->modifs = array();
 
 		    $simulation->accord = $newAccord;
 		    $simulation->save($ATMdb, $db);
@@ -570,6 +583,13 @@ function _liste(&$ATMdb, &$simulation) {
 		$formDoli = new Form($db);
 		
 		$TBS=new TTemplateTBS();
+		
+		// Infos sur SIREN
+		$info = '';
+		if(!empty($societe->idprof1)) {
+			if ($societe->id_prof_check(1,$societe) > 0) $info = ' &nbsp; '.$societe->id_prof_url(1,$societe);
+			else $info = ' <font class="error">('.$langs->trans("ErrorWrongValue").')</font>';
+		}
 	
 		print $TBS->render('./tpl/client_entete.tpl.php'
 			,array(
@@ -579,7 +599,8 @@ function _liste(&$ATMdb, &$simulation) {
 				'client'=>array(
 					'dolibarr_societe_head'=>dol_get_fiche_head(societe_prepare_head($societe), 'simulation', $langs->trans("ThirdParty"),0,'company')
 					,'showrefnav'=>$formDoli->showrefnav($societe,'socid','',($user->societe_id?0:1),'rowid','nom')
-					,'idprof1'=>$societe->idprof1
+					,'code_client'=>$societe->code_client
+					,'idprof1'=>$societe->idprof1 . $info
 					,'adresse'=>$societe->address
 					,'cpville'=>$societe->zip.($societe->zip && $societe->town ? " / ":"").$societe->town
 					,'pays'=>picto_from_langcode($societe->country_code).' '.$societe->country
@@ -602,6 +623,7 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$THide[] = 'type_financement';
 	$THide[] = 'date_validite';
+	$THide[] = 'leaser';
 	
 	$TOrder = array('date_simul'=>'DESC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
@@ -664,7 +686,7 @@ function _liste(&$ATMdb, &$simulation) {
 			//,'type_financement'=>$affaire->TTypeFinancementShort
 			,'date_simul'=>'calendar'
 			,'accord'=>$simulation->TStatutShort
-			,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
+			//,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
 			,'reference'=>array('recherche'=>true, 'table'=>'s', 'field'=>'reference')
 		)
 		,'eval'=>array(
@@ -694,6 +716,7 @@ function _liste(&$ATMdb, &$simulation) {
 				,'type_financement'=>'center'
 				,'leaser'=>'center'
 				,'suivi'=>'center'
+				,'attente'=>'center'
 			)
 		)
 	);
@@ -755,8 +778,8 @@ function print_attente($compteur){
     $heures = abs(round((($compteur / 60)-$min)/60));
     
     $ret = '';
-    $ret .= (!empty($heures) ? $heures . " h " : "");
-    $ret .= (!empty($min) ? $min . " min" : "");
+    $ret .= (!empty($heures) ? $heures . "h" : "0h");
+    $ret .= (!empty($min) ? $min : "00");
     
     if (!empty($style)) $ret = '<span style="'.$style.'">'.$ret.'</span>';
     
@@ -1023,7 +1046,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	    ,'echeance'=>$form->texte('', 'echeance', $simulation->echeance, 10) .(!empty($simulation->modifs['echeance']) ? ' (Ancienne valeur : '.$simulation->modifs['echeance'].')' : '')
 		,'vr'=>price($simulation->vr)
 	    ,'coeff'=>$form->texteRO('', 'coeff', $coeff, 6) .(!empty($simulation->modifs['coeff']) ? ' (Ancienne valeur : '.$simulation->modifs['coeff'].')' : '')
-		,'coeff_final'=>$can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 6) : $simulation->coeff_final
+		,'coeff_final'=>($can_preco ? $form->texte('', 'coeff_final', $simulation->coeff_final, 6) : $simulation->coeff_final) .(!empty($simulation->modifs['coeff_final']) ? ' (Ancienne valeur : '.$simulation->modifs['coeff_final'].')' : '')
 	    ,'montant_presta_trim'=>$form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10) .(!empty($simulation->modifs['montant_presta_trim']) ? ' (Ancienne valeur : '.$simulation->modifs['montant_presta_trim'].')' : '')
 		,'cout_financement'=>$simulation->cout_financement
 	    ,'accord'=> $accordIcon . '<br />' . ($user->rights->financement->allsimul->simul_preco ? $form->combo('', 'accord', $simulation->TStatut, $simulation->accord) : $simulation->TStatut[$simulation->accord]) . '<br>'

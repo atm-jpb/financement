@@ -59,7 +59,7 @@ foreach ($TData as $res) {
 	if(!empty($TDossiers)) {
 		foreach ($TDossiers as $idDossier) {
 			$d = $simu->dossiers[$idDossier];
-			list($date, $solde, $typesolde) = get_date_et_solde($PDOdb, $simu, $idDossier);
+			list($date, $solde, $typesolde, $typesoldevendeur) = get_date_et_solde($PDOdb, $simu, $idDossier);
 			$data = array(
 				$simu->reference . '-' . $d['num_contrat_leaser']	// Clé unique pour eux
 				,$simu->reference									// Ref simulation
@@ -70,6 +70,7 @@ foreach ($TData as $res) {
 				,$typesolde											// R ou NR
 				,$simu->societe->name								// Client
 				,$d['type_contrat']									// Type contrat
+				,$typesoldevendeur									// Type solde sélectionné par le vendeur
 			);
 			
 			//echo implode(' || ', $data).'<br>';
@@ -128,5 +129,18 @@ function get_date_et_solde(&$PDOdb, &$simu, $idDossier) {
 		$typesolde = 'NR';
 	}
 	
-	return array($date_fin, round($solde,2), $typesolde);
+	// Il faut aussi donner le type de solde sélectionné par le vendeur
+	$typesoldevendeur = '';
+	
+	if(!empty($$simu->dossiers_rachetes_m1[$idDossier]['checked'])
+	|| !empty($$simu->dossiers_rachetes[$idDossier]['checked'])
+	|| !empty($$simu->dossiers_rachetes_p1[$idDossier]['checked'])) {
+		$typesoldevendeur = 'R';
+	} else if(!empty($$simu->dossiers_rachetes_nr_m1[$idDossier]['checked'])
+	|| !empty($$simu->dossiers_rachetes_nr[$idDossier]['checked'])
+	|| !empty($$simu->dossiers_rachetes_nr_p1[$idDossier]['checked'])) {
+		$typesoldevendeur = 'NR';
+	}
+	
+	return array($date_fin, round($solde,2), $typesolde, $typesoldevendeur);
 }

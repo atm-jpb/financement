@@ -103,6 +103,7 @@ class TFinancementTools {
 				td[field="date_debut"] {text-align:center;}
 				td[field="Fin"] {text-align:center;}
 				td[field="fact_materiel"] {text-align:center;}
+				td[field="attente"] {text-align:right;}
 				
 				td[id="num_contrat"] {text-align:center;}
 				td[id="entity_dossier"] {text-align:center;}

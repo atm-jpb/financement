@@ -8,8 +8,12 @@
 		</td>
 	</tr>
 	<tr>
+		<td>Code client</td>
+		<td>[client.code_client]</td>
+	</tr>
+	<tr>
 		<td>Id prof. 1 SIREN</td>
-		<td>[client.idprof1]</td>
+		<td>[client.idprof1;strconv=no]</td>
 	</tr>
 	<tr>
 		<td valign="top">Adresse</td>
