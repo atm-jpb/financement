@@ -405,11 +405,13 @@ class ServiceFinancement {
 				'B2B_CTR_REN_ADJ' => !empty($this->simulation->opt_adjonction) ? $dossier_origin->num_contrat : ''
 				,'B2B_ECTR_FLG' => false
 				,'B2B_NATURE_DEMANDE' => !empty($this->simulation->opt_adjonction) ? 'A' : 'S'
+				,'B2B_REF_EXT' => $this->simulation->reference
 				,'B2B_TYPE_DEMANDE' => 'E' // *
 			)
 			,'Infos_Apporteur' => array(
 				'B2B_APPORTEUR_ID' => $this->getApporteurId() // [char 9]* TODO à vérifier
 				,'B2B_PROT_ID' => $protocole_id // [char 4]* TODO à vérifier
+//				,'B2B_VENDEUR_ID' => '';
 				,'B2B_VENDEUR_EMAIL' => $u->email // Si vide alors il faut renseigner B2B_VENDEUR_ID
 			)
 			,'Infos_Client' => array(
@@ -418,19 +420,19 @@ class ServiceFinancement {
 			,'Infos_Financieres' => array(
 				'B2B_DUREE' => $this->simulation->duree * $frequence
 				,'B2B_FREQ' => $frequence
-//				,'B2B_NB_ECH' => $this->simulation->duree
 				,'B2B_MODPAIE' => $this->getIdModeRglt($this->simulation->opt_mode_reglement) // *
 				,'B2B_MT_DEMANDE' => $this->simulation->montant
-			
+				,'B2B_NB_ECH' => $this->simulation->duree
 				,'B2B_MINERVAFPID' => ($protocole_id == '0251') ? '983' : '9782'
 				// Dolibarr [echu = 0; à échoir = 1] et CMCIC [echu = 2; à échoir = 1] 
 				,'B2B_TERME' => $this->simulation->opt_terme == 0 ? 2 : 1
+				,'B2B_PVR' => 0
 			)
 			,'Infos_Materiel' => array(
 				'B2B_MARQMAT' => $marqmat // * TODO à vérifier
-				,'B2B_TYPMAT' => $typmat // * TODO à vérifier
 				,'B2B_MT_UNIT' => $this->simulation->montant // *
 				,'B2B_QTE' => 1 // *
+				,'B2B_TYPMAT' => $typmat // * TODO à vérifier
 				,'B2B_ETAT' => 'N' // *
 			)
 			,'APP_Reponse_B2B' => array(
