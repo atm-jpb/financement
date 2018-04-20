@@ -29,7 +29,7 @@ class TSimulation extends TObjetStd {
 			,'WAIT'=>$langs->trans('Etude')
 			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser')
 		    ,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur')
-		    ,'MODIF'=>$langs->trans('Modif')
+		    ,'WAIT_MODIF'=>$langs->trans('Modif')
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
@@ -39,7 +39,7 @@ class TSimulation extends TObjetStd {
 		    ,'WAIT'=>'./img/WAIT.png'
 		    ,'WAIT_LEASER'=>'./img/Leaser.png'
 		    ,'WAIT_SELLER'=>'./img/Vendeur.png'
-		    ,'MODIF'=>'./img/pencil.png'
+		    ,'WAIT_MODIF'=>'./img/pencil.png'
 		    ,'KO'=>'./img/KO.png'
 		    ,'SS'=>'./img/SANSSUITE.png'
 		);
@@ -49,7 +49,7 @@ class TSimulation extends TObjetStd {
 			,'WAIT'=>$langs->trans('Etude')
 			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser_Short')
 		    ,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur_Short')
-		    ,'MODIF'=>$langs->trans('Modif')
+		    ,'WAIT_MODIF'=>$langs->trans('Modif')
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
@@ -853,7 +853,7 @@ class TSimulation extends TObjetStd {
 		$sql = "SELECT ".OBJETSTD_MASTERKEY;
 		$sql.= " FROM ".$this->get_table();
 		$sql.= " WHERE fk_soc = ".$fk_soc;
-		$sql.= " AND entity = ".$conf->entity;
+		$sql.= " AND entity IN(".getEntity('fin_simulation', TFinancementTools::user_courant_est_admin_financement()).')';
 		
 		$TIdSimu = TRequeteCore::_get_id_by_sql($db, $sql, OBJETSTD_MASTERKEY);
 		$TResult = array();
@@ -1325,13 +1325,8 @@ class TSimulation extends TObjetStd {
 		}
 		
 		$simu2 = $simu;
-		//exit(htmlentities($simu->type_contrat));
-		$simu2->type_contrat = html_entity_decode($simu2->type_contrat,ENT_QUOTES,'ISO-8859-1');
-		//$simu2->commentaire = utf8_decode($simu2->commentaire);
-		//$simu2->numero_accord = utf8_decode($simu2->numero_accord);
-		/*echo '<pre>';
-		print_r($TDossier);
-		echo '</pre>';exit;*/
+		// Le type de contrat est en utf8 (libellé vient de la table), contrairement au mode de prélèvement qui vient d'un fichier de langue.
+		$simu2->type_contrat = utf8_decode($simu2->type_contrat);
 		// Génération en ODT
 		
 		if (!empty($this->thirdparty_address)) $this->societe->address = $this->thirdparty_address;

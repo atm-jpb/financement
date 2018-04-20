@@ -203,8 +203,6 @@ if(!empty($action)) {
 			    $simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 			}
 			$simulation->_calcul($ATMdb);
-			//C'est dégueu mais sa marche
-			$simulation->commentaire = utf8_decode($simulation->commentaire);
 
 			_fiche($ATMdb, $simulation,'edit');
 			break;	
@@ -352,7 +350,7 @@ if(!empty($action)) {
 				
 				if($_REQUEST['mode'] == 'edit_montant') { // si le commercial a fait une modif
 				
-					if($simulation->accord == 'OK' || $simulation->accord == 'MODIF') { // On enregistre les modifs que si on était déjà en accord ou en modif
+					if($simulation->accord == 'OK' || $simulation->accord == 'WAIT_MODIF') { // On enregistre les modifs que si on était déjà en accord ou en modif
 						if(empty($simulation->modifs['montant']) && $simulation->montant !== $oldsimu->montant) $simulation->modifs['montant'] = $oldsimu->montant;
 						if(empty($simulation->modifs['echeance']) && $simulation->echeance !== $oldsimu->echeance) $simulation->modifs['echeance'] = $oldsimu->echeance;
 						if(empty($simulation->modifs['montant_presta_trim']) && $simulation->montant_presta_trim !== $oldsimu->montant_presta_trim) $simulation->modifs['montant_presta_trim'] = $oldsimu->montant_presta_trim;
@@ -376,24 +374,24 @@ if(!empty($action)) {
 						
 						// Si le montant ne respecte pas la règle (+- 10 %) => MODIF
 						if(!$montantOK) {
-							$simulation->accord = 'MODIF';
+							$simulation->accord = 'WAIT_MODIF';
 						}
 						
 						// Si MANDATEE ou ADOSSEE, on passe en modif uniquement si changement de durée / périodicité
 						if ($simulation->type_financement == 'MANDATEE' || $simulation->type_financement == 'ADOSSEE') {
 							if(!empty($simulation->modifs['duree']) || !empty($simulation->modifs['opt_periodicite'])) {
-								$simulation->accord = 'MODIF';
+								$simulation->accord = 'WAIT_MODIF';
 							}
 						}
 						// Sinon on passe en modif si autre chose que le montant a été modifié (montant, echeance, coeff)
 						else {
 							$keepAccord = array('montant', 'echeance', 'coeff', 'coeff_final');
 							foreach ($simulation->modifs as $k =>$v){ // cherche les modifs qui font passer en accord modif
-								if (!in_array($k, $keepAccord)) $simulation->accord = 'MODIF';
+								if (!in_array($k, $keepAccord)) $simulation->accord = 'WAIT_MODIF';
 							}
 						}
 					} elseif ($oldAccord == 'WAIT' || $oldAccord == 'WAIT_LEASER' || $oldAccord == 'WAIT_SELLER') {
-						$simulation->accord = 'MODIF';
+						$simulation->accord = 'WAIT_MODIF';
 						$simulation->coeff_final = 0;
 					}
 				} 
@@ -403,7 +401,7 @@ if(!empty($action)) {
 				    && $oldAccord == 'OK'
 				    && $simulation->error == 'ErrorMontantModifNotAuthorized') // diff montant > 10%
 				{
-				    $simulation->accord = 'MODIF';
+				    $simulation->accord = 'WAIT_MODIF';
 				}*/
 				
 				if($simulation->accord == 'OK'){
@@ -414,10 +412,10 @@ if(!empty($action)) {
 					$simulation->accord = 'WAIT';
 				}
 				
-				/*if ($simulation->accord !== 'MODIF'){
+				/*if ($simulation->accord !== 'WAIT_MODIF'){
 				    $simulation->modifs = array();
 				} else {
-				    $oldsimu->accord = 'MODIF';
+				    $oldsimu->accord = 'WAIT_MODIF';
 				    $simulation = $oldsimu;
 				}*/
 				
@@ -548,7 +546,7 @@ function _liste(&$ATMdb, &$simulation) {
 	$THide = array('fk_soc', 'fk_user_author', 'rowid');
 	
 	//$sql = "SELECT DISTINCT s.rowid, s.reference, e.rowid as entity_id, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
-	$sql = "SELECT DISTINCT s.rowid, s.reference, e.rowid as entity_id, s.fk_soc, CONCAT(SUBSTR(soc.nom, 1, 25), '...') as nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
+	$sql = "SELECT DISTINCT s.rowid, s.reference, e.rowid as entity_id, s.fk_soc, CONCAT(SUBSTR(soc.nom, 1, 25), '...') as nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance, s.echeance,";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'M' WHEN s.opt_periodicite = 'ANNEE' THEN 'A' WHEN s.opt_periodicite = 'SEMESTRE' THEN 'S' ELSE 'T' END) as 'duree',";
 	$sql.= " s.date_simul, s.date_validite, u.login, s.accord, s.type_financement, lea.nom as leaser, s.attente, '' as suivi, '' as loupe";
 	$sql.= " FROM @table@ s ";
@@ -623,7 +621,6 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$THide[] = 'type_financement';
 	$THide[] = 'date_validite';
-	$THide[] = 'leaser';
 	
 	$TOrder = array('date_simul'=>'DESC');
 	if(isset($_REQUEST['orderDown']))$TOrder = array($_REQUEST['orderDown']=>'DESC');
@@ -650,7 +647,7 @@ function _liste(&$ATMdb, &$simulation) {
 			,'accord'=>$simulation->TStatutShort
 		)
 		,'hide'=>$THide
-		,'type'=>array('date_simul'=>'date','Montant'=>'money','Echéance'=>'money')
+		,'type'=>array('date_simul'=>'date','montant_total_finance'=>'money','echeance'=>'money')
 		,'liste'=>array(
 			'titre'=>'Liste des simulations'
 			,'image'=>img_picto('','simul32.png@financement', '', 0)
@@ -669,6 +666,8 @@ function _liste(&$ATMdb, &$simulation) {
 			,'reference'=>'Ref.'
 			,'entity_id'=>'Partenaire'
 			,'duree'=>'Durée'
+			,'montant_total_finance'=>'Montant'
+			,'echeance'=>'Échéance'
 			,'login'=>'Utilisateur'
 			,'fk_type_contrat'=> 'Type<br>de<br>contrat'
 			,'date_simul'=>'Date<br>simulation'
@@ -686,7 +685,7 @@ function _liste(&$ATMdb, &$simulation) {
 			//,'type_financement'=>$affaire->TTypeFinancementShort
 			,'date_simul'=>'calendar'
 			,'accord'=>$simulation->TStatutShort
-			//,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
+			,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
 			,'reference'=>array('recherche'=>true, 'table'=>'s', 'field'=>'reference')
 		)
 		,'eval'=>array(
@@ -709,6 +708,8 @@ function _liste(&$ATMdb, &$simulation) {
 				,'reference'=>'center'
 				,'entity_id'=>'center'
 				,'duree'=>'center'
+				,'montant_total_finance'=>'center'
+				,'echeance'=>'center'
 				,'login'=>'center'
 				,'fk_type_contrat'=>'center'
 				,'date_simul'=>'center'
@@ -778,8 +779,9 @@ function print_attente($compteur){
     $heures = abs(round((($compteur / 60)-$min)/60));
     
     $ret = '';
-    $ret .= (!empty($heures) ? $heures . "h" : "0h");
-    $ret .= (!empty($min) ? $min : "00");
+    $ret .= (!empty($heures) ? $heures : "0");
+	$ret .= "h";
+    $ret .= (($min < 10) ? "0" : "") . $min;
     
     if (!empty($style)) $ret = '<span style="'.$style.'">'.$ret.'</span>';
     
