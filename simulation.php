@@ -202,6 +202,8 @@ if(!empty($action)) {
 			    $simulation->opt_administration = (int)isset($_REQUEST['opt_administration']);
 			    $simulation->opt_no_case_to_settle = (int)isset($_REQUEST['opt_no_case_to_settle']);
 			}
+			// var_dump($simulation->accord);
+			// exit;
 			$simulation->_calcul($ATMdb);
 			//C'est dégueu mais sa marche
 			$simulation->commentaire = utf8_decode($simulation->commentaire);
@@ -236,8 +238,8 @@ if(!empty($action)) {
 			break;
 		
 		case 'save':
-//TODO delete
-$ATMdb->beginTransaction();
+//TODO remove
+// $ATMdb->beginTransaction();
 			
 			//pre($_REQUEST,true);
 			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
@@ -1227,7 +1229,6 @@ function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	//pre($TLignes,true);exit;
 	
 	$TBS=new TTemplateTBS;
-	
 	print $TBS->render('./tpl/simulation_suivi.tpl.php'
 		,array(
 			'ligne' => $TLignes
@@ -1240,6 +1241,7 @@ function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 				,'titre'=>load_fiche_titre($langs->trans("SimulationSuivi"),'','object_simul.png@financement')
 				,'titre_history'=>load_fiche_titre($langs->trans("SimulationSuiviHistory"),'','object_simul.png@financement')
 			)
+			,'formDolibarr' => $formDolibarr
 		)
 	);
 	

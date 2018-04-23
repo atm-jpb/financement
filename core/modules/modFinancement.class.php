@@ -805,6 +805,7 @@ class modFinancement extends DolibarrModules
 		$extra->addExtraField('fk_leaser_webservice', 'Identifiant du leaser associé pour les réponses de demande de financement', 'int', '1', '', 'user', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		
 		$extra->addExtraField('percent_duree_vie', '% durée de vie', 'double', 15, '24,8', 'entity', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
+		$extra->addExtraField('percent_moyenne_intercalaire', '% moyenne intercalaire', 'double', 20, '24,8', 'entity', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		
 		$extra->addExtraField('percent_surfactplus', '% surfact+', 'double', 10, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		$extra->addExtraField('percent_commission', '% commission', 'double', 15, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);

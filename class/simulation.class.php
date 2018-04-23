@@ -480,6 +480,9 @@ class TSimulation extends TObjetStd {
 		    }
 
 		}
+
+		if (!empty($this->TSimulationSuivi)) uasort($this->TSimulationSuivi, array($this, 'aiguillageSuivi'));
+		if (!empty($this->TSimulationSuiviHistorized)) uasort($this->TSimulationSuiviHistorized, array($this, 'aiguillageSuivi'));
 	}
 	
 	//Retourne l'identifiant leaser prioritaire en fonction de la grille d'administration
@@ -625,6 +628,11 @@ class TSimulation extends TObjetStd {
 	
 	private function _get_lignes_suivi(&$TSuivi, &$form)
 	{
+		global $db,$formDolibarr;
+		
+		require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+		if (empty($formDolibarr)) $formDolibarr = new Form($db);
+		
 		$Tab = array();
 		//pre($TSuivi,true);
 		//Construction d'un tableau de ligne pour futur affichage TBS
@@ -637,6 +645,8 @@ class TSimulation extends TObjetStd {
 			$ligne['rowid'] = $simulationSuivi->getId();
 			$ligne['class'] = (count($TLignes) % 2) ? 'impair' : 'pair';
 			$ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
+			$ligne['object'] = $simulationSuivi;
+			$ligne['show_renta_percent'] = $formDolibarr->textwithpicto($simulationSuivi->renta_percent, implode('<br />', $simulationSuivi->calcul_detail));
 			$ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png',1).'" />' : '' ;
 			$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande') : '' ;
 			$img = $simulationSuivi->statut;
@@ -729,7 +739,8 @@ class TSimulation extends TObjetStd {
 		// Récupération de la grille pour les paramètres donnés
 		$grille = new TFin_grille_leaser;
 		$grille->get_grille($ATMdb, $idLeaser, $this->fk_type_contrat, $this->opt_periodicite, $options, $this->entity);
-		
+		$this->last_grille_load = $grille;
+
 		if(empty($grille->TGrille)) { // Pas de grille chargée, pas de calcul
 			$this->error = 'ErrorNoGrilleSelected';
 			return false;
@@ -761,7 +772,7 @@ class TSimulation extends TObjetStd {
 		}
 		
 		if($this->coeff==0){
-			$this->error = 'ErrorAmountOutOfGrille';
+			$this->error = 'ErrorAmountOutOfGrille'; // Be careful: clé de trad utilisé dans un test
 			return false;
 		}
 		
@@ -1612,7 +1623,7 @@ class TSimulation extends TObjetStd {
 	 */
 	public function aiguillageSuivi($a, $b)
 	{
-		if ($a->renta_percent < $b->renta_percent) return -1;
+		if ($a->renta_percent < $b->renta_percent) return 1;
 		else if ($a->renta_percent > $b->renta_percent) return -1;
 		else return 0;
 	}
@@ -1624,8 +1635,7 @@ class TSimulation extends TObjetStd {
 		if (empty($conf->global->FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI)) return 0;
 		
 		$TMethod = explode(',', $conf->global->FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI);
-		
-		// TODO faire le calcul de toutes les valeurs nécessaires (surfact, surfact+, Comme, ...)
+
 		$min_turn_over = null;
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
@@ -1636,16 +1646,15 @@ class TSimulation extends TObjetStd {
 			
 			if ($suivi->turn_over < $min_turn_over || is_null($min_turn_over)) $min_turn_over = $suivi->turn_over;
 		}
-// TODO remove
-exit;		
+
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
 			$suivi->renta_amount = $suivi->surfact + $suivi->surfactplus + $suivi->commission + $suivi->intercalaire + $suivi->diff_solde + $suivi->prime_volume + ($min_turn_over - $suivi->turn_over);
-			$suivi->renta_percent = $suivi->renta_amount / $this->montant;
+			$suivi->renta_percent = ($suivi->renta_amount / $this->montant) * 100;
 		}
-		
+
 		uasort($this->TSimulationSuivi, array($this, 'aiguillageSuivi'));
-		
+
 		// Update du rang pour priorisation
 		$i=0;
 		foreach ($this->TSimulationSuivi as &$suivi)
@@ -1656,8 +1665,6 @@ exit;
 		}
 	}
 	
-// TODO finir de remplir le contenu des methodes de calcul
-	
 	/**
 	 * a. on part de l’échéance client, on retrouve le coeff leaser, on calcule le montant finançable leaser
 	 * b. Surfact = Montant finançable leaser - montant financé client
@@ -1666,6 +1673,9 @@ exit;
 	 */
 	private function calcSurfact(&$PDOdb, &$suivi)
 	{
+		// Si déjà calculé alors je renvoi la valeur immédiatemment
+		if (!empty($suivi->surfact)) return $suivi->surfact;
+
 		$suivi->surfact = 0;
 		
 		$leaser = $suivi->loadLeaser();
@@ -1677,7 +1687,7 @@ exit;
 		else
 		{
 			$suivi->surfact = ($this->montant * (1 + $coef_line['coeff'] / 100)) - $this->montant;
-			$suivi->calcul_detail['surfact'] = 'surfact = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) - '.$this->montant.' = '.$suivi->surfact;
+			$suivi->calcul_detail['surfact'] = 'Surfact = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) - '.$this->montant.' = '.$suivi->surfact;
 		}
 		
 		return $suivi->surfact;
@@ -1691,6 +1701,9 @@ exit;
 	 */
 	private function calcSurfactPlus(&$PDOdb, &$suivi)
 	{
+		// Si déjà calculé alors je renvoi la valeur immédiatemment
+		if (!empty($suivi->surfactplus)) return $suivi->surfactplus;
+
 		$suivi->surfactplus = 0;
 		
 		$leaser = $suivi->loadLeaser();
@@ -1705,7 +1718,7 @@ exit;
 			
 			$percent_surfactplus = price2num($leaser->array_options['percent_surfactplus']); // 1%
 			$suivi->surfactplus = ($this->montant * (1 + $coef_line['coeff'] / 100)) * ($percent_surfactplus / 100);
-			$suivi->calcul_detail['surfactplus'] = 'surfactplus = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) * ('.$percent_surfactplus.' / 100) = '.$suivi->surfactplus;
+			$suivi->calcul_detail['surfactplus'] = 'Surfact+ = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) * ('.$percent_surfactplus.' / 100) = '.$suivi->surfactplus;
 		}
 		
 		return $suivi->surfactplus;
@@ -1719,6 +1732,9 @@ exit;
 	 */
 	private function calcComm(&$PDOdb, &$suivi)
 	{
+		// Si déjà calculé alors je renvoi la valeur immédiatemment
+		if (!empty($suivi->commission)) return $suivi->commission;
+
 		$suivi->commission = 0;
 		
 		$leaser = $suivi->loadLeaser();
@@ -1733,7 +1749,7 @@ exit;
 			
 			$percent_commission = price2num($leaser->array_options['percent_commission']);
 			$suivi->commission = ($this->montant * (1 + $coef_line['coeff'] / 100)) * ($percent_commission / 100);
-			$suivi->calcul_detail['commission'] = 'commission = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) * ('.$percent_commission.' / 100) = '.$suivi->commission;
+			$suivi->calcul_detail['commission'] = 'Commission = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) * ('.$percent_commission.' / 100) = '.$suivi->commission;
 		}
 		
 		return $suivi->commission;
@@ -1748,13 +1764,30 @@ exit;
 	 */
 	private function calcIntercalaire(&$PDOdb, &$suivi)
 	{
+		global $conf;
 		
+		// Si déjà calculé alors je renvoi la valeur immédiatemment
+		if (!empty($suivi->intercalaire)) return $suivi->intercalaire;
+
 		$suivi->intercalaire = 0;
+		$entity = $this->getDaoEntity($conf->entity);
+
+		$suivi->intercalaire = $this->echeance * ($entity->array_option['options_percent_moyenne_intercalaire'] / 100);
+		$suivi->calcul_detail['intercalaire'] = 'Intercalaire = '.$this->echeance.' * ('.$entity->array_option['options_percent_moyenne_intercalaire'].' / 100)';
+		if (empty($this->opt_calage))
+		{
+			$suivi->intercalaire *= ($suivi->leaser->array_options['options_percent_intercalaire'] / 100);
+			$suivi->calcul_detail['intercalaire'].= ' * ('.$suivi->leaser->array_options['options_percent_intercalaire'].' / 100)';
+		}
 		
+		$suivi->calcul_detail['intercalaire'].= ' = '.$suivi->intercalaire;
+
 		return $suivi->intercalaire;
 	}
 	
 	/**
+	 * TODO calculer le delta das dossier racheté entre solde R et NR pour appliquer aux différents suivi
+	 * 
 	 * a. Pour chaque dossier racheté, calcul de la différence de solde R et NR par Leaser, applicable aux autres
 	 * b. Différence solde = Somme différence dossiers rachetés des autres leasers
 	 * 
@@ -1762,9 +1795,13 @@ exit;
 	 */
 	private function calcDiffSolde(&$PDOdb, &$suivi)
 	{
-		
+		// Si déjà calculé alors je renvoi la valeur immédiatemment
+		if (!empty($suivi->diff_solde)) return $suivi->diff_solde;
+
 		$suivi->diff_solde = 0;
 		
+		$suivi->calcul_detail['diff_solde'] = 'Diff solde: TODO ';
+
 		return $suivi->diff_solde;
 	}
 	
@@ -1776,9 +1813,12 @@ exit;
 	 */
 	private function calcPrimeVolume(&$PDOdb, &$suivi)
 	{
-		
-		$suivi->prime_volume = 0;
-		
+		// Si déjà calculé alors je renvoi la valeur immédiatemment
+		if (!empty($suivi->prime_volume)) return $suivi->prime_volume;
+
+		$suivi->prime_volume = ($this->calcSurfact($PDOdb, $suivi) + $this->calcSurfactPlus($PDOdb, $suivi)) * ($suivi->leaser->array_options['options_percent_prime_volume'] / 100);
+		$suivi->calcul_detail['prime_volume'] = 'PV = ('.$this->calcSurfact($PDOdb, $suivi).' + '.$this->calcSurfactPlus($PDOdb, $suivi).') * ('.$suivi->leaser->array_options['options_percent_prime_volume'].' / 100)';
+
 		return $suivi->prime_volume;
 	}
 	
@@ -1792,12 +1832,58 @@ exit;
 	 */
 	private function calcTurnOver(&$PDOdb, &$suivi)
 	{
-		
+		global $conf;
+
+		// Si déjà calculé alors je renvois la valeur immédiatemment
+		if (!empty($suivi->turn_over) || !empty($this->opt_administration)) return $suivi->turn_over;
+
 		$suivi->turn_over = 0;
+		$entity = $this->getDaoEntity($conf->entity);
+
+		$duree_theorique = ceil($this->duree * ($entity->array_options['options_percent_duree_vie'] / 100));
+
+		$simulationCopy = clone $this;
+		$simulationCopy->duree = $duree_theorique; // Be careful: $duree_theotique peut ce trouver hors grille
 		
+		$simulationCopy->accord = '';
+		$simulationCopy->_calcul($PDOdb);
+		// Durée non renseignée dans la grille
+		if ($simulationCopy->error == 'ErrorAmountOutOfGrille')
+		{
+			// On cherche la durée supérieure la plus proche
+			foreach ($simulationCopy->last_grille_load->TGrille as $duree => $Tab)
+			{
+				if ($duree > $duree_theorique)
+				{
+					$simulationCopy->duree = $duree;
+					$simulationCopy->_calcul($PDOdb);
+					break;
+				}
+			}
+		}
+
+		$suivi->turn_over = $simulationCopy->echeance;
+		$suivi->calcul_detail['turn_over'] = 'Turn over = '.$suivi->turn_over;
+
 		return $suivi->turn_over;
 	}
 	
+	private function getDaoEntity($fk_entity)
+	{
+		global $db, $TDaoEntity;
+		
+		if (!empty($TDaoEntity[$fk_entity])) $entity = $TDaoEntity[$fk_entity];
+		else
+		{
+			dol_include_once('/multicompany/class/dao_multicompany.class.php');
+			$entity = new DaoMulticompany($db);
+			$entity->fetch($fk_entity);
+			$TDaoEntity[$fk_entity] = $entity;
+		}
+
+		return $entity;
+	}
+
 }
 
 
@@ -1813,7 +1899,7 @@ class TSimulationSuivi extends TObjetStd {
 		parent::add_champs('commentaire','type=text;');
 		parent::add_champs('rang', array('type'=>'integer'));
 		
-		parent::add_champs('surfact,surfactplus,commission,intercalaire,diff_solde,prime_volume,turn_over,renta_amount,renta_percent', array('type'=>'integer'));
+		parent::add_champs('surfact,surfactplus,commission,intercalaire,diff_solde,prime_volume,turn_over,renta_amount,renta_percent', array('type'=>'float'));
 		parent::add_champs('calcul_detail', array('type' => 'array'));
 		
 		parent::start();
