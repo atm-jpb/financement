@@ -1626,7 +1626,7 @@ class TSimulation extends TObjetStd {
 		$TMethod = explode(',', $conf->global->FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI);
 		
 		// TODO faire le calcul de toutes les valeurs nécessaires (surfact, surfact+, Comme, ...)
-		$min_turn_over = 0;
+		$min_turn_over = null;
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
 			foreach ($TMethod as $method_name)
@@ -1634,20 +1634,19 @@ class TSimulation extends TObjetStd {
 				$this->{$method_name}($PDOdb, $suivi);
 			}
 			
-			if ($suivi->turn_over < $min_turn_over) $min_turn_over = $suivi->turn_over;
+			if ($suivi->turn_over < $min_turn_over || is_null($min_turn_over)) $min_turn_over = $suivi->turn_over;
 		}
-		
-		
+// TODO remove
+exit;		
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
-			// TODO calculer le montant de la renta par ligne de suivi
 			$suivi->renta_amount = $suivi->surfact + $suivi->surfactplus + $suivi->commission + $suivi->intercalaire + $suivi->diff_solde + $suivi->prime_volume + ($min_turn_over - $suivi->turn_over);
-			// TODO calculer le %tage de renta par ligne de suivi
 			$suivi->renta_percent = $suivi->renta_amount / $this->montant;
 		}
 		
 		uasort($this->TSimulationSuivi, array($this, 'aiguillageSuivi'));
 		
+		// Update du rang pour priorisation
 		$i=0;
 		foreach ($this->TSimulationSuivi as &$suivi)
 		{
@@ -1667,32 +1666,47 @@ class TSimulation extends TObjetStd {
 	 */
 	private function calcSurfact(&$PDOdb, &$suivi)
 	{
-		
 		$suivi->surfact = 0;
 		
+		$leaser = $suivi->loadLeaser();
+		
+		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree);
+		
+		if ($coef_line == -1) $suivi->calcul_detail['surfact'] = 'Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
+		else if ($coef_line == -2) $suivi->calcul_detail['surfact'] = 'Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
+		else
+		{
+			$suivi->surfact = ($this->montant * (1 + $coef_line['coeff'] / 100)) - $this->montant;
+			$suivi->calcul_detail['surfact'] = 'surfact = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) - '.$this->montant.' = '.$suivi->surfact;
+		}
+		
 		return $suivi->surfact;
-		
-//		var_dump($suivi->fk_leaser);exit;
-//		$leaser = $suivi->loadLeaser();
-		
-		
-//		$grille = new TFin_grille_leaser;
-//		$grille->get_grille($PDOdb, $suivi->fk_leaser, $this->fk_type_contrat);
-//		
-//		var_dump($grille->TGrille);
-//		exit;
 	}
 	
 	/**
 	 * a. % de surfact + à définir par Leaser (1% BNP pour commencer)
-	 * b. Surfact+ = Montant finançable leaser * % surfact +
+	 * b. Surfact+ = Montant finançable leaser * % surfact+
 	 * 
 	 * @param TSuiviSimulation $suivi
 	 */
 	private function calcSurfactPlus(&$PDOdb, &$suivi)
 	{
-		
 		$suivi->surfactplus = 0;
+		
+		$leaser = $suivi->loadLeaser();
+		
+		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree);
+		
+		if ($coef_line == -1) $suivi->calcul_detail['surfactplus'] = 'Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
+		else if ($coef_line == -2) $suivi->calcul_detail['surfactplus'] = 'Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
+		else
+		{
+			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
+			
+			$percent_surfactplus = price2num($leaser->array_options['percent_surfactplus']); // 1%
+			$suivi->surfactplus = ($this->montant * (1 + $coef_line['coeff'] / 100)) * ($percent_surfactplus / 100);
+			$suivi->calcul_detail['surfactplus'] = 'surfactplus = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) * ('.$percent_surfactplus.' / 100) = '.$suivi->surfactplus;
+		}
 		
 		return $suivi->surfactplus;
 	}
@@ -1705,8 +1719,22 @@ class TSimulation extends TObjetStd {
 	 */
 	private function calcComm(&$PDOdb, &$suivi)
 	{
-		
 		$suivi->commission = 0;
+		
+		$leaser = $suivi->loadLeaser();
+		
+		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree);
+		
+		if ($coef_line == -1) $suivi->calcul_detail['commission'] = 'Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
+		else if ($coef_line == -2) $suivi->calcul_detail['commission'] = 'Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
+		else
+		{
+			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
+			
+			$percent_commission = price2num($leaser->array_options['percent_commission']);
+			$suivi->commission = ($this->montant * (1 + $coef_line['coeff'] / 100)) * ($percent_commission / 100);
+			$suivi->calcul_detail['commission'] = 'commission = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) * ('.$percent_commission.' / 100) = '.$suivi->commission;
+		}
 		
 		return $suivi->commission;
 	}
@@ -1786,6 +1814,7 @@ class TSimulationSuivi extends TObjetStd {
 		parent::add_champs('rang', array('type'=>'integer'));
 		
 		parent::add_champs('surfact,surfactplus,commission,intercalaire,diff_solde,prime_volume,turn_over,renta_amount,renta_percent', array('type'=>'integer'));
+		parent::add_champs('calcul_detail', array('type' => 'array'));
 		
 		parent::start();
 		parent::_init_vars();
@@ -1805,11 +1834,47 @@ class TSimulationSuivi extends TObjetStd {
 		$this->simulation = new TSimulation;
 	}
 	
+	/**
+	 * Permet de récupérer le tableau d'info du coefficient leaser qui correspond au montant et à la durée
+	 * retourne -1 si aucun coefficient de paramétré sur la durée
+	 * retourne -2 si la durée est trouvée mais qu'aucune tranche de paramétrée
+	 * autrement renvoi le talbeau d'info
+	 * 
+	 * @param type $PDOdb
+	 * @param type $amount
+	 * @param type $fk_type_contrat
+	 * @param type $duree
+	 * @return array || int if not found
+	 */
+	public function getCoefLineLeaser($PDOdb, $amount, $fk_type_contrat, $duree)
+	{
+		if (!empty($this->TCoefLine[$amount])) return $this->TCoefLine[$amount];
+		
+		$grille = new TFin_grille_leaser;
+		$grille->get_grille($PDOdb, $this->fk_leaser, $fk_type_contrat);
+		
+		if (!empty($grille->TGrille[$duree]))
+		{
+			foreach (array_keys($grille->TGrille[$duree]) as $amount_as_key)
+			{
+				if ($amount_as_key > $amount)
+				{
+					$this->TCoefLine[$amount] = $grille->TGrille[$duree][$amount_as_key];
+					return $this->TCoefLine[$amount];
+				}
+			}
+			
+			return -2;
+		}
+		
+		return -1;
+	}
+	
 	//Chargement du suivi simulation
-	function load(&$PDOdb,$id){
+	function load(&$PDOdb,$id,$loadChild = true){
 		global $db;
 		
-		$res = parent::load($PDOdb, $id);
+		$res = parent::load($PDOdb, $id, $loadChild);
 		$this->leaser = new Societe($db);
 		$this->leaser->fetch($this->fk_leaser);
 		
