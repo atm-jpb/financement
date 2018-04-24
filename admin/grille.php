@@ -43,7 +43,7 @@ dol_htmloutput_mesg($mesg);
 
 
 
-print '<div class="warning">Cette page de configuration a était déplacé vers : <a href="'.dol_buildpath('/financement/grille.php', 1).'?socid='.FIN_LEASER_DEFAULT.'">ici</a></div>';
+print '<div class="warning">Cette page de configuration a été déplacée vers : <a href="'.dol_buildpath('/financement/grille.php', 1).'?socid='.FIN_LEASER_DEFAULT.'">ici</a></div>';
 
 llxFooter();
 $db->close;
