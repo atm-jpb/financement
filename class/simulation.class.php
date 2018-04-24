@@ -850,6 +850,8 @@ class TSimulation extends TObjetStd {
 	function load_by_soc(&$db, &$doliDB, $fk_soc) {
 		global $conf;
 		
+		dol_include_once('/financement/lib/financement.lib.php');
+		
 		$sql = "SELECT ".OBJETSTD_MASTERKEY;
 		$sql.= " FROM ".$this->get_table();
 		$sql.= " WHERE fk_soc = ".$fk_soc;
