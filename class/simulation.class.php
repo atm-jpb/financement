@@ -1675,7 +1675,7 @@ class TSimulationSuivi extends TObjetStd {
 		if($simulation->accord != "OK"){
 			//Demander
 			if($this->statut_demande != 1){// && $this->date_demande < 0){
-				if(!$just_save)
+				if(!$just_save && !empty($simulation->societe->idprof2))
 					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Demande transmise au leaser"><img src="'.dol_buildpath('/financement/img/demander.png',1).'" /></a>&nbsp;';
 			}
 			else{
@@ -1899,6 +1899,9 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$this->simulation->societe = new Societe($db);
 		$this->simulation->societe->fetch($this->simulation->fk_soc);
+		
+		// Pas d'envoi de demande auto si le client n'a pas de SIRET
+		if(empty($simulation->societe->idprof2)) return false;
 		
 		if(empty($this->leaser)) {
 			$this->leaser = new Fournisseur($db);
