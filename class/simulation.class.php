@@ -239,7 +239,7 @@ class TSimulation extends TObjetStd {
 		}
 
 		if($this->accord == 'OK') {
-			$this->date_validite = strtotime('+ 3 months', $this->date_accord);
+			$this->date_validite = strtotime('+ 5 months', $this->date_accord);
 		}
 
 		//pre($this, true);exit;
@@ -297,9 +297,10 @@ class TSimulation extends TObjetStd {
 		// Ajout des autres leasers de la liste (sauf le prio)
 		foreach($grille as $TData) {
 			if($TData['fk_leaser'] == $idLeaserPrio) continue;
-			$leaser->id = $TData['fk_leaser'];
 			$simulationSuivi = new TSimulationSuivi;
-			$simulationSuivi->init($PDOdb,$leaser,$this->getId());
+			$simulationSuivi->leaser = new Fournisseur($db);
+			$simulationSuivi->leaser->fetch($TData['fk_leaser']);
+			$simulationSuivi->init($PDOdb,$simulationSuivi->leaser,$this->getId());
 			$simulationSuivi->save($PDOdb);
 			
 			$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
@@ -724,7 +725,15 @@ class TSimulation extends TObjetStd {
 		
 		// Récupération de la grille pour les paramètres donnés
 		$grille = new TFin_grille_leaser;
-		$grille->get_grille($ATMdb, $idLeaser, $this->fk_type_contrat, $this->opt_periodicite, $options, $this->entity);
+		
+		// 2018-04-25 MKO : Verrue temporaire, pour 1 user il faut les coeff d'une autre entité
+		// Une commerciale ABG doit avoir les coeff de l'entité QUADRA
+		$entity = $this->entity;
+		if($this->fk_user_author == 1520) {
+			$entity = 9;
+		}
+		
+		$grille->get_grille($ATMdb, $idLeaser, $this->fk_type_contrat, $this->opt_periodicite, $options, $entity);
 		
 		if(empty($grille->TGrille)) { // Pas de grille chargée, pas de calcul
 			$this->error = 'ErrorNoGrilleSelected';
@@ -849,6 +858,8 @@ class TSimulation extends TObjetStd {
 	
 	function load_by_soc(&$db, &$doliDB, $fk_soc) {
 		global $conf;
+		
+		dol_include_once('/financement/lib/financement.lib.php');
 		
 		$sql = "SELECT ".OBJETSTD_MASTERKEY;
 		$sql.= " FROM ".$this->get_table();
@@ -1665,7 +1676,7 @@ class TSimulationSuivi extends TObjetStd {
 		if($simulation->accord != "OK"){
 			//Demander
 			if($this->statut_demande != 1){// && $this->date_demande < 0){
-				if(!$just_save)
+				if(!$just_save && !empty($simulation->societe->idprof2))
 					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Demande transmise au leaser"><img src="'.dol_buildpath('/financement/img/demander.png',1).'" /></a>&nbsp;';
 			}
 			else{
@@ -1890,6 +1901,9 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$this->simulation->societe = new Societe($db);
 		$this->simulation->societe->fetch($this->simulation->fk_soc);
+		
+		// Pas d'envoi de demande auto si le client n'a pas de SIRET
+		if(empty($this->simulation->societe->idprof2)) return false;
 		
 		if(empty($this->leaser)) {
 			$this->leaser = new Fournisseur($db);
