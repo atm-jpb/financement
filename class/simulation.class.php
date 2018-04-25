@@ -1901,7 +1901,7 @@ class TSimulationSuivi extends TObjetStd {
 		$this->simulation->societe->fetch($this->simulation->fk_soc);
 		
 		// Pas d'envoi de demande auto si le client n'a pas de SIRET
-		if(empty($simulation->societe->idprof2)) return false;
+		if(empty($this->simulation->societe->idprof2)) return false;
 		
 		if(empty($this->leaser)) {
 			$this->leaser = new Fournisseur($db);
