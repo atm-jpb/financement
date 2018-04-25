@@ -29,7 +29,7 @@ class TSimulation extends TObjetStd {
 			,'WAIT'=>$langs->trans('Etude')
 			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser')
 		    ,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur')
-		    ,'MODIF'=>$langs->trans('Modif')
+		    ,'WAIT_MODIF'=>$langs->trans('Modif')
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
@@ -39,7 +39,7 @@ class TSimulation extends TObjetStd {
 		    ,'WAIT'=>'./img/WAIT.png'
 		    ,'WAIT_LEASER'=>'./img/Leaser.png'
 		    ,'WAIT_SELLER'=>'./img/Vendeur.png'
-		    ,'MODIF'=>'./img/pencil.png'
+		    ,'WAIT_MODIF'=>'./img/pencil.png'
 		    ,'KO'=>'./img/KO.png'
 		    ,'SS'=>'./img/SANSSUITE.png'
 		);
@@ -49,7 +49,7 @@ class TSimulation extends TObjetStd {
 			,'WAIT'=>$langs->trans('Etude')
 			,'WAIT_LEASER'=>$langs->trans('Etude_Leaser_Short')
 		    ,'WAIT_SELLER'=>$langs->trans('Etude_Vendeur_Short')
-		    ,'MODIF'=>$langs->trans('Modif')
+		    ,'WAIT_MODIF'=>$langs->trans('Modif')
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
@@ -239,7 +239,7 @@ class TSimulation extends TObjetStd {
 		}
 
 		if($this->accord == 'OK') {
-			$this->date_validite = strtotime('+ 3 months', $this->date_accord);
+			$this->date_validite = strtotime('+ 5 months', $this->date_accord);
 		}
 
 		//pre($this, true);exit;
@@ -298,9 +298,10 @@ class TSimulation extends TObjetStd {
 		// Ajout des autres leasers de la liste (sauf le prio)
 		foreach($grille as $TData) {
 			//if($TData['fk_leaser'] == $idLeaserPrio) continue;
-			$leaser->id = $TData['fk_leaser'];
 			$simulationSuivi = new TSimulationSuivi;
-			$simulationSuivi->init($PDOdb,$leaser,$this->getId());
+			$simulationSuivi->leaser = new Fournisseur($db);
+			$simulationSuivi->leaser->fetch($TData['fk_leaser']);
+			$simulationSuivi->init($PDOdb,$simulationSuivi->leaser,$this->getId());
 			$simulationSuivi->save($PDOdb);
 			
 			$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
@@ -738,9 +739,22 @@ class TSimulation extends TObjetStd {
 		
 		// Récupération de la grille pour les paramètres donnés
 		$grille = new TFin_grille_leaser;
+<<<<<<< HEAD
 		$grille->get_grille($ATMdb, $idLeaser, $this->fk_type_contrat, $this->opt_periodicite, $options, $this->entity);
 		$this->last_grille_load = $grille;
 
+=======
+		
+		// 2018-04-25 MKO : Verrue temporaire, pour 1 user il faut les coeff d'une autre entité
+		// Une commerciale ABG doit avoir les coeff de l'entité QUADRA
+		$entity = $this->entity;
+		if($this->fk_user_author == 1520) {
+			$entity = 9;
+		}
+		
+		$grille->get_grille($ATMdb, $idLeaser, $this->fk_type_contrat, $this->opt_periodicite, $options, $entity);
+		
+>>>>>>> c14082d6a3f68779b873a88d0f7f55b308999de4
 		if(empty($grille->TGrille)) { // Pas de grille chargée, pas de calcul
 			$this->error = 'ErrorNoGrilleSelected';
 			return false;
@@ -865,10 +879,12 @@ class TSimulation extends TObjetStd {
 	function load_by_soc(&$db, &$doliDB, $fk_soc) {
 		global $conf;
 		
+		dol_include_once('/financement/lib/financement.lib.php');
+		
 		$sql = "SELECT ".OBJETSTD_MASTERKEY;
 		$sql.= " FROM ".$this->get_table();
 		$sql.= " WHERE fk_soc = ".$fk_soc;
-		$sql.= " AND entity = ".$conf->entity;
+		$sql.= " AND entity IN(".getEntity('fin_simulation', TFinancementTools::user_courant_est_admin_financement()).')';
 		
 		$TIdSimu = TRequeteCore::_get_id_by_sql($db, $sql, OBJETSTD_MASTERKEY);
 		$TResult = array();
@@ -1340,13 +1356,8 @@ class TSimulation extends TObjetStd {
 		}
 		
 		$simu2 = $simu;
-		//exit(htmlentities($simu->type_contrat));
-		$simu2->type_contrat = html_entity_decode($simu2->type_contrat,ENT_QUOTES,'ISO-8859-1');
-		//$simu2->commentaire = utf8_decode($simu2->commentaire);
-		//$simu2->numero_accord = utf8_decode($simu2->numero_accord);
-		/*echo '<pre>';
-		print_r($TDossier);
-		echo '</pre>';exit;*/
+		// Le type de contrat est en utf8 (libellé vient de la table), contrairement au mode de prélèvement qui vient d'un fichier de langue.
+		$simu2->type_contrat = utf8_decode($simu2->type_contrat);
 		// Génération en ODT
 		
 		if (!empty($this->thirdparty_address)) $this->societe->address = $this->thirdparty_address;
@@ -2009,7 +2020,7 @@ class TSimulationSuivi extends TObjetStd {
 		if($simulation->accord != "OK"){
 			//Demander
 			if($this->statut_demande != 1){// && $this->date_demande < 0){
-				if(!$just_save)
+				if(!$just_save && !empty($simulation->societe->idprof2))
 					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Demande transmise au leaser"><img src="'.dol_buildpath('/financement/img/demander.png',1).'" /></a>&nbsp;';
 			}
 			else{
@@ -2233,6 +2244,9 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$this->simulation->societe = new Societe($db);
 		$this->simulation->societe->fetch($this->simulation->fk_soc);
+		
+		// Pas d'envoi de demande auto si le client n'a pas de SIRET
+		if(empty($this->simulation->societe->idprof2)) return false;
 		
 		if(empty($this->leaser)) {
 			$this->leaser = new Fournisseur($db);

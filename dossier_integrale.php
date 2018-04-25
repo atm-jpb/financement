@@ -354,6 +354,24 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 				$TIntegrale[$date_periode]->facnumber .= $facture->getNomUrl()."<br>";
 			}
 			
+			// Fond de couleur si facturé > engagé
+			$TIntegrale[$date_periode]->alert_noir_depassement = '';
+			if($TIntegrale[$date_periode]->vol_noir_facture > $TIntegrale[$date_periode]->vol_noir_engage) {
+				$TIntegrale[$date_periode]->alert_noir_depassement = ' style="background-color: #FF8080;"';
+			}
+			$TIntegrale[$date_periode]->alert_coul_depassement = '';
+			if($TIntegrale[$date_periode]->vol_coul_facture > $TIntegrale[$date_periode]->vol_coul_engage) {
+				$TIntegrale[$date_periode]->alert_coul_depassement = ' style="background-color: #FF8080;"';
+			}
+			
+			// Ne pas afficher le réalisé si < 0
+			if($TIntegrale[$date_periode]->vol_noir_realise < 0) {
+				$TIntegrale[$date_periode]->vol_noir_realise = '';
+			}
+			if($TIntegrale[$date_periode]->vol_coul_realise < 0) {
+				$TIntegrale[$date_periode]->vol_coul_realise = '';
+			}
+			
 		} // else{} TODO A voir comment faire car certaines factures sont des loyers intercalaires et ne sont pas associés à des périodes.
 		
 		//$TIntegrale[] = '';

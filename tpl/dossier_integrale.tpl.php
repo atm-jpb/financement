@@ -48,11 +48,11 @@
 			<th class="liste_titre" align="center">Date</th>
 			<th class="liste_titre" align="center">Vol noir<br>engag&eacute;</th>
 			[onshow;block=begin;when [error]=='0']<th class="liste_titre" align="center">Vol noir<br>r&eacute;alis&eacute;</th>[onshow;block=end]
-			[onshow;block=begin;when [error]=='0']<th class="liste_titre" align="center">Vol noir<br>factur&eacute;</th>[onshow;block=end]
+			<th class="liste_titre" align="center">Vol noir<br>factur&eacute;</th>
 			<th class="liste_titre" align="center">Coût unitaire<br>noir</th>
 			<th class="liste_titre" align="center">Vol couleur<br>engag&eacute;</th>
 			[onshow;block=begin;when [error]=='0']<th class="liste_titre" align="center">Vol couleur<br>r&eacute;alis&eacute;</th>[onshow;block=end]
-			[onshow;block=begin;when [error]=='0']<th class="liste_titre" align="center">Vol couleur<br>factur&eacute;</th>[onshow;block=end]
+			<th class="liste_titre" align="center">Vol couleur<br>factur&eacute;</th>
 			<th class="liste_titre" align="center">Coût unitaire<br>couleur</th>
 			<th class="liste_titre" align="center">FAS</th>
 			<th class="liste_titre" align="center">FASS</th>
@@ -71,11 +71,15 @@
 			<td align="center">[integrale.date_facture;block=tr;noerr;strconv=no]</td>
 			<td align="center">[integrale.vol_noir_engage;noerr;strconv=no]</td>
 			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_noir_realise;noerr;strconv=no]</td>[onshow;block=end]
-			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_noir_facture;noerr;strconv=no]</td>[onshow;block=end]
+			<td align="center"[integrale.alert_noir_depassement;noerr;strconv=no]>
+				[integrale.vol_noir_facture;noerr;strconv=no]
+			</td>
 			<td align="right" nowrap="nowrap">[integrale.cout_unit_noir;frm=0,00000;noerr;strconv=no]</td>
 			<td align="center">[integrale.vol_coul_engage;noerr;strconv=no]</td>
 			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_coul_realise;noerr;strconv=no]</td>[onshow;block=end]
-			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_coul_facture;noerr;strconv=no]</td>[onshow;block=end]
+			<td align="center"[integrale.alert_coul_depassement;noerr;strconv=no]>
+				[integrale.vol_coul_facture;noerr;strconv=no]
+			</td>
 			<td align="right" nowrap="nowrap">[integrale.cout_unit_coul;frm=0,00000;noerr;strconv=no]</td>
 			<td align="right" nowrap="nowrap">[integrale.fas;frm=0 000,00;noerr] &euro;</td>
 			<td align="right" nowrap="nowrap">[integrale.fass;frm=0 000,00;noerr] &euro;</td>
@@ -94,11 +98,15 @@
 			<td align="center">[integrale.date_facture;block=tr;noerr;strconv=no]</td>
 			<td align="center">[integrale.vol_noir_engage;noerr;strconv=no]</td>
 			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_noir_realise;noerr;strconv=no]</td>[onshow;block=end]
-			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_noir_facture;noerr;strconv=no]</td>[onshow;block=end]
+			<td align="center"[integrale.alert_noir_depassement;noerr;strconv=no]>
+				[integrale.vol_noir_facture;noerr;strconv=no]
+			</td>
 			<td align="right" nowrap="nowrap">[integrale.cout_unit_noir;frm=0,00000;noerr;strconv=no]</td>
 			<td align="center">[integrale.vol_coul_engage;noerr;strconv=no]</td>
 			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_coul_realise;noerr;strconv=no]</td>[onshow;block=end]
-			[onshow;block=begin;when [error]=='0']<td align="center">[integrale.vol_coul_facture;noerr;strconv=no]</td>[onshow;block=end]
+			<td align="center"[integrale.alert_coul_depassement;noerr;strconv=no]>
+				[integrale.vol_coul_facture;noerr;strconv=no]
+			</td>
 			<td align="right" nowrap="nowrap">[integrale.cout_unit_coul;frm=0,00000;noerr;strconv=no]</td>
 			<td align="right" nowrap="nowrap">[integrale.fas;frm=0 000,00;noerr] &euro;</td>
 			<td align="right" nowrap="nowrap">[integrale.fass;frm=0 000,00;noerr] &euro;</td>
