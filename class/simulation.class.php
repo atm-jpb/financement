@@ -297,9 +297,10 @@ class TSimulation extends TObjetStd {
 		// Ajout des autres leasers de la liste (sauf le prio)
 		foreach($grille as $TData) {
 			if($TData['fk_leaser'] == $idLeaserPrio) continue;
-			$leaser->id = $TData['fk_leaser'];
 			$simulationSuivi = new TSimulationSuivi;
-			$simulationSuivi->init($PDOdb,$leaser,$this->getId());
+			$simulationSuivi->leaser = new Fournisseur($db);
+			$simulationSuivi->leaser->fetch($TData['fk_leaser']);
+			$simulationSuivi->init($PDOdb,$simulationSuivi->leaser,$this->getId());
 			$simulationSuivi->save($PDOdb);
 			
 			$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
