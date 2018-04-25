@@ -287,7 +287,7 @@ class TSimulation extends TObjetStd {
 			$simulationSuivi->save($PDOdb);
 			
 			// Lancement de la demande automatique via EDI pour le leaser prioritaire
-			if(in_array($simulationSuivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP'))) {
+			if(empty($this->no_auto_edi) && in_array($simulationSuivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP'))) {
 				$simulationSuivi->doAction($PDOdb, $this, 'demander');
 			}
 			
@@ -1605,6 +1605,23 @@ class TSimulation extends TObjetStd {
 	    return $start;
 	}
 
+	function clone_simu() {
+		$this->start();
+		$this->fk_user_author = $user->id;
+		$this->TSimulationSuivi = array();
+		$this->TSimulationSuiviHistorized = array();
+		$this->accord = 'WAIT';
+		$this->date_simul = time();
+		
+		// On vide les préconisations
+		$this->fk_leaser = 0;
+		$this->type_financement = '';
+		$this->coeff_final = 0;
+		$this->numero_accord = '';
+		
+		// Pas d'appel auto aux EDI sur un clone
+		$this->no_auto_edi = true;
+	}
 }
 
 

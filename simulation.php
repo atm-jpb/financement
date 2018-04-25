@@ -213,6 +213,17 @@ if(!empty($action)) {
 			_fiche($ATMdb, $simulation,'edit');
 			
 			break;
+			
+		case 'clone':
+		
+			$simulation->load($ATMdb, $db, $_REQUEST['id']);
+			$simulation->clone_simu();
+			$simulation->save($ATMdb, $db, false);
+			
+			header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->getId());
+			exit();
+			
+			break;
 		
 		case 'save_suivi':
 			
