@@ -1788,8 +1788,6 @@ class TSimulation extends TObjetStd {
 	}
 	
 	/**
-	 * TODO calculer le delta des dossiers rachetés entre solde R et NR pour appliquer aux différents suivi
-	 * 
 	 * a. Pour chaque dossier racheté, calcul de la différence de solde R et NR par Leaser, applicable aux autres
 	 * b. Différence solde = Somme différence dossiers rachetés des autres leasers
 	 * 
