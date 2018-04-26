@@ -214,6 +214,7 @@ class TSimulation extends TObjetStd {
 				$this->dossiers[$k]['num_contrat'] = $fin->reference;
 				$this->dossiers[$k]['num_contrat_leaser'] = $fin_leaser->reference;
 				$this->dossiers[$k]['leaser'] = $leaser->nom;
+				$this->dossiers[$k]['object_leaser'] = $leaser;
 				$this->dossiers[$k]['retrait_copie_supp'] = $dossier->soldeperso;
 				$this->dossiers[$k]['date_debut_periode_client'] = $date_debut_periode_client;
 				$this->dossiers[$k]['date_fin_periode_client'] = $date_fin_periode_client;
@@ -755,11 +756,14 @@ class TSimulation extends TObjetStd {
 		// Calcul à partir du montant
 		if(!empty($this->montant_total_finance)) {
 			//var_dump($this->montant_total_finance, $this->duree, $grille->TGrille);exit;
-			foreach($grille->TGrille[$this->duree] as $palier => $infos) {
-				if($this->montant_total_finance <= $palier)
-				{
-					$this->coeff = $infos['coeff']; // coef trimestriel
-					break;
+			if (!empty($grille->TGrille[$this->duree]))
+			{
+				foreach($grille->TGrille[$this->duree] as $palier => $infos) {
+					if($this->montant_total_finance <= $palier)
+					{
+						$this->coeff = $infos['coeff']; // coef trimestriel
+						break;
+					}
 				}
 			}
 		} else if(!empty($this->echeance)) { // Calcul à partir de l'échéance
@@ -1644,7 +1648,7 @@ class TSimulation extends TObjetStd {
 			
 			if ($suivi->turn_over < $min_turn_over || is_null($min_turn_over)) $min_turn_over = $suivi->turn_over;
 		}
-
+		
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
 			$suivi->renta_amount = $suivi->surfact + $suivi->surfactplus + $suivi->commission + $suivi->intercalaire + $suivi->diff_solde + $suivi->prime_volume + ($min_turn_over - $suivi->turn_over);
@@ -1714,7 +1718,7 @@ class TSimulation extends TObjetStd {
 		{
 			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 			
-			$percent_surfactplus = price2num($leaser->array_options['percent_surfactplus']); // 1%
+			$percent_surfactplus = price2num($leaser->array_options['options_percent_surfactplus']); // 1%
 			$suivi->surfactplus = ($this->montant * (1 + $coef_line['coeff'] / 100)) * ($percent_surfactplus / 100);
 			$suivi->calcul_detail['surfactplus'] = 'Surfact+ = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) * ('.$percent_surfactplus.' / 100) = '.$suivi->surfactplus;
 		}
@@ -1745,7 +1749,7 @@ class TSimulation extends TObjetStd {
 		{
 			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 			
-			$percent_commission = price2num($leaser->array_options['percent_commission']);
+			$percent_commission = price2num($leaser->array_options['options_percent_commission']);
 			$suivi->commission = ($this->montant * (1 + $coef_line['coeff'] / 100)) * ($percent_commission / 100);
 			$suivi->calcul_detail['commission'] = 'Commission = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) * ('.$percent_commission.' / 100) = '.$suivi->commission;
 		}
@@ -1770,8 +1774,8 @@ class TSimulation extends TObjetStd {
 		$suivi->intercalaire = 0;
 		$entity = $this->getDaoEntity($conf->entity);
 
-		$suivi->intercalaire = $this->echeance * ($entity->array_option['options_percent_moyenne_intercalaire'] / 100);
-		$suivi->calcul_detail['intercalaire'] = 'Intercalaire = '.$this->echeance.' * ('.$entity->array_option['options_percent_moyenne_intercalaire'].' / 100)';
+		$suivi->intercalaire = $this->echeance * ($entity->array_options['options_percent_moyenne_intercalaire'] / 100);
+		$suivi->calcul_detail['intercalaire'] = 'Intercalaire = '.$this->echeance.' * ('.$entity->array_options['options_percent_moyenne_intercalaire'].' / 100)';
 		if (empty($this->opt_calage))
 		{
 			$suivi->intercalaire *= ($suivi->leaser->array_options['options_percent_intercalaire'] / 100);
@@ -1784,7 +1788,7 @@ class TSimulation extends TObjetStd {
 	}
 	
 	/**
-	 * TODO calculer le delta das dossier racheté entre solde R et NR pour appliquer aux différents suivi
+	 * TODO calculer le delta des dossiers rachetés entre solde R et NR pour appliquer aux différents suivi
 	 * 
 	 * a. Pour chaque dossier racheté, calcul de la différence de solde R et NR par Leaser, applicable aux autres
 	 * b. Différence solde = Somme différence dossiers rachetés des autres leasers
@@ -1795,11 +1799,35 @@ class TSimulation extends TObjetStd {
 	{
 		// Si déjà calculé alors je renvoi la valeur immédiatemment
 		if (!empty($suivi->diff_solde)) return $suivi->diff_solde;
-
-		$suivi->diff_solde = 0;
 		
-		$suivi->calcul_detail['diff_solde'] = 'Diff solde: TODO ';
-
+		$suivi->diff_solde = 0;
+		$suivi->calcul_detail['diff_solde'] = 'Diff solde = ';
+		$detail_delta = '';
+		
+		$leaser = $suivi->loadLeaser();
+		$TCatLeaser = self::getTCatLeaserFromLeaserId($leaser->id);
+		
+		$TDeltaByDossier = $this->getTDeltaByDossier();
+		foreach ($TDeltaByDossier as $fk_dossier => $delta)
+		{
+			$TCatLeaser_tmp = self::getTCatLeaserFromLeaserId($this->dossiers[$fk_dossier]['object_leaser']->id);
+			$intersect = array_intersect(array_keys($TCatLeaser), array_keys($TCatLeaser_tmp));
+			
+			// Si pas d'intersect (pas de catégorie leaser commune), alors j'ajoute le delta
+			if (empty($intersect))
+			{
+				$suivi->diff_solde += $delta;
+				$detail_delta[] = $delta;
+			}
+		}
+		
+		if (!empty($detail_delta))
+		{
+			if (count($detail_delta) > 1) $suivi->calcul_detail['diff_solde'].= '('.implode(' + ', $detail_delta).') = '.array_sum($detail_delta);
+			else $suivi->calcul_detail['diff_solde'].= current($detail_delta);
+		}
+		else $suivi->calcul_detail['diff_solde'].= '0';
+		
 		return $suivi->diff_solde;
 	}
 	
@@ -1881,7 +1909,54 @@ class TSimulation extends TObjetStd {
 
 		return $entity;
 	}
+	
+	private function getTDeltaByDossier($force=false)
+	{
+		global $TDeltaByDossier;
+		
+		if (empty($TDeltaByDossier) || $force)
+		{
+			$TDeltaByDossier = array();
 
+			$TTabToCheck = array('dossiers_rachetes_m1' => 'dossiers_rachetes_nr_m1', 'dossiers_rachetes' => 'dossiers_rachetes_nr', 'dossiers_rachetes_p1' => 'dossiers_rachetes_nr_p1');
+			foreach ($TTabToCheck as $attr_R => $attr_NR)
+			{
+				// On check la période -1, puis la période courrante et enfin la période +1
+				foreach ($this->{$attr_R} as $fk_dossier => $Tab)
+				{
+					// Si quelque chose a été check dans un tableau R ou NR, alors je calcul le delta et je passe au dossier suivant (break)
+					if (!empty($Tab['checked']) || !empty($this->{$attr_NR}['checked'])) 
+					{
+						$TDeltaByDossier[$fk_dossier] = $this->{$attr_NR}[$fk_dossier]['montant'] - $Tab['montant'];
+						break;
+					}
+				}
+			}
+		}
+		
+		return $TDeltaByDossier;
+	}
+	
+	static function getTCatLeaserFromLeaserId($fk_leaser, $force=false)
+	{
+		global $db,$TCategoryByLeaser;
+		
+		if (empty($TCategoryByLeaser[$fk_leaser]) || $force)
+		{
+			$TCategoryByLeaser[$fk_leaser] = array();
+			
+			$c = new Categorie($db);
+			$c->fetch(null, 'Leaser');
+			
+			$Tab = $c->containing($fk_leaser, 1);
+			foreach ($Tab as &$cat)
+			{
+				if ($cat->fk_parent == $c->id) $TCategoryByLeaser[$fk_leaser][$cat->id] = $cat;
+			}
+		}
+		
+		return $TCategoryByLeaser[$fk_leaser];
+	}
 }
 
 
@@ -1971,6 +2046,8 @@ class TSimulationSuivi extends TObjetStd {
 		$this->user = new User($db);
 		$this->user->fetch($this->fk_user_author);
 		
+		if (empty($this->calcul_detail)) $this->calcul_detail = array();
+		
 		return $res;
 	}
 	
@@ -1984,7 +2061,7 @@ class TSimulationSuivi extends TObjetStd {
 			$this->leaser->fetch($this->fk_leaser);
 		}
 		
-		return $this->leaser->id;
+		return $this->leaser;
 	}
 	
 	//Initialisation de l'objet avec les infos de base
