@@ -1800,7 +1800,7 @@ class TSimulation extends TObjetStd {
 		
 		$suivi->diff_solde = 0;
 		$suivi->calcul_detail['diff_solde'] = 'Diff solde = ';
-		$detail_delta = '';
+		$detail_delta = array();
 		
 		$leaser = $suivi->loadLeaser();
 		$TCatLeaser = self::getTCatLeaserFromLeaserId($leaser->id);
@@ -1866,6 +1866,8 @@ class TSimulation extends TObjetStd {
 
 		$duree_theorique = ceil($this->duree * ($entity->array_options['options_percent_duree_vie'] / 100));
 
+// TODO besoin de simuler un échéancier de doisser avec les paramètres de la simulation puis getSoldeR()
+		
 		$simulationCopy = clone $this;
 		$simulationCopy->duree = $duree_theorique; // Be careful: $duree_theotique peut ce trouver hors grille
 		
@@ -1923,7 +1925,7 @@ class TSimulation extends TObjetStd {
 				foreach ($this->{$attr_R} as $fk_dossier => $Tab)
 				{
 					// Si quelque chose a été check dans un tableau R ou NR, alors je calcul le delta et je passe au dossier suivant (break)
-					if (!empty($Tab['checked']) || !empty($this->{$attr_NR}['checked'])) 
+					if (!empty($Tab['checked']) || !empty($this->{$attr_NR}[$fk_dossier]['checked']))
 					{
 						$TDeltaByDossier[$fk_dossier] = $this->{$attr_NR}[$fk_dossier]['montant'] - $Tab['montant'];
 						break;
