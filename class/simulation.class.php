@@ -1574,6 +1574,7 @@ class TSimulation extends TObjetStd {
 	            $start = $end;
 	        } else {
 	            $compteur += $matinfin - $start;
+	            if($end < $apremdebut) $start = $end;
 	            if($end > $apremdebut && $end < $apremfin) {
 	                $compteur += $end - $apremdebut;
 	                $start = $end;
