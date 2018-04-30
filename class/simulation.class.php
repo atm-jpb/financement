@@ -1684,8 +1684,8 @@ class TSimulation extends TObjetStd {
 		
 		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree);
 		
-		if ($coef_line == -1) $suivi->calcul_detail['surfact'] = 'Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
-		else if ($coef_line == -2) $suivi->calcul_detail['surfact'] = 'Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
+		if ($coef_line == -1) $suivi->calcul_detail['surfact'] = 'Surfact = Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
+		else if ($coef_line == -2) $suivi->calcul_detail['surfact'] = 'Surfact = Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
 		else
 		{
 			$suivi->surfact = ($this->montant * (1 + $coef_line['coeff'] / 100)) - $this->montant;
@@ -1712,8 +1712,8 @@ class TSimulation extends TObjetStd {
 		
 		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree);
 		
-		if ($coef_line == -1) $suivi->calcul_detail['surfactplus'] = 'Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
-		else if ($coef_line == -2) $suivi->calcul_detail['surfactplus'] = 'Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
+		if ($coef_line == -1) $suivi->calcul_detail['surfactplus'] = 'Surfact+ = Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
+		else if ($coef_line == -2) $suivi->calcul_detail['surfactplus'] = 'Surfact+ = Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
 		else
 		{
 			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
@@ -1743,8 +1743,8 @@ class TSimulation extends TObjetStd {
 		
 		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree);
 		
-		if ($coef_line == -1) $suivi->calcul_detail['commission'] = 'Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
-		else if ($coef_line == -2) $suivi->calcul_detail['commission'] = 'Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
+		if ($coef_line == -1) $suivi->calcul_detail['commission'] = 'Commission = Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
+		else if ($coef_line == -2) $suivi->calcul_detail['commission'] = 'Commission = Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
 		else
 		{
 			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
@@ -1841,7 +1841,7 @@ class TSimulation extends TObjetStd {
 		if (!empty($suivi->prime_volume)) return $suivi->prime_volume;
 
 		$suivi->prime_volume = ($this->calcSurfact($PDOdb, $suivi) + $this->calcSurfactPlus($PDOdb, $suivi)) * ($suivi->leaser->array_options['options_percent_prime_volume'] / 100);
-		$suivi->calcul_detail['prime_volume'] = 'PV = ('.$this->calcSurfact($PDOdb, $suivi).' + '.$this->calcSurfactPlus($PDOdb, $suivi).') * ('.$suivi->leaser->array_options['options_percent_prime_volume'].' / 100)';
+		$suivi->calcul_detail['prime_volume'] = 'PV = ('.$this->calcSurfact($PDOdb, $suivi).' + '.$this->calcSurfactPlus($PDOdb, $suivi).') * ('.$suivi->leaser->array_options['options_percent_prime_volume'].' / 100) = '.$suivi->prime_volume;
 
 		return $suivi->prime_volume;
 	}
@@ -1866,30 +1866,28 @@ class TSimulation extends TObjetStd {
 
 		$duree_theorique = ceil($this->duree * ($entity->array_options['options_percent_duree_vie'] / 100));
 
-// TODO besoin de simuler un échéancier de doisser avec les paramètres de la simulation puis getSoldeR()
-		
-		$simulationCopy = clone $this;
-		$simulationCopy->duree = $duree_theorique; // Be careful: $duree_theotique peut ce trouver hors grille
-		
-		$simulationCopy->accord = '';
-		$simulationCopy->_calcul($PDOdb);
-		// Durée non renseignée dans la grille
-		if ($simulationCopy->error == 'ErrorAmountOutOfGrille')
-		{
-			// On cherche la durée supérieure la plus proche
-			foreach ($simulationCopy->last_grille_load->TGrille as $duree => $Tab)
-			{
-				if ($duree > $duree_theorique)
-				{
-					$simulationCopy->duree = $duree;
-					$simulationCopy->_calcul($PDOdb);
-					break;
-				}
-			}
-		}
 
-		$suivi->turn_over = $simulationCopy->echeance;
-		$suivi->calcul_detail['turn_over'] = 'Turn over = '.$suivi->turn_over;
+		$Tab = (array) $this;
+		// Simulation de l'écheancier
+		$dossier_simule = new TFin_dossier();
+		$dossier_simule->set_values($Tab);
+		$dossier_simule->financement->set_values($Tab);
+		$dossier_simule->date_debut = date('d/m/Y');
+		$dossier_simule->financement->calculTaux();
+		$dossier_simule->calculSolde();
+		$dossier_simule->calculRenta($PDOdb);
+		$TRes = $dossier_simule->echeancier($PDOdb, 'CLIENT', 1, true);
+		$TLineEcheancier = &$TRes['ligne'];
+
+		if (!empty($TLineEcheancier[$duree_theorique-1]))
+		{
+			$suivi->turn_over = $TLineEcheancier[$duree_theorique-1]['capital'];
+			$suivi->calcul_detail['turn_over'] = 'Turn over = '.$suivi->turn_over;
+		}
+		else
+		{
+			$suivi->calcul_detail['turn_over'] = 'Turn over = La durée théorique ('.$duree_theorique.') ne correspond à aucun montant de l\'échéancier simulé';
+		}
 
 		return $suivi->turn_over;
 	}
