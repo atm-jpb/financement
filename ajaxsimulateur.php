@@ -100,13 +100,7 @@ function get_grille(&$ATMdb) {
 	if($fk_type_contrat == 'GRANDCOMPTE') unset($options['opt_mode_reglement']);
 	
 	$grille = new TFin_grille_leaser();
-	// 2018-04-25 MKO : Verrue temporaire, pour 1 user il faut les coeff d'une autre entité
-	// Une commerciale ABG doit avoir les coeff de l'entité QUADRA
-	$entity = GETPOST('entity');
-	if($user->id == 1520) {
-		$entity = 9;
-	}
-	$grille->get_grille($ATMdb, $idLeaser, $fk_type_contrat, $opt_periodicite, $options, $entity);
+	$grille->get_grille($ATMdb, $idLeaser, $fk_type_contrat, $opt_periodicite, $options, GETPOST('entity'));
 	
 	
 	if (empty($grille->TGrille)) {

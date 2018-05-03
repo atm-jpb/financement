@@ -725,15 +725,7 @@ class TSimulation extends TObjetStd {
 		
 		// Récupération de la grille pour les paramètres donnés
 		$grille = new TFin_grille_leaser;
-		
-		// 2018-04-25 MKO : Verrue temporaire, pour 1 user il faut les coeff d'une autre entité
-		// Une commerciale ABG doit avoir les coeff de l'entité QUADRA
-		$entity = $this->entity;
-		if($this->fk_user_author == 1520) {
-			$entity = 9;
-		}
-		
-		$grille->get_grille($ATMdb, $idLeaser, $this->fk_type_contrat, $this->opt_periodicite, $options, $entity);
+		$grille->get_grille($ATMdb, $idLeaser, $this->fk_type_contrat, $this->opt_periodicite, $options, $this->entity);
 		
 		if(empty($grille->TGrille)) { // Pas de grille chargée, pas de calcul
 			$this->error = 'ErrorNoGrilleSelected';
@@ -1582,6 +1574,7 @@ class TSimulation extends TObjetStd {
 	            $start = $end;
 	        } else {
 	            $compteur += $matinfin - $start;
+	            if($end < $apremdebut) $start = $end;
 	            if($end > $apremdebut && $end < $apremfin) {
 	                $compteur += $end - $apremdebut;
 	                $start = $end;
