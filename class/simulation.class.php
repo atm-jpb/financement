@@ -1787,7 +1787,7 @@ class TSimulation extends TObjetStd {
 		{
 			// Intercalaire C'Pro
 			$suivi->intercalaire = $this->echeance * ($entity->array_options['options_percent_moyenne_intercalaire'] / 100);
-			$suivi->calcul_detail['intercalaire'] = ' = '.$this->echeance.' * ('.$entity->array_options['options_percent_moyenne_intercalaire'].' / 100)';
+			$suivi->calcul_detail['intercalaire'].= ' = '.$this->echeance.' * ('.$entity->array_options['options_percent_moyenne_intercalaire'].' / 100)';
 			// Intercalaire Leaser
 			$suivi->intercalaire *= ($suivi->leaser->array_options['options_percent_intercalaire'] / 100);
 			$suivi->calcul_detail['intercalaire'].= ' * ('.$suivi->leaser->array_options['options_percent_intercalaire'].' / 100)';
@@ -1882,23 +1882,16 @@ class TSimulation extends TObjetStd {
 		// Simulation de l'écheancier
 		$dossier_simule = new TFin_dossier();
 		$dossier_simule->set_values($Tab);
-		$dossier_simule->financement->set_values($Tab);
+		$dossier_simule->financementLeaser->set_values($Tab);
+		$dossier_simule->financementLeaser->fk_soc = $suivi->leaser->id;
+		$dossier_simule->financementLeaser->montant = $suivi->montantfinanceleaser;
 		$dossier_simule->date_debut = date('d/m/Y');
-		$dossier_simule->financement->calculTaux();
+		$dossier_simule->financementLeaser->calculTaux();
 		$dossier_simule->calculSolde();
 		$dossier_simule->calculRenta($PDOdb);
-		$TRes = $dossier_simule->echeancier($PDOdb, 'CLIENT', 1, true);
-		$TLineEcheancier = &$TRes['ligne'];
-
-		if (!empty($TLineEcheancier[$duree_theorique-1]))
-		{
-			$suivi->turn_over = $TLineEcheancier[$duree_theorique-1]['capital'];
-			$suivi->calcul_detail['turn_over'] = 'Turn over = '.$suivi->turn_over;
-		}
-		else
-		{
-			$suivi->calcul_detail['turn_over'] = 'Turn over = La durée théorique ('.$duree_theorique.') ne correspond à aucun montant de l\'échéancier simulé';
-		}
+		
+		$suivi->turn_over = $dossier_simule->getSolde($PDOdb, 'SRBANK', $duree_theorique);
+		$suivi->calcul_detail['turn_over'] = 'Turn over = '.$suivi->turn_over;
 
 		return $suivi->turn_over;
 	}
