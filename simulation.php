@@ -217,6 +217,8 @@ if(!empty($action)) {
 		case 'clone':
 		
 			$simulation->load($ATMdb, $db, $_REQUEST['id']);
+			$simulation->accord = 'SS';
+			$simulation->save($ATMdb, $db, false);
 			$simulation->clone_simu();
 			$simulation->save($ATMdb, $db, false);
 			
