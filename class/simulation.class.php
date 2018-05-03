@@ -1638,7 +1638,7 @@ class TSimulation extends TObjetStd {
 		
 		$TMethod = explode(',', $conf->global->FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI);
 
-		$min_turn_over = 0;
+		$min_turn_over = null;
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
 			$this->calculMontantFinanceLeaser($PDOdb, $suivi);
@@ -1653,8 +1653,11 @@ class TSimulation extends TObjetStd {
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
 			$suivi->renta_amount = $suivi->surfact + $suivi->surfactplus + $suivi->commission + $suivi->intercalaire + $suivi->diff_solde + $suivi->prime_volume;
-			if($suivi->turn_over > 0) $suivi->renta_amount+= ($min_turn_over - $suivi->turn_over);
-			$suivi->renta_percent = ($suivi->renta_amount / $this->montant) * 100;
+			if($suivi->turn_over > 0) {
+				$suivi->renta_amount+= ($min_turn_over - $suivi->turn_over);
+				$suivi->calcul_detail['turn_over'] = 'Turn-over = ('.$min_turn_over.' - '.$suivi->turn_over.') = <strong>'.($min_turn_over - $suivi->turn_over).'</strong>';
+			}
+			$suivi->renta_percent = round(($suivi->renta_amount / $this->montant) * 100,2);
 		}
 
 		uasort($this->TSimulationSuivi, array($this, 'aiguillageSuivi'));
@@ -1679,8 +1682,9 @@ class TSimulation extends TObjetStd {
 		else if ($coef_line == -2) $suivi->calcul_detail['montantfinanceleaser'] = 'Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
 		else
 		{
-			$suivi->montantfinanceleaser = ($this->echeance / ($coef_line['coeff'] / 100));
-			$suivi->calcul_detail['montantfinanceleaser'] = 'Montant financé leaser = '.$this->echeance.' / '.($coef_line['coeff'] / 100).' = '.$suivi->montantfinanceleaser;
+			$suivi->montantfinanceleaser = round($this->echeance / ($coef_line['coeff'] / 100), 2);
+			$suivi->calcul_detail['montantfinanceleaser'] = 'Montant financé leaser = '.$this->echeance.' / '.($coef_line['coeff'] / 100);
+			$suivi->calcul_detail['montantfinanceleaser'].= ' = <strong>'.$suivi->montantfinanceleaser.'</strong>';
 		}
 		
 		return $suivi->montantfinanceleaser;
@@ -1703,7 +1707,8 @@ class TSimulation extends TObjetStd {
 		else
 		{
 			$suivi->surfact = $suivi->montantfinanceleaser - $this->montant;
-			$suivi->calcul_detail['surfact'] = 'Surfact = '.$suivi->montantfinanceleaser.' - '.$this->montant.' = '.$suivi->surfact;
+			$suivi->calcul_detail['surfact'] = 'Surfact = '.$suivi->montantfinanceleaser.' - '.$this->montant;
+			$suivi->calcul_detail['surfact'].= ' = <strong>'.$suivi->surfact.'</strong>';
 		}
 		
 		return $suivi->surfact;
@@ -1728,8 +1733,9 @@ class TSimulation extends TObjetStd {
 			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 			
 			$percent_surfactplus = price2num($suivi->leaser->array_options['options_percent_surfactplus']); // 1%
-			$suivi->surfactplus = $suivi->montantfinanceleaser * ($percent_surfactplus / 100);
-			$suivi->calcul_detail['surfactplus'] = 'Surfact+ = '.$suivi->montantfinanceleaser.' * ('.$percent_surfactplus.' / 100) = '.$suivi->surfactplus;
+			$suivi->surfactplus = round($suivi->montantfinanceleaser * ($percent_surfactplus / 100),2);
+			$suivi->calcul_detail['surfactplus'] = 'Surfact+ = '.$suivi->montantfinanceleaser.' * ('.$percent_surfactplus.' / 100)';
+			$suivi->calcul_detail['surfactplus'].= ' = <strong>'.$suivi->surfactplus.'</strong>';
 		}
 		
 		return $suivi->surfactplus;
@@ -1758,8 +1764,9 @@ class TSimulation extends TObjetStd {
 			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 			
 			$percent_commission = price2num($leaser->array_options['options_percent_commission']);
-			$suivi->commission = ($suivi->montantfinanceleaser + $suivi->surfactplus) * ($percent_commission / 100);
-			$suivi->calcul_detail['commission'] = 'Commission = ('.$suivi->montantfinanceleaser.' + '.$suivi->surfactplus.') * ('.$percent_commission.' / 100) = '.$suivi->commission;
+			$suivi->commission = round(($suivi->montantfinanceleaser + $suivi->surfactplus) * ($percent_commission / 100),2);
+			$suivi->calcul_detail['commission'] = 'Commission = ('.$suivi->montantfinanceleaser.' + '.$suivi->surfactplus.') * ('.$percent_commission.' / 100)';
+			$suivi->calcul_detail['commission'].= ' = <strong>'.$suivi->commission.'</strong>';
 		}
 		
 		return $suivi->commission;
@@ -1792,9 +1799,11 @@ class TSimulation extends TObjetStd {
 			// Intercalaire Leaser
 			$suivi->intercalaire *= ($suivi->leaser->array_options['options_percent_intercalaire'] / 100);
 			$suivi->calcul_detail['intercalaire'].= ' * ('.$suivi->leaser->array_options['options_percent_intercalaire'].' / 100)';
+			
+			$suivi->intercalaire = round($suivi->intercalaire,2);
 		}
 		
-		$suivi->calcul_detail['intercalaire'].= ' = '.$suivi->intercalaire;
+		$suivi->calcul_detail['intercalaire'].= ' = <strong>'.$suivi->intercalaire.'</strong>';
 
 		return $suivi->intercalaire;
 	}
@@ -1833,10 +1842,10 @@ class TSimulation extends TObjetStd {
 		
 		if (!empty($detail_delta))
 		{
-			if (count($detail_delta) > 1) $suivi->calcul_detail['diff_solde'].= '('.implode(' + ', $detail_delta).') = '.array_sum($detail_delta);
-			else $suivi->calcul_detail['diff_solde'].= current($detail_delta);
+			if (count($detail_delta) > 1) $suivi->calcul_detail['diff_solde'].= '('.implode(' + ', $detail_delta).') = <strong>'.$suivi->diff_solde.'</strong>';
+			else $suivi->calcul_detail['diff_solde'].= '<strong>'.$suivi->diff_solde.'</strong>';
 		}
-		else $suivi->calcul_detail['diff_solde'].= '0';
+		else $suivi->calcul_detail['diff_solde'].= '<strong>0</strong>';
 		
 		return $suivi->diff_solde;
 	}
@@ -1852,8 +1861,9 @@ class TSimulation extends TObjetStd {
 		// Si déjà calculé alors je renvoi la valeur immédiatemment
 		if (!empty($suivi->prime_volume)) return $suivi->prime_volume;
 
-		$suivi->prime_volume = ($this->calcSurfact($PDOdb, $suivi) + $this->calcSurfactPlus($PDOdb, $suivi)) * ($suivi->leaser->array_options['options_percent_prime_volume'] / 100);
-		$suivi->calcul_detail['prime_volume'] = 'PV = ('.$this->calcSurfact($PDOdb, $suivi).' + '.$this->calcSurfactPlus($PDOdb, $suivi).') * ('.$suivi->leaser->array_options['options_percent_prime_volume'].' / 100) = '.$suivi->prime_volume;
+		$suivi->prime_volume = round(($suivi->montantfinanceleaser + $suivi->surfactplus) * ($suivi->leaser->array_options['options_percent_prime_volume'] / 100),2);
+		$suivi->calcul_detail['prime_volume'] = 'PV = ('.$suivi->montantfinanceleaser.' + '.$suivi->surfactplus.') * ('.$suivi->leaser->array_options['options_percent_prime_volume'].' / 100)';
+		$suivi->calcul_detail['prime_volume'].= ' = <strong>'.$suivi->prime_volume.'</strong>';
 
 		return $suivi->prime_volume;
 	}
@@ -1891,8 +1901,12 @@ class TSimulation extends TObjetStd {
 		$dossier_simule->calculSolde();
 		$dossier_simule->calculRenta($PDOdb);
 		
-		$suivi->turn_over = $dossier_simule->getSolde($PDOdb, 'SRBANK', $duree_theorique);
-		$suivi->calcul_detail['turn_over'] = 'Turn over = '.$suivi->turn_over;
+		$suivi->turn_over = round($dossier_simule->getSolde($PDOdb, 'SRBANK', $duree_theorique),2);
+		if(!empty($suivi->turn_over)) {
+			$suivi->calcul_detail['solde_turn_over'] = 'Solde à échéance '.$duree_theorique.' = '.$suivi->turn_over;
+		} else {
+			$suivi->calcul_detail['solde_turn_over'] = 'Solde à échéance '.$duree_theorique.' impossible';
+		}
 
 		return $suivi->turn_over;
 	}
@@ -1940,7 +1954,7 @@ class TSimulation extends TObjetStd {
 						$soldeR = $d->getSolde($PDOdb, 'SRBANK', $periode);
 						$soldeNR = $d->getSolde($PDOdb, 'SNRBANK', $periode);
 						
-						$TDeltaByDossier[$fk_dossier] = $soldeR - $soldeNR;
+						$TDeltaByDossier[$fk_dossier] = round($soldeR - $soldeNR,2);
 						break;
 					}
 				}
