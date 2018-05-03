@@ -1817,7 +1817,7 @@ class TSimulation extends TObjetStd {
 		$leaser = $suivi->loadLeaser();
 		$TCatLeaser = self::getTCatLeaserFromLeaserId($leaser->id);
 		
-		$TDeltaByDossier = $this->getTDeltaByDossier();
+		$TDeltaByDossier = $this->getTDeltaByDossier($PDOdb);
 		foreach ($TDeltaByDossier as $fk_dossier => $delta)
 		{
 			$TCatLeaser_tmp = self::getTCatLeaserFromLeaserId($this->dossiers[$fk_dossier]['object_leaser']->id);
@@ -1913,7 +1913,7 @@ class TSimulation extends TObjetStd {
 		return $entity;
 	}
 	
-	private function getTDeltaByDossier($force=false)
+	private function getTDeltaByDossier(&$PDOdb, $force=false)
 	{
 		global $TDeltaByDossier;
 		
@@ -1930,7 +1930,17 @@ class TSimulation extends TObjetStd {
 					// Si quelque chose a été check dans un tableau R ou NR, alors je calcul le delta et je passe au dossier suivant (break)
 					if (!empty($Tab['checked']) || !empty($this->{$attr_NR}[$fk_dossier]['checked']))
 					{
-						$TDeltaByDossier[$fk_dossier] = $this->{$attr_NR}[$fk_dossier]['montant'] - $Tab['montant'];
+						$d = new TFin_dossier();
+						$d->load($PDOdb, $fk_dossier);
+						
+						$periode = $d->financementLeaser->numero_prochaine_echeance;
+						if(strpos($attr_NR, 'm1') !== false) $periode--;
+						if(strpos($attr_NR, 'p1') !== false) $periode++;
+						
+						$soldeR = $d->getSolde($PDOdb, 'SRBANK', $periode);
+						$soldeNR = $d->getSolde($PDOdb, 'SNRBANK', $periode);
+						
+						$TDeltaByDossier[$fk_dossier] = $soldeR - $soldeNR;
 						break;
 					}
 				}
