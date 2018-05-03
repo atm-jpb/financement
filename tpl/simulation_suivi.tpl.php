@@ -24,8 +24,8 @@
 		
 		<tr class="[ligne.class]">
 			<td style="text-align: left;"><!-- [ligne.#; block=tr] -->[ligne.leaser;strconv=no]</td>
-			<td>[ligne.object.renta_amount;strconv=no; frm=0,00]</td>
-			<td>[ligne.show_renta_percent;strconv=no;]</td>
+			<td style="text-align: right;">[ligne.object.renta_amount;strconv=no; frm=0,00]</td>
+			<td style="text-align: right;">[ligne.show_renta_percent;strconv=no; frm=0,00]</td>
 			<!--<td>[ligne.demande;strconv=no]</td>-->
 			<td>[ligne.date_demande]</td>
 			<td>[ligne.resultat;strconv=no]</td>
@@ -63,7 +63,7 @@
 		<tr class="[TLigneHistorized.class]">
 			<td style="text-align: left;"><!-- [TLigneHistorized.#; block=tr] -->[TLigneHistorized.leaser;strconv=no]</td>
 			<td>[ligne.object.renta_amount;strconv=no; frm=0,00]</td>
-			<td>[ligne.show_renta_percent;strconv=no;]</td>
+			<td>[ligne.show_renta_percent;strconv=no; frm=0,00]</td>
 			<!--<td>[TLigneHistorized.demande;strconv=no]</td>-->
 			<td>[TLigneHistorized.date_demande]</td>
 			<td>[TLigneHistorized.resultat;strconv=no]</td>
