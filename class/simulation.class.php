@@ -1726,7 +1726,7 @@ class TSimulation extends TObjetStd {
 		{
 			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 			
-			$percent_surfactplus = price2num($this->leaser->array_options['options_percent_surfactplus']); // 1%
+			$percent_surfactplus = price2num($suivi->leaser->array_options['options_percent_surfactplus']); // 1%
 			$suivi->surfactplus = $suivi->montantfinanceleaser * ($percent_surfactplus / 100);
 			$suivi->calcul_detail['surfactplus'] = 'Surfact+ = '.$suivi->montantfinanceleaser.' * ('.$percent_surfactplus.' / 100) = '.$suivi->surfactplus;
 		}
