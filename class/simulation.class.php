@@ -1641,6 +1641,7 @@ class TSimulation extends TObjetStd {
 		$min_turn_over = null;
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
+			$this->calculMontantFinanceLeaser($PDOdb, $suivi);
 			foreach ($TMethod as $method_name)
 			{
 				$this->{$method_name}($PDOdb, $suivi);
@@ -1666,6 +1667,23 @@ class TSimulation extends TObjetStd {
 			$i++;
 		}
 	}
+
+	function calculMontantFinanceLeaser(&$PDOdb, &$suivi) {
+		$suivi->montantfinanceleaser = 0;
+			
+		$leaser = $suivi->loadLeaser();
+		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree);
+		
+		if ($coef_line == -1) $suivi->calcul_detail['montantfinanceleaser'] = 'Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
+		else if ($coef_line == -2) $suivi->calcul_detail['montantfinanceleaser'] = 'Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
+		else
+		{
+			$suivi->montantfinanceleaser = ($this->echeance / ($coef_line['coeff'] / 100));
+			$suivi->calcul_detail['montantfinanceleaser'] = 'Montant financé leaser = '.$this->echeance.' / '.($coef_line['coeff'] / 100).' = '.$suivi->montantfinanceleaser;
+		}
+		
+		return $suivi->montantfinanceleaser;
+	}
 	
 	/**
 	 * a. on part de l’échéance client, on retrouve le coeff leaser, on calcule le montant finançable leaser
@@ -1680,16 +1698,11 @@ class TSimulation extends TObjetStd {
 
 		$suivi->surfact = 0;
 		
-		$leaser = $suivi->loadLeaser();
-		
-		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree);
-		
-		if ($coef_line == -1) $suivi->calcul_detail['surfact'] = 'Surfact = Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
-		else if ($coef_line == -2) $suivi->calcul_detail['surfact'] = 'Surfact = Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
+		if (empty($suivi->montantfinanceleaser)) $suivi->calcul_detail['surfact'] = 'Surfact = non calculable car pas de montant financé leaser';
 		else
 		{
-			$suivi->surfact = ($this->montant * (1 + $coef_line['coeff'] / 100)) - $this->montant;
-			$suivi->calcul_detail['surfact'] = 'Surfact = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) - '.$this->montant.' = '.$suivi->surfact;
+			$suivi->surfact = $suivi->montantfinanceleaser - $this->montant;
+			$suivi->calcul_detail['surfact'] = 'Surfact = '.$suivi->montantfinanceleaser.' - '.$this->montant.' = '.$suivi->surfact;
 		}
 		
 		return $suivi->surfact;
@@ -1708,19 +1721,14 @@ class TSimulation extends TObjetStd {
 
 		$suivi->surfactplus = 0;
 		
-		$leaser = $suivi->loadLeaser();
-		
-		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree);
-		
-		if ($coef_line == -1) $suivi->calcul_detail['surfactplus'] = 'Surfact+ = Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
-		else if ($coef_line == -2) $suivi->calcul_detail['surfactplus'] = 'Surfact+ = Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
+		if (empty($suivi->montantfinanceleaser)) $suivi->calcul_detail['surfactplus'] = 'Surfact+ = non calculable car pas de montant financé leaser';
 		else
 		{
 			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 			
-			$percent_surfactplus = price2num($leaser->array_options['options_percent_surfactplus']); // 1%
-			$suivi->surfactplus = ($this->montant * (1 + $coef_line['coeff'] / 100)) * ($percent_surfactplus / 100);
-			$suivi->calcul_detail['surfactplus'] = 'Surfact+ = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) * ('.$percent_surfactplus.' / 100) = '.$suivi->surfactplus;
+			$percent_surfactplus = price2num($this->leaser->array_options['options_percent_surfactplus']); // 1%
+			$suivi->surfactplus = $suivi->montantfinanceleaser * ($percent_surfactplus / 100);
+			$suivi->calcul_detail['surfactplus'] = 'Surfact+ = '.$suivi->montantfinanceleaser.' * ('.$percent_surfactplus.' / 100) = '.$suivi->surfactplus;
 		}
 		
 		return $suivi->surfactplus;
@@ -1743,15 +1751,14 @@ class TSimulation extends TObjetStd {
 		
 		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree);
 		
-		if ($coef_line == -1) $suivi->calcul_detail['commission'] = 'Commission = Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
-		else if ($coef_line == -2) $suivi->calcul_detail['commission'] = 'Commission = Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
+		if (empty($suivi->montantfinanceleaser)) $suivi->calcul_detail['commission'] = 'Commission = non calculable car pas de montant financé leaser';
 		else
 		{
 			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 			
 			$percent_commission = price2num($leaser->array_options['options_percent_commission']);
-			$suivi->commission = ($this->montant * (1 + $coef_line['coeff'] / 100)) * ($percent_commission / 100);
-			$suivi->calcul_detail['commission'] = 'Commission = ('.$this->montant.' * (1 + '.$coef_line['coeff'].' / 100)) * ('.$percent_commission.' / 100) = '.$suivi->commission;
+			$suivi->commission = $suivi->montantfinanceleaser * ($percent_commission / 100);
+			$suivi->calcul_detail['commission'] = 'Commission = '.$suivi->montantfinanceleaser.' * ('.$percent_commission.' / 100) = '.$suivi->commission;
 		}
 		
 		return $suivi->commission;
