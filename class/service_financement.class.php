@@ -411,11 +411,11 @@ class ServiceFinancement {
 			,'Infos_Apporteur' => array(
 				'B2B_APPORTEUR_ID' => $this->getApporteurId() // [char 9]* TODO à vérifier
 				,'B2B_PROT_ID' => $protocole_id // [char 4]* TODO à vérifier
-//				,'B2B_VENDEUR_ID' => '';
-				,'B2B_VENDEUR_EMAIL' => $u->email // Si vide alors il faut renseigner B2B_VENDEUR_ID
+				,'B2B_VENDEUR_ID' => 'C11006000' // TODO voir si on garde cette valeur fixe
+				,'B2B_VENDEUR_EMAIL' => 's.ruiz@cpro.fr' //$u->email // Si vide alors il faut renseigner B2B_VENDEUR_ID
 			)
 			,'Infos_Client' => array(
-				'B2B_SIREN' => $mysoc->idprof1 // [char 9]*
+				'B2B_SIREN' => '381228386'//$mysoc->idprof1 // [char 9]*
 			)
 			,'Infos_Financieres' => array(
 				'B2B_DUREE' => $this->simulation->duree * $frequence
@@ -1078,11 +1078,13 @@ class MySoapCmCic extends SoapClient
 	function __doRequest($request, $location, $saction, $version)
 	{
 		$this->realXML = $request;
-		$this->realXML = str_replace(array('SOAP-ENV', 'ns1', 'ns2:'), array('soapenv', 'doc', ''), $this->realXML);
-		$this->realXML = preg_replace('/ xmlns:ns2=".*"/', '', $this->realXML);
+//		$this->realXML = str_replace(array('SOAP-ENV', 'ns1', 'ns2:'), array('soapenv', 'doc', ''), $this->realXML);
+//		$this->realXML = preg_replace('/ xmlns:ns2=".*"/', '', $this->realXML);
 		
 //		$this->realXML = str_replace('<soapenv:Body>', '<soapenv:Header/><soapenv:Body>', $this->realXML);
-		/*$this->realXML = str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $this->realXML);*/
+		$this->realXML = str_replace('<?xml version="1.0" encoding="UTF-8"?>'."\n", '', $this->realXML);
+		
+		$this->realXML = str_replace('<ns1:B2B_CTR_REN_ADJ></ns1:B2B_CTR_REN_ADJ>', '<ns1:B2B_CTR_REN_ADJ/>', $this->realXML);
 		
 		return parent::__doRequest($this->realXML, $location, $saction, $version);
 	}
