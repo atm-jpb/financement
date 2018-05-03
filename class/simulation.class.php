@@ -648,7 +648,7 @@ class TSimulation extends TObjetStd {
 			$ligne['class'] = (count($TLignes) % 2) ? 'impair' : 'pair';
 			$ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
 			$ligne['object'] = $simulationSuivi;
-			$ligne['show_renta_percent'] = $formDolibarr->textwithpicto($simulationSuivi->renta_percent, implode('<br />', $simulationSuivi->calcul_detail),1,'help','',0,3);
+			$ligne['show_renta_percent'] = $formDolibarr->textwithpicto(price($simulationSuivi->renta_percent), implode('<br />', $simulationSuivi->calcul_detail),1,'help','',0,3);
 			$ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png',1).'" />' : '' ;
 			$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande') : '' ;
 			$img = $simulationSuivi->statut;
@@ -1733,7 +1733,7 @@ class TSimulation extends TObjetStd {
 		{
 			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 			
-			$percent_surfactplus = price2num($suivi->leaser->array_options['options_percent_surfactplus']); // 1%
+			$percent_surfactplus = round(price2num($suivi->leaser->array_options['options_percent_surfactplus']), 2); // 1%
 			$suivi->surfactplus = round($suivi->montantfinanceleaser * ($percent_surfactplus / 100),2);
 			$suivi->calcul_detail['surfactplus'] = 'Surfact+ = '.$suivi->montantfinanceleaser.' * ('.$percent_surfactplus.' / 100)';
 			$suivi->calcul_detail['surfactplus'].= ' = <strong>'.price($suivi->surfactplus).'</strong>';
@@ -1764,7 +1764,7 @@ class TSimulation extends TObjetStd {
 		{
 			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 			
-			$percent_commission = price2num($leaser->array_options['options_percent_commission']);
+			$percent_commission = round(price2num($leaser->array_options['options_percent_commission']), 2);
 			$suivi->commission = round(($suivi->montantfinanceleaser + $suivi->surfactplus) * ($percent_commission / 100),2);
 			$suivi->calcul_detail['commission'] = 'Commission = ('.$suivi->montantfinanceleaser.' + '.$suivi->surfactplus.') * ('.$percent_commission.' / 100)';
 			$suivi->calcul_detail['commission'].= ' = <strong>'.price($suivi->commission).'</strong>';
@@ -1795,11 +1795,13 @@ class TSimulation extends TObjetStd {
 		if (empty($this->opt_calage))
 		{
 			// Intercalaire C'Pro
-			$suivi->intercalaire = $this->echeance * ($entity->array_options['options_percent_moyenne_intercalaire'] / 100);
-			$suivi->calcul_detail['intercalaire'].= ' = '.$this->echeance.' * ('.$entity->array_options['options_percent_moyenne_intercalaire'].' / 100)';
+			$percent_cpro = round(price2num($entity->array_options['options_percent_moyenne_intercalaire']), 2);
+			$suivi->intercalaire = $this->echeance * ($percent_cpro / 100);
+			$suivi->calcul_detail['intercalaire'].= ' = '.$this->echeance.' * ('.$percent_cpro.' / 100)';
 			// Intercalaire Leaser
-			$suivi->intercalaire *= ($suivi->leaser->array_options['options_percent_intercalaire'] / 100);
-			$suivi->calcul_detail['intercalaire'].= ' * ('.$suivi->leaser->array_options['options_percent_intercalaire'].' / 100)';
+			$percent_leaser = round(price2num($suivi->leaser->array_options['options_percent_intercalaire']), 2);
+			$suivi->intercalaire *= ($percent_leaser / 100);
+			$suivi->calcul_detail['intercalaire'].= ' * ('.$percent_leaser.' / 100)';
 			
 			$suivi->intercalaire = round($suivi->intercalaire,2);
 		}
@@ -1862,8 +1864,9 @@ class TSimulation extends TObjetStd {
 		// Si déjà calculé alors je renvoi la valeur immédiatemment
 		if (!empty($suivi->prime_volume)) return $suivi->prime_volume;
 
-		$suivi->prime_volume = round(($suivi->montantfinanceleaser + $suivi->surfactplus) * ($suivi->leaser->array_options['options_percent_prime_volume'] / 100),2);
-		$suivi->calcul_detail['prime_volume'] = 'PV = ('.$suivi->montantfinanceleaser.' + '.$suivi->surfactplus.') * ('.$suivi->leaser->array_options['options_percent_prime_volume'].' / 100)';
+		$percent_pv = round(price2num($suivi->leaser->array_options['options_percent_prime_volume']),2);
+		$suivi->prime_volume = round(($suivi->montantfinanceleaser + $suivi->surfactplus) * ($percent_pv / 100),2);
+		$suivi->calcul_detail['prime_volume'] = 'PV = ('.$suivi->montantfinanceleaser.' + '.$suivi->surfactplus.') * ('.$percent_pv.' / 100)';
 		$suivi->calcul_detail['prime_volume'].= ' = <strong>'.price($suivi->prime_volume).'</strong>';
 
 		return $suivi->prime_volume;
