@@ -1638,7 +1638,7 @@ class TSimulation extends TObjetStd {
 		
 		$TMethod = explode(',', $conf->global->FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI);
 
-		$min_turn_over = null;
+		$min_turn_over = 0;
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
 			$this->calculMontantFinanceLeaser($PDOdb, $suivi);
@@ -1647,12 +1647,13 @@ class TSimulation extends TObjetStd {
 				$this->{$method_name}($PDOdb, $suivi);
 			}
 			
-			if ($suivi->turn_over < $min_turn_over || is_null($min_turn_over)) $min_turn_over = $suivi->turn_over;
+			if ($suivi->turn_over > 0 && ($suivi->turn_over < $min_turn_over || is_null($min_turn_over))) $min_turn_over = $suivi->turn_over;
 		}
 		
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
-			$suivi->renta_amount = $suivi->surfact + $suivi->surfactplus + $suivi->commission + $suivi->intercalaire + $suivi->diff_solde + $suivi->prime_volume + ($min_turn_over - $suivi->turn_over);
+			$suivi->renta_amount = $suivi->surfact + $suivi->surfactplus + $suivi->commission + $suivi->intercalaire + $suivi->diff_solde + $suivi->prime_volume;
+			if($suivi->turn_over > 0) $suivi->renta_amount+= ($min_turn_over - $suivi->turn_over);
 			$suivi->renta_percent = ($suivi->renta_amount / $this->montant) * 100;
 		}
 
