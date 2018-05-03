@@ -1757,8 +1757,8 @@ class TSimulation extends TObjetStd {
 			if (!function_exists('price2num')) require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 			
 			$percent_commission = price2num($leaser->array_options['options_percent_commission']);
-			$suivi->commission = $suivi->montantfinanceleaser * ($percent_commission / 100);
-			$suivi->calcul_detail['commission'] = 'Commission = '.$suivi->montantfinanceleaser.' * ('.$percent_commission.' / 100) = '.$suivi->commission;
+			$suivi->commission = ($suivi->montantfinanceleaser + $suivi->surfactplus) * ($percent_commission / 100);
+			$suivi->calcul_detail['commission'] = 'Commission = ('.$suivi->montantfinanceleaser.' + '.$suivi->surfactplus.') * ('.$percent_commission.' / 100) = '.$suivi->commission;
 		}
 		
 		return $suivi->commission;
@@ -1780,11 +1780,15 @@ class TSimulation extends TObjetStd {
 
 		$suivi->intercalaire = 0;
 		$entity = $this->getDaoEntity($conf->entity);
+		
+		$suivi->calcul_detail['intercalaire'] = 'Intercalaire';
 
-		$suivi->intercalaire = $this->echeance * ($entity->array_options['options_percent_moyenne_intercalaire'] / 100);
-		$suivi->calcul_detail['intercalaire'] = 'Intercalaire = '.$this->echeance.' * ('.$entity->array_options['options_percent_moyenne_intercalaire'].' / 100)';
 		if (empty($this->opt_calage))
 		{
+			// Intercalaire C'Pro
+			$suivi->intercalaire = $this->echeance * ($entity->array_options['options_percent_moyenne_intercalaire'] / 100);
+			$suivi->calcul_detail['intercalaire'] = ' = '.$this->echeance.' * ('.$entity->array_options['options_percent_moyenne_intercalaire'].' / 100)';
+			// Intercalaire Leaser
 			$suivi->intercalaire *= ($suivi->leaser->array_options['options_percent_intercalaire'] / 100);
 			$suivi->calcul_detail['intercalaire'].= ' * ('.$suivi->leaser->array_options['options_percent_intercalaire'].' / 100)';
 		}
