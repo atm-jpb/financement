@@ -103,8 +103,6 @@ class ServiceFinancement {
 	{
 		global $langs,$conf;
 		
-	
-		
 		if ($this->debug)
 		{
 			$this->printHeader();
@@ -160,20 +158,21 @@ class ServiceFinancement {
 		
 		try {
 			$this->soapClient = new MySoapCmCic($this->wsdl, $options);
-
+			$this->soapClient->ServiceFinancement = $this;
+			
 			dol_syslog("WEBSERVICE SENDING CMCIC : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_CMCIC');
 			
 			// Create header
-			$security = new stdClass();
+			/*$security = new stdClass();
 			$security->UsernameToken = new stdClass();
 			$security->UsernameToken->Username = $conf->global->FINANCEMENT_USERNAME_CMCIC;
 			$security->UsernameToken->Password = $conf->global->FINANCEMENT_PASSWORD_CMCIC;
 			$header = new SoapHeader($this->wsdl, 'Security', $security);
 			
-			$this->soapClient->__setSoapHeaders($header);
+			$this->soapClient->__setSoapHeaders($header);*/
 			
-			$TParam = $this->getTParamForCMCIC();
-			$response = $this->soapClient->__soapCall('CreateDemFin', $TParam);
+			//$TParam = $this->getTParamForCMCIC();
+			$response = $this->soapClient->__soapCall('CreateDemFin', array());
   
 			// TODO : issue de la doc => Dans l’éventualité où l’utilisateur est invalide, un message d’erreur est envoyé au partenaire
 	
@@ -257,9 +256,6 @@ class ServiceFinancement {
 		
 		
 		if ($this->debug) var_dump('DEBUG :: Function callLixxbail(): Production = '.json_encode($this->production).' ; WSDL = '.$this->wsdl.' ; endpoint = '.$this->endpoint);
-		
-		//$TParam = $this->_getTParamLixxbail(true);
-		//if ($this->debug) var_dump('DEBUG :: TParam =v', $TParam);
 		
 		if (!empty($this->TError))
 		{
@@ -355,26 +351,10 @@ class ServiceFinancement {
 			exit;
 		}
 	}
-
-			
-	function iso_8601_utc_time($precision = 0, $decale = 0)
-	{
-		$time = gettimeofday();
-
-		$time['sec'] += $decale;
-
-		if (is_int($precision) && $precision >= 0 && $precision <= 6)
-		{
-			$total = (string) $time['sec'].'.'.str_pad((string) $time['usec'], 6, '0', STR_PAD_LEFT);
-			$total_rounded = bcadd($total, '0.'.str_repeat('0', $precision).'5', $precision);
-			@list($integer, $fraction) = explode('.', $total_rounded);
-			$format = $precision == 0 ? "Y-m-d\TH:i:s" : "Y-m-d\TH:i:s.".$fraction."";
-			return gmdate($format, $integer);
-		}
-
-		return false;
-	}
 	
+	/**
+	 * TODO à delete
+	 */
 	private function getTParamForCMCIC()
 	{
 		global $db,$mysoc,$conf;
@@ -450,7 +430,7 @@ class ServiceFinancement {
 	 * @global type $db
 	 * @return type
 	 */
-	private function getApporteurId()
+	public function getApporteurId()
 	{
 		global $db;
 		
@@ -462,7 +442,7 @@ class ServiceFinancement {
 	/**
 	 * Renvoie l'id de l'apporteur et l'id du protocole (conditionné actuellement à l'entité de la simulation)
 	 */
-	private function getProtocolID()
+	public function getProtocolID()
 	{
 		$name = $this->simulationSuivi->leaser->name;
 		if (empty($name)) $this->simulationSuivi->leaser->nom;
@@ -474,7 +454,7 @@ class ServiceFinancement {
 		return $id;
 	}
 	
-	private function getMarqmatAndTypmat()
+	public function getMarqmatAndTypmat()
 	{
 		$TMarque = array(
 			'HP' => 'HP'
@@ -839,148 +819,6 @@ class ServiceFinancement {
 		if(strpos($this->leaser->name, 'LIXXBAIL') !== false)
 			return 'CESS';
 	}
-	
-	/**
-	 * Function to prepare data to send to Lixxbail
-	 * Used only for test
-	 */
-	private function _getTParamLixxbail($as_array=false)
-	{
-		global $mysoc;
-		
-		$mode_reglement_id = $this->getIdModeRglt($this->simulation->opt_mode_reglement);
-		$periodicite_code = $this->getCodePeriodiciteFinancement($this->simulation->opt_periodicite);
-		
-		$pct_vr = $this->simulation->pct_vr;
-		$mt_vr = $this->simulation->mt_vr;
-		
-		if (!empty($pct_vr) && !empty($mt_vr)) $pct_vr = 0; // Si les 2 sont renseignés alors je garde que le montant
-		$aa = substr($mysoc->idprof2, -5, 5);
-		//var_dump(substr($mysoc->idprof2, -5, 5), $mysoc->idprof2, $aa);exit;
-		if ($as_array)
-		{
-			$TParam = array('Request' => array(
-				'PARTENAIRE' => array( // 1..1
-						'SIREN_PARTENAIRE' => $mysoc->idprof1 // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 9 *
-						,'NIC_PARTENAIRE' => substr($mysoc->idprof2, -5, 5) // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 5 *
-						,'COMMERCIAL_EMAIL' => $this->simulationSuivi->user->email // TODO vérifier si on doit prendre l'email du user associé à la simulation et non celui du suivi // format d'une adresse email *
-						,'REF_EXT' => $this->simulation->reference // chaîne de caractères alphanumérique de 20 caractères max *
-				)
-				,'BIEN' => array( // 1..1
-						'CATEGORIE_BIEN' => $this->getIdCategorieBien() // numérique entier sur 10 positions max. Cf. onglet 'Référentiel de biens C'PRO' *
-						,'NATURE_BIEN' => $this->getIdNatureBien() // numérique entier sur 10 positions max. Cf. onglet 'Référentiel de biens C'PRO' *
-						,'MARQUE_BIEN' => $this->getIdMarqueBien() // numérique entier sur 10 positions max. Cf. onglet 'Référentiel de biens C'PRO' *
-						,'ANNEE_BIEN' => date('Y') // numérique entier sur 4 positions *
-						,'ETAT_BIEN' => 'NEUF' // 'NEUF' OU 'OCCA' *
-						,'QTE_BIEN' => 1 // numérique entier *
-						,'MT_HT_BIEN' => $this->simulation->montant // numérique décimal (. comme séparateur décimal) *
-						,'PAYS_DESTINATION_BIEN' => !empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR' // code ISO2 (2 positions). Pour France, 'FR'. *
-						,'FOURNISSEUR_SIREN' => $mysoc->idprof1 // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 9 *
-						,'FOURNISSEUR_NIC' => substr($mysoc->idprof2, -5, 5) // Toujours entité à partir de laquelle on score // numérique entier de longueur fixe 5 *
-				)
-				,'BIEN_COMPL' => array( // 1..n
-					0 => array()
-					/*0 => array(
-						'CATEGORIE_BIEN_COMPL' => '' // NO
-						,'NATURE_BIEN_COMPL' => '' // NO
-						,'MARQUE_BIEN_COMPL' => '' // NO
-						,'ANNEE_BIEN_COMPL' => '' // NO
-						,'ETAT_BIEN_COMPL' => '' // NO
-						,'MT_HT_BIEN_COMPL' => '' // NO
-						,'QTE_BIEN_COMPL' => '' // NO
-					)
-					,1 => array(
-						'CATEGORIE_BIEN_COMPL' => ''
-						,'NATURE_BIEN_COMPL' => ''
-						,'MARQUE_BIEN_COMPL' => ''
-						,'ANNEE_BIEN_COMPL' => ''
-						,'ETAT_BIEN_COMPL' => ''
-						,'MT_HT_BIEN_COMPL' => ''
-						,'QTE_BIEN_COMPL' => ''
-					)*/
-				)
-				,'CLIENT' => array( // 1..1
-						'CLIENT_SIREN' => $this->simulation->societe->idprof1 // Toujours entité à partir de laquelle on score *
-						,'CLIENT_NIC' => substr($this->simulation->societe->idprof2, -5, 5) // Toujours entité à partir de laquelle on score
-				)
-				,'FINANCEMENT' => array( // 1..1
-						'CODE_PRODUIT' => $this->getCodeProduit() // chaîne de caractères alphanumérique de 8 caractères max. Cf. onglet 'Produit' *
-						,'TYPE_PRODUIT' => $this->getTypeProduit() // chaîne de caractères alphanumérique de 8 caractères max. Cf. onglet 'Produit' *
-						,'MT_FINANCEMENT_HT' => $this->simulation->montant // numérique décimal (. comme séparateur décimal) *
-						,'PCT_VR' => $pct_vr // Doit être saisie par CPro - Pourcentage de la valeur résiduelle. L'élément est exclusif de l'élément MT_VR.
-						,'MT_VR' => $mt_vr // Doit être saisie par CPro - Montant de la valeur résiduelle, en euros. L'élément est exclusif de l'élément PCT_VR.
-						,'TYPE_REGLEMENT' => $mode_reglement_id // *
-						,'MT_PREMIER_LOYER' => 0 // NO
-						,'DUREE_FINANCEMENT' => $this->simulation->duree // *
-						,'PERIODICITE_FINANCEMENT' => $periodicite_code // chaîne de caractères alphanumérique de 3 caractères max. Cf. onglet 'Périodicité de financement' *
-						,'TERME_FINANCEMENT' => $this->simulation->opt_terme == 1 ? 'A' : 'E' // 4 char. échu ou à échoir *
-						,'NB_FRANCHISE' => 0 // NO
-						,'NATURE_FINANCEMENT' => 'STD' // NO - Voir si saisie par CPro
-						,'DATE_DEMANDE_FINANCEMENT' => date('Y-m-d').'T'.date('H:i:s') // format YYYY-MM-DDThh:mm:ss *
-				)
-			));
-			//var_dump($TParam[0]['Request']['BIEN']);exit;
-			
-			return $TParam;
-		}
-		else
-		{
-			$xml = '
-			<ns1:Request>
-	            <ns1:PARTENAIRE>
-	               <ns1:SIREN_PARTENAIRE>'.$mysoc->idprof1.'</ns1:SIREN_PARTENAIRE>
-	               <ns1:NIC_PARTENAIRE>'.substr($mysoc->idprof2, -5, 5).'</ns1:NIC_PARTENAIRE>
-	               <ns1:COMMERCIAL_EMAIL>'.$this->simulationSuivi->user->email.'</ns1:COMMERCIAL_EMAIL>
-	               <ns1:REF_EXT>'.$this->simulation->reference.'</ns1:REF_EXT>
-	            </ns1:PARTENAIRE>
-	            <ns1:BIEN>
-	               <ns1:CATEGORIE_BIEN>'.$this->getIdCategorieBien().'</ns1:CATEGORIE_BIEN>
-	               <ns1:NATURE_BIEN>'.$this->getIdNatureBien().'</ns1:NATURE_BIEN>
-	               <ns1:MARQUE_BIEN>'.$this->getIdMarqueBien().'</ns1:MARQUE_BIEN>
-	               <ns1:ANNEE_BIEN>'.date('Y').'</ns1:ANNEE_BIEN>
-	               <ns1:ETAT_BIEN>NEUF</ns1:ETAT_BIEN>
-	               <ns1:QTE_BIEN>1</ns1:QTE_BIEN>
-	               <ns1:MT_HT_BIEN>'.$this->simulation->montant.'</ns1:MT_HT_BIEN>
-	               <ns1:PAYS_DESTINATION_BIEN>'.(!empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR').'</ns1:PAYS_DESTINATION_BIEN>
-	               <ns1:FOURNISSEUR_SIREN>'.$mysoc->idprof1.'</ns1:FOURNISSEUR_SIREN>
-	               <ns1:FOURNISSEUR_NIC>'.substr($mysoc->idprof2, -5, 5).'</ns1:FOURNISSEUR_NIC>
-	            </ns1:BIEN>
-	            <!--1 or more repetitions:-->
-	            <ns1:BIEN_COMPL>
-	               <!--ns1:CATEGORIE_BIEN_COMPL>U</ns1:CATEGORIE_BIEN_COMPL>
-	               <ns1:NATURE_BIEN_COMPL>U03C</ns1:NATURE_BIEN_COMPL>
-	               <ns1:MARQUE_BIEN_COMPL>T046</ns1:MARQUE_BIEN_COMPL>
-	               <ns1:ANNEE_BIEN_COMPL>2016</ns1:ANNEE_BIEN_COMPL>
-	               <ns1:ETAT_BIEN_COMPL>NEUF</ns1:ETAT_BIEN_COMPL>
-	               <ns1:MT_HT_BIEN_COMPL>1000.01</ns1:MT_HT_BIEN_COMPL>
-	               <ns1:QTE_BIEN_COMPL>2</ns1:QTE_BIEN_COMPL-->
-	            </ns1:BIEN_COMPL> 
-	            <ns1:CLIENT>
-	               <ns1:CLIENT_SIREN>'.$this->simulation->societe->idprof1 .'</ns1:CLIENT_SIREN>
-	               <ns1:CLIENT_NIC>'.substr($this->simulation->societe->idprof2, -5, 5).'</ns1:CLIENT_NIC>
-	            </ns1:CLIENT>
-	            <ns1:FINANCEMENT>
-	               <ns1:CODE_PRODUIT>'.$this->getCodeProduit().'</ns1:CODE_PRODUIT>
-	               <ns1:TYPE_PRODUIT>'.$this->getTypeProduit().'</ns1:TYPE_PRODUIT>
-	               <ns1:MT_FINANCEMENT_HT>'.$this->simulation->montant.'</ns1:MT_FINANCEMENT_HT>
-	               <ns1:PCT_VR>'.$pct_vr.'</ns1:PCT_VR>
-	               <ns1:MT_VR>'.$mt_vr.'</ns1:MT_VR>
-	               <ns1:TYPE_REGLEMENT>'.$mode_reglement_id.'</ns1:TYPE_REGLEMENT>
-	               <ns1:MT_PREMIER_LOYER>0</ns1:MT_PREMIER_LOYER>
-	               <ns1:DUREE_FINANCEMENT>'.$this->simulation->duree.'</ns1:DUREE_FINANCEMENT>
-	               <ns1:PERIODICITE_FINANCEMENT>'.$periodicite_code.'</ns1:PERIODICITE_FINANCEMENT>
-	               <ns1:TERME_FINANCEMENT>'.($this->simulation->opt_terme == 1 ? 'A' : 'E').'</ns1:TERME_FINANCEMENT>
-	               <ns1:NB_FRANCHISE>0</ns1:NB_FRANCHISE>
-	               <ns1:NATURE_FINANCEMENT>STD</ns1:NATURE_FINANCEMENT>
-	               <ns1:DATE_DEMANDE_FINANCEMENT>'.date('Y-m-d').'T'.date('H:i:s').'</ns1:DATE_DEMANDE_FINANCEMENT>
-	            </ns1:FINANCEMENT>
-	         </ns1:Request>
-			';
-			
-			return $xml;
-		}
-
-	}
 
 
 	// TODO à mettre en commentaire ou à supprimer pour la prod (actuellement utilisé pas le fichier scoring_client.php qui fait appel à notre propres webservice)
@@ -998,32 +836,6 @@ class ServiceFinancement {
 			exit;
 		}
 	}
-	
-	// TODO comment for prod
-	/*
-	public function createXmlFileOfParam()
-	{
-		$TParam = $this->_getTParamLixxbail();
-		 
-		$xml_data = new SimpleXMLElement('<?xml version="1.0"?><data></data>');
-		self::array_to_xml($TParam,$xml_data);
-		$result = $xml_data->asXML('/var/www/demande_de_financement.xml');
-	}
-	
-	public static function array_to_xml( $data, &$xml_data ) {
-	    foreach( $data as $key => $value ) {
-	        if( is_array($value) ) {
-	            if( is_numeric($key) ){
-	                $key = 'item'.$key; //dealing with <0/>..<n/> issues
-	            }
-	            $subnode = $xml_data->addChild($key);
-	            self::array_to_xml($value, $subnode);
-	        } else {
-	            $xml_data->addChild("$key",htmlspecialchars("$value"));
-	        }
-	     }
-	}
-	*/
 
 } // End Class
 
@@ -1075,17 +887,96 @@ class MySoapClient extends SoapClient
 
 class MySoapCmCic extends SoapClient
 {
+	public $ServiceFinancement;
+	
 	function __doRequest($request, $location, $saction, $version)
 	{
+		global $db,$mysoc,$conf;
+		
+		$frequence = 1;
+		if ($this->ServiceFinancement->simulation->opt_periodicite == 'TRIMESTRE') $frequence = 3;
+		else if ($this->ServiceFinancement->simulation->opt_periodicite == 'SEMESTRE') $frequence = 6;
+		else if ($this->ServiceFinancement->simulation->opt_periodicite == 'ANNEE') $frequence = 12;
+		
+		$u = new User($db);
+		$u->fetch($this->ServiceFinancement->simulation->fk_user_author);
+		$dossier_origin = current($this->ServiceFinancement->simulation->dossiers);
+		
+		$our_wsdl = $conf->global->FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC;
+		if (empty($our_wsdl)) $our_wsdl = dol_buildpath('/financement/script/webservice/scoring_server.php?wsdl', 2);
+		
+		$protocole_id = $this->ServiceFinancement->getProtocolID();
+		list($marqmat, $typmat) = $this->ServiceFinancement->getMarqmatAndTypmat($protocole_id);
+		
+		$request = '<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://www.ge.com/capital/eef/france/extranet/service/wsdemande/document" xmlns:ns2="https://uat-www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl">
+	<SOAP-ENV:Header>
+		<ns2:Security>
+			<UsernameToken>
+				<Username>B2BCPRO</Username>
+				<Password>FB135xge</Password>
+			</UsernameToken>
+		</ns2:Security>
+	</SOAP-ENV:Header>
+	<SOAP-ENV:Body>
+		<ns1:CreateDemFinRequest>
+			<ns1:APP_Infos_B2B>
+				<ns1:B2B_CLIENT>CPRO001</ns1:B2B_CLIENT>
+				<ns1:B2B_TIMESTAMP>'.date('c').'</ns1:B2B_TIMESTAMP>
+			</ns1:APP_Infos_B2B>
+			<ns1:APP_CREA_Demande>
+				<ns1:B2B_CTR_REN_ADJ>'.(!empty($this->ServiceFinancement->simulation->opt_adjonction) ? $dossier_origin->num_contrat : '').'</ns1:B2B_CTR_REN_ADJ>
+				<ns1:B2B_ECTR_FLG>false</ns1:B2B_ECTR_FLG>
+				<ns1:B2B_NATURE_DEMANDE>'.(!empty($this->ServiceFinancement->simulation->opt_adjonction) ? 'A' : 'S').'</ns1:B2B_NATURE_DEMANDE>
+				<ns1:B2B_REF_EXT>'.$this->ServiceFinancement->simulation->reference.'</ns1:B2B_REF_EXT>
+				<ns1:B2B_TYPE_DEMANDE>E</ns1:B2B_TYPE_DEMANDE>
+			</ns1:APP_CREA_Demande>
+			<ns1:Infos_Apporteur>
+				<ns1:B2B_APPORTEUR_ID>'.$this->ServiceFinancement->getApporteurId().'</ns1:B2B_APPORTEUR_ID>
+				<ns1:B2B_PROT_ID>'.$protocole_id.'</ns1:B2B_PROT_ID>
+				<ns1:B2B_VENDEUR_ID>C11006000</ns1:B2B_VENDEUR_ID>
+				<ns1:B2B_VENDEUR_EMAIL>s.ruiz@cpro.fr</ns1:B2B_VENDEUR_EMAIL>
+			</ns1:Infos_Apporteur>
+			<ns1:Infos_Client>
+				<ns1:B2B_SIREN>381228386</ns1:B2B_SIREN>
+			</ns1:Infos_Client>
+			<ns1:Infos_Financieres>
+				<ns1:B2B_DUREE>'.($this->ServiceFinancement->simulation->duree * $frequence).'</ns1:B2B_DUREE>
+				<ns1:B2B_FREQ>'.$frequence.'</ns1:B2B_FREQ>
+				<ns1:B2B_MODPAIE>'.$this->ServiceFinancement->getIdModeRglt($this->ServiceFinancement->simulation->opt_mode_reglement).'</ns1:B2B_MODPAIE>
+				<ns1:B2B_MT_DEMANDE>'.$this->ServiceFinancement->simulation->montant.'</ns1:B2B_MT_DEMANDE>
+				<ns1:B2B_NB_ECH>'.$this->ServiceFinancement->simulation->duree.'</ns1:B2B_NB_ECH>
+				<ns1:B2B_MINERVAFPID>'.(($protocole_id == '0251') ? '983' : '9782').'</ns1:B2B_MINERVAFPID>
+				<ns1:B2B_TERME>'.($this->ServiceFinancement->simulation->opt_terme == 0 ? 2 : 1).'</ns1:B2B_TERME>
+				<ns1:B2B_PVR>0</ns1:B2B_PVR>
+			</ns1:Infos_Financieres>
+			<ns1:Infos_Materiel>
+				<ns1:B2B_MARQMAT>'.$marqmat.'</ns1:B2B_MARQMAT>
+				<ns1:B2B_MT_UNIT>'.$this->ServiceFinancement->simulation->montant.'</ns1:B2B_MT_UNIT>
+				<ns1:B2B_QTE>1</ns1:B2B_QTE>
+				<ns1:B2B_TYPMAT>'.$typmat.'</ns1:B2B_TYPMAT>
+				<ns1:B2B_ETAT>N</ns1:B2B_ETAT>
+			</ns1:Infos_Materiel>
+			<ns1:APP_Reponse_B2B>
+				<ns1:B2B_CLIENT_ASYNC>'.$our_wsdl.'</ns1:B2B_CLIENT_ASYNC>
+				<ns1:B2B_INF_EXT>'.$this->ServiceFinancement->simulation->reference.'</ns1:B2B_INF_EXT>
+				<ns1:B2B_MODE>A</ns1:B2B_MODE>
+			</ns1:APP_Reponse_B2B>
+		</ns1:CreateDemFinRequest>
+	</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>';
+		
+		
+		
 		$this->realXML = $request;
 //		$this->realXML = str_replace(array('SOAP-ENV', 'ns1', 'ns2:'), array('soapenv', 'doc', ''), $this->realXML);
 //		$this->realXML = preg_replace('/ xmlns:ns2=".*"/', '', $this->realXML);
 		
 //		$this->realXML = str_replace('<soapenv:Body>', '<soapenv:Header/><soapenv:Body>', $this->realXML);
-		$this->realXML = str_replace('<?xml version="1.0" encoding="UTF-8"?>'."\n", '', $this->realXML);
-		
+/*		$this->realXML = str_replace('<?xml version="1.0" encoding="UTF-8"?>'."\n", '', $this->realXML);
+*/		
 		$this->realXML = str_replace('<ns1:B2B_CTR_REN_ADJ></ns1:B2B_CTR_REN_ADJ>', '<ns1:B2B_CTR_REN_ADJ/>', $this->realXML);
 		
 		return parent::__doRequest($this->realXML, $location, $saction, $version);
 	}
 }
+
