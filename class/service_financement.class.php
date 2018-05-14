@@ -162,54 +162,12 @@ class ServiceFinancement {
 			
 			dol_syslog("WEBSERVICE SENDING CMCIC : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_CMCIC');
 			
-			// Create header
-			/*$security = new stdClass();
-			$security->UsernameToken = new stdClass();
-			$security->UsernameToken->Username = $conf->global->FINANCEMENT_USERNAME_CMCIC;
-			$security->UsernameToken->Password = $conf->global->FINANCEMENT_PASSWORD_CMCIC;
-			$header = new SoapHeader($this->wsdl, 'Security', $security);
-			
-			$this->soapClient->__setSoapHeaders($header);*/
-			
-			//$TParam = $this->getTParamForCMCIC();
 			$response = $this->soapClient->__soapCall('CreateDemFin', array());
   
 			// TODO : issue de la doc => Dans l’éventualité où l’utilisateur est invalide, un message d’erreur est envoyé au partenaire
-	
 			if ($this->debug)
 			{
-				// on affiche la requete et la reponse
-				echo '<br />';
-				echo "<h2>Request:</h2>";
-				echo '<h4>Function</h4>';
-				echo 'call CreateDemFinRequest';
-				echo '<h4>SOAP Message</h4>';
-				echo '<pre>' . htmlspecialchars($this->soapClient->__getLastRequest(), ENT_QUOTES) . '</pre>';
-				
-				echo '<hr>';
-				
-				echo "<h2>Response:</h2>";
-				echo '<h4>Result</h4>';
-				echo '<pre>';
-				print_r($response);
-				echo '</pre>';
-				echo '<h4>SOAP Message</h4>';
-				echo '<pre>' . htmlspecialchars($this->soapClient->__getLastResponse(), ENT_QUOTES) . '</pre>';
-				
-				echo '<hr>';
-				
-				echo '<br />';
-				echo "<h2>Request realXML:</h2>";
-				echo '<h4>Function</h4>';
-				echo 'call CreateDemFinRequest';
-				echo '<h4>SOAP Message</h4>';
-				echo '<pre>' . htmlspecialchars($this->soapClient->realXML, ENT_QUOTES) . '</pre>';
-				
-				
-				
-				echo '</body>'."\n";
-				echo '</html>'."\n";
-				exit;
+				$this->printDebugSoapCall($response);
 			}
 
 			$this->TMsg[] = $langs->trans('webservice_financement_msg_scoring_send', $this->leaser->name);
@@ -217,29 +175,87 @@ class ServiceFinancement {
 			return true;
 		} catch (SoapFault $e) {
 			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_CMCIC');
-			
-			echo '<b>Caught exception:</b> ',  $e->getMessage(), "\n"; 
-			
-			$trace = $e->getTrace();
-			var_dump('ERROR TRACE 1: $trace[0]["args"][0] => ');
-			
-			echo '<pre>' . htmlspecialchars($trace[0]['args'][0], ENT_QUOTES) . '</pre>';
-			
-			var_dump('ERROR TRACE 2: $trace[0]["args"][1] => ');
-			var_dump($trace[0]['args'][1]);
-			
-			
-			var_dump('ERROR TRACE 3: $trace[0]["args"][1][0]->enc_value => ');
-			echo '<pre>' . htmlspecialchars($trace[0]['args'][1][0]->enc_value, ENT_QUOTES) . '</pre>';
-			
-			
-			var_dump('ERROR TRACE 8: $e');
-			var_dump($e);
-			
-			echo ($e->__toString());
-			exit;
+			$this->printTrace($e);
 		}
 	}
+	
+	
+	
+	
+	/**
+	 * Return only body
+	 */
+	public function getXmlForCmCic()
+	{
+		global $db,$mysoc,$conf;
+		
+		$frequence = 1;
+		if ($this->simulation->opt_periodicite == 'TRIMESTRE') $frequence = 3;
+		else if ($this->simulation->opt_periodicite == 'SEMESTRE') $frequence = 6;
+		else if ($this->simulation->opt_periodicite == 'ANNEE') $frequence = 12;
+		
+		$u = new User($db);
+		$u->fetch($this->simulation->fk_user_author);
+		$dossier_origin = current($this->simulation->dossiers);
+		
+		$our_wsdl = $conf->global->FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC;
+		if (empty($our_wsdl)) $our_wsdl = dol_buildpath('/financement/script/webservice/scoring_server.php?wsdl', 2);
+		
+		$protocole_id = $this->getProtocolID();
+		list($marqmat, $typmat) = $this->getMarqmatAndTypmat($protocole_id);
+		
+		$xml = '
+		<ns1:CreateDemFinRequest>
+			<ns1:APP_Infos_B2B>
+				<ns1:B2B_CLIENT>CPRO001</ns1:B2B_CLIENT>
+				<ns1:B2B_TIMESTAMP>'.date('c').'</ns1:B2B_TIMESTAMP>
+			</ns1:APP_Infos_B2B>
+			<ns1:APP_CREA_Demande>
+				<ns1:B2B_CTR_REN_ADJ>'.(!empty($this->simulation->opt_adjonction) ? $dossier_origin->num_contrat : '').'</ns1:B2B_CTR_REN_ADJ>
+				<ns1:B2B_ECTR_FLG>false</ns1:B2B_ECTR_FLG>
+				<ns1:B2B_NATURE_DEMANDE>'.(!empty($this->simulation->opt_adjonction) ? 'A' : 'S').'</ns1:B2B_NATURE_DEMANDE>
+				<ns1:B2B_REF_EXT>'.$this->simulation->reference.'</ns1:B2B_REF_EXT>
+				<ns1:B2B_TYPE_DEMANDE>E</ns1:B2B_TYPE_DEMANDE>
+			</ns1:APP_CREA_Demande>
+			<ns1:Infos_Apporteur>
+				<ns1:B2B_APPORTEUR_ID>'.$this->getApporteurId().'</ns1:B2B_APPORTEUR_ID>
+				<ns1:B2B_PROT_ID>'.$protocole_id.'</ns1:B2B_PROT_ID>
+				<ns1:B2B_VENDEUR_ID>C11006000</ns1:B2B_VENDEUR_ID>
+				<ns1:B2B_VENDEUR_EMAIL>s.ruiz@cpro.fr</ns1:B2B_VENDEUR_EMAIL>
+			</ns1:Infos_Apporteur>
+			<ns1:Infos_Client>
+				<ns1:B2B_SIREN>381228386</ns1:B2B_SIREN>
+			</ns1:Infos_Client>
+			<ns1:Infos_Financieres>
+				<ns1:B2B_DUREE>'.($this->simulation->duree * $frequence).'</ns1:B2B_DUREE>
+				<ns1:B2B_FREQ>'.$frequence.'</ns1:B2B_FREQ>
+				<ns1:B2B_MODPAIE>'.$this->getIdModeRglt($this->simulation->opt_mode_reglement).'</ns1:B2B_MODPAIE>
+				<ns1:B2B_MT_DEMANDE>'.$this->simulation->montant.'</ns1:B2B_MT_DEMANDE>
+				<ns1:B2B_NB_ECH>'.$this->simulation->duree.'</ns1:B2B_NB_ECH>
+				<ns1:B2B_MINERVAFPID>'.(($protocole_id == '0251') ? '983' : '9782').'</ns1:B2B_MINERVAFPID>
+				<ns1:B2B_TERME>'.($this->simulation->opt_terme == 0 ? 2 : 1).'</ns1:B2B_TERME>
+				<ns1:B2B_PVR>0</ns1:B2B_PVR>
+			</ns1:Infos_Financieres>
+			<ns1:Infos_Materiel>
+				<ns1:B2B_MARQMAT>'.$marqmat.'</ns1:B2B_MARQMAT>
+				<ns1:B2B_MT_UNIT>'.$this->simulation->montant.'</ns1:B2B_MT_UNIT>
+				<ns1:B2B_QTE>1</ns1:B2B_QTE>
+				<ns1:B2B_TYPMAT>'.$typmat.'</ns1:B2B_TYPMAT>
+				<ns1:B2B_ETAT>N</ns1:B2B_ETAT>
+			</ns1:Infos_Materiel>
+			<ns1:APP_Reponse_B2B>
+				<ns1:B2B_CLIENT_ASYNC>'.$our_wsdl.'</ns1:B2B_CLIENT_ASYNC>
+				<ns1:B2B_INF_EXT>'.$this->simulation->reference.'</ns1:B2B_INF_EXT>
+				<ns1:B2B_MODE>A</ns1:B2B_MODE>
+			</ns1:APP_Reponse_B2B>
+		</ns1:CreateDemFinRequest>
+		';
+		
+		return $xml;
+	}
+	
+	
+	
 	
 	/**
 	 * Function callLixxbail
@@ -290,140 +306,18 @@ class ServiceFinancement {
   
 			if ($this->debug)
 			{
-				// on affiche la requete et la reponse
-				echo '<br />';
-				echo "<h2>Request:</h2>";
-				echo '<h4>Function</h4>';
-				echo 'call DemandeCreationLeasingGN';
-				echo '<h4>SOAP Message</h4>';
-				echo '<pre>' . htmlspecialchars($this->soapClient->__getLastRequest(), ENT_QUOTES) . '</pre>';
-				
-				echo '<hr>';
-				
-				echo "<h2>Response:</h2>";
-				echo '<h4>Result</h4>';
-				echo '<pre>';
-				print_r($response);
-				echo '</pre>';
-				echo '<h4>SOAP Message</h4>';
-				echo '<pre>' . htmlspecialchars($this->soapClient->__getLastResponse(), ENT_QUOTES) . '</pre>';
-				
-				echo '<hr>';
-				
-				echo '<br />';
-				echo "<h2>Request realXML:</h2>";
-				echo '<h4>Function</h4>';
-				echo 'call DemandeCreationLeasingGN';
-				echo '<h4>SOAP Message</h4>';
-				echo '<pre>' . htmlspecialchars($this->soapClient->realXML, ENT_QUOTES) . '</pre>';
-				
-				echo '</body>'."\n";
-				echo '</html>'."\n";
-				exit;
+				$this->printDebugSoapCall($response);
 			}
 
 			$this->TMsg[] = $langs->trans('webservice_financement_msg_scoring_send', $this->leaser->name);
 			
 			return true;
 		} catch (SoapFault $e) {
-				
 			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_CALF');
-			
-			echo '<b>Caught exception:</b> ',  $e->getMessage(), "\n"; 
-			
-			$trace = $e->getTrace();
-			var_dump('ERROR TRACE 1: $trace[0]["args"][0] => ');
-			
-			echo '<pre>' . htmlspecialchars($trace[0]['args'][0], ENT_QUOTES) . '</pre>';
-			
-			var_dump('ERROR TRACE 2: $trace[0]["args"][1] => ');
-			var_dump($trace[0]['args'][1]);
-			
-			
-			var_dump('ERROR TRACE 3: $trace[0]["args"][1][0]->enc_value => ');
-			echo '<pre>' . htmlspecialchars($trace[0]['args'][1][0]->enc_value, ENT_QUOTES) . '</pre>';
-			
-			
-			var_dump('ERROR TRACE 8: $e');
-			var_dump($e);
-			
-			echo ($e->__toString());
-			exit;
+			$this->printTrace($e);
 		}
 	}
 	
-	/**
-	 * TODO à delete
-	 */
-	private function getTParamForCMCIC()
-	{
-		global $db,$mysoc,$conf;
-		
-		$frequence = 1;
-		if ($this->simulation->opt_periodicite == 'TRIMESTRE') $frequence = 3;
-		else if ($this->simulation->opt_periodicite == 'SEMESTRE') $frequence = 6;
-		else if ($this->simulation->opt_periodicite == 'ANNEE') $frequence = 12;
-		
-		$u = new User($db);
-		$u->fetch($this->simulation->fk_user_author);
-		$dossier_origin = current($this->simulation->dossiers);
-		
-		$our_wsdl = $conf->global->FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC;
-		if (empty($our_wsdl)) $our_wsdl = dol_buildpath('/financement/script/webservice/scoring_server.php?wsdl', 2);
-		
-		$protocole_id = $this->getProtocolID();
-		list($marqmat, $typmat) = $this->getMarqmatAndTypmat($protocole_id);
-		
-	// B2B_VENDEUR_EMAIL test : abc@abc.fr
-	// B2B_SIREN test : 320991250
-		$TParam = array(
-			'APP_Infos_B2B' => array(
-				'B2B_CLIENT' => 'CPRO001' // TODO à déterminer [char 10]*
-				,'B2B_TIMESTAMP' => date('c') // Date au format ISO 8601 (2004-02-12T15:19:21+00:00)
-			)
-			,'APP_CREA_Demande' => array(
-				'B2B_CTR_REN_ADJ' => !empty($this->simulation->opt_adjonction) ? $dossier_origin->num_contrat : ''
-				,'B2B_ECTR_FLG' => false
-				,'B2B_NATURE_DEMANDE' => !empty($this->simulation->opt_adjonction) ? 'A' : 'S'
-				,'B2B_REF_EXT' => $this->simulation->reference
-				,'B2B_TYPE_DEMANDE' => 'E' // *
-			)
-			,'Infos_Apporteur' => array(
-				'B2B_APPORTEUR_ID' => $this->getApporteurId() // [char 9]* TODO à vérifier
-				,'B2B_PROT_ID' => $protocole_id // [char 4]* TODO à vérifier
-				,'B2B_VENDEUR_ID' => 'C11006000' // TODO voir si on garde cette valeur fixe
-				,'B2B_VENDEUR_EMAIL' => 's.ruiz@cpro.fr' //$u->email // Si vide alors il faut renseigner B2B_VENDEUR_ID
-			)
-			,'Infos_Client' => array(
-				'B2B_SIREN' => '381228386'//$mysoc->idprof1 // [char 9]*
-			)
-			,'Infos_Financieres' => array(
-				'B2B_DUREE' => $this->simulation->duree * $frequence
-				,'B2B_FREQ' => $frequence
-				,'B2B_MODPAIE' => $this->getIdModeRglt($this->simulation->opt_mode_reglement) // *
-				,'B2B_MT_DEMANDE' => $this->simulation->montant
-				,'B2B_NB_ECH' => $this->simulation->duree
-				,'B2B_MINERVAFPID' => ($protocole_id == '0251') ? '983' : '9782'
-				// Dolibarr [echu = 0; à échoir = 1] et CMCIC [echu = 2; à échoir = 1] 
-				,'B2B_TERME' => $this->simulation->opt_terme == 0 ? 2 : 1
-				,'B2B_PVR' => 0
-			)
-			,'Infos_Materiel' => array(
-				'B2B_MARQMAT' => $marqmat // * TODO à vérifier
-				,'B2B_MT_UNIT' => $this->simulation->montant // *
-				,'B2B_QTE' => 1 // *
-				,'B2B_TYPMAT' => $typmat // * TODO à vérifier
-				,'B2B_ETAT' => 'N' // *
-			)
-			,'APP_Reponse_B2B' => array(
-				'B2B_CLIENT_ASYNC' => $our_wsdl // wsdl du module financement (/financement/script/webservice/scoring_server.php) *
-				,'B2B_INF_EXT' => $this->simulation->reference // *
-				,'B2B_MODE' => 'A' // Toujours "A" *
-			)
-		);
-		
-		return array($TParam);
-	}
 	
 	/**
 	 * Renvoi l'identifiant de l'apporteur d'affaire (extrafield "entity")
@@ -837,6 +731,66 @@ class ServiceFinancement {
 		}
 	}
 
+	
+	
+	private function printDebugSoapCall($response)
+	{
+		// on affiche la requete et la reponse
+		echo '<br />';
+		echo "<h2>Request:</h2>";
+		echo '<h4>Function</h4>';
+		echo 'call DemandeCreationLeasingGN';
+		echo '<h4>SOAP Message</h4>';
+		echo '<pre>' . htmlspecialchars($this->soapClient->__getLastRequest(), ENT_QUOTES) . '</pre>';
+
+		echo '<hr>';
+
+		echo "<h2>Response:</h2>";
+		echo '<h4>Result</h4>';
+		echo '<pre>';
+		print_r($response);
+		echo '</pre>';
+		echo '<h4>SOAP Message</h4>';
+		echo '<pre>' . htmlspecialchars($this->soapClient->__getLastResponse(), ENT_QUOTES) . '</pre>';
+
+		echo '<hr>';
+
+		echo '<br />';
+		echo "<h2>Request realXML:</h2>";
+		echo '<h4>Function</h4>';
+		echo 'call DemandeCreationLeasingGN';
+		echo '<h4>SOAP Message</h4>';
+		echo '<pre>' . htmlspecialchars($this->soapClient->realXML, ENT_QUOTES) . '</pre>';
+
+		echo '</body>'."\n";
+		echo '</html>'."\n";
+		exit;
+	}
+	
+	private function printTrace($e)
+	{
+		echo '<b>Caught exception:</b> ',  $e->getMessage(), "\n"; 
+
+		$trace = $e->getTrace();
+		var_dump('ERROR TRACE 1: $trace[0]["args"][0] => ');
+
+		echo '<pre>' . htmlspecialchars($trace[0]['args'][0], ENT_QUOTES) . '</pre>';
+
+		var_dump('ERROR TRACE 2: $trace[0]["args"][1] => ');
+		var_dump($trace[0]['args'][1]);
+
+
+		var_dump('ERROR TRACE 3: $trace[0]["args"][1][0]->enc_value => ');
+		echo '<pre>' . htmlspecialchars($trace[0]['args'][1][0]->enc_value, ENT_QUOTES) . '</pre>';
+
+
+		var_dump('ERROR TRACE 8: $e');
+		var_dump($e);
+
+		echo ($e->__toString());
+		exit;
+	}
+	
 } // End Class
 
 
@@ -846,7 +800,7 @@ class ServiceFinancement {
 class MySoapClient extends SoapClient
 {
 	function __doRequest($request, $location, $saction, $version)
-	{		
+	{
 		$doc = new DOMDocument('1.0');
 		$doc->loadXML($request);
 		
@@ -885,30 +839,19 @@ class MySoapClient extends SoapClient
 	}
 }
 
+/**
+ * Soap class for CMCIC
+ */
 class MySoapCmCic extends SoapClient
 {
 	public $ServiceFinancement;
 	
 	function __doRequest($request, $location, $saction, $version)
 	{
-		global $db,$mysoc,$conf;
+		global $conf;
 		
-		$frequence = 1;
-		if ($this->ServiceFinancement->simulation->opt_periodicite == 'TRIMESTRE') $frequence = 3;
-		else if ($this->ServiceFinancement->simulation->opt_periodicite == 'SEMESTRE') $frequence = 6;
-		else if ($this->ServiceFinancement->simulation->opt_periodicite == 'ANNEE') $frequence = 12;
-		
-		$u = new User($db);
-		$u->fetch($this->ServiceFinancement->simulation->fk_user_author);
-		$dossier_origin = current($this->ServiceFinancement->simulation->dossiers);
-		
-		$our_wsdl = $conf->global->FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC;
-		if (empty($our_wsdl)) $our_wsdl = dol_buildpath('/financement/script/webservice/scoring_server.php?wsdl', 2);
-		
-		$protocole_id = $this->ServiceFinancement->getProtocolID();
-		list($marqmat, $typmat) = $this->ServiceFinancement->getMarqmatAndTypmat($protocole_id);
-		
-		$request = '<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://www.ge.com/capital/eef/france/extranet/service/wsdemande/document" xmlns:ns2="https://uat-www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl">
+		$request = '
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://www.ge.com/capital/eef/france/extranet/service/wsdemande/document" xmlns:ns2="https://uat-www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl">
 	<SOAP-ENV:Header>
 		<ns2:Security>
 			<UsernameToken>
@@ -918,50 +861,7 @@ class MySoapCmCic extends SoapClient
 		</ns2:Security>
 	</SOAP-ENV:Header>
 	<SOAP-ENV:Body>
-		<ns1:CreateDemFinRequest>
-			<ns1:APP_Infos_B2B>
-				<ns1:B2B_CLIENT>CPRO001</ns1:B2B_CLIENT>
-				<ns1:B2B_TIMESTAMP>'.date('c').'</ns1:B2B_TIMESTAMP>
-			</ns1:APP_Infos_B2B>
-			<ns1:APP_CREA_Demande>
-				<ns1:B2B_CTR_REN_ADJ>'.(!empty($this->ServiceFinancement->simulation->opt_adjonction) ? $dossier_origin->num_contrat : '').'</ns1:B2B_CTR_REN_ADJ>
-				<ns1:B2B_ECTR_FLG>false</ns1:B2B_ECTR_FLG>
-				<ns1:B2B_NATURE_DEMANDE>'.(!empty($this->ServiceFinancement->simulation->opt_adjonction) ? 'A' : 'S').'</ns1:B2B_NATURE_DEMANDE>
-				<ns1:B2B_REF_EXT>'.$this->ServiceFinancement->simulation->reference.'</ns1:B2B_REF_EXT>
-				<ns1:B2B_TYPE_DEMANDE>E</ns1:B2B_TYPE_DEMANDE>
-			</ns1:APP_CREA_Demande>
-			<ns1:Infos_Apporteur>
-				<ns1:B2B_APPORTEUR_ID>'.$this->ServiceFinancement->getApporteurId().'</ns1:B2B_APPORTEUR_ID>
-				<ns1:B2B_PROT_ID>'.$protocole_id.'</ns1:B2B_PROT_ID>
-				<ns1:B2B_VENDEUR_ID>C11006000</ns1:B2B_VENDEUR_ID>
-				<ns1:B2B_VENDEUR_EMAIL>s.ruiz@cpro.fr</ns1:B2B_VENDEUR_EMAIL>
-			</ns1:Infos_Apporteur>
-			<ns1:Infos_Client>
-				<ns1:B2B_SIREN>381228386</ns1:B2B_SIREN>
-			</ns1:Infos_Client>
-			<ns1:Infos_Financieres>
-				<ns1:B2B_DUREE>'.($this->ServiceFinancement->simulation->duree * $frequence).'</ns1:B2B_DUREE>
-				<ns1:B2B_FREQ>'.$frequence.'</ns1:B2B_FREQ>
-				<ns1:B2B_MODPAIE>'.$this->ServiceFinancement->getIdModeRglt($this->ServiceFinancement->simulation->opt_mode_reglement).'</ns1:B2B_MODPAIE>
-				<ns1:B2B_MT_DEMANDE>'.$this->ServiceFinancement->simulation->montant.'</ns1:B2B_MT_DEMANDE>
-				<ns1:B2B_NB_ECH>'.$this->ServiceFinancement->simulation->duree.'</ns1:B2B_NB_ECH>
-				<ns1:B2B_MINERVAFPID>'.(($protocole_id == '0251') ? '983' : '9782').'</ns1:B2B_MINERVAFPID>
-				<ns1:B2B_TERME>'.($this->ServiceFinancement->simulation->opt_terme == 0 ? 2 : 1).'</ns1:B2B_TERME>
-				<ns1:B2B_PVR>0</ns1:B2B_PVR>
-			</ns1:Infos_Financieres>
-			<ns1:Infos_Materiel>
-				<ns1:B2B_MARQMAT>'.$marqmat.'</ns1:B2B_MARQMAT>
-				<ns1:B2B_MT_UNIT>'.$this->ServiceFinancement->simulation->montant.'</ns1:B2B_MT_UNIT>
-				<ns1:B2B_QTE>1</ns1:B2B_QTE>
-				<ns1:B2B_TYPMAT>'.$typmat.'</ns1:B2B_TYPMAT>
-				<ns1:B2B_ETAT>N</ns1:B2B_ETAT>
-			</ns1:Infos_Materiel>
-			<ns1:APP_Reponse_B2B>
-				<ns1:B2B_CLIENT_ASYNC>'.$our_wsdl.'</ns1:B2B_CLIENT_ASYNC>
-				<ns1:B2B_INF_EXT>'.$this->ServiceFinancement->simulation->reference.'</ns1:B2B_INF_EXT>
-				<ns1:B2B_MODE>A</ns1:B2B_MODE>
-			</ns1:APP_Reponse_B2B>
-		</ns1:CreateDemFinRequest>
+		'.$this->ServiceFinancement->getXmlForCmCic().'
 	</SOAP-ENV:Body>
 </SOAP-ENV:Envelope>';
 		
@@ -979,4 +879,3 @@ class MySoapCmCic extends SoapClient
 		return parent::__doRequest($this->realXML, $location, $saction, $version);
 	}
 }
-
