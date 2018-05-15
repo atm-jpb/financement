@@ -1,5 +1,7 @@
 <?php
 
+chdir(__DIR__);
+
 define('INC_FROM_CRON_SCRIPT',true);
 
 // This is to make Dolibarr working with Plesk
