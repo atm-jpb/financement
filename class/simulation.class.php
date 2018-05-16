@@ -1659,6 +1659,7 @@ class TSimulation extends TObjetStd {
 				$suivi->calcul_detail['turn_over'] = 'Turn-over = ('.$min_turn_over.' - '.$suivi->turn_over.') = <strong>'.price($diffTurnOver).'</strong>';
 			}
 			$suivi->renta_percent = round(($suivi->renta_amount / $this->montant) * 100,2);
+			$suivi->renta_percent+= $suivi->leaser->array_options['options_bonus_renta'];
 		}
 
 		uasort($this->TSimulationSuivi, array($this, 'aiguillageSuivi'));
@@ -1897,9 +1898,10 @@ class TSimulation extends TObjetStd {
 		// Simulation de l'écheancier
 		$dossier_simule = new TFin_dossier();
 		$dossier_simule->set_values($Tab);
+		$dossier_simule->contrat = $this->fk_type_contrat;
 		$dossier_simule->financementLeaser->set_values($Tab);
 		$dossier_simule->financementLeaser->fk_soc = $suivi->leaser->id;
-		$dossier_simule->financementLeaser->montant = $suivi->montantfinanceleaser;
+		$dossier_simule->financementLeaser->montant = $suivi->montantfinanceleaser + $suivi->surfactplus;
 		$dossier_simule->date_debut = date('d/m/Y');
 		$dossier_simule->financementLeaser->calculTaux();
 		$dossier_simule->calculSolde();
