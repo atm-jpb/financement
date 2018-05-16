@@ -128,7 +128,7 @@ ErrorMontantModifNotAuthorized=Votre modification du montant est trop importante
 FinancementSoapCallOK=Appel EDI OK
 FinancementSoapCallKO=Echec de l'appel EDI
 
-ServiceFinancementWrongReturn=Valeur de retour inattendu
+ServiceFinancementWrongReturn=EDI : valeur de retour inattendu
 ServiceFinancementCallDone=Appel EDI effectué
 
 # SCORE

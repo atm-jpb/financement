@@ -170,12 +170,10 @@ class ServiceFinancement {
 
 			$this->TMsg[] = $langs->trans('webservice_financement_msg_scoring_send', $this->leaser->name);
 			
-			// TODO récupérer le message exact de la réponse pour le mettre dans ->message_soap_returned
-			// afin de savoir si la demande a bien été prise en compte
-			$obj_response = $this->soapClient->__getLastResponse();
-			if (!empty($obj_response->ResponseDemFin))
+			
+			if (!empty($response->ResponseDemFin))
 			{
-				$this->message_soap_returned = $obj_response->ResponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_MSGRET;
+				$this->message_soap_returned = $response->ResponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_MSGRET;
 				return true;
 			}
 			else
@@ -325,7 +323,7 @@ class ServiceFinancement {
 			
 			// TODO récupérer le message exact de la réponse pour le mettre dans ->message_soap_returned
 			// afin de savoir si la demande a bien été prise en compte
-			$obj_response = $this->soapClient->__getLastResponse();
+			// use $response
 			// nécessite de serialiser le retour et de faire un dolibarr_set_const pour connaitre maintenant le format exact du retour car l'url de test n'est plus opérationnelle
 //global $db;
 //dolibarr_set_const($db, 'SERVICE_FINANCEMENT_LIXXBAIL_RESPONSE', serialize($obj_response), 'chaine', 0, '', $conf->entity);
