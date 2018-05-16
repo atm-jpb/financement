@@ -1659,7 +1659,10 @@ class TSimulation extends TObjetStd {
 				$suivi->calcul_detail['turn_over'] = 'Turn-over = ('.$min_turn_over.' - '.$suivi->turn_over.') = <strong>'.price($diffTurnOver).'</strong>';
 			}
 			$suivi->renta_percent = round(($suivi->renta_amount / $this->montant) * 100,2);
-			$suivi->renta_percent+= $suivi->leaser->array_options['options_bonus_renta'];
+			if(!empty($suivi->leaser->array_options['options_bonus_renta'])) {
+				$suivi->renta_percent+= $suivi->leaser->array_options['options_bonus_renta'];
+				$suivi->calcul_detail['renta'] = 'Bonus renta = <strong>'.price($suivi->leaser->array_options['options_bonus_renta']).'</strong>';
+			}
 		}
 
 		uasort($this->TSimulationSuivi, array($this, 'aiguillageSuivi'));
@@ -1686,7 +1689,7 @@ class TSimulation extends TObjetStd {
 		{
 			$suivi->montantfinanceleaser = round($this->echeance / ($coef_line['coeff'] / 100), 2);
 			$suivi->calcul_detail['montantfinanceleaser'] = 'Montant financé leaser = '.$this->echeance.' / '.($coef_line['coeff'] / 100);
-			$suivi->calcul_detail['montantfinanceleaser'].= ' = <strong>'.price($suivi->montantfinanceleaser).'</strong>';
+			$suivi->calcul_detail['montantfinanceleaser'].= ' = <strong>'.price($suivi->montantfinanceleaser).'</strong><hr>';
 		}
 		
 		return $suivi->montantfinanceleaser;
