@@ -131,6 +131,36 @@ $server->register(
     'WS retour suite à une réponse de demande de financement'
 );
 
+$server->register(
+	'repondreDemandeCmCic',
+	array('authentication'=>'tns:authentication','TReponse'=>'tns:TReponse'),
+	array('result'=>'tns:result','date'=>'xsd:dateTime','timezone'=>'xsd:string'),
+	$ns,
+    $ns.'#repondreDemandeCmCic',
+    $styledoc,
+    $styleuse,
+    'WS retour de repondreDemandeCmCic'
+);
+
+function repondreDemandeCmCic($authentication, $TReponse)
+{
+	ob_start();
+	var_dump($TReponse);
+	$r = ob_get_clean();
+	
+	$objectresp = array(
+		'result'=>array(
+			'result_code' => '42'
+			, 'result_label' => $r
+		)
+	);
+	
+	$date = new DateTime();
+	$objectresp['date'] = $date->format('Y-m-d H:i:s');
+	$objectresp['timezone'] = $date->getTimezone()->getName();
+	
+	return $objectresp;
+}
 
 function repondreDemande($authentication, $TReponse)
 {

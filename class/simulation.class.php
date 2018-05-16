@@ -1940,6 +1940,8 @@ class TSimulationSuivi extends TObjetStd {
 		if (!$res && !empty($service->TError)) {
 			$this->commentaire = $service->TError;
 			$this->statut = 'ERR';
+		} else {
+			// success
 		}
 	}
 	

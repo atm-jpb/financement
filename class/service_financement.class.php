@@ -42,8 +42,9 @@ class ServiceFinancement {
 	
 	public $leaser;
 	
-	public $TMsg;
-	public $TError;
+	public $TMsg = array();
+	public $TError = array();
+	public $message_soap_returned = '';
 	
 	public $soapClient;
 	public $result;
@@ -70,9 +71,6 @@ class ServiceFinancement {
 		$this->simulationSuivi = &$simulationSuivi;
 		
 		$this->leaser = &$simulationSuivi->leaser;
-		
-		$this->TMsg = array();
-		$this->TError = array();
 		
 		$this->debug = GETPOST('DEBUG');
 		
@@ -172,10 +170,13 @@ class ServiceFinancement {
 
 			$this->TMsg[] = $langs->trans('webservice_financement_msg_scoring_send', $this->leaser->name);
 			
+			// TODO récupérer le message exact de la réponse pour le mettre dans ->message_soap_returned
+			// afin de savoir si la demande a bien été prise en compte
+			
 			return true;
 		} catch (SoapFault $e) {
 			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_CMCIC');
-			$this->printTrace($e);
+			$this->printTrace($e); // exit fait dans la méthode
 		}
 	}
 	
@@ -311,10 +312,13 @@ class ServiceFinancement {
 
 			$this->TMsg[] = $langs->trans('webservice_financement_msg_scoring_send', $this->leaser->name);
 			
+			// TODO récupérer le message exact de la réponse pour le mettre dans ->message_soap_returned
+			// afin de savoir si la demande a bien été prise en compte
+			
 			return true;
 		} catch (SoapFault $e) {
 			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_CALF');
-			$this->printTrace($e);
+			$this->printTrace($e); // exit fait dans la méthode
 		}
 	}
 	
@@ -714,23 +718,6 @@ class ServiceFinancement {
 			return 'CESS';
 	}
 
-
-	// TODO à mettre en commentaire ou à supprimer pour la prod (actuellement utilisé pas le fichier scoring_client.php qui fait appel à notre propres webservice)
-	public function callTest(&$authentication, &$TParam)
-	{
-		try {
-			$ns='http://'.$_SERVER['HTTP_HOST'].'/ns/';
-			
-			$this->soapClient = new nusoap_client($this->wsdl/*, $params_connection*/);
-			$this->result = $this->soapClient->call('repondreDemande', array('authentication'=>$authentication, 'TParam' => $TParam), $ns, '');
-			
-			return true;
-		} catch (SoapFault $e) {
-			var_dump($e);
-			exit;
-		}
-	}
-
 	
 	
 	private function printDebugSoapCall($response)
@@ -850,6 +837,7 @@ class MySoapCmCic extends SoapClient
 	{
 		global $conf;
 		
+		// TODO Username & Password en conf
 		$request = '
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://www.ge.com/capital/eef/france/extranet/service/wsdemande/document" xmlns:ns2="https://uat-www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl">
 	<SOAP-ENV:Header>

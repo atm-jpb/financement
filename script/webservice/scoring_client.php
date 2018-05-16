@@ -8,49 +8,50 @@ require('../../config.php');
 
 dol_include_once('/financement/class/service_financement.class.php');
 
-$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[85600]);
+$PDOdb = new TPDOdb;
 
+$simulation = new TSimulation(true);
+$simulation->load($PDOdb, $db, 18510);
 
+//var_dump($conf->global->WEBSERVICES_KEY);
+//exit;
+
+$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[209126]);
+
+/*
 $xml_data = new SimpleXMLElement('<?xml version="1.0"?><data></data>');
-$authentication=array(
-    'dolibarrkey'=>$conf->global->WEBSERVICES_KEY,
-    'sourceapplication'=>'edi_leaser',
-    'login'=>'calf',
-    'password'=>'passwdcalf'
-	);
-	array_to_xml($authentication, $xml_data);
-	$result = $xml_data->asXML('/var/www/authentification.xml');
+
+array_to_xml($authentication, $xml_data);
+$result = $xml_data->asXML('/home/pierrehenry/public_html/client/cprofin/test/authentification.xml');
+
+var_dump($xml_data);
+exit;
+*/
 
 function array_to_xml( $data, &$xml_data ) {
-	    foreach( $data as $key => $value ) {
-	        if( is_array($value) ) {
-	            if( is_numeric($key) ){
-	                $key = 'item'.$key; //dealing with <0/>..<n/> issues
-	            }
-	            $subnode = $xml_data->addChild($key);
-	            self::array_to_xml($value, $subnode);
-	        } else {
-	            $xml_data->addChild("$key",htmlspecialchars("$value"));
-	        }
-	     }
-	}
-
-exit;
+	foreach( $data as $key => $value ) {
+		if( is_array($value) ) {
+			if( is_numeric($key) ){
+				$key = 'item'.$key; //dealing with <0/>..<n/> issues
+			}
+			$subnode = $xml_data->addChild($key);
+			array_to_xml($value, $subnode);
+		} else {
+			$xml_data->addChild("$key",htmlspecialchars("$value"));
+		}
+	 }
+}
 
 
-
-$service->createXmlFileOfParam();
-exit;
-
-$service->wsdl = 'http://localhost/client/cpro/fin/htdocs/custom/financement/script/webservice/scoring_server.php';
+$service->wsdl = 'http://localhost/public_html/client/cprofin/dolibarr/htdocs/custom/financement/script/webservice/scoring_server.php?wsdl';
 
 // Call the WebService method and store its result in $result.
 $authentication=array(
     'dolibarrkey'=>$conf->global->WEBSERVICES_KEY,
-    'sourceapplication'=>'DEMO',
-    'login'=>'admin',
-    'password'=>'todo_changeme',
-    'entity'=>'1');
+    'sourceapplication'=>'edi_cmcic',
+    'login'=>'cmcic',
+    'password'=>'cmcic'
+);
 
 $TParam = array(
 	'partenaire' => array()
@@ -58,7 +59,17 @@ $TParam = array(
 	,'financement' => array()
 );
 
-$service->callTest($authentication, $TParam);
+try {
+	$ns='http://'.$_SERVER['HTTP_HOST'].'/ns/';
+
+	$soapClient = new nusoap_client($service->wsdl/*, $params_connection*/);
+	
+	$result = $soapClient->call('repondreDemandeCmCic', array('authentication'=>$authentication, 'TParam' => $TParam), $ns, '');
+
+} catch (SoapFault $e) {
+	var_dump($e);
+	exit;
+}
 
 header("Content-type: text/html; charset=utf8");
 print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">'."\n";
@@ -74,17 +85,28 @@ echo "<h2>Request:</h2>";
 echo '<h4>Function</h4>';
 echo 'callTest';
 echo '<h4>SOAP Message</h4>';
-echo '<pre>' . htmlspecialchars($service->soapClient->request, ENT_QUOTES) . '</pre>';
+echo '<pre>' . htmlspecialchars($soapClient->request, ENT_QUOTES) . '</pre>';
 
 echo '<hr>';
 
 echo "<h2>Response:</h2>";
 echo '<h4>Result</h4>';
 echo '<pre>';
-print_r($service->result);
+print_r($result);
 echo '</pre>';
 echo '<h4>SOAP Message</h4>';
-echo '<pre>' . htmlspecialchars($service->soapClient->response, ENT_QUOTES) . '</pre>';
+echo '<pre>' . $soapClient->response, ENT_QUOTES . '</pre>';
+
+
+echo '<hr>';
+
+echo "<h2>Response:</h2>";
+echo '<h4>Result</h4>';
+echo '<pre>';
+print_r($result);
+echo '</pre>';
+echo '<h4>SOAP Message</h4>';
+echo '<pre>' . htmlspecialchars($soapClient->response, ENT_QUOTES) . '</pre>';
 
 echo '</body>'."\n";;
 echo '</html>'."\n";;
