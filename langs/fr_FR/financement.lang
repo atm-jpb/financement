@@ -125,6 +125,12 @@ SimulationSuiviHistory=Historique Suivi Leaser Simulation
 Simulation_marque_not_more_available=Ancienne marque : <b>%s</b>
 ErrorMontantModifNotAuthorized=Votre modification du montant est trop importante, contactez le service financement
 
+FinancementSoapCallOK=Appel EDI OK
+FinancementSoapCallKO=Echec de l'appel EDI
+
+ServiceFinancementWrongReturn=Valeur de retour inattendu
+ServiceFinancementCallDone=Appel EDI effectué
+
 # SCORE
 ScoreList=Scores
 ScoreDate=Date du score

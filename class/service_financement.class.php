@@ -172,8 +172,18 @@ class ServiceFinancement {
 			
 			// TODO récupérer le message exact de la réponse pour le mettre dans ->message_soap_returned
 			// afin de savoir si la demande a bien été prise en compte
+			$obj_response = $this->soapClient->__getLastResponse();
+			if (!empty($obj_response->ResponseDemFin))
+			{
+				$this->message_soap_returned = $obj_response->ResponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_MSGRET;
+				return true;
+			}
+			else
+			{
+				$this->message_soap_returned = $langs->trans('ServiceFinancementWrongReturn');
+				return false;
+			}
 			
-			return true;
 		} catch (SoapFault $e) {
 			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_CMCIC');
 			$this->printTrace($e); // exit fait dans la méthode
@@ -274,6 +284,7 @@ class ServiceFinancement {
 		
 		if ($this->debug) var_dump('DEBUG :: Function callLixxbail(): Production = '.json_encode($this->production).' ; WSDL = '.$this->wsdl.' ; endpoint = '.$this->endpoint);
 		
+		// TODO normalement ce if sert à rien => à delete
 		if (!empty($this->TError))
 		{
 			if ($this->debug) var_dump('DEBUG :: error catch =v', $this->TError);
@@ -314,6 +325,13 @@ class ServiceFinancement {
 			
 			// TODO récupérer le message exact de la réponse pour le mettre dans ->message_soap_returned
 			// afin de savoir si la demande a bien été prise en compte
+			$obj_response = $this->soapClient->__getLastResponse();
+			// nécessite de serialiser le retour et de faire un dolibarr_set_const pour connaitre maintenant le format exact du retour car l'url de test n'est plus opérationnelle
+//global $db;
+//dolibarr_set_const($db, 'SERVICE_FINANCEMENT_LIXXBAIL_RESPONSE', serialize($obj_response), 'chaine', 0, '', $conf->entity);
+			
+			$this->message_soap_returned = $langs->trans('ServiceFinancementCallDone');
+//			$this->message_soap_returned = $langs->trans('ServiceFinancementWrongReturn');
 			
 			return true;
 		} catch (SoapFault $e) {

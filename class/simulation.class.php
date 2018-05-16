@@ -1889,7 +1889,7 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	function _sendDemandeAuto(&$PDOdb){
-		global $db;
+		global $db,$langs;
 		
 		$this->simulation->societe = new Societe($db);
 		$this->simulation->societe->fetch($this->simulation->fk_soc);
@@ -1904,10 +1904,11 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$this->statut = 'WAIT';
 		
+		$res = null;
 		switch ($this->leaser->array_options['options_edi_leaser']) {
 			//BNP PARIBAS LEASE GROUP
 			case 'BNP':
-				$this->_createDemandeBNP($PDOdb);
+				$res=$this->_createDemandeBNP($PDOdb);
 				break;
 			//GE CAPITAL EQUIPEMENT FINANCE
 			case 'GE':
@@ -1917,11 +1918,19 @@ class TSimulationSuivi extends TObjetStd {
 			//LIXXBAIL, CMCIC
 			case 'LIXXBAIL':
 			case 'CMCIC':
-				$this->_createDemandeServiceFinancement();
+				$res=$this->_createDemandeServiceFinancement();
 				break;
 			default:
+				// techniquement il est impossible d'arriver dans ce cas
 				return 1;
 				break;
+		}
+		
+		// Si non null (donc un appel SOAP a été fait) alors je check le retour
+		if (!is_null($res))
+		{
+			if ($res > 0) setEventMessage($langs->trans('FinancementSoapCallOK')); // OK
+			else setEventMessage($langs->trans('FinancementSoapCallKO'), 'errors'); // fail
 		}
 		
 		$this->statut_demande = 1;
@@ -1937,12 +1946,14 @@ class TSimulationSuivi extends TObjetStd {
 		// La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active) 
 		$res = $service->call();
 		
-		if (!$res && !empty($service->TError)) {
-			$this->commentaire = $service->TError;
+		$this->commentaire = $service->message_soap_returned;
+		if (!$res)
+		{
 			$this->statut = 'ERR';
-		} else {
-			// success
+			return -1;
 		}
+		
+		return 1;
 	}
 	
 	function _createDemandeGE(&$PDOdb){
@@ -2182,7 +2193,7 @@ class TSimulationSuivi extends TObjetStd {
 			//pre($e,true);
 			$this->commentaire = $e;
 			$this->statut = 'ERR';
-			return 0;
+			return -1;
 		}
 		//pre($soap->__getFunctions(),true);exit;
 //		echo "1<br>";
@@ -2208,10 +2219,11 @@ class TSimulationSuivi extends TObjetStd {
 			var_dump($reponseDemandeFinancement->detail);exit;*/
 			$this->commentaire = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail);
 			$this->statut = 'ERR';
-			return 0;
+			return -2;
 		}
 
 		$this->traiteBNPReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
+		return 1;
 	}
 
 	function _consulterDemandeBNP($num_accord_leaser){
