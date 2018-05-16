@@ -1902,6 +1902,7 @@ class TSimulation extends TObjetStd {
 		$dossier_simule = new TFin_dossier();
 		$dossier_simule->set_values($Tab);
 		$dossier_simule->contrat = $this->fk_type_contrat;
+		$dossier_simule->nature_financement = 'INTERNE';
 		$dossier_simule->financementLeaser->set_values($Tab);
 		$dossier_simule->financementLeaser->fk_soc = $suivi->leaser->id;
 		$dossier_simule->financementLeaser->montant = $suivi->montantfinanceleaser + $suivi->surfactplus;
