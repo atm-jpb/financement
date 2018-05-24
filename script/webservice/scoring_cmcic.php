@@ -208,13 +208,13 @@ function ReturnRespDemFinRequest($ResponseDemFinShort, $ResponseDemFinComplete)
 			
 			if (!empty($ResponseDemFinComplete['REP_AccordPDF_B2B']))
 			{
-				$dir = $conf->financement->multidir_output[$simulation->entity].'/'.dol_sanitizeFileName($simulation->reference);
+				$dir = $simulation->getFilePath();
 				
 				dol_mkdir($dir);
 				if (file_exists($dir))
 				{
 					$pdf_decoded = base64_decode($ResponseDemFinComplete['REP_AccordPDF_B2B']);
-					$pdf = fopen($dir.'/minerva.pdf', 'w');
+					$pdf = fopen($dir.'/'.dol_sanitizeFileName($simulation->reference).'_minerva.pdf', 'w');
 					fwrite($pdf, $pdf_decoded);
 					fclose($pdf);
 				}
