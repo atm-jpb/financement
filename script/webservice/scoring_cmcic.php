@@ -1,4 +1,7 @@
 <?php
+/**
+ * SCORING POUR CMCIC
+ */
 
 chdir(__DIR__);
 
@@ -165,6 +168,8 @@ function repondreDemandeCmCic($authentication, $TReponse)
 */
 function ReturnRespDemFinRequest($ResponseDemFinShort, $ResponseDemFinComplete)
 {
+	global $db,$conf;
+	
 	dol_syslog("1. WEBSERVICE ReturnRespDemFinRequest called", LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 	
 	dol_include_once('/financement/class/simulation.class.php');
@@ -180,42 +185,43 @@ function ReturnRespDemFinRequest($ResponseDemFinShort, $ResponseDemFinComplete)
 	$simulation = new TSimulation;
 	$ref_simulation = $ResponseDemFinComplete['REP_Demande']['B2B_REF_EXT'];
 	
-	$simulation->loadBy($PDOdb, $ref_simulation, 'reference');
-	if ($simulation->getId() > 0)
+	$TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $simulation->get_table(), array('reference'=>$ref_simulation));
+	if (!empty($TId[0]))
 	{
+		$simulation->load($PDOdb, $db, $TId[0]);
+
 		$found = false;
 		foreach ($simulation->TSimulationSuivi as &$simulationSuivi)
 		{
 			if ($simulationSuivi->leaser->array_options['options_edi_leaser'] == 'CMCIC')
 			{
 				$found = true;
-				if (!empty($simulationSuivi->commentaire)) $simulationSuivi->commentaire.= "\n";
-				$simulationSuivi->commentaire.= $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'];
-				
-				if (!empty($ResponseDemFinComplete['REP_AccordPDF_B2B']))
-				{
-					// TODO download file
-					$pdf_base64 = "base64pdf.txt";
-					//Get File content from txt file
-					$pdf_base64_handler = fopen($pdf_base64, 'r');
-					$pdf_content = fread($pdf_base64_handler, filesize($pdf_base64));
-					fclose($pdf_base64_handler);
-					//Decode pdf content
-					$pdf_decoded = base64_decode($pdf_content);
-					//Write data back to pdf file
-					$pdf = fopen('minerva.pdf', 'w');
-					fwrite($pdf, $pdf_decoded);
-					//close output file
-					fclose($pdf);
-				}
-				
 				break;
 			}
 		}
 		
 		if ($found)
 		{
+			if (!empty($simulationSuivi->commentaire)) $simulationSuivi->commentaire.= "\n";
+			$simulationSuivi->commentaire.= $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'];
+			$simulationSuivi->save($PDOdb);
 			
+			if (!empty($ResponseDemFinComplete['REP_AccordPDF_B2B']))
+			{
+				$dir = $conf->financement->multidir_output[$simulation->entity].'/'.dol_sanitizeFileName($simulation->reference);
+				
+				dol_mkdir($dir);
+				if (file_exists($dir))
+				{
+					$pdf_decoded = base64_decode($ResponseDemFinComplete['REP_AccordPDF_B2B']);
+					$pdf = fopen($dir.'/minerva.pdf', 'w');
+					fwrite($pdf, $pdf_decoded);
+					fclose($pdf);
+				}
+			}
+			
+			$result_code = 'SUCCESS';
+			$result_label = '"suivi leaser" mis à jour';
 		}
 		else
 		{

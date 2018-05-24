@@ -1,4 +1,7 @@
 <?php
+/**
+ * SCORING POUR LIXXBAIL
+ */
 
 chdir(__DIR__);
 
@@ -18,7 +21,7 @@ require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 // TODO inclure les class nécessaire pour le scoring
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 
-dol_syslog("WEBSERVICE CALL : start calling webservice", LOG_ERR, 0, '_EDI_SCORING_SERVER');
+dol_syslog("WEBSERVICE CALL : start calling webservice", LOG_ERR, 0, '_EDI_SCORING_LIXXBAIL');
 
 $langs->load("main");
 
@@ -135,9 +138,9 @@ function repondreDemande($authentication, $TReponse)
 {
 	global $db,$conf,$langs;
 
-	dol_syslog("WEBSERVICE Function: repondreDemande login=".$authentication['login'], LOG_ERR, 0, '_EDI_SCORING_SERVER');
+	dol_syslog("WEBSERVICE Function: repondreDemande login=".$authentication['login'], LOG_ERR, 0, '_EDI_SCORING_LIXXBAIL');
 	//dol_syslog("WEBSERVICE AUTH TAB : ".print_r($authentification,true), LOG_ERR);
-	dol_syslog("WEBSERVICE REP TAB : ".print_r($TReponse,true), LOG_ERR, 0, '_EDI_SCORING_SERVER');
+	dol_syslog("WEBSERVICE REP TAB : ".print_r($TReponse,true), LOG_ERR, 0, '_EDI_SCORING_LIXXBAIL');
 
 	if ($authentication['entity']) $conf->entity=$authentication['entity'];
 
@@ -265,7 +268,7 @@ function repondreDemande($authentication, $TReponse)
 	$objectresp['date'] = $date->format('Y-m-d H:i:s');
 	$objectresp['timezone'] = $date->getTimezone()->getName();
 	
-	dol_syslog("WEBSERVICE RES TAB : ".print_r($objectresp,true), LOG_ERR, 0, '_EDI_SCORING_SERVER');
+	dol_syslog("WEBSERVICE RES TAB : ".print_r($objectresp,true), LOG_ERR, 0, '_EDI_SCORING_LIXXBAIL');
 
 	return $objectresp;
 }
