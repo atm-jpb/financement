@@ -208,7 +208,7 @@ class ServiceFinancement {
 		$dossier_origin = current($this->simulation->dossiers);
 		
 		$our_wsdl = $conf->global->FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC;
-		if (empty($our_wsdl)) $our_wsdl = dol_buildpath('/financement/script/webservice/scoring_server.php?wsdl', 2);
+		if (empty($our_wsdl)) $our_wsdl = dol_buildpath('/financement/script/webservice/scoring_cmcic.php?wsdl', 2);
 		
 		$protocole_id = $this->getProtocolID();
 		list($marqmat, $typmat) = $this->getMarqmatAndTypmat($protocole_id);

@@ -1,0 +1,246 @@
+<?php
+
+chdir(__DIR__);
+
+define('INC_FROM_CRON_SCRIPT',true);
+
+// This is to make Dolibarr working with Plesk
+set_include_path($_SERVER['DOCUMENT_ROOT'].'/htdocs');
+
+require('../../config.php');
+
+
+require_once NUSOAP_PATH.'/nusoap.php';		// Include SOAP
+require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/ws.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
+
+// TODO inclure les class nécessaire pour le scoring
+require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
+
+dol_syslog("WEBSERVICE CALL : start calling webservice", LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+
+$langs->load("main");
+
+// Create the soap Object
+$server = new nusoap_server();
+$server->soap_defencoding='UTF-8';
+$server->decode_utf8=false;
+$ns='http://'.$_SERVER['HTTP_HOST'].'/ns/';
+$server->configureWSDL('WebServicesDolibarrScoring',$ns);
+$server->wsdl->schemaTargetNamespace=$ns;
+
+
+// Define WSDL Authentication object
+$server->wsdl->addComplexType(
+    'authentication',
+    'complexType',
+    'struct',
+    'all',
+    '',
+    array(
+        'dolibarrkey' => array('name'=>'dolibarrkey','type'=>'xsd:string'),
+    	'login' => array('name'=>'login','type'=>'xsd:string'),
+        'password' => array('name'=>'password','type'=>'xsd:string'),
+        'entity' => array('name'=>'entity','type'=>'xsd:string')
+    )
+);
+// Define WSDL Return object
+$server->wsdl->addComplexType(
+    'result',
+    'complexType',
+    'struct',
+    'all',
+    '',
+    array(
+        'result_code' => array('name'=>'result_code','type'=>'xsd:string'),
+        'result_label' => array('name'=>'result_label','type'=>'xsd:string'),
+    )
+);
+
+// Define other specific objects
+$server->wsdl->addComplexType(
+    'linePartenaire',
+    'complexType',
+    'struct',
+    'all',
+    '',
+    array(
+        'ref_ext' => array('name'=>'ref_ext','type'=>'xsd:string') // O - Numéro de dossier C'PRO - chaîne de caractères alphanumérique de 20 caractères max
+    )
+);
+$server->wsdl->addComplexType(
+    'lineClient',
+    'complexType',
+    'struct',
+    'all',
+    '',
+    array(
+        'client_siren' => array('name'=>'client_siren','type'=>'xsd:string') // O - Numéro SIREN du client de C'PRO - numérique entier de longueur fixe 9
+        ,'client_nic' => array('name'=>'client_nic','type'=>'xsd:string') // NO - NIC du client de C'PRO - chaîne de caractères de longueur fixe 5 composée exclusivement de chiffres
+    )
+);
+$server->wsdl->addComplexType(
+    'lineFinancement',
+    'complexType',
+    'struct',
+    'all',
+    '',
+    array(
+        'statut' => array('name'=>'statut','type'=>'xsd:string') // O - Statut du dossier - chaîne de caractères alphanumérique de 8 caractères max cf. tableau ci-dessous pour valeurs autorisées
+	        												  // ATTENTE || ACCEPTE || REFUSE || AJOURNE || SANSUIAU || SANSUISA || ANNULE
+        ,'commentaire_statut' => array('name'=>'commentaire_statut','type'=>'xsd:string') // NO - Commentaire additionnel sur le statut positionné sur le dossier - chaîne de caractères alphanumérique de 250 caractères max cf. tableau ci-dessous pour valeurs autorisées
+        													// Rapprochez-vous de votre contact commercial || Rapprochez-vous de votre contact commercial || Attente retour client CAL&F || Délai de validité de l'accord dépassé || Dossier sans suite || Dossier annulé
+        ,'num_dossier' => array('name'=>'num_dossier','type'=>'xsd:string') // O - Numéro de dossier CAL&F - chaîne de caractères alphanumérique de 13 caractères max
+        ,'coeff_dossier' => array('name'=>'coeff_dossier','type'=>'xsd:double') // pourcentage au format numérique décimal (. comme séparateur décimal)
+		,'date_demande_financement' => array('name'=>'date_demande_financement','type'=>'xsd:dateTime') // O - Date et heure de la demande de financement. - format YYYY-MM-DDThh:mm:ss
+		,'date_reponse_financement' => array('name'=>'date_reponse_financement','type'=>'xsd:dateTime') // O - Date et heure de la réponse à la demande de financement. - format YYYY-MM-DDThh:mm:ss
+    )
+);
+$server->wsdl->addComplexType(
+    'TReponse',
+    'complexType',
+    'struct',
+    'all',
+    '',
+    array(
+    	'partenaire' => array('name'=>'partenaire','type'=>'tns:linePartenaire','minOccurs' => '1','maxOccurs' => '1')
+		,'client' => array('name'=>'client','type'=>'tns:lineClient','minOccurs' => '1','maxOccurs' => '1')
+		,'financement' => array('name'=>'financement','type'=>'tns:lineFinancement','minOccurs' => '1','maxOccurs' => '1')
+    )
+);
+
+// 5 styles: RPC/encoded, RPC/literal, Document/encoded (not WS-I compliant), Document/literal, Document/literal wrapped
+// Style merely dictates how to translate a WSDL binding to a SOAP message. Nothing more. You can use either style with any programming model.
+// http://www.ibm.com/developerworks/webservices/library/ws-whichwsdl/
+$styledoc='rpc';       // rpc/document (document is an extend into SOAP 1.0 to support unstructured messages)
+$styleuse='encoded';   // encoded/literal/literal wrapped
+// Better choice is document/literal wrapped but literal wrapped not supported by nusoap.
+
+// Register WSDL
+$server->register(
+	'ReturnRespDemFinRequest',
+	array('authentication'=>'tns:authentication','TReponse'=>'tns:TReponse'),
+	array('result'=>'tns:result','date'=>'xsd:dateTime','timezone'=>'xsd:string'),
+	$ns,
+    $ns.'#ReturnRespDemFin',
+    $styledoc,
+    $styleuse,
+    'WS retour de ReturnRespDemFinRequest'
+);
+/*
+$server->register(
+	'repondreDemandeCmCic',
+	array('authentication'=>'tns:authentication','TReponse'=>'tns:TReponse'),
+	array('result'=>'tns:result','date'=>'xsd:dateTime','timezone'=>'xsd:string'),
+	$ns,
+    $ns.'#repondreDemandeCmCic',
+    $styledoc,
+    $styleuse,
+    'WS retour de repondreDemandeCmCic'
+);
+
+
+function repondreDemandeCmCic($authentication, $TReponse)
+{
+	dol_syslog("WEBSERVICE Function: repondreDemandeCmCic login=".$authentication['login'], LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+	
+	ob_start();
+	var_dump($TReponse);
+	$r = ob_get_clean();
+	
+	$objectresp = array(
+		'result'=>array(
+			'result_code' => '42'
+			, 'result_label' => $r
+		)
+	);
+	
+	$date = new DateTime();
+	$objectresp['date'] = $date->format('Y-m-d H:i:s');
+	$objectresp['timezone'] = $date->getTimezone()->getName();
+	
+	return $objectresp;
+}
+*/
+function ReturnRespDemFinRequest($ResponseDemFinShort, $ResponseDemFinComplete)
+{
+	dol_syslog("1. WEBSERVICE ReturnRespDemFinRequest called", LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+	
+	dol_include_once('/financement/class/simulation.class.php');
+	dol_include_once('/financement/class/score.class.php');
+	dol_include_once('/financement/class/dossier.class.php');
+	dol_include_once('/financement/class/dossier_integrale.class.php');
+	dol_include_once('/financement/class/affaire.class.php');
+	dol_include_once('/financement/class/grille.class.php');
+
+	$objectresp = array();
+	
+	$PDOdb = new TPDOdb;
+	$simulation = new TSimulation;
+	$ref_simulation = $ResponseDemFinComplete['REP_Demande']['B2B_REF_EXT'];
+	
+	$simulation->loadBy($PDOdb, $ref_simulation, 'reference');
+	if ($simulation->getId() > 0)
+	{
+		$found = false;
+		foreach ($simulation->TSimulationSuivi as &$simulationSuivi)
+		{
+			if ($simulationSuivi->leaser->array_options['options_edi_leaser'] == 'CMCIC')
+			{
+				$found = true;
+				if (!empty($simulationSuivi->commentaire)) $simulationSuivi->commentaire.= "\n";
+				$simulationSuivi->commentaire.= $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'];
+				
+				if (!empty($ResponseDemFinComplete['REP_AccordPDF_B2B']))
+				{
+					// TODO download file
+					$pdf_base64 = "base64pdf.txt";
+					//Get File content from txt file
+					$pdf_base64_handler = fopen($pdf_base64, 'r');
+					$pdf_content = fread($pdf_base64_handler, filesize($pdf_base64));
+					fclose($pdf_base64_handler);
+					//Decode pdf content
+					$pdf_decoded = base64_decode($pdf_content);
+					//Write data back to pdf file
+					$pdf = fopen('minerva.pdf', 'w');
+					fwrite($pdf, $pdf_decoded);
+					//close output file
+					fclose($pdf);
+				}
+				
+				break;
+			}
+		}
+		
+		if ($found)
+		{
+			
+		}
+		else
+		{
+			$error++;
+			$result_code = 'ERROR_SUIVI_NOT_FOUND';
+			$result_label = 'Dossier trouvé mais aucun "suivi leaser" CMCIC';
+		}
+	}
+	else
+	{
+		$error++;
+		$result_code = 'NUM_DOSSIER_UNKNOWN';
+		$result_label = 'Référence dossier inconnu';
+	}
+	
+	
+	$date = new DateTime();
+	$objectresp['date'] = $date->format('Y-m-d H:i:s');
+	$objectresp['timezone'] = $date->getTimezone()->getName();
+	$objectresp['result'] = array('result_code' => $result_code, 'result_label' => $result_label);
+	
+	dol_syslog("2. WEBSERVICE ReturnRespDemFinRequest return = ".print_r($objectresp,true), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+	
+	return $objectresp;
+}
+
+// Return the results.
+$server->service(file_get_contents("php://input"));

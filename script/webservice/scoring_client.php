@@ -43,7 +43,7 @@ function array_to_xml( $data, &$xml_data ) {
 }
 
 
-$service->wsdl = 'http://localhost/public_html/client/cprofin/dolibarr/htdocs/custom/financement/script/webservice/scoring_server.php?wsdl';
+$service->wsdl = 'https://leaseboard-test.cpro.fr/webservice/scoring_cmcic.php?wsdl';
 
 // Call the WebService method and store its result in $result.
 $authentication=array(
@@ -64,7 +64,7 @@ try {
 
 	$soapClient = new nusoap_client($service->wsdl/*, $params_connection*/);
 	
-	$result = $soapClient->call('repondreDemandeCmCic', array('authentication'=>$authentication, 'TParam' => $TParam), $ns, '');
+//	$result = $soapClient->call('repondreDemandeCmCic', array('authentication'=>$authentication, 'TParam' => $TParam), $ns, '');
 
 } catch (SoapFault $e) {
 	var_dump($e);
@@ -108,7 +108,7 @@ echo '</pre>';
 echo '<h4>SOAP Message</h4>';
 echo '<pre>' . htmlspecialchars($soapClient->response, ENT_QUOTES) . '</pre>';
 
-echo '</body>'."\n";;
-echo '</html>'."\n";;
+echo '</body>'."\n";
+echo '</html>'."\n";
 
 exit;
