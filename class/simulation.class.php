@@ -1682,7 +1682,7 @@ class TSimulation extends TObjetStd {
 		$suivi->montantfinanceleaser = 0;
 			
 		$leaser = $suivi->loadLeaser();
-		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree);
+		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree, $this->opt_periodicite);
 		
 		if ($coef_line == -1) $suivi->calcul_detail['montantfinanceleaser'] = 'Aucun coefficient trouvé pour le leaser "'.$leaser->nom.'" ('.$leaser->id.') avec une durée de '.$this->duree.' trimestres';
 		else if ($coef_line == -2) $suivi->calcul_detail['montantfinanceleaser'] = 'Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
@@ -1762,7 +1762,7 @@ class TSimulation extends TObjetStd {
 		
 		$leaser = $suivi->loadLeaser();
 		
-		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree);
+		$coef_line = $suivi->getCoefLineLeaser($PDOdb, $this->montant, $this->fk_type_contrat, $this->duree, $this->opt_periodicite);
 		
 		if (empty($suivi->montantfinanceleaser)) $suivi->calcul_detail['commission'] = 'Commission = non calculable car pas de montant financé leaser';
 		else
@@ -2061,12 +2061,17 @@ class TSimulationSuivi extends TObjetStd {
 	 * @param type $duree
 	 * @return array || int if not found
 	 */
-	public function getCoefLineLeaser($PDOdb, $amount, $fk_type_contrat, $duree)
+	public function getCoefLineLeaser($PDOdb, $amount, $fk_type_contrat, $duree, $periodicite)
 	{
 		if (!empty($this->TCoefLine[$amount])) return $this->TCoefLine[$amount];
 		
 		$grille = new TFin_grille_leaser;
 		$grille->get_grille($PDOdb, $this->fk_leaser, $fk_type_contrat);
+		
+		$fin_temp = new TFin_financement;
+		$fin_temp->periodicite = $periodicite;
+		$p1 = $fin_temp->getiPeriode();
+		$duree *= $p1 / 3;
 		
 		if (!empty($grille->TGrille[$duree]))
 		{
@@ -2075,6 +2080,7 @@ class TSimulationSuivi extends TObjetStd {
 				if ($amount_as_key > $amount)
 				{
 					$this->TCoefLine[$amount] = $grille->TGrille[$duree][$amount_as_key];
+					$this->TCoefLine[$amount]['coeff']*= $p1 / 3;
 					return $this->TCoefLine[$amount];
 				}
 			}
