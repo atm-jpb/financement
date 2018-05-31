@@ -132,13 +132,13 @@ function get_date_et_solde(&$PDOdb, &$simu, $idDossier) {
 	// Il faut aussi donner le type de solde sélectionné par le vendeur
 	$typesoldevendeur = '';
 	
-	if(!empty($$simu->dossiers_rachetes_m1[$idDossier]['checked'])
-	|| !empty($$simu->dossiers_rachetes[$idDossier]['checked'])
-	|| !empty($$simu->dossiers_rachetes_p1[$idDossier]['checked'])) {
+	if(!empty($simu->dossiers_rachetes_m1[$idDossier]['checked'])
+	|| !empty($simu->dossiers_rachetes[$idDossier]['checked'])
+	|| !empty($simu->dossiers_rachetes_p1[$idDossier]['checked'])) {
 		$typesoldevendeur = 'R';
-	} else if(!empty($$simu->dossiers_rachetes_nr_m1[$idDossier]['checked'])
-	|| !empty($$simu->dossiers_rachetes_nr[$idDossier]['checked'])
-	|| !empty($$simu->dossiers_rachetes_nr_p1[$idDossier]['checked'])) {
+	} else if(!empty($simu->dossiers_rachetes_nr_m1[$idDossier]['checked'])
+	|| !empty($simu->dossiers_rachetes_nr[$idDossier]['checked'])
+	|| !empty($simu->dossiers_rachetes_nr_p1[$idDossier]['checked'])) {
 		$typesoldevendeur = 'NR';
 	}
 	
