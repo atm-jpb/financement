@@ -325,8 +325,8 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 	$dolibarr_main_authentication='dolibarr';
 
 	dol_syslog("1. WEBSERVICE ReturnRespDemFinRequest called", LOG_ERR, 0, '_EDI_SCORING_CMCIC');
-	dol_syslog("2. WEBSERVICE ResponseDemFinShort=".$ResponseDemFinShort, LOG_ERR, 0, '_EDI_SCORING_CMCIC');
-	dol_syslog("2. WEBSERVICE ResponseDemFinComplete=".$ResponseDemFinComplete, LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+	dol_syslog("2. WEBSERVICE ResponseDemFinShort=".print_r($ResponseDemFinShort,true), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+	dol_syslog("2. WEBSERVICE ResponseDemFinComplete=".print_r($ResponseDemFinComplete,true), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 	
 	dol_include_once('/financement/class/simulation.class.php');
 	dol_include_once('/financement/class/score.class.php');
