@@ -1631,7 +1631,7 @@ class TSimulation extends TObjetStd {
 		else return 0;
 	}
 
-	public function calculAiguillageSuivi(&$PDOdb)
+	public function calculAiguillageSuivi(&$PDOdb, $force_calcul=false)
 	{
 		global $conf;
 		
@@ -1642,6 +1642,16 @@ class TSimulation extends TObjetStd {
 		$min_turn_over = null;
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
+			if($force_calcul) {
+				$suivi->surfact = 0;
+				$suivi->surfactplus = 0;
+				$suivi->commission = 0;
+				$suivi->intercalaire = 0;
+				$suivi->diff_solde = 0;
+				$suivi->prime_volume = 0;
+				$suivi->turn_over = 0;
+			}
+			
 			$this->calculMontantFinanceLeaser($PDOdb, $suivi);
 			foreach ($TMethod as $method_name)
 			{
@@ -1905,6 +1915,14 @@ class TSimulation extends TObjetStd {
 		$dossier_simule->contrat = $this->fk_type_contrat;
 		$dossier_simule->nature_financement = 'INTERNE';
 		$dossier_simule->financementLeaser->set_values($Tab);
+		// Il y a des différence entre les variables d'une simulation et celles d'un financement... le set_values ne suffit pas
+		$dossier_simule->financementLeaser->periodicite = $this->opt_periodicite;
+		$dossier_simule->financementLeaser->montant = $this->montant;
+		$dossier_simule->financementLeaser->echeance = $this->echeance;
+		$dossier_simule->financementLeaser->terme = $this->opt_terme;
+		$dossier_simule->financementLeaser->duree = $this->duree;
+		$dossier_simule->financementLeaser->reste = $this->vr;
+		$dossier_simule->financementLeaser->reglement = $this->opt_mode_reglement;
 		$dossier_simule->financementLeaser->fk_soc = $suivi->leaser->id;
 		$dossier_simule->financementLeaser->montant = $suivi->montantfinanceleaser + $suivi->surfactplus;
 		$dossier_simule->date_debut = date('d/m/Y');
