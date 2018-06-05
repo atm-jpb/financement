@@ -305,5 +305,144 @@ function _getAction(&$fuser, $statut)
 	return $action;
 }
 
+
+// TODO DELETE pour la prod
+$server->register(
+	'ReturnRespDemFinRequest',
+	array('authentication'=>'tns:authentication','ResponseDemFinShort'=>'tns:ResponseDemFinShort','ResponseDemFinComplete'=>'tns:ResponseDemFinComplete'),
+	array('result'=>'tns:result','date'=>'xsd:dateTime','timezone'=>'xsd:string'),
+	$ns,
+    $ns.'#ReturnRespDemFin',
+    $styledoc,
+    $styleuse,
+    'WS retour de ReturnRespDemFinRequest'
+);
+
+
+function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $ResponseDemFinComplete)
+{
+	global $db,$conf,$dolibarr_main_authentication;
+	$dolibarr_main_authentication='dolibarr';
+
+	dol_syslog("1. WEBSERVICE ReturnRespDemFinRequest called", LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+	dol_syslog("2. WEBSERVICE ResponseDemFinShort=".$ResponseDemFinShort, LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+	
+	dol_include_once('/financement/class/simulation.class.php');
+	dol_include_once('/financement/class/score.class.php');
+	dol_include_once('/financement/class/dossier.class.php');
+	dol_include_once('/financement/class/dossier_integrale.class.php');
+	dol_include_once('/financement/class/affaire.class.php');
+	dol_include_once('/financement/class/grille.class.php');
+
+	$error = 0;
+	
+	if (!empty($authentication['entity'])) $conf->entity=$authentication['entity'];
+	
+	$fuser=check_authentication($authentication,$error,$result_code,$result_label);
+	if (empty($error))
+	{
+		if (empty($fuser->rights)) $fuser->getrights();
+		if (empty($fuser->array_options)) $fuser->fetch_optionals();
+		
+		$objectresp = array();
+
+		$PDOdb = new TPDOdb;
+		$simulation = new TSimulation;
+		
+		if (empty($fuser->rights->financement->webservice->repondre_demande))
+		{
+			$error++;
+			$result_code='PERMISSION_DENIED';
+			$result_label='L\'utilisateur n\'a pas les permissions suffisantes pour cette requête';
+		}
+		else if (empty($fuser->array_options['options_fk_leaser_webservice']))
+		{
+			$error++;
+			$result_code='MISSING_CONFIGURATION';
+			$result_label='Configuration du compte utilisateur manquante. Le compte n\'est pas associé à un leaser';
+		}
+
+
+		if (empty($error))
+		{
+			$ref_simulation = $ResponseDemFinShort['Rep_Statut_B2B']['B2B_INF_EXT'];
+			//$ref_simulation = $ResponseDemFinComplete['REP_Demande']['B2B_REF_EXT'];
+					
+			$TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $simulation->get_table(), array('reference'=>$ref_simulation));
+			if (!empty($TId[0]))
+			{
+				$simulation->load($PDOdb, $db, $TId[0]);
+
+				$found = false;
+				foreach ($simulation->TSimulationSuivi as &$simulationSuivi)
+				{
+					if ($simulationSuivi->leaser->array_options['options_edi_leaser'] == 'CMCIC')
+//					if ($simulationSuivi->leaser->array_options['options_edi_leaser'] == $fuser->array_options['options_fk_leaser_webservice'])
+					{
+						$found = true;
+						break;
+					}
+				}
+
+				if ($found)
+				{
+	//				$action = _getAction($fuser, $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']); // return accepter || refuser || attente
+	//				if ($action != 'attente')
+	//				{
+	//					$simulationSuivi->doAction($PDOdb, $simulation, $action);
+	//				}
+
+					if (!empty($simulationSuivi->commentaire)) $simulationSuivi->commentaire.= "\n";
+					$simulationSuivi->commentaire.= $ResponseDemFinShort['Rep_Statut_B2B']['B2B_MSGRET'];
+		//			$simulationSuivi->commentaire.= $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'];
+					$simulationSuivi->save($PDOdb);
+
+					if (!empty($ResponseDemFinComplete['REP_AccordPDF_B2B']))
+					{
+						$dir = $simulation->getFilePath();
+
+						dol_mkdir($dir);
+						if (file_exists($dir))
+						{
+							// TODO changer le nom car ne doit pas être visible avec le PDF de la simulation
+							$pdf_decoded = base64_decode($ResponseDemFinComplete['REP_AccordPDF_B2B']);
+							$pdf = fopen($dir.'/'.dol_sanitizeFileName($simulation->reference).'_minerva.pdf', 'w');
+							fwrite($pdf, $pdf_decoded);
+							fclose($pdf);
+						}
+					}
+
+					$result_code = 'SUCCESS';
+					$result_label = '"suivi leaser" mis à jour';
+				}
+				else
+				{
+					$error++;
+					$result_code = 'ERROR_SUIVI_NOT_FOUND';
+					$result_label = 'Dossier trouvé mais aucun "suivi leaser" CMCIC';
+				}
+			}
+			else
+			{
+				$error++;
+				$result_code = 'NUM_DOSSIER_UNKNOWN';
+				$result_label = 'Référence dossier inconnu';
+			}
+		}
+	}
+	
+	$date = new DateTime();
+	$objectresp['date'] = $date->format('Y-m-d H:i:s');
+	$objectresp['timezone'] = $date->getTimezone()->getName();
+	$objectresp['result'] = array('result_code' => $result_code, 'result_label' => $result_label);
+	
+	dol_syslog("3. WEBSERVICE ReturnRespDemFinRequest return = ".print_r($objectresp,true), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+	
+	return $objectresp;
+}
+// FIN TODO
+
+
+
 // Return the results.
 $server->service(file_get_contents("php://input"));
