@@ -213,6 +213,8 @@ class ServiceFinancement {
 		$protocole_id = $this->getProtocolID();
 		list($marqmat, $typmat) = $this->getMarqmatAndTypmat($protocole_id);
 		
+		$sirenCLIENT = substr($this->simulation->societe->idprof2, 0, 9);
+		
 		$xml = '
 		<ns1:CreateDemFinRequest>
 			<ns1:APP_Infos_B2B>
@@ -233,7 +235,7 @@ class ServiceFinancement {
 				<ns1:B2B_VENDEUR_EMAIL>s.ruiz@cpro.fr</ns1:B2B_VENDEUR_EMAIL>
 			</ns1:Infos_Apporteur>
 			<ns1:Infos_Client>
-				<ns1:B2B_SIREN>381228386</ns1:B2B_SIREN>
+				<ns1:B2B_SIREN>'.$sirenCLIENT.'</ns1:B2B_SIREN>
 			</ns1:Infos_Client>
 			<ns1:Infos_Financieres>
 				<ns1:B2B_DUREE>'.($this->simulation->duree * $frequence).'</ns1:B2B_DUREE>
