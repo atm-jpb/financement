@@ -23,6 +23,7 @@ require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 
 dol_syslog("WEBSERVICE CALL : start calling webservice", LOG_ERR, 0, '_EDI_SCORING_LIXXBAIL');
 
+$langs->setDefaultLang('fr_FR');
 $langs->load("main");
 
 // Create the soap Object
@@ -324,6 +325,8 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 	global $db,$conf,$dolibarr_main_authentication,$langs;
 	$dolibarr_main_authentication='dolibarr';
 
+	$langs->load('financement@financement');
+	
 	dol_syslog("1. WEBSERVICE ReturnRespDemFinRequest called", LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 	dol_syslog("2. WEBSERVICE ResponseDemFinShort=".print_r($ResponseDemFinShort, true), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 	
@@ -394,43 +397,43 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 						$result_label='Prise en compte du code d\'erreur';
 						
 						if (!empty($simulationSuivi->commentaire)) $simulationSuivi->commentaire.= "\n";
-						$simulationSuivi->commentaire.= $langs->trans($ResponseDemFinShort['Rep_Statut_B2B']['B2B_MSGRET']);
+						$simulationSuivi->commentaire.= '['.$ResponseDemFinShort['Rep_Statut_B2B']['B2B_CDRET'].'] '.$langs->trans($ResponseDemFinShort['Rep_Statut_B2B']['B2B_MSGRET']);
+						
+						$simulationSuivi->doAction($PDOdb, $simulation, 'erreur');
 					}
 					
 					
 					if (empty($error))
 					{
-						$statut = $ResponseDemFinShort['Rep_Statut_B2B']['B2B_MSGRET'];
-						dol_syslog('2.1 $ResponseDemFinShort[Rep_Statut_B2B][B2B_MSGRET]='.$statut, LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+						$statut = $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'];
+						dol_syslog('2.1 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$statut, LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 						
+						// TODO à corriger car le calcul est faux
 						$coeff = $ResponseDemFinComplete['Infos_Financieres']['B2B_MT_LOYER'] * 100 / $ResponseDemFinComplete['Infos_Financieres']['B2B_MT_DEMANDE'];
 						dol_syslog('2.2 $coeff='.$coeff, LOG_ERR, 0, '_EDI_SCORING_CMCIC');
-		//				$action = _getAction($fuser, $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']); // return accepter || refuser || attente
-		//				if ($action != 'attente')
-		//				{
-		//					$simulationSuivi->doAction($PDOdb, $simulation, $action);
-		//				}
-						
 						
 						if (!empty($simulationSuivi->commentaire)) $simulationSuivi->commentaire.= "\n";
-						$simulationSuivi->commentaire.= '('.$statut.')'.$ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'];
+						$simulationSuivi->commentaire.= $langs->trans($ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']);
+						$simulationSuivi->coeff_leaser = $coeff;
 						
 						dol_syslog('2.3 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'], LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+						dol_syslog('2.3 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$langs->trans($ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 						
-			//			$simulationSuivi->commentaire.= $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'];
-						$simulationSuivi->coeff_leaser = $coeff;
-						$simulationSuivi->save($PDOdb);
 
+						if ($statut == 'Status.APPROVED') $simulationSuivi->doAction($PDOdb, $simulation, 'accepter');
+						else if ($statut == '') $simulationSuivi->doAction($PDOdb, $simulation, 'refuser');
+						else $simulationSuivi->save($PDOdb);
+						
 						if (!empty($ResponseDemFinComplete['REP_AccordPDF_B2B']))
 						{
 							$dir = $simulation->getFilePath();
-
-							dol_mkdir($dir);
-							if (file_exists($dir))
+							$subdir = '/'.$simulationSuivi->leaser->array_options['options_edi_leaser'];
+							dol_mkdir($dir.$subdir);
+							if (file_exists($dir.$subdir))
 							{
 								// TODO changer le nom car ne doit pas être visible avec le PDF de la simulation
 								$pdf_decoded = base64_decode($ResponseDemFinComplete['REP_AccordPDF_B2B']);
-								$pdf = fopen($dir.'/'.dol_sanitizeFileName($simulation->reference).'_minerva.pdf', 'w');
+								$pdf = fopen($dir.$subdir.'/'.dol_sanitizeFileName($simulation->reference).'_minerva.pdf', 'w');
 								fwrite($pdf, $pdf_decoded);
 								fclose($pdf);
 							}

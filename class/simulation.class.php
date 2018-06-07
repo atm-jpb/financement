@@ -622,6 +622,11 @@ class TSimulation extends TObjetStd {
 	
 	private function _get_lignes_suivi(&$TSuivi, &$form)
 	{
+		global $db;
+		
+		if (!class_exists('FormFile')) require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+		$formfile = new FormFile($db);
+		
 		$Tab = array();
 		//pre($TSuivi,true);
 		//Construction d'un tableau de ligne pour futur affichage TBS
@@ -648,6 +653,8 @@ class TSimulation extends TObjetStd {
 			$ligne['commentaire'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->zonetexte('', 'TSuivi['.$simulationSuivi->rowid.'][commentaire]', $simulationSuivi->commentaire, 25,0) : nl2br($simulationSuivi->commentaire);
 			$ligne['actions'] = $simulationSuivi->getAction($this);
 			$ligne['action_save'] = $simulationSuivi->getAction($this, true);
+			
+			$ligne['doc'] = !empty($simulationSuivi->leaser->array_options['options_edi_leaser']) ? $formfile->getDocumentsLink('financement', dol_sanitizeFileName($this->reference), $this->getFilePath().'/'.$simulationSuivi->leaser->array_options['options_edi_leaser'], 1) : '';
 			
 			$Tab[] = $ligne;
 		}

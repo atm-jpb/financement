@@ -17,6 +17,7 @@
 			<td>Utilisateur</td>
 			<td>Commentaire</td>
 			<td>Enregistrer</td>
+			<td>Doc</td>
 			<td>Actions</td>
 		</tr>
 		
@@ -31,6 +32,7 @@
 			<td>[ligne.utilisateur;strconv=no]</td>
 			<td>[ligne.commentaire;strconv=no]</td>
 			<td>[ligne.action_save;strconv=no]</td>
+			<td>[ligne.doc;strconv=no]</td>
 			<td>[ligne.actions;strconv=no]</td>
 		</tr>
 		
