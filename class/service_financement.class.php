@@ -173,7 +173,7 @@ class ServiceFinancement {
 			
 			if (!empty($response->ResponseDemFin))
 			{
-				$this->message_soap_returned = $response->ResponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_MSGRET;
+				$this->message_soap_returned = $langs->trans($response->ResponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_MSGRET);
 				return true;
 			}
 			else
