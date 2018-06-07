@@ -325,7 +325,8 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 	$dolibarr_main_authentication='dolibarr';
 
 	dol_syslog("1. WEBSERVICE ReturnRespDemFinRequest called", LOG_ERR, 0, '_EDI_SCORING_CMCIC');
-	dol_syslog("2. WEBSERVICE ResponseDemFinShort=".$ResponseDemFinShort, LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+	dol_syslog("2. WEBSERVICE ResponseDemFinShort=".print_r($ResponseDemFinShort,true), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+	dol_syslog("2. WEBSERVICE ResponseDemFinComplete=".print_r($ResponseDemFinComplete,true), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 	
 	dol_include_once('/financement/class/simulation.class.php');
 	dol_include_once('/financement/class/score.class.php');
@@ -366,6 +367,7 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 		if (empty($error))
 		{
 			$ref_simulation = $ResponseDemFinShort['Rep_Statut_B2B']['B2B_INF_EXT'];
+			$code_ret = (int)$ResponseDemFinShort['Rep_Statut_B2B']['B2B_CDRET'];
 			//$ref_simulation = $ResponseDemFinComplete['REP_Demande']['B2B_REF_EXT'];
 					
 			$TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $simulation->get_table(), array('reference'=>$ref_simulation));
@@ -393,7 +395,18 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 	//				}
 
 					if (!empty($simulationSuivi->commentaire)) $simulationSuivi->commentaire.= "\n";
-					$simulationSuivi->commentaire.= $ResponseDemFinShort['Rep_Statut_B2B']['B2B_MSGRET'];
+					// Si code retour > 0, on a que la réponse short, sinon on a la complète
+					if($code_ret > 0) {
+						$simulationSuivi->commentaire.= $ResponseDemFinShort['Rep_Statut_B2B']['B2B_MSGRET'];
+					}
+					else {
+						$simulationSuivi->commentaire.= $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'];
+						$simulationSuivi->numero_accord_leaser = $ResponseDemFinComplete['REP_Demande']['B2B_NODEF'];
+						// Calcul du coeff leaser
+						$coeff = $ResponseDemFinComplete['Infos_Financieres']['B2B_MT_LOYER'] / $ResponseDemFinComplete['Infos_Financieres']['B2B_MT_DEMANDE'];
+						$coeff*= 100;
+						$simulationSuivi->coeff_leaser = $coeff;
+					}
 		//			$simulationSuivi->commentaire.= $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'];
 					$simulationSuivi->save($PDOdb);
 
