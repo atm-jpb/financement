@@ -228,8 +228,11 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 						
 						if (!empty($simulationSuivi->commentaire)) $simulationSuivi->commentaire.= "\n";
 						$simulationSuivi->commentaire.= $langs->trans($ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']);
-						// TODO voir pour rajouter $ResponseDemFinComplete['Infos_Statut']['B2B_INFOS_STATUT'] si non vide
+						if(!empty($ResponseDemFinComplete['Infos_Statut']['B2B_INFOS_STATUT'])) {
+							$simulationSuivi->commentaire.= ' : ' . $ResponseDemFinComplete['Infos_Statut']['B2B_INFOS_STATUT'];
+						}
 						$simulationSuivi->coeff_leaser = $coeff;
+						$simulationSuivi->numero_accord_leaser = $ResponseDemFinComplete['REP_Demande']['B2B_NODEF'];
 						
 						dol_syslog('2.3 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'], LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 						dol_syslog('2.3 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$langs->trans($ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
