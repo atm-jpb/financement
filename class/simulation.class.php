@@ -1976,7 +1976,7 @@ class TSimulation extends TObjetStd {
 						$d = new TFin_dossier();
 						$d->load($PDOdb, $fk_dossier);
 						
-						$periode = $d->financementLeaser->numero_prochaine_echeance;
+						$periode = $d->financementLeaser->numero_prochaine_echeance - 1;
 						if(strpos($attr_NR, 'm1') !== false) $periode--;
 						if(strpos($attr_NR, 'p1') !== false) $periode++;
 						
@@ -1984,7 +1984,6 @@ class TSimulation extends TObjetStd {
 						$soldeNR = $d->getSolde($PDOdb, 'SNRBANK', $periode);
 						
 						$TDeltaByDossier[$fk_dossier] = round($soldeR - $soldeNR,2);
-						break;
 					}
 				}
 			}
