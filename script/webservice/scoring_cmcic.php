@@ -23,6 +23,7 @@ require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 
 dol_syslog("WEBSERVICE CALL : start calling webservice", LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 
+$langs->setDefaultLang('fr_FR');
 $langs->load("main");
 
 // Create the soap Object
@@ -135,11 +136,13 @@ $server->register(
 
 function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $ResponseDemFinComplete)
 {
-	global $db,$conf,$dolibarr_main_authentication;
+	global $db,$conf,$dolibarr_main_authentication,$langs;
 	$dolibarr_main_authentication='dolibarr';
 
+	$langs->load('financement@financement');
+	
 	dol_syslog("1. WEBSERVICE ReturnRespDemFinRequest called", LOG_ERR, 0, '_EDI_SCORING_CMCIC');
-	dol_syslog("2. WEBSERVICE ResponseDemFinShort=".$ResponseDemFinShort, LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+	dol_syslog("2. WEBSERVICE ResponseDemFinShort=".print_r($ResponseDemFinShort, true), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 	
 	dol_include_once('/financement/class/simulation.class.php');
 	dol_include_once('/financement/class/score.class.php');
@@ -176,7 +179,7 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 			$result_label='Configuration du compte utilisateur manquante. Le compte n\'est pas associé à un leaser';
 		}
 
-
+		
 		if (empty($error))
 		{
 			$ref_simulation = $ResponseDemFinShort['Rep_Statut_B2B']['B2B_INF_EXT'];
@@ -200,34 +203,62 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 
 				if ($found)
 				{
-	//				$action = _getAction($fuser, $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']); // return accepter || refuser || attente
-	//				if ($action != 'attente')
-	//				{
-	//					$simulationSuivi->doAction($PDOdb, $simulation, $action);
-	//				}
-
-					if (!empty($simulationSuivi->commentaire)) $simulationSuivi->commentaire.= "\n";
-					$simulationSuivi->commentaire.= $ResponseDemFinShort['Rep_Statut_B2B']['B2B_MSGRET'];
-		//			$simulationSuivi->commentaire.= $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'];
-					$simulationSuivi->save($PDOdb);
-
-					if (!empty($ResponseDemFinComplete['REP_AccordPDF_B2B']))
+					
+					if ($ResponseDemFinShort['Rep_Statut_B2B']['B2B_CDRET'] != 0)
 					{
-						$dir = $simulation->getFilePath();
-
-						dol_mkdir($dir);
-						if (file_exists($dir))
-						{
-							// TODO changer le nom car ne doit pas être visible avec le PDF de la simulation
-							$pdf_decoded = base64_decode($ResponseDemFinComplete['REP_AccordPDF_B2B']);
-							$pdf = fopen($dir.'/'.dol_sanitizeFileName($simulation->reference).'_minerva.pdf', 'w');
-							fwrite($pdf, $pdf_decoded);
-							fclose($pdf);
-						}
+						$error++;
+						$result_code='B2B_CDRET';
+						$result_label='Prise en compte du code d\'erreur';
+						
+						if (!empty($simulationSuivi->commentaire)) $simulationSuivi->commentaire.= "\n";
+						$simulationSuivi->commentaire.= '['.$ResponseDemFinShort['Rep_Statut_B2B']['B2B_CDRET'].'] '.$langs->trans($ResponseDemFinShort['Rep_Statut_B2B']['B2B_MSGRET']);
+						
+						$simulationSuivi->doAction($PDOdb, $simulation, 'erreur');
 					}
+					
+					
+					if (empty($error))
+					{
+						$statut = $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'];
+						dol_syslog('2.1 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$statut, LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+						
+						// TODO à corriger car le calcul est faux
+						$coeff = $ResponseDemFinComplete['Infos_Financieres']['B2B_MT_LOYER'] * 100 / $ResponseDemFinComplete['Infos_Financieres']['B2B_MT_DEMANDE'];
+						dol_syslog('2.2 $coeff='.$coeff, LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+						
+						if (!empty($simulationSuivi->commentaire)) $simulationSuivi->commentaire.= "\n";
+						$simulationSuivi->commentaire.= $langs->trans($ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']);
+						// TODO voir pour rajouter $ResponseDemFinComplete['Infos_Statut']['B2B_INFOS_STATUT'] si non vide
+						$simulationSuivi->coeff_leaser = $coeff;
+						
+						dol_syslog('2.3 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'], LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+						dol_syslog('2.3 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$langs->trans($ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+						
 
-					$result_code = 'SUCCESS';
-					$result_label = '"suivi leaser" mis à jour';
+						if ($statut == 'Status.APPROVED') $simulationSuivi->doAction($PDOdb, $simulation, 'accepter');
+						else if ($statut == 'Status.REJECTED') $simulationSuivi->doAction($PDOdb, $simulation, 'refuser');
+						else $simulationSuivi->save($PDOdb);
+						
+						if (!empty($ResponseDemFinComplete['REP_AccordPDF_B2B']))
+						{
+							$dir = $simulation->getFilePath();
+							$subdir = '/'.$simulationSuivi->leaser->array_options['options_edi_leaser'];
+							dol_mkdir($dir.$subdir);
+							if (file_exists($dir.$subdir))
+							{
+								// TODO changer le nom car ne doit pas être visible avec le PDF de la simulation
+								$pdf_decoded = base64_decode($ResponseDemFinComplete['REP_AccordPDF_B2B']);
+								$pdf = fopen($dir.$subdir.'/'.dol_sanitizeFileName($simulation->reference).'_minerva.pdf', 'w');
+								fwrite($pdf, $pdf_decoded);
+								fclose($pdf);
+							}
+						}
+
+						$result_code = 'SUCCESS';
+						$result_label = '"suivi leaser" mis à jour';
+					}
+					
+	
 				}
 				else
 				{
