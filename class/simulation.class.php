@@ -1600,7 +1600,6 @@ class TSimulation extends TObjetStd {
 
 	function clone_simu() {
 		$this->start();
-		$this->fk_user_author = $user->id;
 		$this->TSimulationSuivi = array();
 		$this->TSimulationSuiviHistorized = array();
 		$this->accord = 'WAIT';
