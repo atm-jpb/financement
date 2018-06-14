@@ -1698,6 +1698,11 @@ class TSimulation extends TObjetStd {
 		$i=0;
 		foreach ($this->TSimulationSuivi as &$suivi)
 		{
+			// Lancement de la demande automatique via EDI pour le premier leaser de la liste
+			if($i == 0 && empty($this->no_auto_edi) && in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP'))) {
+				$suivi->doAction($PDOdb, $this, 'demander');
+			}
+			
 			$suivi->rang = $i;
 			$suivi->save($PDOdb);
 			$i++;
