@@ -1633,7 +1633,23 @@ class TSimulation extends TObjetStd {
 
 	public function calculAiguillageSuivi(&$PDOdb, $force_calcul=false)
 	{
-		global $conf;
+		global $db, $conf, $mysoc;
+		
+		$oldconf = $conf;
+		$oldmysoc = $mysoc;
+		
+		if($conf->entity != $this->entity) {
+			// Récupération configuration de l'entité de la simulation
+			$confentity = new Conf();
+			$confentity->entity = $this->entity;
+			$confentity->setValues($db);
+			
+			$mysocentity=new Societe($db);
+			$mysocentity->setMysoc($confentity);
+			
+			$conf = $confentity;
+			$mysoc = $mysocentity;
+		}
 		
 		if (empty($conf->global->FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI)) return 0;
 		
@@ -1686,6 +1702,10 @@ class TSimulation extends TObjetStd {
 			$suivi->save($PDOdb);
 			$i++;
 		}
+		
+		// On remet la conf d'origine
+		$conf = $oldconf;
+		$mysoc = $oldmysoc;
 	}
 
 	function calculMontantFinanceLeaser(&$PDOdb, &$suivi) {
