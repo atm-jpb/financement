@@ -55,6 +55,9 @@ FINANCEMENT_WEBSERVICE_ACTIVATE=Activer les appels webservice
 FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD=Mode production (si non active les appels ce feront sur les URLs de recette
 FINANCEMENT_ENDPOINT_CALF_RECETTE=URL de <b>recette</b> pour CAL&f (endpoint)
 FINANCEMENT_ENDPOINT_CALF_PROD=URL de <b>production</b> CAL&f (endpoint)
+FINANCEMENT_WSDL_CMCIC_RECETTE=WSDL de <b>recette</b> de CM-CIC
+FINANCEMENT_WSDL_CMCIC_PROD=WSDL de <b>production</b> de CM-CIC
+FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC=URL du WSDL du module financement pour CM-CIC
 
 # SIMULATIONS
 Simulations=Simulations
@@ -123,6 +126,12 @@ SimulationSuiviHistory=Historique Suivi Leaser Simulation
 Simulation_marque_not_more_available=Ancienne marque : <b>%s</b>
 ErrorMontantModifNotAuthorized=Votre modification du montant est trop importante, contactez le service financement
 
+FinancementSoapCallOK=Appel EDI OK
+FinancementSoapCallKO=Echec de l'appel EDI
+
+ServiceFinancementWrongReturn=EDI : valeur de retour inattendu
+ServiceFinancementCallDone=Appel EDI effectué
+
 # SCORE
 ScoreList=Scores
 ScoreDate=Date du score
@@ -190,3 +199,62 @@ NewPeriode=Période
 NewPalier=Palier
 createNewPeriode=Créer la période
 createNewPalier=Créer le palier
+
+# SCORING CMCIC
+Status.ALL=Tous statuts
+Status.ALL_DOCUMENTS_RECEIVED=Documents reçus
+Status.APPROVAL_CONDITION=Accepté sous condition
+Status.APPROVED=Accepté
+Status.APPROVED_WITH_CONDITION=Accepté avec conditions
+Status.CONTRACT_RECEIVED=Contrat reçu
+Status.CONTRACT_SENT=Contrat envoyé
+Status.CONTRACT_SENT_CA=Contrat envoyé à CA
+Status.DELETED=Supprimé
+Status.DOCUMENT_COMPLETE=Document complet
+Status.EXPIRED=Expiré
+Status.IN_PROGRESS=En cours de traitement
+Status.IP_AND_RFC=En cours et demande de complément
+Status.LOST=Perdu
+Status.NOT_SENT=A soumettre
+Status.REJECTED=Refusée
+Status.REQUEST_FOR_COMPLEMENT=Demande d'infos complémentaires
+Status.STARTED=Activée
+Status.LOCKED=Blocage
+Status.SEND_TO_RISK=Risque
+Status.SALES=Ventes
+Status.SEND_TO_PARTNER_SUPPORT=Recommandation
+Status.CANCELLED=Annulation
+Status.PO_ISSUED=Confirmation de commande
+Status.READY_FOR_PO=Ready for PO
+Status.PURCHASE_ORDERED=Purchase Ordered
+Status.PAYMENT_AUTHORISED=Payment Authorised
+Status.PURCHASE_ORDER_CANCELLED=Purchase Ordered Cancelled
+Status.DOCUMENTS_INVALID=Documents Invalid
+Status.DOCUMENTS_MISSING=Document Missing
+Status.AWAITING_ACTION=Dossier en attente
+Status.LOST/CANCELED=Perdu
+Status.IN_PROGRESS_FLEET=Analyse complémentaire
+Status.IS_UPSELL_AVAILABLE=Upsell
+Status.IS_QD=Décision immédiate
+Status.APPROVED_VOM=Accepté
+Status.AUTO_APPROVED_TO_CONFIRM=Accord auto à revalider
+Status.MANUAL_APPROVAL_TO_CONFIRM=Accord manuel à revalider
+Status.TO_BE_ANALYSED=A étudier
+Status.SUBMITTED_TO_RISK=Transmis aux risques
+Status.STUDIED_BY_RISK=En cours d'étude risques
+Status.MORE_INFORMATION_PROVIDED=A revoir par risque
+Status.RISK_REJECT=Refus risque
+Status.NEED_MANAGER_INFORMATION=En attente d'informations sur le gérant
+Status.WAIT=En attente d'informations 
+Status.NEGATIVE_OPINION=Avis défavorable
+Status.INTERNAL_REJECT=Refus interne
+Status.FAVOURABLE=Avis favorable
+Status.NOT_FAVOURABLE=Refus
+Status.TO_BE_TURNED_INTO_FULL_PROPOSAL=A transformer en demande complete
+Status.TECHNICAL_ANOMALIE=Anomalie technique
+Status.APPROVED_WITH_CONDITIONS_VOM=Accepte avec conditions
+Status.APPROVAL=Accepté
+Status.NEED_MORE_INFORMATION=A revoir par sales
+Status.NEED_MORE_INFORMATION_FRANCE=En attente d'information
+Status.RE_EXAMINATED=En ré-examen
+Status.MANUAL_APPROVAL_WITH_CONDITIONS_TO_CONFIRM=Accords manuel avec conditions à revalider

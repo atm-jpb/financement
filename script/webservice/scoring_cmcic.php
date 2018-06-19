@@ -1,6 +1,6 @@
 <?php
 /**
- * SCORING POUR LIXXBAIL
+ * SCORING POUR CMCIC
  */
 
 chdir(__DIR__);
@@ -21,7 +21,7 @@ require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 // TODO inclure les class nécessaire pour le scoring
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 
-dol_syslog("WEBSERVICE CALL : start calling webservice", LOG_ERR, 0, '_EDI_SCORING_LIXXBAIL');
+dol_syslog("WEBSERVICE CALL : start calling webservice", LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 
 $langs->setDefaultLang('fr_FR');
 $langs->load("main");
@@ -122,192 +122,6 @@ $styleuse='encoded';   // encoded/literal/literal wrapped
 // Better choice is document/literal wrapped but literal wrapped not supported by nusoap.
 
 // Register WSDL
-$server->register(
-    'repondreDemande',
-    // Entry values
-    array('authentication'=>'tns:authentication','TReponse'=>'tns:TReponse'),
-    // Exit values
-    array('result'=>'tns:result','date'=>'xsd:dateTime','timezone'=>'xsd:string'),
-    $ns,
-    $ns.'#repondreDemande',
-    $styledoc,
-    $styleuse,
-    'WS retour suite à une réponse de demande de financement'
-);
-
-function repondreDemande($authentication, $TReponse)
-{
-	global $db,$conf,$langs;
-
-	dol_syslog("WEBSERVICE Function: repondreDemande login=".$authentication['login'], LOG_ERR, 0, '_EDI_SCORING_LIXXBAIL');
-	//dol_syslog("WEBSERVICE AUTH TAB : ".print_r($authentification,true), LOG_ERR);
-	dol_syslog("WEBSERVICE REP TAB : ".print_r($TReponse,true), LOG_ERR, 0, '_EDI_SCORING_LIXXBAIL');
-
-	if ($authentication['entity']) $conf->entity=$authentication['entity'];
-
-    // Init and check authentication
-    $objectresp=array();
-    $errorcode='';$errorlabel='';
-    $error=0;
-    $fuser=check_authentication($authentication,$error,$errorcode,$errorlabel);
-    // Check parameters
-	if (! $error && (empty($TReponse['partenaire']) || empty($TReponse['client']) || empty($TReponse['financement'])))
-	{
-		$error++;
-		$errorcode='BAD_PARAMETERS'; $errorlabel="Indice 'partenaire' ou 'client' ou 'financement' manquant";
-	}
-
-	if (! $error)
-	{
-		if (empty($fuser->rights)) $fuser->getrights();
-
-		if (!empty($fuser->rights->financement->webservice->repondre_demande))
-		{
-			$fuser->fetch_optionals();
-			if (!empty($fuser->array_options['options_fk_leaser_webservice']))
-			{
-				dol_include_once('/financement/class/simulation.class.php');
-				dol_include_once('/financement/class/score.class.php');
-				dol_include_once('/financement/class/dossier.class.php');
-				dol_include_once('/financement/class/dossier_integrale.class.php');
-				dol_include_once('/financement/class/affaire.class.php');
-				dol_include_once('/financement/class/grille.class.php');
-	
-				$PDOdb = new TPDOdb;
-				$simulation = new TSimulation;
-				$reference_simulation = $TReponse['partenaire']['ref_ext'];
-				
-				$TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $simulation->get_table(), array('reference'=>$reference_simulation));
-				if (!empty($TId[0]))
-				{
-					$simulation->load($PDOdb, $db, $TId[0]);
-					if ($simulation->getId() > 0)
-					{
-						$siren = $TReponse['client']['client_siren'];
-						$siren = str_pad($siren, 9, '0', STR_PAD_LEFT);
-						if (strcmp($simulation->societe->idprof1, $siren) === 0)
-						{
-							
-							$found = false;
-							foreach ($simulation->TSimulationSuivi as &$simulationSuivi)
-							{
-								if ($simulationSuivi->leaser->array_options['options_edi_leaser'] == $fuser->array_options['options_fk_leaser_webservice'])
-								{
-									$found = true;
-									break;
-								}
-							}
-							
-							if ($found)
-							{
-								$statut = $TReponse['financement']['statut'];
-								$commentaire = $TReponse['financement']['commentaire_statut'];
-								$numero_accord = $TReponse['financement']['num_dossier'];
-								$coeff = $TReponse['financement']['coeff_dossier'];
-								
-								$action = _getAction($fuser, $statut); // return accepter || refuser || attente
-								if ($action != 'attente')
-								{
-									$simulationSuivi->doAction($PDOdb, $simulation, $action);
-								}
-								
-								$Tab = array('commentaire'=>$commentaire, 'numero_accord_leaser'=>$numero_accord, 'coeff_leaser'=>$coeff);
-								$simulationSuivi->set_values($Tab);
-								$simulationSuivi->save($PDOdb);
-								
-								$extra_label = '';
-								if ($action == 'accepter') $extra_label = ' Demande enregistrée comme étant "Acceptée"';
-								elseif ($action == 'refuser') $extra_label = ' Demande enregistrée comme étant "Refusée"';
-								elseif ($action == 'attente') $extra_label = ' Demande enregistrée comme étant en "Attente"';
-								
-								$objectresp = array('result'=>array('result_code'=>'OK', 'result_label'=>'Statut mis à jour.'.$extra_label));
-							}
-							else
-							{
-								$error++;
-								$errorcode='ERROR_SUIVI_NOT_FOUND'; $errorlabel='Impossible de répondre à la demande, car non trouvée dans le suivi leaser simulation';
-							}
-						}
-						else
-						{
-							$error++;
-							$errorcode='CLIENT_SIREN_NOT_EQUAL'; $errorlabel='Le numéro SIREN du client associé au dossier est différent de celui fournis';
-						}
-					}
-					else
-					{
-						$error++;
-						$errorcode='NUM_DOSSIER_NOT_FOUND'; $errorlabel='La référence dossier ne correspond à aucune simulation';
-					}
-				}
-				else
-				{
-					$error++;
-					$errorcode='NUM_DOSSIER_EMPTY'; $errorlabel='Aucune référence communiquée';
-				}
-				
-			}
-			else
-			{
-				$error++;
-				$errorcode='MISSING_CONFIGURATION'; $errorlabel='Configuration du compte utilisateur manquante. Le compte n\'est pas associé à un leaser';
-			}
-		}
-		else
-		{
-			$error++;
-			$errorcode='PERMISSION_DENIED'; $errorlabel='User does not have permission for this request';
-		}
-	}
-
-	if ($error)
-	{
-		$objectresp = array('result'=>array('result_code' => $errorcode, 'result_label' => $errorlabel));
-	}
-
-	$date = new DateTime();
-	$objectresp['date'] = $date->format('Y-m-d H:i:s');
-	$objectresp['timezone'] = $date->getTimezone()->getName();
-	
-	dol_syslog("WEBSERVICE RES TAB : ".print_r($objectresp,true), LOG_ERR, 0, '_EDI_SCORING_LIXXBAIL');
-
-	return $objectresp;
-}
-
-function _getAction(&$fuser, $statut)
-{
-	$action = 'attente';
-	
-	// TODO à faire évoluer si l'utilisateur du webservice change et n'est plus uniquement CAL&F (Lixxbail)
-	switch (strtolower($statut)) {
-		case 'etude':
-			$action = 'attente';
-			break;
-			
-		case 'accepte':
-			$action = 'accepter';
-			break;
-			
-		case 'refuse':
-			$action = 'refuser';
-			break;
-			
-		case 'errtech':
-		case 'errcomm':
-		case 'errbareme':
-		case 'errassbien':
-		case 'errinfcont':
-		case 'errloyer':
-		case 'errfonc':
-			$action = 'erreur';
-			break;
-	}
-	
-	return $action;
-}
-
-
-// TODO DELETE pour la prod
 $server->register(
 	'ReturnRespDemFinRequest',
 	array('authentication'=>'tns:authentication','ResponseDemFinShort'=>'tns:ResponseDemFinShort','ResponseDemFinComplete'=>'tns:ResponseDemFinComplete'),
@@ -474,9 +288,6 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 	
 	return $objectresp;
 }
-// FIN TODO
-
-
 
 // Return the results.
 $server->service(file_get_contents("php://input"));

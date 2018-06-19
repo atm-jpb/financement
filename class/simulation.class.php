@@ -664,6 +664,8 @@ class TSimulation extends TObjetStd {
 			$ligne['actions'] = $simulationSuivi->getAction($this);
 			$ligne['action_save'] = $simulationSuivi->getAction($this, true);
 			
+			$ligne['doc'] = !empty($simulationSuivi->leaser->array_options['options_edi_leaser']) ? $formfile->getDocumentsLink('financement', dol_sanitizeFileName($this->reference), $this->getFilePath().'/'.$simulationSuivi->leaser->array_options['options_edi_leaser'], 1) : '';
+			
 			$Tab[] = $ligne;
 		}
 
@@ -2322,6 +2324,7 @@ class TSimulationSuivi extends TObjetStd {
 		$found = false;
 		foreach ($this->simulation->TSimulationSuivi as $id_suivi => $suivi) {
 			if($found && empty($suivi->statut)) {
+				// [PH] TODO ajouter ici les noms de leaser pour déclancher en automatique l'appel
 				if(in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP'))) {
 					$suivi->doAction($PDOdb, $this->simulation, 'demander');
 				}
@@ -2407,7 +2410,7 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	function _sendDemandeAuto(&$PDOdb){
-		global $db;
+		global $db,$langs;
 		
 		$this->simulation->societe = new Societe($db);
 		$this->simulation->societe->fetch($this->simulation->fk_soc);
@@ -2422,22 +2425,33 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$this->statut = 'WAIT';
 		
+		$res = null;
 		switch ($this->leaser->array_options['options_edi_leaser']) {
 			//BNP PARIBAS LEASE GROUP
 			case 'BNP':
-				$this->_createDemandeBNP($PDOdb);
+				$res=$this->_createDemandeBNP($PDOdb);
 				break;
 			//GE CAPITAL EQUIPEMENT FINANCE
 			case 'GE':
 				//$this->_createDemandeGE($PDOdb);
 				break;
-			//LIXXBAIL
+			// [PH] TODO ajouter ici les leaser devant faire un appel SOAP
+			//LIXXBAIL, CMCIC
 			case 'LIXXBAIL':
-				$this->_createDemandeLIXXBAIL($PDOdb);
+			case 'CMCIC':
+				$res=$this->_createDemandeServiceFinancement();
 				break;
 			default:
+				// techniquement il est impossible d'arriver dans ce cas
 				return 1;
 				break;
+		}
+		
+		// Si non null (donc un appel SOAP a été fait) alors je check le retour
+		if (!is_null($res))
+		{
+			if ($res > 0) setEventMessage($langs->trans('FinancementSoapCallOK')); // OK
+			else setEventMessage($langs->trans('FinancementSoapCallKO'), 'errors'); // fail
 		}
 		
 		$this->statut_demande = 1;
@@ -2446,17 +2460,21 @@ class TSimulationSuivi extends TObjetStd {
 		$this->save($PDOdb);
 	}
 	
-	function _createDemandeLIXXBAIL(&$PDOdb){
+	function _createDemandeServiceFinancement(){
 		dol_include_once('/financement/class/service_financement.class.php');
 		$service = new ServiceFinancement($this->simulation, $this);
-		$service->debug = $this->debug;
+//		$service->debug = $this->debug;
 		// La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active) 
 		$res = $service->call();
 		
-		if (!$res && !empty($service->TError)) {
-			$this->commentaire = $service->TError;
+		$this->commentaire = $service->message_soap_returned;
+		if (!$res)
+		{
 			$this->statut = 'ERR';
+			return -1;
 		}
+		
+		return 1;
 	}
 	
 	function _createDemandeGE(&$PDOdb){
@@ -2696,7 +2714,7 @@ class TSimulationSuivi extends TObjetStd {
 			//pre($e,true);
 			$this->commentaire = $e;
 			$this->statut = 'ERR';
-			return 0;
+			return -1;
 		}
 		//pre($soap->__getFunctions(),true);exit;
 //		echo "1<br>";
@@ -2722,10 +2740,11 @@ class TSimulationSuivi extends TObjetStd {
 			var_dump($reponseDemandeFinancement->detail);exit;*/
 			$this->commentaire = $this->traiteErrorsDemandeBNP($reponseDemandeFinancement->detail);
 			$this->statut = 'ERR';
-			return 0;
+			return -2;
 		}
 
 		$this->traiteBNPReponseDemandeFinancement($PDOdb,$reponseDemandeFinancement);
+		return 1;
 	}
 
 	function _consulterDemandeBNP($num_accord_leaser){
