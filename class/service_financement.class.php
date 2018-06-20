@@ -231,7 +231,7 @@ class ServiceFinancement {
 			<ns1:Infos_Apporteur>
 				<ns1:B2B_APPORTEUR_ID>'.$this->getApporteurId().'</ns1:B2B_APPORTEUR_ID>
 				<ns1:B2B_PROT_ID>'.$protocole_id.'</ns1:B2B_PROT_ID>
-				<ns1:B2B_VENDEUR_ID>C31313000</ns1:B2B_VENDEUR_ID>
+				<ns1:B2B_VENDEUR_ID>'.$conf->global->FINANCEMENT_CMCIC_B2B_VENDEUR_ID.'</ns1:B2B_VENDEUR_ID>
 				<ns1:B2B_VENDEUR_EMAIL>financement@cpro.fr</ns1:B2B_VENDEUR_EMAIL>
 			</ns1:Infos_Apporteur>
 			<ns1:Infos_Client>
@@ -861,8 +861,8 @@ class MySoapCmCic extends SoapClient
 	<SOAP-ENV:Header>
 		<ns2:Security>
 			<UsernameToken>
-				<Username>B2BCPRO</Username>
-				<Password>cJKgth58P</Password>
+				<Username>'.$conf->global->FINANCEMENT_CMCIC_USERNAME.'</Username>
+				<Password>'.$conf->global->FINANCEMENT_CMCIC_PASSWORD.'</Password>
 			</UsernameToken>
 		</ns2:Security>
 	</SOAP-ENV:Header>
