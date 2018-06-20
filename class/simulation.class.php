@@ -635,6 +635,9 @@ class TSimulation extends TObjetStd {
 		require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
 		if (empty($formDolibarr)) $formDolibarr = new Form($db);
 		
+		if (!class_exists('FormFile')) require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+		$formfile = new FormFile($db);
+		
 		$Tab = array();
 		//pre($TSuivi,true);
 		//Construction d'un tableau de ligne pour futur affichage TBS
