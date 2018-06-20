@@ -82,7 +82,7 @@ class TSimulation extends TObjetStd {
 		
 		$TRes = array();
 		
-		$sql = 'SELECT code, label FROM '.MAIN_DB_PREFIX.'c_financement_marque_materiel WHERE entity = '.$conf->entity.' AND active = 1';
+		$sql = 'SELECT code, label FROM '.MAIN_DB_PREFIX.'c_financement_marque_materiel WHERE entity = '.$conf->entity.' AND active = 1 ORDER BY label';
 		dol_syslog('TSimulation::getMarqueMateriel sql='.$sql, LOG_INFO);
 		$resql = $db->query($sql);
 		
