@@ -1393,20 +1393,20 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		//pre($simulation,true);
 		if($dossier->nature_financement == 'INTERNE') {
 			$soldeRM1 = (!empty($simulation->dossiers_rachetes_m1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_m1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance - 2),2); //SRCPRO
-			$soldeNRM1 = (!empty($simulation->dossiers_rachetes_nr_m1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_m1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO',$dossier->financement->numero_prochaine_echeance - 2),2); //SNRCPRO
+			//$soldeNRM1 = (!empty($simulation->dossiers_rachetes_nr_m1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_m1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO',$dossier->financement->numero_prochaine_echeance - 2),2); //SNRCPRO
 			$soldeR = (!empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance - 1),2); //SRCPRO
-			$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO',$dossier->financement->numero_prochaine_echeance - 1),2); //SNRCPRO
+			//$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO',$dossier->financement->numero_prochaine_echeance - 1),2); //SNRCPRO
 			$soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance),2); //SRCPRO
-			$soldeNR1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO',$dossier->financement->numero_prochaine_echeance),2); //SNRCPRO
+			//$soldeNR1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO',$dossier->financement->numero_prochaine_echeance),2); //SNRCPRO
 			$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 		}
 		else{
 			$soldeRM1 = (!empty($simulation->dossiers_rachetes_m1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_m1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financementLeaser->numero_prochaine_echeance - 2),2);
-			$soldeNRM1 = (!empty($simulation->dossiers_rachetes_nr_m1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_m1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO',$dossier->financementLeaser->numero_prochaine_echeance -2 ),2);
+			//$soldeNRM1 = (!empty($simulation->dossiers_rachetes_nr_m1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_m1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO',$dossier->financementLeaser->numero_prochaine_echeance -2 ),2);
 			$soldeR = (!empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financementLeaser->numero_prochaine_echeance - 1),2);
-			$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO',$dossier->financementLeaser->numero_prochaine_echeance -1 ),2);
+			//$soldeNR = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO',$dossier->financementLeaser->numero_prochaine_echeance -1 ),2);
 			$soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financementLeaser->numero_prochaine_echeance ),2);
-			$soldeNR1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO', $dossier->financementLeaser->numero_prochaine_echeance ),2);
+			//$soldeNR1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'])) ? $simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['montant'] : round($dossier->getSolde($ATMdb2, 'SNRCPRO', $dossier->financementLeaser->numero_prochaine_echeance ),2);
 			$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 		}
 
@@ -1415,12 +1415,12 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		$soldeNR1 = $soldeR1;*/
 		
 		if(empty($dossier->display_solde)) {
-			$soldeRM1 = 0;
-			$soldeNRM1 = 0;
+			//$soldeRM1 = 0;
+			//$soldeNRM1 = 0;
 			$soldeR = 0;
-			$soldeNR = 0;
+			//$soldeNR = 0;
 			$soldeR1 = 0;
-			$soldeNR1 = 0;
+			//$soldeNR1 = 0;
 			$soldeperso = 0;
 		}
 		
@@ -1458,26 +1458,26 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		//echo $ATMdb->Get_field('IDDoss')." ";
 		
 		$checkedrm1 = (!empty($simulation->dossiers_rachetes_m1[$ATMdb->Get_field('IDDoss')]['checked'])) ? true : false;
-		$checkednrm1 = (!empty($simulation->dossiers_rachetes_nr_m1[$ATMdb->Get_field('IDDoss')]['checked'])) ? true : false;
+		//$checkednrm1 = (!empty($simulation->dossiers_rachetes_nr_m1[$ATMdb->Get_field('IDDoss')]['checked'])) ? true : false;
 		$checkbox_moreRM1 = 'solde="'.$soldeRM1.'" style="display: none;"';
 		$checkbox_moreRM1.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
-		$checkbox_moreNRM1 = ' solde="'.$soldeNRM1.'" style="display: none;"';
-		$checkbox_moreNRM1.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
+		//$checkbox_moreNRM1 = ' solde="'.$soldeNRM1.'" style="display: none;"';
+		//$checkbox_moreNRM1.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		
 		// Changement du 13.09.02 : les 4 soldes sont "cochables"
 		$checkedr = (!empty($simulation->dossiers_rachetes[$ATMdb->Get_field('IDDoss')]['checked'])) ? true : false;
-		$checkednr = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['checked'])) ? true : false;
+		//$checkednr = (!empty($simulation->dossiers_rachetes_nr[$ATMdb->Get_field('IDDoss')]['checked'])) ? true : false;
 		$checkbox_moreR = 'solde="'.$soldeR.'" style="display: none;"';
 		$checkbox_moreR.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
-		$checkbox_moreNR = ' solde="'.$soldeNR.'" style="display: none;"';
-		$checkbox_moreNR.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
+		//$checkbox_moreNR = ' solde="'.$soldeNR.'" style="display: none;"';
+		//$checkbox_moreNR.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		
 		$checkedr1 = (!empty($simulation->dossiers_rachetes_p1[$ATMdb->Get_field('IDDoss')]['checked'])) ? true : false;
-		$checkednr1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['checked'])) ? true : false;
+		//$checkednr1 = (!empty($simulation->dossiers_rachetes_nr_p1[$ATMdb->Get_field('IDDoss')]['checked'])) ? true : false;
 		$checkbox_moreR1 = 'solde="'.$soldeR1.'" style="display: none;"';
 		$checkbox_moreR1.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
-		$checkbox_moreNR1 = ' solde="'.$soldeNR1.'" style="display: none;"';
-		$checkbox_moreNR1.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
+		//$checkbox_moreNR1 = ' solde="'.$soldeNR1.'" style="display: none;"';
+		//$checkbox_moreNR1.= (in_array($ATMdb->Get_field('IDDoss'), $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		
 		$checkedperso = (is_array($simulation->dossiers_rachetes_perso) && in_array($ATMdb->Get_field('IDDoss'), $simulation->dossiers_rachetes_perso)) ? true : false;
 		$checkbox_moreperso = 'solde="'.$soldeperso.'" style="display: none;"';
@@ -1536,6 +1536,10 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			}
 			break;
 		}
+		
+		$date_echeance_prochaine = ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_prochaine_echeance']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_prochaine_echeance'] : $fin->date_prochaine_echeance;
+		$date_echeance_en_cours = strtotime('- '.$fin->getiPeriode().'months', $date_echeance_prochaine);
+		$date_echeance_precedente = strtotime('- '.$fin->getiPeriode().'months', $date_echeance_en_cours);
 
 		$numcontrat_entity_leaser = ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['num_contrat']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['num_contrat'] :$fin->reference;
 		$numcontrat_entity_leaser = '<a href="dossier.php?id='.$ATMdb->Get_field('IDDoss').'">'.$numcontrat_entity_leaser.'</a> / '.TFinancementTools::get_entity_translation($ATMdb->Get_field('entityDossier'));
@@ -1552,16 +1556,19 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			,'loyer_actualise' => ($dossier->nature_financement == 'INTERNE') ? ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['loyer_actualise']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['loyer_actualise'] : $fin->loyer_actualise : ''
 			,'debut' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_debut']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_debut'] :$fin->date_debut
 			,'fin' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_fin']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_fin'] : $fin->date_fin
-			,'prochaine_echeance' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_prochaine_echeance']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_prochaine_echeance'] : $fin->date_prochaine_echeance
+			,'prochaine_echeance' => $date_echeance_prochaine
 			,'avancement' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['numero_prochaine_echeance']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['numero_prochaine_echeance'] : $fin->numero_prochaine_echeance.'/'.$fin->duree
 			,'terme' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['terme']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['terme'] : $fin->TTerme[$fin->terme]
 			,'reloc' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['reloc']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['reloc'] : $fin->reloc
 			,'solde_rm1' => $soldeRM1
-			,'solde_nrm1' => $soldeNRM1
+			,'date_echeance_precedente' => date('d/m/y', $date_echeance_precedente)
+			//,'solde_nrm1' => $soldeNRM1
 			,'solde_r' => $soldeR
-			,'solde_nr' => $soldeNR
+			,'date_echeance_en_cours' => date('d/m/y', $date_echeance_en_cours)
+			//,'solde_nr' => $soldeNR
 			,'solde_r1' => $soldeR1
-			,'solde_nr1' => $soldeNR1
+			,'date_echeance_prochaine' => date('d/m/y', $date_echeance_prochaine)
+			//,'solde_nr1' => $soldeNR1
 			,'soldeperso' => $soldeperso
 			,'display_solde' => $dossier->display_solde
 			,'fk_user' => $ATMdb->Get_field('fk_user')
@@ -1569,25 +1576,25 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			,'leaser' => $leaser->getNomUrl(0)
 			,'choice_solde' => ($simulation->contrat == $ATMdb->Get_field('Type contrat')) ? 'solde_r' : 'solde_nr'
 			,'checkboxrm1'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes_m1['.$ATMdb->Get_field('IDDoss').'][checked]', $ATMdb->Get_field('IDDoss'), $checkedrm1, $checkbox_moreRM1) : ''
-			,'checkboxnrm1'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes_nr_m1['.$ATMdb->Get_field('IDDoss').'][checked]', $ATMdb->Get_field('IDDoss'), $checkednrm1, $checkbox_moreNRM1) : ''
+			//,'checkboxnrm1'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes_nr_m1['.$ATMdb->Get_field('IDDoss').'][checked]', $ATMdb->Get_field('IDDoss'), $checkednrm1, $checkbox_moreNRM1) : ''
 			,'checkboxr'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes['.$ATMdb->Get_field('IDDoss').'][checked]', $ATMdb->Get_field('IDDoss'), $checkedr, $checkbox_moreR) : ''
-			,'checkboxnr'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes_nr['.$ATMdb->Get_field('IDDoss').'][checked]', $ATMdb->Get_field('IDDoss'), $checkednr, $checkbox_moreNR) : ''
+			//,'checkboxnr'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes_nr['.$ATMdb->Get_field('IDDoss').'][checked]', $ATMdb->Get_field('IDDoss'), $checkednr, $checkbox_moreNR) : ''
 			,'checkboxr1'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes_p1['.$ATMdb->Get_field('IDDoss').'][checked]', $ATMdb->Get_field('IDDoss'), $checkedr1, $checkbox_moreR1) : ''
-			,'checkboxnr1'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes_nr_p1['.$ATMdb->Get_field('IDDoss').'][checked]', $ATMdb->Get_field('IDDoss'), $checkednr1, $checkbox_moreNR1) : ''
+			//,'checkboxnr1'=>($mode == 'edit') ? $form->checkbox1('', 'dossiers_rachetes_nr_p1['.$ATMdb->Get_field('IDDoss').'][checked]', $ATMdb->Get_field('IDDoss'), $checkednr1, $checkbox_moreNR1) : ''
 			,'montantrm1'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes_m1['.$ATMdb->Get_field('IDDoss').'][montant]', $soldeRM1, $checkbox_moreRM1) : ''
-			,'montantnrm1'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes_nr_m1['.$ATMdb->Get_field('IDDoss').'][montant]', $soldeNRM1, $checkbox_moreNRM1) : ''
+			//,'montantnrm1'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes_nr_m1['.$ATMdb->Get_field('IDDoss').'][montant]', $soldeNRM1, $checkbox_moreNRM1) : ''
 			,'montantr'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes['.$ATMdb->Get_field('IDDoss').'][montant]', $soldeR, $checkbox_moreR) : ''
-			,'montantnr'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes_nr['.$ATMdb->Get_field('IDDoss').'][montant]', $soldeNR, $checkbox_moreNR) : ''
+			//,'montantnr'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes_nr['.$ATMdb->Get_field('IDDoss').'][montant]', $soldeNR, $checkbox_moreNR) : ''
 			,'montantr1'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes_p1['.$ATMdb->Get_field('IDDoss').'][montant]', $soldeR1, $checkbox_moreR1) : ''
-			,'montantnr1'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes_nr_p1['.$ATMdb->Get_field('IDDoss').'][montant]', $soldeNR1, $checkbox_moreNR1) : ''
+			//,'montantnr1'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes_nr_p1['.$ATMdb->Get_field('IDDoss').'][montant]', $soldeNR1, $checkbox_moreNR1) : ''
 			,'checkboxperso'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes_perso['.$ATMdb->Get_field('IDDoss').']', $ATMdb->Get_field('IDDoss'),$checkbox_moreperso) : ''
 			,'checkedperso'=>$checkedperso
 			,'checkedrm1'=>$checkedrm1
-			,'checkednrm1'=>$checkednrm1
+			//,'checkednrm1'=>$checkednrm1
 			,'checkedr'=>$checkedr
-			,'checkednr'=>$checkednr
+			//,'checkednr'=>$checkednr
 			,'checkedr1'=>$checkedr1
-			,'checkednr1'=>$checkednr1
+			//,'checkednr1'=>$checkednr1
 			
 			,'maintenance' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['maintenance']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['maintenance'] : $fin->montant_prestation
 			,'assurance' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['assurance']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['assurance'] :$fin->assurance
