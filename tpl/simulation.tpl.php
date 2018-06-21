@@ -109,16 +109,8 @@
 			
 		</tr>
 		<tr>
-			<td class="fieldrequired">Catégorie du bien</td>
-			<td>[simulation.fk_categorie_bien;strconv=no]</td>
-			<td class="fieldrequired">Nature du bien</td>
-			<td>[simulation.fk_nature_bien;strconv=no]</td>
-		</tr>
-		<tr>
 			<td><span class="fieldrequired">Type de matériel financé</span></td>
-			<td>[simulation.type_materiel; strconv=no]</td>
-			<td><span class="fieldrequired">Marque de matériel financé</span></td>
-			<td>[simulation.marque_materiel; strconv=no]</td>
+			<td colspan="3">[simulation.type_materiel; strconv=no]</td>
 		</tr>
 		<tr>
 			<td>Terme</td>

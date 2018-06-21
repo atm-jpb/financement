@@ -1076,7 +1076,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'accord_confirme'=>$simulation->accord_confirme
 		,'total_financement'=>$simulation->montant_total_finance
 	    ,'type_materiel'=>$form->texte('','type_materiel', $simulation->type_materiel, 50) .(!empty($simulation->modifs['type_materiel']) ? ' (Ancienne valeur : '.$simulation->modifs['type_materiel'].')' : '')
-		,'marque_materiel'=>(!in_array($simulation->marque_materiel, $simulation->TMarqueMateriel) && !empty($simulation->marque_materiel) ? $langs->trans('Simulation_marque_not_more_available', $simulation->marque_materiel).' - ' : '') . $form->combo('','marque_materiel',$simulation->TMarqueMateriel,$simulation->marque_materiel)
+		//,'marque_materiel'=>(!in_array($simulation->marque_materiel, $simulation->TMarqueMateriel) && !empty($simulation->marque_materiel) ? $langs->trans('Simulation_marque_not_more_available', $simulation->marque_materiel).' - ' : '') . $form->combo('','marque_materiel',$simulation->TMarqueMateriel,$simulation->marque_materiel)
 		,'numero_accord'=>($can_preco && GETPOST('action') == 'edit') ? $form->texte('','numero_accord',$simulation->numero_accord, 20) : $link_dossier
 		,'attente' => $simulation->get_attente($ATMdb, ($action=='calcul' ? 1 : 0))
 	    ,'attente_style' => (empty($simulation->attente_style)) ? 'none' : $simulation->attente_style
@@ -1101,8 +1101,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'pct_vr'=>($mode == 'edit') ? '<input name="pct_vr" type="number" value="'.$simulation->pct_vr.'" min="0" max="100" '.(TFinancementTools::user_courant_est_admin_financement() ? '' : 'readonly').' />' : $simulation->pct_vr
 		,'mt_vr'=>$form->texte('', 'mt_vr', price2num($simulation->mt_vr), 10)
 		,'info_vr'=>$html->textwithpicto('', $langs->transnoentities('simulation_info_vr'), 1, 'info', '', 0, 3)
-		,'fk_categorie_bien'=>$mode == 'edit' ? $html->selectarray('fk_categorie_bien', TFinancementTools::getCategorieId(), $simulation->fk_categorie_bien) : TFinancementTools::getCategorieLabel($simulation->fk_categorie_bien)
-		,'fk_nature_bien'=>$mode == 'edit' ? $html->selectarray('fk_nature_bien', TFinancementTools::getNatureId(), $simulation->fk_nature_bien) : TFinancementTools::getNatureLabel($simulation->fk_nature_bien)
+		//,'fk_categorie_bien'=>$mode == 'edit' ? $html->selectarray('fk_categorie_bien', TFinancementTools::getCategorieId(), $simulation->fk_categorie_bien) : TFinancementTools::getCategorieLabel($simulation->fk_categorie_bien)
+		//,'fk_nature_bien'=>$mode == 'edit' ? $html->selectarray('fk_nature_bien', TFinancementTools::getNatureId(), $simulation->fk_nature_bien) : TFinancementTools::getNatureLabel($simulation->fk_nature_bien)
 	);
 	
 	if($mode == 'edit_montant') {

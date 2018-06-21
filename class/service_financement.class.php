@@ -395,6 +395,12 @@ class ServiceFinancement {
 		$m = !empty($TMarque[$this->simulation->marque_materiel]) ? $TMarque[$this->simulation->marque_materiel] : '';
 		$t = !empty($TType[$this->simulation->fk_nature_bien]) ? $TType[$this->simulation->fk_nature_bien] : '';
 		
+		// On passe en dur les types et marques
+		if($this->simulation->entity) {
+			$t = 'PHOTOCO';
+			$m = 'CAN';
+		}
+		
 		return array($m, $t);
 	}
 	
@@ -604,6 +610,9 @@ class ServiceFinancement {
 	 */
 	public function getIdNatureBien()
 	{
+		// On envoie photocopieur systématiquement
+		return 'U03C';
+		
 		$label = $this->getNatureLabel($this->simulation->fk_nature_bien);
 		
 		switch ($label) {

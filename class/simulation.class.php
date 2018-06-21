@@ -2988,13 +2988,16 @@ class TSimulationSuivi extends TObjetStd {
 			,'TOSHIBA' => '331'
 		);
 		
+		$codeMat = '300121';
+		$codeMarque = '335';
+		
 		$TMateriel = array(
-			'codeMateriel' => '300121' //Photocopieur
+			'codeMateriel' => $codeMat //Photocopieur
 			,'codeEtatMateriel' => 'N'
 			,'prixDeVente' => $this->simulation->montant
 			//,'prixTarif' => ''
 			//,'anneeFabrication' => ''
-			,'codeMarque' => ($TCodeMarque[$this->simulation->marque_materiel]) ? $TCodeMarque[$this->simulation->marque_materiel] : '910' //909 = Divers informatique, 910 = Divers bureautique
+			,'codeMarque' => $codeMarque //909 = Divers informatique, 910 = Divers bureautique
 			//,'type' => ''
 			//,'modele' => ''
 			//,'dateDeMiseEnCirculation' => ''
