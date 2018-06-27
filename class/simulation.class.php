@@ -3029,6 +3029,10 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$duree = $this->simulation->duree / ($p2 / $p1);
 		
+		// Montant minimum 1000 €
+		$montant = $this->simulation->montant;
+		if($montant < 1000) $montant = 1000;
+		
 		$TFinancement = array(
 			'codeTypeCalcul' => $codeTypeCalcul
 			,'typeFinancement' => array(
@@ -3036,7 +3040,7 @@ class TSimulationSuivi extends TObjetStd {
 				,'codeProduitCommercial' => $codeCommercial 
 			)
 			,'codeBareme' => $this->_getBNPBareme($TData,$codeCommercial)
-			,'montantFinance' => $this->simulation->montant
+			,'montantFinance' => $montant
 			//,'codeTerme' => ''
 			//,'valeurResiduelle' => array(
 				//'montant'=> ''
