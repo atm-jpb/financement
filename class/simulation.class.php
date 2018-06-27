@@ -2990,10 +2990,14 @@ class TSimulationSuivi extends TObjetStd {
 		$codeMat = '300121';
 		$codeMarque = '335';
 		
+		// Montant minimum 1000 €
+		$montant = $this->simulation->montant;
+		if($montant < 1000) $montant = 1000;
+		
 		$TMateriel = array(
 			'codeMateriel' => $codeMat //Photocopieur
 			,'codeEtatMateriel' => 'N'
-			,'prixDeVente' => $this->simulation->montant
+			,'prixDeVente' => $montant
 			//,'prixTarif' => ''
 			//,'anneeFabrication' => ''
 			,'codeMarque' => $codeMarque //909 = Divers informatique, 910 = Divers bureautique
