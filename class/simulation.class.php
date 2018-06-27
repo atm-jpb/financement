@@ -2450,11 +2450,11 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		// Si non null (donc un appel SOAP a été fait) alors je check le retour
-		if (!is_null($res))
+		/*if (!is_null($res))
 		{
 			if ($res > 0) setEventMessage($langs->trans('FinancementSoapCallOK')); // OK
 			else setEventMessage($langs->trans('FinancementSoapCallKO'), 'errors'); // fail
-		}
+		}*/
 		
 		$this->statut_demande = 1;
 		$this->date_demande = time();
