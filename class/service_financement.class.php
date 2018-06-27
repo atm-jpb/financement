@@ -222,9 +222,9 @@ class ServiceFinancement {
 				<ns1:B2B_TIMESTAMP>'.date('c').'</ns1:B2B_TIMESTAMP>
 			</ns1:APP_Infos_B2B>
 			<ns1:APP_CREA_Demande>
-				<ns1:B2B_CTR_REN_ADJ>'.(!empty($this->simulation->opt_adjonction) ? $dossier_origin->num_contrat : '').'</ns1:B2B_CTR_REN_ADJ>
+				<ns1:B2B_CTR_REN_ADJ></ns1:B2B_CTR_REN_ADJ>
 				<ns1:B2B_ECTR_FLG>false</ns1:B2B_ECTR_FLG>
-				<ns1:B2B_NATURE_DEMANDE>'.(!empty($this->simulation->opt_adjonction) ? 'A' : 'S').'</ns1:B2B_NATURE_DEMANDE>
+				<ns1:B2B_NATURE_DEMANDE>S</ns1:B2B_NATURE_DEMANDE>
 				<ns1:B2B_REF_EXT>'.$this->simulation->reference.'</ns1:B2B_REF_EXT>
 				<ns1:B2B_TYPE_DEMANDE>E</ns1:B2B_TYPE_DEMANDE>
 			</ns1:APP_CREA_Demande>
