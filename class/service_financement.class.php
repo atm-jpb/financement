@@ -215,6 +215,10 @@ class ServiceFinancement {
 		
 		$sirenCLIENT = substr($this->simulation->societe->idprof2, 0, 9);
 		
+		// Montant minimum 800 €
+		$montant = $this->simulation->montant;
+		if($montant < 800) $montant = 800;
+		
 		$xml = '
 		<ns1:CreateDemFinRequest>
 			<ns1:APP_Infos_B2B>
@@ -241,7 +245,7 @@ class ServiceFinancement {
 				<ns1:B2B_DUREE>'.($this->simulation->duree * $frequence).'</ns1:B2B_DUREE>
 				<ns1:B2B_FREQ>'.$frequence.'</ns1:B2B_FREQ>
 				<ns1:B2B_MODPAIE>'.$this->getIdModeRglt($this->simulation->opt_mode_reglement).'</ns1:B2B_MODPAIE>
-				<ns1:B2B_MT_DEMANDE>'.$this->simulation->montant.'</ns1:B2B_MT_DEMANDE>
+				<ns1:B2B_MT_DEMANDE>'.$montant.'</ns1:B2B_MT_DEMANDE>
 				<ns1:B2B_NB_ECH>'.$this->simulation->duree.'</ns1:B2B_NB_ECH>
 				<ns1:B2B_MINERVAFPID>'.(($protocole_id == '0251') ? '983' : '9782').'</ns1:B2B_MINERVAFPID>
 				<ns1:B2B_TERME>'.($this->simulation->opt_terme == 0 ? 2 : 1).'</ns1:B2B_TERME>
@@ -249,7 +253,7 @@ class ServiceFinancement {
 			</ns1:Infos_Financieres>
 			<ns1:Infos_Materiel>
 				<ns1:B2B_MARQMAT>'.$marqmat.'</ns1:B2B_MARQMAT>
-				<ns1:B2B_MT_UNIT>'.$this->simulation->montant.'</ns1:B2B_MT_UNIT>
+				<ns1:B2B_MT_UNIT>'.$montant.'</ns1:B2B_MT_UNIT>
 				<ns1:B2B_QTE>1</ns1:B2B_QTE>
 				<ns1:B2B_TYPMAT>'.$typmat.'</ns1:B2B_TYPMAT>
 				<ns1:B2B_ETAT>N</ns1:B2B_ETAT>
