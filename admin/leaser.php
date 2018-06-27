@@ -137,7 +137,7 @@ $mode = 'edit';
  * Affichage des grilles de Leasers
  * *********************************/
 
-foreach ($liste_type_contrat as $typeContrat => $label) {
+/*foreach ($liste_type_contrat as $typeContrat => $label) {
 	
 	$grille = &$TGrille[$typeContrat];
 
@@ -178,11 +178,11 @@ foreach ($liste_type_contrat as $typeContrat => $label) {
 }
 
 echo '<hr><br><br>';
-
+*/
 /* *************************************************************************
  * Affichage du tableau permettant de définir l'ordre par défaut des leasers
  * ************************************************************************/
-
+$TBS=new TTemplateTBS;
 foreach ($liste_type_contrat as $typeContrat => $label) {
 	$typeContrat = "DEFAUT_".$typeContrat;
 	print_titre('Ordre des leasers par défaut '.$label);
