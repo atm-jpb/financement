@@ -591,9 +591,35 @@ function _liste(&$ATMdb, &$simulation) {
 	
 
 	if(isset($_REQUEST['socid'])) {
-		$sql.= ' AND s.fk_soc='.$_REQUEST['socid'];
 		$societe = new Societe($db);
 		$societe->fetch($_REQUEST['socid']);
+		
+		// Recherche par SIREN
+		$search_by_siren = true;
+		if(!empty($societe->array_options['options_no_regroup_fin_siren'])) {
+			$search_by_siren = false;
+		}
+		
+		$sql.= " AND (s.fk_soc = ".$societe->id;
+		if(!empty($societe->idprof1) && $search_by_siren) {
+			$sql.= " OR s.fk_soc IN
+						(
+							SELECT s.rowid 
+							FROM ".MAIN_DB_PREFIX."societe as s
+								LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
+							WHERE
+							(
+								s.siren = '".$societe->idprof1."'
+								AND s.siren != ''
+							) 
+							OR
+							(
+								se.other_siren LIKE '%".$societe->idprof1."%'
+								AND se.other_siren != ''
+							)
+						)";
+		}
+		$sql .=" )";
 		
 		// Affichage résumé client
 		$formDoli = new Form($db);
