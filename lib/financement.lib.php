@@ -118,6 +118,8 @@ class TFinancementTools {
 				td[id="prochaine_echeance"] {text-align:center;}
 				td[id="assurance"] {text-align:center;}
 				td[id="maintenance"] {text-align:center;}
+				td[id="solde_rm1"] {text-align:center;}
+				td[id="solde_nrm1"] {text-align:center;}
 				td[id="solde_r"] {text-align:center;}
 				td[id="solde_nr"] {text-align:center;}
 				td[id="solde_r1"] {text-align:center;}
