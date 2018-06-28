@@ -118,7 +118,7 @@ function has_column(&$PDOdb, $table, $col) {
 
 // Update all records in a table with a new fk_soc
 function update_record_with_col(&$PDOdb, $table, $col, $socSource, $socTarget) {
-	$sql = "UPDATE $table SET $col = $socTarget WHERE fk_soc = $socSource;";
+	$sql = "UPDATE $table SET $col = $socTarget WHERE $col = $socSource;";
 	//$PDOdb->Execute($sql);
 	return $sql;
 }
