@@ -983,9 +983,17 @@ class TFin_dossier extends TObjetStd {
 				break;
 			case 'SRCPRO': // CPRO = client sur le PDF
 				$solde =$this->getSolde_SR_CLIENT($PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
+				// Spécifique Télécom, on ajoute au solde la maintenance restante
+				if($this->entity == 3 || $this->entity == 10) {
+					$solde+=($duree_restante_client * $this->financement->montant_prestation);
+				}
 				break;
 			case 'SNRCPRO':
 				$solde =$this->getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
+				// Spécifique Télécom, on ajoute au solde la maintenance restante
+				if($this->entity == 3 || $this->entity == 10) {
+					$solde+=($duree_restante_client * $this->financement->montant_prestation);
+				}
 				break;
 			case 'SRNRSAME': // [PH] case dernièrement ajouté par Geoffrey qui remplacement selon moi SRCPRO et SNRCPRO mais qui n'est plus à utiliser
 				$solde =$this->getSolde_SR_NR_SAME($iPeriode, $duree_restante_client, $LRD, $LRD_leaser, $this->nature_financement);
