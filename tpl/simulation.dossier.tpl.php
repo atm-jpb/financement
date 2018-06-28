@@ -11,9 +11,7 @@
 		<td align="center">Prochaine<br>&eacute;ch&eacute;ance</td>
 		<td align="center">Ass.<br>Ass. act</td>
 		<td align="center">Maint.</td>
-		<td align="center">Solde<br>précédent</td>
-		<td align="center">Solde<br>en cours</td>
-		<td align="center">Solde<br>suivant</td>
+		<td align="center" colspan="3">Solde après paiement de la période du :</td>
 		<td align="center">Retrait<br>copies</td>
 	</tr>
 	<tr [champs.class; strconv=no] title="N° de série : [champs.serial]">
@@ -57,16 +55,16 @@
 		[onshow;block=end]
 		[onshow;block=begin;when [champs.display_solde]=='1']
 		<td id="solde_rm1" align="right" nowrap="nowrap" class="solde"[champs.checkedrm1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>
-			[champs.checkboxrm1; strconv=no] [champs.solde_rm1; strconv=no; frm=0 000,00] [champs.montantrm1; strconv=no; frm=0 000,00]<br>
-			[champs.date_echeance_precedente]
+			[champs.date_echeance_precedente]<br>au [champs.date_echeance_precedente_fin]<br>
+			[champs.checkboxrm1; strconv=no] <strong>[champs.solde_rm1; strconv=no; frm=0 000,00]</strong>[champs.montantrm1; strconv=no; frm=0 000,00]<br>
 		</td>
 		<td id="solde_r" align="right" nowrap="nowrap" class="solde"[champs.checkedr;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>
-			[champs.checkboxr; strconv=no] [champs.solde_r; strconv=no; frm=0 000,00] [champs.montantr; strconv=no; frm=0 000,00]<br>
-			[champs.date_echeance_en_cours]
+			[champs.date_echeance_en_cours]<br>au [champs.date_echeance_en_cours_fin]<br>
+			[champs.checkboxr; strconv=no] <strong>[champs.solde_r; strconv=no; frm=0 000,00]</strong>[champs.montantr; strconv=no; frm=0 000,00]<br>
 		</td>
 		<td id="solde_r1" align="right" nowrap="nowrap" class="solde"[champs.checkedr1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>
-			[champs.checkboxr1; strconv=no] [champs.solde_r1; strconv=no; frm=0 000,00] [champs.montantr1; strconv=no; frm=0 000,00]<br>
-			[champs.date_echeance_prochaine]
+			[champs.date_echeance_prochaine]<br>au [champs.date_echeance_prochaine_fin]<br>
+			[champs.checkboxr1; strconv=no] <strong>[champs.solde_r1; strconv=no; frm=0 000,00]</strong>[champs.montantr1; strconv=no; frm=0 000,00]<br>
 		</td>
 		[onshow;block=end]
 		<td id="solde_perso" align="right" nowrap="nowrap" class="solde">[champs.checkboxperso; strconv=no] [champs.soldeperso; strconv=no; frm=0 000,00]</td>
