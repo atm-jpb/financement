@@ -1538,8 +1538,11 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		}
 		
 		$date_echeance_prochaine = ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_prochaine_echeance']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_prochaine_echeance'] : $fin->date_prochaine_echeance;
-		$date_echeance_en_cours = strtotime('- '.$fin->getiPeriode().'months', $date_echeance_prochaine);
-		$date_echeance_precedente = strtotime('- '.$fin->getiPeriode().'months', $date_echeance_en_cours);
+		$date_echeance_prochaine_fin = $dossier->_add_month($fin->getiPeriode(), $date_echeance_prochaine);
+		$date_echeance_en_cours = $dossier->_add_month(-1 * $fin->getiPeriode(), $date_echeance_prochaine);
+		$date_echeance_en_cours_fin = $dossier->_add_month($fin->getiPeriode(), $date_echeance_en_cours);
+		$date_echeance_precedente = $dossier->_add_month(-1 * $fin->getiPeriode(), $date_echeance_en_cours);
+		$date_echeance_precedente_fin = $dossier->_add_month($fin->getiPeriode(), $date_echeance_precedente);
 
 		$numcontrat_entity_leaser = ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['num_contrat']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['num_contrat'] :$fin->reference;
 		$numcontrat_entity_leaser = '<a href="dossier.php?id='.$ATMdb->Get_field('IDDoss').'">'.$numcontrat_entity_leaser.'</a> / '.TFinancementTools::get_entity_translation($ATMdb->Get_field('entityDossier'));
@@ -1562,12 +1565,15 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			,'reloc' => ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['reloc']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['reloc'] : $fin->reloc
 			,'solde_rm1' => $soldeRM1
 			,'date_echeance_precedente' => date('d/m/y', $date_echeance_precedente)
+			,'date_echeance_precedente_fin' => date('d/m/y', $date_echeance_precedente_fin)
 			//,'solde_nrm1' => $soldeNRM1
 			,'solde_r' => $soldeR
 			,'date_echeance_en_cours' => date('d/m/y', $date_echeance_en_cours)
+			,'date_echeance_en_cours_fin' => date('d/m/y', $date_echeance_en_cours_fin)
 			//,'solde_nr' => $soldeNR
 			,'solde_r1' => $soldeR1
 			,'date_echeance_prochaine' => date('d/m/y', $date_echeance_prochaine)
+			,'date_echeance_prochaine_fin' => date('d/m/y', $date_echeance_prochaine_fin)
 			//,'solde_nr1' => $soldeNR1
 			,'soldeperso' => $soldeperso
 			,'display_solde' => $dossier->display_solde
