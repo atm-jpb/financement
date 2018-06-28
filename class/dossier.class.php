@@ -1178,7 +1178,7 @@ class TFin_dossier extends TObjetStd {
 		}
 	}
 
-	private function _add_month($how_many_month, $time) {
+	public function _add_month($how_many_month, $time) {
 
 		$time_result = strtotime('+'.$how_many_month.' month', $time);
 
