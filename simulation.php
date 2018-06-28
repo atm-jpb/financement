@@ -1564,11 +1564,11 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		}
 		
 		$date_echeance_prochaine = ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_prochaine_echeance']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['date_prochaine_echeance'] : $fin->date_prochaine_echeance;
-		$date_echeance_prochaine_fin = $dossier->_add_month($fin->getiPeriode(), $date_echeance_prochaine);
+		$date_echeance_prochaine_fin = strtotime('-1day', $dossier->_add_month($fin->getiPeriode(), $date_echeance_prochaine));
 		$date_echeance_en_cours = $dossier->_add_month(-1 * $fin->getiPeriode(), $date_echeance_prochaine);
-		$date_echeance_en_cours_fin = $dossier->_add_month($fin->getiPeriode(), $date_echeance_en_cours);
+		$date_echeance_en_cours_fin = strtotime('-1day', $dossier->_add_month($fin->getiPeriode(), $date_echeance_en_cours));
 		$date_echeance_precedente = $dossier->_add_month(-1 * $fin->getiPeriode(), $date_echeance_en_cours);
-		$date_echeance_precedente_fin = $dossier->_add_month($fin->getiPeriode(), $date_echeance_precedente);
+		$date_echeance_precedente_fin = strtotime('-1day', $dossier->_add_month($fin->getiPeriode(), $date_echeance_precedente));
 
 		$numcontrat_entity_leaser = ($simulation->dossiers[$ATMdb->Get_field('IDDoss')]['num_contrat']) ? $simulation->dossiers[$ATMdb->Get_field('IDDoss')]['num_contrat'] :$fin->reference;
 		$numcontrat_entity_leaser = '<a href="dossier.php?id='.$ATMdb->Get_field('IDDoss').'">'.$numcontrat_entity_leaser.'</a> / '.TFinancementTools::get_entity_translation($ATMdb->Get_field('entityDossier'));
