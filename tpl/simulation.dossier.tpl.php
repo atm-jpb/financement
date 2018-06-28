@@ -51,7 +51,7 @@
 		</td>
 		<td id="maintenance" align="right" nowrap="nowrap">[champs.maintenance; strconv=no; frm=0 000,00]</td>
 		[onshow;block=begin;when [champs.display_solde]=='0']
-		<td colspan="6" align="center">Soldes non disponibles. Contactez le service financement</td>
+		<td colspan="3" align="center">Soldes non disponibles. Contactez le service financement</td>
 		[onshow;block=end]
 		[onshow;block=begin;when [champs.display_solde]=='1']
 		<td id="solde_rm1" align="right" nowrap="nowrap" class="solde"[champs.checkedrm1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>
