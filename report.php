@@ -256,11 +256,15 @@ function demandes_de_financement($title, $head_search, $TEntity)
 		$start_time = strtotime('+1 month', $start_time);
 	}
 	
-	// 
+	// Récupération des valeurs dans un autre tableau avant conversion pour un graph
+	$TSum = array();
 	foreach ($TTotal as $k => &$v)
 	{
-		if (in_array($k, array('periode', 'total'))) continue;
-		$v = number_format($v * 100 / $TTotal['total'], 2).' %';
+		if (in_array($k, $TContrat_filter))
+		{
+			$TSum[] = array($k, $v);
+			$v = number_format($v * 100 / $TTotal['total'], 2).' %';
+		}
 	}
 	$TTotal['total'] = '100 %';
 	
@@ -296,6 +300,23 @@ function demandes_de_financement($title, $head_search, $TEntity)
 			'periode'=>''
 		)
 	));
+	
+	
+	if (!empty($TSum))
+	{
+		$listeview = new TListviewTBS('');
+		$PDOdb = new TPDOdb;
+
+		print $listeview->renderArray($PDOdb, $TSum
+			,array(
+				'type' => 'chart'
+				,'chartType' => 'PieChart'
+				,'liste'=>array(
+					'titre'=>''
+				)
+			)
+		);
+	}
 	
 }
 
