@@ -92,7 +92,7 @@ $head_search.= '</div>';
 $formcore = new TFormCore($_SERVER['PHP_SELF'], 'form_list_financement', 'GET');
 
 // Print le contenu de la page
-call_user_func($view, $formcore, $title, $head_search, $TEntity);
+call_user_func($view, $title, $head_search, $TEntity);
 
 
 
@@ -178,7 +178,6 @@ function _getNbSimulation($date_simul_start, $date_simul_end, $fk_type_contrat='
 	if (!empty($accord)) $sql.= ' AND accord = "'.$accord.'"';
 	if (!empty($TEntity)) $sql.= ' AND entity IN ('.implode(',', $TEntity).')';
 	
-	echo $sql.';<br />';
 	$resql = $db->query($sql);
 	if ($resql)
 	{
@@ -193,7 +192,7 @@ function _getNbSimulation($date_simul_start, $date_simul_end, $fk_type_contrat='
 	return 0;
 }
 
-function demandes_de_financement($formcore, $title, $head_search, $TEntity)
+function demandes_de_financement($title, $head_search, $TEntity)
 {
 	global $db,$langs,$time_fiscal_start,$time_fiscal_end,$form;
 	
@@ -300,27 +299,27 @@ function demandes_de_financement($formcore, $title, $head_search, $TEntity)
 	
 }
 
-function facturation_par_leaser($formcore, $title, $head_search, $TEntity)
+function facturation_par_leaser($title, $head_search, $TEntity)
 {
 	
 }
 
-function types_contrats_et_financements_actifs($formcore, $title, $head_search, $TEntity)
+function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 {
 	
 }
 
-function encours_leaser($formcore, $title, $head_search, $TEntity)
+function encours_leaser($title, $head_search, $TEntity)
 {
 	
 }
 
-function recurrent_financement($formcore, $title, $head_search, $TEntity)
+function recurrent_financement($title, $head_search, $TEntity)
 {
 	
 }
 
-function renta_neg($formcore, $title, $head_search, $TEntity)
+function renta_neg($title, $head_search, $TEntity)
 {
 	
 }
