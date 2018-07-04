@@ -42,13 +42,25 @@ switch ($view) {
 
 $hookmanager->initHooks(array('financementreport'));
 
+$n = GETPOST('n'); // exemple de valeur : -1 / -2 / +1 (une valeur positive n'a pas d'intéret mais c'est possible)
+$TContrat_filter = GETPOST('TContrat', 'array'); // GETPOST
+$TStatut_filter = GETPOST('TStatut', 'array'); // GETPOST
 
+if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha'))
+{
+	$n=0;
+	$TEntity=array();
+	$TContrat_filter=array();
+	$TStatut_filter=array();
+}
+
+// Le calcul des dates doit ce faire après le test "remove_filter" car dépendant de "$n"
 $date_fiscal_start = date('Y-'.$conf->global->SOCIETE_FISCAL_MONTH_START.'-01');
 $date_fiscal_end = date('Y-'.($conf->global->SOCIETE_FISCAL_MONTH_START-1).'-t');
 if ((int) $conf->global->SOCIETE_FISCAL_MONTH_START > (int) date('m')) $date_fiscal_start = date('Y-m-d', strtotime($date_fiscal_start.' -1 year'));
 else $date_fiscal_end = date('Y-m-d', strtotime($date_fiscal_end.' +1 year'));
-$time_fiscal_start = strtotime($date_fiscal_start);
-$time_fiscal_end = strtotime($date_fiscal_end);
+$time_fiscal_start = strtotime($date_fiscal_start.(!empty($n) ? ' '.$n.' year' : ''));
+$time_fiscal_end = strtotime($date_fiscal_end.(!empty($n) ? ' '.$n.' year' : ''));
 
 /*
  * Actions
@@ -85,12 +97,19 @@ $conf->global->MAIN_USE_JQUERY_MULTISELECT = 'select2';
 
 llxHeader('',$title,'','');
 
-$head_search = '<div class="divsearchfield">';
+$head_search = '';
+
+$head_search.= '<div class="divsearchfield">';
+$head_search.= $langs->trans('Période').' '.$form->selectarray('n', array('0' => 'n', '-1'=>'n-1'), $n, 0, 0, 0, ' style="min-width:75px"', '', 0, 0, '', ' minwidth75');
+$head_search.= '</div>';
+	
+$head_search.= '<div class="divsearchfield">';
 $head_search.= $langs->trans('FinancementEntitySearch').' '.$form->multiselectarray('TEntity', $TEntityAvailable, $TEntity, 0, 0, '', 0, '600');
 $head_search.= '</div>';
 
 $formcore = new TFormCore($_SERVER['PHP_SELF'], 'form_list_financement', 'GET');
-
+print $formcore->hidden('view', $view);
+if (!empty($n)) print $formcore->hidden('n', $n);
 // Print le contenu de la page
 call_user_func($view, $title, $head_search, $TEntity);
 
@@ -194,13 +213,11 @@ function _getNbSimulation($date_simul_start, $date_simul_end, $fk_type_contrat='
 
 function demandes_de_financement($title, $head_search, $TEntity)
 {
-	global $db,$langs,$time_fiscal_start,$time_fiscal_end,$form;
+	global $db,$langs,$time_fiscal_start,$time_fiscal_end,$form,$n,$formcore
+			,$TContrat_filter,$TStatut_filter;
 	
 	$TContrat = getTContrat();
-	$TContrat_filter = GETPOST('TContrat', 'array'); // GETPOST
-	
 	$TStatut = getTStatut();
-	$TStatut_filter = GETPOST('TStatut', 'array'); // GETPOST
 	
 	$head_search.= '<div class="divsearchfield">';
 	$head_search.= $langs->trans('TypeContrat').' '.$form->multiselectarray('TContrat', $TContrat, $TContrat_filter, 0, 0, '', 0, '200');
@@ -260,13 +277,15 @@ function demandes_de_financement($title, $head_search, $TEntity)
 	$TSum = array();
 	foreach ($TTotal as $k => &$v)
 	{
-		if (in_array($k, $TContrat_filter))
+		if (in_array($k, $TContrat_filter) || in_array($k, $TStatut_filter))
 		{
 			$TSum[] = array($k, $v);
-			$v = number_format($v * 100 / $TTotal['total'], 2).' %';
+			if ($v == 0) $v = '0 %';
+			else $v = number_format($v * 100 / $TTotal['total'], 2).' %';
 		}
 	}
-	$TTotal['total'] = '100 %';
+	if (empty($TTotal['total'])) $TTotal['total'] = '0 %';
+	else $TTotal['total'] = '100 %';
 	
 	$TData[] = $TTotal;
 	
@@ -275,7 +294,7 @@ function demandes_de_financement($title, $head_search, $TEntity)
 	foreach ($TStatut_filter as $statut) $TTitle[$statut] = $TStatut[$statut];
 	foreach ($TContrat_filter as $type) $TTitle[$type] = $type;
 	$TTitle['total'] = $langs->trans('TotalDemande');
-
+	
 	$r = new Listview($db, 'financement');
 	print $r->renderArray($db, $TData, array(
 		'view_type' => 'list' // default = [list], [raw], [chart]
@@ -322,7 +341,54 @@ function demandes_de_financement($title, $head_search, $TEntity)
 
 function facturation_par_leaser($title, $head_search, $TEntity)
 {
+	global $db,$langs,$form,$time_fiscal_start,$time_fiscal_end,$n;
 	
+	$sql = 'SELECT s.nom as nom, SUM(f.total) as "Total HT",  SUM(f.total) as annotation';
+	$sql.= ' FROM '.MAIN_DB_PREFIX.'societe s';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'facture f ON (f.fk_soc = s.rowid)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'categorie_fournisseur cf ON (cf.fk_societe = s.rowid)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'categorie c ON (c.rowid = cf.fk_categorie)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'categorie c2 ON (c2.rowid = c.fk_parent)';
+	$sql.= ' WHERE s.fournisseur = 1';
+	if (!empty($TEntity)) $sql.= ' AND f.entity IN ('.implode(',', $TEntity).')';
+	$sql.= ' AND f.datef >= "'.$db->idate($time_fiscal_start).'" AND f.datef <= "'.$db->idate($time_fiscal_end).'"';
+	$sql.= ' AND (c.label = "Leaser" OR c2.label = "Leaser" )';
+	$sql.= ' GROUP BY s.nom';
+	$sql.= ' ';
+	
+	print_barre_liste($title, 0, $_SERVER["PHP_SELF"]);
+	
+	$search_button = '<div style="position:absolute;top:0;right:0" class="nowrap">';
+	$search_button.= img_search();
+	$search_button.= '&nbsp;'.img_searchclear();
+	$search_button.= '</div>';
+	
+	print '<div style="position:relative;" class="liste_titre liste_titre_bydiv centpercent">'.$head_search.$search_button.'</div>';
+	
+	$listeview = new TListviewTBS('facturation_par_leaser');
+	$PDOdb = new TPDOdb;
+
+	print $listeview->render($PDOdb, $sql
+		,array(
+			'type' => 'chart'
+			,'chartType' => 'BarChart'
+			,'liste'=>array(
+				'titre'=>''
+			)
+			,'search'=>array(
+				
+			)
+//			,'height' => '800'
+			,'chart'=>array(
+				'role'=>array(
+					'annotation'=>'annotation'
+				)
+				,'options' => array(
+					'bar' => 'groupWidth: "90%"'
+				)
+			)
+		)
+	);
 }
 
 function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
