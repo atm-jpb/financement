@@ -970,6 +970,9 @@ class TFin_dossier extends TObjetStd {
 		$CRD = $this->financement->valeur_actuelle($duree_restante_client);
 		$LRD = $this->financement->echeance * $duree_restante_client + $this->financement->reste;
 		
+		// Montant presta ajouté au solde pour les entités TELECOM
+		$mt_presta = ($this->nature_financement == 'EXTERNE') ? $this->financementLeaser->montant_prestation : $this->financement->montant_prestation;
+		
 		// Chargement des règle de solde (dictionnaire)
 		$this->load_c_conf_solde();
 		
@@ -985,14 +988,14 @@ class TFin_dossier extends TObjetStd {
 				$solde =$this->getSolde_SR_CLIENT($PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
 				// Spécifique Télécom, on ajoute au solde la maintenance restante
 				if($this->entity == 3 || $this->entity == 10) {
-					$solde+=($duree_restante_client * $this->financement->montant_prestation);
+					$solde+=($duree_restante_client * $mt_presta);
 				}
 				break;
 			case 'SNRCPRO':
 				$solde =$this->getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
 				// Spécifique Télécom, on ajoute au solde la maintenance restante
 				if($this->entity == 3 || $this->entity == 10) {
-					$solde+=($duree_restante_client * $this->financement->montant_prestation);
+					$solde+=($duree_restante_client * $mt_presta);
 				}
 				break;
 			case 'SRNRSAME': // [PH] case dernièrement ajouté par Geoffrey qui remplacement selon moi SRCPRO et SNRCPRO mais qui n'est plus à utiliser
