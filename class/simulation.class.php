@@ -602,6 +602,27 @@ class TSimulation extends TObjetStd {
 		return $idLeaserDossierSolde;
 	}
 	
+	// Vérifie si au moins un dossier a été sélectionné pour être soldé
+	function has_solde_dossier_selected() {
+		$TDossierUsed = array_merge(
+			$this->dossiers_rachetes
+			,$this->dossiers_rachetes_nr
+			,$this->dossiers_rachetes_p1
+			,$this->dossiers_rachetes_nr_p1
+			,$this->dossiers_rachetes_m1
+			,$this->dossiers_rachetes_nr_m1
+		);
+		
+		if(count($TDossierUsed)){
+			foreach($TDossierUsed as $id_dossier => $data){
+				if(empty($data['checked'])) continue;
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	function get_suivi_simulation(&$PDOdb,&$form){
 		global $db;
 
@@ -704,7 +725,7 @@ class TSimulation extends TObjetStd {
 		// Changement du 13.09.02 : le montant renseigné comportera déjà le montant des rachats
 		$this->montant_total_finance = $this->montant;
 		
-		$TDossSelected = $this->_getDossierSelected();
+		$soldeSelected = $this->has_solde_dossier_selected();
 
 		if(empty($this->fk_type_contrat)) { // Type de contrat obligatoire
 			$this->error = 'ErrorNoTypeContratSelected';
@@ -728,7 +749,7 @@ class TSimulation extends TObjetStd {
 		}
 		else if(empty($this->opt_no_case_to_settle)
 				&& empty($this->montant_rachete)
-				&& empty($TDossSelected)
+				&& empty($soldeSelected)
 				&& empty($this->montant_rachete_concurrence)) { // Soit case "aucun dossier à solder", soit choix de dossier, soit saisie d'un montant rachat concurrence
 			$this->error = 'ErrorCaseMandatory';
 			return false;
