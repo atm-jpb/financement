@@ -60,7 +60,7 @@ $date_fiscal_end = date('Y-'.($conf->global->SOCIETE_FISCAL_MONTH_START-1).'-t')
 if ((int) $conf->global->SOCIETE_FISCAL_MONTH_START > (int) date('m')) $date_fiscal_start = date('Y-m-d', strtotime($date_fiscal_start.' -1 year'));
 else $date_fiscal_end = date('Y-m-d', strtotime($date_fiscal_end.' +1 year'));
 $time_fiscal_start = strtotime($date_fiscal_start.(!empty($n) ? ' '.$n.' year' : ''));
-$time_fiscal_end = strtotime($date_fiscal_end.(!empty($n) ? ' '.$n.' year' : ''));
+$time_fiscal_end = strtotime($date_fiscal_end.' 23:59:59 '.(!empty($n) ? ' '.$n.' year' : ''));
 
 /*
  * Actions
@@ -213,7 +213,7 @@ function _getNbSimulation($date_simul_start, $date_simul_end, $fk_type_contrat='
 
 function demandes_de_financement($title, $head_search, $TEntity)
 {
-	global $db,$langs,$time_fiscal_start,$time_fiscal_end,$form,$n,$formcore
+	global $db,$langs,$time_fiscal_start,$time_fiscal_end,$form
 			,$TContrat_filter,$TStatut_filter;
 	
 	$TContrat = getTContrat();
@@ -341,7 +341,7 @@ function demandes_de_financement($title, $head_search, $TEntity)
 
 function facturation_par_leaser($title, $head_search, $TEntity)
 {
-	global $db,$langs,$form,$time_fiscal_start,$time_fiscal_end,$n;
+	global $db,$time_fiscal_start,$time_fiscal_end;
 	
 	$sql = 'SELECT s.nom as nom, SUM(f.total) as "Total HT",  SUM(f.total) as annotation';
 	$sql.= ' FROM '.MAIN_DB_PREFIX.'societe s';
@@ -391,8 +391,98 @@ function facturation_par_leaser($title, $head_search, $TEntity)
 	);
 }
 
+function _getNbDossier($TEntity, $date_simul_start, $date_simul_end)
+{
+	global $db;
+	
+	$TRes = array();
+	
+	$sql = 'SELECT a.entity, a.contrat, count(*) as nb';
+	$sql.= ' FROM '.MAIN_DB_PREFIX.'fin_affaire a';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (d.rowid = da.fk_fin_dossier)';
+	$sql.= ' WHERE a.contrat IS NOT NULL AND a.contrat <> "" AND a.entity IN ('.implode(',', $TEntity).')';
+	$sql.= ' AND d.date_solde IS NULL';
+	$sql.= ' AND a.date_affaire >= "'.$db->idate($date_simul_start).'" AND a.date_affaire <= "'.$db->idate($date_simul_end).'"';
+	$sql.= ' GROUP BY a.entity, a.contrat';
+	
+	$resql = $db->query($sql);
+	if ($resql)
+	{
+		while ($arr = $db->fetch_array($resql))
+		{
+			$TRes[$arr['entity']][$arr['contrat']] = $arr['nb'];
+		}
+	}
+	else
+	{
+		dol_print_error($db);
+		exit;
+	}
+	
+	return $TRes;
+}
+
 function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 {
+	global $db,$langs,$TEntityAvailable,$time_fiscal_start,$time_fiscal_end
+			,$TContrat_filter;
+	
+	$TData = array();
+	
+	$TContrat = getTContrat();
+	if (empty($TContrat_filter)) $TContrat_filter = array_keys($TContrat);
+	
+	if (empty($TEntity)) $TEntity = $TEntityAvailable;
+	
+	$TTitle = array(
+		'type_contrat' => $langs->trans('TypeContrat')
+	);
+	foreach ($TEntity as $entity_name) $TTitle[$entity_name] = $entity_name;
+	
+	$TTitle['total'] = $langs->trans('Total');
+	
+	$TNbDossier = _getNbDossier(array_keys($TEntity), $time_fiscal_start, $time_fiscal_end);
+	
+	$i=0;
+	foreach ($TContrat as $type)
+	{
+		foreach ($TEntity as $fk_entity => $entity_name)
+		{
+			$TData[$i]['type_contrat'] = $type;
+			$TData[$i][$entity_name] = !empty($TNbDossier[$fk_entity][$type]) ? $TNbDossier[$fk_entity][$type] : 0;
+			$TData[$i]['total'] += $TData[$i][$entity_name];
+		}
+		
+		$i++;
+	}
+	
+	
+	$r = new Listview($db, 'financement');
+	print $r->renderArray($db, $TData, array(
+		'view_type' => 'list' // default = [list], [raw], [chart]
+		,'list' => array(
+			'title' => $title
+			,'image'=>'object_accounting.png'
+			,'head_search' => $head_search
+		)
+		,'title'=>$TTitle
+		,'size'=>array(
+			'width'=>array(
+				'type_contrat'=>'15%'
+				,'total'=>'10%'
+			)
+		)
+		,'position'=>array(
+			'text-align'=>array(
+				'total'=>'right'
+			)
+		)
+		,'search'=>array(
+			'type_contrat'=>''
+		)
+	));
+	
 	
 }
 
