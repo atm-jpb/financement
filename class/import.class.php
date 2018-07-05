@@ -395,6 +395,9 @@ class TImport extends TObjetStd {
 				}
 				
 			}*/
+
+			// Cas particulier (colonne 17) permettant d'indiquer si le solde du dossier doit être affiché ou non
+			if(isset($data['display_solde'])) $dossier->display_solde = $data['display_solde'];
 			
 			$dossier->save($ATMdb);
 			$this->nb_update++;
