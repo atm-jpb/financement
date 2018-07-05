@@ -109,7 +109,7 @@ $head_search.= '</div>';
 
 $formcore = new TFormCore($_SERVER['PHP_SELF'], 'form_list_financement', 'GET');
 print $formcore->hidden('view', $view);
-if (!empty($n)) print $formcore->hidden('n', $n);
+
 // Print le contenu de la page
 call_user_func($view, $title, $head_search, $TEntity);
 
