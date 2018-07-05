@@ -2909,7 +2909,7 @@ class TSimulationSuivi extends TObjetStd {
 	function _getBNPDataTabForDemande(&$PDOdb){
 		global $db;
 		$entity = new DaoMulticompany($db);
-		$entity->fetch($this->entity);
+		$entity->fetch($this->simulation->entity);
 		
 		$TData = array();
 		
