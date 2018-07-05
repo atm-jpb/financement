@@ -433,22 +433,23 @@ function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 	$TContrat = getTContrat();
 	if (empty($TContrat_filter)) $TContrat_filter = array_keys($TContrat);
 	
-	if (empty($TEntity)) $TEntity = $TEntityAvailable;
+	if (empty($TEntity)) $TEntity = array_keys($TEntityAvailable);
 	
 	$TTitle = array(
 		'type_contrat' => $langs->trans('TypeContrat')
 	);
-	foreach ($TEntity as $entity_name) $TTitle[$entity_name] = $entity_name;
 	
+	foreach ($TEntity as $fk_entity) $TTitle[$TEntityAvailable[$fk_entity]] = $TEntityAvailable[$fk_entity];
 	$TTitle['total'] = $langs->trans('Total');
 	
-	$TNbDossier = _getNbDossier(array_keys($TEntity), $time_fiscal_start, $time_fiscal_end);
+	$TNbDossier = _getNbDossier($TEntity, $time_fiscal_start, $time_fiscal_end);
 	
 	$i=0;
 	foreach ($TContrat as $type)
 	{
-		foreach ($TEntity as $fk_entity => $entity_name)
+		foreach ($TEntity as $fk_entity)
 		{
+			$entity_name = $TEntityAvailable[$fk_entity];
 			$TData[$i]['type_contrat'] = $type;
 			$TData[$i][$entity_name] = !empty($TNbDossier[$fk_entity][$type]) ? $TNbDossier[$fk_entity][$type] : 0;
 			$TData[$i]['total'] += $TData[$i][$entity_name];
