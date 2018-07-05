@@ -85,6 +85,8 @@ foreach ($dao->entities as &$e)
 	$TEntityAvailable[$e->id] = $e->label;
 }
 
+asort($TEntityAvailable);
+
 $form = new Form($db);
 
 
@@ -315,9 +317,6 @@ function demandes_de_financement($title, $head_search, $TEntity)
 				'total'=>'right'
 			)
 		)
-		,'search'=>array(
-			'periode'=>''
-		)
 	));
 	
 	
@@ -347,16 +346,17 @@ function facturation_par_leaser($title, $head_search, $TEntity)
 	$sql.= ' FROM '.MAIN_DB_PREFIX.'societe s';
 	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'facture f ON (f.fk_soc = s.rowid)';
 	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'categorie_fournisseur cf ON (cf.fk_societe = s.rowid)';
-	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'categorie c ON (c.rowid = cf.fk_categorie)';
-	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'categorie c2 ON (c2.rowid = c.fk_parent)';
+	$sql.= ' INNER JOIN (
+			SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE label = "Leaser"
+			UNION
+			SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE fk_parent IN (SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE label = "Leaser")
+		) c ON (c.fk_cat = cf.fk_categorie)';
 	$sql.= ' WHERE s.fournisseur = 1';
 	if (!empty($TEntity)) $sql.= ' AND f.entity IN ('.implode(',', $TEntity).')';
 	$sql.= ' AND f.datef >= "'.$db->idate($time_fiscal_start).'" AND f.datef <= "'.$db->idate($time_fiscal_end).'"';
-	$sql.= ' AND (c.label = "Leaser" OR c2.label = "Leaser" )';
 	$sql.= ' GROUP BY s.nom';
-	$sql.= ' ';
 	
-	print_barre_liste($title, 0, $_SERVER["PHP_SELF"]);
+	print_barre_liste($title, 0, $_SERVER["PHP_SELF"], '', '', '', '', -1, 0, 'object_accounting.png');
 	
 	$search_button = '<div style="position:absolute;top:0;right:0" class="nowrap">';
 	$search_button.= img_search();
@@ -479,9 +479,6 @@ function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 				'total'=>'right'
 			)
 		)
-		,'search'=>array(
-			'type_contrat'=>''
-		)
 	));
 	
 	
@@ -489,7 +486,78 @@ function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 
 function encours_leaser($title, $head_search, $TEntity)
 {
+	global $db,$langs,$time_fiscal_start,$time_fiscal_end;
 	
+	$TData = array();
+	$TTitle = array('nom' => $langs->trans('Leaser'));
+	$resql = $db->query('SELECT DISTINCT type_financement FROM '.MAIN_DB_PREFIX.'fin_affaire WHERE type_financement <> "" ORDER BY type_financement');
+	if ($resql)
+	{
+		while ($obj = $db->fetch_object($resql))
+		{
+			$TTitle[$obj->type_financement] = $obj->type_financement;
+		}
+	}
+	else
+	{
+		dol_print_error($db);
+		exit;
+	}
+	$TTitle['action'] = '';
+	
+	$sql = 'SELECT s.nom, a.type_financement, SUM(d.montant_solde) as amount, \'\' as action';
+	$sql.= ' FROM '.MAIN_DB_PREFIX.'fin_affaire a';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (d.rowid = da.fk_fin_dossier)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe s ON (s.rowid = a.fk_soc)';
+	
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'categorie_fournisseur cf ON (cf.fk_societe = s.rowid)';
+	$sql.= ' INNER JOIN (
+			SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE label = "Leaser"
+			UNION
+			SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE fk_parent IN (SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE label = "Leaser")
+		) c ON (c.fk_cat = cf.fk_categorie)';
+	
+	$sql.= ' WHERE s.fournisseur = 1';
+	
+	if (!empty($TEntity)) $sql.= ' AND a.entity IN ('.implode(',', $TEntity).')';
+	$sql.= ' AND d.date_solde IS NULL';
+	$sql.= ' AND a.date_affaire >= "'.$db->idate($time_fiscal_start).'" AND a.date_affaire <= "'.$db->idate($time_fiscal_end).'"';
+	
+	$sql.= ' GROUP BY s.nom, a.type_financement';
+	
+	$resql = $db->query($sql);
+	if ($resql)
+	{
+		$i=0;
+		while ($arr = $db->fetch_array($sql))
+		{
+			foreach ($TTitle as $k => $l) $TData[$i][$k] = $arr[$k];
+			$i++;
+		}
+	}
+	else
+	{
+		dol_print_error($db);
+		exit;
+	}
+	
+	$r = new Listview($db, 'financement');
+	print $r->renderArray($db, $TData, array(
+		'view_type' => 'list' // default = [list], [raw], [chart]
+		,'list' => array(
+			'title' => $title
+			,'image'=>'object_accounting.png'
+			,'head_search' => $head_search
+		)
+		,'title'=>$TTitle
+		,'size'=>array(
+			'width'=>array(
+				'nom'=>'15%'
+				,'action'=>'5%'
+			)
+		)
+	));
 }
 
 function recurrent_financement($title, $head_search, $TEntity)
