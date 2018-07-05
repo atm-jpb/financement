@@ -688,12 +688,55 @@ class TSimulation extends TObjetStd {
 			$ligne['actions'] = $simulationSuivi->getAction($this);
 			$ligne['action_save'] = $simulationSuivi->getAction($this, true);
 			
-			$ligne['doc'] = !empty($simulationSuivi->leaser->array_options['options_edi_leaser']) ? $formfile->getDocumentsLink('financement', dol_sanitizeFileName($this->reference), $this->getFilePath().'/'.$simulationSuivi->leaser->array_options['options_edi_leaser'], 1) : '';
+			$subdir = $simulationSuivi->leaser->array_options['options_edi_leaser'];
+			$ligne['doc'] = !empty($subdir) ? $this->getDocumentsLink('financement', dol_sanitizeFileName($this->reference).'/'.$subdir, $this->getFilePath().'/'.$subdir) : '';
 			
 			$Tab[] = $ligne;
 		}
 
 		return $Tab;
+	}
+	
+	/**
+	 * Récupération et modification de la méthode getDocumentsLink() de la class FormFile
+	 * pour simplification du comportement et affichage des PDF
+	 * 
+	 * @param type $modulepart
+	 * @param type $modulesubdir
+	 * @param type $filedir
+	 * @param type $entity
+	 * @return string
+	 */
+	function getDocumentsLink($modulepart, $modulesubdir, $filedir, $entity=1)
+	{
+		if (! function_exists('dol_dir_list')) include_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+		
+		$out = '';
+		
+		$file_list=dol_dir_list($filedir, 'files', 0, '[^\-]*'.'.pdf', '\.meta$|\.png$');
+		
+		if (! empty($file_list))
+		{
+			// Loop on each file found
+			foreach($file_list as $file)
+			{
+				// Define relative path for download link (depends on module)
+				$relativepath=$file["name"];								// Cas general
+				if ($modulesubdir) $relativepath=$modulesubdir."/".$file["name"];	// Cas propal, facture...
+
+				$docurl = DOL_URL_ROOT . '/document.php?modulepart='.$modulepart.'&amp;file='.urlencode($relativepath);
+				if(!empty($entity)) $docurl.='&amp;entity='.$entity;
+				// Show file name with link to download
+				$out.= '<a data-ajax="false" href="'.$docurl.'"';
+				$mime=dol_mimetype($relativepath,'',0);
+				if (preg_match('/text/',$mime)) $out.= ' target="_blank"';
+				$out.= '>';
+				$out.= img_pdf($file["name"],2);
+				$out.= '</a>'."\n";
+			}
+		}
+		
+		return $out;
 	}
 	
 	/**
