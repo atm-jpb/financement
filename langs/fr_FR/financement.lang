@@ -261,3 +261,18 @@ Status.NEED_MORE_INFORMATION=A revoir par sales
 Status.NEED_MORE_INFORMATION_FRANCE=En attente d'information
 Status.RE_EXAMINATED=En ré-examen
 Status.MANUAL_APPROVAL_WITH_CONDITIONS_TO_CONFIRM=Accords manuel avec conditions à revalider
+
+# Reports
+ReportFinancement=Rapports
+ReportFinancementDemandesDeFinancement=Demandes de financement
+ReportFinancementFacturationParLeaser=Facturation par leaser
+ReportFinancementTypesContratsEtFinancesmentActifs=Types de contrats et financements actifs
+ReportFinancementEncoursLeaser=Encours leaser
+ReportFinancementRecurrentFinancement=Récurrent financement
+ReportFinancementRentaNeg=Rentabilités négatives
+
+FinancementEntitySearch=Filtre sur entité(s)
+TotalDemande=Total demande
+FinancementStatus=État
+
+ListMessageNothingToShow=Aucune donnée à afficher
