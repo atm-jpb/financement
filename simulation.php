@@ -525,7 +525,8 @@ if(!empty($action)) {
 				if($action == 'demander'){
 					//$simulation->accord = 'WAIT_LEASER';
 					// Suite retours PR1512_1187, on ne garde plus que le statut WAIT (En étude)
-					$simulation->accord = 'WAIT';
+					// 2018.07.11 On ne change pas le statut de la simulation suite à une demande auprès d'un leaser
+					//$simulation->accord = 'WAIT';
 					
 					// Si une demande est formulée auprès d'un leaser, on fige le montant (+- 10%)
 					if(empty($simulation->montant_accord)) {
