@@ -732,6 +732,9 @@ function _liste(&$ATMdb, &$simulation) {
 			,'leaser'=>array('recherche'=>true, 'table'=>'lea', 'field'=>'nom')
 			,'reference'=>array('recherche'=>true, 'table'=>'s', 'field'=>'reference')
 		)
+		,'operator'=>array(
+			'entity_id' => '='
+		)
 		,'eval'=>array(
 			'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
 		    ,'attente' => 'print_attente(@val@)'
