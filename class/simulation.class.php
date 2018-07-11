@@ -2460,6 +2460,8 @@ class TSimulationSuivi extends TObjetStd {
 
 		$this->date_selection = time();
 
+                $simulation->historise_accord($PDOdb);
+
 		$this->save($PDOdb);
 	}
 	
