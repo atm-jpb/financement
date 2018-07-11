@@ -1,6 +1,7 @@
 <?php
 
 require('../config.php');
+dol_include_once('/compta/facture/class/facture.class.php');
 
 @set_time_limit(0);					// No timeout for this script
 @ini_set('memory_limit', '256M');
