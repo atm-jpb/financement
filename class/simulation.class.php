@@ -432,7 +432,7 @@ class TSimulation extends TObjetStd {
 		global $db, $user;
 		
 		$TSimulationSuivi = array();
-		$this->TSimulationSuiviHistorized = array();
+		//$this->TSimulationSuiviHistorized = array();
 		if (!empty($this->TSimulationSuivi)){
 		    foreach ($this->TSimulationSuivi as $suivi) {
 		        if ($suivi->date_historization <= 0) {
