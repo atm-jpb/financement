@@ -1186,6 +1186,7 @@ function _genPDF(&$propal, $TData, $print_bloc_locataire=true) {
 				,'siren'=>$print_bloc_locataire ? $TData['client']['siren'] : ''
 				,'dirigeant'=>$print_bloc_locataire ? $TData['client']['dirigeant'] : ''
 			)
+			,'mysoc'=>$mysoc
 		)
 		,array()
 		,array(
@@ -1201,7 +1202,7 @@ function _genPDF(&$propal, $TData, $print_bloc_locataire=true) {
 
 function _genDocEmpty($TData, $print_bloc_locataire=true) {
 	
-	global $conf,$user;
+	global $conf,$user,$mysoc;
 	
 	$TBS=new TTemplateTBS();
 	
@@ -1239,6 +1240,7 @@ function _genDocEmpty($TData, $print_bloc_locataire=true) {
 				,'siren'=>$print_bloc_locataire ? $TData['client']['siren'] : ''
 				,'dirigeant'=>$print_bloc_locataire ? $TData['client']['dirigeant'] : ''
 			)
+			,'mysoc'=>$mysoc
 		)
 		,array()
 		,array(
