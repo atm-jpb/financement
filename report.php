@@ -562,6 +562,87 @@ function encours_leaser($title, $head_search, $TEntity)
 
 function recurrent_financement($title, $head_search, $TEntity)
 {
+	global $db,$langs,$time_fiscal_start,$time_fiscal_end,$TEntityAvailable;
+	
+	$TTitle = array('type' => '');
+	$TType = $TPosition = array();
+	if (empty($TEntity)) $TEntity = array_keys($TEntityAvailable);
+	foreach ($TEntity as $fk_entity)
+	{
+		$TTitle[$TEntityAvailable[$fk_entity]] = $TEntityAvailable[$fk_entity];
+		$TType[$TEntityAvailable[$fk_entity]] = 'money';
+		$TPosition['text-align'][$TEntityAvailable[$fk_entity]] = 'right';
+	}
+	
+	
+	$sql = '
+		SELECT d.entity, df.type, SUM(ff.total_ht) as total_ht
+		FROM '.MAIN_DB_PREFIX.'fin_dossier d
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid)
+		INNER JOIN '.MAIN_DB_PREFIX.'element_element eel ON (eel.fk_source = df.rowid )
+		INNER JOIN '.MAIN_DB_PREFIX.'facture_fourn ff ON (ff.rowid = eel.fk_target)
+		WHERE d.entity IN ('.implode(',', $TEntity).')
+		AND df.type = \'LEASER\'
+		AND d.nature_financement = \'INTERNE\'
+		AND eel.sourcetype="dossier" AND eel.targettype="invoice_supplier"
+		AND ff.datef >= \''.$db->idate($time_fiscal_start).'\' AND ff.datef <= \''.$db->idate($time_fiscal_end).'\'
+		GROUP BY d.entity
+
+		UNION
+
+		SELECT d.entity, df.type, SUM(f.total) as total_ht
+		FROM '.MAIN_DB_PREFIX.'fin_dossier d
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid)
+		INNER JOIN '.MAIN_DB_PREFIX.'element_element eec ON (eec.fk_source = df.rowid)
+		INNER JOIN '.MAIN_DB_PREFIX.'facture f ON (f.rowid = eec.fk_target)
+		WHERE d.entity IN ('.implode(',', $TEntity).')
+		AND df.type = \'CLIENT\'
+		AND d.nature_financement = \'INTERNE\'
+		AND eec.sourcetype="dossier" AND eec.targettype="facture"
+		AND f.datef >= \''.$db->idate($time_fiscal_start).'\' AND f.datef <= \''.$db->idate($time_fiscal_end).'\'
+		GROUP BY d.entity
+	';
+	
+	$resql = $db->query($sql);
+	if ($resql)
+	{
+		$TData = array('ca_client' => array('type' => $langs->trans('FinCA_Client')), 'ha_leaser' => array('type' => $langs->trans('FinCA_Leaser')), 'recurrent' => array('type' => $langs->trans('FinRecurrent')));
+		while ($arr = $db->fetch_array($sql))
+		{
+			if ($arr['type'] == 'CLIENT') $TData['ca_client'][$TEntityAvailable[$arr['entity']]] = $arr['total_ht'];
+			else if ($arr['type'] == 'LEASER') $TData['ha_leaser'][$TEntityAvailable[$arr['entity']]] = $arr['total_ht'];
+		}
+		
+		foreach ($TEntity as $fk_entity)
+		{
+			$delta = $TData['ca_client'][$TEntityAvailable[$fk_entity]] - $TData['ha_leaser'][$TEntityAvailable[$fk_entity]];
+			$TData['recurrent'][$TEntityAvailable[$fk_entity]] = $delta;
+		}
+	}
+	else
+	{
+		dol_print_error($db);
+		exit;
+	}
+	
+	$r = new Listview($db, 'financement');
+	print $r->renderArray($db, $TData, array(
+		'view_type' => 'list' // default = [list], [raw], [chart]
+		,'list' => array(
+			'title' => $title
+			,'image'=>'object_accounting.png'
+			,'head_search' => $head_search
+		)
+		,'title'=>$TTitle
+		,'size'=>array(
+			'width'=>array(
+				'nom'=>'15%'
+				,'action'=>'5%'
+			)
+		)
+		,'type'=>$TType
+		,'position'=>$TPosition
+	));
 	
 }
 

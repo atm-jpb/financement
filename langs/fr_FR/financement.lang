@@ -276,3 +276,7 @@ TotalDemande=Total demande
 FinancementStatus=État
 
 ListMessageNothingToShow=Aucune donnée à afficher
+
+FinCA_Client=CA Client
+FinCA_Leaser=HA Leaser
+FinRecurrent=Récurrence
