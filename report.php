@@ -648,5 +648,18 @@ function recurrent_financement($title, $head_search, $TEntity)
 
 function renta_neg($title, $head_search, $TEntity)
 {
-	
+//	dol_include_once('/financement/class/affaire.class.php');
+//	dol_include_once('/financement/class/dossier.class.php');
+////	dol_include_once('/financement/class/dossier_integrale.class.php');
+//	dol_include_once('/financement/class/grille.class.php');
+////	dol_include_once('/financement/lib/financement.lib.php');
+//	
+//	$PDOdb = new TPDOdb;
+//	
+//	$dossier = new TFin_dossier();
+//	$dossier->load($PDOdb, 49407);
+//	
+//	
+//	var_dump($dossier->financement);
+////	var_dump($dossier->financement->amortissement_echeance(5));
 }
