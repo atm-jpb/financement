@@ -432,7 +432,7 @@ class TSimulation extends TObjetStd {
 		global $db, $user;
 		
 		$TSimulationSuivi = array();
-		//$this->TSimulationSuiviHistorized = array();
+		$TSimulationSuiviHistorized = array();
 		if (!empty($this->TSimulationSuivi)){
 		    foreach ($this->TSimulationSuivi as $suivi) {
 		        if ($suivi->date_historization <= 0) {
@@ -440,9 +440,10 @@ class TSimulation extends TObjetStd {
 		            if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
 		                $this->modifiable = 2;
 		            }
-		        } else $this->TSimulationSuiviHistorized[$suivi->getId()] = $suivi;
+		        } else $TSimulationSuiviHistorized[$suivi->getId()] = $suivi;
 		    }
 		    $this->TSimulationSuivi = $TSimulationSuivi;
+			$this->TSimulationSuiviHistorized = $TSimulationSuiviHistorized;
             //var_dump($this->TSimulationSuivi, $this->TSimulationSuiviHistorized);
 
 		} else {
