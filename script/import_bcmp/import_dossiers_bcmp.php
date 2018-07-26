@@ -34,7 +34,7 @@ foreach ($TData as $datadoss) {
 	//if($datadoss['financementLeaser']['reference'] != 'W0188537') continue;
 	$upd += updateDossier($PDOdb, $datadoss);
 	$i++;
-	if($i > 0) break;
+	//if($i > 0) break;
 }
 
 echo '<hr>'.$upd.' mise à jour effectuées sur '.$i.' lignes dans le fichier';
@@ -64,7 +64,7 @@ function updateDossier(&$PDOdb, $data) {
 		echo $data['financementLeaser']['reference'].' - Référence vide';
 		return 0;
 	}
-	pre($data,true);
+	//pre($data,true);
 	$fin = new TFin_financement();
 	if($fin->loadReference($PDOdb, $data['financementLeaser']['reference']) > 0) {
 		$doss = new TFin_dossier();
@@ -73,7 +73,7 @@ function updateDossier(&$PDOdb, $data) {
 		$doss->load_affaire($PDOdb);
 		$doss->TLien[0]->affaire->nature_financement = 'INTERNE';
 		$doss->TLien[0]->affaire->save($PDOdb);
-		pre((array)$doss->financementLeaser,true);
+		//pre((array)$doss->financementLeaser,true);
 		
 		$doss->nature_financement = 'INTERNE';
 		$doss->financement->date_debut = $doss->financementLeaser->date_debut;
