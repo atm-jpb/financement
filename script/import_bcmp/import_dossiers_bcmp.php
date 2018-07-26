@@ -10,6 +10,16 @@ set_time_limit(0);
 
 $PDOdb = new TPDOdb;
 
+// Tableau de correspondance nouveau leaser
+$TNewLeaser = array(
+	177329 => 204904 // BNP
+	,177298 => 204904 // BNP
+	,177305 => 204906 // GRENKE
+	,177336 => 204906 // GRENKE
+	,177312 => 204905 // SOCIETE GENERALE
+	,177252 => 204905 // SOCIETE GENERALE
+);
+
 $TData = array();
 $f = fopen(__DIR__.'/dossiers_bcmp.csv', 'r');
 while($line = fgetcsv($f,2048,';','"')) {
@@ -21,6 +31,7 @@ unset($TData[0]);
 
 $i = $upd = 0;
 foreach ($TData as $datadoss) {
+	//if($datadoss['financementLeaser']['reference'] != 'W0188537') continue;
 	$upd += updateDossier($PDOdb, $datadoss);
 	$i++;
 	if($i > 0) break;
@@ -45,6 +56,8 @@ function parseline(&$PDOdb, $line) {
 
 // Chargement du dossier, modification pour passer en interne + remplir les données
 function updateDossier(&$PDOdb, $data) {
+	global $TNewLeaser;
+	
 	echo '<hr>';
 	
 	if(empty($data['financementLeaser']['reference'])) {
@@ -66,6 +79,8 @@ function updateDossier(&$PDOdb, $data) {
 		$doss->financement->date_debut = $doss->financementLeaser->date_debut;
 		$doss->financement->date_fin = $doss->financementLeaser->date_fin;
 		$doss->financement->duree = $doss->financementLeaser->duree;
+		$doss->financement->date_prochaine_echeance = $doss->financementLeaser->date_prochaine_echeance;
+		$doss->financement->numero_prochaine_echeance = $doss->financementLeaser->numero_prochaine_echeance;
 		$doss->financement->terme = $doss->financementLeaser->terme;
 		$doss->financement->montant_prestation = $doss->financementLeaser->montant_prestation;
 		$doss->financement->echeance = $doss->financementLeaser->echeance;
@@ -79,6 +94,11 @@ function updateDossier(&$PDOdb, $data) {
 		$doss->financement->frais_dossier = $doss->financementLeaser->frais_dossier;
 		$doss->financement->loyer_actualise = $doss->financementLeaser->loyer_actualise;
 		$doss->financement->assurance_actualise = $doss->financementLeaser->assurance_actualise;
+		
+		// Modification Leaser
+		if(!empty($TNewLeaser[$doss->financementLeaser->fk_soc])) {
+			$doss->financementLeaser->fk_soc = $TNewLeaser[$doss->financementLeaser->fk_soc];
+		}
 		
 		$doss->financement->reference = $data['financement']['reference'];
 		$doss->financement->montant = $data['financement']['montant'];
