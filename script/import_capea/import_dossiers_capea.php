@@ -63,6 +63,7 @@ function parseline(&$PDOdb, &$TData, $line) {
 	if(!empty($line[12])) $data['financementLeaser']['montant'] = price2num($line[12]);
 	if(!empty($line[13])) $data['financementLeaser']['loyer_intercalaire'] = price2num($line[13]);
 	if(!empty($line[14])) $data['financementLeaser']['echeance'] = price2num($line[14]);
+	if(!empty($line[14])) $data['financementLeaser']['commentaire'] = price2num($line[7]);
 	
 	$data['financementLeaser']['fk_soc'] = 177236; // Leaser CAPEA - ACECOM
 	
@@ -78,31 +79,36 @@ function createDossier(&$PDOdb, $data) {
 	}
 	pre($data,true);
 	
-	$aff = new TFin_affaire();
-	$aff->nature_financement= 'INTERNE';
-	$aff->reference = $data['financementLeaser']['reference'];
-	$aff->set_date('date_affaire', $data['financementLeaser']['date_debut']);
-	$aff->montant = $data['financementLeaser']['montant'];
-	$aff->contrat = 'INTEGRAL';
-	$aff->type_financement = 'ADOSSEE';
-	$aff->fk_soc = $data['financement']['fk_soc_client'];
-	$aff->entity = 12;
-	$aff->save($PDOdb);
-	
 	$doss = new TFin_dossier();
+	$doss->commentaire = $data['financementLeaser']['commentaire'];
 	$doss->financement->set_values($data['financementLeaser']);
 	$doss->financementLeaser->set_values($data['financementLeaser']);
 	$doss->entity = 12;
 	$doss->save($PDOdb);
 	
-	$doss->financement->setProchaineEcheanceClient($PDOdb, $doss);
-	$doss->financementLeaser->setProchaineEcheanceClient($PDOdb, $doss);
-	
-	$doss->addAffaire($PDOdb, $aff->getId());
-	
-	$doss->save($PDOdb);
-	
-	echo $data['financementLeaser']['reference'].' - Dossier créé';
+	if($doss->getId() > 1) {
+		$aff = new TFin_affaire();
+		$aff->nature_financement= 'INTERNE';
+		$aff->reference = $data['financementLeaser']['reference'];
+		$aff->set_date('date_affaire', $data['financementLeaser']['date_debut']);
+		$aff->montant = $data['financementLeaser']['montant'];
+		$aff->contrat = 'INTEGRAL';
+		$aff->type_financement = 'ADOSSEE';
+		$aff->fk_soc = $data['financement']['fk_soc_client'];
+		$aff->entity = 12;
+		$aff->save($PDOdb);
+		
+		$doss->financement->setProchaineEcheanceClient($PDOdb, $doss);
+		$doss->financementLeaser->setEcheanceExterne();
+		
+		$doss->addAffaire($PDOdb, $aff->getId());
+		
+		$doss->save($PDOdb);
+		
+		echo $data['financementLeaser']['reference'].' - Dossier créé';
+	} else {
+		echo $data['financementLeaser']['reference'].' - Erreur création dossier';
+	}
 	
 	return 1;
 }
