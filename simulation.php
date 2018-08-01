@@ -1684,6 +1684,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			,'order_down'=>img_picto('','1downarrow.png', '', 0)
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
 			,'display_montant' => (in_array($conf->entity,array(6,13,14))) ? 0 : 1
+			,'display_retraitcopie' => ($conf->entity == 1) ? 1 : 0 // Retrait coie uniquement à affiche pour Cpro impression
 		)
 	));
 	

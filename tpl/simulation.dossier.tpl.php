@@ -67,6 +67,8 @@
 			[champs.checkboxr1; strconv=no] <strong>[champs.solde_r1; strconv=no; frm=0 000,00]</strong>[champs.montantr1; strconv=no; frm=0 000,00]<br>
 		</td>
 		[onshow;block=end]
+		[onshow;block=begin;when [liste.display_retraitcopie]=='1']
 		<td id="solde_perso" align="right" nowrap="nowrap" class="solde">[champs.checkboxperso; strconv=no] [champs.soldeperso; strconv=no; frm=0 000,00]</td>
+		[onshow;block=end]
 	</tr>
 </table>
