@@ -67,6 +67,7 @@ Simulations=Simulations
 Calculator=Calculateur
 Simulator=Simulateur
 SimulationList=Liste des simulations
+SimulationStats=Statistiques
 DossierList=Liste des dossiers en cours
 CustomerInfo=Informations client
 CustomerSearch=Recherche client
