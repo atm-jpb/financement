@@ -12,7 +12,9 @@
 		<td align="center">Ass.<br>Ass. act</td>
 		<td align="center">Maint.</td>
 		<td align="center" colspan="3">Solde après paiement de la période du :</td>
+		[onshow;block=begin;when [liste.display_retraitcopie]=='1']
 		<td align="center">Retrait<br>copies</td>
+		[onshow;block=end]
 	</tr>
 	<tr [champs.class; strconv=no] title="N° de série : [champs.serial]">
 		<td id="numcontrat_entity_leaser" style="width:150px">[champs.numcontrat_entity_leaser;block=tr; strconv=no]</td>
