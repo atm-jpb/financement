@@ -801,7 +801,10 @@ class TFin_dossier extends TObjetStd {
 			$p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
 			$TSoldeRule = $this->getRuleSolde($p);
 			
-			if($TSoldeRule->base_solde == 'MF') {
+			// SPECIFIQUE LEASER HEXAPAGE => calculer le solde comme un externe avec la pénalité leaser
+			if(in_array($this->financementLeaser->fk_soc,array(204904,204905,204906))) {
+				$solde = $CRD * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, '1998-07-12', true) / 100);
+			} else if($TSoldeRule->base_solde == 'MF') {
 				$solde = $this->financement->montant;
 				$capeLRD = false;
 			} else if($TSoldeRule->base_solde == 'CRD') {
@@ -847,7 +850,7 @@ class TFin_dossier extends TObjetStd {
 	 *  - Pure : LRD CSlient
 	 *  - Uniquement pour INTERNE => capé LRD Client
 	 */
-	function getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $nature_financement='EXTERNE')
+	function getSolde_SNR_CLIENT(&$PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $nature_financement='EXTERNE')
 	{
 		global $conf;
 		$solde = 0;
@@ -883,7 +886,10 @@ class TFin_dossier extends TObjetStd {
 			$p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
 			$TSoldeRule = $this->getRuleSolde($p);
 			
-			if($TSoldeRule->base_solde == 'MF') {
+			// SPECIFIQUE LEASER HEXAPAGE => calculer le solde comme un externe avec la pénalité leaser
+			if(in_array($this->financementLeaser->fk_soc,array(204904,204905,204906))) {
+				$solde = $CRD * (1 + $this->getPenalite($PDOdb, 'NR', $iPeriode, '1998-07-12', true) / 100);
+			} else if($TSoldeRule->base_solde == 'MF') {
 				$solde = $this->financement->montant;
 				$capeLRD = false;
 			} else if($TSoldeRule->base_solde == 'CRD') {
@@ -996,7 +1002,7 @@ class TFin_dossier extends TObjetStd {
 				}
 				break;
 			case 'SNRCPRO':
-				$solde =$this->getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
+				$solde =$this->getSolde_SNR_CLIENT($PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
 				// Spécifique Télécom, on ajoute au solde la maintenance restante
 				if($this->entity == 3 || $this->entity == 10) {
 					$solde+= $mt_presta_restante;
