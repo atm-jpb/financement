@@ -55,13 +55,14 @@ function print_tab_simul_by_leaser_by_month(&$TData) {
 	
 	$total_general = array_sum($TData['total_mois']);
 	
+	// Tableau avec montants
 	print '<table class="liste">';
 	print '<tr class="liste_titre">';
 	print '<th>Leaser</th>';
 	foreach ($TData['total_mois'] as $mois => $total) {
-		print '<th align="center" colspan="2">'.$mois.'</th>';
+		print '<th align="center">'.$mois.'</th>';
 	}
-	print '<th align="center" colspan="2">TOTAL</th>';
+	print '<th align="center">TOTAL</th>';
 	print '</tr>';
 	
 	foreach ($TData['data'] as $leaser => $totbymois) {
@@ -71,11 +72,45 @@ function print_tab_simul_by_leaser_by_month(&$TData) {
 		print '<td>'.$leaser.'</td>';
 		
 		foreach ($TData['total_mois'] as $mois => $total) {
-			print '<td align="right">'.price($totbymois[$mois],0,'',1,0).' | </td>';
+			print '<td align="right">'.price($totbymois[$mois],0,'',1,0).'</td>';
+		}
+		
+		print '<td align="right">'.price($TData['total_leaser'][$leaser],0,'',1,0).'</td>';
+		print '</tr>';
+	}
+
+	print '<tr class="liste_total">';
+	print '<td>TOTAL</td>';
+	foreach ($TData['total_mois'] as $mois => $total) {
+		print '<td align="right">'.price($total,0,'',1,0).'</td>';
+	}
+	
+	print '<td align="right">'.price($total_general,0,'',1,0).'</th>';
+	print '</tr>';
+	print '</table>';
+	
+	print '<br>';
+	
+	// Tableau avec %
+	print '<table class="liste">';
+	print '<tr class="liste_titre">';
+	print '<th>Leaser</th>';
+	foreach ($TData['total_mois'] as $mois => $total) {
+		print '<th align="center">'.$mois.'</th>';
+	}
+	print '<th align="center">TOTAL</th>';
+	print '</tr>';
+	
+	foreach ($TData['data'] as $leaser => $totbymois) {
+		$var = !$var;
+
+		print '<tr '.$bc[$var].'>';
+		print '<td>'.$leaser.'</td>';
+		
+		foreach ($TData['total_mois'] as $mois => $total) {
 			print '<td align="right">'.round($totbymois[$mois] / $TData['total_mois'][$mois] * 100).' %</td>';
 		}
 		
-		print '<td align="right">'.price($TData['total_leaser'][$leaser],0,'',1,0).' | </td>';
 		print '<td align="right">'.round($TData['total_leaser'][$leaser] / $total_general * 100).' %</td>';
 		print '</tr>';
 	}
@@ -83,12 +118,10 @@ function print_tab_simul_by_leaser_by_month(&$TData) {
 	print '<tr class="liste_total">';
 	print '<td>TOTAL</td>';
 	foreach ($TData['total_mois'] as $mois => $total) {
-		print '<td align="right">'.price($total,0,'',1,0).' |</td>';
-		print '<td>&nbsp;</td>';
+		print '<td align="right">'.price($total,0,'',1,0).'</td>';
 	}
 	
-	print '<td align="right">'.price($total_general,0,'',1,0).' |</th>';
-	print '<td>&nbsp;</td>';
+	print '<td align="right">'.price($total_general,0,'',1,0).'</th>';
 	print '</tr>';
 	print '</table>';
 }
