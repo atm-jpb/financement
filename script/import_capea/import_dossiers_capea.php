@@ -61,8 +61,10 @@ function parseline(&$PDOdb, &$TData, $line) {
 	if(!empty($line[10])) $data['financementLeaser']['periodicite'] = $TPeriodicite[$line[10]];
 	if(!empty($line[11])) $data['financementLeaser']['duree'] = price2num($line[11]);
 	if(!empty($line[12])) $data['financementLeaser']['montant'] = price2num($line[12]);
-	if(!empty($line[13])) $data['financementLeaser']['echeance'] = price2num($line[13]);
-	if(!empty($line[14])) $data['financementLeaser']['loyer_intercalaire'] = price2num($line[14]);
+	if(!empty($line[13])) $data['financementLeaser']['loyer_intercalaire'] = price2num($line[13]);
+	if(!empty($line[14])) $data['financementLeaser']['echeance'] = price2num($line[14]);
+	
+	$data['financementLeaser']['fk_soc'] = 177236; // Leaser CAPEA - ACECOM
 	
 	$TData[] = $data;
 }
