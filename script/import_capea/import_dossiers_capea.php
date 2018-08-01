@@ -25,15 +25,14 @@ while($line = fgetcsv($f,2048,';','"')) {
 	
 	parseline($PDOdb, $TData, $line);
 	$i++;
-	if($i>5) break;
+	//if($i>5) break;
 }
-unset($TData[0]);
 
 $i = $crea = 0;
 foreach ($TData as $datadoss) {
 	$crea += createDossier($PDOdb, $datadoss);
 	$i++;
-	if($i > 0) break;
+	//if($i > 0) break;
 }
 
 echo '<hr>'.$crea.' créations effectuées sur '.$i.' lignes dans le fichier';
@@ -56,14 +55,14 @@ function parseline(&$PDOdb, &$TData, $line) {
 		return 0;
 	}
 	
-	if(!empty($line[8])) $data['financementLeaser']['date_debut'] = $line[8];
-	if(!empty($line[9])) $data['financementLeaser']['date_fin'] = $line[9];
-	if(!empty($line[10])) $data['financementLeaser']['periodicite'] = $TPeriodicite[$line[10]];
-	if(!empty($line[11])) $data['financementLeaser']['duree'] = price2num($line[11]);
-	if(!empty($line[12])) $data['financementLeaser']['montant'] = price2num($line[12]);
-	if(!empty($line[13])) $data['financementLeaser']['loyer_intercalaire'] = price2num($line[13]);
-	if(!empty($line[14])) $data['financementLeaser']['echeance'] = price2num($line[14]);
-	if(!empty($line[14])) $data['financementLeaser']['commentaire'] = price2num($line[7]);
+	if($line[8] != '') $data['financementLeaser']['date_debut'] = $line[8];
+	if($line[9] != '') $data['financementLeaser']['date_fin'] = $line[9];
+	if($line[10] != '') $data['financementLeaser']['periodicite'] = $TPeriodicite[$line[10]];
+	if($line[11] != '') $data['financementLeaser']['duree'] = price2num($line[11]);
+	if($line[12] != '') $data['financementLeaser']['montant'] = price2num($line[12]);
+	if($line[13] != '') $data['financementLeaser']['loyer_intercalaire'] = price2num($line[13]);
+	if($line[14] != '') $data['financementLeaser']['echeance'] = price2num($line[14]);
+	if($line[7] != '') $data['financementLeaser']['commentaire'] = $line[7];
 	
 	$data['financementLeaser']['fk_soc'] = 177236; // Leaser CAPEA - ACECOM
 	
