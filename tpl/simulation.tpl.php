@@ -147,9 +147,13 @@
 			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
+			[onshow;block=begin;when [liste.display_retraitcopie]=='1']
 			<td>Retrait copies sup.</td>
 			<td>[simulation.montant_decompte_copies_sup; strconv=no; frm=0 000,00] &euro;</td>
-			
+			[onshow;block=end]
+			[onshow;block=begin;when [liste.display_retraitcopie]=='0']
+			<td>&nbsp;</td>
+			[onshow;block=end]
 		</tr>
 		<tr>
 			<td>dont montant rachat concurrence</td>
