@@ -39,7 +39,7 @@ $sql.= 'WHERE s.fournisseur = 1';
 $TLeaserName = TRequeteCore::get_keyval_by_sql($PDOdb, $sql, 'rowid', 'nom');
 
 // 1er fichier avec les simulations QUADRA et QSIGD
-$sql = "SELECT s.rowid, e.label
+$sql = "SELECT s.rowid
 		FROM llx_fin_simulation s
 		WHERE 1 = 1 
 		AND s.entity IN (9,11)
