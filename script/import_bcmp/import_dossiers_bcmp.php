@@ -95,6 +95,7 @@ function updateDossier(&$PDOdb, $data) {
 		$doss->financement->loyer_actualise = $doss->financementLeaser->loyer_actualise;
 		$doss->financement->assurance_actualise = $doss->financementLeaser->assurance_actualise;
 		$doss->financement->incident_paiement = $doss->financementLeaser->incident_paiement;
+		$doss->financement->reloc = $doss->financementLeaser->reloc;
 		
 		// Modification Leaser
 		if(!empty($TNewLeaser[$doss->financementLeaser->fk_soc])) {
