@@ -9,7 +9,9 @@ $PDOdb = new TPDOdb();
 
 // ETAPE 1 : on supprime les grille de coeff LEASER des autres entités que CPRO et sur les leasers autre que CPRO
 $sql = 'DELETE FROM llx_fin_grille_leaser WHERE entity > 1 AND fk_soc > 1 AND type = \'LEASER\'';
-$PDOdb->Execute($sql);
+echo $sql;
+
+echo '<hr>';
 
 // ETAPE 2 : on remplace les leaser créés par entités par ceux de CPRO (leaser générique)
 
