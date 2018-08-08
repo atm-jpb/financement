@@ -7,6 +7,15 @@ require_once("../config.php");
 
 $PDOdb = new TPDOdb();
 
+// ETAPE 1 : on supprime les grille de coeff LEASER des autres entités que CPRO et sur les leasers autre que CPRO
+$sql = 'DELETE FROM llx_fin_grille_leaser WHERE entity > 1 AND fk_soc > 1 AND type = \'LEASER\'';
+echo $sql;
+
+echo '<hr>';
+
+// ETAPE 2 : on remplace les leaser créés par entités par ceux de CPRO (leaser générique)
+
+// A : récupération des leaser générique CPRO
 $sqlLeaser = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'societe';
 $sqlLeaser.= ' WHERE entity = 1';
 $sqlLeaser.= ' AND fournisseur = 1';
@@ -15,6 +24,8 @@ $TIdLeaser = TRequeteCore::_get_id_by_sql($PDOdb, $sqlLeaser);
 
 $TReplace = array();
 
+
+// B : on créé le tableau de correspondance qui donnera pour chaque ID leaser spécifique, le leaser générique correspondant
 foreach ($TIdLeaser as $idLeaser) {
 	$lea = new Societe($db);
 	$lea->fetch($idLeaser);
@@ -42,9 +53,10 @@ foreach ($TIdLeaser as $idLeaser) {
 }
 //pre($TReplace,true);
 
+// C : pour chaque table qui contient une colonne concernant un leaser, on prépare un UPDATE
 // Get all tables
 $TTable = get_tables($PDOdb);
-$TTableToIgnore = array('llx_fin_grille_leaser', 'llx_fin_grille_leaser_date');
+$TTableToIgnore = array();
 
 $TRes = array();
 foreach ($TTable as $table) {
@@ -67,7 +79,25 @@ foreach ($TTable as $table) {
 			}
 		}
 	}
+	// Deal only with table with fk_leaser column in it
 	$col = 'fk_leaser';
+	if(has_column($PDOdb, $table, $col)) {
+		foreach ($TReplace as $idSource => $idTarget) {
+			$sql = "SELECT count(*) as nb FROM $table WHERE $col = ".$idSource;
+			$PDOdb->Execute($sql);
+			$PDOdb->Get_line();
+			$nb = $PDOdb->Get_field('nb');
+			if($nb > 0) {
+				$TRes[] = array(
+					'table' => $table,
+					'records' => $nb,
+					'sql' => update_record_with_col($PDOdb, $table, $col, $idSource, $idTarget)
+				);
+			}
+		}
+	}
+	// Deal only with table with fk_leaser_solde column in it
+	$col = 'fk_leaser_solde';
 	if(has_column($PDOdb, $table, $col)) {
 		foreach ($TReplace as $idSource => $idTarget) {
 			$sql = "SELECT count(*) as nb FROM $table WHERE $col = ".$idSource;
@@ -86,6 +116,7 @@ foreach ($TTable as $table) {
 }
 //pre($TRes,true);
 
+// D : on affiche les UPADTE (pour éviter de lancer le script par accident)
 foreach ($TRes as $data) {
 	echo $data['sql'].'<br>';
 }
