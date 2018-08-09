@@ -15,6 +15,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('montant_accord','type=float;'); // Sert à stocker le montant pour lequel l'accord a été donné
 		parent::add_champs('fk_categorie_bien,fk_nature_bien', array('type'=>'integer'));
 		parent::add_champs('pct_vr,mt_vr', array('type'=>'float'));
+		parent::add_champs('fk_fin_dossier', array('type'=>'integer'));
 		
 		parent::start();
 		parent::_init_vars();

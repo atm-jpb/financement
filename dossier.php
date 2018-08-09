@@ -796,7 +796,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	
 	$formRestricted->Set_typeaff( $mode_aff_fLeaser );
 	
-	$id_simu = _getIDSimuByReferenceDossierLeaser($financementLeaser->reference);
+	$id_simu = _getIDSimuByReferenceDossierLeaser($PDOdb, $financementLeaser->fk_fin_dossier);
 	if(!empty($id_simu)) $link_simu = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$id_simu, 2).'" >'.$financementLeaser->reference.'</a>';
 	
 	$TFinancementLeaser=array(
@@ -1054,22 +1054,13 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 
 
 
-function _getIDSimuByReferenceDossierLeaser($num_dossier_leaser) {
+function _getIDSimuByReferenceDossierLeaser(&$PDOdb, $id_dossier) {
+	if(empty($id_dossier)) return 0;
 	
-	global $db;
+	$TRes = TRequeteCore::get_id_from_what_you_want($PDOdb, MAIN_DB_PREFIX.'fin_simulation', array('fk_fin_dossier' => $id_dossier));
+	if(!empty($TRes)) return $TRes[0];
 	
-	$num_dossier_leaser = trim($num_dossier_leaser);
-	if(empty($num_dossier_leaser)) return 0;
-	
-	$sql = 'SELECT rowid
-			FROM '.MAIN_DB_PREFIX.'fin_simulation
-			WHERE numero_accord = "'.$num_dossier_leaser.'"';
-	
-	$resql = $db->query($sql);
-	$res = $db->fetch_object($resql);
-	
-	return $res->rowid;
-	
+	return 0;
 }
 
 /*
