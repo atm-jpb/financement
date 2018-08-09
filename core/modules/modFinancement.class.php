@@ -264,7 +264,7 @@ class modFinancement extends DolibarrModules
 		$r=0;
 		$this->rights[$r][0] = 210001;
 		$this->rights[$r][1] = 'Consulter les dossiers de financement de mes clients';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'mydossier';
 		$this->rights[$r][5] = 'read';
 		$r++;
@@ -308,20 +308,20 @@ class modFinancement extends DolibarrModules
 		
 		$this->rights[$r][0] = 210021;
 		$this->rights[$r][1] = 'Accéder au calculateur';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'allsimul';
 		$this->rights[$r][5] = 'calcul';
 		$r++;
 		$this->rights[$r][0] = 210022;
 		$this->rights[$r][1] = 'Accéder au simulateur';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'allsimul';
 		$this->rights[$r][5] = 'simul';
 		$r++;
 		
 		$this->rights[$r][0] = 210031;
 		$this->rights[$r][1] = 'Accéder à mes simulations';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'mysimul';
 		$this->rights[$r][5] = 'simul_list';
 		$r++;
@@ -346,7 +346,7 @@ class modFinancement extends DolibarrModules
 		
 		$this->rights[$r][0] = 210041;
 		$this->rights[$r][1] = 'Consulter les scores client';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'score';
 		$this->rights[$r][5] = 'read';
 		$r++;
@@ -400,7 +400,7 @@ class modFinancement extends DolibarrModules
 		
 		$this->rights[$r][0] = 210500;
 		$this->rights[$r][1] = 'Accès aux PDF simulation';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'read';
 		//$this->rights[$r][5] = 'read';
 		$r++;
