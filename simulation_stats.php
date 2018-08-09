@@ -5,17 +5,24 @@ $langs->load('financement@financement');
 
 $PDOdb = new TPDOdb;
 $TData = getDataSimulations($PDOdb);
+$TDataTransfo = getDataSimulations($PDOdb, 12, true);
 
 llxHeader('','Simulations - Statistiques');
 
-print_fiche_titre('Simulations - Statistiques');
+print_fiche_titre('Statistiques - Simulations scorées par Leaser');
 
 print_tab_simul_by_leaser_by_month($TData);
+
+print '<br /><br />';
+
+print_fiche_titre('Statistiques - Simulations financées par Leaser');
+
+print_tab_simul_by_leaser_by_month($TDataTransfo);
 
 
 llxFooter();
 	
-function getDataSimulations(&$PDOdb) {
+function getDataSimulations(&$PDOdb, $nb_month=12, $financee=false) {
 	
 	$TData = $TRes = array();
 	
@@ -26,8 +33,9 @@ function getDataSimulations(&$PDOdb) {
 	$sql.= 'LEFT JOIN '.MAIN_DB_PREFIX.'categorie_fournisseur cf ON (cf.fk_societe = lea.rowid) ';
 	$sql.= 'LEFT JOIN '.MAIN_DB_PREFIX.'categorie c ON (cf.fk_categorie = c.rowid) ';
 	$sql.= 'WHERE simu.accord = \'OK\' ';
-	$sql.= 'AND simu.date_simul > DATE_SUB(NOW(), INTERVAL 12 MONTH)';
-	$sql.= 'AND c.fk_parent = 1 '; // On ne prend que les catégories enfant de la catégorie "Leaser"
+	$sql.= 'AND simu.date_simul > DATE_SUB(NOW(), INTERVAL '.$nb_month.' MONTH)';
+	$sql.= 'AND c.fk_parent = 1 ';
+	if($financee) $sql.= 'AND simu.fk_fin_dossier > 0 '; // On ne prend que les catégories enfant de la catégorie "Leaser"
 	$sql.= 'GROUP BY c.label, mois ';
 	$sql.= 'ORDER BY c.label, mois ';
 	
