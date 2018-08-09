@@ -34,6 +34,20 @@ if($action == 'addAvenantIntegrale'){
 	_affichage($PDOdb, $TBS, $dossier);
 }
 
+if($action == 'printDocIntegrale') {
+	$affaire = &$dossier->TLien[0]->affaire;
+	$TData = array('client'=>_getInfosClient($affaire->fk_soc));
+	$file_path = _genDocEmpty($TData,true);
+	
+	if(!empty($file_path)) {
+		?>
+			<script>
+				document.location.href="<?php echo $file_path; ?>";
+			</script>
+		<?php
+	}
+}
+
 function _affichage(&$PDOdb, &$TBS, &$dossier, $file_path='') {
 	
 	global $db;
@@ -447,6 +461,10 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		print '<a class="butAction" href="?id='.GETPOST('id').'&action=addAvenantIntegrale" style="color: red;">'.$label.'</a>';
 	} else {
 		echo 'Avenant impossible. Merci de contacter le service financement';
+	}
+	
+	if(empty($TIntegrale)) {
+		print '<a class="butAction" href="?id='.GETPOST('id').'&action=printDocIntegrale">Imprimer le doc</a>';
 	}
 	print '</div>';
 }
@@ -1168,6 +1186,7 @@ function _genPDF(&$propal, $TData, $print_bloc_locataire=true) {
 				,'siren'=>$print_bloc_locataire ? $TData['client']['siren'] : ''
 				,'dirigeant'=>$print_bloc_locataire ? $TData['client']['dirigeant'] : ''
 			)
+			,'mysoc'=>$mysoc
 		)
 		,array()
 		,array(
@@ -1180,3 +1199,57 @@ function _genPDF(&$propal, $TData, $print_bloc_locataire=true) {
 	return dol_buildpath('/document.php?modulepart=propal&entity='.$conf->entity.'&file='.$propal->ref.'/'.$file_name.'.pdf', 2);
 	
 }
+
+function _genDocEmpty($TData, $print_bloc_locataire=true) {
+	
+	global $conf,$user,$mysoc;
+	
+	$TBS=new TTemplateTBS();
+	
+	$dir = $conf->user->dir_output.'/'.$user->id;
+	@mkdir($dir);
+	
+	$file_name = 'Avenant_'.date('Ymd');
+	
+	$file_path = $TBS->render(dol_buildpath('/financement/tpl/doc/modele_avenant.odt')
+		,array()
+		,array(
+			'avenant'=>array(
+				'ref'=>''
+			)
+			,'copies_noires'=>array(
+				'engagement'=>''
+				,'cout_unitaire'=>''
+			)
+			,'copies_couleur'=>array(
+				'engagement'=>''
+				,'cout_unitaire'=>''
+			)
+			,'global'=>array(
+				'FAS'=>''
+				,'FASS'=>''
+				,'ref_dossier'=>''
+				,'total_global'=>''
+				,'total_hors_frais'=>''
+				,'date_deb_periode'=>''
+				,'date_fin_periode'=>''
+			)
+			,'bloc_locataire'=>array(
+				'raison_sociale'=>$print_bloc_locataire ? $TData['client']['raison_sociale'] : ''
+				,'adresse'=>$print_bloc_locataire ? $TData['client']['adresse'] : ''
+				,'siren'=>$print_bloc_locataire ? $TData['client']['siren'] : ''
+				,'dirigeant'=>$print_bloc_locataire ? $TData['client']['dirigeant'] : ''
+			)
+			,'mysoc'=>$mysoc
+		)
+		,array()
+		,array(
+			'outFile'=>$dir.'/'.$file_name.'.odt'
+		)
+		
+	);
+	
+	return dol_buildpath('/document.php?modulepart=user&entity='.$conf->entity.'&file='.$user->id.'/'.$file_name.'.odt', 2);
+	
+}
+
