@@ -583,7 +583,7 @@ function _liste(&$ATMdb, &$simulation) {
 	}
 	//$sql.= " WHERE s.entity = ".$conf->entity;
 	$sql.= " WHERE 1=1 ";
-	$sql.= " AND ss.date_historization IS NULL ";
+	$sql.= " AND ss.date_historization < '1970-00-00 00:00:00' ";
 	if (!$user->rights->societe->client->voir && !$user->rights->financement->allsimul->simul_list) //restriction
 	{
 		$sql.= " AND sc.fk_user = " .$user->id;
