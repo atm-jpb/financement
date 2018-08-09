@@ -491,6 +491,8 @@ function _liste(&$PDOdb, &$dossier) {
 			,'nomLea'=>array('recherche'=>true, 'table'=>'l', 'field'=>'nom')
 			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
 			//,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
+		),'operator'=>array(
+			'entity_id' => '='
 		)
 		,'eval'=>array(
 			'fact_materiel'=>'_get_facture_mat(@ID affaire@);'
