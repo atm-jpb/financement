@@ -578,9 +578,6 @@ function _liste(&$ATMdb, &$simulation) {
 	if (!$user->rights->societe->client->voir && !$user->rights->financement->allsimul->simul_list) {
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON (sc.fk_soc = soc.rowid)";
 	}
-	if(!empty($searchnumetude)){
-		$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_simulation_suivi as fss ON (fk_simulation = s.rowid)";
-	}
 	//$sql.= " WHERE s.entity = ".$conf->entity;
 	$sql.= " WHERE 1=1 ";
 	$sql.= " AND ss.date_historization < '1970-00-00 00:00:00' ";
@@ -589,7 +586,7 @@ function _liste(&$ATMdb, &$simulation) {
 		$sql.= " AND sc.fk_user = " .$user->id;
 	}
 	if(!empty($searchnumetude)){
-		$sql.=" AND fss.numero_accord_leaser='".$searchnumetude."'";
+		$sql.=" AND ss.numero_accord_leaser='".$searchnumetude."'";
 	}
 	
 
