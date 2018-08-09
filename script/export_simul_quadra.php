@@ -34,7 +34,8 @@ $sql = "SELECT s.reference, cli.nom as client, cli.siren, s.fk_type_contrat,
 		LEFT JOIN llx_societe leaser ON leaser.rowid = s.fk_leaser
 		LEFT JOIN llx_user u ON u.rowid = s.fk_user_author
 		WHERE 1 = 1 
-		AND s.entity IN (9,11)";
+		AND s.entity IN (9,11)
+		AND s.accord = 'OK'";
 
 $PDOdb->Execute($sql);
 $TData = $PDOdb->Get_All(PDO::FETCH_ASSOC);
@@ -62,13 +63,15 @@ $sql = "SELECT s.reference, cli.nom as client, cli.siren, s.fk_type_contrat,
 					ORDER BY sc.date_score
 					DESC LIMIT 1) as contact
 				, e.label as partenaire
+				, CASE WHEN s.opt_terme = 0 THEN 'Échu' ELSE 'À échoir' END as terme
 		FROM llx_fin_simulation s
 		LEFT JOIN llx_societe cli ON cli.rowid = s.fk_soc
 		LEFT JOIN llx_societe leaser ON leaser.rowid = s.fk_leaser
 		LEFT JOIN llx_user u ON u.rowid = s.fk_user_author
 		LEFT JOIN llx_entity e ON e.rowid = s.entity
 		WHERE 1 = 1 
-		AND s.entity IN (9,11,7,5)";
+		AND s.entity IN (9,11,7,5)
+		AND s.accord = 'OK'";
 
 $PDOdb->Execute($sql);
 $TData = $PDOdb->Get_All(PDO::FETCH_ASSOC);
@@ -76,7 +79,7 @@ $TData = $PDOdb->Get_All(PDO::FETCH_ASSOC);
 $filename = DOL_DATA_ROOT . '/9/financement/extract_simul/ouest_simulations.csv';
 $handle = fopen($filename, 'w');
 
-$head = explode(";", "Ref Simulation;Client;Siren;Type Contrat;Montant Total;Echeance;Duree;Periodicite;Date Simulation;Utilisateur;Statut;Type Financement;Leaser;Numero Accord;Contact;Partenaire");
+$head = explode(";", "Ref Simulation;Client;Siren;Type Contrat;Montant Total;Echeance;Duree;Periodicite;Date Simulation;Utilisateur;Statut;Type Financement;Leaser;Numero Accord;Contact;Partenaire;Terme");
 fputcsv($handle, $head, ';');
 
 foreach ($TData as $data) {
