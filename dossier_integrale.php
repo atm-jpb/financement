@@ -1148,7 +1148,7 @@ function _getIDProducts() {
 
 function _genPDF(&$propal, $TData, $print_bloc_locataire=true) {
 	
-	global $conf;
+	global $conf, $mysoc;
 	
 	$TBS=new TTemplateTBS();
 	
