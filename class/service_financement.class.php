@@ -221,6 +221,7 @@ class ServiceFinancement {
 		// Montant minimum 800 €
 		$montant = $this->simulation->montant;
 		if($protocole_id == '0251') $montant += $this->simulationSuivi->surfact + $this->simulationSuivi->surfactplus;
+		$montant = round($montant,2);
 		if($montant < 800) $montant = 800;
 		
 		$xml = '
@@ -435,6 +436,7 @@ class ServiceFinancement {
 		// Montant minimum 1000 €
 		$montant = $this->simulation->montant;
 		if($this->getTypeProduit() == 'CESS') $montant += $this->simulationSuivi->surfact + $this->simulationSuivi->surfactplus;
+		$montant = round($montant,2);
 		if($montant < 1000) $montant = 1000;
 		
 		$mode_reglement_id = $this->getIdModeRglt($this->simulation->opt_mode_reglement);
