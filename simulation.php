@@ -988,6 +988,12 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$accordIcon = (!empty($simulation->accord)) ? img_picto('accord', $simulation->TStatutIcons[$simulation->accord], '', 1) : '';
 	
+	// Retrait copie uniquement à afficher pour Cpro impression
+	$display_retrait_copie = 0;
+	if(empty($simulation->entity) && $conf->entity == 1 || $simulation->entity == 1) {
+		$display_retrait_copie = 1;
+	}
+	
 	$simuArray = array(
 		'titre_simul'=>load_fiche_titre($langs->trans("CustomerInfo"),'','object_company.png')
 		,'titre_calcul'=>load_fiche_titre($langs->trans("Simulator"),'','object_simul.png@financement')
@@ -1014,7 +1020,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 
 		,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)
 		,'montant_decompte_copies_sup'=>$form->texteRO('', 'montant_decompte_copies_sup', $simulation->montant_decompte_copies_sup, 10)
-		,'display_retraitcopie' => ($simulation->entity == 1) ? 1 : 0 // Retrait coie uniquement à affiche pour Cpro impression
+		,'display_retraitcopie' => $display_retrait_copie
 		,'montant_rachat_final'=>$form->texteRO('', 'montant_rachat_final', $simulation->montant_rachat_final, 10)
 		,'montant_rachete_concurrence'=>$form->texte('', 'montant_rachete_concurrence', $simulation->montant_rachete_concurrence, 10)
 	    ,'duree'=>$form->combo('', 'duree', $TDuree, $simulation->duree) .(!empty($simulation->modifs['duree']) ? ' (Ancienne valeur : '.$TDuree[$simulation->modifs['duree']].')' : '')
@@ -1537,6 +1543,12 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 	
 	TFinancementTools::add_css();
 	
+	// Retrait copie uniquement à afficher pour Cpro impression
+	$display_retrait_copie = 0;
+	if(empty($simulation->entity) && $conf->entity == 1 || $simulation->entity == 1) {
+		$display_retrait_copie = 1;
+	}
+	
 	//pre($simulation,true);
 	//pre($TDossier,true);exit;
 	return $r->renderArray($ATMdb, $TDossier, array(
@@ -1564,7 +1576,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			,'order_down'=>img_picto('','1downarrow.png', '', 0)
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
 			,'display_montant' => (in_array($conf->entity,array(6,13,14))) ? 0 : 1
-			,'display_retraitcopie' => ($simulation->entity == 1) ? 1 : 0 // Retrait coie uniquement à affiche pour Cpro impression
+			,'display_retraitcopie' => $display_retrait_copie
 		)
 	));
 	
