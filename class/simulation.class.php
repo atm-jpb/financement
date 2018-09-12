@@ -3061,6 +3061,7 @@ class TSimulationSuivi extends TObjetStd {
 		// Montant minimum 1000 €
 		$montant = $this->simulation->montant;
 		if($this->_getBNPType() == 'CESSION') $montant += $this->surfact + $this->surfactplus;
+		$montant = round($montant,2);
 		if($montant < 1000) $montant = 1000;
 		
 		$TMateriel = array(
