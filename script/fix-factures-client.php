@@ -43,19 +43,7 @@ echo '<br>Factures sans liens : ' . count($ToLink);
 echo '<br>Factures avec liens à vérifier : ' . count($ToCheck);
 //exit;
 
-/**
- * ACTION
- */
-// Suppression des factures brouillons
-if($action == 'del_draft') {
-	foreach ($ToDel as $facnumber) {
-		$f = new Facture($db);
-		$f->fetch(0,$facnumber);
-		$f->delete();
-	}
-}
-
-// Comparaison avec les données du fichier
+// Récupération des factures / contrat provenant du fichier
 $file = dol_buildpath('/financement/script/fix-factures-client/').'factures-contrat.csv';
 $fileHandler = fopen($file, 'r');
 
@@ -68,6 +56,7 @@ while($dataline = fgetcsv($fileHandler, 4096)) {
 }
 fclose($fileHandler);
 
+// Comparaison des liens
 $ToDel2 = $ToCheck2 = array();
 foreach($ToCheck as $facture => $contrat) {
 	if($TFac[$facture] == $contrat) $ok++; // Facture liée correctement
@@ -85,6 +74,28 @@ echo '<hr>Analyse des factures Artis à partir du fichier';
 echo '<hr>Factures à supprimer (existante dans LB pas dans Artis): ' . count($ToDel2);
 echo '<br>Factures avec liens à vérifier (différence de contrat) : ' . count($ToCheck2);
 
+// Vérification des liens à créer
+$ToLinkOK = array();
+foreach($ToLink as $facture) {
+	if(isset($TFac[$facture])) {
+		$ToLinkOK[$facture] = $TFac[$facture];
+	}
+}
+
+echo '<br>Liens à créer : ' . count($ToLinkOK);
+
+/**
+ * ACTION
+ */
+// Suppression des factures brouillons
+if($action == 'del_draft') {
+	foreach ($ToDel as $facnumber) {
+		$f = new Facture($db);
+		$f->fetch(0,$facnumber);
+		$f->delete();
+	}
+}
+
 /**
  * ACTION
  * Suppression des factures n'existant pas chez CPRO
@@ -94,5 +105,21 @@ if($action == 'del_errlink') {
 		$f = new Facture($db);
 		$f->fetch(0,$facnumber);
 		$f->delete();
+		echo $facnumber.'<br>';
 	}
 }
+
+/**
+ * ACTION
+ * Ajout des liens entre factures et contrat
+ */
+if($action == 'add_links') {
+	foreach ($ToLinkOK as $facture => $contrat) {
+		$f = new Facture($db);
+		$f->fetch(0,$facture);
+		$fin = new TFin_financement();
+		$fin->loadBy($PDOdb, $contrat, 'reference', false);
+		$f->add_object_linked('dossier', $fin->fk_fin_dossier);
+	}
+}
+
