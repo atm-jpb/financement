@@ -59,6 +59,22 @@ $(document).ready(function() {
 	$('input[name="validate_simul"]').click(function(){
 		$(this).hide();
 	});
+	
+	// Adjonction
+	if($('input[name="opt_adjonction"]:checked').length == 0) {
+		$('select[name="fk_fin_dossier_adjonction"]').hide();
+	}
+	
+	$('input[name="opt_adjonction"]').bind('click', function() {
+		if($(this).attr('checked') == 'checked') {
+			$('select[name="fk_fin_dossier_adjonction"]').show();
+		} else {
+			$('select[name="fk_fin_dossier_adjonction"]').hide();
+			$('select[name="fk_fin_dossier_adjonction"]').val(0);
+		}
+	});
+	
+	
 });
 
 var get_grille = function() {

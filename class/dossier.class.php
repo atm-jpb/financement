@@ -1907,6 +1907,47 @@ class TFin_dossier extends TObjetStd {
 			if($periode >= $p) return $rule;
 		}
 	}
+	
+	
+	static function getListeDossierClient(&$PDOdb, $fk_soc, $siren, $open=true) {
+		global $conf;
+		
+		$sql = "SELECT d.rowid, dfcli.reference as refcli";
+		$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (da.fk_fin_affaire = a.rowid)";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dfcli.fk_fin_dossier = d.rowid)";
+		$sql.= " WHERE dfcli.type = 'CLIENT'";
+		$sql.= " AND dfcli.reference NOT LIKE '%ADJ%'";
+		$sql.= " AND (dfcli.date_solde <= '1970-00-00 00:00:00' OR dfcli.date_solde IS NULL)";
+		$sql.= " AND (a.fk_soc = ".$fk_soc;
+		
+		$sql.= " OR a.fk_soc IN
+					(
+						SELECT s.rowid 
+						FROM ".MAIN_DB_PREFIX."societe as s
+							LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
+						WHERE
+						(
+							s.siren = '".$siren."'
+							AND s.siren != ''
+						) 
+						OR
+						(
+							se.other_siren LIKE '%".$siren."%'
+							AND se.other_siren != ''
+						)
+					)";
+		$sql.=")";
+		
+		$TRes = $PDOdb->ExecuteAsArray($sql);
+		$TDoss = array();
+		foreach ($TRes as $obj) {
+			$TDoss[$obj->rowid] = $obj->refcli;
+		}
+		
+		return $TDoss;
+	}
 }
 
 /*

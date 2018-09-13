@@ -15,7 +15,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('montant_accord','type=float;'); // Sert à stocker le montant pour lequel l'accord a été donné
 		parent::add_champs('fk_categorie_bien,fk_nature_bien', array('type'=>'integer'));
 		parent::add_champs('pct_vr,mt_vr', array('type'=>'float'));
-		parent::add_champs('fk_fin_dossier', array('type'=>'integer'));
+		parent::add_champs('fk_fin_dossier,fk_fin_dossier_adjonction', array('type'=>'integer'));
 		
 		parent::start();
 		parent::_init_vars();
@@ -296,6 +296,15 @@ class TSimulation extends TObjetStd {
 			$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 		}*/
 		
+		// Adjonction : leaser du dossier concerné est à mettre en 1er dans le suivi
+		$this->fk_leaser_adjonction = 0;
+		if(!empty($this->fk_fin_dossier_adjonction)) {
+			$doss = new TFin_dossier();
+			$doss->load($PDOdb, $this->fk_fin_dossier_adjonction, false, false);
+			$doss->load_financement($PDOdb);
+			$this->fk_leaser_adjonction = $doss->financementLeaser->fk_soc;
+		}
+		
 		$leaser = new stdClass();
 		// Ajout des autres leasers de la liste (sauf le prio)
 		foreach($grille as $TData) {
@@ -309,7 +318,7 @@ class TSimulation extends TObjetStd {
 			$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 		}
 		
-		// TODO à voir si on y fait appel dans 100% des cas
+		// Une fois la grille constituée, on calcule l'aiguillage pour mettre dans le bon ordre
 		$this->calculAiguillageSuivi($PDOdb);
 	}
 	
@@ -1678,6 +1687,9 @@ class TSimulation extends TObjetStd {
 	 */
 	public function aiguillageSuivi($a, $b)
 	{
+		// Priorité au leaser concerné si adjonction
+		if($this->fk_leaser_adjonction == $a->fk_leaser) return 1;
+		
 		if ($a->renta_percent < $b->renta_percent) return 1;
 		else if ($a->renta_percent > $b->renta_percent) return -1;
 		else return 0;
