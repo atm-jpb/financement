@@ -1775,7 +1775,9 @@ class TSimulation extends TObjetStd {
 		else if ($coef_line == -2) $suivi->calcul_detail['montantfinanceleaser'] = 'Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
 		else
 		{
-			$suivi->montantfinanceleaser = round($this->echeance / ($coef_line['coeff'] / 100), 2);
+			if(!empty($coef_line['coeff'])) {
+				$suivi->montantfinanceleaser = round($this->echeance / ($coef_line['coeff'] / 100), 2);
+			}
 			$suivi->calcul_detail['montantfinanceleaser'] = 'Montant financé leaser = '.$this->echeance.' / '.($coef_line['coeff'] / 100);
 			$suivi->calcul_detail['montantfinanceleaser'].= ' = <strong>'.price($suivi->montantfinanceleaser).'</strong><hr>';
 		}
