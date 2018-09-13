@@ -432,20 +432,14 @@ class TSimulation extends TObjetStd {
 	function load_suivi_simulation(&$PDOdb){
 		global $db, $user;
 		
-		$TSimulationSuivi = array();
-		$TSimulationSuiviHistorized = array();
 		if (!empty($this->TSimulationSuivi)){
 		    foreach ($this->TSimulationSuivi as $suivi) {
 		        if ($suivi->date_historization <= 0) {
-		            $TSimulationSuivi[$suivi->getId()] = $suivi;
 		            if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
 		                $this->modifiable = 2;
 		            }
-		        } else $TSimulationSuiviHistorized[$suivi->getId()] = $suivi;
+		        }
 		    }
-		    $this->TSimulationSuivi = $TSimulationSuivi;
-			$this->TSimulationSuiviHistorized = $TSimulationSuiviHistorized;
-            //var_dump($this->TSimulationSuivi, $this->TSimulationSuiviHistorized);
 
 		} else {
 		    $TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
@@ -473,7 +467,6 @@ class TSimulation extends TObjetStd {
 		                    //}
 		                }
 		            }
-		            else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
 		        }
 		        
 		        if (empty($this->TSimulationSuivi)) $this->create_suivi_simulation($PDOdb);
@@ -625,30 +618,19 @@ class TSimulation extends TObjetStd {
 		return false;
 	}
 	
-	function get_suivi_simulation(&$PDOdb,&$form){
+	function get_suivi_simulation(&$PDOdb,&$form,$histo=false){
 		global $db;
-
-		$this->load_suivi_simulation($PDOdb);
 		
-		//echo 'get<br>';
-		$TLignes = array();
-		if ($this->accord == "OK" ) $form->type_aff = 'view';
+		$TSuivi = array();
+		foreach($this->TSimulationSuivi as $suivi) {
+			if(($suivi->date_historization <= 0 && !$histo) || ($suivi->date_historization > 0 && $histo)) {
+				$TSuivi[$suivi->getId()] = $suivi;
+			}
+		}
 		
-		$TLignes = $this->_get_lignes_suivi($this->TSimulationSuivi, $form);
-		if ($with_history) $T = $this->_get_lignes_suivi($this->TSimulationSuiviHistorized, $form);
+		if ($this->accord == "OK" || $histo) $form->type_aff = 'view';
 		
-		return $TLignes;
-	}
-
-	function get_suivi_simulation_historized(&$PDOdb,&$form)
-	{
-		if (empty($this->TSimulationSuiviHistorized)) $this->load_suivi_simulation($PDOdb);
-		
-		$form->type_aff = 'view';
-		
-		$Tab = $this->_get_lignes_suivi($this->TSimulationSuiviHistorized, $form);
-		
-		return $Tab;
+		return $this->_get_lignes_suivi($TSuivi, $form);
 	}
 	
 	private function _get_lignes_suivi(&$TSuivi, &$form)

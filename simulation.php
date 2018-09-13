@@ -336,7 +336,7 @@ if(!empty($action)) {
 							{
 								$simuSuivi->delete($ATMdb);
 							}
-							else 
+							else if($simuSuivi->date_historization <= 0)
 							{							    
 								if (!empty($simuSuivi->commentaire)) $simuSuivi->commentaire .= "\n";
 								$simuSuivi->commentaire .= "[$fk_type_contrat_old] suivi historisé le $nowFr";
@@ -354,6 +354,9 @@ if(!empty($action)) {
 					$simulation->fk_leaser = 0;
 					$simulation->coeff_final = 0;
 					$simulation->numero_accord = '';
+					
+					// On créé un nouvel aiguillage (suivi simulation)
+					$simulation->create_suivi_simulation($ATMdb);
 				}
 				
 				// Si le leaser préconisé est renseigné, on enregistre le montant pour le figer (+- 10%)
@@ -443,6 +446,8 @@ if(!empty($action)) {
 				if (empty($oldAccord) || ($oldAccord !== $simulation->accord)) {
 				    $simulation->historise_accord($ATMdb);
 				}
+				
+				header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->getId()); exit;
 				
 				$simulation->load_annexe($ATMdb, $db);
 				
@@ -1156,7 +1161,7 @@ function _fiche_suivi(&$ATMdb, &$simulation, $mode){
 	echo $form->hidden('action', 'save_suivi');
 	echo $form->hidden('id', $simulation->getId());
 	$TLignes = $simulation->get_suivi_simulation($ATMdb,$form);
-	$TLigneHistorized = $simulation->get_suivi_simulation_historized($ATMdb,$form);
+	$TLigneHistorized = $simulation->get_suivi_simulation($ATMdb,$form,true);
 	//pre($TLignes,true);exit;
 	
 	$TBS=new TTemplateTBS;
