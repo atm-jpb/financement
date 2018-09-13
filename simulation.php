@@ -323,7 +323,7 @@ if(!empty($action)) {
 				_fiche($ATMdb, $simulation,'edit');
 			} else {
 				// Modification du type de contrat => save du suivi
-				if (strcmp($fk_type_contrat_old, $fk_type_contrat_new) != 0)
+				if (strcmp($fk_type_contrat_old, $fk_type_contrat_new) != 0 && !empty($fk_type_contrat_old))
 				{
 				    if (empty($simulation->TSimulationSuivi)) $simulation->load_suivi_simulation($ATMdb);
 				    if (!empty($simulation->TSimulationSuivi))
