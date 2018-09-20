@@ -490,8 +490,8 @@ class TSimulation extends TObjetStd {
 
 		}
 
-		if (!empty($this->TSimulationSuivi)) uasort($this->TSimulationSuivi, array($this, 'aiguillageSuivi'));
-		if (!empty($this->TSimulationSuiviHistorized)) uasort($this->TSimulationSuiviHistorized, array($this, 'aiguillageSuivi'));
+		if (!empty($this->TSimulationSuivi)) uasort($this->TSimulationSuivi, array($this, 'aiguillageSuiviRang'));
+		if (!empty($this->TSimulationSuiviHistorized)) uasort($this->TSimulationSuiviHistorized, array($this, 'aiguillageSuiviRang'));
 	}
 	
 	//Retourne l'identifiant leaser prioritaire en fonction de la grille d'administration
@@ -1690,11 +1690,22 @@ class TSimulation extends TObjetStd {
 	 */
 	public function aiguillageSuivi($a, $b)
 	{
-		// Priorité au leaser concerné si adjonction
-		if($this->fk_leaser_adjonction == $a->fk_leaser) return 1;
-		
 		if ($a->renta_percent < $b->renta_percent) return 1;
 		else if ($a->renta_percent > $b->renta_percent) return -1;
+		else return 0;
+	}
+	
+	/**
+	 * Called from uasort
+	 * 
+	 * @param type $a
+	 * @param type $b
+	 * @return int
+	 */
+	public function aiguillageSuiviRang($a, $b)
+	{
+		if ($a->rang < $b->rang) return -1;
+		else if ($a->rang > $b->rang) return 1;
 		else return 0;
 	}
 
@@ -1763,16 +1774,22 @@ class TSimulation extends TObjetStd {
 
 		// Update du rang pour priorisation
 		$i=0;
+		$suiviAutoLaunch = 0;
 		foreach ($this->TSimulationSuivi as &$suivi)
 		{
-			// Lancement de la demande automatique via EDI pour le premier leaser de la liste
-			if($i == 0 && empty($this->no_auto_edi) && in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP','CMCIC'))) {
-				$suivi->doAction($PDOdb, $this, 'demander');
-			}
-			
 			$suivi->rang = $i;
+			if($i == 0) $suiviAutoLaunch = $suivi;
+			if($suivi->fk_leaser == $this->fk_leaser_adjonction) {
+				$suivi->rang = -1; // Priorité au leaser concerné par l'adjonction
+				$suiviAutoLaunch = $suivi;
+			}
 			$suivi->save($PDOdb);
 			$i++;
+		}
+		
+		// Lancement de la demande automatique via EDI pour le premier leaser de la liste
+		if(!empty($suiviAutoLaunch) && empty($this->no_auto_edi) && in_array($suiviAutoLaunch->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP','CMCIC'))) {
+			$suiviAutoLaunch->doAction($PDOdb, $this, 'demander');
 		}
 		
 		// On remet la conf d'origine
