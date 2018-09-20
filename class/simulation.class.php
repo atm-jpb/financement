@@ -441,14 +441,17 @@ class TSimulation extends TObjetStd {
 	function load_suivi_simulation(&$PDOdb){
 		global $db, $user;
 		
+		$TSuivi = array();
 		if (!empty($this->TSimulationSuivi)){
 		    foreach ($this->TSimulationSuivi as $suivi) {
+			$TSuivi[$suivi->getId()] = $suivi;
 		        if ($suivi->date_historization <= 0) {
 		            if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
 		                $this->modifiable = 2;
 		            }
 		        }
 		    }
+			$this->TSimulationSuivi = $TSuivi;
 
 		} else {
 		    $TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
@@ -1787,7 +1790,9 @@ class TSimulation extends TObjetStd {
 		else if ($coef_line == -2) $suivi->calcul_detail['montantfinanceleaser'] = 'Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
 		else
 		{
-			$suivi->montantfinanceleaser = round($this->echeance / ($coef_line['coeff'] / 100), 2);
+			if(!empty($coef_line['coeff'])) {
+				$suivi->montantfinanceleaser = round($this->echeance / ($coef_line['coeff'] / 100), 2);
+			}
 			$suivi->calcul_detail['montantfinanceleaser'] = 'Montant financé leaser = '.$this->echeance.' / '.($coef_line['coeff'] / 100);
 			$suivi->calcul_detail['montantfinanceleaser'].= ' = <strong>'.price($suivi->montantfinanceleaser).'</strong><hr>';
 		}
@@ -2114,6 +2119,9 @@ class TSimulation extends TObjetStd {
 		$this->type_financement = '';
 		$this->coeff_final = 0;
 		$this->numero_accord = '';
+		
+		// On vide le stockage des anciennes valeurs
+		$this->modifs = '';
 		
 		// Pas d'appel auto aux EDI sur un clone
 		$this->no_auto_edi = true;
