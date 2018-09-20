@@ -616,6 +616,8 @@ class TFin_dossier extends TObjetStd {
 			if ($coef_cpro && !empty($date_deb_periode))
 			{
 				$coeff = 0;
+				if(in_array($this->entity, array(1,2,3))) $coeff = 3;
+				if(in_array($this->entity, array(13,14))) $coeff = 2;
 				$date_application = $this->getDateApplicationPenInterne($PDOdb, $grille, $type, $this->financementLeaser->fk_soc, $this->contrat, $this->entity);
 				if (strtotime($date_deb_periode) >= $date_application) $coeff = $TCoeff[1]; // Renvoi de la pénalité interne
 			}
