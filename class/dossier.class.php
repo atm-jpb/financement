@@ -1911,18 +1911,22 @@ class TFin_dossier extends TObjetStd {
 		}
 	}
 	
-	
+	/**
+	 * Liste des dossier clients en cours pour choix dans la simulation lors d'une demande d'adjonction
+	 */
 	static function getListeDossierClient(&$PDOdb, $fk_soc, $siren, $open=true) {
 		global $conf;
 		
-		$sql = "SELECT d.rowid, dfcli.reference as refcli";
+		$sql = "SELECT d.rowid, dfcli.reference as refcli, dflea.reference as reflea";
 		$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (da.fk_fin_affaire = a.rowid)";
-		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dfcli.fk_fin_dossier = d.rowid)";
-		$sql.= " WHERE dfcli.type = 'CLIENT'";
-		$sql.= " AND dfcli.reference NOT LIKE '%ADJ%'";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dfcli.fk_fin_dossier = d.rowid AND dfcli.type = 'CLIENT')";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type = 'LEASER')";
+		$sql.= " WHERE 1";
+		$sql.= " AND (dfcli.reference IS NULL OR dfcli.reference NOT LIKE '%ADJ%')";
 		$sql.= " AND (dfcli.date_solde <= '1970-00-00 00:00:00' OR dfcli.date_solde IS NULL)";
+		$sql.= " AND (dflea.date_solde <= '1970-00-00 00:00:00' OR dflea.date_solde IS NULL)";
 		$sql.= " AND (a.fk_soc = ".$fk_soc;
 		
 		$sql.= " OR a.fk_soc IN
@@ -1946,8 +1950,11 @@ class TFin_dossier extends TObjetStd {
 		$TRes = $PDOdb->ExecuteAsArray($sql);
 		$TDoss = array();
 		foreach ($TRes as $obj) {
-			$TDoss[$obj->rowid] = $obj->refcli;
+			$ref = (!empty($obj->refcli)) ? $obj->refcli : $obj->reflea;
+			$TDoss[$obj->rowid] = $ref;
 		}
+		
+		asort($TDoss);
 		
 		return $TDoss;
 	}

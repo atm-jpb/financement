@@ -199,6 +199,7 @@ var select_solde = function() {
 var init_selected_dossier = function() {
 	// Mise en couleur des dossiers rachetés dans la simulation
 	$('input[type="checkbox"]:checked').parent('td').css('background-color', '#00FF00');
+	$('span.check').parent('td').css('background-color', '#00FF00');
 	
 	// Possibilité de sélectionner un solde
 	$('input[type="checkbox"]').not(':disabled').parent('td.solde').bind('click', select_solde).css('cursor', 'pointer');
