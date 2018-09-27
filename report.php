@@ -687,7 +687,6 @@ function renta_neg($title, $head_search, $TEntity)
 	{
 		dol_print_error($db);
 	}
-	echo $sql;
 	// Fin load statuts
 	
 	// Liste du nombre de dossier par statut
@@ -695,10 +694,14 @@ function renta_neg($title, $head_search, $TEntity)
 		FROM '.MAIN_DB_PREFIX.'fin_dossier d
 		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid)
 		
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)
+
 		WHERE d.nature_financement = \'INTERNE\' 
 		AND df.type = \'LEASER\'
 		AND d.fk_statut_dossier IS NOT NULL
 		AND d.fk_statut_dossier != \'\'
+		AND a.date_affaire >= "'.$db->idate($time_fiscal_start).'" AND a.date_affaire <= "'.$db->idate($time_fiscal_end).'"
 		AND d.entity IN ('.implode(',', $TEntity).')
 		
 		GROUP BY d.fk_statut_dossier
@@ -708,6 +711,8 @@ function renta_neg($title, $head_search, $TEntity)
 	$resql = $db->query($sql);
 	if ($resql)
 	{
+		foreach ($TStatutDossierById as $label) $TStatut[$label] = 0;
+		
 		while ($row = $db->fetch_object($resql))
 		{
 			$label = '';
@@ -726,11 +731,15 @@ function renta_neg($title, $head_search, $TEntity)
 	$sql = 'SELECT count(*) AS nb, d.fk_statut_renta_neg_ano
 		FROM '.MAIN_DB_PREFIX.'fin_dossier d
 		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid)
-		
+
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)
+			
 		WHERE d.nature_financement = \'INTERNE\' 
 		AND df.type = \'LEASER\'
 		AND d.fk_statut_renta_neg_ano IS NOT NULL
 		AND d.fk_statut_renta_neg_ano != \'\'
+		AND a.date_affaire >= "'.$db->idate($time_fiscal_start).'" AND a.date_affaire <= "'.$db->idate($time_fiscal_end).'"
 		AND d.entity IN ('.implode(',', $TEntity).')
 		
 		GROUP BY d.fk_statut_renta_neg_ano
@@ -740,6 +749,8 @@ function renta_neg($title, $head_search, $TEntity)
 	$resql = $db->query($sql);
 	if ($resql)
 	{
+		foreach ($TStatutRentaNegAnoById as $label) $TAnomalie[$label] = 0;
+		
 		while ($row = $db->fetch_object($resql))
 		{
 			$label = '';
@@ -754,37 +765,69 @@ function renta_neg($title, $head_search, $TEntity)
 		dol_print_error($db);
 	}
 	
-	print load_fiche_titre('Anomalie');
-	if (empty($TAnomalie)) print '<p class="warnings">Pas de stat sur les dossiers en anomaliese</p>';
+	print load_fiche_titre($title, '', 'object_accounting.png');
+	
+	print '<div class="liste_titre liste_titre_bydiv centpercent">';
+	print $head_search;
+	print '</div>';
+	
+	print '<div class="div-table-responsive liste_titre">';
+	
+	print '<div style="" class="nowrap">';
+	print img_search();
+	print '&nbsp;'.img_searchclear();
+	print '</div>';
+	
+	print '</div>';
+	
+	
+	print '<div class="fichethirdleft">';
+	
+	// TODO afficher le tableau renta neg
+	
+	print '<table class="noborder" width="100%">';
+	print '<tr class="liste_titre"><th colspan="2">Anomalies</th></tr>';
+	if (empty($TAnomalie)) print '<tr><td colspan="2">Pas de stat sur les dossiers en anomalies</td></tr>';
 	else
 	{
-		print '<table class="">';
 		foreach ($TAnomalie as $label => $nb)
 		{
 			print '<tr class="">';
 
 			print '<td>'.$label.'</td>';
-			print '<td>'.$nb.'</td>';
-			
+			print '<td align="right">'.$nb.'</td>';
+
 			print '</tr>';
 		}
-		print '</table>';
 	}
 	
-	print load_fiche_titre('Statut');
-//	echo $sql;
-//	dol_include_once('/financement/class/affaire.class.php');
-//	dol_include_once('/financement/class/dossier.class.php');
-////	dol_include_once('/financement/class/dossier_integrale.class.php');
-//	dol_include_once('/financement/class/grille.class.php');
-////	dol_include_once('/financement/lib/financement.lib.php');
-//	
-//	$PDOdb = new TPDOdb;
-//	
-//	$dossier = new TFin_dossier();
-//	$dossier->load($PDOdb, 49407);
-//	
-//	
-//	var_dump($dossier->financement);
-////	var_dump($dossier->financement->amortissement_echeance(5));
+	print '</table>';
+	
+	print '</div>';
+	
+	print '<div class="fichetwothirdright">';
+	print '<div class="ficheaddleft">';
+	
+	print '<table class="noborder" width="100%">';
+	print '<tr class="liste_titre"><th colspan="2">Statuts</th></tr>';
+	
+	if (empty($TStatut)) print '<tr><td colspan="2">Pas de stat sur les dossiers en anomalies</td></tr>';
+	else
+	{
+		foreach ($TStatut as $label => $nb)
+		{
+			print '<tr class="">';
+
+			print '<td>'.$label.'</td>';
+			print '<td align="right">'.$nb.'</td>';
+
+			print '</tr>';
+		}
+	}
+	
+	print '</table>';
+	
+	
+	print '</div>';
+	print '</div>';
 }
