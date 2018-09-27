@@ -616,6 +616,8 @@ class TFin_dossier extends TObjetStd {
 			if ($coef_cpro && !empty($date_deb_periode))
 			{
 				$coeff = 0;
+				if(in_array($this->entity, array(1,2,3))) $coeff = 3;
+				if(in_array($this->entity, array(13,14))) $coeff = 2;
 				$date_application = $this->getDateApplicationPenInterne($PDOdb, $grille, $type, $this->financementLeaser->fk_soc, $this->contrat, $this->entity);
 				if (strtotime($date_deb_periode) >= $date_application) $coeff = $TCoeff[1]; // Renvoi de la pénalité interne
 			}
@@ -803,7 +805,8 @@ class TFin_dossier extends TObjetStd {
 			
 			// SPECIFIQUE LEASER HEXAPAGE => calculer le solde comme un externe avec la pénalité leaser
 			if(in_array($this->financementLeaser->fk_soc,array(204904,204905,204906))) {
-				$solde = $CRD * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, '1998-07-12', true) / 100);
+				$date_deb_periode = $this->getDateDebutPeriode($iPeriode-1, 'CLIENT');
+				$solde = $CRD * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
 			} else if($TSoldeRule->base_solde == 'MF') {
 				$solde = $this->financement->montant;
 				$capeLRD = false;
