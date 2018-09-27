@@ -15,6 +15,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('montant_accord','type=float;'); // Sert à stocker le montant pour lequel l'accord a été donné
 		parent::add_champs('fk_categorie_bien,fk_nature_bien', array('type'=>'integer'));
 		parent::add_champs('pct_vr,mt_vr', array('type'=>'float'));
+		parent::add_champs('fk_fin_dossier', array('type'=>'integer'));
 		
 		parent::start();
 		parent::_init_vars();
@@ -431,19 +432,17 @@ class TSimulation extends TObjetStd {
 	function load_suivi_simulation(&$PDOdb){
 		global $db, $user;
 		
-		$TSimulationSuivi = array();
-		$this->TSimulationSuiviHistorized = array();
+		$TSuivi = array();
 		if (!empty($this->TSimulationSuivi)){
 		    foreach ($this->TSimulationSuivi as $suivi) {
+			$TSuivi[$suivi->getId()] = $suivi;
 		        if ($suivi->date_historization <= 0) {
-		            $TSimulationSuivi[$suivi->getId()] = $suivi;
 		            if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
 		                $this->modifiable = 2;
 		            }
-		        } else $this->TSimulationSuiviHistorized[$suivi->getId()] = $suivi;
+		        }
 		    }
-		    $this->TSimulationSuivi = $TSimulationSuivi;
-            //var_dump($this->TSimulationSuivi, $this->TSimulationSuiviHistorized);
+			$this->TSimulationSuivi = $TSuivi;
 
 		} else {
 		    $TRowid = TRequeteCore::get_id_from_what_you_want($PDOdb,MAIN_DB_PREFIX."fin_simulation_suivi",array('fk_simulation' => $this->getId()),'rowid','rowid');
@@ -471,7 +470,6 @@ class TSimulation extends TObjetStd {
 		                    //}
 		                }
 		            }
-		            else $this->TSimulationSuiviHistorized[$simulationSuivi->getId()] = $simulationSuivi;
 		        }
 		        
 		        if (empty($this->TSimulationSuivi)) $this->create_suivi_simulation($PDOdb);
@@ -623,30 +621,19 @@ class TSimulation extends TObjetStd {
 		return false;
 	}
 	
-	function get_suivi_simulation(&$PDOdb,&$form){
+	function get_suivi_simulation(&$PDOdb,&$form,$histo=false){
 		global $db;
-
-		$this->load_suivi_simulation($PDOdb);
 		
-		//echo 'get<br>';
-		$TLignes = array();
-		if ($this->accord == "OK" ) $form->type_aff = 'view';
+		$TSuivi = array();
+		foreach($this->TSimulationSuivi as $suivi) {
+			if(($suivi->date_historization <= 0 && !$histo) || ($suivi->date_historization > 0 && $histo)) {
+				$TSuivi[$suivi->getId()] = $suivi;
+			}
+		}
 		
-		$TLignes = $this->_get_lignes_suivi($this->TSimulationSuivi, $form);
-		if ($with_history) $T = $this->_get_lignes_suivi($this->TSimulationSuiviHistorized, $form);
+		if ($this->accord == "OK" || $histo) $form->type_aff = 'view';
 		
-		return $TLignes;
-	}
-
-	function get_suivi_simulation_historized(&$PDOdb,&$form)
-	{
-		if (empty($this->TSimulationSuiviHistorized)) $this->load_suivi_simulation($PDOdb);
-		
-		$form->type_aff = 'view';
-		
-		$Tab = $this->_get_lignes_suivi($this->TSimulationSuiviHistorized, $form);
-		
-		return $Tab;
+		return $this->_get_lignes_suivi($TSuivi, $form);
 	}
 	
 	private function _get_lignes_suivi(&$TSuivi, &$form)
@@ -1791,7 +1778,9 @@ class TSimulation extends TObjetStd {
 		else if ($coef_line == -2) $suivi->calcul_detail['montantfinanceleaser'] = 'Montant financement ('.$this->montant.') hors tranches pour le leaser "'.$leaser->nom.'" ('.$leaser->id.')';
 		else
 		{
-			$suivi->montantfinanceleaser = round($this->echeance / ($coef_line['coeff'] / 100), 2);
+			if(!empty($coef_line['coeff'])) {
+				$suivi->montantfinanceleaser = round($this->echeance / ($coef_line['coeff'] / 100), 2);
+			}
 			$suivi->calcul_detail['montantfinanceleaser'] = 'Montant financé leaser = '.$this->echeance.' / '.($coef_line['coeff'] / 100);
 			$suivi->calcul_detail['montantfinanceleaser'].= ' = <strong>'.price($suivi->montantfinanceleaser).'</strong><hr>';
 		}
@@ -2119,6 +2108,9 @@ class TSimulation extends TObjetStd {
 		$this->coeff_final = 0;
 		$this->numero_accord = '';
 		
+		// On vide le stockage des anciennes valeurs
+		$this->modifs = '';
+		
 		// Pas d'appel auto aux EDI sur un clone
 		$this->no_auto_edi = true;
 	}
@@ -2175,7 +2167,7 @@ class TSimulationSuivi extends TObjetStd {
 		if (!empty($this->TCoefLine[$amount])) return $this->TCoefLine[$amount];
 		
 		$grille = new TFin_grille_leaser;
-		$grille->get_grille($PDOdb, $this->fk_leaser, $fk_type_contrat);
+		$grille->get_grille($PDOdb, $this->fk_leaser, $fk_type_contrat,'TRIMESTRE',array(),1);
 		
 		$fin_temp = new TFin_financement;
 		$fin_temp->periodicite = $periodicite;
@@ -2459,6 +2451,8 @@ class TSimulationSuivi extends TObjetStd {
 		$simulation->send_mail_vendeur();
 
 		$this->date_selection = time();
+
+                $simulation->historise_accord($PDOdb);
 
 		$this->save($PDOdb);
 	}
@@ -3008,6 +3002,7 @@ class TSimulationSuivi extends TObjetStd {
 			"'" => '',
 		);
 		$nomCLIENT = strtr($this->simulation->societe->name, $TTrans);
+		$nomCLIENT = substr($nomCLIENT, 0, 50);
 		
 		$TClient = array(
 			'idNationnalEntreprise' => $siretCLIENT
@@ -3056,6 +3051,8 @@ class TSimulationSuivi extends TObjetStd {
 		
 		// Montant minimum 1000 €
 		$montant = $this->simulation->montant;
+		if($this->_getBNPType() == 'CESSION') $montant += $this->surfact + $this->surfactplus;
+		$montant = round($montant,2);
 		if($montant < 1000) $montant = 1000;
 		
 		$TMateriel = array(
@@ -3099,6 +3096,8 @@ class TSimulationSuivi extends TObjetStd {
 		
 		// Montant minimum 1000 €
 		$montant = $this->simulation->montant;
+		if($this->_getBNPType() == 'CESSION') $montant += $this->surfact + $this->surfactplus;
+		$montant = round($montant,2);
 		if($montant < 1000) $montant = 1000;
 		
 		$TFinancement = array(

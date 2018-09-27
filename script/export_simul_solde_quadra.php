@@ -38,6 +38,7 @@ $sql = 'SELECT s.rowid, s.nom FROM '.MAIN_DB_PREFIX.'societe s ';
 $sql.= 'WHERE s.fournisseur = 1';
 $TLeaserName = TRequeteCore::get_keyval_by_sql($PDOdb, $sql, 'rowid', 'nom');
 
+// 1er fichier avec les simulations QUADRA et QSIGD
 $sql = "SELECT s.rowid
 		FROM llx_fin_simulation s
 		WHERE 1 = 1 
@@ -59,6 +60,7 @@ foreach ($TData as $res) {
 	$simu->load($PDOdb, $db, $res['rowid'], false);
 	$simu->societe = new Societe($db);
 	$simu->societe->fetch($simu->fk_soc);
+	$simu->no_auto_edi = true;
 	$simu->load_suivi_simulation($PDOdb);
 	$TDossiers = $simu->_getDossierSelected();
 	//pre($simu,true);
@@ -87,7 +89,58 @@ foreach ($TData as $res) {
 
 fclose($handle);
 
+// 2ème fichier avec toutes les simulations ABG, CC, QUADRA, QSIGD
+$sql = "SELECT s.rowid, e.label
+		FROM llx_fin_simulation s
+		LEFT JOIN llx_entity e ON e.rowid = s.entity
+		WHERE 1 = 1 
+		AND s.entity IN (9,11,7,5)
+		AND s.accord = 'OK'
+		";
 
+$PDOdb->Execute($sql);
+$TData = $PDOdb->Get_All(PDO::FETCH_ASSOC);
+
+$filename = DOL_DATA_ROOT . '/9/financement/extract_simul/ouest_simulations_soldes.csv';
+$handle = fopen($filename, 'w');
+
+$head = explode(";", "Ref unique;Ref simulation;Ref contrat;Montant solde vendeur;Date fin periode;Montant solde banque;Type solde;Client;Type contrat;Leaser;Partenaire");
+fputcsv($handle, $head, ';');
+//echo '<pre>';
+foreach ($TData as $res) {
+	$simu = new TSimulation();
+	$simu->load($PDOdb, $db, $res['rowid'], false);
+	$simu->societe = new Societe($db);
+	$simu->societe->fetch($simu->fk_soc);
+	$simu->no_auto_edi = true;
+	$simu->load_suivi_simulation($PDOdb);
+	$TDossiers = $simu->_getDossierSelected();
+	//pre($simu,true);
+	if(!empty($TDossiers)) {
+		foreach ($TDossiers as $idDossier) {
+			$d = $simu->dossiers[$idDossier];
+			list($date, $solde, $typesolde, $leaser) = get_date_et_solde($PDOdb, $simu, $idDossier);
+			$data = array(
+				$simu->reference . '-' . $d['num_contrat_leaser']	// Clé unique pour eux
+				,$simu->reference									// Ref simulation
+				,$d['num_contrat_leaser']							// Ref contrat leaser
+				,$d['solde_vendeur']								// Solde coché vendeur
+				,$date												// Période concernée
+				,$solde												// Solde calculé (R ou NR)
+				,$typesolde											// R ou NR
+				,$simu->societe->name								// Client
+				,$d['type_contrat']									// Type contrat
+				,$leaser											// Leaser chez qui le contrat est soldé
+				,$res['label']										// Partenaire
+			);
+			
+			//echo implode(' || ', $data).'<br>';
+			fputcsv($handle, $data, ';');
+		}
+	}
+}
+
+fclose($handle);
 
 
 function get_date_et_solde(&$PDOdb, &$simu, $idDossier) {
