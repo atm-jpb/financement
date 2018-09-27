@@ -3002,6 +3002,7 @@ class TSimulationSuivi extends TObjetStd {
 			"'" => '',
 		);
 		$nomCLIENT = strtr($this->simulation->societe->name, $TTrans);
+		$nomCLIENT = substr($nomCLIENT, 0, 50);
 		
 		$TClient = array(
 			'idNationnalEntreprise' => $siretCLIENT
