@@ -2,6 +2,7 @@
 
 require('../config.php');
 dol_include_once('/compta/facture/class/facture.class.php');
+dol_include_once('/financement/class/dossier.class.php');
 
 @set_time_limit(0);					// No timeout for this script
 @ini_set('memory_limit', '256M');
@@ -12,13 +13,14 @@ $action = GETPOST('action');
 $PDOdb=new TPDOdb();
 
 // Récupération des factures / contrat de LeaseBoard
-$sql = "SELECT f.rowid as id_facture, f.facnumber, d.rowid as id_dossier, d.reference";
+$sql = "SELECT f.rowid as id_facture, f.facnumber, d.rowid as id_dossier, dfcli.reference";
 $sql.= " FROM ".MAIN_DB_PREFIX."facture f";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (ee.fk_source = d.rowid AND ee.sourcetype = 'dossier')";
+$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dfcli.fk_fin_dossier = d.rowid AND dfcli.type = 'CLIENT')";
 $sql.= " WHERE (f.fk_user_author IS NULL OR f.fk_user_author = 1)";
 $sql.= " AND f.datef BETWEEN '2016-01-01' AND '2018-06-31'";
-//$sql.= " AND f.facnumber LIKE '06693880%'";
+//$sql.= " AND f.facnumber LIKE '12011814%'";
 $sql.= " ORDER BY f.facnumber";
 //echo $sql;
 $TData = $PDOdb->ExecuteAsArray($sql);
@@ -70,6 +72,7 @@ fclose($fileHandler);
  */
 // Suppression des factures brouillons
 if($action == 'del_draft') {
+	echo '<br>***ACTION DEL DRAFT***<br>';
 	foreach ($ToDel as $facnumber) {
 		$f = new Facture($db);
 		$f->fetch(0,$facnumber);
@@ -93,12 +96,13 @@ echo '<hr>B) Liens créables : ' . count($ToLinkOK);
  * Ajout des liens entre factures et contrat
  */
 if($action == 'add_links') {
+	echo '<br>***ACTION ADD LINKS***<br>';
 	foreach ($ToLinkOK as $facnumber => $contratref) {
 		$f = new Facture($db);
 		$f->fetch(0,$facnumber);
 		$fin = new TFin_financement();
 		$fin->loadBy($PDOdb, $contratref, 'reference', false);
-		$f->add_object_linked('dossier', $fin->fk_fin_dossier);
+		if($f->id > 0 && $fin->getId() > 0) $f->add_object_linked('dossier', $fin->fk_fin_dossier);
 	}
 }
 
