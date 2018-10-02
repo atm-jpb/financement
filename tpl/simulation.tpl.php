@@ -125,12 +125,17 @@
 			<td>[simulation.opt_calage; strconv=no][simulation.opt_calage_label; strconv=no]</td>
 		</tr>
 		<tr>
+			[onshow;block=begin;when [simulation.adjonction_ok]=='1']
 			<td>Adjonction</td>
 			<td>
 				[simulation.opt_adjonction; strconv=no]
 				&nbsp;
 				[simulation.fk_fin_dossier_adjonction; strconv=no]
 			</td>
+			[onshow;block=end]
+			[onshow;block=begin;when [simulation.adjonction_ok]=='0']
+			<td colspan="2">&nbsp;</td>
+			[onshow;block=end]
 			<td>Aucun dossier à solder</td>
 			<td>[simulation.no_case_to_settle; strconv=no]</td>
 		</tr>

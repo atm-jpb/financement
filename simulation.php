@@ -1018,6 +1018,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
 		,'opt_adjonction'=>$form->checkbox1('', 'opt_adjonction', 1, $simulation->opt_adjonction)
 		,'fk_fin_dossier_adjonction'=>empty($selectDossierAdjonction) ? '' : $form->combo('', 'fk_fin_dossier_adjonction', $selectDossierAdjonction, $simulation->fk_fin_dossier_adjonction,1,'','','flat','','false',1)
+		,'adjonction_ok'=>!empty($selectDossierAdjonction) ? 1 : 0
 	    ,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $financement->TPeriodicite, $simulation->opt_periodicite) .(!empty($simulation->modifs['opt_periodicite']) ? ' (Ancienne valeur : '.$financement->TPeriodicite[$simulation->modifs['opt_periodicite']].')' : '')
 		//,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 1, $simulation->opt_creditbail)
 	    ,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement) .(!empty($simulation->modifs['opt_mode_reglement']) ? ' (Ancienne valeur : '.$financement->TReglement[$simulation->modifs['opt_mode_reglement']].')' : '')
