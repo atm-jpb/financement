@@ -2196,7 +2196,7 @@ class TSimulationSuivi extends TObjetStd {
 		if (!empty($this->TCoefLine[$amount])) return $this->TCoefLine[$amount];
 		
 		$grille = new TFin_grille_leaser;
-		$grille->get_grille($PDOdb, $this->fk_leaser, $fk_type_contrat,'TRIMESTRE',array(),1);
+		$grille->get_grille($PDOdb, $this->fk_leaser, $fk_type_contrat,'TRIMESTRE',array(),17);
 		
 		$fin_temp = new TFin_financement;
 		$fin_temp->periodicite = $periodicite;
@@ -3031,6 +3031,7 @@ class TSimulationSuivi extends TObjetStd {
 			"'" => '',
 		);
 		$nomCLIENT = strtr($this->simulation->societe->name, $TTrans);
+		$nomCLIENT = substr($nomCLIENT, 0, 50);
 		
 		$TClient = array(
 			'idNationnalEntreprise' => $siretCLIENT

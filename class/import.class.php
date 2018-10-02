@@ -764,7 +764,8 @@ class TImport extends TObjetStd {
 			'020021',
 			'SSC128',
 			'SSC151',
-			'SSC132'
+			'SSC132',
+			'055868'
 			))) {
 			//On importe uniquement certaine ref produit
 			//$this->addError($ATMdb, 'InfoRefServiceNotNeededNow', $data['ref_service'], 'WARNING');

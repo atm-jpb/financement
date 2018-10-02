@@ -437,6 +437,15 @@ class TFin_affaire extends TObjetStd {
 			case 9: //Quadra
 				return "M000355473";
 				break;
+			case 12: //CAPEA
+				return "M000317338";
+				break;
+			case 13: //BCMP
+				return "M000393212";
+				break;
+			case 14: //Perret
+				return "M000342697";
+				break;
 			default:
 				return "M000355961";
 				break;
@@ -489,6 +498,24 @@ class TFin_affaire extends TObjetStd {
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "QUABMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 12: //CAPEA
+				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
+				$refPartenaire = "CAPEAMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 13: //BCMP
+				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
+				$refPartenaire = "BCMPMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 14: //Perret
+				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
+				$refPartenaire = "PERRMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			

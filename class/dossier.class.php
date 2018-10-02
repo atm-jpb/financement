@@ -766,6 +766,7 @@ class TFin_dossier extends TObjetStd {
 		global $conf;
 		$solde = 0;
 		$capeLRD = true;
+		if(in_array($this->entity, array(12,15))) $capeLRD = false;
 		
 		if ($nature_financement == 'EXTERNE')
 		{
@@ -858,6 +859,7 @@ class TFin_dossier extends TObjetStd {
 		global $conf;
 		$solde = 0;
 		$capeLRD = true;
+		if(in_array($this->entity, array(12,15))) $capeLRD = false;
 		
 		if ($nature_financement == 'EXTERNE')
 		{
