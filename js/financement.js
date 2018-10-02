@@ -80,9 +80,10 @@ $(document).ready(function() {
 			$('#fk_type_contrat').val(contrat);
 			$('#fk_type_contrat option:selected').attr('disabled', false);
 			$('#fk_type_contrat option:not(:selected)').attr('disabled', true);
+			$('#fk_type_contrat').change();
 		} else {
 			$('#fk_type_contrat').val(0);
-			$('#fk_type_contrat option:not(:selected)').attr('disabled', false);
+			$('#fk_type_contrat option').attr('disabled', false);
 		}
 	});
 });
