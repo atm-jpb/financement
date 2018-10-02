@@ -1919,7 +1919,7 @@ class TFin_dossier extends TObjetStd {
 	static function getListeDossierClient(&$PDOdb, $fk_soc, $siren, $open=true) {
 		global $conf;
 		
-		$sql = "SELECT d.rowid, dfcli.reference as refcli, dflea.reference as reflea";
+		$sql = "SELECT d.rowid, dfcli.reference as refcli, dflea.reference as reflea, a.contrat";
 		$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (da.fk_fin_affaire = a.rowid)";
@@ -1953,7 +1953,7 @@ class TFin_dossier extends TObjetStd {
 		$TDoss = array();
 		foreach ($TRes as $obj) {
 			$ref = (!empty($obj->refcli)) ? $obj->refcli : $obj->reflea;
-			$TDoss[$obj->rowid] = $ref;
+			$TDoss[$obj->rowid] = array('label' => $ref, 'type_contrat' => $obj->contrat);
 		}
 		
 		asort($TDoss);

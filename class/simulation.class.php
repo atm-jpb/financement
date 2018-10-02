@@ -801,6 +801,10 @@ class TSimulation extends TObjetStd {
 			$this->error = 'ErrorMontantTrimRequired';
 			return false;
 		}
+		else if(!empty($this->opt_adjonction) && $this->fk_fin_dossier_adjonction <= 0) { // Dossier obligatoire si cochage adjonction
+			$this->error = 'ErrorDossierAdjonctionRequired';
+			return false;
+		}
 		
 		// Récupération de la grille pour les paramètres donnés
 		$grille = new TFin_grille_leaser;

@@ -74,7 +74,17 @@ $(document).ready(function() {
 		}
 	});
 	
-	
+	$('select[name="fk_fin_dossier_adjonction"]').bind('change', function() {
+		var contrat = $(this).find(':selected').attr('type_contrat');
+		if(contrat !== undefined) {
+			$('#fk_type_contrat').val(contrat);
+			$('#fk_type_contrat option:selected').attr('disabled', false);
+			$('#fk_type_contrat option:not(:selected)').attr('disabled', true);
+		} else {
+			$('#fk_type_contrat').val(0);
+			$('#fk_type_contrat option:not(:selected)').attr('disabled', false);
+		}
+	});
 });
 
 var get_grille = function() {
