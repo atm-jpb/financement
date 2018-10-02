@@ -37,7 +37,10 @@ $(document).ready(function() {
 		if(diff_jours > 30 && diff_jours < 125) {
 			$('#opt_calage').val(Math.floor(diff_jours/31)+'M');
 			$('#opt_calage_label').val(Math.floor(diff_jours/31)+'M');
-		} else {
+		} else if(diff_jours >= 125) {
+			$('#opt_calage').val('3M');
+			$('#opt_calage_label').val('3M');
+		}else {
 			$('#opt_calage').val('');
 			$('#opt_calage_label').val('');
 		}
