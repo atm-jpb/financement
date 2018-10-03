@@ -97,7 +97,7 @@
 				//pre($dossier);exit;
 				
 				if(isset($dossier->financement))$dossier->financement->set_values($_REQUEST);
-				
+
 				if(isset($_REQUEST['leaser'])){
 					$dossier->financementLeaser->set_values($_REQUEST['leaser']);
 				}
@@ -830,6 +830,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'reglement'=>$formRestricted->combo('', 'leaser[reglement]', $financementLeaser->TReglement , $financementLeaser->reglement)
 			,'incident_paiement'=>$formRestricted->combo('', 'leaser[incident_paiement]', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement)
 			,'reloc'=>$formRestricted->combo('', 'leaser[reloc]', $financementLeaser->TReloc, $financementLeaser->reloc)
+			,'relocOK'=>$formRestricted->combo('', 'leaser[relocOK]', $financementLeaser->TRelocOK, $financementLeaser->relocOK)
+			,'encours_reloc'=> price($financementLeaser->encours_reloc)
 			
 			,'date_debut'=>$formRestricted->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
 			,'date_fin'=>$financementLeaser->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
@@ -877,6 +879,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'reglement'=>$formRestricted->combo('', 'reglement', $financement->TReglement , $financement->reglement)
 			,'incident_paiement'=>$formRestricted->combo('', 'incident_paiement', $financement->TIncidentPaiement , $financement->incident_paiement)
 			,'reloc'=>$formRestricted->combo('', 'reloc', $financement->TReloc, $financement->reloc)
+			,'relocOK'=>$formRestricted->combo('', 'relocOK', $financement->TRelocOK, $financement->relocOK)
+			,'encours_reloc'=> price($financement->encours_reloc)
 			
 			,'date_debut'=>$formRestricted->calendrier('', 'date_debut', $financement->get_date('date_debut'),10)
 			,'date_fin'=>$financement->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)

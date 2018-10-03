@@ -52,6 +52,8 @@
 					
 						<tr class="pair"><td>Incident de paiement</td><td>[financement.incident_paiement; strconv=no]</td></tr>
 						<tr class="impair"><td>Relocation</td><td>[financement.reloc; strconv=no]</td></tr>
+						<tr class="pair"><td>Relocation OK ?</td><td>[financement.relocOK; strconv=no]</td></tr>
+						<tr class="impair"><td>Encours relocation</td><td>[financement.encours_reloc; strconv=no] &euro;</td></tr>
 						
 						<tr class="pair"><td>Date du solde</td><td[financement.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financement.date_solde; strconv=no;]</td></tr>
 						<tr class="impair"><td>Montant du solde</td><td[financement.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financement.montant_solde; strconv=no; frm=0 000,00] &euro;</td></tr>
@@ -96,6 +98,8 @@
 
 						<tr class="pair"><td>Incident de paiement</td><td >[financementLeaser.incident_paiement; strconv=no]</td></tr>
 						<tr class="impair"><td>Relocation</td><td>[financementLeaser.reloc; strconv=no]</td></tr>
+						<tr class="pair"><td>Relocation OK ?</td><td>[financementLeaser.relocOK; strconv=no]</td></tr>
+						<tr class="impair"><td>Encours relocation</td><td>[financementLeaser.encours_reloc; strconv=no] &euro;</td></tr>
 
 						<tr class="pair"><td>Date du solde</td><td[financementLeaser.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financementLeaser.date_solde; strconv=no;protect=no]</td></tr>
 						<tr class="impair"><td>Montant du solde</td><td[financementLeaser.dossier_termine;if [val]=0;then '';else ' style="background-color: #00FF00;"']>[financementLeaser.montant_solde; strconv=no; frm=0 000,00] &euro;</td></tr>
