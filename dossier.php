@@ -431,7 +431,14 @@ function _liste(&$PDOdb, &$dossier) {
 //	echo $sql;
 	}
 
+	if(GETPOST('reloc')) {
+		$sql.= " AND fc.reloc = 'OUI'";
+	}
+
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
+
+	if(GETPOST('reloc')) echo $form->hidden('reloc', 1);
+
 	$aff = new TFin_affaire;
 	
 	$TEntityName = TFinancementTools::build_array_entities();
