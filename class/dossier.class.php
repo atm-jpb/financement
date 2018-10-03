@@ -366,7 +366,9 @@ class TFin_dossier extends TObjetStd {
 
 	function calculMontantRestantRelocation(TFin_financement &$financement) {
 
-		if($financement->duree <= 0)
+		$numLastEcheance = $financement->numero_prochaine_echeance - 1;
+
+		if($financement->duree <= 0 || $numLastEcheance < $financement->duree)
 		{
 			$financement->encours_reloc = 0;
 			return;
@@ -375,22 +377,11 @@ class TFin_dossier extends TObjetStd {
 		$somme = 0;
 
 		$TFactures = &$this->TFacture;
+		if($financement->type == 'LEASER') $TFactures = &$this->TFactureFournisseur;
 
-		$timestampLastEcheance = time();
-		if(! empty($financement->date_solde) && $financement->date_solde < $timestampLastEcheance)
-		{
-			$timestampLastEcheance = $financement->date_solde;
-		}
-
-		$dateLastEcheance = date('Y-m-d', $timestampLastEcheance);
-
-		$numLastEcheance = $this->_get_num_echeance_from_date($dateLastEcheance);
-
-		if($financement->duree <= $numLastEcheance) {
-			for($i = $financement->duree; $i <= $numLastEcheance; $i++) {
-				if(empty($TFactures[$numLastEcheance])) {
-					$somme += $financement->echeance;
-				}
+		for($i = $financement->duree; $i < $numLastEcheance; $i++) {
+			if(empty($TFactures[$i])) {
+				$somme += $financement->echeance;
 			}
 		}
 
@@ -1273,7 +1264,7 @@ class TFin_dossier extends TObjetStd {
 		 * Loyers HT 
 		 * Loyers TTC
 		 */
-		$total_capital_amortit = 0;
+		$total_capital_amorti = 0;
 		$total_part_interet = 0;
 		$total_assurance = 0;
 		$total_loyer = 0;
@@ -1286,23 +1277,25 @@ class TFin_dossier extends TObjetStd {
 //re($this->TFacture,true);
 
 		//if($type_echeancier=='CLIENT') $this->load_facture($ATMdb,true);
+
+		$lastEcheance = max($f->duree, $f->numero_prochaine_echeance - 1);
 				
-		for($i=($echeanceInit-1); $i<$f->duree; $i++) {
+		for($i=($echeanceInit-1); $i<$lastEcheance; $i++) {
 			
 			//$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut + $f->calage);
 			$time = $this->_add_month($i*$f->getiPeriode(),  $f->date_debut + $f->calage);
 
-			$capital_amortit = $f->amortissement_echeance( $i + 1 ,$capital_restant);
-			$part_interet = $f->echeance -$capital_amortit;
+			$capital_amorti = $f->amortissement_echeance( $i + 1 ,$capital_restant);
+			$part_interet = $f->echeance - $capital_amorti;
 
-			$capital_restant-=$capital_amortit;
+			$capital_restant-=$capital_amorti;
 			$f->capital_restant = $capital_restant;
 			$total_loyer+=$f->echeance;
 			
 			$f->total_loyer -= $f->echeance;
 			
 			$total_assurance+=$f->assurance;
-			$total_capital_amortit+=$capital_amortit;
+			$total_capital_amorti+=$capital_amorti;
 			$total_part_interet+=$part_interet;
 			//echo date('d/m/Y', $time),' ', date('d/m/Y', $f->date_debut + $f->calage),'+'.($i*$f->getiPeriode()).' month',  $f->date_debut,' + ' , $f->calage/86400,'<br>';
 			// Construction donnée pour échéancier
@@ -1310,7 +1303,7 @@ class TFin_dossier extends TObjetStd {
 				'date'=>date('d/m/Y', $time)
 				/*,'valeur_rachat'=>$capital_restant*$this->getPenalite($ATMdb,'NR')*/
 				,'capital'=>$capital_restant
-				,'amortissement'=>$capital_amortit
+				,'amortissement'=>$capital_amorti
 				,'interet'=>$part_interet
 				,'assurance'=>$f->assurance
 				,'loyerHT'=>$f->echeance
@@ -1463,7 +1456,7 @@ class TFin_dossier extends TObjetStd {
 			'reste'=>$f->reste
 			,'resteTTC'=>($f->reste*FIN_TVA_DEFAUT)
 			,'capitalInit'=>$capital_restant_init
-			,'total_capital_amortit'=>$total_capital_amortit
+			,'total_capital_amortit'=>$total_capital_amorti
 			,'total_part_interet'=>$total_part_interet
 			,'total_loyer'=>$total_loyer
 			,'total_assurance'=>$total_assurance

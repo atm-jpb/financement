@@ -25,7 +25,7 @@ $PDOdb = new TPDOdb;
 $sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_dossier d
 		LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement dfc ON (dfc.fk_fin_dossier = d.rowid AND dfc.type="CLIENT")
 		LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement dfl ON (dfl.fk_fin_dossier = d.rowid AND dfl.type="LEASER")
-		SET dfc.reloc = "NON", dfl.reloc = "NON"';
+		SET dfc.reloc = "NON", dfl.reloc = "NON", dfc.encours_reloc = 0, dfl.encours_reloc = 0';
 
 $PDOdb->Execute($sql);
 
@@ -45,7 +45,6 @@ $TDossiersInternesReloc = $PDOdb->ExecuteAsArray($sql);
 
 $nbInvoiceMissing = 0;
 
-$now = time();
 
 foreach($TDossiersInternesReloc as $dossierStatic) {
 	$dossier = new TFin_dossier;
@@ -54,20 +53,12 @@ foreach($TDossiersInternesReloc as $dossierStatic) {
 	$dossier->financement->reloc = 'OUI';
 	$dossier->financementLeaser->reloc = 'OUI';
 
-	$timestampLastEcheance = $now;
-	if(! empty($dossier->financement->date_solde) && $dossier->financement->date_solde < $timestampLastEcheance)
-	{
-		$timestampLastEcheance = $dossier->financement->date_solde;
-	}
-	
-	$dateLastEcheance = date('Y-m-d', $timestampLastEcheance);
-	
-	$numLastEcheance = $dossier->_get_num_echeance_from_date($dateLastEcheance);
-	
 	$relocOK = true;
-	
-	if($dossier->financement->duree >= 0) {
-		for($i = 1; $i <= $numLastEcheance; $i++) {
+
+	$numLastEcheance = $dossier->financement->numero_prochaine_echeance - 1;
+
+	if($dossier->financement->duree > 0 && $numLastEcheance > $dossier->financement->duree) {
+		for($i = $dossier->financement->duree; $i < $numLastEcheance; $i++) {
 			if(empty($dossier->TFacture[$i])) {
 				$relocOK = false;
 				$nbInvoiceMissing++;
@@ -79,7 +70,7 @@ foreach($TDossiersInternesReloc as $dossierStatic) {
 	// echo '<p>Dossier n°'.$dossier->reference.' : relocOK '.($relocOK ? 'OUI': 'NON').'</p>';
 
 	$dossier->financement->relocOK = $relocOK ? 'OUI' : 'NON';
-	
+
 	$dossier->save($PDOdb); // Inclut le calcul de l'encours de relocation
 }
 
