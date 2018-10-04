@@ -17,7 +17,7 @@ $PDOdb = new TPDOdb();
 $sql = "SELECT fin.rowid, fin.fk_fin_dossier ";
 $sql.= "FROM ".MAIN_DB_PREFIX."fin_dossier_financement fin ";
 //$sql.= "LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.reference = simu.numero_accord) ";
-$sql.= "WHERE (fin.date_solde < '1000-01-01' OR fin.date_solde IS NULL) ";
+$sql.= "WHERE (fin.date_solde <= '1000-01-01' OR fin.date_solde IS NULL) ";
 $sql.= "AND fin.date_prochaine_echeance <= '".date('Y-m-d')."' ";
 $sql.= "AND fin.reference != '' ";
 $sql.= "AND fin.date_debut > '1000-01-01' ";
