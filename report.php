@@ -600,6 +600,11 @@ function encours_leaser($title, $head_search, $TEntity)
 				,'action'=>'5%'
 			)
 		)
+		,'position'=>array(
+			'rank'=>array(
+				'nom'=>-1
+			)
+		)
 	));
 }
 
@@ -667,6 +672,21 @@ function recurrent_financement($title, $head_search, $TEntity)
 		dol_print_error($db);
 		exit;
 	}
+	
+	$TPosition['rank'] = array(
+		'type'=>5
+		,'ABG'=>10
+		,'Bourgogne Copie'=>15
+		,'Copem'=>20
+		,'Copy Concept'=>25
+		,'EBM'=>30
+		,'Impression'=>35
+		,'Informatique'=>40
+		,'QSIGD'=>45
+		,'QUADRA'=>50
+		,'TDP IP / SADOUX'=>55
+		,'Télécom'=>60
+	);
 	
 	$r = new Listview($db, 'financement');
 	print $r->renderArray($db, $TData, array(
