@@ -711,18 +711,186 @@ function recurrent_financement($title, $head_search, $TEntity)
 
 function renta_neg($title, $head_search, $TEntity)
 {
-//	dol_include_once('/financement/class/affaire.class.php');
-//	dol_include_once('/financement/class/dossier.class.php');
-////	dol_include_once('/financement/class/dossier_integrale.class.php');
-//	dol_include_once('/financement/class/grille.class.php');
-////	dol_include_once('/financement/lib/financement.lib.php');
-//	
-//	$PDOdb = new TPDOdb;
-//	
-//	$dossier = new TFin_dossier();
-//	$dossier->load($PDOdb, 49407);
-//	
-//	
-//	var_dump($dossier->financement);
-////	var_dump($dossier->financement->amortissement_echeance(5));
+	global $db,$langs,$time_fiscal_start,$time_fiscal_end,$TEntityAvailable;
+	
+	if (empty($TEntity)) $TEntity = array_keys($TEntityAvailable);
+	
+	// Load statuts
+	$sql = 'SELECT rowid, code, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_dossier WHERE entity IN (0, '.implode(',', $TEntity).')';
+	$resql = $db->query($sql);
+	$TStatutDossierById = array();
+	$TStatutDossierByCode = array();
+	if ($resql)
+	{
+		while ($row = $db->fetch_object($resql))
+		{
+			$TStatutDossierById[$row->rowid] = $row->label;
+			$TStatutDossierByCode[$row->code] = $row->label;
+		}
+	}
+	else
+	{
+		dol_print_error($db);
+	}
+		
+	// Statut renta neg anomalie
+	$sql = 'SELECT rowid, code, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano WHERE entity IN (0, '.implode(',', $TEntity).')';
+	$resql = $db->query($sql);
+	$TStatutRentaNegAnoById = array();
+	$TStatutRentaNegAnoByCode = array();
+	if ($resql)
+	{
+		while ($row = $db->fetch_object($resql))
+		{
+			$TStatutRentaNegAnoById[$row->rowid] = $row->label;
+			$TStatutRentaNegAnoByCode[$row->code] = $row->label;
+		}
+	}
+	else
+	{
+		dol_print_error($db);
+	}
+	// Fin load statuts
+	
+	// Liste du nombre de dossier par statut
+	$sql = 'SELECT count(*) AS nb, d.fk_statut_dossier
+		FROM '.MAIN_DB_PREFIX.'fin_dossier d
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid)
+		
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)
+
+		WHERE d.nature_financement = \'INTERNE\' 
+		AND df.type = \'LEASER\'
+		AND d.fk_statut_dossier IS NOT NULL
+		AND d.fk_statut_dossier != \'\'
+		AND a.date_affaire >= "'.$db->idate($time_fiscal_start).'" AND a.date_affaire <= "'.$db->idate($time_fiscal_end).'"
+		AND d.entity IN ('.implode(',', $TEntity).')
+		
+		GROUP BY d.fk_statut_dossier
+	';
+	
+	$TStatut = array();
+	$resql = $db->query($sql);
+	if ($resql)
+	{
+		foreach ($TStatutDossierById as $label) $TStatut[$label] = 0;
+		
+		while ($row = $db->fetch_object($resql))
+		{
+			$label = '';
+			if (!empty($TStatutDossierById[$row->fk_statut_dossier])) $label = $TStatutDossierById[$row->fk_statut_dossier];
+			else if (!empty($TStatutRentaNegAnoByCode[$row->fk_statut_dossier])) $label = $TStatutRentaNegAnoByCode[$row->fk_statut_dossier];
+			
+			if (!empty($label)) $TStatut[$label] = $row->nb;
+		}
+	}
+	else
+	{
+		dol_print_error($db);
+	}
+	
+	// Liste du nombre de dossier par statut renta neg
+	$sql = 'SELECT count(*) AS nb, d.fk_statut_renta_neg_ano
+		FROM '.MAIN_DB_PREFIX.'fin_dossier d
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid)
+
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)
+			
+		WHERE d.nature_financement = \'INTERNE\' 
+		AND df.type = \'LEASER\'
+		AND d.fk_statut_renta_neg_ano IS NOT NULL
+		AND d.fk_statut_renta_neg_ano != \'\'
+		AND a.date_affaire >= "'.$db->idate($time_fiscal_start).'" AND a.date_affaire <= "'.$db->idate($time_fiscal_end).'"
+		AND d.entity IN ('.implode(',', $TEntity).')
+		
+		GROUP BY d.fk_statut_renta_neg_ano
+	';
+	
+	$TAnomalie = array();
+	$resql = $db->query($sql);
+	if ($resql)
+	{
+		foreach ($TStatutRentaNegAnoById as $label) $TAnomalie[$label] = 0;
+		
+		while ($row = $db->fetch_object($resql))
+		{
+			$label = '';
+			if (!empty($TStatutRentaNegAnoById[$row->fk_statut_renta_neg_ano])) $label = $TStatutRentaNegAnoById[$row->fk_statut_renta_neg_ano];
+			else if (!empty($TStatutRentaNegAnoByCode[$row->fk_statut_renta_neg_ano])) $label = $TStatutRentaNegAnoByCode[$row->fk_statut_renta_neg_ano];
+			
+			if (!empty($label)) $TAnomalie[$label] = $row->nb;
+		}
+	}
+	else
+	{
+		dol_print_error($db);
+	}
+	
+	print load_fiche_titre($title, '', 'object_accounting.png');
+	
+	print '<div class="liste_titre liste_titre_bydiv centpercent">';
+	print $head_search;
+	print '</div>';
+	
+	print '<div class="div-table-responsive liste_titre">';
+	
+	print '<div style="" class="nowrap">';
+	print img_search();
+	print '&nbsp;'.img_searchclear();
+	print '</div>';
+	
+	print '</div>';
+	
+	
+	print '<div class="fichethirdleft">';
+	
+	// TODO afficher le tableau renta neg
+	
+	print '<table class="noborder" width="100%">';
+	print '<tr class="liste_titre"><th colspan="2">Anomalies</th></tr>';
+	if (empty($TAnomalie)) print '<tr><td colspan="2">Pas de stat sur les dossiers en anomalies</td></tr>';
+	else
+	{
+		foreach ($TAnomalie as $label => $nb)
+		{
+			print '<tr class="">';
+
+			print '<td>'.$label.'</td>';
+			print '<td align="right">'.$nb.'</td>';
+
+			print '</tr>';
+		}
+	}
+	
+	print '</table>';
+	
+	print '</div>';
+	
+	print '<div class="fichetwothirdright">';
+	print '<div class="ficheaddleft">';
+	
+	print '<table class="noborder" width="100%">';
+	print '<tr class="liste_titre"><th colspan="2">Statuts</th></tr>';
+	
+	if (empty($TStatut)) print '<tr><td colspan="2">Pas de stat sur les dossiers en anomalies</td></tr>';
+	else
+	{
+		foreach ($TStatut as $label => $nb)
+		{
+			print '<tr class="">';
+
+			print '<td>'.$label.'</td>';
+			print '<td align="right">'.$nb.'</td>';
+
+			print '</tr>';
+		}
+	}
+	
+	print '</table>';
+	
+	
+	print '</div>';
+	print '</div>';
 }
