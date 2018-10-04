@@ -716,7 +716,7 @@ function renta_neg($title, $head_search, $TEntity)
 	if (empty($TEntity)) $TEntity = array_keys($TEntityAvailable);
 	
 	// Load statuts
-	$sql = 'SELECT rowid, code, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_dossier WHERE entity IN (0, '.implode(',', $TEntity).')';
+	$sql = 'SELECT rowid, code, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_dossier WHERE entity IN (0, '.implode(',', $TEntity).') ORDER BY label';
 	$resql = $db->query($sql);
 	$TStatutDossierById = array();
 	$TStatutDossierByCode = array();
@@ -734,7 +734,7 @@ function renta_neg($title, $head_search, $TEntity)
 	}
 		
 	// Statut renta neg anomalie
-	$sql = 'SELECT rowid, code, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano WHERE entity IN (0, '.implode(',', $TEntity).')';
+	$sql = 'SELECT rowid, code, label FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano WHERE entity IN (0, '.implode(',', $TEntity).') ORDER BY label';
 	$resql = $db->query($sql);
 	$TStatutRentaNegAnoById = array();
 	$TStatutRentaNegAnoByCode = array();
