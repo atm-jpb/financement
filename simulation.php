@@ -1152,6 +1152,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		_fiche_suivi($ATMdb, $simulation, $mode);
 	}
 	
+	$refus_moins_6mois = $simulation->hasOtherSimulationRefused($ATMdb);
+	if($refus_moins_6mois) {
+		setEventMessage('Ce client a eu une demande de fi refusée il y a moins de 6 mois', 'warnings');
+	}
+	
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 	llxFooter();
