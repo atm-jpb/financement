@@ -2046,7 +2046,7 @@ class TImport extends TObjetStd {
 
 	function _recherche_client(&$ATMdb, $key, $val, $errorNotFound = false, $errorMultipleFound = true) {
 		global $conf;
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array($key=>$val, 'entity' => $conf->entity));
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array($key=>$val));
 		
 		$rowid = 0;
 		$num = count($TRes);
