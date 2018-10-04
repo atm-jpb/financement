@@ -506,6 +506,21 @@ function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 			'text-align'=>array(
 				'total'=>'right'
 			)
+			,'rank'=>array(
+				'type_contrat'=>5
+				,'ABG'=>10
+				,'Bourgogne Copie'=>15
+				,'Copem'=>20
+				,'Copy Concept'=>25
+				,'EBM'=>30
+				,'Impression'=>35
+				,'Informatique'=>40
+				,'QSIGD'=>45
+				,'QUADRA'=>50
+				,'TDP IP / SADOUX'=>55
+				,'Télécom'=>60
+				,'total'=>65
+			)
 		)
 	));
 	
