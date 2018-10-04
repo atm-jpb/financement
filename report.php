@@ -199,6 +199,12 @@ function _getNbSimulation($date_simul_start, $date_simul_end, $fk_type_contrat='
 	if (!empty($accord)) $sql.= ' AND accord = "'.$accord.'"';
 	if (!empty($TEntity)) $sql.= ' AND entity IN ('.implode(',', $TEntity).')';
 	
+//	if ($accord == 'WAIT')
+//	{
+//		echo $sql;
+//		exit;
+//	}
+	
 	$resql = $db->query($sql);
 	if ($resql)
 	{
@@ -254,7 +260,8 @@ function demandes_de_financement($title, $head_search, $TEntity)
 			
 			$val = _getNbSimulation($start_time, $end_time_periode, '', $statut, $TEntity);
 			$TData[$i][$statut] = $val;
-			$TData[$i]['total'] += $val;
+			// TODO voir si on ajoute pas les statuts wait
+			if (in_array($statut, array('OK', 'KO', 'SS'))) $TData[$i]['total'] += $val;
 			$TTotal[$statut] += $val;
 		}
 		
@@ -264,7 +271,7 @@ function demandes_de_financement($title, $head_search, $TEntity)
 			
 			$val = _getNbSimulation($start_time, $end_time_periode, $type, 'OK', $TEntity);
 			$TData[$i][$type] = $val;
-			$TData[$i]['total'] += $val;
+//			$TData[$i]['total'] += $val; // Il ne faut pas compter cette partie dans le total, c'est l'eclatement des Statuts OK, KO, SS
 			$TTotal[$type] += $val;
 			
 		}
@@ -277,12 +284,13 @@ function demandes_de_financement($title, $head_search, $TEntity)
 	
 	// Récupération des valeurs dans un autre tableau avant conversion pour un graph
 	$TSum = array();
+	// TODO voir s'il ne faut pas exclure les statuts waits des totaux car actuellement non pris en compte dans le total
 	foreach ($TTotal as $k => &$v)
 	{
 		if (in_array($k, $TContrat_filter) || in_array($k, $TStatut_filter))
 		{
 			$TSum[] = array($k, $v);
-			if ($v == 0) $v = '0 %';
+			if ($v == 0 || $TTotal['total'] == 0) $v = '0 %';
 			else $v = number_format($v * 100 / $TTotal['total'], 2).' %';
 		}
 	}
@@ -308,13 +316,33 @@ function demandes_de_financement($title, $head_search, $TEntity)
 		,'title'=>$TTitle
 		,'size'=>array(
 			'width'=>array(
-				'periode'=>'20%'
-				,'total'=>'10%'
+				'periode'=>'10%'
+				,'total'=>'5%'
 			)
 		)
 		,'position'=>array(
 			'text-align'=>array(
 				'total'=>'right'
+			)
+			,'rank'=>array(
+				'periode'=>5
+				,'WAIT'=>10
+				,'WAIT_LEASER'=>15
+				,'WAIT_SELLER'=>20
+				,'WAIT_MODIF'=>25
+				,'SS'=>30
+				,'KO'=>35
+				,'OK'=>40
+				,'LOCSIMPLE'=>45
+				,'INTEGRAL'=>50
+				,'FORFAITGLOBAL'=>55
+				,'GRANDCOMPTE'=>60
+				,'BAREME_AVOCAT'=>65
+				,'PROSPECTINTEGRAL'=>70
+				,'PROSPECTFORFAITGLOBA'=>75
+				,'CPRO NETWORKS'=>80
+				,'ABONNEMENTINFO'=>85
+				,'total'=>90
 			)
 		)
 	));
