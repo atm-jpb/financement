@@ -258,7 +258,7 @@
 	<a href="?id=[simulation.id]&action=edit" class="butAction">Modifier</a>
 	[onshow;block=end]
 	[onshow;block=begin;when [simulation.accord_confirme]==0; when [simulation.display_preco]==1; when [simulation.can_preco]==1]
-	<a href="?id=[simulation.id]&action=clone" class="butAction">Cloner</a>
+	<a href="?id=[simulation.id]&action=clone" class="butAction">Georger</a>
 	<input type="button" id="action-delete" value="Supprimer" name="delete" class="butActionDelete" onclick="delete_elem([simulation.id],'simulation');">
 	[onshow;block=end]
 	[onshow;block=begin; when [simulation.can_resend_accord]=='OK']
