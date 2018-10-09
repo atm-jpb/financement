@@ -54,7 +54,6 @@ foreach($TDossiersInternesReloc as $dossierStatic) {
 	$dossier->load($PDOdb, $dossierStatic->rowid);
 
 	$dossier->financement->reloc = 'OUI';
-	// $dossier->financementLeaser->reloc = 'OUI';
 
 	$relocOK = true;
 
@@ -69,8 +68,6 @@ foreach($TDossiersInternesReloc as $dossierStatic) {
 			}
 		}
 	}
-
-	// echo '<p>Dossier n°'.$dossier->reference.' : relocOK '.($relocOK ? 'OUI': 'NON').'</p>';
 
 	$dossier->financement->relocOK = $relocOK ? 'OUI' : 'NON';
 

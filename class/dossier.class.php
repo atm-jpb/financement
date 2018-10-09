@@ -366,18 +366,25 @@ class TFin_dossier extends TObjetStd {
 
 	function calculMontantRestantRelocation(TFin_financement &$financement) {
 
+		$financement->encours_reloc = 0;
+
 		$numLastEcheance = $financement->numero_prochaine_echeance - 1;
 
-		if($financement->duree <= 0 || $numLastEcheance < $financement->duree)
+		if($financement->relocOK == 'OUI' || $financement->duree <= 0 || $numLastEcheance < $financement->duree)
 		{
-			$financement->encours_reloc = 0;
 			return;
 		}
 
-		$somme = 0;
-
 		$TFactures = &$this->TFacture;
 		if($financement->type == 'LEASER') $TFactures = &$this->TFactureFournisseur;
+
+		if(empty($TFactures[$numLastEcheance - 1]))
+		{
+			$financement->encours_reloc = $financement->echeance;
+		}
+
+/* Pour commencer, on ne regarde que si la dernière échéance est en retard. A décommenter pour un calcul complet de toutes les échéances en retard
+		$somme = 0;
 
 		for($i = $financement->duree; $i < $numLastEcheance; $i++) {
 			if(empty($TFactures[$i])) {
@@ -386,6 +393,7 @@ class TFin_dossier extends TObjetStd {
 		}
 
 		$financement->encours_reloc = $somme;
+*/
 	}
 
 	function load_facture(&$ATMdb, $all=false) {
