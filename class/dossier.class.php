@@ -1310,10 +1310,10 @@ class TFin_dossier extends TObjetStd {
 			$data=array(
 				'date'=>date('d/m/Y', $time)
 				/*,'valeur_rachat'=>$capital_restant*$this->getPenalite($ATMdb,'NR')*/
-				,'capital'=>$capital_restant
-				,'amortissement'=>$capital_amorti
-				,'interet'=>$part_interet
-				,'assurance'=>$f->assurance
+				,'capital'=>($i < $f->duree ? $capital_restant : ' - ')
+				,'amortissement'=>($i < $f->duree ? $capital_amorti : ' - ')
+				,'interet'=>($i < $f->duree ? $part_interet : ' - ')
+				,'assurance'=>($i < $f->duree ? $f->assurance : ' - ')
 				,'loyerHT'=>$f->echeance
 				,'loyer'=>($f->echeance+$f->assurance) * FIN_TVA_DEFAUT
 			);
