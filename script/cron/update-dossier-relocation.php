@@ -25,12 +25,12 @@ $PDOdb = new TPDOdb;
 $sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_dossier d
 		LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement dfc ON (dfc.fk_fin_dossier = d.rowid AND dfc.type="CLIENT")
 		LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement dfl ON (dfl.fk_fin_dossier = d.rowid AND dfl.type="LEASER")
-		SET dfc.reloc = "NON", dfl.reloc = "NON", dfc.encours_reloc = 0, dfl.encours_reloc = 0';
+		SET dfc.reloc = "NON", dfl.reloc = "NON", dfc.relocOK = "OUI", dfl.relocOK = "OUI", dfc.encours_reloc = 0, dfl.encours_reloc = 0';
 
 $PDOdb->Execute($sql);
 
 
-// Passage en relocation des dossiers internes échus mais sans date de solde
+// Passage en relocation des dossiers internes échus mais sans date de solde, avec un numéro de contrat et une échéance
 
 $sql = 'SELECT d.rowid
 		FROM '.MAIN_DB_PREFIX.'fin_dossier d
@@ -39,6 +39,9 @@ $sql = 'SELECT d.rowid
 		AND dfc.reloc = "NON"
 		AND dfc.date_fin < NOW()
 		AND COALESCE(dfc.date_solde, "1001-01-01 00:00:00") <= "1970-01-01"
+		AND dfc.reference IS NOT NULL
+		AND CHAR_LENGTH(TRIM(dfc.reference)) > 0
+		AND dfc.echeance > 0
 		GROUP BY d.rowid';
 
 $TDossiersInternesReloc = $PDOdb->ExecuteAsArray($sql);
@@ -51,7 +54,7 @@ foreach($TDossiersInternesReloc as $dossierStatic) {
 	$dossier->load($PDOdb, $dossierStatic->rowid);
 
 	$dossier->financement->reloc = 'OUI';
-	$dossier->financementLeaser->reloc = 'OUI';
+	// $dossier->financementLeaser->reloc = 'OUI';
 
 	$relocOK = true;
 
