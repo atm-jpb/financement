@@ -45,9 +45,10 @@ class financement_indicateurs_box extends ModeleBoxes
     public function __construct()
     {
         global $langs;
-        $langs->load("boxes");
+        $langs->load('boxes');
+        $langs->load('financement@financement');
 
-        $this->boxlabel = $langs->transnoentitiesnoconv("MyBox");
+        $this->boxlabel = $langs->transnoentitiesnoconv('BoxIndicatorsTitle');
     }
 
     /**
@@ -72,20 +73,20 @@ class financement_indicateurs_box extends ModeleBoxes
 
         //include_once DOL_DOCUMENT_ROOT . "/mymodule/class/mymodule.class.php";
 
-        $text = $langs->trans("MyBoxDescription", $max);
+        $text = $langs->trans('BoxIndicatorsTitle');
         $this->info_box_head = array(
             'text' => $text,
             'limit' => dol_strlen($text)
         );
 
-        $this->info_box_contents[0][0] = array('td' => 'align="left"', 'text' => 'Indicateur');
-        $this->info_box_contents[0][1] = array('td' => 'align="left"', 'text' => 'Nombre');
-        $this->info_box_contents[0][2] = array('td' => 'align="left"', 'text' => 'A traiter');
-        $this->info_box_contents[0][3] = array('td' => 'align="right"', 'text' => 'Montant');
+        $this->info_box_contents[0][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsIndicator'));
+        $this->info_box_contents[0][1] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsNumber'));
+        $this->info_box_contents[0][2] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsNumberTodo'));
+        $this->info_box_contents[0][3] = array('td' => 'align="right"', 'text' => $langs->trans('BoxIndicatorsAmount'));
 
         // Dossiers internes en relocation
 
-        $this->info_box_contents[1][0] = array('td' => 'align="left"', 'text' => 'Dossiers internes en relocation');
+        $this->info_box_contents[1][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsInternalFilesRelocation'));
 
         $sql = 'SELECT COUNT(*) as number, SUM(IF(dfc.relocOK = "OUI", 0, 1)) as number_todo, ROUND(100*SUM(dfc.encours_reloc))/100 as encours_reloc
 				FROM '.MAIN_DB_PREFIX.'fin_dossier d
