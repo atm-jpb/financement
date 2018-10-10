@@ -1592,7 +1592,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			,'messageNothing'=>"Il n'y a aucun dossier à afficher"
 			,'order_down'=>img_picto('','1downarrow.png', '', 0)
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
-			,'display_montant' => (in_array($conf->entity,array(6,13,14))) ? 0 : 1
+			,'display_montant' => (in_array($conf->entity,array(6,12,13,14,15))) ? 0 : 1
 			,'display_retraitcopie' => $display_retrait_copie
 		)
 	));
