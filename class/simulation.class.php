@@ -446,7 +446,7 @@ class TSimulation extends TObjetStd {
 		    foreach ($this->TSimulationSuivi as $suivi) {
 			$TSuivi[$suivi->getId()] = $suivi;
 		        if ($suivi->date_historization <= 0) {
-		            if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
+		            if($suivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
 		                $this->modifiable = 2;
 		            }
 		        }
