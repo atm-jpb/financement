@@ -92,7 +92,7 @@ class financement_indicateurs_box extends ModeleBoxes
 				FROM '.MAIN_DB_PREFIX.'fin_dossier d
 				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (d.rowid = da.fk_fin_dossier)
 				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)
-				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement dfc ON (dfc.fk_fin_dossier = d.rowid AND dfc.type="CLIENT")
+				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement dfc ON (dfc.fk_fin_dossier = d.rowid AND dfc.type = "CLIENT")
 				WHERE a.entity IN ('.getEntity('fin_dossier', true).')
 				AND dfc.reloc = "OUI"
 				AND a.nature_financement = "INTERNE"';
@@ -118,6 +118,45 @@ class financement_indicateurs_box extends ModeleBoxes
         );
         
         $this->info_box_contents[1][3] = array(
+        	'td' => 'align="right"'
+        	, 'text' => price($obj->encours_reloc)
+        );
+
+
+        // Dossiers externes en relocation
+
+        $this->info_box_contents[2][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsExternalFilesRelocation'));
+
+        $sql = 'SELECT COUNT(*) as number, SUM(IF(dfl.relocOK = "OUI", 0, 1)) as number_todo, ROUND(100*SUM(dfl.encours_reloc))/100 as encours_reloc
+				FROM '.MAIN_DB_PREFIX.'fin_dossier d
+				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (d.rowid = da.fk_fin_dossier)
+				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)
+				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement dfl ON (dfl.fk_fin_dossier = d.rowid AND dfl.type = "LEASER")
+				WHERE a.entity IN ('.getEntity('fin_dossier', true).')
+				AND dfl.reloc = "OUI"
+				AND a.nature_financement = "EXTERNE"';
+
+        $resql = $PDOdb->Execute($sql);
+
+        if(! $resql)
+        {
+        	return;
+        }
+
+        $obj = $PDOdb->Get_line();
+
+        $this->info_box_contents[2][1] = array(
+        	'td' => 'align="left"'
+        	, 'text' => $obj->number
+        	, 'url' => dol_buildpath('/financement/dossier.php', 1) . '?reloc=1&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][nature_financement]=EXTERNE'
+        );
+
+        $this->info_box_contents[2][2] = array(
+        	'td' => 'align="left"'
+        	, 'text' => $obj->number_todo
+        );
+
+        $this->info_box_contents[2][3] = array(
         	'td' => 'align="right"'
         	, 'text' => price($obj->encours_reloc)
         );

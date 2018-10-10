@@ -432,7 +432,7 @@ function _liste(&$PDOdb, &$dossier) {
 	}
 
 	if(GETPOST('reloc')) {
-		$sql.= " AND fc.reloc = 'OUI'";
+		$sql.= " AND (fc.reloc = 'OUI' OR fl.reloc = 'OUI')";
 	}
 
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');

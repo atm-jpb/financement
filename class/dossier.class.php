@@ -365,6 +365,7 @@ class TFin_dossier extends TObjetStd {
 	}
 
 	function calculMontantRestantRelocation(TFin_financement &$financement) {
+		global $db, $conf;
 
 		$financement->encours_reloc = 0;
 
@@ -375,12 +376,27 @@ class TFin_dossier extends TObjetStd {
 			return;
 		}
 
+		$coeff = 1;
+
 		$TFactures = &$this->TFacture;
-		if($financement->type == 'LEASER') $TFactures = &$this->TFactureFournisseur;
+
+		if($financement->type == 'LEASER')
+		{			
+			$TFactures = &$this->TFactureFournisseur;
+
+			$leaser = new Societe($db);
+			$leaser->fetch($financement->fk_soc);
+			if(empty($leaser->array_options) && method_exists($leaser, 'fetch_optionals'))
+			{
+				$leaser->fetch_optionals();
+			}
+
+			$coeff = (empty($leaser->array_options['options_percent_relocation']) ? $leaser->array_options['options_percent_relocation'] : floatval($conf->global->FINANCEMENT_DEFAULT_EXTERNAL_RELOCATION_PERCENT) ) / 100;
+		}
 
 		if(empty($TFactures[$numLastEcheance - 1]))
 		{
-			$financement->encours_reloc = $financement->echeance;
+			$financement->encours_reloc = price2num($coeff * $financement->echeance, 'MT');
 		}
 
 /* Pour commencer, on ne regarde que si la dernière échéance est en retard. A décommenter pour un calcul complet de toutes les échéances en retard
@@ -388,7 +404,7 @@ class TFin_dossier extends TObjetStd {
 
 		for($i = $financement->duree; $i < $numLastEcheance; $i++) {
 			if(empty($TFactures[$i])) {
-				$somme += $financement->echeance;
+				$somme += $coeff * $financement->echeance;
 			}
 		}
 
