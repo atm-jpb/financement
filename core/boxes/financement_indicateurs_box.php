@@ -110,13 +110,13 @@ class financement_indicateurs_box extends ModeleBoxes
 
         $this->info_box_contents[1][1] = array(
         	'td' => 'align="left"'
-        	, 'text' => $obj->number
+        	, 'text' => '<span>' . $obj->number . '</span>' // H4cK @N0nYM0u$-style : si cette valeur est empty(), (ex. 0, '0', NULL), elle n'est pas affichée...
         	, 'url' => dol_buildpath('/financement/dossier.php', 1) . '?reloc=1&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][nature_financement]=INTERNE'
         );
 
         $this->info_box_contents[1][2] = array(
         	'td' => 'align="left"'
-        	, 'text' => $obj->number_todo
+        	, 'text' => '<span>' . $obj->number_todo . '</span>'
         );
         
         $this->info_box_contents[1][3] = array(
@@ -151,13 +151,13 @@ class financement_indicateurs_box extends ModeleBoxes
 
         $this->info_box_contents[2][1] = array(
         	'td' => 'align="left"'
-        	, 'text' => $obj->number
+        	, 'text' => '<span>' . $obj->number . '</span>'
         	, 'url' => dol_buildpath('/financement/dossier.php', 1) . '?reloc=1&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][nature_financement]=EXTERNE'
         );
 
         $this->info_box_contents[2][2] = array(
         	'td' => 'align="left"'
-        	, 'text' => $obj->number_todo
+        	, 'text' => '<span>' . $obj->number_todo . '</span>'
         );
 
         $this->info_box_contents[2][3] = array(
