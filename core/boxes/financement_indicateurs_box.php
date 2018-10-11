@@ -88,7 +88,9 @@ class financement_indicateurs_box extends ModeleBoxes
 
         $this->info_box_contents[1][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsInternalFilesRelocation'));
 
-        $sql = 'SELECT COUNT(*) as number, SUM(IF(dfc.relocOK = "OUI", 0, 1)) as number_todo, ROUND(100*SUM(dfc.encours_reloc))/100 as encours_reloc
+        $sql = 'SELECT COUNT(*) as number
+				, SUM( IF( dfc.relocOK = "OUI", 0, 1) ) as number_todo
+				, ROUND( 100 * SUM(dfc.encours_reloc) ) / 100 as encours_reloc
 				FROM '.MAIN_DB_PREFIX.'fin_dossier d
 				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (d.rowid = da.fk_fin_dossier)
 				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)
@@ -127,7 +129,9 @@ class financement_indicateurs_box extends ModeleBoxes
 
         $this->info_box_contents[2][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsExternalFilesRelocation'));
 
-        $sql = 'SELECT COUNT(*) as number, SUM(IF(dfl.relocOK = "OUI", 0, 1)) as number_todo, ROUND(100*SUM(dfl.encours_reloc))/100 as encours_reloc
+        $sql = 'SELECT COUNT(*) as number
+				, SUM( IF( dfl.relocOK = "OUI", 0, 1) ) as number_todo
+				, ROUND( 100 * SUM(dfl.encours_reloc) ) / 100 as encours_reloc
 				FROM '.MAIN_DB_PREFIX.'fin_dossier d
 				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (d.rowid = da.fk_fin_dossier)
 				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)
