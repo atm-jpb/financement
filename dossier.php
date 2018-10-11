@@ -814,6 +814,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			
 			,'assurance'=>$formRestricted->texte('', 'leaser[assurance]', $financementLeaser->assurance, 10,255,'','','à saisir')
 			,'loyer_intercalaire'=>$formRestricted->texte('', 'leaser[loyer_intercalaire]', $financementLeaser->loyer_intercalaire, 10,255,'','','à saisir')
+			,'intercalaireOK'=>$formRestricted->combo('', 'leaser[intercalaireOK]', $financementLeaser->TIntercalaireOK, $financementLeaser->intercalaireOK)
 			,'echeance'=>$formRestricted->texte('', 'leaser[echeance]', $financementLeaser->echeance, 10,255,'','','à saisir')
 			,'reste'=>$formRestricted->texte('', 'leaser[reste]', $financementLeaser->reste, 10,255,'','','à saisir')
 			,'montant_prestation'=>$formRestricted->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 10,255,'','','à saisir')
@@ -863,6 +864,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'assurance'=>$formRestricted->texte('', 'assurance', $financement->assurance, 10,255,'','','à saisir')
 			,'assurance_actualise' => $financement->assurance_actualise
 			,'loyer_intercalaire'=>$formRestricted->texte('', 'loyer_intercalaire', $financement->loyer_intercalaire, 10,255,'','','à saisir')
+			,'intercalaireOK'=>$formRestricted->combo('', 'intercalaireOK', $financement->TIntercalaireOK, $financement->intercalaireOK)
 			,'echeance'=>$formRestricted->texte('', 'echeance', $financement->echeance, 10,255,'','','à saisir')
 			,'loyer_actualise' => $financement->loyer_actualise
 			,'reste'=>$formRestricted->texte('', 'reste', $financement->reste, 10,255,'','','à saisir')
@@ -903,6 +905,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'montant'=>0
 				,'taux'=> 0
 				,'loyer_intercalaire'=> 0
+				, 'intercalaireOK' => ''
 				,'echeance'=> 0
 				,'reste'=> 0
 				,'montant_prestation'=>0

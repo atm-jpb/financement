@@ -164,6 +164,47 @@ class financement_indicateurs_box extends ModeleBoxes
         	'td' => 'align="right"'
         	, 'text' => price($obj->encours_reloc)
         );
+
+
+        // Loyers intercalaires des dossiers externes
+
+        $this->info_box_contents[3][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsExternalFilesIntercalaire'));
+
+        $sql = 'SELECT COUNT(*) as number
+				, SUM( IF(dfl.intercalaireOK = "NON", 1, 0) ) as number_todo
+				, ROUND( 100 * SUM( IF(dfl.intercalaireOK = "NON", dfl.loyer_intercalaire, 0) ) ) / 100 as loyers
+				FROM '.MAIN_DB_PREFIX.'fin_dossier d
+				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (d.rowid = da.fk_fin_dossier)
+				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)
+				LEFT OUTER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement dfl ON (dfl.fk_fin_dossier = d.rowid AND dfl.type = "LEASER")
+				WHERE a.entity IN ('.getEntity('fin_dossier', true).')
+				AND dfl.loyer_intercalaire > 0
+				AND a.nature_financement = "EXTERNE"';
+
+        $resql = $PDOdb->Execute($sql);
+
+        if(! $resql)
+        {
+        	return;
+        }
+
+        $obj = $PDOdb->Get_line();
+
+        $this->info_box_contents[3][1] = array(
+        		'td' => 'align="left"'
+        		, 'text' => '<span>' . $obj->number . '</span>'
+        		, 'url' => dol_buildpath('/financement/dossier.php', 1) . '?TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][nature_financement]=EXTERNE'
+        );
+
+        $this->info_box_contents[3][2] = array(
+        		'td' => 'align="left"'
+        		, 'text' => '<span>' . $obj->number_todo . '</span>'
+        );
+
+        $this->info_box_contents[3][3] = array(
+        		'td' => 'align="right"'
+        		, 'text' => price($obj->loyers)
+        );
     }
 
     /**

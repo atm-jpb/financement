@@ -2006,7 +2006,7 @@ class TFin_financement extends TObjetStd {
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
 		parent::add_champs('fk_soc,fk_fin_dossier','type=entier;index;');
-		parent::add_champs('okPourFacturation,transfert,reloc,relocOK','type=chaine;index;');
+		parent::add_champs('okPourFacturation,transfert,reloc,relocOK,intercalaireOK','type=chaine;index;');
 				
 		parent::start();
 		parent::_init_vars();
@@ -2087,6 +2087,12 @@ class TFin_financement extends TObjetStd {
 			,'NON'=>'Non'
 		);
 		$this->relocOK = 'OUI';
+
+		$this->TIntercalaireOK=array(
+				'OUI'=>'Oui'
+				,'NON'=>'Non'
+		);
+		$this->intercalaireOK = 'OUI';
 	}
 	/*
 	 * Définie la date de prochaine échéance et le numéro d'échéance en fonction de nb
