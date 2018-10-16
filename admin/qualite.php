@@ -54,7 +54,7 @@ if(! empty($action))
 						continue;
 					}
 
-					$rule = new TFin_QualityRule;
+					$rule = new TFin_DossierQualityRule;
 
 					$msgPrefix = 'Nouvelle règle';
 
@@ -120,7 +120,7 @@ if(! empty($action))
 
 			if($id > 0)
 			{
-				$rule = new TFin_QualityRule;
+				$rule = new TFin_DossierQualityRule;
 				$rule->load($PDOdb, $id);
 				$rule->delete($PDOdb);
 
@@ -152,7 +152,7 @@ dol_fiche_head($head, 'quality', $langs->trans("Financement"), 0, 'financementic
 $formCore = new TFormCore($_SERVER['PHP_SELF'], 'editQualityControl', 'POST');
 
 
-$rulesStatic = new TFin_QualityRule;
+$rulesStatic = new TFin_DossierQualityRule;
 
 $TRules = $rulesStatic->LoadAllBy($PDOdb);
 $TRulesForm = array();
@@ -166,6 +166,7 @@ foreach($TRules as $id => $rule)
 		'id' => $id
 		, 'name' => $formCore->texte('', 'TRules[' . $id . '][name]', $name, 64, 0, 'style="width:95%"')
 		, 'sql_filter' => $formCore->texte('', 'TRules[' . $id . '][sql_filter]', $sql_filter, 255, 0, 'style="width:99%"')
+		, 'nbDossiers' => $rule->getNbDossiersSelectable($PDOdb)
 		, 'action' =>  '<a href="' . dol_buildpath('/financement/admin/qualite.php', 1) . '?action=deleteline&lineid=' . $id . '">' . img_delete() . '</a>'
 	);
 }
@@ -177,6 +178,7 @@ $TRulesForm[-1] = array(
 	'id' => $langs->trans('New')
 	, 'name' => $formCore->texte('', 'TRules[-1][name]', $newRuleName, 64, 0, 'style="width:95%"')
 	, 'sql_filter' => $formCore->texte('', 'TRules[-1][sql_filter]', $newRuleSQLFilter, 255, 0, 'style="width:99%"')
+	, 'nbDossiers' => ''
 	, 'action' => '<button type="submit" name="action" value="save">' . $langs->trans('Save') . '</button>' // Impossible à faire avec le TFormCore...
 );
 

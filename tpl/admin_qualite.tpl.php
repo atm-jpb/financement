@@ -3,6 +3,7 @@
 		<td>ID</td>
 		<td>Nom</td>
 		<td>[sqlFilterLabelWithTooltip; strconv=no]</td>
+		<td>Nombre de dossiers</td>
 		<td>&nbsp;</td>
 	</tr>
 
@@ -10,6 +11,7 @@
 		<td>[TRules.id; block=tr; strconv=no]</td>
 		<td>[TRules.name; strconv=no]</td>
 		<td>[TRules.sql_filter; strconv=no]
+		<td>[TRules.nbDossiers; strconv=no]
 		<td class="right">[TRules.action; strconv=no]</td>
 	</tr>
 </table>
