@@ -273,3 +273,9 @@ BoxIndicatorsAmount=Montant
 BoxIndicatorsInternalFilesRelocation=Dossiers internes en relocation
 BoxIndicatorsExternalFilesRelocation=Dossiers externes en relocation
 BoxIndicatorsExternalFilesIntercalaire=Dossiers externes avec loyer intercalaire
+
+#Contrôle qualité
+QualityControl=Contrôle qualité
+QualityControlRules=Règles du contrôle qualité
+QualityControlSQLTooltip=Liste des tables SQL disponibles :<table><tr><td>d</td><td>Dossier</td></tr><tr><td>a</td><td>Affaire</td></tr><tr><td>dfc</td><td>Financement client</td></tr><tr><td>dfl</td><td>Financement leaser</td></tr></table>
+
