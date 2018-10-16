@@ -21,7 +21,27 @@ class TFin_DossierQualityRule extends TObjetStd
 	}
 
 
-	public function getNbDossiersSelectable(TPDOdb &$PDOdb)
+	public function getAllDossiersSelectable(&$PDOdb)
+	{
+		$resql = $PDOdb->Execute('SELECT d.rowid ' . $this->getCompleteSQLFilter() . ' GROUP BY d.rowid');
+
+		if($resql === false)
+		{
+			return false;
+		}
+
+		$TIDDossiers = array();
+
+		while($result = $PDOdb->Get_line())
+		{
+			$TIDDossiers[] = intval($result->rowid);
+		}
+
+		return $TIDDossiers;
+	}
+
+
+	public function getNbDossiersSelectable(&$PDOdb)
 	{
 		$resql = $PDOdb->Execute('SELECT COUNT(DISTINCT d.rowid) AS count ' . $this->getCompleteSQLFilter());
 
@@ -56,7 +76,7 @@ class TFin_DossierQualityRule extends TObjetStd
 
 class TFin_DossierQualityTest extends TObjetStd
 {
-	public $fk_fin_quality_rule;
+	public $fk_fin_dossier_quality_rule;
 	public $quality_rule;
 	public $fk_fin_dossier;
 	public $dossier;
@@ -78,8 +98,13 @@ class TFin_DossierQualityTest extends TObjetStd
 
 		$this->add_champs('fk_fin_dossier_quality_rule', array('type' => 'int', 'index' => true));
 		$this->add_champs('fk_fin_dossier', array('type' => 'int'));
+		$this->add_champs('date_test', array('type' => 'date'));
 		$this->add_champs('result', array('type' => 'string', 'index' => true, 'default' => 'TODO'));
+		$this->add_champs('comment', array('type' => 'text'));
 		$this->add_champs('fk_user_tester', array('type' => 'int'));
+
+		$this->result = 'TODO';
+		$this->comment = '';
 	}
 
 
@@ -105,7 +130,7 @@ class TFin_DossierQualityTest extends TObjetStd
 			return false;
 		}
 
-		$quality_rule = new TFin_QualityRule;
+		$quality_rule = new TFin_DossierQualityRule;
 		$ruleLoaded = $quality_rule->load($PDOdb, $this->fk_fin_dossier_quality_rule);
 
 		if($ruleLoaded)
@@ -155,6 +180,36 @@ class TFin_DossierQualityTest extends TObjetStd
 		}
 
 		return $userLoaded;
+	}
+
+
+	public function save(&$PDOdb)
+	{
+		if(empty($this->rowid))
+		{
+			if(empty($this->date_test))
+			{
+				$this->date_test = time();
+			}
+
+			if(! empty($this->fk_fin_dossier_quality_rule) && empty($this->fk_fin_dossier))
+			{
+				if(empty($this->quality_rule))
+				{
+					$this->loadRule($PDOdb);
+				}
+
+				$TIDDossiers = $this->quality_rule->getAllDossiersSelectable($PDOdb);
+
+				if(! empty($TIDDossiers))
+				{
+					$randomIndex = mt_rand(0, count($TIDDossiers) - 1);
+					$this->fk_fin_dossier = $TIDDossiers[$randomIndex];
+				}
+			}
+		}
+
+		parent::save($PDOdb);
 	}
 }
 
