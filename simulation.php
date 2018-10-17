@@ -1091,6 +1091,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$simuArray['opt_mode_reglement'] = $form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement).(!empty($simulation->modifs['opt_mode_reglement']) ? ' (Ancienne valeur : '.$financement->TReglement[$simulation->modifs['opt_mode_reglement']].')' : '');
 		$simuArray['opt_terme'] = $form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme).(!empty($simulation->modifs['opt_terme']) ? ' (Ancienne valeur : '.$financement->TTerme[$simulation->modifs['opt_terme']].')' : '');
 		$simuArray['coeff'] = $form->texteRO('', 'coeff', $coeff, 6).(!empty($simulation->modifs['coeff']) ? ' (Ancienne valeur : '.$simulation->modifs['coeff'].')' : '');
+		if(in_array($conf->entity, array(13,14))) { // BCMP, PERRET ont droit de modifier le calage
+			$simuArray['date_demarrage'] = $form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12);
+			$simuArray['opt_calage_label'] = $form->combo('', 'opt_calage_label', $TOptCalageLabel, $simulation->opt_calage, 0, '', TFinancementTools::user_courant_est_admin_financement() ? '' : 'disabled');
+			$simuArray['opt_calage'] = $form->hidden('opt_calage', $simulation->opt_calage);
+		}
 	}
 	
 	if(TFinancementTools::user_courant_est_admin_financement()) {
