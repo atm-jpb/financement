@@ -15,7 +15,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('montant_accord','type=float;'); // Sert à stocker le montant pour lequel l'accord a été donné
 		parent::add_champs('fk_categorie_bien,fk_nature_bien', array('type'=>'integer'));
 		parent::add_champs('pct_vr,mt_vr', array('type'=>'float'));
-		parent::add_champs('fk_fin_dossier', array('type'=>'integer'));
+		parent::add_champs('fk_fin_dossier,fk_fin_dossier_adjonction', array('type'=>'integer'));
 		
 		parent::start();
 		parent::_init_vars();
@@ -309,7 +309,7 @@ class TSimulation extends TObjetStd {
 			$this->TSimulationSuivi[$simulationSuivi->getId()] = $simulationSuivi;
 		}
 		
-		// TODO à voir si on y fait appel dans 100% des cas
+		// Une fois la grille constituée, on calcule l'aiguillage pour mettre dans le bon ordre
 		$this->calculAiguillageSuivi($PDOdb);
 	}
 	
@@ -437,7 +437,7 @@ class TSimulation extends TObjetStd {
 		    foreach ($this->TSimulationSuivi as $suivi) {
 			$TSuivi[$suivi->getId()] = $suivi;
 		        if ($suivi->date_historization <= 0) {
-		            if($simulationSuivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
+		            if($suivi->statut_demande > 0 && empty($user->rights->financement->admin->write)) {
 		                $this->modifiable = 2;
 		            }
 		        }
@@ -481,8 +481,8 @@ class TSimulation extends TObjetStd {
 
 		}
 
-		if (!empty($this->TSimulationSuivi)) uasort($this->TSimulationSuivi, array($this, 'aiguillageSuivi'));
-		if (!empty($this->TSimulationSuiviHistorized)) uasort($this->TSimulationSuiviHistorized, array($this, 'aiguillageSuivi'));
+		if (!empty($this->TSimulationSuivi)) uasort($this->TSimulationSuivi, array($this, 'aiguillageSuiviRang'));
+		if (!empty($this->TSimulationSuiviHistorized)) uasort($this->TSimulationSuiviHistorized, array($this, 'aiguillageSuiviRang'));
 	}
 	
 	//Retourne l'identifiant leaser prioritaire en fonction de la grille d'administration
@@ -790,6 +790,10 @@ class TSimulation extends TObjetStd {
 		}
 		else if($this->montant_presta_trim <= 0 && $this->fk_type_contrat == "FORFAITGLOBAL" && !empty($conf->global->FINANCEMENT_MONTANT_PRESTATION_OBLIGATOIRE)) {
 			$this->error = 'ErrorMontantTrimRequired';
+			return false;
+		}
+		else if(!empty($this->opt_adjonction) && $this->fk_fin_dossier_adjonction <= 0) { // Dossier obligatoire si cochage adjonction
+			$this->error = 'ErrorDossierAdjonctionRequired';
 			return false;
 		}
 		
@@ -1685,6 +1689,20 @@ class TSimulation extends TObjetStd {
 		else if ($a->renta_percent > $b->renta_percent) return -1;
 		else return 0;
 	}
+	
+	/**
+	 * Called from uasort
+	 * 
+	 * @param type $a
+	 * @param type $b
+	 * @return int
+	 */
+	public function aiguillageSuiviRang($a, $b)
+	{
+		if ($a->rang < $b->rang) return -1;
+		else if ($a->rang > $b->rang) return 1;
+		else return 0;
+	}
 
 	public function calculAiguillageSuivi(&$PDOdb, $force_calcul=false)
 	{
@@ -1707,6 +1725,15 @@ class TSimulation extends TObjetStd {
 		}
 		
 		if (empty($conf->global->FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI)) return 0;
+		
+		// Adjonction : leaser du dossier concerné est à mettre en 1er dans le suivi
+		$this->fk_leaser_adjonction = 0;
+		if(!empty($this->fk_fin_dossier_adjonction)) {
+			$doss = new TFin_dossier();
+			$doss->load($PDOdb, $this->fk_fin_dossier_adjonction, false, false);
+			$doss->load_financement($PDOdb);
+			$this->fk_leaser_adjonction = $doss->financementLeaser->fk_soc;
+		}
 		
 		$TMethod = explode(',', $conf->global->FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI);
 
@@ -1751,16 +1778,22 @@ class TSimulation extends TObjetStd {
 
 		// Update du rang pour priorisation
 		$i=0;
+		$suiviAutoLaunch = 0;
 		foreach ($this->TSimulationSuivi as &$suivi)
 		{
-			// Lancement de la demande automatique via EDI pour le premier leaser de la liste
-			if($i == 0 && empty($this->no_auto_edi) && in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP','CMCIC'))) {
-				$suivi->doAction($PDOdb, $this, 'demander');
-			}
-			
 			$suivi->rang = $i;
+			if($i == 0) $suiviAutoLaunch = $suivi;
+			if($suivi->fk_leaser == $this->fk_leaser_adjonction) {
+				$suivi->rang = -1; // Priorité au leaser concerné par l'adjonction
+				$suiviAutoLaunch = $suivi;
+			}
 			$suivi->save($PDOdb);
 			$i++;
+		}
+		
+		// Lancement de la demande automatique via EDI pour le premier leaser de la liste
+		if(!empty($suiviAutoLaunch) && empty($this->no_auto_edi) && in_array($suiviAutoLaunch->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP','CMCIC'))) {
+			$suiviAutoLaunch->doAction($PDOdb, $this, 'demander');
 		}
 		
 		// On remet la conf d'origine
@@ -2114,6 +2147,21 @@ class TSimulation extends TObjetStd {
 		// Pas d'appel auto aux EDI sur un clone
 		$this->no_auto_edi = true;
 	}
+
+	function hasOtherSimulationRefused(&$PDOdb) {
+		$sql = "SELECT rowid ";
+		$sql.= "FROM ".MAIN_DB_PREFIX."fin_simulation s ";
+		$sql.= "WHERE s.fk_soc = ".$this->fk_soc." ";
+		$sql.= "AND s.rowid != ".$this->getId()." ";
+		$sql.= "AND s.accord = 'KO' ";
+		$sql.= "AND s.date_simul > '".date('Y-m-d',strtotime('-6 month'))."' ";
+		
+		$TRes = $PDOdb->ExecuteAsArray($sql);
+		
+		if(count($TRes) > 0) return true;
+		
+		return false;
+	}
 }
 
 
@@ -2167,7 +2215,7 @@ class TSimulationSuivi extends TObjetStd {
 		if (!empty($this->TCoefLine[$amount])) return $this->TCoefLine[$amount];
 		
 		$grille = new TFin_grille_leaser;
-		$grille->get_grille($PDOdb, $this->fk_leaser, $fk_type_contrat,'TRIMESTRE',array(),1);
+		$grille->get_grille($PDOdb, $this->fk_leaser, $fk_type_contrat,'TRIMESTRE',array(),17);
 		
 		$fin_temp = new TFin_financement;
 		$fin_temp->periodicite = $periodicite;
@@ -2380,7 +2428,7 @@ class TSimulationSuivi extends TObjetStd {
 		// Sera activé lorsqu'un 2e leaser sera en EDI
 		
 		$found = false;
-		foreach ($this->simulation->TSimulationSuivi as $id_suivi => $suivi) {
+		foreach ($simulation->TSimulationSuivi as $id_suivi => $suivi) {
 			if($found && empty($suivi->statut)) {
 				// [PH] TODO ajouter ici les noms de leaser pour déclancher en automatique l'appel
 				if(in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP','CMCIC'))) {

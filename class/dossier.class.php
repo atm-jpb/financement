@@ -766,6 +766,7 @@ class TFin_dossier extends TObjetStd {
 		global $conf;
 		$solde = 0;
 		$capeLRD = true;
+		if(in_array($this->entity, array(12,15))) $capeLRD = false;
 		
 		if ($nature_financement == 'EXTERNE')
 		{
@@ -858,6 +859,7 @@ class TFin_dossier extends TObjetStd {
 		global $conf;
 		$solde = 0;
 		$capeLRD = true;
+		if(in_array($this->entity, array(12,15))) $capeLRD = false;
 		
 		if ($nature_financement == 'EXTERNE')
 		{
@@ -1909,6 +1911,54 @@ class TFin_dossier extends TObjetStd {
 		foreach($confsolde as $p => $rule) {
 			if($periode >= $p) return $rule;
 		}
+	}
+	
+	/**
+	 * Liste des dossier clients en cours pour choix dans la simulation lors d'une demande d'adjonction
+	 */
+	static function getListeDossierClient(&$PDOdb, $fk_soc, $siren, $open=true) {
+		global $conf;
+		
+		$sql = "SELECT d.rowid, dfcli.reference as refcli, dflea.reference as reflea, a.contrat";
+		$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (da.fk_fin_affaire = a.rowid)";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dfcli.fk_fin_dossier = d.rowid AND dfcli.type = 'CLIENT')";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type = 'LEASER')";
+		$sql.= " WHERE 1";
+		$sql.= " AND (dfcli.reference IS NULL OR dfcli.reference NOT LIKE '%ADJ%')";
+		$sql.= " AND (dfcli.date_solde <= '1970-00-00 00:00:00' OR dfcli.date_solde IS NULL)";
+		$sql.= " AND (dflea.date_solde <= '1970-00-00 00:00:00' OR dflea.date_solde IS NULL)";
+		$sql.= " AND (a.fk_soc = ".$fk_soc;
+		
+		$sql.= " OR a.fk_soc IN
+					(
+						SELECT s.rowid 
+						FROM ".MAIN_DB_PREFIX."societe as s
+							LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
+						WHERE
+						(
+							s.siren = '".$siren."'
+							AND s.siren != ''
+						) 
+						OR
+						(
+							se.other_siren LIKE '%".$siren."%'
+							AND se.other_siren != ''
+						)
+					)";
+		$sql.=")";
+		
+		$TRes = $PDOdb->ExecuteAsArray($sql);
+		$TDoss = array();
+		foreach ($TRes as $obj) {
+			$ref = (!empty($obj->refcli)) ? $obj->refcli : $obj->reflea;
+			$TDoss[$obj->rowid] = array('label' => $ref, 'type_contrat' => $obj->contrat);
+		}
+		
+		asort($TDoss);
+		
+		return $TDoss;
 	}
 }
 

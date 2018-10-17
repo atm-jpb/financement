@@ -359,6 +359,8 @@ if(!empty($action)) {
 					$simulation->create_suivi_simulation($ATMdb);
 				}
 				
+				$simulation->calculAiguillageSuivi($ATMdb,true);
+				
 				// Si le leaser préconisé est renseigné, on enregistre le montant pour le figer (+- 10%)
 				if(empty($simulation->montant_accord) && $simulation->fk_leaser > 0) {
 					$simulation->montant_accord = $simulation->montant_total_finance;
@@ -999,6 +1001,9 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$display_retrait_copie = 1;
 	}
 	
+	// Récupération des dossiers en cours pour sélection si adjonction
+	$selectDossierAdjonction = TFin_dossier::getListeDossierClient($ATMdb, $simulation->fk_soc, $simulation->societe->idprof1);
+	
 	$simuArray = array(
 		'titre_simul'=>load_fiche_titre($langs->trans("CustomerInfo"),'','object_company.png')
 		,'titre_calcul'=>load_fiche_titre($langs->trans("Simulator"),'','object_simul.png@financement')
@@ -1013,7 +1018,9 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 
 	    ,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat).(!empty($simulation->modifs['fk_type_contrat']) ? ' (Ancienne valeur : '.$affaire->TContrat[$simulation->modifs['fk_type_contrat']].')' : '')
 		,'opt_administration'=>$form->checkbox1('', 'opt_administration', 1, $simulation->opt_administration) 
-		,'opt_adjonction'=>$form->checkbox1('', 'opt_adjonction', 1, $simulation->opt_adjonction) 
+		,'opt_adjonction'=>$form->checkbox1('', 'opt_adjonction', 1, $simulation->opt_adjonction)
+		,'fk_fin_dossier_adjonction'=>empty($selectDossierAdjonction) ? '' : $form->combo('', 'fk_fin_dossier_adjonction', $selectDossierAdjonction, $simulation->fk_fin_dossier_adjonction,1,'','','flat','','false',1)
+		,'adjonction_ok'=>!empty($selectDossierAdjonction) ? 1 : 0
 	    ,'opt_periodicite'=>$form->combo('', 'opt_periodicite', $financement->TPeriodicite, $simulation->opt_periodicite) .(!empty($simulation->modifs['opt_periodicite']) ? ' (Ancienne valeur : '.$financement->TPeriodicite[$simulation->modifs['opt_periodicite']].')' : '')
 		//,'opt_creditbail'=>$form->checkbox1('', 'opt_creditbail', 1, $simulation->opt_creditbail)
 	    ,'opt_mode_reglement'=>$form->combo('', 'opt_mode_reglement', $financement->TReglement, $simulation->opt_mode_reglement) .(!empty($simulation->modifs['opt_mode_reglement']) ? ' (Ancienne valeur : '.$financement->TReglement[$simulation->modifs['opt_mode_reglement']].')' : '')
@@ -1145,6 +1152,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	if($user->rights->financement->allsimul->suivi_leaser){
 		_fiche_suivi($ATMdb, $simulation, $mode);
+	}
+	
+	$refus_moins_6mois = $simulation->hasOtherSimulationRefused($ATMdb);
+	if($refus_moins_6mois) {
+		setEventMessage('Ce client a eu une demande de fi refusée il y a moins de 6 mois', 'warnings');
 	}
 	
 	global $mesg, $error;
@@ -1580,7 +1592,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			,'messageNothing'=>"Il n'y a aucun dossier à afficher"
 			,'order_down'=>img_picto('','1downarrow.png', '', 0)
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
-			,'display_montant' => (in_array($conf->entity,array(6,13,14))) ? 0 : 1
+			,'display_montant' => (in_array($conf->entity,array(6,12,13,14,15))) ? 0 : 1
 			,'display_retraitcopie' => $display_retrait_copie
 		)
 	));
