@@ -1775,6 +1775,8 @@ class TSimulation extends TObjetStd {
 		}
 
 		uasort($this->TSimulationSuivi, array($this, 'aiguillageSuivi'));
+		
+		$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
 
 		// Update du rang pour priorisation
 		$i=0;
@@ -1784,6 +1786,10 @@ class TSimulation extends TObjetStd {
 			$suivi->rang = $i;
 			if($i == 0) $suiviAutoLaunch = $suivi;
 			if($suivi->fk_leaser == $this->fk_leaser_adjonction) {
+				$suivi->rang = -1; // Priorité au leaser concerné par l'adjonction
+				$suiviAutoLaunch = $suivi;
+			}
+			if($suivi->fk_leaser == $idLeaserDossierSolde && $suivi->leaser->array_options['options_prio_solde'] == 1) {
 				$suivi->rang = -1; // Priorité au leaser concerné par l'adjonction
 				$suiviAutoLaunch = $suivi;
 			}
