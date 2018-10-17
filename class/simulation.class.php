@@ -573,7 +573,7 @@ class TSimulation extends TObjetStd {
 	}
 	
 	//Vérification si solde dossier sélectionné pour cette simulation : si oui on récupère le leaser associé
-	function getIdLeaserDossierSolde(&$PDOdb){
+	function getIdLeaserDossierSolde(&$PDOdb, $cat=false){
 		
 		$idLeaserDossierSolde = $montantDossierSolde = 0;
 		$TDossierUsed = array_merge(
@@ -595,6 +595,11 @@ class TSimulation extends TObjetStd {
 					$montantDossierSolde = $data['montant'];
 				}
 			}
+		}
+		
+		if($idLeaserDossierSolde > 0 && $cat) {
+			global $db;
+			return $this->getTCatLeaserFromLeaserId($idLeaserDossierSolde);
 		}
 		
 		return $idLeaserDossierSolde;
@@ -1740,6 +1745,9 @@ class TSimulation extends TObjetStd {
 		$min_turn_over = null;
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
+			// On ne s'occupe pas des suivis historisés
+			if($suivi->date_historization > 0) continue;
+			
 			if($force_calcul) {
 				$suivi->surfact = 0;
 				$suivi->surfactplus = 0;
@@ -1761,6 +1769,9 @@ class TSimulation extends TObjetStd {
 		
 		foreach ($this->TSimulationSuivi as $fk_suivi => &$suivi)
 		{
+			// On ne s'occupe pas des suivis historisés
+			if($suivi->date_historization > 0) continue;
+			
 			$suivi->renta_amount = $suivi->surfact + $suivi->surfactplus + $suivi->commission + $suivi->intercalaire + $suivi->diff_solde + $suivi->prime_volume;
 			if($suivi->turn_over > 0) {
 				$diffTurnOver = round($min_turn_over - $suivi->turn_over, 2);
@@ -1775,17 +1786,31 @@ class TSimulation extends TObjetStd {
 		}
 
 		uasort($this->TSimulationSuivi, array($this, 'aiguillageSuivi'));
+		
+		//$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
+		$catLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb,true);
 
 		// Update du rang pour priorisation
 		$i=0;
 		$suiviAutoLaunch = 0;
 		foreach ($this->TSimulationSuivi as &$suivi)
 		{
+			// On ne s'occupe pas des suivis historisés
+			if($suivi->date_historization > 0) continue;
+			
 			$suivi->rang = $i;
 			if($i == 0) $suiviAutoLaunch = $suivi;
 			if($suivi->fk_leaser == $this->fk_leaser_adjonction) {
 				$suivi->rang = -1; // Priorité au leaser concerné par l'adjonction
 				$suiviAutoLaunch = $suivi;
+			}
+			if($suivi->leaser->array_options['options_prio_solde'] == 1 && !empty($catLeaserDossierSolde)) {
+				$catLeaserSuivi = $this->getTCatLeaserFromLeaserId($suivi->fk_leaser);
+				$intersect = array_intersect(array_keys($catLeaserDossierSolde), array_keys($catLeaserSuivi));
+				if(!empty($intersect)) {
+					$suivi->rang = -1; // Priorité au leaser concerné par le solde
+					$suiviAutoLaunch = $suivi;
+				}
 			}
 			$suivi->save($PDOdb);
 			$i++;
