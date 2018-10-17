@@ -2434,7 +2434,7 @@ class TSimulationSuivi extends TObjetStd {
 		// Sera activé lorsqu'un 2e leaser sera en EDI
 		
 		$found = false;
-		foreach ($this->simulation->TSimulationSuivi as $id_suivi => $suivi) {
+		foreach ($simulation->TSimulationSuivi as $id_suivi => $suivi) {
 			if($found && empty($suivi->statut)) {
 				// [PH] TODO ajouter ici les noms de leaser pour déclancher en automatique l'appel
 				if(in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP','CMCIC'))) {
