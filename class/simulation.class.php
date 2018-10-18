@@ -3000,14 +3000,13 @@ class TSimulationSuivi extends TObjetStd {
 		if($suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser || $suiviDemande->numeroDemandeDefinitif == $this->numero_accord_leaser){
 			$this->statut = $TCodeStatut[$suiviDemande->etat->codeStatutDemande];
 			$this->commentaire = $suiviDemande->etat->libelleStatutDemande;
+			if(!empty($suiviDemande->numeroDemandeDefinitif)) $this->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
 			switch ($this->statut) {
 				case 'OK':
-					$this->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
 					$this->coeff_leaser = ($suiviDemande->financement->montantLoyerPrincial / $suiviDemande->financement->montantFinance) * 100;
 					$this->doActionAccepter($PDOdb,$simulation);
 					break;
 				case 'KO':
-					$this->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
 					$this->doActionRefuser($PDOdb,$simulation);
 					break;
 				default:
