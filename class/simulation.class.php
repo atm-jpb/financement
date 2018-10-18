@@ -2997,7 +2997,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$suiviDemande = $TreponseSuivisDemandes->rapportSuivi->suiviDemande;
 		
-		if($suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser){
+		if($suiviDemande->numeroDemandeProvisoire == $this->numero_accord_leaser || $suiviDemande->numeroDemandeDefinitif == $this->numero_accord_leaser){
 			$this->statut = $TCodeStatut[$suiviDemande->etat->codeStatutDemande];
 			$this->commentaire = $suiviDemande->etat->libelleStatutDemande;
 			switch ($this->statut) {
@@ -3240,10 +3240,12 @@ class TSimulationSuivi extends TObjetStd {
 
 		$TData['prescripteur'] = $TPrescripteur;
 		
+		$numDdeKey = (substr($num_accord_leaser,0,3) == '000') ? 'numeroDemandeProvisoire' : 'numeroDemandeDefinitif';
+		
 		//Tableau Numéro demande
 		$TNumerosDemande = array(
 			'numeroIdentifiantDemande' => array(
-				'numeroDemandeProvisoire' => $num_accord_leaser
+				$numDdeKey => $num_accord_leaser
 			)
 		);
 		
