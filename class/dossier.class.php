@@ -391,7 +391,7 @@ class TFin_dossier extends TObjetStd {
 				$leaser->fetch_optionals();
 			}
 
-			$coeff = (empty($leaser->array_options['options_percent_relocation']) ? $leaser->array_options['options_percent_relocation'] : floatval($conf->global->FINANCEMENT_DEFAULT_EXTERNAL_RELOCATION_PERCENT) ) / 100;
+			$coeff = (! empty($leaser->array_options['options_percent_relocation']) ? $leaser->array_options['options_percent_relocation'] : floatval($conf->global->FINANCEMENT_DEFAULT_EXTERNAL_RELOCATION_PERCENT) ) / 100;
 		}
 
 		if(empty($TFactures[$numLastEcheance - 1]))
