@@ -371,6 +371,14 @@ class TFin_dossier extends TObjetStd {
 
 		$numLastEcheance = $financement->numero_prochaine_echeance - 1;
 
+		if(! empty($financement->date_solde))
+		{
+			$financement->reloc = 'NON';
+			$financement->relocOK = 'OUI';
+
+			return;
+		}
+
 		if($financement->relocOK == 'OUI' || $financement->duree <= 0 || $numLastEcheance < $financement->duree)
 		{
 			return;
