@@ -19,7 +19,28 @@ $TRules = $ruleStatic->LoadAllBy($PDOdb);
 foreach($TRules as &$rule)
 {
 	$test = new TFin_DossierQualityTest;
-	$test->fk_fin_dossier_quality_rule = $rule->getId();
-	$test->save($PDOdb);
+
+	$sql = 'SELECT COUNT(*) as count
+			FROM ' . $test->get_table() . '
+			WHERE fk_fin_dossier_quality_rule = ' . $rule->getId() . '
+			AND DATE_FORMAT(DATE_ADD(date_cre, INTERVAL ' . $rule->frequency_days . ' DAY), "%Y-%m-%d") > DATE_FORMAT(NOW(), "%Y-%m-%d")';
+
+	$PDOdb->Execute($sql);
+
+	$result = $PDOdb->Get_line();
+	$count = intval($result->count);
+
+	// Si on trouve des tests, l'intervalle entre deux séries de tests de la règle courante n'est pas écoulé => on passe
+	if($count > 0)
+	{
+		continue;
+	}
+
+	for($i = 0; $i < $rule->nb_tests; $i++)
+	{
+		$test = new TFin_DossierQualityTest;
+		$test->fk_fin_dossier_quality_rule = $rule->getId();
+		$test->save($PDOdb);
+	}
 }
 

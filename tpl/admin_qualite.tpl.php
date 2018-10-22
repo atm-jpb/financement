@@ -3,15 +3,19 @@
 		<td>ID</td>
 		<td>Nom</td>
 		<td>[sqlFilterLabelWithTooltip; strconv=no]</td>
-		<td>Nombre de dossiers</td>
+		<td>Fréquence</td>
+		<td>Éléments à tester</td>
+		<td>Éléments concernés</td>
 		<td>&nbsp;</td>
 	</tr>
 
 	<tr>
 		<td>[TRules.id; block=tr; strconv=no]</td>
 		<td>[TRules.name; strconv=no]</td>
-		<td>[TRules.sql_filter; strconv=no]
-		<td>[TRules.nbDossiers; strconv=no]
+		<td>[TRules.sql_filter; strconv=no]</td>
+		<td>[TRules.frequency_days; strconv=no] jours</td>
+		<td>[TRules.nb_tests; strconv=no]</td>
+		<td>[TRules.nbDossiers; strconv=no]</td>
 		<td class="right">[TRules.action; strconv=no]</td>
 	</tr>
 </table>

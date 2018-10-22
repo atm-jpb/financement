@@ -161,11 +161,15 @@ foreach($TRules as $id => $rule)
 {
 	$name = ! empty($_POST['TRules'][$id]['name']) ? $_POST['TRules'][$id]['name'] : $rule->name;
 	$sql_filter = ! empty($_POST['TRules'][$id]['sql_filter']) ? $_POST['TRules'][$id]['sql_filter'] : $rule->sql_filter;
+	$frequency_days = ! empty($_POST['TRules'][$id]['frequency_days']) ? $_POST['TRules'][$id]['frequency_days'] : $rule->frequency_days;
+	$nb_tests = ! empty($_POST['TRules'][$id]['nb_tests']) ? $_POST['TRules'][$id]['nb_tests'] : $rule->nb_tests;
 
 	$TRulesForm[$id] = array(
 		'id' => $id
 		, 'name' => $formCore->texte('', 'TRules[' . $id . '][name]', $name, 64, 0, 'style="width:95%"')
 		, 'sql_filter' => $formCore->texte('', 'TRules[' . $id . '][sql_filter]', $sql_filter, 255, 0, 'style="width:99%"')
+		, 'frequency_days' => $formCore->texte('', 'TRules[' . $id . '][frequency_days]', $frequency_days, 8, 0, 'style="width:25%" placeholder="14"')
+		, 'nb_tests' => $formCore->texte('', 'TRules[' . $id . '][nb_tests]', $nb_tests, 8, 0, 'style="width:90%" placeholder="1"')
 		, 'nbDossiers' => $rule->getNbDossiersSelectable($PDOdb)
 		, 'action' =>  '<a href="' . dol_buildpath('/financement/admin/qualite.php', 1) . '?action=deleteline&lineid=' . $id . '">' . img_delete() . '</a>'
 	);
@@ -173,11 +177,15 @@ foreach($TRules as $id => $rule)
 
 $newRuleName = ! empty($_POST['TRules'][-1]['name']) ? $_POST['TRules'][-1]['name'] : '';
 $newRuleSQLFilter = ! empty($_POST['TRules'][-1]['sql_filter']) ? $_POST['TRules'][-1]['sql_filter'] : '';
+$newRuleFrequencyDays = ! empty($_POST['TRules'][-1]['frequency_days']) ? $_POST['TRules'][-1]['frequency_days'] : '';
+$newRuleNbTests = ! empty($_POST['TRules'][-1]['nb_tests']) ? $_POST['TRules'][-1]['nb_tests'] : '';
 
 $TRulesForm[-1] = array(
 	'id' => $langs->trans('New')
 	, 'name' => $formCore->texte('', 'TRules[-1][name]', $newRuleName, 64, 0, 'style="width:95%"')
 	, 'sql_filter' => $formCore->texte('', 'TRules[-1][sql_filter]', $newRuleSQLFilter, 255, 0, 'style="width:99%"')
+	, 'frequency_days' => $formCore->texte('', 'TRules[-1][frequency_days]', $newRuleFrequencyDays, 4, 0, 'style="width:25%" placeholder="14"')
+	, 'nb_tests' => $formCore->texte('', 'TRules[-1][nb_tests]', $newRuleNbTests, 4, 0, 'style="width:90%" placeholder="1"')
 	, 'nbDossiers' => ''
 	, 'action' => '<button type="submit" name="action" value="save">' . $langs->trans('Save') . '</button>' // Impossible à faire avec le TFormCore...
 );

@@ -8,7 +8,8 @@ class TFin_DossierQualityRule extends TObjetStd
 {
 	public $name;
 	public $sql_filter;
-
+	public $frequency_days;
+	public $nb_tests;
 
 	public function __construct()
 	{
@@ -18,6 +19,8 @@ class TFin_DossierQualityRule extends TObjetStd
 
 		$this->add_champs('name', array('type' => 'chaine', 'length' => 32));
 		$this->add_champs('sql_filter', array('type' => 'chaine', 'length' => 255));
+		$this->add_champs('frequency_days', array('type' => 'integer', 'default' => 14));
+		$this->add_champs('nb_tests', array('type' => 'integer', 'default' => 1));
 	}
 
 
