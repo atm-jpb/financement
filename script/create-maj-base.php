@@ -76,9 +76,9 @@
 	$o=new TFin_facture_fournisseur;
 	$o->init_db_by_vars($ATMdb);
 
-	$o=new TFin_DossierQualityRule();
+	$o=new TFin_QualityRule();
 	$o->init_db_by_vars($ATMdb);
 
-	$o=new TFin_DossierQualityTest();
+	$o=new TFin_QualityTest();
 	$o->init_db_by_vars($ATMdb);
 

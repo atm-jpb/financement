@@ -13,16 +13,16 @@ dol_include_once('/financement/class/quality.class.php');
 
 $PDOdb = new TPDOdb;
 
-$ruleStatic = new TFin_DossierQualityRule;
+$ruleStatic = new TFin_QualityRule;
 $TRules = $ruleStatic->LoadAllBy($PDOdb);
 
 foreach($TRules as &$rule)
 {
-	$test = new TFin_DossierQualityTest;
+	$test = new TFin_QualityTest;
 
 	$sql = 'SELECT COUNT(*) as count
 			FROM ' . $test->get_table() . '
-			WHERE fk_fin_dossier_quality_rule = ' . $rule->getId() . '
+			WHERE fk_fin_quality_rule = ' . $rule->getId() . '
 			AND DATE_FORMAT(DATE_ADD(date_cre, INTERVAL ' . $rule->frequency_days . ' DAY), "%Y-%m-%d") > DATE_FORMAT(NOW(), "%Y-%m-%d")';
 
 	$PDOdb->Execute($sql);
@@ -38,8 +38,8 @@ foreach($TRules as &$rule)
 
 	for($i = 0; $i < $rule->nb_tests; $i++)
 	{
-		$test = new TFin_DossierQualityTest;
-		$test->fk_fin_dossier_quality_rule = $rule->getId();
+		$test = new TFin_QualityTest;
+		$test->fk_fin_quality_rule = $rule->getId();
 		$test->save($PDOdb);
 	}
 }

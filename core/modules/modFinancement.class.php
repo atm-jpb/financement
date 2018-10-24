@@ -721,7 +721,77 @@ class modFinancement extends DolibarrModules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+				'type'=>'left',			                // This is a Left menu entry
+				'titre'=>'Qualite',
+				'mainmenu'=>'financement',
+				'leftmenu'=>'qualite',
+				'url'=>'/financement/qualite/list.php',
+				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+				'position'=>424,
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'target'=>'',
+				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=qualite',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+				'type'=>'left',			                // This is a Left menu entry
+				'titre'=>'Liste des tests',
+				'mainmenu'=>'financement',
+				'leftmenu'=>'test_list',
+				'url'=>'/financement/qualite/list.php',
+				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+				'position'=>425,
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'target'=>'',
+				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=test_list',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+				'type'=>'left',			                // This is a Left menu entry
+				'titre'=>'À faire',
+				'mainmenu'=>'financement',
+				'leftmenu'=>'test_todo_list',
+				'url'=>'/financement/qualite/list.php?TListTBS[list_' . MAIN_DB_PREFIX . 'fin_quality_test][search][result]=TODO',
+				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+				'position'=>426,
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'target'=>'',
+				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=test_list',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+				'type'=>'left',			                // This is a Left menu entry
+				'titre'=>'Validés',
+				'mainmenu'=>'financement',
+				'leftmenu'=>'qualite',
+				'url'=>'/financement/qualite/list.php?TListTBS[list_' . MAIN_DB_PREFIX . 'fin_quality_test][search][result]=OK',
+				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+				'position'=>427,
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'target'=>'',
+				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=test_list',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+				'type'=>'left',			                // This is a Left menu entry
+				'titre'=>'Refusés',
+				'mainmenu'=>'financement',
+				'leftmenu'=>'qualite',
+				'url'=>'/financement/qualite/list.php?TListTBS[list_' . MAIN_DB_PREFIX . 'fin_quality_test][search][result]=KO',
+				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+				'position'=>428,
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'target'=>'',
+				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+
 		$this->menu[$r]=array(
 			            'fk_menu'=>'fk_mainmenu=report',			// Put 0 if this is a top menu
 			        	'type'=> 'left',			// This is a Top menu entry
@@ -752,9 +822,9 @@ class modFinancement extends DolibarrModules
 						'target'=> '',
 						'user'=> 2	// 0=Menu for internal users, 1=external users, 2=both
         );
-		
+
 		$r++;
-		
+
 		$this->menu[$r]=array(
 			            'fk_menu'=>'fk_mainmenu=report,fk_leftmenu=pilotage',			// Put 0 if this is a top menu
 			        	'type'=> 'left',			// This is a Top menu entry

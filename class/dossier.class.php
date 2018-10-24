@@ -1979,6 +1979,16 @@ class TFin_dossier extends TObjetStd {
 			if($periode >= $p) return $rule;
 		}
 	}
+
+
+	function getNomUrl()
+	{
+		$link = dol_buildpath('/financement/dossier.php', 1) . '?id=' . $this->getId();
+		$label = ! empty($this->reference)  ? $this->reference : 'ID ' . $this->getId();
+		$picto  = img_picto($label, 'object_financementico@financement');
+
+		return '<a href="' . $link . '">' . $picto . ' ' . $label . '</a>';
+	}
 }
 
 /*

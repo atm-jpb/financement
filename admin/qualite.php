@@ -54,7 +54,7 @@ if(! empty($action))
 						continue;
 					}
 
-					$rule = new TFin_DossierQualityRule;
+					$rule = new TFin_QualityRule;
 
 					$msgPrefix = 'Nouvelle règle';
 
@@ -120,7 +120,7 @@ if(! empty($action))
 
 			if($id > 0)
 			{
-				$rule = new TFin_DossierQualityRule;
+				$rule = new TFin_QualityRule;
 				$rule->load($PDOdb, $id);
 				$rule->delete($PDOdb);
 
@@ -152,7 +152,7 @@ dol_fiche_head($head, 'quality', $langs->trans("Financement"), 0, 'financementic
 $formCore = new TFormCore($_SERVER['PHP_SELF'], 'editQualityControl', 'POST');
 
 
-$rulesStatic = new TFin_DossierQualityRule;
+$rulesStatic = new TFin_QualityRule;
 
 $TRules = $rulesStatic->LoadAllBy($PDOdb);
 $TRulesForm = array();
@@ -160,6 +160,7 @@ $TRulesForm = array();
 foreach($TRules as $id => $rule)
 {
 	$name = ! empty($_POST['TRules'][$id]['name']) ? $_POST['TRules'][$id]['name'] : $rule->name;
+	$element_type = ! empty($_POST['TRules'][$id]['element_type']) ? $_POST['TRules'][$id]['element_type'] : $rule->element_type;
 	$sql_filter = ! empty($_POST['TRules'][$id]['sql_filter']) ? $_POST['TRules'][$id]['sql_filter'] : $rule->sql_filter;
 	$frequency_days = ! empty($_POST['TRules'][$id]['frequency_days']) ? $_POST['TRules'][$id]['frequency_days'] : $rule->frequency_days;
 	$nb_tests = ! empty($_POST['TRules'][$id]['nb_tests']) ? $_POST['TRules'][$id]['nb_tests'] : $rule->nb_tests;
@@ -167,15 +168,17 @@ foreach($TRules as $id => $rule)
 	$TRulesForm[$id] = array(
 		'id' => $id
 		, 'name' => $formCore->texte('', 'TRules[' . $id . '][name]', $name, 64, 0, 'style="width:95%"')
+		, 'element_type' => $formCore->combo('', 'TRules[' . $id . '][element_type]', $rule->TElementTypes, $element_type)
 		, 'sql_filter' => $formCore->texte('', 'TRules[' . $id . '][sql_filter]', $sql_filter, 255, 0, 'style="width:99%"')
 		, 'frequency_days' => $formCore->texte('', 'TRules[' . $id . '][frequency_days]', $frequency_days, 8, 0, 'style="width:25%" placeholder="14"')
 		, 'nb_tests' => $formCore->texte('', 'TRules[' . $id . '][nb_tests]', $nb_tests, 8, 0, 'style="width:90%" placeholder="1"')
-		, 'nbDossiers' => $rule->getNbDossiersSelectable($PDOdb)
+		, 'nbDossiers' => $rule->getNbElementsSelectable($PDOdb)
 		, 'action' =>  '<a href="' . dol_buildpath('/financement/admin/qualite.php', 1) . '?action=deleteline&lineid=' . $id . '">' . img_delete() . '</a>'
 	);
 }
 
 $newRuleName = ! empty($_POST['TRules'][-1]['name']) ? $_POST['TRules'][-1]['name'] : '';
+$newRuleElementType = ! empty($_POST['TRules'][-1]['element_type']) ? $_POST['TRules'][-1]['element_type'] : 'fin_dossier';
 $newRuleSQLFilter = ! empty($_POST['TRules'][-1]['sql_filter']) ? $_POST['TRules'][-1]['sql_filter'] : '';
 $newRuleFrequencyDays = ! empty($_POST['TRules'][-1]['frequency_days']) ? $_POST['TRules'][-1]['frequency_days'] : '';
 $newRuleNbTests = ! empty($_POST['TRules'][-1]['nb_tests']) ? $_POST['TRules'][-1]['nb_tests'] : '';
@@ -183,6 +186,7 @@ $newRuleNbTests = ! empty($_POST['TRules'][-1]['nb_tests']) ? $_POST['TRules'][-
 $TRulesForm[-1] = array(
 	'id' => $langs->trans('New')
 	, 'name' => $formCore->texte('', 'TRules[-1][name]', $newRuleName, 64, 0, 'style="width:95%"')
+	, 'element_type' => $formCore->combo('', 'TRules[-1][element_type]', $rulesStatic->TElementTypes, $newRuleElementType)
 	, 'sql_filter' => $formCore->texte('', 'TRules[-1][sql_filter]', $newRuleSQLFilter, 255, 0, 'style="width:99%"')
 	, 'frequency_days' => $formCore->texte('', 'TRules[-1][frequency_days]', $newRuleFrequencyDays, 4, 0, 'style="width:25%" placeholder="14"')
 	, 'nb_tests' => $formCore->texte('', 'TRules[-1][nb_tests]', $newRuleNbTests, 4, 0, 'style="width:90%" placeholder="1"')
