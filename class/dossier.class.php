@@ -1927,8 +1927,10 @@ class TFin_dossier extends TObjetStd {
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type = 'LEASER')";
 		$sql.= " WHERE 1";
 		$sql.= " AND (dfcli.reference IS NULL OR dfcli.reference NOT LIKE '%ADJ%')";
-		$sql.= " AND (dfcli.date_solde <= '1970-00-00 00:00:00' OR dfcli.date_solde IS NULL)";
-		$sql.= " AND (dflea.date_solde <= '1970-00-00 00:00:00' OR dflea.date_solde IS NULL)";
+		$sql.= " AND (
+					(a.nature_financement = 'INTERNE' AND (dfcli.date_solde <= '1970-00-00 00:00:00' OR dfcli.date_solde IS NULL))";
+		$sql.= " 	OR (a.nature_financement = 'EXTERNE' AND (dflea.date_solde <= '1970-00-00 00:00:00' OR dflea.date_solde IS NULL))
+				)";
 		$sql.= " AND (a.fk_soc = ".$fk_soc;
 		
 		$sql.= " OR a.fk_soc IN
