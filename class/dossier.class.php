@@ -1528,11 +1528,13 @@ class TFin_dossier extends TObjetStd {
 	private function create_facture_leaser_addline(&$echeance, &$f, &$d, &$object,&$res,&$user,$validate,$date,$paid=false) {
 		global $db;
 		
+		// TVA
 		$tva = (FIN_TVA_DEFAUT-1)*100;
 		if($date < strtotime('2014-01-01')) $tva = 19.6;
+		$object->fetch_thirdparty();
+		if($object->thirdparty->country_id != 1) $tva = 0; // Si Leaser pas en France, pas de TVA
 		
-		
-		if(($echeance==0 && $f->loyer_intercalaire == 0) || ($echeance == -1 && $f->loyer_intercalaire > 0)) {
+		if($f->frais_dossier > 0 && (($echeance==1 && $f->loyer_intercalaire == 0) || ($echeance == 0 && $f->loyer_intercalaire > 0))) {
 			/* Ajoute les frais de dossier uniquement sur la 1ère facture */
 			$res.= "Ajout des frais de dossier<br />";
 			$fk_product = FIN_PRODUCT_FRAIS_DOSSIER;
