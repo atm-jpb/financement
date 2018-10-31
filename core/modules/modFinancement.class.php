@@ -768,7 +768,7 @@ class modFinancement extends DolibarrModules
 			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>500+$r,
 			'enabled'=>'$conf->financement->enabled',	// Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled.
-			'perms'=>'$user->admin',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
 			'target'=>'',
 			'user'=>2
 		);
@@ -784,7 +784,7 @@ class modFinancement extends DolibarrModules
 			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>500+$r,
 			'enabled'=> '$conf->financement->enabled',  // Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-			'perms'=> '$user->admin',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'perms'=> '$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
 			'target'=>'',
 			'user'=>2
 		);				                // 0=Menu for internal users, 1=external users, 2=both
@@ -800,7 +800,7 @@ class modFinancement extends DolibarrModules
 			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>500+$r,
 			'enabled'=> '$conf->financement->enabled',  // Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-			'perms'=> '$user->admin',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'perms'=> '$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
 			'target'=>'',
 			'user'=>2
 		);				                // 0=Menu for internal users, 1=external users, 2=both
@@ -816,7 +816,7 @@ class modFinancement extends DolibarrModules
 			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>500+$r,
 			'enabled'=> '$conf->financement->enabled',  // Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-			'perms'=> '$user->admin',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'perms'=> '$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
 			'target'=>'',
 			'user'=>2
 		);				                // 0=Menu for internal users, 1=external users, 2=both
@@ -832,7 +832,7 @@ class modFinancement extends DolibarrModules
 			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>500+$r,
 			'enabled'=> '$conf->financement->enabled',  // Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-			'perms'=> '$user->admin',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'perms'=> '$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
 			'target'=>'',
 			'user'=>2
 		);				                // 0=Menu for internal users, 1=external users, 2=both
@@ -848,7 +848,7 @@ class modFinancement extends DolibarrModules
 			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>500+$r,
 			'enabled'=> '$conf->financement->enabled',  // Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-			'perms'=> '$user->admin',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'perms'=> '$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
 			'target'=>'',
 			'user'=>2
 		);				                // 0=Menu for internal users, 1=external users, 2=both
@@ -864,7 +864,7 @@ class modFinancement extends DolibarrModules
 			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'position'=>500+$r,
 			'enabled'=> '$conf->financement->enabled',  // Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-			'perms'=> '$user->admin',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'perms'=> '$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
 			'target'=>'',
 			'user'=>2
 		);				                // 0=Menu for internal users, 1=external users, 2=both
