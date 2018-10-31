@@ -6,7 +6,7 @@ dol_include_once('/financement/class/dossier.class.php');
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 
-if (empty($user->admin)) accessforbidden();
+if (empty($user->rights->financement->admin->write)) accessforbidden();
 
 $langs->load('abricot@abricot');
 $langs->load('financement@financement');
