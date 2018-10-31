@@ -117,6 +117,7 @@ class financement_indicateurs_box extends ModeleBoxes
         $this->info_box_contents[1][2] = array(
         	'td' => 'align="left"'
         	, 'text' => '<span>' . $obj->number_todo . '</span>'
+        	, 'url' => dol_buildpath('/financement/dossier.php', 1) . '?reloc=1&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][nature_financement]=INTERNE&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][relocClientOK]=NON'
         );
         
         $this->info_box_contents[1][3] = array(
@@ -158,6 +159,7 @@ class financement_indicateurs_box extends ModeleBoxes
         $this->info_box_contents[2][2] = array(
         	'td' => 'align="left"'
         	, 'text' => '<span>' . $obj->number_todo . '</span>'
+        	, 'url' => dol_buildpath('/financement/dossier.php', 1) . '?reloc=1&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][nature_financement]=EXTERNE&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][relocLeaserOK]=NON'
         );
 
         $this->info_box_contents[2][3] = array(
@@ -199,6 +201,7 @@ class financement_indicateurs_box extends ModeleBoxes
         $this->info_box_contents[3][2] = array(
         		'td' => 'align="left"'
         		, 'text' => '<span>' . $obj->number_todo . '</span>'
+        		, 'url' => dol_buildpath('/financement/dossier.php', 1) . '?TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][nature_financement]=EXTERNE&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][intercalaireLeaserOK]=NON'
         );
 
         $this->info_box_contents[3][3] = array(

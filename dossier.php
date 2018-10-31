@@ -393,7 +393,7 @@ function _liste(&$PDOdb, &$dossier) {
 	
 	$r = new TSSRenderControler($dossier);
 	$sql ="SELECT d.rowid as 'ID', fc.reference as refDosCli, e.rowid as entity_id, fl.reference as refDosLea, a.rowid as 'ID affaire', a.reference as 'Affaire', ";
-	$sql.="a.nature_financement, a.fk_soc, c.nom as nomCli, l.nom as nomLea, ";
+	$sql.="a.nature_financement, a.fk_soc, c.nom as nomCli, l.nom as nomLea, COALESCE(fc.relocOK, 'OUI') as relocClientOK, COALESCE(fl.relocOK, 'OUI') as relocLeaserOK, COALESCE(fl.intercalaireOK, 'OUI') as intercalaireLeaserOK, ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.duree ELSE fl.duree END as 'duree', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.montant ELSE fl.montant END as 'Montant', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.echeance ELSE fl.echeance END as 'echeance', ";
@@ -460,8 +460,11 @@ function _liste(&$PDOdb, &$dossier) {
 		)
 		,'translate'=>array(
 			'nature_financement'=>$aff->TNatureFinancement
+			, 'relocClientOK'=>$dossier->financement->TRelocOK
+			, 'relocLeaserOK'=>$dossier->financementLeaser->TRelocOK
+			, 'intercalaireLeaserOK'=>$dossier->financementLeaser->TIntercalaireOK
 		)
-		,'hide'=>array('fk_soc','ID','ID affaire','fk_fact_materiel')
+		,'hide'=>array('fk_soc','ID','ID affaire','fk_fact_materiel', 'relocLeaserOK', 'relocClientOK', 'intercalaireLeaserOK')
 		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'echeance'=>'money', 'montantLeaser'=>'money', 'echeanceLeaser'=>'money')
 		,'liste'=>array(
 			'titre'=>"Liste des dossiers"
@@ -488,6 +491,9 @@ function _liste(&$PDOdb, &$dossier) {
 			,'nature_financement'=>'Nature'
 			,'date_debut'=>'Début'
 			,'fact_materiel'=>'Facture matériel'
+			,'relocClientOK'=>'Relocation client OK ?'
+			,'relocLeaserOK'=>'Relocation leaser OK ?'
+			,'intercalaireLeaserOK'=>'Loyer intercalaire leaser OK ?'
 		)
 		,'orderBy'=> array('ID'=>'DESC','fc.reference'=>'ASC')
 		,'search'=>array(
@@ -497,6 +503,9 @@ function _liste(&$PDOdb, &$dossier) {
 			,'nomCli'=>array('recherche'=>true, 'table'=>'c', 'field'=>'nom')
 			,'nomLea'=>array('recherche'=>true, 'table'=>'l', 'field'=>'nom')
 			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
+			,'relocClientOK'=>array('recherche'=> $dossier->financement->TRelocOK, 'table' => 'fc', 'field' => 'relocOK')
+			,'relocLeaserOK'=>array('recherche'=> $dossier->financementLeaser->TRelocOK, 'table' => 'fl', 'field' => 'relocOK')
+			,'intercalaireLeaserOK'=>array('recherche'=>$dossier->financementLeaser->TIntercalaireOK, 'table' => 'fl', 'field' => 'intercalaireOK')
 			//,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
 		),'operator'=>array(
 			'entity_id' => '='
