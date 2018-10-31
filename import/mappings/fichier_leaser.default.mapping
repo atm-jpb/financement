@@ -17,6 +17,7 @@ nom_du_leaser=default
 14=assurance
 15=biens
 16=entity
+17=display_solde
 
 [format]
 date_debut=date

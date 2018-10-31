@@ -198,11 +198,6 @@ class ServiceFinancement {
 	{
 		global $db,$mysoc,$conf;
 		
-		$frequence = 1;
-		if ($this->simulation->opt_periodicite == 'TRIMESTRE') $frequence = 3;
-		else if ($this->simulation->opt_periodicite == 'SEMESTRE') $frequence = 6;
-		else if ($this->simulation->opt_periodicite == 'ANNEE') $frequence = 12;
-		
 		$u = new User($db);
 		$u->fetch($this->simulation->fk_user_author);
 		$dossier_origin = current($this->simulation->dossiers);
@@ -215,8 +210,18 @@ class ServiceFinancement {
 		
 		$sirenCLIENT = substr($this->simulation->societe->idprof2, 0, 9);
 		
+		// Need pour avoir la fonction de calcul de la périodicité
+		$f = new TFin_financement();
+		$f->periodicite = $this->simulation->opt_periodicite;
+		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
+		// Spéficique CMCIC, maximum 22 T / 66 M
+		if($dureeInMonth > 66) $dureeInMonth = 66;
+		// Spéficique CMCIC, minimum 12 T / 36 M
+		if($dureeInMonth < 36) $dureeInMonth = 36;
 		// Montant minimum 800 €
 		$montant = $this->simulation->montant;
+		if($protocole_id == '0251') $montant += $this->simulationSuivi->surfact + $this->simulationSuivi->surfactplus;
+		$montant = round($montant,2);
 		if($montant < 800) $montant = 800;
 		
 		$xml = '
@@ -242,11 +247,11 @@ class ServiceFinancement {
 				<ns1:B2B_SIREN>'.$sirenCLIENT.'</ns1:B2B_SIREN>
 			</ns1:Infos_Client>
 			<ns1:Infos_Financieres>
-				<ns1:B2B_DUREE>'.($this->simulation->duree * $frequence).'</ns1:B2B_DUREE>
-				<ns1:B2B_FREQ>'.$frequence.'</ns1:B2B_FREQ>
+				<ns1:B2B_DUREE>'.$dureeInMonth.'</ns1:B2B_DUREE>
+				<ns1:B2B_FREQ>'.$f->getiPeriode().'</ns1:B2B_FREQ>
 				<ns1:B2B_MODPAIE>'.$this->getIdModeRglt($this->simulation->opt_mode_reglement).'</ns1:B2B_MODPAIE>
 				<ns1:B2B_MT_DEMANDE>'.$montant.'</ns1:B2B_MT_DEMANDE>
-				<ns1:B2B_NB_ECH>'.$this->simulation->duree.'</ns1:B2B_NB_ECH>
+				<ns1:B2B_NB_ECH>'.$dureeInMonth / $f->getiPeriode().'</ns1:B2B_NB_ECH>
 				<ns1:B2B_MINERVAFPID>'.(($protocole_id == '0251') ? '983' : '9782').'</ns1:B2B_MINERVAFPID>
 				<ns1:B2B_TERME>'.($this->simulation->opt_terme == 0 ? 2 : 1).'</ns1:B2B_TERME>
 				<ns1:B2B_PVR>0</ns1:B2B_PVR>
@@ -430,6 +435,8 @@ class ServiceFinancement {
 		if($dureeInMonth < 24) $dureeInMonth = 24;
 		// Montant minimum 1000 €
 		$montant = $this->simulation->montant;
+		if($this->getTypeProduit() == 'CESS') $montant += $this->simulationSuivi->surfact + $this->simulationSuivi->surfactplus;
+		$montant = round($montant,2);
 		if($montant < 1000) $montant = 1000;
 		
 		$mode_reglement_id = $this->getIdModeRglt($this->simulation->opt_mode_reglement);

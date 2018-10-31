@@ -125,8 +125,17 @@
 			<td>[simulation.opt_calage; strconv=no][simulation.opt_calage_label; strconv=no]</td>
 		</tr>
 		<tr>
+			[onshow;block=begin;when [simulation.adjonction_ok]=='1']
 			<td>Adjonction</td>
-			<td>[simulation.opt_adjonction; strconv=no]</td>
+			<td>
+				[simulation.opt_adjonction; strconv=no]
+				&nbsp;
+				[simulation.fk_fin_dossier_adjonction; strconv=no]
+			</td>
+			[onshow;block=end]
+			[onshow;block=begin;when [simulation.adjonction_ok]=='0']
+			<td colspan="2">&nbsp;</td>
+			[onshow;block=end]
 			<td>Aucun dossier à solder</td>
 			<td>[simulation.no_case_to_settle; strconv=no]</td>
 		</tr>
@@ -147,9 +156,13 @@
 			<td>[simulation.montant_rachete; strconv=no; frm=0 000,00] &euro;</td>
 		</tr>
 		<tr>
+			[onshow;block=begin;when [simulation.display_retraitcopie]=='1']
 			<td>Retrait copies sup.</td>
 			<td>[simulation.montant_decompte_copies_sup; strconv=no; frm=0 000,00] &euro;</td>
-			
+			[onshow;block=end]
+			[onshow;block=begin;when [simulation.display_retraitcopie]=='0']
+			<td>&nbsp;</td>
+			[onshow;block=end]
 		</tr>
 		<tr>
 			<td>dont montant rachat concurrence</td>
@@ -245,7 +258,7 @@
 	<a href="?id=[simulation.id]&action=edit" class="butAction">Modifier</a>
 	[onshow;block=end]
 	[onshow;block=begin;when [simulation.accord_confirme]==0; when [simulation.display_preco]==1; when [simulation.can_preco]==1]
-	<a href="?id=[simulation.id]&action=clone" class="butAction">Cloner</a>
+	<a href="?id=[simulation.id]&action=clone" class="butAction">Georger</a>
 	<input type="button" id="action-delete" value="Supprimer" name="delete" class="butActionDelete" onclick="delete_elem([simulation.id],'simulation');">
 	[onshow;block=end]
 	[onshow;block=begin; when [simulation.can_resend_accord]=='OK']
@@ -265,6 +278,6 @@
 
 <script>
 	$(document).ready(function() {
-		$("#date_demarrage" ).datepicker( "option", "maxDate", "+4m");
+		$("#date_demarrage" ).datepicker( "option", "maxDate", "+6m");
 	});
 </script>

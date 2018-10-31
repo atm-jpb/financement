@@ -616,6 +616,8 @@ class TFin_dossier extends TObjetStd {
 			if ($coef_cpro && !empty($date_deb_periode))
 			{
 				$coeff = 0;
+				if(in_array($this->entity, array(1,2,3))) $coeff = 3;
+				if(in_array($this->entity, array(13,14))) $coeff = 2;
 				$date_application = $this->getDateApplicationPenInterne($PDOdb, $grille, $type, $this->financementLeaser->fk_soc, $this->contrat, $this->entity);
 				if (strtotime($date_deb_periode) >= $date_application) $coeff = $TCoeff[1]; // Renvoi de la pénalité interne
 			}
@@ -764,6 +766,7 @@ class TFin_dossier extends TObjetStd {
 		global $conf;
 		$solde = 0;
 		$capeLRD = true;
+		if(in_array($this->entity, array(12,15))) $capeLRD = false;
 		
 		if ($nature_financement == 'EXTERNE')
 		{
@@ -801,7 +804,11 @@ class TFin_dossier extends TObjetStd {
 			$p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
 			$TSoldeRule = $this->getRuleSolde($p);
 			
-			if($TSoldeRule->base_solde == 'MF') {
+			// SPECIFIQUE LEASER HEXAPAGE => calculer le solde comme un externe avec la pénalité leaser
+			if(in_array($this->financementLeaser->fk_soc,array(204904,204905,204906))) {
+				$date_deb_periode = $this->getDateDebutPeriode($iPeriode-1, 'CLIENT');
+				$solde = $CRD * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
+			} else if($TSoldeRule->base_solde == 'MF') {
 				$solde = $this->financement->montant;
 				$capeLRD = false;
 			} else if($TSoldeRule->base_solde == 'CRD') {
@@ -847,11 +854,12 @@ class TFin_dossier extends TObjetStd {
 	 *  - Pure : LRD CSlient
 	 *  - Uniquement pour INTERNE => capé LRD Client
 	 */
-	function getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $nature_financement='EXTERNE')
+	function getSolde_SNR_CLIENT(&$PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $nature_financement='EXTERNE')
 	{
 		global $conf;
 		$solde = 0;
 		$capeLRD = true;
+		if(in_array($this->entity, array(12,15))) $capeLRD = false;
 		
 		if ($nature_financement == 'EXTERNE')
 		{
@@ -883,7 +891,10 @@ class TFin_dossier extends TObjetStd {
 			$p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
 			$TSoldeRule = $this->getRuleSolde($p);
 			
-			if($TSoldeRule->base_solde == 'MF') {
+			// SPECIFIQUE LEASER HEXAPAGE => calculer le solde comme un externe avec la pénalité leaser
+			if(in_array($this->financementLeaser->fk_soc,array(204904,204905,204906))) {
+				$solde = $CRD * (1 + $this->getPenalite($PDOdb, 'NR', $iPeriode, '1998-07-12', true) / 100);
+			} else if($TSoldeRule->base_solde == 'MF') {
 				$solde = $this->financement->montant;
 				$capeLRD = false;
 			} else if($TSoldeRule->base_solde == 'CRD') {
@@ -996,7 +1007,7 @@ class TFin_dossier extends TObjetStd {
 				}
 				break;
 			case 'SNRCPRO':
-				$solde =$this->getSolde_SNR_CLIENT($iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
+				$solde =$this->getSolde_SNR_CLIENT($PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $this->nature_financement);
 				// Spécifique Télécom, on ajoute au solde la maintenance restante
 				if($this->entity == 3 || $this->entity == 10) {
 					$solde+= $mt_presta_restante;
@@ -1517,11 +1528,13 @@ class TFin_dossier extends TObjetStd {
 	private function create_facture_leaser_addline(&$echeance, &$f, &$d, &$object,&$res,&$user,$validate,$date,$paid=false) {
 		global $db;
 		
+		// TVA
 		$tva = (FIN_TVA_DEFAUT-1)*100;
 		if($date < strtotime('2014-01-01')) $tva = 19.6;
+		$object->fetch_thirdparty();
+		if($object->thirdparty->country_id != 1) $tva = 0; // Si Leaser pas en France, pas de TVA
 		
-		
-		if(($echeance==0 && $f->loyer_intercalaire == 0) || ($echeance == -1 && $f->loyer_intercalaire > 0)) {
+		if($f->frais_dossier > 0 && (($echeance==1 && $f->loyer_intercalaire == 0) || ($echeance == 0 && $f->loyer_intercalaire > 0))) {
 			/* Ajoute les frais de dossier uniquement sur la 1ère facture */
 			$res.= "Ajout des frais de dossier<br />";
 			$fk_product = FIN_PRODUCT_FRAIS_DOSSIER;
@@ -1900,6 +1913,56 @@ class TFin_dossier extends TObjetStd {
 		foreach($confsolde as $p => $rule) {
 			if($periode >= $p) return $rule;
 		}
+	}
+	
+	/**
+	 * Liste des dossier clients en cours pour choix dans la simulation lors d'une demande d'adjonction
+	 */
+	static function getListeDossierClient(&$PDOdb, $fk_soc, $siren, $open=true) {
+		global $conf;
+		
+		$sql = "SELECT d.rowid, dfcli.reference as refcli, dflea.reference as reflea, a.contrat";
+		$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (da.fk_fin_affaire = a.rowid)";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dfcli.fk_fin_dossier = d.rowid AND dfcli.type = 'CLIENT')";
+		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type = 'LEASER')";
+		$sql.= " WHERE 1";
+		$sql.= " AND (dfcli.reference IS NULL OR dfcli.reference NOT LIKE '%ADJ%')";
+		$sql.= " AND (
+					(a.nature_financement = 'INTERNE' AND (dfcli.date_solde <= '1970-00-00 00:00:00' OR dfcli.date_solde IS NULL))";
+		$sql.= " 	OR (a.nature_financement = 'EXTERNE' AND (dflea.date_solde <= '1970-00-00 00:00:00' OR dflea.date_solde IS NULL))
+				)";
+		$sql.= " AND (a.fk_soc = ".$fk_soc;
+		
+		$sql.= " OR a.fk_soc IN
+					(
+						SELECT s.rowid 
+						FROM ".MAIN_DB_PREFIX."societe as s
+							LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
+						WHERE
+						(
+							s.siren = '".$siren."'
+							AND s.siren != ''
+						) 
+						OR
+						(
+							se.other_siren LIKE '%".$siren."%'
+							AND se.other_siren != ''
+						)
+					)";
+		$sql.=")";
+		
+		$TRes = $PDOdb->ExecuteAsArray($sql);
+		$TDoss = array();
+		foreach ($TRes as $obj) {
+			$ref = (!empty($obj->refcli)) ? $obj->refcli : $obj->reflea;
+			$TDoss[$obj->rowid] = array('label' => $ref, 'type_contrat' => $obj->contrat);
+		}
+		
+		asort($TDoss);
+		
+		return $TDoss;
 	}
 }
 

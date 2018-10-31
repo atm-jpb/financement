@@ -264,7 +264,7 @@ class modFinancement extends DolibarrModules
 		$r=0;
 		$this->rights[$r][0] = 210001;
 		$this->rights[$r][1] = 'Consulter les dossiers de financement de mes clients';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'mydossier';
 		$this->rights[$r][5] = 'read';
 		$r++;
@@ -308,20 +308,20 @@ class modFinancement extends DolibarrModules
 		
 		$this->rights[$r][0] = 210021;
 		$this->rights[$r][1] = 'Accéder au calculateur';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'allsimul';
 		$this->rights[$r][5] = 'calcul';
 		$r++;
 		$this->rights[$r][0] = 210022;
 		$this->rights[$r][1] = 'Accéder au simulateur';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'allsimul';
 		$this->rights[$r][5] = 'simul';
 		$r++;
 		
 		$this->rights[$r][0] = 210031;
 		$this->rights[$r][1] = 'Accéder à mes simulations';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'mysimul';
 		$this->rights[$r][5] = 'simul_list';
 		$r++;
@@ -346,7 +346,7 @@ class modFinancement extends DolibarrModules
 		
 		$this->rights[$r][0] = 210041;
 		$this->rights[$r][1] = 'Consulter les scores client';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'score';
 		$this->rights[$r][5] = 'read';
 		$r++;
@@ -400,7 +400,7 @@ class modFinancement extends DolibarrModules
 		
 		$this->rights[$r][0] = 210500;
 		$this->rights[$r][1] = 'Accès aux PDF simulation';
-		$this->rights[$r][3] = 1;
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'read';
 		//$this->rights[$r][5] = 'read';
 		$r++;
@@ -493,7 +493,20 @@ class modFinancement extends DolibarrModules
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>114,
 								'enabled'=>'$conf->financement->enabled && ($user->rights->financement->allsimul->simul_list || $user->rights->financement->mysimul->simul_list)',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-								'perms'=>'$user->rights->financement->allsimul->simul_list || $user->rights->	financement->mysimul->simul_list',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'perms'=>'$user->rights->financement->allsimul->simul_list || $user->rights->financement->mysimul->simul_list',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'target'=>'',
+								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=simulation',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+								'type'=>'left',			                // This is a Left menu entry
+								'titre'=>$langs->trans('SimulationStats'),
+								'mainmenu'=>'financement',
+								'leftmenu'=>'simulation_list',
+								'url'=>'/financement/simulation_stats.php',
+								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+								'position'=>116,
+								'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;

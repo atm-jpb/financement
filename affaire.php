@@ -284,6 +284,8 @@ function _liste(&$ATMdb, &$affaire) {
 			,'type_financement'=>$affaire->TTypeFinancement
 			,'contrat'=>$affaire->TContrat
 			,'date_affaire'=>'calendar'
+		),'operator'=>array(
+			'entity_id' => '='
 		)
 		,'eval'=>array(
 			'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
