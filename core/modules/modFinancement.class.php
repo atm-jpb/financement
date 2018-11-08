@@ -758,6 +758,117 @@ class modFinancement extends DolibarrModules
 		
 		$r++;
 		
+		$this->menu[$r]=array(
+			'fk_menu'=>'fk_mainmenu=financement',			                // Put 0 if this is a top menu
+			'type'=>'left',			                // This is a Top menu entry
+			'titre'=>$langs->trans('ReportFinancement'),
+			'mainmenu'=>'financement',
+			'leftmenu'=>'financmement_report_left',
+			'url'=>'/financement/report.php',
+			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+			'position'=>500+$r,
+			'enabled'=>'$conf->financement->enabled',	// Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled.
+			'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'target'=>'',
+			'user'=>2
+		);
+		$r++;
+		
+		$this->menu[$r]=array(
+			'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=financmement_report_left',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+			'type'=>'left',			                // This is a Left menu entry
+			'titre'=>$langs->trans('ReportFinancementDemandesDeFinancement'),
+			'mainmenu'=>'financement',
+			'leftmenu'=>'financmement_report_left_1',
+			'url'=>'/financement/report.php?view=demandes_de_financement',
+			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+			'position'=>500+$r,
+			'enabled'=> '$conf->financement->enabled',  // Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+			'perms'=> '$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'target'=>'',
+			'user'=>2
+		);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
+		$this->menu[$r]=array(
+			'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=financmement_report_left',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+			'type'=>'left',			                // This is a Left menu entry
+			'titre'=>$langs->trans('ReportFinancementFacturationParLeaser'),
+			'mainmenu'=>'financement',
+			'leftmenu'=>'financmement_report_left_2',
+			'url'=>'/financement/report.php?view=facturation_par_leaser',
+			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+			'position'=>500+$r,
+			'enabled'=> '$conf->financement->enabled',  // Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+			'perms'=> '$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'target'=>'',
+			'user'=>2
+		);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
+		$this->menu[$r]=array(
+			'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=financmement_report_left',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+			'type'=>'left',			                // This is a Left menu entry
+			'titre'=>$langs->trans('ReportFinancementTypesContratsEtFinancesmentActifs'),
+			'mainmenu'=>'financement',
+			'leftmenu'=>'financmement_report_left_3',
+			'url'=>'/financement/report.php?view=types_contrats_et_financements_actifs',
+			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+			'position'=>500+$r,
+			'enabled'=> '$conf->financement->enabled',  // Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+			'perms'=> '$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'target'=>'',
+			'user'=>2
+		);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
+		$this->menu[$r]=array(
+			'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=financmement_report_left',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+			'type'=>'left',			                // This is a Left menu entry
+			'titre'=>$langs->trans('ReportFinancementEncoursLeaser'),
+			'mainmenu'=>'financement',
+			'leftmenu'=>'financmement_report_left_4',
+			'url'=>'/financement/report.php?view=encours_leaser',
+			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+			'position'=>500+$r,
+			'enabled'=> '$conf->financement->enabled',  // Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+			'perms'=> '$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'target'=>'',
+			'user'=>2
+		);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
+		$this->menu[$r]=array(
+			'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=financmement_report_left',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+			'type'=>'left',			                // This is a Left menu entry
+			'titre'=>$langs->trans('ReportFinancementRecurrentFinancement'),
+			'mainmenu'=>'financement',
+			'leftmenu'=>'financmement_report_left_5',
+			'url'=>'/financement/report.php?view=recurrent_financement',
+			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+			'position'=>500+$r,
+			'enabled'=> '$conf->financement->enabled',  // Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+			'perms'=> '$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'target'=>'',
+			'user'=>2
+		);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		
+		$this->menu[$r]=array(
+			'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=financmement_report_left',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+			'type'=>'left',			                // This is a Left menu entry
+			'titre'=>$langs->trans('ReportFinancementRentaNeg'),
+			'mainmenu'=>'financement',
+			'leftmenu'=>'financmement_report_left_6',
+			'url'=>'/financement/report.php?view=renta_neg',
+			'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+			'position'=>500+$r,
+			'enabled'=> '$conf->financement->enabled',  // Define condition to show or hide menu entry. Use '$conf->missionorder->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+			'perms'=> '$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->missionorder->level1->level2' if you want your menu with a permission rules
+			'target'=>'',
+			'user'=>2
+		);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
 		
 		/*$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
