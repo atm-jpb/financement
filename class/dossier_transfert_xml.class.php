@@ -1,5 +1,8 @@
 <?php
 
+if(! class_exists('Societe')) dol_include_once('/societe/class/societe.class.php');
+dol_include_once('/financement/class/dossier.class.php');
+
 class TFinDossierTransfertXML extends TObjetStd {
 	
 	function __construct($fk_leaser, $transfert=false) {
@@ -252,8 +255,6 @@ class TFinDossierTransfertXML extends TObjetStd {
 		
 		$affaire = $xml->createElement("affaire");
 
-		//pre($Affaire,true);exit;
-
 		foreach($Affaire->TLien as $i => $Tdata){
 			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert == 1){
 				
@@ -297,12 +298,7 @@ class TFinDossierTransfertXML extends TObjetStd {
 		$element->appendChild($xml->createElement("datePremEch",date("Y-m-d",$Tdata->dossier->financementLeaser->date_debut)));
 		
 		$TAssetId = array();
-		
-		/*foreach($Affaire->TAsset as $a => $assetLink){
-			$bien = $this->_getBiensXML($xml,$assetLink,$Affaire,$a);
-			$AssetId = $assetLink->asset->getId();
-			$element->appendChild($bien);
-		}*/
+
 		$serial_numbers ='';
 		$TDesignation = array();
 		
@@ -417,8 +413,6 @@ class TFinDossierTransfertXML extends TObjetStd {
 			$nbAsset = 1;
 		}
 		
-		//pre($assetLink,true);
-		
 
 		$bien = $xml->createElement("bien");
 		//$bien = $xml->appendChild($bien);
@@ -456,8 +450,6 @@ class TFinDossierTransfertXML extends TObjetStd {
 		    $TDesignation[$k] = substr($designation,0,30);
 		}
 		
-		//$bien->appendChild($xml->createElement("designation1",substr(strtoupper(($designation)),0,30)));
-		
 		if($nbAsset === 1){
 			$bien->appendChild($xml->createElement("designation1",$TDesignation[0]));
 		}
@@ -466,25 +458,11 @@ class TFinDossierTransfertXML extends TObjetStd {
 			$bien->appendChild($xml->createElement("designation1B",$TDesignation[0]));
 			$bien->appendChild($xml->createElement("designation1C",$TDesignation[1]));
 		}
-		/*$des = $bien->appendChild($xml->createElement("designation1"));
-		$des->appendChild($xml->createCDATASection(substr($product->label,0,30)));*/
-		
-		//$bien->appendChild($xml->createElement("noSerie",$assetLink->asset->serial_number));
+
 		$bien->appendChild($xml->createElement("noSerie",strtoupper(substr($serial_numbers,0,30))));
 		$bien->appendChild($xml->createElement("immatriculable","NON"));
 		$bien->appendChild($xml->createElement("codeAssietteTheorique","U03C"));
-		
-		//On divise le montant total HT de la facture par le nombre de bien
-		//Seul pb, les arrondies risquent de faussé les montants donc pour le dernier bien ajouté montan = total HT - somme des montants des bien précédent
-		/*if($a+1 == $nbAsset){
-			//echo $Affaire->totalBien;exit;
-			$bien->appendChild($xml->createElement("montant",round(($facture->total_ht - $Affaire->totalBien),2)));
-		}
-		else{
-			$Affaire->totalBien += round(($facture->total_ht / $nbAsset),2);
-			$bien->appendChild($xml->createElement("montant",round(($facture->total_ht / $nbAsset),2)));
-		}*/
-		//$bien->appendChild($xml->createElement("montant",round((($assetLink->asset->fk_product) ? $facture->total_ht : $Affaire->TLien[0]->dossier->financementLeaser->montant),2)));
+
 		$bien->appendChild($xml->createElement("montant",round($financementleaser->montant,2)));
 		
 		return $bien;
@@ -586,31 +564,8 @@ class TFinDossierTransfertXML extends TObjetStd {
 		$commandeLig->appendChild($xml->createElement("immobilisation",$a+1));
 		$commandeLig->appendChild($xml->createElement("codeTypeLigne","ABIE"));
 		
-		/*$nbAsset = count($Affaire->TAsset);
-		
-		if($a+1 == $nbAsset){
-			//echo $Affaire->totalBien;exit;
-			$commandeLig->appendChild($xml->createElement("mtHt",round(($facture->total_ht - $Affaire->totalHt),2)));
-		}
-		else{
-			$Affaire->totalHt += round(($facture->total_ht / $nbAsset),2);
-			$commandeLig->appendChild($xml->createElement("mtHt",round(($facture->total_ht / $nbAsset),2)));
-		}*/
-		
 		$commandeLig->appendChild($xml->createElement("mtHt",round($total_ht,2)));
 		$commandeLig->appendChild($xml->createElement("codeTaxe","10"));
-		
-		/*if($a+1 == $nbAsset){
-			//echo $Affaire->totalBien;exit;
-			$commandeLig->appendChild($xml->createElement("mtTaxe",round(($facture->total_tva - $Affaire->totalTva),2)));
-			$commandeLig->appendChild($xml->createElement("mtTTC",round(($facture->total_ttc - $Affaire->totalTtc),2)));
-		}
-		else{
-			$Affaire->totalTva += round(($facture->total_tva / $nbAsset),2);
-			$Affaire->totalTtc += round(($facture->total_ttc / $nbAsset),2);
-			$commandeLig->appendChild($xml->createElement("mtTaxe",round(($facture->total_tva / $nbAsset),2)));
-			$commandeLig->appendChild($xml->createElement("mtTTC",round(($facture->total_ttc / $nbAsset),2)));
-		}*/
 		
 		$commandeLig->appendChild($xml->createElement("mtTaxe",round($total_tva,2)));
 		$commandeLig->appendChild($xml->createElement("mtTTC",round($total_ttc,2)));
@@ -624,22 +579,39 @@ class TFinDossierTransfertXML extends TObjetStd {
  **********************************************************************************************************/
 	
 	function genCMCICXML(&$PDOdb, &$TAffaires,$andUpload=false){
-		global $conf;
+		global $conf, $db;
 		
 		$xml = new DOMDocument('1.0','UTF-8');
 		$xml->formatOutput = true;
-
-		$affairelist = $xml->createElement("affaireList");
-		$affairelist = $xml->appendChild($affairelist);
-		
-		list($nomFichier,$name2,$refPartenaire,$numLot) = $this->getEnTeteByEntity();
-		
-		$affairelist->appendChild($xml->createElement("nomFich",$nomFichier));
-		$affairelist->appendChild($xml->createElement("refExtPartenaire",$refPartenaire));
-		$affairelist->appendChild($xml->createElement("numLot",$numLot));
 		
 		//Chargement des noeuds correspondant aux affaires
+		//print '<pre>';
 		foreach($TAffaires as $Affaire){
+			$dossier = $Affaire->TLien[0]->dossier;	// Possible car 1 affaire = 1 dossier
+			$fin = $dossier->financement;
+			$finLeaser = $dossier->financementLeaser;
+			//var_dump($finLeaser->duree);exit;
+
+			$socLeaser = new Societe($db);
+			$socLeaser->fetch($finLeaser->fk_soc);
+			$leaserName = substr($socLeaser->name, 0, 32);	// Limité à 32 caractères
+
+			$affairelist = $xml->createElement("CONTRAT");
+			$affairelist = $xml->appendChild($affairelist);
+
+			$affairelist->appendChild($xml->createElement("NO_AFFAIRE_CM", $finLeaser->reference));
+			$affairelist->appendChild($xml->createElement("NO_AFFAIRE_PARTENAIRE", $fin->reference));
+			$affairelist->appendChild($xml->createElement("NOM_LEASER", $leaserName));
+
+			$affairelist->appendChild($xml->createElement("FLG_COSME", 'N'));
+			$affairelist->appendChild($xml->createElement("FLG_ASSVIE", 'N'));
+			$affairelist->appendChild($xml->createElement("FLG_GARANTIE", 'N'));
+			$affairelist->appendChild($xml->createElement("FLG_DERO_ASSMAT", 'N'));
+
+			$schema_financier = $xml->createElement('SCHEMA_FINANCIER');
+			$schema_financier->appendChild($xml->createElement('DUREE_MOIS', $finLeaser->duree*$finLeaser->getiPeriode()));
+			$affairelist->appendChild($schema_financier);
+
 			$affaires = $this->_getAffairesXML($xml,$Affaire);
 			if($andUpload){
 				$Affaire->xml_date_transfert = time();
@@ -652,6 +624,7 @@ class TFinDossierTransfertXML extends TObjetStd {
 		
 		$chaine = $xml->saveXML();
 		
+		$name2 = 'test';
 		dol_mkdir($this->fileFullPath);
 		file_put_contents($this->fileFullPath.$name2.'.xml', $chaine);
 		
