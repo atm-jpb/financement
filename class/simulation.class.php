@@ -176,6 +176,13 @@ class TSimulation extends TObjetStd {
 				$dossier =  new TFin_dossier;
 				$dossier->load($PDOdb, $k);
 				
+				$fin_leaser = &$dossier->financementLeaser;
+				if($dossier->nature_financement == 'INTERNE') {
+					$fin = &$dossier->financement;
+				} else {
+					$fin = &$dossier->financementLeaser;
+				}
+				
 				// Récupération des soldes banques
 				$echeance = $dossier->_get_num_echeance_from_date($dossier->financementLeaser->date_prochaine_echeance);
 				$solde_banque_m1 = $dossier->getSolde($PDOdb, 'SRBANK', $echeance - 1);
@@ -1181,9 +1188,11 @@ class TSimulation extends TObjetStd {
 				$f->reference .= ' / '.$d->financementLeaser->reference;
 			}
 			
-			$datemax_deb = $this->dossiers[$idDossier]['date_debut_periode_client'];
-			$datemax_fin = $this->dossiers[$idDossier]['date_fin_periode_client'];
-			$solde_r = $this->dossiers[$idDossier]['solde_vendeur'];
+			$periode_solde = !empty($this->dossiers[$idDossier]['choice']) ? $this->dossiers[$idDossier]['choice'] : '';
+			$periode_solde = strtr($periode_solde, array('prev' => '_m1', 'curr' => '', 'next' => '_p1'));
+			$datemax_deb = $this->dossiers[$idDossier]['date_debut_periode_client'.$periode_solde];
+			$datemax_fin = $this->dossiers[$idDossier]['date_fin_periode_client'.$periode_solde];
+			$solde_r = $this->dossiers[$idDossier]['solde_vendeur'.$periode_solde];
 			
 			$leaser = $this->dossiers[$idDossier]['object_leaser'];
 			$TDossier[] = array(
