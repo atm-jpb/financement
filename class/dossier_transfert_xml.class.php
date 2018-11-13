@@ -608,18 +608,39 @@ class TFinDossierTransfertXML extends TObjetStd {
 			$affairelist->appendChild($xml->createElement("FLG_GARANTIE", 'N'));
 			$affairelist->appendChild($xml->createElement("FLG_DERO_ASSMAT", 'N'));
 
-			$schema_financier = $xml->createElement('SCHEMA_FINANCIER');
-			$schema_financier->appendChild($xml->createElement('DUREE_MOIS', $finLeaser->duree*$finLeaser->getiPeriode()));
-			$affairelist->appendChild($schema_financier);
+			// Schéma financier
+			$data_schema_fin = $this->getSchemaFinData($xml, $dossier);
+			$affairelist->appendChild($data_schema_fin);
 
-			$affaires = $this->_getAffairesXML($xml,$Affaire);
+			// Solde contrat
+			$data_schema_fin = $this->getSoldeContratData($xml, $dossier);
+			$affairelist->appendChild($data_schema_fin);
+
+			// Locataire
+			$data_schema_fin = $this->getLocataireData($xml, $dossier);
+			$affairelist->appendChild($data_schema_fin);
+
+			// Marche public - Facultatif
+//			$data_schema_fin = $this->getMarchePublicData($xml, $dossier);
+//			$affairelist->appendChild($data_schema_fin);
+
+			// COSME
+			$data_schema_fin = $this->getCOSMEData($xml, $dossier);
+			$affairelist->appendChild($data_schema_fin);
+
+			// Assurance vie
+			$data_schema_fin = $this->getAssuranceVieData($xml, $dossier);
+			$affairelist->appendChild($data_schema_fin);
+
+			// Factures
+			$data_schema_fin = $this->getFactureData($xml, $Affaire);
+			$affairelist->appendChild($data_schema_fin);
+
 			if($andUpload){
 				$Affaire->xml_date_transfert = time();
 				$Affaire->xml_fic_transfert = $name2;
 			}
 			$Affaire->save($PDOdb);
-
-			$affairelist->appendChild($affaires);
 		}
 		
 		$chaine = $xml->saveXML();
@@ -629,5 +650,321 @@ class TFinDossierTransfertXML extends TObjetStd {
 		file_put_contents($this->fileFullPath.$name2.'.xml', $chaine);
 		
 		return $name2;
+	}
+
+	/**
+	 *	Fonction spé CM CIC
+	 *
+	 */
+	function getSchemaFinData(&$xml, $dossier) {
+		$finLeaser = $dossier->financementLeaser;
+        $periode = $finLeaser->getiPeriode();
+
+		$schema_financier = $xml->createElement('SCHEMA_FINANCIER');
+        $TData = array(
+            'DUREE_MOIS' => $finLeaser->duree*$periode,
+            'PERIODICITE' => $periode,
+            'TERME' => ($finLeaser->terme == 0 ? 2 : 1),            // La banque veut : échu => 2, à échoir => 1
+            'DATE_ML' => date('d/m/Y', $finLeaser->date_debut),     // TODO: à adapter si intercalaire!
+            'MTACPTCLI' => price($finLeaser->loyer_intercalaire, 0, '', 1, 2)
+        );
+
+        foreach($TData as $code => $value) {
+            $schema_financier->appendChild($xml->createElement($code, $value));
+        }
+
+		return $schema_financier;
+	}
+
+	/**
+	 *	Fonction spé CM CIC
+	 *
+	 */
+	function getSoldeContratData(&$xml, $dossier) {
+		$solde_contrat = $xml->createElement('SOLDE_CONTRAT');
+        $TData = array(
+            'NOCTROA' => 0,     // Num dossier
+            'MTSOLDCTR' => price(0, 0, '', 1, 2),   // ???
+            'NSOLDDCPT' => 0000    // ???
+        );
+
+        foreach($TData as $code => $value) {
+            $solde_contrat->appendChild($xml->createElement($code, $value));  // Num dossier
+        }
+
+		return $solde_contrat;
+	}
+
+	/**
+	 *	Fonction spé CM CIC
+	 *
+	 */
+	function getLocataireData(&$xml, $dossier) {
+        global $db, $mysoc;
+
+		$fin = $dossier->financement;
+        $siret = $soc_name = '';
+        if($fin->fk_soc == 1) {
+            $siret = $mysoc->idprof2;
+            $soc_name = $mysoc->name;
+        }
+        else {
+            $socClient = new Societe($db);
+            $socClient->fetch($fin->fk_soc);
+
+            $siret = $socClient->idprof2;
+            $soc_name = $socClient->name;
+        }
+
+		$solde_contrat = $xml->createElement('LOCATAIRE');
+        $TData = array(
+            'SIRET_LOC' => $siret,
+            'DENO_LOC' => substr($soc_name, 0, 32),    // 32 Caractères MAX !
+            'BIC_IBAN' => 0,    // BIC.'_'.IBAN
+            'N_TIT' => 0,
+            'DT_SIGN_CLI' => 0
+        );
+
+        foreach($TData as $code => $value) {
+            $solde_contrat->appendChild($xml->createElement($code, $value));  // Num dossier
+        }
+
+		return $solde_contrat;
+	}
+
+	/**
+	 *	Fonction spé CM CIC
+	 *
+	 */
+	function getMarchePublicData(&$xml, $dossier) {
+		$elem = $xml->createElement('MARCHE_PUBLIC');
+        $TData = array(
+
+        );
+
+        foreach($TData as $code => $value) {
+            $elem->appendChild($xml->createElement($code, $value));
+        }
+
+		return $elem;
+	}
+
+	/**
+	 *	Fonction spé CM CIC
+	 *
+	 */
+	function getCOSMEData(&$xml, $dossier) {
+		$elem = $xml->createElement('COSME');
+        $TData = array(
+            'DATE_COSME' => 'N'
+        );
+
+        foreach($TData as $code => $value) {
+            $elem->appendChild($xml->createElement($code, $value));
+        }
+
+		return $elem;
+	}
+
+	/**
+	 *	Fonction spé CM CIC
+	 *
+	 */
+	function getAssuranceVieData(&$xml, $dossier) {
+		$elem = $xml->createElement('ASSURANCE_VIE');
+        $TData = array(
+            'TYPE_ASSVIE' => 'N',
+            'NOM_ASSVIE' => 'N',
+            'PRENOM_ASSVIE' => 'N',
+            'N_RUE_ASSVIE' => 'N',
+            'RUE_ASSVIE' => 'N',
+            'C_POSTAL_ASSVIE' => 'N',
+            'VILLE_ASSVIE' => 'N',
+            'DATE_NAISSANCE' => 'N'
+        );
+
+        foreach($TData as $code => $value) {
+            $elem->appendChild($xml->createElement($code, $value));
+        }
+
+		return $elem;
+	}
+
+	/**
+	 *	Fonction spé CM CIC
+	 *
+	 */
+	function getFactureData(&$xml, $affaire) {
+        $dossier = $affaire->TLien[0]->dossier;
+		$finLeaser = $dossier->financementLeaser;
+
+		$elem = $xml->createElement('FACTURE');
+        foreach(array('1') as $truc) {
+            $TData = array(
+                'NOFACEXT' => 'N',  // Num facture matériel liée à l'affaire
+                'DTFACEXT' => 'N',  // Date facture
+                'TEMFACPV' => 'N',  // ???
+                'TYPFACFOU' => 'N'  // Type facture
+            );
+
+            foreach($TData as $code => $value) {
+                $elem->appendChild($xml->createElement($code, $value));
+            }
+
+            // Montants factures
+            $truc = $this->getMontantFactureData($xml, $dossier);
+            $elem->appendChild($truc);
+
+            // Montants factures
+            $truc = $this->getFacturantData($xml, $dossier);
+            $elem->appendChild($truc);
+
+            // Matériel
+            $truc = $this->getMaterielData($xml, $dossier);
+            $elem->appendChild($truc);
+        }
+
+		return $elem;
+	}
+
+	/**
+	 *	Fonction spé CM CIC
+	 *
+	 */
+	function getMontantFactureData(&$xml, $dossier) {
+		$finLeaser = $dossier->financementLeaser;
+
+		$elem = $xml->createElement('MONTANTS_FAC');
+        $TData = array(
+            'MTESCFOU' => 'N',
+            'MTHTFAC' => 'N',
+            'MTTVAFAC' => 'N',
+            'MTRSTAFF' => 'N',
+            'CDDEV' => 'N'
+        );
+
+        foreach($TData as $code => $value) {
+            $elem->appendChild($xml->createElement($code, $value));
+        }
+
+		return $elem;
+	}
+
+	/**
+	 *	Fonction spé CM CIC
+	 *
+	 */
+	function getFacturantData(&$xml, $dossier) {
+		$finLeaser = $dossier->financementLeaser;
+
+		$elem = $xml->createElement('FACTURANT');
+        $TData = array(
+            'SIRETFCT' => 'N',
+            'TAUXTVAFOU' => 'N',
+            'NOTVAIN' => 'N'
+        );
+
+        foreach($TData as $code => $value) {
+            $elem->appendChild($xml->createElement($code, $value));
+        }
+
+		return $elem;
+	}
+
+	/**
+	 *	Fonction spé CM CIC
+	 *
+	 */
+	function getMaterielData(&$xml, $dossier) {
+		$finLeaser = $dossier->financementLeaser;
+
+		$elem = $xml->createElement('MATERIEL');
+
+        // Détails Matériel
+        $truc = $this->getMaterielDetailsData($xml, $dossier);
+        $elem->appendChild($truc);
+
+        // Livraison Matériel
+        $truc = $this->getLivraisonMaterielData($xml, $dossier);
+        $elem->appendChild($truc);
+
+        // Maintenance Matérielle
+        $truc = $this->getMaintenanceMatData($xml, $dossier);
+        $elem->appendChild($truc);
+
+		return $elem;
+	}
+
+	/**
+	 *	Fonction spé CM CIC
+	 *
+	 */
+	function getMaterielDetailsData(&$xml, $dossier) {
+		$finLeaser = $dossier->financementLeaser;
+
+		$elem = $xml->createElement('DETAIL_MAT');
+        $TData = array(
+            'LIB_MAT' => 'N',
+            'NOSEROBJ' => 'N',
+            'MTHTUNIT' => 'N',
+            'MTFTECG' => 'N',
+            'REFEXTFOU' => 'N',
+//            'COMM_FIN' => 'N',    // Facultatif
+            'LOYER_HT' => 'N'
+        );
+
+        foreach($TData as $code => $value) {
+            $elem->appendChild($xml->createElement($code, $value));
+        }
+
+		return $elem;
+	}
+
+	/**
+	 *	Fonction spé CM CIC
+	 *
+	 */
+	function getLivraisonMaterielData(&$xml, $dossier) {
+		$finLeaser = $dossier->financementLeaser;
+
+		$elem = $xml->createElement('LIVRAISON_MAT');
+        $TData = array(
+//            'DTPV' => 'N',    // Facultatif
+            'CDTYPPV' => 'N',
+            'SIRET_LIV' => 'N',
+            'N_RUE_LIV' => 'N',
+            'RUE_1_LIV' => 'N',
+            'RUE_2_LIV' => 'N',
+            'C_POSTAL_LIV' => 'N',
+            'VILLE_LIV' => 'N',
+            'DATE_LIV' => 'N'
+        );
+
+        foreach($TData as $code => $value) {
+            $elem->appendChild($xml->createElement($code, $value));
+        }
+
+		return $elem;
+	}
+
+	/**
+	 *	Fonction spé CM CIC
+	 *
+	 */
+	function getMaintenanceMatData(&$xml, $dossier) {
+		$finLeaser = $dossier->financementLeaser;
+
+		$elem = $xml->createElement('MAINTENANCE_MAT');
+        $TData = array(
+            'MTHT_MAIN' => 'N',
+            'SIRET_MAIN' => 'N',
+            'FLG_INDEX' => 'N'
+        );
+
+        foreach($TData as $code => $value) {
+            $elem->appendChild($xml->createElement($code, $value));
+        }
+
+		return $elem;
 	}
 }
