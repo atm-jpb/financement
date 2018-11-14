@@ -206,7 +206,7 @@ if(!empty($action)) {
 		case 'edit'	:
 		
 			$simulation->load($ATMdb, $db, $_REQUEST['id']);
-			
+			$simulation->set_values_from_cristal($_REQUEST);
 			_fiche($ATMdb, $simulation,'edit');
 			
 			break;

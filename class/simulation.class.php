@@ -2192,6 +2192,16 @@ class TSimulation extends TObjetStd {
 		
 		return false;
 	}
+
+    function set_values_from_cristal($post) {
+        $TValuesToModify = array(
+            'montant'
+        );
+
+        foreach($TValuesToModify as $code) {
+            $this->$code = $post[$code];
+        }
+    }
 }
 
 
