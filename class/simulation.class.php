@@ -172,7 +172,7 @@ class TSimulation extends TObjetStd {
 		$TDoss = $this->dossiers;
 		foreach($this->dossiers_rachetes as $k=>$TDossiers){
 			// On enregistre les données que lors du 1er enregistrement de la simulation pour les figer
-			if(empty($this->dossiers)) {
+			if(empty($TDoss) || empty($TDoss[$k]['date_debut_periode_client_m1'])) { // Retro compatibilité pour les ancienne simulations
 				$dossier =  new TFin_dossier;
 				$dossier->load($PDOdb, $k);
 				
@@ -197,12 +197,35 @@ class TSimulation extends TObjetStd {
 				$leaser = new Societe($doliDB);
 				$leaser->fetch($fin_leaser->fk_soc);
 				
-				$TDoss[$k]['ref_simulation'] = $this->reference;
-				$TDoss[$k]['num_contrat'] = $fin->reference;
-				$TDoss[$k]['num_contrat_leaser'] = $fin_leaser->reference;
-				$TDoss[$k]['leaser'] = $leaser->nom;
-				$TDoss[$k]['object_leaser'] = $leaser;
-				$TDoss[$k]['retrait_copie_supp'] = $dossier->soldeperso;
+				if(empty($TDoss[$k])) { // On fige toutes les données si c'est la première fois qu'on enregistre
+					$TDoss[$k]['ref_simulation'] = $this->reference;
+					$TDoss[$k]['num_contrat'] = $fin->reference;
+					$TDoss[$k]['num_contrat_leaser'] = $fin_leaser->reference;
+					$TDoss[$k]['leaser'] = $leaser->nom;
+					$TDoss[$k]['object_leaser'] = $leaser;
+					$TDoss[$k]['retrait_copie_supp'] = $dossier->soldeperso;
+					
+					$TDoss[$k]['date_debut_periode_leaser'] = $date_debut_periode_leaser;
+					$TDoss[$k]['date_fin_periode_leaser'] = $date_fin_periode_leaser;
+					$TDoss[$k]['decompte_copies_sup'] = $soldeperso;
+					$TDoss[$k]['solde_banque_a_periode_identique'] = $solde;
+					$TDoss[$k]['type_contrat'] = $dossier->TLien[0]->affaire->contrat;
+					$TDoss[$k]['duree'] = $fin->duree.' '.substr($fin->periodicite,0,1);
+					$TDoss[$k]['echeance'] = $fin->echeance;
+					$TDoss[$k]['loyer_actualise'] = $fin->loyer_actualise;
+					$TDoss[$k]['date_debut'] = $fin->date_debut;
+					$TDoss[$k]['date_fin'] = $fin->date_fin;
+					$TDoss[$k]['date_prochaine_echeance'] = $fin->date_prochaine_echeance;
+					$TDoss[$k]['numero_prochaine_echeance'] = $fin->numero_prochaine_echeance.'/'.$fin->duree;
+					$TDoss[$k]['terme'] = $fin->TTerme[$fin->terme];
+					$TDoss[$k]['reloc'] = $fin->reloc;
+					$TDoss[$k]['maintenance'] = $fin->montant_prestation;
+					$TDoss[$k]['assurance'] = $fin->assurance;
+					$TDoss[$k]['assurance_actualise'] = $fin->assurance_actualise;
+					$TDoss[$k]['montant'] = $fin->montant;
+				}
+
+				// On enregistre les dates et soldes
 				$TDoss[$k]['date_debut_periode_client_m1'] = $this->dossiers_rachetes_m1[$dossier->rowid]['date_deb_echeance'];
 				$TDoss[$k]['date_fin_periode_client_m1'] = $this->dossiers_rachetes_m1[$dossier->rowid]['date_fin_echeance'];
 				$TDoss[$k]['solde_vendeur_m1'] = $this->dossiers_rachetes_m1[$dossier->rowid]['montant'];
@@ -215,24 +238,6 @@ class TSimulation extends TObjetStd {
 				$TDoss[$k]['date_fin_periode_client_p1'] = $this->dossiers_rachetes_p1[$dossier->rowid]['date_fin_echeance'];
 				$TDoss[$k]['solde_vendeur_p1'] = $this->dossiers_rachetes_p1[$dossier->rowid]['montant'];
 				$TDoss[$k]['solde_banque_p1'] = $solde_banque_p1;
-				$TDoss[$k]['date_debut_periode_leaser'] = $date_debut_periode_leaser;
-				$TDoss[$k]['date_fin_periode_leaser'] = $date_fin_periode_leaser;
-				$TDoss[$k]['decompte_copies_sup'] = $soldeperso;
-				$TDoss[$k]['solde_banque_a_periode_identique'] = $solde;
-				$TDoss[$k]['type_contrat'] = $dossier->TLien[0]->affaire->contrat;
-				$TDoss[$k]['duree'] = $fin->duree.' '.substr($fin->periodicite,0,1);
-				$TDoss[$k]['echeance'] = $fin->echeance;
-				$TDoss[$k]['loyer_actualise'] = $fin->loyer_actualise;
-				$TDoss[$k]['date_debut'] = $fin->date_debut;
-				$TDoss[$k]['date_fin'] = $fin->date_fin;
-				$TDoss[$k]['date_prochaine_echeance'] = $fin->date_prochaine_echeance;
-				$TDoss[$k]['numero_prochaine_echeance'] = $fin->numero_prochaine_echeance.'/'.$fin->duree;
-				$TDoss[$k]['terme'] = $fin->TTerme[$fin->terme];
-				$TDoss[$k]['reloc'] = $fin->reloc;
-				$TDoss[$k]['maintenance'] = $fin->montant_prestation;
-				$TDoss[$k]['assurance'] = $fin->assurance;
-				$TDoss[$k]['assurance_actualise'] = $fin->assurance_actualise;
-				$TDoss[$k]['montant'] = $fin->montant;
 			}
 
 			// On va seulement enregistrer le choix de la période de solde
