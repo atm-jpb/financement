@@ -613,8 +613,8 @@ class TFinDossierTransfertXML extends TObjetStd {
 			$affairelist->appendChild($data_schema_fin);
 
 			// Solde contrat
-			$data_schema_fin = $this->getSoldeContratData($xml, $dossier);
-			$affairelist->appendChild($data_schema_fin);
+//			$data_schema_fin = $this->getSoldeContratData($xml, $dossier);
+//			$affairelist->appendChild($data_schema_fin);
 
 			// Locataire
 			$data_schema_fin = $this->getLocataireData($xml, $dossier);
@@ -625,12 +625,12 @@ class TFinDossierTransfertXML extends TObjetStd {
 //			$affairelist->appendChild($data_schema_fin);
 
 			// COSME
-			$data_schema_fin = $this->getCOSMEData($xml, $dossier);
-			$affairelist->appendChild($data_schema_fin);
+//			$data_schema_fin = $this->getCOSMEData($xml, $dossier);
+//			$affairelist->appendChild($data_schema_fin);
 
 			// Assurance vie
-			$data_schema_fin = $this->getAssuranceVieData($xml, $dossier);
-			$affairelist->appendChild($data_schema_fin);
+//			$data_schema_fin = $this->getAssuranceVieData($xml, $dossier);
+//			$affairelist->appendChild($data_schema_fin);
 
 			// Factures
 			$data_schema_fin = $this->getFactureData($xml, $Affaire);
@@ -666,7 +666,7 @@ class TFinDossierTransfertXML extends TObjetStd {
             'PERIODICITE' => $periode,
             'TERME' => ($finLeaser->terme == 0 ? 2 : 1),            // La banque veut : échu => 2, à échoir => 1
             'DATE_ML' => date('d/m/Y', $finLeaser->date_debut),     // TODO: à adapter si intercalaire!
-            'MTACPTCLI' => price($finLeaser->loyer_intercalaire, 0, '', 1, 2)
+            'MTACPTCLI' => price2num($finLeaser->loyer_intercalaire)
         );
 
         foreach($TData as $code => $value) {
@@ -684,7 +684,7 @@ class TFinDossierTransfertXML extends TObjetStd {
 		$solde_contrat = $xml->createElement('SOLDE_CONTRAT');
         $TData = array(
             'NOCTROA' => 0,     // Num dossier
-            'MTSOLDCTR' => price(0, 0, '', 1, 2),   // ???
+            'MTSOLDCTR' => price2num(0),   // ???
             'NSOLDDCPT' => 0000    // ???
         );
 
@@ -797,32 +797,31 @@ class TFinDossierTransfertXML extends TObjetStd {
 	function getFactureData(&$xml, $affaire) {
         $dossier = $affaire->TLien[0]->dossier;
 		$finLeaser = $dossier->financementLeaser;
+        $facture = $affaire->loadFactureMat();
 
 		$elem = $xml->createElement('FACTURE');
-        foreach(array('1') as $truc) {
-            $TData = array(
-                'NOFACEXT' => 'N',  // Num facture matériel liée à l'affaire
-                'DTFACEXT' => 'N',  // Date facture
-                'TEMFACPV' => 'N',  // ???
-                'TYPFACFOU' => 'N'  // Type facture
-            );
+        $TData = array(
+            'NOFACEXT' => substr($facture->ref, 0, 20),  // Num facture matériel liée à l'affaire
+            'DTFACEXT' => date('d/m/Y', $facture->date),  // Date facture
+            'TEMFACPV' => 'N',  // ???
+            'TYPFACFOU' => ($facture->type == Facture::TYPE_CREDIT_NOTE ? 'AFAVOIR' : 'FFFacture')  // Type facture
+        );
 
-            foreach($TData as $code => $value) {
-                $elem->appendChild($xml->createElement($code, $value));
-            }
-
-            // Montants factures
-            $truc = $this->getMontantFactureData($xml, $dossier);
-            $elem->appendChild($truc);
-
-            // Montants factures
-            $truc = $this->getFacturantData($xml, $dossier);
-            $elem->appendChild($truc);
-
-            // Matériel
-            $truc = $this->getMaterielData($xml, $dossier);
-            $elem->appendChild($truc);
+        foreach($TData as $code => $value) {
+            $elem->appendChild($xml->createElement($code, $value));
         }
+
+        // Montants factures
+        $truc = $this->getMontantFactureData($xml, $dossier, $facture);
+        $elem->appendChild($truc);
+
+        // Montants factures
+        $truc = $this->getFacturantData($xml, $dossier);
+        $elem->appendChild($truc);
+
+        // Matériel
+        $truc = $this->getMaterielData($xml, $affaire);
+        $elem->appendChild($truc);
 
 		return $elem;
 	}
@@ -831,16 +830,16 @@ class TFinDossierTransfertXML extends TObjetStd {
 	 *	Fonction spé CM CIC
 	 *
 	 */
-	function getMontantFactureData(&$xml, $dossier) {
+	function getMontantFactureData(&$xml, $dossier, $facture) {
 		$finLeaser = $dossier->financementLeaser;
 
 		$elem = $xml->createElement('MONTANTS_FAC');
         $TData = array(
-            'MTESCFOU' => 'N',
-            'MTHTFAC' => 'N',
-            'MTTVAFAC' => 'N',
-            'MTRSTAFF' => 'N',
-            'CDDEV' => 'N'
+            'MTESCFOU' => 0,
+            'MTHTFAC' => price2num($facture->total_ht),   // Montant HT
+            'MTTVAFAC' => price2num($facture->total_tva),  // Montant TVA
+            'MTRSTAFF' => price2num($facture->total_ttc),  // Montant TTC
+            'CDDEV' => 'EUR'
         );
 
         foreach($TData as $code => $value) {
@@ -855,13 +854,14 @@ class TFinDossierTransfertXML extends TObjetStd {
 	 *
 	 */
 	function getFacturantData(&$xml, $dossier) {
+        global $mysoc;
 		$finLeaser = $dossier->financementLeaser;
 
 		$elem = $xml->createElement('FACTURANT');
         $TData = array(
-            'SIRETFCT' => 'N',
-            'TAUXTVAFOU' => 'N',
-            'NOTVAIN' => 'N'
+            'SIRETFCT' => $mysoc->idprof2,  // Siret mysoc de l'entité (idprof2)
+            'TAUXTVAFOU' => price2num(20),
+            'NOTVAIN' => 'N'    // TVA Mysoc
         );
 
         foreach($TData as $code => $value) {
@@ -875,22 +875,24 @@ class TFinDossierTransfertXML extends TObjetStd {
 	 *	Fonction spé CM CIC
 	 *
 	 */
-	function getMaterielData(&$xml, $dossier) {
+	function getMaterielData(&$xml, $affaire) {
+        $dossier = $affaire->TLien[0]->dossier;
 		$finLeaser = $dossier->financementLeaser;
 
 		$elem = $xml->createElement('MATERIEL');
 
-        // Détails Matériel
-        $truc = $this->getMaterielDetailsData($xml, $dossier);
-        $elem->appendChild($truc);
+        foreach(array('1') as $truc) {
+            // Détails Matériel
+            $truc = $this->getMaterielDetailsData($xml, $dossier);
+            $elem->appendChild($truc);
 
-        // Livraison Matériel
-        $truc = $this->getLivraisonMaterielData($xml, $dossier);
-        $elem->appendChild($truc);
-
+            // Livraison Matériel
+            $truc = $this->getLivraisonMaterielData($xml, $dossier);
+            $elem->appendChild($truc);
+        }
         // Maintenance Matérielle
-        $truc = $this->getMaintenanceMatData($xml, $dossier);
-        $elem->appendChild($truc);
+//        $truc = $this->getMaintenanceMatData($xml, $dossier);
+//        $elem->appendChild($truc);
 
 		return $elem;
 	}

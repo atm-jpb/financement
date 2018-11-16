@@ -341,6 +341,37 @@ class TFin_affaire extends TObjetStd {
 		}
 		
 	}
+
+    function loadFactureMat($fetchFacture = true) {
+        if(empty($this->rowid)) return;
+        if(! class_exists('Facture')) dol_include_once('/compta/facture/class/facture.class.php');
+
+        global $db;
+
+        $sql = 'SELECT fk_target';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'element_element';
+        $sql.= " WHERE sourcetype='affaire'";
+        $sql.= ' AND fk_source='.$this->rowid;
+        $sql.= " AND targettype='facture'";
+
+        $resql = $db->query($sql);
+        if($resql) {
+            if($obj = $db->fetch_object($resql)) {
+                if($fetchFacture) {
+                    $facture = new Facture($db);
+                    $facture->fetch($obj->fk_target);
+
+                    return $facture;
+                }
+                return $obj->tk_target;
+            }
+        }
+        else {
+            dol_print_error($db);
+            return -2;
+        }
+        return -1;
+    }
 }
 
 class TFin_affaire_commercial extends TObjetStd {
