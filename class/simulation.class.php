@@ -151,94 +151,7 @@ class TSimulation extends TObjetStd {
 		
 		$this->reference = $this->getRef();
 		
-		if(empty($this->dossiers) || count($this->dossiers) != count($this->dossiers_rachetes)){
-			
-			foreach($this->dossiers_rachetes as $k=>$TDossiers){
-				$dossier =  new TFin_dossier;
-				$dossier->load($db, $k);
-				
-				// Renouvelant, renouvellant + 1, non renouvellant ou non renouvellant + 1
-				$periode = 0;
-				if(!empty($this->dossiers_rachetes_m1[$dossier->rowid]['checked'])) {
-					$type = 'SRBANK';
-					$periode = -1;
-				} elseif(!empty($this->dossiers_rachetes_nr_m1[$dossier->rowid]['checked'])) {
-					$type = 'SNRBANK';
-					$periode = -1;
-				} elseif(!empty($this->dossiers_rachetes[$dossier->rowid]['checked'])) {
-					$type = 'SRBANK';
-					$periode = 0;
-				} elseif(!empty($this->dossiers_rachetes_nr[$dossier->rowid]['checked'])) {
-					$type = 'SNRBANK';
-					$periode = 0;
-				} elseif(!empty($this->dossiers_rachetes_p1[$dossier->rowid]['checked'])) {
-					$type = 'SRBANK';
-					$periode = 1;
-				} elseif(!empty($this->dossiers_rachetes_nr_p1[$dossier->rowid]['checked'])) {
-					$type = 'SNRBANK';
-					$periode = 1;
-				}
-				
-				$echeance = $dossier->_get_num_echeance_from_date($dossier->financementLeaser->date_prochaine_echeance);
-				//echo '*'.$type.' : '.$periode.' : '.($echeance + $periode).'*';
-				$solde = $dossier->getSolde($db, $type, $echeance + $periode);
-				
-				if($dossier->nature_financement == 'INTERNE') {
-					$fin = &$dossier->financement;
-					$fin_leaser = &$dossier->financementLeaser;
-					$echeance = $dossier->_get_num_echeance_from_date($dossier->financement->date_prochaine_echeance);
-					$date_debut_periode_client = $dossier->getDateDebutPeriode(($echeance-1) + $periode,'CLIENT');
-					$date_fin_periode_client = $dossier->getDateFinPeriode(($echeance-1) + $periode,'CLIENT');
-					$echeance = $dossier->_get_num_echeance_from_date($dossier->financementLeaser->date_prochaine_echeance);
-					$date_debut_periode_leaser = $dossier->getDateDebutPeriode(($echeance-1) + $periode);
-					$date_fin_periode_leaser = $dossier->getDateFinPeriode(($echeance-1) + $periode);
-				}
-				else{
-					$fin = &$dossier->financementLeaser;
-					$fin_leaser = &$dossier->financementLeaser;
-					$echeance = $dossier->_get_num_echeance_from_date($dossier->financementLeaser->date_prochaine_echeance);
-					$date_debut_periode_client = $date_debut_periode_leaser = $dossier->getDateDebutPeriode(($echeance-1) + $periode);
-					$date_fin_periode_client = $date_fin_periode_leaser = $dossier->getDateFinPeriode(($echeance-1) + $periode);
-				}
-				
-				/*echo $dossier->rowid.' : '.$dossier->financementLeaser->date_prochaine_echeance.' : '.$date_debut_periode_client.' : '.$date_fin_periode_client;
-				echo '<br>';*/
-				//pre($this, true);
-				$soldeperso = round($dossier->getSolde($db, 'perso'),2);
-				if(empty($dossier->display_solde)) $soldeperso = 0;
-				if(!$dossier->getSolde($db, 'perso')) $soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100));
-				
-				$leaser = new Societe($doliDB);
-				$leaser->fetch($fin_leaser->fk_soc);
-				
-				$this->dossiers[$k]['ref_simulation'] = $this->reference;
-				$this->dossiers[$k]['num_contrat'] = $fin->reference;
-				$this->dossiers[$k]['num_contrat_leaser'] = $fin_leaser->reference;
-				$this->dossiers[$k]['leaser'] = $leaser->nom;
-				$this->dossiers[$k]['object_leaser'] = $leaser;
-				$this->dossiers[$k]['retrait_copie_supp'] = $dossier->soldeperso;
-				$this->dossiers[$k]['date_debut_periode_client'] = $date_debut_periode_client;
-				$this->dossiers[$k]['date_fin_periode_client'] = $date_fin_periode_client;
-				$this->dossiers[$k]['date_debut_periode_leaser'] = $date_debut_periode_leaser;
-				$this->dossiers[$k]['date_fin_periode_leaser'] = $date_fin_periode_leaser;
-				$this->dossiers[$k]['decompte_copies_sup'] = $soldeperso;
-				$this->dossiers[$k]['solde_banque_a_periode_identique'] = $solde;
-				$this->dossiers[$k]['type_contrat'] = $dossier->TLien[0]->affaire->contrat;
-				$this->dossiers[$k]['duree'] = $fin->duree.' '.substr($fin->periodicite,0,1);
-				$this->dossiers[$k]['echeance'] = $fin->echeance;
-				$this->dossiers[$k]['loyer_actualise'] = $fin->loyer_actualise;
-				$this->dossiers[$k]['date_debut'] = $fin->date_debut;
-				$this->dossiers[$k]['date_fin'] = $fin->date_fin;
-				$this->dossiers[$k]['date_prochaine_echeance'] = $fin->date_prochaine_echeance;
-				$this->dossiers[$k]['numero_prochaine_echeance'] = $fin->numero_prochaine_echeance.'/'.$fin->duree;
-				$this->dossiers[$k]['terme'] = $fin->TTerme[$fin->terme];
-				$this->dossiers[$k]['reloc'] = $fin->reloc;
-				$this->dossiers[$k]['maintenance'] = $fin->montant_prestation;
-				$this->dossiers[$k]['assurance'] = $fin->assurance;
-				$this->dossiers[$k]['assurance_actualise'] = $fin->assurance_actualise;
-				$this->dossiers[$k]['montant'] = $fin->montant;
-			}
-		}
+		$this->save_dossiers_rachetes($db, $doliDB);
 
 		if($this->accord == 'OK') {
 			$this->date_validite = strtotime('+ 5 months', $this->date_accord);
@@ -253,6 +166,93 @@ class TSimulation extends TObjetStd {
 		//Création du suivi simulation leaser s'il n'existe pas
 		//Sinon chargement du suivi
 		$this->load_suivi_simulation($db);
+	}
+	
+	function save_dossiers_rachetes(&$PDOdb, &$doliDB) {
+		$TDoss = $this->dossiers;
+		foreach($this->dossiers_rachetes as $k=>$TDossiers){
+			// On enregistre les données que lors du 1er enregistrement de la simulation pour les figer
+			if(empty($TDoss) || empty($TDoss[$k]['date_debut_periode_client_m1'])) { // Retro compatibilité pour les ancienne simulations
+				$dossier =  new TFin_dossier;
+				$dossier->load($PDOdb, $k);
+				
+				$fin_leaser = &$dossier->financementLeaser;
+				if($dossier->nature_financement == 'INTERNE') {
+					$fin = &$dossier->financement;
+				} else {
+					$fin = &$dossier->financementLeaser;
+				}
+				
+				// Récupération des soldes banques
+				$echeance = $dossier->_get_num_echeance_from_date($dossier->financementLeaser->date_prochaine_echeance);
+				$solde_banque_m1 = $dossier->getSolde($PDOdb, 'SRBANK', $echeance - 1);
+				$solde_banque = $dossier->getSolde($PDOdb, 'SRBANK', $echeance);
+				$solde_banque_p1 = $dossier->getSolde($PDOdb, 'SRBANK', $echeance + 1);
+				
+				// ?
+				$soldeperso = round($dossier->getSolde($PDOdb, 'perso'),2);
+				if(empty($dossier->display_solde)) $soldeperso = 0;
+				if(!$dossier->getSolde($PDOdb, 'perso')) $soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100));
+				
+				$leaser = new Societe($doliDB);
+				$leaser->fetch($fin_leaser->fk_soc);
+				
+				if(empty($TDoss[$k])) { // On fige toutes les données si c'est la première fois qu'on enregistre
+					$TDoss[$k]['ref_simulation'] = $this->reference;
+					$TDoss[$k]['num_contrat'] = $fin->reference;
+					$TDoss[$k]['num_contrat_leaser'] = $fin_leaser->reference;
+					$TDoss[$k]['leaser'] = $leaser->nom;
+					$TDoss[$k]['object_leaser'] = $leaser;
+					$TDoss[$k]['retrait_copie_supp'] = $dossier->soldeperso;
+					
+					$TDoss[$k]['date_debut_periode_leaser'] = $date_debut_periode_leaser;
+					$TDoss[$k]['date_fin_periode_leaser'] = $date_fin_periode_leaser;
+					$TDoss[$k]['decompte_copies_sup'] = $soldeperso;
+					$TDoss[$k]['solde_banque_a_periode_identique'] = $solde;
+					$TDoss[$k]['type_contrat'] = $dossier->TLien[0]->affaire->contrat;
+					$TDoss[$k]['duree'] = $fin->duree.' '.substr($fin->periodicite,0,1);
+					$TDoss[$k]['echeance'] = $fin->echeance;
+					$TDoss[$k]['loyer_actualise'] = $fin->loyer_actualise;
+					$TDoss[$k]['date_debut'] = $fin->date_debut;
+					$TDoss[$k]['date_fin'] = $fin->date_fin;
+					$TDoss[$k]['date_prochaine_echeance'] = $fin->date_prochaine_echeance;
+					$TDoss[$k]['numero_prochaine_echeance'] = $fin->numero_prochaine_echeance.'/'.$fin->duree;
+					$TDoss[$k]['terme'] = $fin->TTerme[$fin->terme];
+					$TDoss[$k]['reloc'] = $fin->reloc;
+					$TDoss[$k]['maintenance'] = $fin->montant_prestation;
+					$TDoss[$k]['assurance'] = $fin->assurance;
+					$TDoss[$k]['assurance_actualise'] = $fin->assurance_actualise;
+					$TDoss[$k]['montant'] = $fin->montant;
+				}
+
+				// On enregistre les dates et soldes
+				$TDoss[$k]['date_debut_periode_client_m1'] = $this->dossiers_rachetes_m1[$dossier->rowid]['date_deb_echeance'];
+				$TDoss[$k]['date_fin_periode_client_m1'] = $this->dossiers_rachetes_m1[$dossier->rowid]['date_fin_echeance'];
+				$TDoss[$k]['solde_vendeur_m1'] = $this->dossiers_rachetes_m1[$dossier->rowid]['montant'];
+				$TDoss[$k]['solde_banque_m1'] = $solde_banque_m1;
+				$TDoss[$k]['date_debut_periode_client'] = $this->dossiers_rachetes[$dossier->rowid]['date_deb_echeance'];
+				$TDoss[$k]['date_fin_periode_client'] = $this->dossiers_rachetes[$dossier->rowid]['date_fin_echeance'];
+				$TDoss[$k]['solde_vendeur'] = $this->dossiers_rachetes[$dossier->rowid]['montant'];
+				$TDoss[$k]['solde_banque'] = $solde_banque;
+				$TDoss[$k]['date_debut_periode_client_p1'] = $this->dossiers_rachetes_p1[$dossier->rowid]['date_deb_echeance'];
+				$TDoss[$k]['date_fin_periode_client_p1'] = $this->dossiers_rachetes_p1[$dossier->rowid]['date_fin_echeance'];
+				$TDoss[$k]['solde_vendeur_p1'] = $this->dossiers_rachetes_p1[$dossier->rowid]['montant'];
+				$TDoss[$k]['solde_banque_p1'] = $solde_banque_p1;
+			}
+
+			// On va seulement enregistrer le choix de la période de solde
+			$choice = 'no';
+			if(!empty($this->dossiers_rachetes_m1[$k]['checked'])) {
+				$choice = 'prev';
+			} elseif(!empty($this->dossiers_rachetes[$k]['checked'])) {
+				$choice = 'curr';
+			} elseif(!empty($this->dossiers_rachetes_p1[$k]['checked'])) {
+				$choice = 'next';
+			}
+			$TDoss[$k]['choice'] = $choice;
+		}
+
+		$this->dossiers = $TDoss;
 	}
 	
 	function setThirparty()
@@ -1115,41 +1115,34 @@ class TSimulation extends TObjetStd {
 	function _getDossierSelected(){
 		
 		$TDossier = array();
-		//pre($this,true);exit;
 		foreach($this->dossiers_rachetes_m1 as $idDossier => $TData){
 			if(!empty($this->dossiers_rachetes_m1[$idDossier]['checked'])) {
 				$TDossier[$idDossier] = $idDossier;
-				$this->dossiers[$idDossier]['solde_vendeur'] = $this->dossiers_rachetes_m1[$idDossier]['montant'];
 			}
 		}
 		foreach($this->dossiers_rachetes as $idDossier => $TData){
 			if(!empty($this->dossiers_rachetes[$idDossier]['checked'])) {
 				$TDossier[$idDossier] = $idDossier;
-				$this->dossiers[$idDossier]['solde_vendeur'] = $this->dossiers_rachetes[$idDossier]['montant'];
 			}
 		}
 		foreach($this->dossiers_rachetes_p1 as $idDossier => $TData){
 			if(!empty($this->dossiers_rachetes_p1[$idDossier]['checked'])) {
 				$TDossier[$idDossier] = $idDossier;
-				$this->dossiers[$idDossier]['solde_vendeur'] = $this->dossiers_rachetes_p1[$idDossier]['montant'];
 			}
 		}
 		foreach($this->dossiers_rachetes_nr_m1 as $idDossier => $TData){
 			if(!empty($this->dossiers_rachetes_nr_m1[$idDossier]['checked'])) {
 				$TDossier[$idDossier] = $idDossier;
-				$this->dossiers[$idDossier]['solde_vendeur'] = $this->dossiers_rachetes_nr_m1[$idDossier]['montant'];
 			}
 		}
 		foreach($this->dossiers_rachetes_nr as $idDossier => $TData){
 			if(!empty($this->dossiers_rachetes_nr[$idDossier]['checked'])) {
 				$TDossier[$idDossier] = $idDossier;
-				$this->dossiers[$idDossier]['solde_vendeur'] = $this->dossiers_rachetes_nr[$idDossier]['montant'];
 			}
 		}
 		foreach($this->dossiers_rachetes_nr_p1 as $idDossier => $TData){
 			if(!empty($this->dossiers_rachetes_nr_p1[$idDossier]['checked'])) {
 				$TDossier[$idDossier] = $idDossier;
-				$this->dossiers[$idDossier]['solde_vendeur'] = $this->dossiers_rachetes_nr_p1[$idDossier]['montant'];
 			}
 		}
 		
@@ -1196,210 +1189,27 @@ class TSimulation extends TObjetStd {
 				$type = 'LEASER';
 			}
 			
-			//$date_prochaine_echeance = $this[]
-			
-			$echeance = $d->_get_num_echeance_from_date($this->date_simul);
-			$date_debut_periode_m1 = $d->getDateDebutPeriode($echeance-1,$type);
-			$date_fin_periode_m1 = $d->getDateFinPeriode($echeance-1,$type);
-			$date_debut_periode = $d->getDateDebutPeriode($echeance,$type);
-			$date_fin_periode = $d->getDateFinPeriode($echeance,$type);
-			$date_debut_periode_p1 = $d->getDateDebutPeriode($echeance+1,$type);
-			$date_fin_periode_p1 = $d->getDateFinPeriode($echeance+1,$type);
-			
-			/*echo $d->reference.'<br>';
-			echo $echeance.'<br>';
-			echo $date_debut_periode.'<br>';
-			echo $date_fin_periode.'<br>';
-			echo $date_debut_periode_p1.'<br>';
-			echo $date_fin_periode_p1.'<br>';*/
-			
-			$datemax_deb = $date_debut_periode;
-			$datemax_fin = $date_fin_periode;
-			
-			//pre($this,true);exit;
-			if($d->nature_financement == 'INTERNE') {
-				if($this->dossiers_rachetes_m1[$idDossier]['checked']){
-					$solde_r = $solde_nr = $this->dossiers_rachetes_m1[$idDossier]['montant'];
-					$solde = 'R';
-					$datemax_deb = $date_debut_periode_m1;
-					$datemax_fin = $date_fin_periode_m1;
-				}
-				elseif($this->dossiers_rachetes[$idDossier]['checked']){
-					$solde_r = $solde_nr = $this->dossiers_rachetes[$idDossier]['montant'];
-					$solde = 'R';
-				}
-				elseif($this->dossiers_rachetes_p1[$idDossier]['checked']){
-					$solde_r = $solde_nr = $this->dossiers_rachetes_p1[$idDossier]['montant'];
-					$solde = 'R';
-					$datemax_deb = $date_debut_periode_p1;
-					$datemax_fin = $date_fin_periode_p1;
-				}
-				
-				if($this->dossiers_rachetes_nr_m1[$idDossier]['checked']){
-					$solde_r = $solde_nr = $this->dossiers_rachetes_nr_m1[$idDossier]['montant'];
-					$solde = 'NR';
-					$datemax_deb = $date_debut_periode_m1;
-					$datemax_fin = $date_fin_periode_m1;
-				}
-				elseif($this->dossiers_rachetes_nr[$idDossier]['checked']){
-					$solde_r = $solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
-					$solde = 'NR';
-				}
-				elseif($this->dossiers_rachetes_nr_p1[$idDossier]['checked']){
-					$solde_r = $solde_nr = $this->dossiers_rachetes_nr_p1[$idDossier]['montant'];
-					$solde = 'NR';
-					$datemax_deb = $date_debut_periode_p1;
-					$datemax_fin = $date_fin_periode_p1;
-				}
-			}
-			else{
-				if($this->dossiers_rachetes_m1[$idDossier]['checked']){
-					$solde_r = $this->dossiers_rachetes_m1[$idDossier]['montant'];
-					$solde_nr = $this->dossiers_rachetes_nr_m1[$idDossier]['montant'];
-					$solde = 'R';
-					$datemax_deb = $date_debut_periode_m1;
-					$datemax_fin = $date_fin_periode_m1;
-				}
-				elseif($this->dossiers_rachetes[$idDossier]['checked']){
-					$solde_r = $this->dossiers_rachetes[$idDossier]['montant'];
-					$solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
-					$solde = 'R';
-				}
-				elseif($this->dossiers_rachetes_p1[$idDossier]['checked']){
-					$solde_r = $this->dossiers_rachetes_p1[$idDossier]['montant'];
-					$solde_nr = $this->dossiers_rachetes_nr_p1[$idDossier]['montant'];
-					$solde = 'R';
-					$datemax_deb = $date_debut_periode_p1;
-					$datemax_fin = $date_fin_periode_p1;
-				}
-				
-				if($this->dossiers_rachetes_nr_m1[$idDossier]['checked']){
-					$solde_r = $this->dossiers_rachetes_m1[$idDossier]['montant'];
-					$solde_nr = $this->dossiers_rachetes_nr_m1[$idDossier]['montant'];
-					$solde = 'NR';
-					$datemax_deb = $date_debut_periode_m1;
-					$datemax_fin = $date_fin_periode_m1;
-				}
-				elseif($this->dossiers_rachetes_nr[$idDossier]['checked']){
-					$solde_r = $this->dossiers_rachetes[$idDossier]['montant'];
-					$solde_nr = $this->dossiers_rachetes_nr[$idDossier]['montant'];
-					$solde = 'NR';
-				}
-				elseif($this->dossiers_rachetes_nr_p1[$idDossier]['checked']){
-					$solde_r = $this->dossiers_rachetes_p1[$idDossier]['montant'];
-					$solde_nr = $this->dossiers_rachetes_nr_p1[$idDossier]['montant'];
-					$solde = 'NR';
-					$datemax_deb = $date_debut_periode_p1;
-					$datemax_fin = $date_fin_periode_p1;
-				}
-			}
-
-			//echo $datemax_deb." ".$datemax_fin;exit;
-			
-			/*if(in_array($idDossier, $this->dossiers_rachetes) || in_array($idDossier, $this->dossiers_rachetes_nr)) {
-				$solde_r = $d->getSolde($ATMdb2, 'SRNRSAME'); //SRCPRO
-				$solde_nr = $d->getSolde($ATMdb2, 'SRNRSAME'); //SNRCPRO
-				$soldeperso = '' ;
-			}
-			elseif(in_array($idDossier, $this->dossiers_rachetes_p1) || in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
-				$solde_r = $d->getSolde($ATMdb2, 'SRNRSAME',$f->duree_passe + 1); //SRCPRO
-				$solde_nr = $d->getSolde($ATMdb2, 'SRNRSAME',$f->duree_passe + 1); //SNRCPRO
-				$soldeperso = '' ;
-			}
-			elseif(in_array($idDossier, $this->dossiers_rachetes_perso)) {
-				$solde_r = '';
-				$solde_nr = '';
-				$soldeperso = $d->getSolde($ATMdb2, 'perso');
-			}
-			else{
-				$solde_r = '';
-				$solde_nr = '';
-				$soldeperso = '' ;
-			}*/
-			
-			//echo $solde_r." ".$solde_nr;
-			
-			/*if(in_array($idDossier, $this->dossiers_rachetes)) {
-				$solde = 'R';
-				$datemax = $f->date_prochaine_echeance;
-			} elseif(in_array($idDossier, $this->dossiers_rachetes_nr)) {
-				$solde = 'NR';
-				$datemax = $f->date_prochaine_echeance;
-			} elseif(in_array($idDossier, $this->dossiers_rachetes_p1)) {
-				$solde = 'R';
-				$datemax = strtotime('+ '.$f->getiPeriode().' months', $f->date_prochaine_echeance);
-			} elseif(in_array($idDossier, $this->dossiers_rachetes_nr_p1)) {
-				$solde = 'NR';
-				$datemax = strtotime('+ '.$f->getiPeriode().' months', $f->date_prochaine_echeance);
-			} elseif(in_array($idDossier, $this->dossiers_rachetes_perso)) {
-				$solde = 'personnalisé';
-				$datemax = $d->dateperso;
-			} else {
-				$solde = '';
-			}*/
-			
-			/*if($d->nature_financement == 'INTERNE') {
-				$f = &$d->financement;
-				if($d->type_contrat == $this->fk_type_contrat) {
-					if(in_array($idDossier, $this->dossiers_rachetes)) {
-						$solde = $d->getSolde($ATMdb2, 'SRCPRO');
-					} else {
-						$solde = $d->getSolde($ATMdb2, 'SNRCPRO');
-					}
-				} else {
-					if(in_array($idDossier, $this->dossiers_rachetes)) {
-						$solde = $d->getSolde($ATMdb2, 'SRCPRO', $fin->duree_passe + 1);
-					} else {
-						$solde = $d->getSolde($ATMdb2, 'SNRCPRO', $fin->duree_passe + 1);
-					}
-				}
-			} else {
-				$f = &$d->financementLeaser;
-				if($d->type_contrat == $this->fk_type_contrat) {
-					if(in_array($idDossier, $this->dossiers_rachetes)) {
-						$solde = $d->getSolde($ATMdb2, 'SRBANK');
-					} else {
-						$solde = $d->getSolde($ATMdb2, 'SNRBANK');
-					}
-				} else {
-					if(in_array($idDossier, $this->dossiers_rachetes)) {
-						$solde = $d->getSolde($ATMdb2, 'SRBANK', $fin->duree_passe + 1);
-					} else {
-						$solde = $d->getSolde($ATMdb2, 'SNRBANK', $fin->duree_passe + 1);
-					}
-				}
-			}*/
 			if($d->nature_financement == 'INTERNE') {
 				$f->reference .= ' / '.$d->financementLeaser->reference;
 			}
 			
-			$leaser = new Societe($doliDB);
-			$leaser->fetch($d->financementLeaser->fk_soc);
+			$periode_solde = !empty($this->dossiers[$idDossier]['choice']) ? $this->dossiers[$idDossier]['choice'] : '';
+			$periode_solde = strtr($periode_solde, array('prev' => '_m1', 'curr' => '', 'next' => '_p1'));
+			$datemax_deb = $this->dossiers[$idDossier]['date_debut_periode_client'.$periode_solde];
+			$datemax_fin = $this->dossiers[$idDossier]['date_fin_periode_client'.$periode_solde];
+			$solde_r = $this->dossiers[$idDossier]['solde_vendeur'.$periode_solde];
 			
-			if($solde == 'R' || $solde == 'NR'){
-				$TDossier[] = array(
-					'reference' => $f->reference
-					,'leaser' => $leaser->name
-					,'type_contrat' => $d->type_contrat
-					,'solde' => $solde
-					,'solde_r' => $solde_r
-					,'solde_nr' => $solde_nr
-					,'datemax_debut' => $datemax_deb
-					,'datemax_fin' => $datemax_fin
-				);
-			}
-			/*else{
-				$TDossierperso[] = array(
-					'referenceperso' => $f->reference
-					,'leaser' => $leaser->name
-					,'type_contrat' => $d->type_contrat
-					,'solde' => $solde
-					,'soldeperso' => $soldeperso
-					,'datemax' => $datemax
-				);
-			}*/
+			$leaser = $this->dossiers[$idDossier]['object_leaser'];
+			$TDossier[] = array(
+				'reference' => $f->reference
+				,'leaser' => $leaser->name
+				,'type_contrat' => $d->type_contrat
+				,'solde_r' => $solde_r
+				,'datemax_debut' => $datemax_deb
+				,'datemax_fin' => $datemax_fin
+			);
 		}
-		
+		//pre($TDossier,true);exit;
 		$this->hasdossier = count($TDossier) + count($TDossierperso);
 		
 		//pre($TDossier,true); exit;
@@ -1452,7 +1262,7 @@ class TSimulation extends TObjetStd {
 				,'client'=>$this->societe
 				,'leaser'=>array('nom'=>(($this->leaser->nom != '') ? $this->leaser->nom : ''))
 				,'autre'=>array('terme'=>($this->TTerme[$simu2->opt_terme]) ? $this->TTerme[$simu2->opt_terme] : ''
-								,'type'=>($solde == 'R' || $solde == 'NR') ? 1 : 0)
+								,'type'=>($this->hasdossier) ? 1 : 0)
 			)
 			,array()
 			,array(
@@ -2140,6 +1950,8 @@ class TSimulation extends TObjetStd {
 	static function getTCatLeaserFromLeaserId($fk_leaser, $force=false)
 	{
 		global $db,$TCategoryByLeaser;
+		
+		if(empty($fk_leaser)) return array();
 		
 		if (empty($TCategoryByLeaser[$fk_leaser]) || $force)
 		{
