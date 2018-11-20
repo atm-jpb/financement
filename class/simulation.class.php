@@ -2007,12 +2007,39 @@ class TSimulation extends TObjetStd {
 
     function set_values_from_cristal($post) {
         $TValuesToModify = array(
-            'montant'
+            'montant',
+            'duree',
+            'echeance',
+            'opt_periodicite',
+            'fk_type_contrat',
+            'type_materiel'
         );
 
         foreach($TValuesToModify as $code) {
             $this->$code = $post[$code];
         }
+    }
+
+    static function getEntityFromCristalCode($entity_code_cristal) {
+        $TRes = array(
+            'CPRO-EST' => array(),
+            'CPRO-OUEST' => array(5, 7, 16),
+            'CPRO-SUD' => array(),  // Not implemented yet
+            'COPEM' => array(6),
+            'EBM' => array(8)
+        );
+
+        return $TRes[$entity_code_cristal];
+    }
+
+    static function getTypeContratFromCristal($code) {
+        $TRes = array(
+            'loc fi' => 'LOCSIMPLE',
+            'total pro' => 'FORFAITGLOBAL',
+            'integral' => 'INTEGRAL'
+        );
+
+        return $TRes[$code];
     }
 }
 
