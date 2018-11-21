@@ -2022,7 +2022,7 @@ class TSimulation extends TObjetStd {
 
     static function getEntityFromCristalCode($entity_code_cristal) {
         $TRes = array(
-            'CPRO-EST' => array(),
+            'CPRO-EST' => array(1, 2, 3),
             'CPRO-OUEST' => array(5, 7, 16),
             'CPRO-SUD' => array(),  // Not implemented yet
             'COPEM' => array(6),
@@ -2040,6 +2040,34 @@ class TSimulation extends TObjetStd {
         );
 
         return $TRes[$code];
+    }
+
+    static function getAllByCode(TPDOdb &$PDOdb, $simu, $code_client, &$TEntity = array(), $get_count = false) {
+        global $conf, $db;
+
+        if(empty($TEntity)) $TEntity[] = $conf->entity;
+        $str_entities = implode(',', $TEntity);
+
+        $sql = 'SELECT rowid';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
+        $sql.= " WHERE code_client='".$db->escape($code_client)."'";
+        $sql.= ' AND entity IN ('.$db->escape($str_entities).')';
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        if($obj = $db->fetch_object($resql)) {
+            $TSimu = $simu->load_by_soc($PDOdb, $db, $obj->rowid);
+
+            if($get_count) return count($TSimu);
+            return $TSimu;
+        }
+
+        if($get_count) return 0;
+        return array();
     }
 }
 
