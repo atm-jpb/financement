@@ -1,7 +1,9 @@
 <?php
 
+$method = empty($_GET['method']) ? 'PUT' : $_GET['method'];
+$method = strtoupper($method);
 
-if(! defined('NOLOGIN')) define('NOLOGIN', 1);
+if($method == 'GET' && ! defined('NOLOGIN')) define('NOLOGIN', 1);
 
 require 'config.php';
 dol_include_once('/financement/class/dossier.class.php');
@@ -18,18 +20,15 @@ $coef = GETPOST('coef');
 $type_materiel = GETPOST('type_materiel');
 $montant_finance = GETPOST('montant_finance');
 
-$method = GETPOST('method');
-$method = strtoupper($method);
-
 $fk_type_contrat = TSimulation::getTypeContratFromCristal(GETPOST('type_contrat'));
 $periodicite = _get_periodicite(GETPOST('periodicite'));
 $TEntity = TSimulation::getEntityFromCristalCode(GETPOST('code_cristal'));
 if(empty($TEntity)) $TEntity[] = $conf->entity;
 
-if(empty($fk_simu)) exit('empty fk_simu!');
+if(empty($fk_simu)) exit('empty id!');
 
 // HTTP auth for GET method
-_check_auth();
+if($method == 'GET') _check_auth();
 
 $soc = new Societe($db);
 $PDOdb = new TPDOdb;
