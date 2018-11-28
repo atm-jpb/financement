@@ -57,7 +57,7 @@ fputcsv($handle, $head, ';');
 //echo '<pre>';
 foreach ($TData as $res) {
 	$simu = new TSimulation();
-	$simu->load($PDOdb, $db, $res['rowid'], false);
+	$simu->load($PDOdb, $res['rowid'], false);
 	$simu->societe = new Societe($db);
 	$simu->societe->fetch($simu->fk_soc);
 	$simu->no_auto_edi = true;
@@ -109,7 +109,7 @@ fputcsv($handle, $head, ';');
 //echo '<pre>';
 foreach ($TData as $res) {
 	$simu = new TSimulation();
-	$simu->load($PDOdb, $db, $res['rowid'], false);
+	$simu->load($PDOdb, $res['rowid'], false);
 	$simu->societe = new Societe($db);
 	$simu->societe->fetch($simu->fk_soc);
 	$simu->no_auto_edi = true;
@@ -163,7 +163,7 @@ fputcsv($handle, $head, ';');
 //echo '<pre>';
 foreach ($TData as $res) {
 	$simu = new TSimulation();
-	$simu->load($PDOdb, $db, $res['rowid'], false);
+	$simu->load($PDOdb, $res['rowid'], false);
 	$simu->societe = new Societe($db);
 	$simu->societe->fetch($simu->fk_soc);
 	$simu->no_auto_edi = true;

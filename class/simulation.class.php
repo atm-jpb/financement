@@ -16,6 +16,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('fk_categorie_bien,fk_nature_bien', array('type'=>'integer'));
 		parent::add_champs('pct_vr,mt_vr', array('type'=>'float'));
 		parent::add_champs('fk_fin_dossier,fk_fin_dossier_adjonction', array('type'=>'integer'));
+		parent::add_champs('fk_simu_cristal,fk_projet_cristal', array('type'=>'integer'));
 		
 		parent::start();
 		parent::_init_vars();
@@ -135,11 +136,11 @@ class TSimulation extends TObjetStd {
 		else return 'DRAFT';
 	}
 	
-	function load(&$db, &$doliDB, $id, $annexe=true) {
+	function load(&$db, $id, $loadChild=true) {
 		parent::load($db, $id);
-		
-		if($annexe) {
-			$this->load_annexe($db, $doliDB);
+
+		if($loadChild) {
+			$this->load_annexe($db);
 		}
 	}
 	
@@ -323,26 +324,26 @@ class TSimulation extends TObjetStd {
 		return utf8_decode($this->user->getFullName($langs));
 	}
 	
-	function load_annexe(&$db, &$doliDB) {
-		global $conf, $user;
+	function load_annexe(&$PDOdb) {
+		global $conf, $user, $db;
 		dol_include_once('/categories/class/categorie.class.php');
 		
 		if(!empty($this->fk_soc)) {
 			// Récupération des infos du client
 			if(empty($this->societe)) {
-				$this->societe = new Societe($doliDB);
+				$this->societe = new Societe($db);
 				$this->societe->fetch($this->fk_soc);
 			}
 			
 			// Récupération du score du client
 			if(empty($this->societe->score)) {
 				$this->societe->score = new TScore();
-				$this->societe->score->load_by_soc($db, $this->fk_soc);
+				$this->societe->score->load_by_soc($PDOdb, $this->fk_soc);
 			}
 			
 			// Récupération des autres simulations du client
 			if(empty($this->societe->TSimulations)) {
-				$this->societe->TSimulations = $this->load_by_soc($db, $doliDB, $this->fk_soc);
+				$this->societe->TSimulations = $this->load_by_soc($PDOdb, $db, $this->fk_soc);
 			}
 			
 			// Récupération des dossiers en cours du client et de l'encours CPRO
@@ -353,7 +354,7 @@ class TSimulation extends TObjetStd {
 							LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (cf.fk_categorie = c.rowid)
 						WHERE c.label = 'Encours CPRO'";
 				
-				$TEncours = TRequeteCore::_get_id_by_sql($db, $sql);
+				$TEncours = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 			
 				$sql = "SELECT d.rowid";
 				$sql.= " FROM ".MAIN_DB_PREFIX."fin_affaire a ";
@@ -361,12 +362,12 @@ class TSimulation extends TObjetStd {
 				$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON d.rowid = da.fk_fin_dossier";
 				$sql.= " WHERE a.entity = ".$conf->entity;
 				$sql.= " AND a.fk_soc = ".$this->fk_soc;
-				$TDossiers = TRequeteCore::_get_id_by_sql($db, $sql);
+				$TDossiers = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 
 				$this->societe->encours_cpro = 0;
 				foreach ($TDossiers as $idDossier) {
 					$doss = new TFin_dossier;
-					$doss->load($db, $idDossier);
+					$doss->load($PDOdb, $idDossier);
 					$this->societe->TDossiers[] = $doss;
 					/*if($doss->nature_financement == 'EXTERNE' && (empty($doss->financement->date_solde) || $doss->financementLeaser->date_solde < 0)) {
 						$this->societe->encours_cpro += $doss->financementLeaser->valeur_actuelle();
@@ -388,7 +389,7 @@ class TSimulation extends TObjetStd {
 		}
 		
 		if(!empty($this->fk_leaser) && $this->fk_leaser > 0) {
-			$this->leaser = new Societe($doliDB);
+			$this->leaser = new Societe($db);
 			$this->leaser->fetch($this->fk_leaser);
 			
 			// Si un leaser a été préconisé, la simulation n'est plus modifiable
@@ -396,7 +397,7 @@ class TSimulation extends TObjetStd {
 			// Sauf pour les admins
 			if(empty($user->rights->financement->admin->write)) {
 				// 2017.03.14 MKO : on ne tient plus compte de la règle "Cession"
-				//$cat = new Categorie($doliDB);
+				//$cat = new Categorie($db);
 				//$cat->fetch(0,'Cession');
 				//if($cat->containsObject('supplier', $this->fk_leaser) > 0) {
 				//	$this->modifiable = 0;
@@ -407,18 +408,18 @@ class TSimulation extends TObjetStd {
 		}
 		
 		if(!empty($this->fk_user_author)) {
-			$this->user = new User($doliDB);
+			$this->user = new User($db);
 			$this->user->fetch($this->fk_user_author);
 		}
 		
 		if(!empty($this->fk_user_suivi)) {
-			$this->user_suivi = new User($doliDB);
+			$this->user_suivi = new User($db);
 			$this->user_suivi->fetch($this->fk_user_suivi);
 		}
 		
 		//Récupération des suivis demande de financement leaser s'ils existent
 		//Sinon on les créé
-		$this->load_suivi_simulation($db);
+		$this->load_suivi_simulation($PDOdb);
 		
 		// Simulation non modifiable dans tous les cas si la date de validité est dépassée
 		// Sauf pour les admins
@@ -949,7 +950,7 @@ class TSimulation extends TObjetStd {
 		$TResult = array();
 		foreach($TIdSimu as $idSimu) {
 			$simu = new TSimulation;
-			$simu->load($db, $doliDB, $idSimu, false);
+			$simu->load($db, $idSimu, false);
 			$TResult[] = $simu;
 		}
 		
@@ -2042,32 +2043,13 @@ class TSimulation extends TObjetStd {
         return $TRes[$code];
     }
 
-    static function getAllByCode(TPDOdb &$PDOdb, $simu, $code_client, &$TEntity = array(), $get_count = false) {
+    static function getAllByCode(TPDOdb &$PDOdb, TSimulation $simu, $fk_soc, $get_count = false) {
         global $conf, $db;
 
-        if(empty($TEntity)) $TEntity[] = $conf->entity;
-        $str_entities = implode(',', $TEntity);
+        $TSimu = $simu->load_by_soc($PDOdb, $db, $fk_soc);
 
-        $sql = 'SELECT rowid';
-        $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
-        $sql.= " WHERE code_client='".$db->escape($code_client)."'";
-        $sql.= ' AND entity IN ('.$db->escape($str_entities).')';
-
-        $resql = $db->query($sql);
-        if(! $resql) {
-            dol_print_error($db);
-            exit;
-        }
-
-        if($obj = $db->fetch_object($resql)) {
-            $TSimu = $simu->load_by_soc($PDOdb, $db, $obj->rowid);
-
-            if($get_count) return count($TSimu);
-            return $TSimu;
-        }
-
-        if($get_count) return 0;
-        return array();
+        if($get_count) return count($TSimu);
+        return $TSimu;
     }
 }
 
@@ -2157,7 +2139,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		if(!empty($this->fk_simulation)){
 			$simulation = new TSimulation;
-			$simulation->load($PDOdb, $db, $this->fk_simulation, false);
+			$simulation->load($PDOdb, $this->fk_simulation, false);
 			$this->simulation = $simulation;
 		}
 		
@@ -2419,7 +2401,7 @@ class TSimulationSuivi extends TObjetStd {
 		
 		if(!empty($this->fk_simulation)){
 			$simulation = new TSimulation;
-			$simulation->load($PDOdb, $db, $this->fk_simulation,false);
+			$simulation->load($PDOdb, $this->fk_simulation,false);
 			$this->simulation = $simulation;
 		}
 	}
@@ -2860,8 +2842,6 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	function traiteBNPReponseSuivisDemande(&$TreponseSuivisDemandes){
-		global $db;
-		
 		$PDOdb = new TPDOdb;
 		
 		//Statut spécifique retourné par BNP
@@ -2874,7 +2854,7 @@ class TSimulationSuivi extends TObjetStd {
 		);
 		
 		$simulation = new TSimulation;
-		$simulation->load($PDOdb, $db, $this->fk_simulation);
+		$simulation->load($PDOdb, $this->fk_simulation);
 		
 		$suiviDemande = $TreponseSuivisDemandes->rapportSuivi->suiviDemande;
 		
