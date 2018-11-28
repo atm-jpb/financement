@@ -343,6 +343,7 @@ class TFin_affaire extends TObjetStd {
 	}
 	
 	function getAffairesForXML(&$ATMdb,$fk_leaser = 19483){
+		global $conf;
 		
 		$TAffaires = array();
 		
@@ -355,7 +356,7 @@ class TFin_affaire extends TObjetStd {
 					AND df.type = "LEASER"
 					AND s.rowid = '.$fk_leaser.'
 					AND df.transfert = 1
-					AND fa.entity IN('.((strpos(getEntity(),'1') !== FALSE || strpos(getEntity(),'4')!== FALSE) ? "1,4" : getEntity() ).')';
+					AND fa.entity = '.$conf->entity;
 		
 		$TIdAffaire = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 		
