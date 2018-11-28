@@ -455,7 +455,7 @@ class TFin_affaire extends TObjetStd {
 	
 	function getEnTeteByEntity(){
 		
-		$date = date('Ymd');
+		$date = date('ymd');
 		$entity = getEntity();
 		
 		switch ($entity) {
