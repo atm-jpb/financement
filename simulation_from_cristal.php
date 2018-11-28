@@ -33,7 +33,7 @@ if($method == 'GET') _check_auth();
 $soc = new Societe($db);
 $PDOdb = new TPDOdb;
 $simu = new TSimulation;
-$simu->load($PDOdb, $db, $fk_simu, false);
+$simu->loadBy($PDOdb, $fk_simu, 'fk_simu_cristal');
 
 if($method == 'GET') {
     _get_info($simu);
@@ -41,6 +41,13 @@ if($method == 'GET') {
 
 if(empty($code_artis)) {
     header('Location: '.dol_buildpath('/financement/simulation.php', 1));
+    exit;
+}
+
+// On récupère l'identifiant du Tiers avec son code_client
+$fk_soc = _get_socid_from_code_artis($code_artis, $TEntity);
+if(empty($fk_soc)) {
+    header('Location: '.dol_buildpath('/comm/list.php', 2));
     exit;
 }
 
@@ -59,7 +66,7 @@ if($method == 'PUT') {
 
     if($simu->rowid > 0) {
         // Fetch reussi : On va sur la fiche en mode edit
-        $url.= '?id='.$fk_simu;
+        $url.= '?id='.$simu->rowid;
         $url.= '&action=edit';
 
         _get_autosubmit_form($url, $TParam);
@@ -67,22 +74,21 @@ if($method == 'PUT') {
     else {
         // Simulation non présente sur LeaseBoard
         // On regarde si le Tiers a d'autres simulations
-        $TSimu = TSimulation::getAllByCode($PDOdb, $simu, $code_artis, $TEntity);
+        $TSimu = TSimulation::getAllByCode($PDOdb, $simu, $fk_soc);
 
         $TSimu = _keep_valid_simulations($TSimu);
         $nb_simu = count($TSimu);
 
-        if($nb_simu >= 0) {
-            if(empty($nb_simu)) {
-                // Pas de simulations pour ce Tiers => NEW
-                $TParam['action'] = 'new';
-                _get_autosubmit_form($url, $TParam);
-            }
-            else {
-                // Une ou plusieurs simulations => LIST
-                $url = '?socid='.$obj->rowid;
-                _get_autosubmit_form($url);
-            }
+        if(empty($nb_simu)) {
+            // Pas de simulations pour ce Tiers => NEW
+            $TParam['action'] = 'new';
+            $url.= '?fk_soc='.$fk_soc;
+            _get_autosubmit_form($url, $TParam);
+        }
+        else {
+            // Une ou plusieurs simulations => LIST
+            $url.= '?socid='.$fk_soc;
+            _get_autosubmit_form($url);
         }
     }
     exit;   // On est pas censé arriver ici
@@ -198,6 +204,30 @@ function _get_autosubmit_form($url, $TParam = array()) {
         $('#to_submit').submit();
     </script>
     <?php
+}
+
+function _get_socid_from_code_artis($code_artis, &$TEntity = array()) {
+    global $db;
+
+    if(empty($TEntity)) $TEntity[] = $conf->entity;
+    $str_entities = implode(',', $TEntity);
+
+    $sql = 'SELECT rowid';
+    $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
+    $sql.= " WHERE code_client='".$db->escape($code_artis)."'";
+    $sql.= ' AND entity IN ('.$db->escape($str_entities).')';
+
+    $resql = $db->query($sql);
+    if(! $resql) {
+        dol_print_error($db);
+        return -1;
+    }
+
+    if($obj = $db->fetch_object($resql)) {
+        return $obj->rowid;
+    }
+
+    return 0;
 }
 
 llxFooter();
