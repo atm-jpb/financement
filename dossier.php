@@ -190,10 +190,18 @@
 				
 				break;
 			case 'generateXML':
-				
 				dol_include_once('/financement/class/dossier_transfert_xml.class.php');
-				$dtx = new TFinDossierTransfertXML(GETPOST('fk_leaser'));
-				$filePath = $dtx->transfertXML($PDOdb);
+
+                $fk_leaser = GETPOST('fk_leaser');
+
+                $dt = TFinDossierTransfertXML::create($fk_leaser);
+//                if($fk_leaser == 21382) {
+//                    $dt = new TFinTransfertCMCIC($fk_leaser);
+//                }
+//                else if($fk_leaser == 19483) {
+//                    $dt = new TFinTransfertLixxbail($fk_leaser);
+//                }
+				$filePath = $dt->transfertXML($PDOdb);
 				
 				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=".$conf->entity."&file=".$filePath,2));
 				
@@ -202,7 +210,8 @@
 			case 'generateXMLandupload':
 				
 				dol_include_once('/financement/class/dossier_transfert_xml.class.php');
-				$dtx = new TFinDossierTransfertXML(GETPOST('fk_leaser'), true);
+                $dtx = TFinDossierTransfertXML::create($fk_leaser, true);
+//				$dtx = new TFinDossierTransfertXML(GETPOST('fk_leaser'), true);
 				$filePath = $dtx->transfertXML($PDOdb);
 				
 				?>
