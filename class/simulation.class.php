@@ -2013,7 +2013,9 @@ class TSimulation extends TObjetStd {
             'echeance',
             'opt_periodicite',
             'fk_type_contrat',
-            'type_materiel'
+            'type_materiel',
+            'fk_simu_cristal',
+            'fk_projet_cristal'
         );
 
         foreach($TValuesToModify as $code) {

@@ -901,6 +901,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	echo $form->hidden('entity', $conf->entity);
 	echo $form->hidden('idLeaser', FIN_LEASER_DEFAULT);
 	echo $form->hidden('mode', $mode);
+	echo $form->hidden('fk_simu_cristal', GETPOST('fk_simu_cristal'));
+	echo $form->hidden('fk_projet_cristal', GETPOST('fk_projet_cristal'));
 
 	$TBS=new TTemplateTBS();
 	$ATMdb=new TPDOdb;

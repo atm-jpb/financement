@@ -61,7 +61,9 @@ if($method == 'PUT') {
         'echeance' => $loyer,
         'opt_periodicite' => $periodicite,
         'fk_type_contrat' => $fk_type_contrat,
-        'type_materiel' => $type_materiel
+        'type_materiel' => $type_materiel,
+        'fk_projet_cristal' => $fk_projet,
+        'fk_simu_cristal' => $fk_simu
     );
 
     if($simu->rowid > 0) {
@@ -188,14 +190,7 @@ function _get_autosubmit_form($url, $TParam = array()) {
     ?>
     <form method="POST" id="to_submit" action="<?php echo $url; ?>">
     <?php
-        if(! empty($TParam['action'])) print '<input type="hidden" name="action" value="'.$TParam['action'].'" />';
-
-        if(! empty($TParam['duree'])) print '<input type="hidden" name="duree" value="'.$TParam['duree'].'" />';
-        if(! empty($TParam['montant'])) print '<input type="hidden" name="montant" value="'.$TParam['montant'].'" />';
-        if(! empty($TParam['echeance'])) print '<input type="hidden" name="echeance" value="'.$TParam['echeance'].'" />';
-        if(! empty($TParam['opt_periodicite'])) print '<input type="hidden" name="opt_periodicite" value="'.$TParam['opt_periodicite'].'" />';
-        if(! empty($TParam['fk_type_contrat'])) print '<input type="hidden" name="fk_type_contrat" value="'.$TParam['fk_type_contrat'].'" />';
-        if(! empty($TParam['type_materiel'])) print '<input type="hidden" name="type_materiel" value="'.$TParam['type_materiel'].'" />';
+        foreach($TParam as $name => $value) print '<input type="hidden" name="'.$name.'" value="'.$value.'" />';
     ?>
     </form>
     <script type="text/javascript">
