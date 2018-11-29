@@ -68,8 +68,6 @@ if($method == 'PUT') {
         // Fetch reussi : On va sur la fiche en mode edit
         $url.= '?id='.$simu->rowid;
         $url.= '&action=edit';
-
-        _get_autosubmit_form($url, $TParam);
     }
     else {
         // Simulation non présente sur LeaseBoard
@@ -83,14 +81,14 @@ if($method == 'PUT') {
             // Pas de simulations pour ce Tiers => NEW
             $TParam['action'] = 'new';
             $url.= '?fk_soc='.$fk_soc;
-            _get_autosubmit_form($url, $TParam);
         }
         else {
             // Une ou plusieurs simulations => LIST
             $url.= '?socid='.$fk_soc;
-            _get_autosubmit_form($url);
         }
     }
+    _get_autosubmit_form($url, $TParam);
+
     exit;   // On est pas censé arriver ici
 }
 
@@ -207,7 +205,7 @@ function _get_autosubmit_form($url, $TParam = array()) {
 }
 
 function _get_socid_from_code_artis($code_artis, &$TEntity = array()) {
-    global $db;
+    global $conf, $db;
 
     if(empty($TEntity)) $TEntity[] = $conf->entity;
     $str_entities = implode(',', $TEntity);

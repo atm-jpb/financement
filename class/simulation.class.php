@@ -2044,7 +2044,7 @@ class TSimulation extends TObjetStd {
     }
 
     static function getAllByCode(TPDOdb &$PDOdb, TSimulation $simu, $fk_soc, $get_count = false) {
-        global $conf, $db;
+        global $db;
 
         $TSimu = $simu->load_by_soc($PDOdb, $db, $fk_soc);
 

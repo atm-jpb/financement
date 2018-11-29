@@ -797,7 +797,10 @@ function _liste(&$ATMdb, &$simulation) {
 	$form->end();
 	
 	if(isset($_REQUEST['socid'])) {
-		?><div class="tabsAction"><a href="?action=new&fk_soc=<?php echo $_REQUEST['socid'] ?>" class="butAction">Nouvelle simulation</a></div><?php
+        $href = '?action=new&fk_soc='.$_REQUEST['socid'];
+        foreach($_POST as $k => $v) $href.= '&'.$k.'='.$v;
+
+		?><div class="tabsAction"><a href="<?php echo $href; ?>" class="butAction">Nouvelle simulation</a></div><?php
 	}
 	
 	llxFooter();
