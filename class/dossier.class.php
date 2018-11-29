@@ -36,6 +36,8 @@ class TFin_dossier extends TObjetStd {
 		$this->TStatutDossier=array();
 		$this->TStatutRentaNegAno=array();
 		$this->load_statut_dossier();
+
+		$this->type_regul = 3;
 	}
 	
 	function loadReference(&$db, $reference, $annexe=false) {
