@@ -893,6 +893,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	$form=new TFormCore($_SERVER['PHP_SELF'].'#calculateur','formSimulation','POST'); //,FALSE,'onsubmit="return soumettreUneSeuleFois(this);"'
 	$form->Set_typeaff($mode);
 	//$form->Set_typeaff('edit');
+	$fk_simu_cristal = GETPOST('fk_simu_cristal');
+	$fk_projet_cristal = GETPOST('fk_projet_cristal');
 
 	echo $form->hidden('id', $simulation->getId());
 	echo $form->hidden('action', 'save');
@@ -901,8 +903,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	echo $form->hidden('entity', $conf->entity);
 	echo $form->hidden('idLeaser', FIN_LEASER_DEFAULT);
 	echo $form->hidden('mode', $mode);
-	echo $form->hidden('fk_simu_cristal', empty(GETPOST('fk_simu_cristal')) ? $simulation->fk_simu_cristal : GETPOST('fk_simu_cristal'));
-	echo $form->hidden('fk_projet_cristal', empty(GETPOST('fk_projet_cristal')) ? $simulation->fk_projet_cristal : GETPOST('fk_projet_cristal'));
+	echo $form->hidden('fk_simu_cristal', empty($fk_simu_cristal) ? $simulation->fk_simu_cristal : $fk_simu_cristal);
+	echo $form->hidden('fk_projet_cristal', empty($fk_projet_cristal) ? $simulation->fk_projet_cristal : $fk_projet_cristal);
 
 	$TBS=new TTemplateTBS();
 	$ATMdb=new TPDOdb;
