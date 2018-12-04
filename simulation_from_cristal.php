@@ -8,6 +8,7 @@ if($method == 'GET' && ! defined('NOLOGIN')) define('NOLOGIN', 1);
 require 'config.php';
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/societe/class/societe.class.php');
+dol_include_once('/user/class/user.class.php');
 dol_include_once('/financement/class/simulation.class.php');
 
 $code_artis = GETPOST('code_artis', 'alpha');
@@ -30,7 +31,6 @@ if(empty($fk_simu)) exit('empty id!');
 // HTTP auth for GET method
 if($method == 'GET') _check_auth();
 
-$soc = new Societe($db);
 $PDOdb = new TPDOdb;
 $simu = new TSimulation;
 $simu->loadBy($PDOdb, $fk_simu, 'fk_simu_cristal');
@@ -161,6 +161,7 @@ function _get_info(&$simu) {
         $leaser->fetch($simu->fk_leaser);
 
         $simu->code_artis_leaser = $leaser->code_client;
+		$simu->opt_periodicite = _get_periodicite($simu->opt_periodicite, true);
 
         unset($simu->TChamps);
         unset($simu->TConstraint);
@@ -187,24 +188,22 @@ function _get_info(&$simu) {
     exit;
 }
 
-function _get_periodicite($periodicite) {
-    switch($periodicite) {
-        case 1:
-            $res = 'MOIS';
-            break;
-        case 6:
-            $res = 'SEMESTRE';
-            break;
-        case 12:
-            $res = 'ANNEE';
-            break;
-        case 3:
-        default:
-            $res = 'TRIMESTRE';
-            break;
-    }
+function _get_periodicite($periodicite, $get_number = false) {
+	$TPeriode = array(
+		1 => 'MOIS',
+		3 => 'TRIMESTRE',
+		6 => 'SEMESTRE',
+		12 => 'ANNEE'
+	);
 
-    return $res;
+	if($get_number) {
+		if(! in_array($periodicite, $TPeriode)) return 3;	// Default is 'TRIMESTRE'
+		return array_search($periodicite, $TPeriode);	// Return the array key
+	}
+	else {
+		if(! array_key_exists($periodicite, $TPeriode)) return 'TRIMESTRE';
+		return $TPeriode[$periodicite];
+	}
 }
 
 function _get_autosubmit_form($url, $TParam = array()) {
