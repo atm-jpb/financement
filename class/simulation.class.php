@@ -2019,7 +2019,7 @@ class TSimulation extends TObjetStd {
         );
 
         foreach($TValuesToModify as $code) {
-            $this->$code = $post[$code];
+            if(! empty($post[$code])) $this->$code = $post[$code];
         }
     }
 
