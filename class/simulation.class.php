@@ -2025,9 +2025,9 @@ class TSimulation extends TObjetStd {
 
     static function getEntityFromCristalCode($entity_code_cristal) {
         $TRes = array(
-            'CPRO-EST' => array(1, 2, 3),
-            'CPRO-OUEST' => array(5, 7, 16),
-            'CPRO-SUD' => array(),  // Not implemented yet
+            'CPRO-EST' => array(1, 2, 3, 10),
+            'CPRO-OUEST' => array(5, 7, 16, 9, 11),
+            'CPRO-SUD' => array(12, 13, 14, 15),  // Not implemented yet
             'COPEM' => array(6),
             'EBM' => array(8)
         );
