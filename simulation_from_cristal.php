@@ -40,12 +40,33 @@ if($method == 'GET') {
 }
 
 if(empty($code_artis)) {
-    header('Location: '.dol_buildpath('/financement/simulation.php', 1));
-    exit;
+    $siret = GETPOST('siret');
+    if(empty($siret)) exit('empty siret!');
+
+    $fk_soc = _get_socid('', $TEntity, $siret);
+
+	// Créer la fiche client s'il n'existe pas
+    if(empty($fk_soc)) {
+        $soc = new Societe($db);
+        $soc->name = GETPOST('nom');
+        $soc->address = GETPOST('address');
+        $soc->zip = GETPOST('cp');
+        $soc->town = GETPOST('ville');
+        $soc->idprof2 = $siret;
+        $soc->entity = $conf->entity;
+
+        $fk_soc = $soc->create($user);
+        if($fk_soc <= 0) {
+            dol_print_error($db);
+            exit;
+        }
+    }
+}
+else {
+    // On récupère l'identifiant du Tiers avec son code_client
+    $fk_soc = _get_socid($code_artis, $TEntity);
 }
 
-// On récupère l'identifiant du Tiers avec son code_client
-$fk_soc = _get_socid_from_code_artis($code_artis, $TEntity);
 if(empty($fk_soc)) {
     header('Location: '.dol_buildpath('/comm/list.php', 2));
     exit;
@@ -199,7 +220,7 @@ function _get_autosubmit_form($url, $TParam = array()) {
     <?php
 }
 
-function _get_socid_from_code_artis($code_artis, &$TEntity = array()) {
+function _get_socid($code_artis, &$TEntity = array(), $siret = '') {
     global $conf, $db;
 
     if(empty($TEntity)) $TEntity[] = $conf->entity;
@@ -207,8 +228,9 @@ function _get_socid_from_code_artis($code_artis, &$TEntity = array()) {
 
     $sql = 'SELECT rowid';
     $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
-    $sql.= " WHERE code_client='".$db->escape($code_artis)."'";
-    $sql.= ' AND entity IN ('.$db->escape($str_entities).')';
+    $sql.= ' WHERE entity IN ('.$db->escape($str_entities).')';
+    if(! empty($code_artis)) $sql.= " AND code_client='".$db->escape($code_artis)."'";
+    if(! empty($siret)) $sql.= " AND siret='".$db->escape($siret)."'";
 
     $resql = $db->query($sql);
     if(! $resql) {
