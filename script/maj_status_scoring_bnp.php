@@ -24,7 +24,7 @@
 				AND suivi.numero_accord_leaser IS NOT NULL 
 				AND suivi.numero_accord_leaser != ''
 				AND suivi.statut_demande = 1
-				AND suivi.statut = 'WAIT'
+				AND (suivi.statut = 'WAIT' OR suivi.numero_accord_leaser LIKE '000%')
 				AND suivi.date_demande > '".date('Y-m-d', strtotime('-20 days'))."'";
 	echo $sql.'<br>';
 	$TRes = $PDOdb->ExecuteAsArray($sql);
