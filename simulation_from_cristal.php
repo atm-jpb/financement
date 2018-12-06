@@ -21,6 +21,9 @@ $coef = GETPOST('coef');
 $type_materiel = GETPOST('type_materiel');
 $montant_finance = GETPOST('montant_finance');
 
+if(! empty($loyer)) $loyer = round($loyer, 2);
+if(! empty($montant_finance)) $montant_finance = round($montant_finance, 2);
+
 $fk_type_contrat = TSimulation::getTypeContratFromCristal(GETPOST('type_contrat'));
 $periodicite = _get_periodicite(GETPOST('periodicite'));
 $TEntity = TSimulation::getEntityFromCristalCode(GETPOST('code_cristal'));
