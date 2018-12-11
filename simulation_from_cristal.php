@@ -29,45 +29,50 @@ $periodicite = _get_periodicite(GETPOST('periodicite'));
 $TEntity = TSimulation::getEntityFromCristalCode(GETPOST('code_cristal'));
 if(empty($TEntity)) $TEntity[] = $conf->entity;
 
-if(empty($fk_simu)) exit('empty id!');
+if(empty($fk_projet)) exit('empty fk_projet!');
 
 // HTTP auth for GET method
 if($method == 'GET') _check_auth();
 
 $PDOdb = new TPDOdb;
 $simu = new TSimulation;
-$simu->loadBy($PDOdb, $fk_simu, 'fk_simu_cristal');
+$simu->loadBy($PDOdb, $fk_projet, 'fk_projet_cristal');   // Vu avec Benjamin : 1 demande de fi par projet Cristal
 
 if($method == 'GET') {
     _get_info($simu);
 }
 
-if(empty($code_artis)) {
-    $siret = GETPOST('siret');
-    if(empty($siret)) exit('empty siret!');
+if(empty($simu->rowid)) {
+    if(empty($code_artis)) {
+        $siret = GETPOST('siret');
+        if(empty($siret)) exit('empty siret!');
 
-    $fk_soc = _get_socid('', $TEntity, $siret);
+        $fk_soc = _get_socid('', $TEntity, $siret);
 
-	// Créer la fiche client s'il n'existe pas
-    if(empty($fk_soc)) {
-        $soc = new Societe($db);
-        $soc->name = GETPOST('nom');
-        $soc->address = GETPOST('address');
-        $soc->zip = GETPOST('cp');
-        $soc->town = GETPOST('ville');
-        $soc->idprof2 = $siret;
-        $soc->entity = $conf->entity;
+        // Créer la fiche client s'il n'existe pas
+        if(empty($fk_soc)) {
+            $soc = new Societe($db);
+            $soc->name = GETPOST('nom');
+            $soc->address = GETPOST('address');
+            $soc->zip = GETPOST('cp');
+            $soc->town = GETPOST('ville');
+            $soc->idprof2 = $siret;
+            $soc->entity = $conf->entity;
 
-        $fk_soc = $soc->create($user);
-        if($fk_soc <= 0) {
-            dol_print_error($db);
-            exit;
+            $fk_soc = $soc->create($user);
+            if($fk_soc <= 0) {
+                dol_print_error($db);
+                exit;
+            }
         }
+    }
+    else {
+        // On récupère l'identifiant du Tiers avec son code_client
+        $fk_soc = _get_socid($code_artis, $TEntity);
     }
 }
 else {
-    // On récupère l'identifiant du Tiers avec son code_client
-    $fk_soc = _get_socid($code_artis, $TEntity);
+    $fk_soc = $simu->fk_soc;
 }
 
 if(empty($fk_soc)) {
@@ -94,6 +99,10 @@ if($method == 'PUT') {
         // Fetch reussi : On va sur la fiche en mode edit
         $url.= '?id='.$simu->rowid;
         $url.= '&action=edit';
+
+        // Vu avec Benjamin : Si on trouve une simulation, on ne pré-rempli pas les données
+        _get_autosubmit_form($url);
+        exit;
     }
     else {
         // Simulation non présente sur LeaseBoard
