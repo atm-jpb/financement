@@ -981,6 +981,7 @@ class TFin_dossier extends TObjetStd {
 		$duree_restante_client = ($iPeriode == 0) ? $this->financement->duree_restante : $this->financement->duree - $iPeriode;
 		
 		$CRD = $this->financement->valeur_actuelle($duree_restante_client);
+		if($duree_restante_client == 0) $CRD = 0;
 		$LRD = $this->financement->echeance * $duree_restante_client + $this->financement->reste;
 		
 		// Montant presta ajouté au solde pour les entités TELECOM
