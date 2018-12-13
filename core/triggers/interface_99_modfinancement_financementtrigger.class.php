@@ -138,6 +138,13 @@ class InterfaceFinancementtrigger
 				
 			}
         }
+		
+		if ($action == 'COMPANY_CREATE' || $action == 'COMPANY_MODIFY') {
+			if(empty($object->zip) || !is_numeric($object->zip)) {
+				setEventMessage('Code postal invalide');
+				return -1;
+			}
+		}
 
         return 0;
     }

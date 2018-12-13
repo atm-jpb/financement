@@ -57,14 +57,17 @@
 		[onshow;block=end]
 		[onshow;block=begin;when [champs.display_solde]=='1']
 		<td id="solde_rm1" align="right" nowrap="nowrap" class="solde"[champs.checkedrm1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>
+			[champs.hidden_date_deb_echeance_prev; strconv=no][champs.hidden_date_fin_echeance_prev; strconv=no]
 			[champs.date_echeance_precedente]<br>au [champs.date_echeance_precedente_fin]<br>
 			[champs.checkboxrm1; strconv=no] <strong>[champs.solde_rm1; strconv=no; frm=0 000,00]</strong>[champs.montantrm1; strconv=no; frm=0 000,00]<br>
 		</td>
 		<td id="solde_r" align="right" nowrap="nowrap" class="solde"[champs.checkedr;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>
+			[champs.hidden_date_deb_echeance_curr; strconv=no][champs.hidden_date_fin_echeance_curr; strconv=no]
 			[champs.date_echeance_en_cours]<br>au [champs.date_echeance_en_cours_fin]<br>
 			[champs.checkboxr; strconv=no] <strong>[champs.solde_r; strconv=no; frm=0 000,00]</strong>[champs.montantr; strconv=no; frm=0 000,00]<br>
 		</td>
 		<td id="solde_r1" align="right" nowrap="nowrap" class="solde"[champs.checkedr1;if [val]=1; then ' style="background-color: #00FF00;"'; else '']>
+			[champs.hidden_date_deb_echeance_next; strconv=no][champs.hidden_date_fin_echeance_next; strconv=no]
 			[champs.date_echeance_prochaine]<br>au [champs.date_echeance_prochaine_fin]<br>
 			[champs.checkboxr1; strconv=no] <strong>[champs.solde_r1; strconv=no; frm=0 000,00]</strong>[champs.montantr1; strconv=no; frm=0 000,00]<br>
 		</td>

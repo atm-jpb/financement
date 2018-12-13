@@ -37,7 +37,10 @@ $(document).ready(function() {
 		if(diff_jours > 30 && diff_jours < 125) {
 			$('#opt_calage').val(Math.floor(diff_jours/31)+'M');
 			$('#opt_calage_label').val(Math.floor(diff_jours/31)+'M');
-		} else {
+		} else if(diff_jours >= 125) {
+			$('#opt_calage').val('3M');
+			$('#opt_calage_label').val('3M');
+		}else {
 			$('#opt_calage').val('');
 			$('#opt_calage_label').val('');
 		}
@@ -58,6 +61,33 @@ $(document).ready(function() {
 	
 	$('input[name="validate_simul"]').click(function(){
 		$(this).hide();
+	});
+	
+	// Adjonction
+	if($('input[name="opt_adjonction"]:checked').length == 0) {
+		$('select[name="fk_fin_dossier_adjonction"]').hide();
+	}
+	
+	$('input[name="opt_adjonction"]').bind('click', function() {
+		if($(this).attr('checked') == 'checked') {
+			$('select[name="fk_fin_dossier_adjonction"]').show();
+		} else {
+			$('select[name="fk_fin_dossier_adjonction"]').hide();
+			$('select[name="fk_fin_dossier_adjonction"]').val(0);
+		}
+	});
+	
+	$('select[name="fk_fin_dossier_adjonction"]').bind('change', function() {
+		var contrat = $(this).find(':selected').attr('type_contrat');
+		if(contrat !== undefined) {
+			$('#fk_type_contrat').val(contrat);
+			$('#fk_type_contrat option:selected').attr('disabled', false);
+			$('#fk_type_contrat option:not(:selected)').attr('disabled', true);
+			$('#fk_type_contrat').change();
+		} else {
+			$('#fk_type_contrat').val(0);
+			$('#fk_type_contrat option').attr('disabled', false);
+		}
 	});
 });
 
@@ -183,6 +213,7 @@ var select_solde = function() {
 var init_selected_dossier = function() {
 	// Mise en couleur des dossiers rachetés dans la simulation
 	$('input[type="checkbox"]:checked').parent('td').css('background-color', '#00FF00');
+	$('span.check').parent('td').css('background-color', '#00FF00');
 	
 	// Possibilité de sélectionner un solde
 	$('input[type="checkbox"]').not(':disabled').parent('td.solde').bind('click', select_solde).css('cursor', 'pointer');

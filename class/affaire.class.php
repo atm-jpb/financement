@@ -343,6 +343,7 @@ class TFin_affaire extends TObjetStd {
 	}
 	
 	function getAffairesForXML(&$ATMdb,$fk_leaser = 19483){
+		global $conf;
 		
 		$TAffaires = array();
 		
@@ -355,7 +356,7 @@ class TFin_affaire extends TObjetStd {
 					AND df.type = "LEASER"
 					AND s.rowid = '.$fk_leaser.'
 					AND df.transfert = 1
-					AND fa.entity IN('.((strpos(getEntity(),'1') !== FALSE || strpos(getEntity(),'4')!== FALSE) ? "1,4" : getEntity() ).')';
+					AND fa.entity = '.$conf->entity;
 		
 		$TIdAffaire = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 		
@@ -437,6 +438,15 @@ class TFin_affaire extends TObjetStd {
 			case 9: //Quadra
 				return "M000355473";
 				break;
+			case 12: //CAPEA
+				return "M000317338";
+				break;
+			case 13: //BCMP
+				return "M000393212";
+				break;
+			case 14: //Perret
+				return "M000342697";
+				break;
 			default:
 				return "M000355961";
 				break;
@@ -445,7 +455,7 @@ class TFin_affaire extends TObjetStd {
 	
 	function getEnTeteByEntity(){
 		
-		$date = date('Ymd');
+		$date = date('ymd');
 		$entity = getEntity();
 		
 		switch ($entity) {
@@ -489,6 +499,24 @@ class TFin_affaire extends TObjetStd {
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
 				$refPartenaire = "QUABMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 12: //CAPEA
+				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
+				$refPartenaire = "CPROMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 13: //BCMP
+				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
+				$refPartenaire = "CPROMA01";
+				$numLot = "IMMA".date('ymd');
+				break;
+			case 14: //Perret
+				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+				$nomFichier = "CPROMA0".$entity."IMMA".$date;
+				$refPartenaire = "CPROMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			

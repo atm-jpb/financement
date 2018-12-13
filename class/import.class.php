@@ -749,7 +749,24 @@ class TImport extends TObjetStd {
 	function importLineFactureLocation(&$ATMdb, $data, &$TInfosGlobale) {
 		global $user, $db;
 		
-		if(!in_array($data['ref_service'], array('SSC101','SSC102','SSC106','037004','037003','033741','SSC109','SSC108','SSC104','SSC107','018528','020021', 'SSC128','SSC151'))) {
+		if(!in_array($data['ref_service'], array(
+			'SSC101',
+			'SSC102',
+			'SSC106',
+			'037004',
+			'037003',
+			'033741',
+			'SSC109',
+			'SSC108',
+			'SSC104',
+			'SSC107',
+			'018528',
+			'020021',
+			'SSC128',
+			'SSC151',
+			'SSC132',
+			'055868'
+			))) {
 			//On importe uniquement certaine ref produit
 			//$this->addError($ATMdb, 'InfoRefServiceNotNeededNow', $data['ref_service'], 'WARNING');
 			return false;
@@ -947,7 +964,7 @@ class TImport extends TObjetStd {
 		
 		// Gestion des frais divers
 		// FASS
-		$TFASS = array('SSC025', 'SSC054', 'SSC114', 'SSC115', 'SSC121', 'SSC124', 'SSC127');
+		$TFASS = array('SSC025', 'SSC054', 'SSC114', 'SSC115', 'SSC121', 'SSC124', 'SSC127','SSC032');
 		if(in_array($data['ref_service'], $TFASS)) {
 			if(empty($integrale->fass_somme)) { // Gestion FASS sur plusieurs lignes
 				$integrale->fass	= $data['total_ht'];
@@ -2029,7 +2046,7 @@ class TImport extends TObjetStd {
 
 	function _recherche_client(&$ATMdb, $key, $val, $errorNotFound = false, $errorMultipleFound = true) {
 		global $conf;
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array($key=>$val, 'entity' => $conf->entity));
+		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array($key=>$val));
 		
 		$rowid = 0;
 		$num = count($TRes);
