@@ -160,7 +160,7 @@ function getTContrat($force=false)
 	{
 		$TContrat = array();
 		// Récupération des types de contrat possible (LOCSIMPLE, INTEGRAL, ...)
-		$sql = 'SELECT DISTINCT fk_type_contrat FROM '.MAIN_DB_PREFIX.'fin_simulation';
+		$sql = 'SELECT DISTINCT fk_type_contrat FROM '.MAIN_DB_PREFIX.'fin_simulation ORDER BY fk_type_contrat';
 		$resql = $db->query($sql);
 		if ($resql)
 		{
@@ -172,7 +172,9 @@ function getTContrat($force=false)
 			exit;
 		}
 	}
-	
+
+	if (isset($TContrat[0])) unset($TContrat[0]);
+	if (isset($TContrat[''])) unset($TContrat['']);
 	
 	return $TContrat;
 }
@@ -304,7 +306,7 @@ function demandes_de_financement($title, $head_search, $TEntity)
 	foreach ($TStatut_filter as $statut) $TTitle[$statut] = $TStatut[$statut];
 	foreach ($TContrat_filter as $type) $TTitle[$type] = $type;
 	$TTitle['total'] = $langs->trans('TotalDemande');
-	
+
 	$r = new Listview($db, 'financement');
 	print $r->renderArray($db, $TData, array(
 		'view_type' => 'list' // default = [list], [raw], [chart]
@@ -325,16 +327,19 @@ function demandes_de_financement($title, $head_search, $TEntity)
 				'total'=>'right'
 			)
 			,'rank'=>array(
-				'periode'=>5
-				,'WAIT'=>10
-				,'WAIT_LEASER'=>15
-				,'WAIT_SELLER'=>20
-				,'WAIT_MODIF'=>25
-				,'SS'=>30
-				,'KO'=>35
-				,'OK'=>40
-				,'LOCSIMPLE'=>45
+				'periode'=> -100
+				,'WAIT'=> -90
+				,'WAIT_LEASER'=> -80
+				,'WAIT_SELLER'=> -70
+				,'WAIT_MODIF'=> -60
+				,'SS'=> -50
+				,'KO'=> -40
+				,'OK'=> -30
+				/*,'LOCSIMPLE'=>45
+				,'LOCSIMPLE2'=>48
 				,'INTEGRAL'=>50
+				,'INTEGRAL2'=>51
+				,'INTEGRAL ECO PRINT'=>52
 				,'FORFAITGLOBAL'=>55
 				,'GRANDCOMPTE'=>60
 				,'BAREME_AVOCAT'=>65
@@ -342,7 +347,8 @@ function demandes_de_financement($title, $head_search, $TEntity)
 				,'PROSPECTFORFAITGLOBA'=>75
 				,'CPRO NETWORKS'=>80
 				,'ABONNEMENTINFO'=>85
-				,'total'=>90
+				,'aboinfo'=>88*/
+				,'total'=>100
 			)
 		)
 	));
@@ -412,7 +418,7 @@ function facturation_par_leaser($title, $head_search, $TEntity)
 					'annotation'=>'annotation'
 				)
 				,'options' => array(
-					'bar' => 'groupWidth: "90%"'
+					//'bar' => 'groupWidth: "90%"'
 				)
 			)
 		)
@@ -469,7 +475,7 @@ function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 	
 	foreach ($TEntity as $fk_entity) $TTitle[$TEntityAvailable[$fk_entity]] = $TEntityAvailable[$fk_entity];
 	$TTitle['total'] = $langs->trans('Total');
-	
+
 	$TNbDossier = _getNbDossier($TEntity, $time_fiscal_start, $time_fiscal_end);
 	
 	$i=0;
@@ -486,7 +492,7 @@ function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 		$i++;
 	}
 	
-	
+
 	$r = new Listview($db, 'financement');
 	print $r->renderArray($db, $TData, array(
 		'view_type' => 'list' // default = [list], [raw], [chart]
@@ -507,8 +513,8 @@ function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 				'total'=>'right'
 			)
 			,'rank'=>array(
-				'type_contrat'=>5
-				,'ABG'=>10
+				'type_contrat' => -100
+				/*,'ABG'=>10
 				,'Bourgogne Copie'=>15
 				,'Copem'=>20
 				,'Copy Concept'=>25
@@ -519,7 +525,10 @@ function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 				,'QUADRA'=>50
 				,'TDP IP / SADOUX'=>55
 				,'Télécom'=>60
-				,'total'=>65
+				,'BASE COMMUNE'=>70
+				,'BCMP'=>80
+				,'Télécom'=>60*/
+				,'total' => 100
 			)
 		)
 	));
@@ -602,7 +611,7 @@ function encours_leaser($title, $head_search, $TEntity)
 		)
 		,'position'=>array(
 			'rank'=>array(
-				'nom'=>-1
+				'nom' => -100
 			)
 		)
 	));
@@ -674,8 +683,8 @@ function recurrent_financement($title, $head_search, $TEntity)
 	}
 	
 	$TPosition['rank'] = array(
-		'type'=>5
-		,'ABG'=>10
+		'type'=> -100
+		/*,'ABG'=>10
 		,'Bourgogne Copie'=>15
 		,'Copem'=>20
 		,'Copy Concept'=>25
@@ -685,7 +694,7 @@ function recurrent_financement($title, $head_search, $TEntity)
 		,'QSIGD'=>45
 		,'QUADRA'=>50
 		,'TDP IP / SADOUX'=>55
-		,'Télécom'=>60
+		,'Télécom'=>60*/
 	);
 	
 	$r = new Listview($db, 'financement');
