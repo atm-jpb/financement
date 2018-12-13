@@ -594,7 +594,11 @@ function encours_leaser($title, $head_search, $TEntity)
 			AND df.fk_soc IN ('.implode(',', array_keys($TLeaser)).')
 			AND a.date_affaire >= \''.$db->idate($time_fiscal_start).'\' AND a.date_affaire <= \''.$db->idate($time_fiscal_end).'\'
 			AND (d.date_solde IS NULL OR d.date_solde <= \'1000-01-01 00:00:00\')
-			GROUP BY a.type_financement, s.nom';
+	';
+
+	if (!empty($TEntity)) $sql.= ' AND a.entity IN ('.implode(',', $TEntity).')';
+
+	$sql.= 'GROUP BY a.type_financement, s.nom';
 
 	$resql = $db->query($sql);
 	if ($resql)
