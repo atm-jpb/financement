@@ -25,16 +25,20 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 
 	function generate(&$PDOdb, &$TAffaires,$andUpload=false){
 		global $conf, $db;
-		
+
 		$xml = new DOMDocument('1.0','UTF-8');
 		$xml->formatOutput = true;
-		
+
 		//Chargement des noeuds correspondant aux affaires
 		//print '<pre>';
 		foreach($TAffaires as $Affaire){
 			$dossier = $Affaire->TLien[0]->dossier;	// Possible car 1 affaire = 1 dossier
 			$fin = $dossier->financement;
 			$finLeaser = $dossier->financementLeaser;
+            $refFinLeaser = $finLeaser->reference;
+            if(strlen($refFinLeaser) == 6) {
+                $refFinLeaser .= '600';
+            }
 
 			$socLeaser = new Societe($db);
 			$socLeaser->fetch($finLeaser->fk_soc);
@@ -43,7 +47,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 			$affairelist = $xml->createElement("CONTRAT");
 			$affairelist = $xml->appendChild($affairelist);
 
-			$affairelist->appendChild($xml->createElement("NO_AFFAIRE_CM", $finLeaser->reference));
+			$affairelist->appendChild($xml->createElement("NO_AFFAIRE_CM", $refFinLeaser));
 			$affairelist->appendChild($xml->createElement("NO_AFFAIRE_PARTENAIRE", $fin->reference));
 			$affairelist->appendChild($xml->createElement("NOM_LEASER", $leaserName));
 
@@ -86,13 +90,13 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 			}
 			$Affaire->save($PDOdb);
 		}
-		
+
 		$chaine = $xml->saveXML();
-		
+
 		$name2 = 'test';
 		dol_mkdir($this->fileFullPath);
 		file_put_contents($this->fileFullPath.$name2.'.xml', $chaine);
-		
+
 		return $name2;
 	}
 
@@ -105,7 +109,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
             'DUREE_MOIS' => $finLeaser->duree*$periode,
             'PERIODICITE' => $periode,
             'TERME' => ($finLeaser->terme == 0 ? 2 : 1),            // La banque veut : échu => 2, à échoir => 1
-            'DATE_ML' => date('d/m/Y', $finLeaser->date_debut),     // TODO: à adapter si intercalaire!
+            'DATE_ML' => date('Y-m-d', $finLeaser->date_debut),     // TODO: à adapter si intercalaire!
             'MTACPTCLI' => price2num($finLeaser->loyer_intercalaire)
         );
 
@@ -152,9 +156,9 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
         $TData = array(
             'SIRET_LOC' => $siret,
             'DENO_LOC' => substr($soc_name, 0, 32),    // 32 Caractères MAX !
-            'BIC_IBAN' => 0,    // BIC.'_'.IBAN
+            'BIC_IBAN' => '11111111111_2222222222222222222222222222222222',    // BIC.'_'.IBAN
             'N_TIT' => 0,
-            'DT_SIGN_CLI' => 0
+            'DT_SIGN_CLI' => '0001-01-01'
         );
 
         foreach($TData as $code => $value) {
@@ -218,7 +222,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 		$elem = $xml->createElement('FACTURE');
         $TData = array(
             'NOFACEXT' => substr($facture->ref, 0, 20),  // Num facture matériel liée à l'affaire
-            'DTFACEXT' => date('d/m/Y', $facture->date),  // Date facture
+            'DTFACEXT' => date('Y-m-d', $facture->date),  // Date facture
             'TEMFACPV' => 'N',  // ???
             'TYPFACFOU' => ($facture->type == Facture::TYPE_CREDIT_NOTE ? 'AFAVOIR' : 'FFFacture')  // Type facture
         );
@@ -308,7 +312,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 
 		$elem = $xml->createElement('DETAIL_MAT');
         $TData = array(
-            'LIB_MAT' => substr($p->label, 0, 60),
+            'LIBMAT' => substr($p->label, 0, 60),
             'NOSEROBJ' => substr($assetLink->asset->serial_number, 0, 20),
             'MTHTUNIT' => price2num(0),
             'MTFTECG' => 0,
@@ -330,14 +334,14 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 		$elem = $xml->createElement('LIVRAISON_MAT');
         $TData = array(
 //            'DTPV' => 'N',    // Facultatif
-            'CDTYPPV' => 'N',
-            'SIRET_LIV' => 'N',
+            'CDTYPPV' => '',
+            'SIRET_LIV' => '10000000000001',
             'N_RUE_LIV' => 'N',
             'RUE_1_LIV' => 'N',
             'RUE_2_LIV' => 'N',
-            'C_POSTAL_LIV' => 'N',
+            'C_POSTAL_LIV' => '00001',
             'VILLE_LIV' => 'N',
-            'DATE_LIV' => 'N'
+            'DATE_LIV' => '0001-01-01'
         );
 
         foreach($TData as $code => $value) {
