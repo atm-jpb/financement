@@ -35,7 +35,10 @@ $PDOdb->Execute($sql);
 $sql = 'SELECT d.rowid
 		FROM '.MAIN_DB_PREFIX.'fin_dossier d
 		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement dfc ON (dfc.fk_fin_dossier = d.rowid AND dfc.type="CLIENT")
-		WHERE d.nature_financement = "INTERNE"
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement dfl ON (dfl.fk_fin_dossier = d.rowid AND dfc.type="LEASER")
+		LEFT JOIN '.MAIN_DB_PREFIX.'societe lea ON (lea.rowid = dfl.fk_soc)
+		WHERE d.nature_financement = "INTERNE" 
+		AND lea.nom NOT LIKE "HEXAPAGE%"
 		AND dfc.reloc = "NON"
 		AND dfc.date_fin < NOW()
 		AND COALESCE(dfc.date_solde, "1001-01-01 00:00:00") <= "1970-01-01"
@@ -87,7 +90,9 @@ echo '<p>'.count($TDossiersInternesReloc).' dossier(s) internes en relocation, '
 $sql = 'SELECT d.rowid
 		FROM '.MAIN_DB_PREFIX.'fin_dossier d
 		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement dfl ON (dfl.fk_fin_dossier = d.rowid AND dfl.type="LEASER")
-		WHERE d.nature_financement = "EXTERNE"
+		INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement dfl ON (dfl.fk_fin_dossier = d.rowid AND dfc.type="LEASER")
+		LEFT JOIN '.MAIN_DB_PREFIX.'societe lea ON (lea.rowid = dfl.fk_soc)
+		WHERE (d.nature_financement = "EXTERNE" OR lea.nom NOT LIKE "HEXAPAGE%")
 		AND dfl.reloc = "NON"
 		AND dfl.date_fin < NOW()
 		AND COALESCE(dfl.date_solde, "1001-01-01 00:00:00") <= "1970-01-01"
