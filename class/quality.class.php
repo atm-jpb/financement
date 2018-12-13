@@ -28,6 +28,7 @@ class TFin_QualityRule extends TObjetStd
 		$this->add_champs('sql_filter', array('type' => 'chaine', 'length' => 255));
 		$this->add_champs('frequency_days', array('type' => 'integer', 'default' => 14));
 		$this->add_champs('nb_tests', array('type' => 'integer', 'default' => 1));
+		$this->add_champs('consigne', array('type' => 'text', 'default' => 1));
 
 		$this->TElementTypes = array(
 			'fin_dossier' => $langs->trans('ListOfDossierFinancement')
