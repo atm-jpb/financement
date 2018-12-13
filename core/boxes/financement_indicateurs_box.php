@@ -78,15 +78,16 @@ class financement_indicateurs_box extends ModeleBoxes
             'text' => $text,
             'limit' => dol_strlen($text)
         );
+		$r = 0;
 
-        $this->info_box_contents[0][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsIndicator'));
-        $this->info_box_contents[0][1] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsNumber'));
-        $this->info_box_contents[0][2] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsNumberTodo'));
-        $this->info_box_contents[0][3] = array('td' => 'align="right"', 'text' => $langs->trans('BoxIndicatorsAmount'));
+        $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsIndicator'));
+        $this->info_box_contents[$r][1] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsNumber'));
+        $this->info_box_contents[$r][2] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsNumberTodo'));
+        $this->info_box_contents[$r][3] = array('td' => 'align="right"', 'text' => $langs->trans('BoxIndicatorsAmount'));
 
         // Dossiers internes en relocation
-
-        $this->info_box_contents[1][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsInternalFilesRelocation'));
+		$r++;
+        $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsInternalFilesRelocation'));
 
         $sql = 'SELECT COUNT(*) as number
 				, SUM( IF( dfc.relocOK = "OUI", 0, 1) ) as number_todo
@@ -108,27 +109,27 @@ class financement_indicateurs_box extends ModeleBoxes
 
         $obj = $PDOdb->Get_line();
 
-        $this->info_box_contents[1][1] = array(
+        $this->info_box_contents[$r][1] = array(
         	'td' => 'align="left"'
         	, 'text' => '<span>' . $obj->number . '</span>' // H4cK @N0nYM0u$-style : si cette valeur est empty(), (ex. 0, '0', NULL), elle n'est pas affichée...
         	, 'url' => dol_buildpath('/financement/dossier.php', 1) . '?reloc=1&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][nature_financement]=INTERNE'
         );
 
-        $this->info_box_contents[1][2] = array(
+        $this->info_box_contents[$r][2] = array(
         	'td' => 'align="left"'
         	, 'text' => '<span>' . $obj->number_todo . '</span>'
         	, 'url' => dol_buildpath('/financement/dossier.php', 1) . '?reloc=1&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][nature_financement]=INTERNE&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][relocClientOK]=NON'
         );
         
-        $this->info_box_contents[1][3] = array(
+        $this->info_box_contents[$r][3] = array(
         	'td' => 'align="right"'
         	, 'text' => price($obj->encours_reloc)
         );
 
 
         // Dossiers externes en relocation
-
-        $this->info_box_contents[2][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsExternalFilesRelocation'));
+		$r++;
+        $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsExternalFilesRelocation'));
 
         $sql = 'SELECT COUNT(*) as number
 				, SUM( IF( dfl.relocOK = "OUI", 0, 1) ) as number_todo
@@ -150,27 +151,27 @@ class financement_indicateurs_box extends ModeleBoxes
 
         $obj = $PDOdb->Get_line();
 
-        $this->info_box_contents[2][1] = array(
+        $this->info_box_contents[$r][1] = array(
         	'td' => 'align="left"'
         	, 'text' => '<span>' . $obj->number . '</span>'
         	, 'url' => dol_buildpath('/financement/dossier.php', 1) . '?reloc=1&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][nature_financement]=EXTERNE'
         );
 
-        $this->info_box_contents[2][2] = array(
+        $this->info_box_contents[$r][2] = array(
         	'td' => 'align="left"'
         	, 'text' => '<span>' . $obj->number_todo . '</span>'
         	, 'url' => dol_buildpath('/financement/dossier.php', 1) . '?reloc=1&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][nature_financement]=EXTERNE&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][relocLeaserOK]=NON'
         );
 
-        $this->info_box_contents[2][3] = array(
+        $this->info_box_contents[$r][3] = array(
         	'td' => 'align="right"'
         	, 'text' => price($obj->encours_reloc)
         );
 
 
         // Loyers intercalaires des dossiers externes
-
-        $this->info_box_contents[3][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsExternalFilesIntercalaire'));
+		$r++;
+        $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsExternalFilesIntercalaire'));
 
         $sql = 'SELECT COUNT(*) as number
 				, SUM( IF(dfl.intercalaireOK = "NON", 1, 0) ) as number_todo
@@ -192,21 +193,56 @@ class financement_indicateurs_box extends ModeleBoxes
 
         $obj = $PDOdb->Get_line();
 
-        $this->info_box_contents[3][1] = array(
+        $this->info_box_contents[$r][1] = array(
         		'td' => 'align="left"'
         		, 'text' => '<span>' . $obj->number . '</span>'
         		, 'url' => dol_buildpath('/financement/dossier.php', 1) . '?TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][nature_financement]=EXTERNE'
         );
 
-        $this->info_box_contents[3][2] = array(
+        $this->info_box_contents[$r][2] = array(
         		'td' => 'align="left"'
         		, 'text' => '<span>' . $obj->number_todo . '</span>'
         		, 'url' => dol_buildpath('/financement/dossier.php', 1) . '?TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][nature_financement]=EXTERNE&TListTBS[list_' . MAIN_DB_PREFIX . 'fin_dossier][search][intercalaireLeaserOK]=NON'
         );
 
-        $this->info_box_contents[3][3] = array(
+        $this->info_box_contents[$r][3] = array(
         		'td' => 'align="right"'
         		, 'text' => price($obj->loyers)
+        );
+		
+		// Contrôles qualité
+		$r++;
+        $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsQualityControl'));
+
+        $sql = 'SELECT COUNT(*) as number
+				, SUM( IF(q.result = "TODO", 1, 0) ) as number_todo
+				FROM '.MAIN_DB_PREFIX.'fin_quality_test q
+				WHERE 1';
+
+        $resql = $PDOdb->Execute($sql);
+
+        if(! $resql)
+        {
+        	return;
+        }
+
+        $obj = $PDOdb->Get_line();
+
+        $this->info_box_contents[$r][1] = array(
+        		'td' => 'align="left"'
+        		, 'text' => '<span>' . $obj->number . '</span>'
+        		, 'url' => dol_buildpath('/financement/qualite/list.php', 1)
+        );
+
+        $this->info_box_contents[$r][2] = array(
+        		'td' => 'align="left"'
+        		, 'text' => '<span>' . $obj->number_todo . '</span>'
+        		, 'url' => dol_buildpath('/financement/qualite/list.php?', 1) . 'TListTBS[list_llx_fin_quality_test][search][result]=TODO'
+        );
+
+        $this->info_box_contents[$r][3] = array(
+        		'td' => 'align="right"'
+        		, 'text' => ''
         );
     }
 

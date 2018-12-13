@@ -273,6 +273,7 @@ BoxIndicatorsAmount=Montant
 BoxIndicatorsInternalFilesRelocation=Dossiers internes en relocation
 BoxIndicatorsExternalFilesRelocation=Dossiers externes en relocation
 BoxIndicatorsExternalFilesIntercalaire=Dossiers externes avec loyer intercalaire
+BoxIndicatorsQualityControl=Contrôles qualité
 
 #Contrôle qualité
 QualityControl=Contrôle qualité
