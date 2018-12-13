@@ -29,9 +29,11 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 		$xml = new DOMDocument('1.0','UTF-8');
 		$xml->formatOutput = true;
 
+        $title = $xml->appendChild($xml->createElement('ADLC'));
+
 		//Chargement des noeuds correspondant aux affaires
 		//print '<pre>';
-		foreach($TAffaires as $Affaire){
+		foreach($TAffaires as $Affaire) {
 			$dossier = $Affaire->TLien[0]->dossier;	// Possible car 1 affaire = 1 dossier
 			$fin = $dossier->financement;
 			$finLeaser = $dossier->financementLeaser;
@@ -45,7 +47,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 			$leaserName = substr($socLeaser->name, 0, 32);	// Limité à 32 caractères
 
 			$affairelist = $xml->createElement("CONTRAT");
-			$affairelist = $xml->appendChild($affairelist);
+			$affairelist = $title->appendChild($affairelist);
 
 			$affairelist->appendChild($xml->createElement("NO_AFFAIRE_CM", $refFinLeaser));
 			$affairelist->appendChild($xml->createElement("NO_AFFAIRE_PARTENAIRE", $fin->reference));
@@ -89,7 +91,10 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 				$Affaire->xml_fic_transfert = $name2;
 			}
 			$Affaire->save($PDOdb);
+
+            $title->appendChild($affairelist);
 		}
+
 
 		$chaine = $xml->saveXML();
 
@@ -334,7 +339,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 		$elem = $xml->createElement('LIVRAISON_MAT');
         $TData = array(
 //            'DTPV' => 'N',    // Facultatif
-            'CDTYPPV' => '',
+            'CDTYPPV' => ' ',   // Un espace est un blanc, donc on met un blanc
             'SIRET_LIV' => '10000000000001',
             'N_RUE_LIV' => 'N',
             'RUE_1_LIV' => 'N',
