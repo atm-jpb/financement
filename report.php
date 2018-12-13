@@ -556,36 +556,25 @@ function encours_leaser($title, $head_search, $TEntity)
 		exit;
 	}
 	$TTitle['action'] = '';
-	
-	$sql = 'SELECT s.nom, a.type_financement, SUM(d.montant_solde) as amount, \'\' as action';
-	$sql.= ' FROM '.MAIN_DB_PREFIX.'fin_affaire a';
-	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid)';
-	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (d.rowid = da.fk_fin_dossier)';
-	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe s ON (s.rowid = a.fk_soc)';
-	
-	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'categorie_fournisseur cf ON (cf.fk_societe = s.rowid)';
-	$sql.= ' INNER JOIN (
-			SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE label = "Leaser"
-			UNION
-			SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE fk_parent IN (SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE label = "Leaser")
-		) c ON (c.fk_cat = cf.fk_categorie)';
-	
-	$sql.= ' WHERE s.fournisseur = 1';
-	
-	if (!empty($TEntity)) $sql.= ' AND a.entity IN ('.implode(',', $TEntity).')';
-	$sql.= ' AND d.date_solde IS NULL';
-	$sql.= ' AND a.date_affaire >= "'.$db->idate($time_fiscal_start).'" AND a.date_affaire <= "'.$db->idate($time_fiscal_end).'"';
-	
-	$sql.= ' GROUP BY s.nom, a.type_financement';
-	
+
+
+	$sql = 'SELECT s.nom, s.rowid
+			FROM llx_societe s
+			INNER JOIN llx_categorie_fournisseur cf ON (cf.fk_societe = s.rowid) 
+			INNER JOIN (
+				SELECT rowid as fk_cat FROM llx_categorie WHERE label = "Leaser" 
+				UNION
+				SELECT rowid as fk_cat FROM llx_categorie WHERE fk_parent IN (SELECT rowid as fk_cat FROM llx_categorie WHERE label = "Leaser")
+			) c ON (c.fk_cat = cf.fk_categorie) 
+			WHERE s.fournisseur = 1';
+
+	$TLeaser = array();
 	$resql = $db->query($sql);
 	if ($resql)
 	{
-		$i=0;
-		while ($arr = $db->fetch_array($sql))
+		while ($row = $db->fetch_object($resql))
 		{
-			foreach ($TTitle as $k => $l) $TData[$i][$k] = $arr[$k];
-			$i++;
+			$TLeaser[$row->rowid] = $row->nom;
 		}
 	}
 	else
@@ -593,7 +582,36 @@ function encours_leaser($title, $head_search, $TEntity)
 		dol_print_error($db);
 		exit;
 	}
-	
+
+	$sql = 'SELECT a.type_financement, s.nom, SUM(df.montant) as amount
+			FROM '.MAIN_DB_PREFIX.'fin_dossier_financement df
+			INNER JOIN '.MAIN_DB_PREFIX.'societe s ON (s.rowid = df.fk_soc)
+			INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (d.rowid = df.fk_fin_dossier)
+			INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)
+			INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)
+			
+			WHERE df.type = \'LEASER\'
+			AND df.fk_soc IN ('.implode(',', array_keys($TLeaser)).')
+			AND a.date_affaire >= \''.$db->idate($time_fiscal_start).'\' AND a.date_affaire <= \''.$db->idate($time_fiscal_end).'\'
+			AND (d.date_solde IS NULL OR d.date_solde <= \'1000-01-01 00:00:00\')
+			GROUP BY a.type_financement, s.nom';
+
+	$resql = $db->query($sql);
+	if ($resql)
+	{
+		while ($arr = $db->fetch_array($resql))
+		{
+			if (!isset($TData[$arr['nom']])) $TData[$arr['nom']] = array();
+			$TData[$arr['nom']]['nom'] = $arr['nom'];
+			$TData[$arr['nom']][$arr['type_financement']] = price($arr['amount'], 0, '', 1, -1, 2);
+		}
+	}
+	else
+	{
+		dol_print_error($db);
+		exit;
+	}
+
 	$r = new Listview($db, 'financement');
 	print $r->renderArray($db, $TData, array(
 		'view_type' => 'list' // default = [list], [raw], [chart]
