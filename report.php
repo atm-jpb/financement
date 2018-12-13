@@ -251,7 +251,7 @@ function demandes_de_financement($title, $head_search, $TEntity)
 	$i=0;
 	while ($start_time < $time_fiscal_end)
 	{
-		$end_time_periode = strtotime(date('Y-m-t', $start_time));
+		$end_time_periode = strtotime(date('Y-m-t 23:59:59', $start_time));
 		$periode = date('d/m/Y', $start_time).' '.date('d/m/Y', $end_time_periode);
 		
 		$TData[$i]['periode'] = $periode;
