@@ -376,9 +376,12 @@ function facturation_par_leaser($title, $head_search, $TEntity)
 {
 	global $db,$time_fiscal_start,$time_fiscal_end;
 	
-	$sql = 'SELECT s.nom as nom, SUM(f.total) as "Total HT",  SUM(f.total) as annotation';
+	$sql = 'SELECT s.nom as nom, SUM(df.montant) as "Total HT",  SUM(df.montant) as annotation';
 	$sql.= ' FROM '.MAIN_DB_PREFIX.'societe s';
-	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'facture f ON (f.fk_soc = s.rowid)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (df.fk_soc = s.rowid)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (df.fk_fin_dossier = d.rowid)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)';
 	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'categorie_fournisseur cf ON (cf.fk_societe = s.rowid)';
 	$sql.= ' INNER JOIN (
 			SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE label = "Leaser"
@@ -386,10 +389,11 @@ function facturation_par_leaser($title, $head_search, $TEntity)
 			SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE fk_parent IN (SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE label = "Leaser")
 		) c ON (c.fk_cat = cf.fk_categorie)';
 	$sql.= ' WHERE s.fournisseur = 1';
-	if (!empty($TEntity)) $sql.= ' AND f.entity IN ('.implode(',', $TEntity).')';
-	$sql.= ' AND f.datef >= "'.$db->idate($time_fiscal_start).'" AND f.datef <= "'.$db->idate($time_fiscal_end).'"';
+	$sql.= ' AND df.type = "LEASER"';
+	if (!empty($TEntity)) $sql.= ' AND a.entity IN ('.implode(',', $TEntity).')';
+	$sql.= ' AND df.date_debut >= "'.$db->idate($time_fiscal_start).'" AND df.date_debut <= "'.$db->idate($time_fiscal_end).'"';
 	$sql.= ' GROUP BY s.nom';
-	
+	echo $sql;
 	print_barre_liste($title, 0, $_SERVER["PHP_SELF"], '', '', '', '', -1, 0, 'object_accounting.png');
 	
 	$search_button = '<div style="position:absolute;top:0;right:0" class="nowrap">';
