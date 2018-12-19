@@ -160,7 +160,7 @@ function getTContrat($force=false)
 	{
 		$TContrat = array();
 		// Récupération des types de contrat possible (LOCSIMPLE, INTEGRAL, ...)
-		$sql = 'SELECT DISTINCT fk_type_contrat FROM '.MAIN_DB_PREFIX.'fin_simulation';
+		$sql = 'SELECT DISTINCT fk_type_contrat FROM '.MAIN_DB_PREFIX.'fin_simulation ORDER BY fk_type_contrat';
 		$resql = $db->query($sql);
 		if ($resql)
 		{
@@ -172,7 +172,9 @@ function getTContrat($force=false)
 			exit;
 		}
 	}
-	
+
+	if (isset($TContrat[0])) unset($TContrat[0]);
+	if (isset($TContrat[''])) unset($TContrat['']);
 	
 	return $TContrat;
 }
@@ -249,7 +251,7 @@ function demandes_de_financement($title, $head_search, $TEntity)
 	$i=0;
 	while ($start_time < $time_fiscal_end)
 	{
-		$end_time_periode = strtotime(date('Y-m-t', $start_time));
+		$end_time_periode = strtotime(date('Y-m-t 23:59:59', $start_time));
 		$periode = date('d/m/Y', $start_time).' '.date('d/m/Y', $end_time_periode);
 		
 		$TData[$i]['periode'] = $periode;
@@ -304,7 +306,7 @@ function demandes_de_financement($title, $head_search, $TEntity)
 	foreach ($TStatut_filter as $statut) $TTitle[$statut] = $TStatut[$statut];
 	foreach ($TContrat_filter as $type) $TTitle[$type] = $type;
 	$TTitle['total'] = $langs->trans('TotalDemande');
-	
+
 	$r = new Listview($db, 'financement');
 	print $r->renderArray($db, $TData, array(
 		'view_type' => 'list' // default = [list], [raw], [chart]
@@ -325,16 +327,19 @@ function demandes_de_financement($title, $head_search, $TEntity)
 				'total'=>'right'
 			)
 			,'rank'=>array(
-				'periode'=>5
-				,'WAIT'=>10
-				,'WAIT_LEASER'=>15
-				,'WAIT_SELLER'=>20
-				,'WAIT_MODIF'=>25
-				,'SS'=>30
-				,'KO'=>35
-				,'OK'=>40
-				,'LOCSIMPLE'=>45
+				'periode'=> -100
+				,'WAIT'=> -90
+				,'WAIT_LEASER'=> -80
+				,'WAIT_SELLER'=> -70
+				,'WAIT_MODIF'=> -60
+				,'SS'=> -50
+				,'KO'=> -40
+				,'OK'=> -30
+				/*,'LOCSIMPLE'=>45
+				,'LOCSIMPLE2'=>48
 				,'INTEGRAL'=>50
+				,'INTEGRAL2'=>51
+				,'INTEGRAL ECO PRINT'=>52
 				,'FORFAITGLOBAL'=>55
 				,'GRANDCOMPTE'=>60
 				,'BAREME_AVOCAT'=>65
@@ -342,7 +347,8 @@ function demandes_de_financement($title, $head_search, $TEntity)
 				,'PROSPECTFORFAITGLOBA'=>75
 				,'CPRO NETWORKS'=>80
 				,'ABONNEMENTINFO'=>85
-				,'total'=>90
+				,'aboinfo'=>88*/
+				,'total'=>100
 			)
 		)
 	));
@@ -370,9 +376,12 @@ function facturation_par_leaser($title, $head_search, $TEntity)
 {
 	global $db,$time_fiscal_start,$time_fiscal_end;
 	
-	$sql = 'SELECT s.nom as nom, SUM(f.total) as "Total HT",  SUM(f.total) as annotation';
+	$sql = 'SELECT s.nom as nom, SUM(df.montant) as "Total HT",  SUM(df.montant) as annotation';
 	$sql.= ' FROM '.MAIN_DB_PREFIX.'societe s';
-	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'facture f ON (f.fk_soc = s.rowid)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (df.fk_soc = s.rowid)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (df.fk_fin_dossier = d.rowid)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)';
 	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'categorie_fournisseur cf ON (cf.fk_societe = s.rowid)';
 	$sql.= ' INNER JOIN (
 			SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE label = "Leaser"
@@ -380,10 +389,11 @@ function facturation_par_leaser($title, $head_search, $TEntity)
 			SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE fk_parent IN (SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE label = "Leaser")
 		) c ON (c.fk_cat = cf.fk_categorie)';
 	$sql.= ' WHERE s.fournisseur = 1';
-	if (!empty($TEntity)) $sql.= ' AND f.entity IN ('.implode(',', $TEntity).')';
-	$sql.= ' AND f.datef >= "'.$db->idate($time_fiscal_start).'" AND f.datef <= "'.$db->idate($time_fiscal_end).'"';
+	$sql.= ' AND df.type = "LEASER"';
+	if (!empty($TEntity)) $sql.= ' AND a.entity IN ('.implode(',', $TEntity).')';
+	$sql.= ' AND df.date_debut >= "'.$db->idate($time_fiscal_start).'" AND df.date_debut <= "'.$db->idate($time_fiscal_end).'"';
 	$sql.= ' GROUP BY s.nom';
-	
+	echo $sql;
 	print_barre_liste($title, 0, $_SERVER["PHP_SELF"], '', '', '', '', -1, 0, 'object_accounting.png');
 	
 	$search_button = '<div style="position:absolute;top:0;right:0" class="nowrap">';
@@ -412,7 +422,7 @@ function facturation_par_leaser($title, $head_search, $TEntity)
 					'annotation'=>'annotation'
 				)
 				,'options' => array(
-					'bar' => 'groupWidth: "90%"'
+					//'bar' => 'groupWidth: "90%"'
 				)
 			)
 		)
@@ -430,8 +440,8 @@ function _getNbDossier($TEntity, $date_simul_start, $date_simul_end)
 	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid)';
 	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (d.rowid = da.fk_fin_dossier)';
 	$sql.= ' WHERE a.contrat IS NOT NULL AND a.contrat <> "" AND a.entity IN ('.implode(',', $TEntity).')';
-	$sql.= ' AND d.date_solde IS NULL';
 	$sql.= ' AND a.date_affaire >= "'.$db->idate($date_simul_start).'" AND a.date_affaire <= "'.$db->idate($date_simul_end).'"';
+	$sql.= ' AND (d.date_solde IS NULL OR d.date_solde <= \'1000-01-01 00:00:00\')';
 	$sql.= ' GROUP BY a.entity, a.contrat';
 	
 	$resql = $db->query($sql);
@@ -469,7 +479,7 @@ function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 	
 	foreach ($TEntity as $fk_entity) $TTitle[$TEntityAvailable[$fk_entity]] = $TEntityAvailable[$fk_entity];
 	$TTitle['total'] = $langs->trans('Total');
-	
+
 	$TNbDossier = _getNbDossier($TEntity, $time_fiscal_start, $time_fiscal_end);
 	
 	$i=0;
@@ -486,7 +496,7 @@ function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 		$i++;
 	}
 	
-	
+
 	$r = new Listview($db, 'financement');
 	print $r->renderArray($db, $TData, array(
 		'view_type' => 'list' // default = [list], [raw], [chart]
@@ -507,8 +517,8 @@ function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 				'total'=>'right'
 			)
 			,'rank'=>array(
-				'type_contrat'=>5
-				,'ABG'=>10
+				'type_contrat' => -100
+				/*,'ABG'=>10
 				,'Bourgogne Copie'=>15
 				,'Copem'=>20
 				,'Copy Concept'=>25
@@ -519,7 +529,10 @@ function types_contrats_et_financements_actifs($title, $head_search, $TEntity)
 				,'QUADRA'=>50
 				,'TDP IP / SADOUX'=>55
 				,'Télécom'=>60
-				,'total'=>65
+				,'BASE COMMUNE'=>70
+				,'BCMP'=>80
+				,'Télécom'=>60*/
+				,'total' => 100
 			)
 		)
 	));
@@ -547,36 +560,25 @@ function encours_leaser($title, $head_search, $TEntity)
 		exit;
 	}
 	$TTitle['action'] = '';
-	
-	$sql = 'SELECT s.nom, a.type_financement, SUM(d.montant_solde) as amount, \'\' as action';
-	$sql.= ' FROM '.MAIN_DB_PREFIX.'fin_affaire a';
-	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid)';
-	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (d.rowid = da.fk_fin_dossier)';
-	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe s ON (s.rowid = a.fk_soc)';
-	
-	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'categorie_fournisseur cf ON (cf.fk_societe = s.rowid)';
-	$sql.= ' INNER JOIN (
-			SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE label = "Leaser"
-			UNION
-			SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE fk_parent IN (SELECT rowid as fk_cat FROM '.MAIN_DB_PREFIX.'categorie WHERE label = "Leaser")
-		) c ON (c.fk_cat = cf.fk_categorie)';
-	
-	$sql.= ' WHERE s.fournisseur = 1';
-	
-	if (!empty($TEntity)) $sql.= ' AND a.entity IN ('.implode(',', $TEntity).')';
-	$sql.= ' AND d.date_solde IS NULL';
-	$sql.= ' AND a.date_affaire >= "'.$db->idate($time_fiscal_start).'" AND a.date_affaire <= "'.$db->idate($time_fiscal_end).'"';
-	
-	$sql.= ' GROUP BY s.nom, a.type_financement';
-	
+
+
+	$sql = 'SELECT s.nom, s.rowid
+			FROM llx_societe s
+			INNER JOIN llx_categorie_fournisseur cf ON (cf.fk_societe = s.rowid) 
+			INNER JOIN (
+				SELECT rowid as fk_cat FROM llx_categorie WHERE label = "Leaser" 
+				UNION
+				SELECT rowid as fk_cat FROM llx_categorie WHERE fk_parent IN (SELECT rowid as fk_cat FROM llx_categorie WHERE label = "Leaser")
+			) c ON (c.fk_cat = cf.fk_categorie) 
+			WHERE s.fournisseur = 1';
+
+	$TLeaser = array();
 	$resql = $db->query($sql);
 	if ($resql)
 	{
-		$i=0;
-		while ($arr = $db->fetch_array($sql))
+		while ($row = $db->fetch_object($resql))
 		{
-			foreach ($TTitle as $k => $l) $TData[$i][$k] = $arr[$k];
-			$i++;
+			$TLeaser[$row->rowid] = $row->nom;
 		}
 	}
 	else
@@ -584,7 +586,40 @@ function encours_leaser($title, $head_search, $TEntity)
 		dol_print_error($db);
 		exit;
 	}
-	
+
+	$sql = 'SELECT a.type_financement, s.nom, SUM(df.montant) as amount
+			FROM '.MAIN_DB_PREFIX.'fin_dossier_financement df
+			INNER JOIN '.MAIN_DB_PREFIX.'societe s ON (s.rowid = df.fk_soc)
+			INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (d.rowid = df.fk_fin_dossier)
+			INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)
+			INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)
+			
+			WHERE df.type = \'LEASER\'
+			AND df.fk_soc IN ('.implode(',', array_keys($TLeaser)).')
+			AND a.date_affaire >= \''.$db->idate($time_fiscal_start).'\' AND a.date_affaire <= \''.$db->idate($time_fiscal_end).'\'
+			AND (d.date_solde IS NULL OR d.date_solde <= \'1000-01-01 00:00:00\')
+	';
+
+	if (!empty($TEntity)) $sql.= ' AND a.entity IN ('.implode(',', $TEntity).')';
+
+	$sql.= 'GROUP BY a.type_financement, s.nom';
+
+	$resql = $db->query($sql);
+	if ($resql)
+	{
+		while ($arr = $db->fetch_array($resql))
+		{
+			if (!isset($TData[$arr['nom']])) $TData[$arr['nom']] = array();
+			$TData[$arr['nom']]['nom'] = $arr['nom'];
+			$TData[$arr['nom']][$arr['type_financement']] = price($arr['amount'], 0, '', 1, -1, 2);
+		}
+	}
+	else
+	{
+		dol_print_error($db);
+		exit;
+	}
+
 	$r = new Listview($db, 'financement');
 	print $r->renderArray($db, $TData, array(
 		'view_type' => 'list' // default = [list], [raw], [chart]
@@ -602,7 +637,7 @@ function encours_leaser($title, $head_search, $TEntity)
 		)
 		,'position'=>array(
 			'rank'=>array(
-				'nom'=>-1
+				'nom' => -100
 			)
 		)
 	));
@@ -674,8 +709,8 @@ function recurrent_financement($title, $head_search, $TEntity)
 	}
 	
 	$TPosition['rank'] = array(
-		'type'=>5
-		,'ABG'=>10
+		'type'=> -100
+		/*,'ABG'=>10
 		,'Bourgogne Copie'=>15
 		,'Copem'=>20
 		,'Copy Concept'=>25
@@ -685,7 +720,7 @@ function recurrent_financement($title, $head_search, $TEntity)
 		,'QSIGD'=>45
 		,'QUADRA'=>50
 		,'TDP IP / SADOUX'=>55
-		,'Télécom'=>60
+		,'Télécom'=>60*/
 	);
 	
 	$r = new Listview($db, 'financement');
