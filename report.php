@@ -393,7 +393,7 @@ function facturation_par_leaser($title, $head_search, $TEntity)
 	if (!empty($TEntity)) $sql.= ' AND a.entity IN ('.implode(',', $TEntity).')';
 	$sql.= ' AND df.date_debut >= "'.$db->idate($time_fiscal_start).'" AND df.date_debut <= "'.$db->idate($time_fiscal_end).'"';
 	$sql.= ' GROUP BY s.nom';
-	echo $sql;
+	//echo $sql;
 	print_barre_liste($title, 0, $_SERVER["PHP_SELF"], '', '', '', '', -1, 0, 'object_accounting.png');
 	
 	$search_button = '<div style="position:absolute;top:0;right:0" class="nowrap">';
