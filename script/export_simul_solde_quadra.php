@@ -60,8 +60,9 @@ function generate_csv_simul_solde(&$PDOdb, $entities, $filename='') {
 	if(empty($filename)) return false;
 
 	// 1er fichier avec les simulations QUADRA et QSIGD
-	$sql = "SELECT s.rowid
+	$sql = "SELECT s.rowid, e.label
 			FROM llx_fin_simulation s
+			LEFT JOIN llx_entity e ON e.rowid = s.entity
 			WHERE 1 = 1 
 			AND s.entity IN (".implode(',', $entities).")
 			AND s.accord = 'OK'
@@ -72,7 +73,7 @@ function generate_csv_simul_solde(&$PDOdb, $entities, $filename='') {
 	
 	$handle = fopen($filename, 'w');
 	
-	$head = explode(";", "Ref unique;Ref simulation;Ref contrat;Montant solde vendeur;Date fin periode;Montant solde banque;Type solde;Client;Type contrat;Leaser");
+	$head = explode(";", "Ref unique;Ref simulation;Ref contrat;Montant solde vendeur;Date fin periode;Montant solde banque;Type solde;Client;Type contrat;Leaser;Partenaire");
 	fputcsv($handle, $head, ';');
 	//echo '<pre>';
 	foreach ($TData as $res) {
@@ -105,7 +106,8 @@ function generate_csv_simul_solde(&$PDOdb, $entities, $filename='') {
 					,$typesolde											// R ou NR
 					,$simu->societe->name								// Client
 					,$d['type_contrat']									// Type contrat
-					,$leaser											// Leaser chez qui le contrat est soldé
+					,$leaser											// Leaser chez qui le contrat est soldé											// Leaser chez qui le contrat est soldé
+					,$res['label']
 				);
 				
 				//echo implode(' || ', $data).'<br>';
