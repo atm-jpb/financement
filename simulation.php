@@ -566,8 +566,7 @@ function _liste(&$ATMdb, &$simulation) {
 	
 	$THide = array('fk_soc', 'fk_user_author', 'rowid');
 	
-	//$sql = "SELECT DISTINCT s.rowid, s.reference, e.rowid as entity_id, s.fk_soc, soc.nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance as 'Montant', s.echeance as 'Echéance',";
-	$sql = "SELECT DISTINCT s.rowid, s.reference, e.rowid as entity_id, s.fk_soc, CONCAT(SUBSTR(soc.nom, 1, 25), '...') as nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance, s.echeance,";
+	$sql = "SELECT DISTINCT s.rowid, s.reference, e.label as entity_label, s.fk_soc, CONCAT(SUBSTR(soc.nom, 1, 25), '...') as nom, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance, s.echeance,";
 	$sql.= " CONCAT(s.duree, ' ', CASE WHEN s.opt_periodicite = 'MOIS' THEN 'M' WHEN s.opt_periodicite = 'ANNEE' THEN 'A' WHEN s.opt_periodicite = 'SEMESTRE' THEN 'S' ELSE 'T' END) as 'duree',";
 	$sql.= " s.date_simul, s.date_validite, u.login, s.accord, s.type_financement, lea.nom as leaser, s.attente, s.fk_fin_dossier";
 	$sql.= " ,SUM(CASE WHEN ss.statut = 'OK' THEN 1 ELSE 0 END) as nb_ok";
@@ -721,7 +720,7 @@ function _liste(&$ATMdb, &$simulation) {
 			'rowid'=>'N°'
 			,'nom'=>'Client'
 			,'reference'=>'Ref.'
-			,'entity_id'=>'Partenaire'
+			,'entity_label'=>'Partenaire'
 			,'duree'=>'Durée'
 			,'montant_total_finance'=>'Montant'
 			,'echeance'=>'Échéance'
@@ -742,7 +741,7 @@ function _liste(&$ATMdb, &$simulation) {
 		,'search'=>array(
 			'nom'=>array('recherche'=>true, 'table'=>'soc')
 			,'login'=>array('recherche'=>true, 'table'=>'u')
-			,'entity_id'=>array( 'recherche'=>$TEntityName, 'table'=>'e', 'field'=>'rowid')
+			,'entity_label'=>array( 'recherche'=>$TEntityName, 'table'=>'e', 'field'=>'rowid')
 			,'fk_type_contrat'=>$affaire->TContrat
 			//,'type_financement'=>$affaire->TTypeFinancementShort
 			,'date_simul'=>'calendar'
@@ -751,17 +750,16 @@ function _liste(&$ATMdb, &$simulation) {
 			,'reference'=>array('recherche'=>true, 'table'=>'s', 'field'=>'reference')
 		)
 		,'operator'=>array(
-			'entity_id' => '='
+			'entity_label' => '='
 		)
 		,'eval'=>array(
-			'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
-		    ,'attente' => 'print_attente(@val@)'
-		    ,'loupe' => '_simu_edit_link(@rowid@, \'@date_validite@\')'
+			'attente' => 'print_attente(@val@)'
+			,'loupe' => '_simu_edit_link(@rowid@, \'@date_validite@\')'
 		)
 		,'size'=>array(
 			'width'=>array(
 				'entity_id'=>'100px'
-				,'login'=>'50px'
+				,'entity_label'=>'50px'
 				,'type_financement'=>'100px'
 				,'leaser'=>'270px'
 			)
@@ -771,7 +769,7 @@ function _liste(&$ATMdb, &$simulation) {
 				'rowid'=>'center'
 				,'nom'=>'center'
 				,'reference'=>'center'
-				,'entity_id'=>'center'
+				,'entity_label'=>'center'
 				,'duree'=>'center'
 				,'montant_total_finance'=>'center'
 				,'echeance'=>'center'
@@ -976,10 +974,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$entity = empty($simulation->entity) ? getEntity('fin_dossier') : $simulation->entity;
 	
+	$TEntityName = TFinancementTools::build_array_entities();
 	if(TFinancementTools::user_courant_est_admin_financement() && empty($conf->global->FINANCEMENT_DISABLE_SELECT_ENTITY)){
-		$entity_field = $form->combo('', 'entity', TFinancementTools::build_array_entities(), $entity);
+		$entity_field = $form->combo('', 'entity', $TEntityName, $entity);
 	} else {
-		$entity_field = TFinancementTools::get_entity_translation($entity).$form->hidden('entity', $entity);
+		$entity_field = $TEntityName[$entity].$form->hidden('entity', $entity);
 	}
 	
 	$id_dossier = $simulation->fk_fin_dossier;
@@ -1449,8 +1448,9 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		$date_echeance_precedente = $dossier->_add_month(-1 * $fin->getiPeriode(), $date_echeance_en_cours);
 		$date_echeance_precedente_fin = strtotime('-1day', $dossier->_add_month($fin->getiPeriode(), $date_echeance_precedente));
 
+		$TEntityName = TFinancementTools::build_array_entities();
 		$numcontrat_entity_leaser = ($simulation->dossiers[$idDoss]['num_contrat']) ? $simulation->dossiers[$idDoss]['num_contrat'] :$fin->reference;
-		$numcontrat_entity_leaser = '<a href="dossier.php?id='.$idDoss.'">'.$numcontrat_entity_leaser.'</a> / '.TFinancementTools::get_entity_translation($ATMdb->Get_field('entityDossier'));
+		$numcontrat_entity_leaser = '<a href="dossier.php?id='.$idDoss.'">'.$numcontrat_entity_leaser.'</a> / '.$TEntityName[$ATMdb->Get_field('entityDossier')];
 		$numcontrat_entity_leaser.= '<br>'.$leaser->getNomUrl(0);
 		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')

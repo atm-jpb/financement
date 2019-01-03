@@ -2982,8 +2982,16 @@ class TSimulationSuivi extends TObjetStd {
 			,'TOSHIBA' => '331'
 		);
 		
-		$codeMat = '300121';
-		$codeMarque = '335';
+		if($this->simulation->entity == 2) { // info
+			$codeMat = '30021204';
+			$codeMarque = '321';
+		} else if($this->simulation->entity == 3) { // telecom
+			$codeMat = '322020';
+			$codeMarque = 'D51';
+		} else {
+			$codeMat = '300121';
+			$codeMarque = '335';
+		}
 		
 		// Montant minimum 1000 €
 		$montant = $this->simulation->montant;
@@ -3077,12 +3085,25 @@ class TSimulationSuivi extends TObjetStd {
 		$codeBareme = '';
 		
 		if($this->_getBNPType() == 'CESSION') {
-			$codeBareme = (BNP_TEST) ? '00004048' : '00011657';
-			if($this->simulation->opt_periodicite == 'MOIS') {
-				$codeBareme = (BNP_TEST) ? '00004028' : '00011658';
+			if($this->simulation->entity == 2) { // informatique
+				$codeBareme = '00011681';
+				if($this->simulation->opt_periodicite == 'MOIS') {
+					$codeBareme = '00011680';
+				}
+			} else if($this->simulation->entity == 3) { // telecom
+				$codeBareme = '00011684';
+			} else {
+				$codeBareme = (BNP_TEST) ? '00004048' : '00011657';
+				if($this->simulation->opt_periodicite == 'MOIS') {
+					$codeBareme = (BNP_TEST) ? '00004028' : '00011658';
+				}
 			}
 		} else {
-			$codeBareme = (BNP_TEST) ? '00004050' : '00006710';
+			if($this->simulation->entity == 3) { // telecom
+				$codeBareme = '00013540';
+			} else {
+				$codeBareme = (BNP_TEST) ? '00004050' : '00006710';
+			}
 		}
 		
 		return $codeBareme;
