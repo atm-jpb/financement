@@ -2256,6 +2256,18 @@ class TSimulationSuivi extends TObjetStd {
 		
 		$this->statut = 'OK';
 		$this->save($PDOdb);
+
+        // Cas "Annuler"
+        if(! empty($this->date_selection)) {
+            $this->date_selection = 0;
+
+            $simulation->accord = 'WAIT';
+            $simulation->date_accord = null;
+            $simulation->numero_accord = null;
+            $simulation->fk_leaser = null;
+            $simulation->type_financement = null;
+            $simulation->save($PDOdb, $db);
+        }
 	}
 	
 	//Effectue l'action de passer au statut refusé la demande de financement leaser
