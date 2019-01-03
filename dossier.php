@@ -795,13 +795,15 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	else $mode_aff_fLeaser='view';
 	
 	$formRestricted->Set_typeaff( $mode_aff_fLeaser );
-	
+
 	$id_simu = _getIDSimuByReferenceDossierLeaser($PDOdb, $financementLeaser->fk_fin_dossier);
 	if(!empty($id_simu)) $link_simu = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$id_simu, 2).'" >'.$financementLeaser->reference.'</a>';
+    $referenceToShow = (empty($link_simu) || GETPOST('action') == 'edit') ? $formRestricted->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir') : $link_simu;
+    $referenceToShow.= $dossier->printOtherDossierLink();   // On ajoute le lien pour les autres dossiers s'ils existent
 	
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()
-			,'reference'=>(empty($link_simu) || GETPOST('action') == 'edit') ? $formRestricted->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir') : $link_simu
+			,'reference'=>$referenceToShow
 			,'montant'=>$formRestricted->texte('', 'leaser[montant]', $financementLeaser->montant, 10,255,'','','à saisir')
 			,'taux'=> $financementLeaser->taux
 			

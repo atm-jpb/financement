@@ -1,6 +1,7 @@
 # GLOBAL
 Financement=Financement
 ListOfDossierFinancement=Dossiers de financement
+OtherDossier = autres dossiers
 
 #WARNING
 CareAboutExportMayBeTakeLongTime=Attention l'export peut prendre du temps, %s factures doivent être vérifiées

@@ -237,7 +237,42 @@ class TFin_dossier extends TObjetStd {
 		}
 		
 	}
-	
+
+    function isSimilarRefExists() {
+        global $db;
+        if(empty($this->financementLeaser->reference)) return false;
+
+        $sql = 'SELECT *';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_dossier_financement';
+        $sql.= " WHERE reference LIKE '".$this->financementLeaser->reference."%'";
+        $sql.= " AND type = 'LEASER'";
+        $sql.= ' AND fk_fin_dossier <> '.$this->id;
+        $sql.= " AND reference <> '' AND reference is not null";
+
+        $resql = $db->query($sql);
+        if($resql) {
+            if($obj = $db->fetch_object($resql)) return true;
+            return false;
+        }
+        else {
+            dol_print_error($db);
+            exit;
+        }
+    }
+
+    function printOtherDossierLink(&$ref = '') {
+        global $langs;
+        if(! $this->isSimilarRefExists()) return '';
+
+        if(empty($ref)) $ref = $this->financementLeaser->reference;
+
+        $out = '<a href="'.$_SERVER['PHP_SELF'].'?TListTBS[list_llx_fin_dossier][search][refDosLea]='.$ref.'">';
+        $out.= '('.$langs->trans('OtherDossier').')';
+        $out.= '</a>';
+
+        return $out;
+    }
+
 	function checkRef(&$db) {
 		
 		if($this->nature_financement == 'INTERNE') {
