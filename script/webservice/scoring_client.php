@@ -11,7 +11,7 @@ dol_include_once('/financement/class/service_financement.class.php');
 $PDOdb = new TPDOdb;
 
 $simulation = new TSimulation(true);
-$simulation->load($PDOdb, $db, 18510);
+$simulation->load($PDOdb, 18510);
 
 //var_dump($conf->global->WEBSERVICES_KEY);
 //exit;

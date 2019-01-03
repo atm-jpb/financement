@@ -188,7 +188,7 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 			$TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $simulation->get_table(), array('reference'=>$ref_simulation));
 			if (!empty($TId[0]))
 			{
-				$simulation->load($PDOdb, $db, $TId[0]);
+				$simulation->load($PDOdb, $TId[0]);
 
 				$found = false;
 				foreach ($simulation->TSimulationSuivi as &$simulationSuivi)

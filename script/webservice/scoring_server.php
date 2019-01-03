@@ -180,7 +180,7 @@ function repondreDemande($authentication, $TReponse)
 				$TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $simulation->get_table(), array('reference'=>$reference_simulation));
 				if (!empty($TId[0]))
 				{
-					$simulation->load($PDOdb, $db, $TId[0]);
+					$simulation->load($PDOdb, $TId[0]);
 					if ($simulation->getId() > 0)
 					{
 						$siren = $TReponse['client']['client_siren'];
@@ -374,7 +374,7 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 			$TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $simulation->get_table(), array('reference'=>$ref_simulation));
 			if (!empty($TId[0]))
 			{
-				$simulation->load($PDOdb, $db, $TId[0]);
+				$simulation->load($PDOdb, $TId[0]);
 
 				$found = false;
 				foreach ($simulation->TSimulationSuivi as &$simulationSuivi)
