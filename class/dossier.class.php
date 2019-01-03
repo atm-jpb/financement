@@ -266,7 +266,7 @@ class TFin_dossier extends TObjetStd {
 
         if(empty($ref)) $ref = $this->financementLeaser->reference;
 
-        $out = '<a href="'.$_SERVER['PHP_SELF'].'?TListTBS[list_llx_fin_dossier][search][refDosLea]='.$ref.'">';
+        $out = ' <a href="'.$_SERVER['PHP_SELF'].'?TListTBS[list_llx_fin_dossier][search][refDosLea]='.$ref.'">';
         $out.= '('.$langs->trans('OtherDossier').')';
         $out.= '</a>';
 
