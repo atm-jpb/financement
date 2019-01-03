@@ -587,28 +587,11 @@ class ServiceFinancement {
 	 */
 	public function getIdCategorieBien()
 	{
-		$label = $this->getCategoryLabel($this->simulation->fk_categorie_bien);
-		
-		if ($label == 'INFORMATIQUE') return 2;
-		elseif ($label == 'BUREAUTIQUE') return 'U';
-		else return '';
+		if($this->simulation->entity == 3) return 'V';
+		if($this->simulation->entity == 2) return '2';
+		return 'U';
 	}
 
-	private function getCategoryLabel($fk_categorie_bien)
-	{
-		global $db;
-		
-		$sql = 'SELECT label FROM '.MAIN_DB_PREFIX.'c_financement_categorie_bien WHERE cat_id = '.$fk_categorie_bien;
-		$resql = $db->query($sql);
-		
-		if ($resql && ($row = $db->fetch_object($resql)))
-		{
-			$this->simulation->category_label = $row->label;
-			return $row->label;
-		}
-		
-		return '';
-	}
 	/** Cal&f
 	 * NAT_ID	LIB_NAT
 	 * 209B	Micro ordinateur
@@ -621,6 +604,8 @@ class ServiceFinancement {
 	 */
 	public function getIdNatureBien()
 	{
+		if($this->simulation->entity == 3) return 'V08Q';
+		
 		// On envoie photocopieur systématiquement
 		return 'U03C';
 		
