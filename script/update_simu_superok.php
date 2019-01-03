@@ -39,7 +39,7 @@ if ($res && $db->num_rows($res))
 foreach ($TSimu as $sid)
 {    
     $simulation = new TSimulation();
-    $simulation->load($ATMdb, $db, $sid, false);
+    $simulation->load($ATMdb, $sid, false);
     print "Calcul simulation n°".$sid;
     $simulation->get_attente($ATMdb);
     print " terminé \r";

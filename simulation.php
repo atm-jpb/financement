@@ -106,7 +106,7 @@ if(!empty($_REQUEST['mode_search']) && $_REQUEST['mode_search'] == 'search_matri
 
 if(!empty($fk_soc)) {
 	$simulation->fk_soc = $fk_soc;
-	$simulation->load_annexe($ATMdb, $db);
+	$simulation->load_annexe($ATMdb);
 
 	// Si l'utilisateur n'a pas le droit d'accès à tous les tiers
 	if(!$user->rights->societe->client->voir) {
@@ -164,7 +164,7 @@ if(!empty($action)) {
 			break;
 		case 'calcul':
 		    
-			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
+			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $_REQUEST['id']);
 			
 			if(empty($simulation->modifs['montant']) && (float)$_REQUEST['montant'] !== $simulation->montant) $simulation->modifs['montant'] = $simulation->montant;
 			if(empty($simulation->modifs['echeance']) && (float)$_REQUEST['echeance'] !== $simulation->echeance) $simulation->modifs['echeance'] = $simulation->echeance;
@@ -205,15 +205,15 @@ if(!empty($action)) {
 			break;	
 		case 'edit'	:
 		
-			$simulation->load($ATMdb, $db, $_REQUEST['id']);
-			
+			$simulation->load($ATMdb, $_REQUEST['id']);
+			$simulation->set_values_from_cristal($_REQUEST);
 			_fiche($ATMdb, $simulation,'edit');
 			
 			break;
 			
 		case 'clone':
 		
-			$simulation->load($ATMdb, $db, $_REQUEST['id']);
+			$simulation->load($ATMdb, $_REQUEST['id']);
 			$simulation->accord = 'SS';
 			$simulation->save($ATMdb, $db, false);
 			$simulation->clone_simu();
@@ -226,7 +226,7 @@ if(!empty($action)) {
 		
 		case 'save_suivi':
 			
-			$simulation->load($ATMdb, $db, $_REQUEST['id']);
+			$simulation->load($ATMdb, $_REQUEST['id']);
 			if(!empty($_REQUEST['TSuivi'])) {
 				foreach($_REQUEST['TSuivi'] as $id_suivi => $TVal) {
 					if(!empty($simulation->TSimulationSuivi[$id_suivi])) {
@@ -248,7 +248,7 @@ if(!empty($action)) {
 // $ATMdb->beginTransaction();
 			
 			//pre($_REQUEST,true);
-			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
+			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $_REQUEST['id']);
 			
 			$oldAccord = $simulation->accord;
 			$oldsimu = clone $simulation;
@@ -451,7 +451,7 @@ if(!empty($action)) {
 				
 				header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->getId()); exit;
 				
-				$simulation->load_annexe($ATMdb, $db);
+				$simulation->load_annexe($ATMdb);
 				
 				_fiche($ATMdb, $simulation,'view');
 				
@@ -462,7 +462,7 @@ if(!empty($action)) {
 		
 		case 'changeAccord':
 		    $newAccord = GETPOST('accord');
-		    $simulation->load($ATMdb, $db, $_REQUEST['id']);
+		    $simulation->load($ATMdb, $_REQUEST['id']);
 		    
 		    if ($newAccord == 'OK') $simulation->montant_accord = $simulation->montant_total_finance;
 
@@ -474,7 +474,7 @@ if(!empty($action)) {
 		    
 		case 'send_accord':
 			if(!empty($_REQUEST['id'])) {
-				$simulation->load($ATMdb, $db, $_REQUEST['id']);
+				$simulation->load($ATMdb, $_REQUEST['id']);
 				if($simulation->accord == 'OK') {
 					$simulation->send_mail_vendeur();
 				}
@@ -484,7 +484,7 @@ if(!empty($action)) {
 			break;
 		
 		case 'delete':
-			$simulation->load($ATMdb, $db, $_REQUEST['id']);
+			$simulation->load($ATMdb, $_REQUEST['id']);
 			//$ATMdb->db->debug=true;
 			$simulation->delete_accord_history($ATMdb);
 			$simulation->delete($ATMdb);
@@ -497,7 +497,7 @@ if(!empty($action)) {
 			
 			break;
 		case 'trywebservice':
-			$simulation->load($ATMdb, $db, GETPOST('id'));
+			$simulation->load($ATMdb, GETPOST('id'));
 			$id_suivi = GETPOST('id_suivi');
 			$simulation->TSimulationSuivi[$id_suivi]->debug = true;
 			$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb, $simulation, 'demander');
@@ -511,7 +511,7 @@ if(!empty($action)) {
 			$id_suivi = GETPOST('id_suivi');
 			if($id_suivi){
 				
-				$simulation->load($ATMdb, $db, GETPOST('id'));
+				$simulation->load($ATMdb, GETPOST('id'));
 				foreach ($simulation->TSimulationSuivi as $k => $simulationSuivi) {
 				    if ($simulationSuivi->rowid == $id_suivi){
 				        $id_suivi = $k;
@@ -545,7 +545,7 @@ if(!empty($action)) {
 	
 }
 elseif(isset($_REQUEST['id'])) {
-    $simulation->load($ATMdb, $db, $_REQUEST['id']);
+    $simulation->load($ATMdb, $_REQUEST['id']);
 	_fiche($ATMdb, $simulation, 'view');
 }
 else {
@@ -795,7 +795,10 @@ function _liste(&$ATMdb, &$simulation) {
 	$form->end();
 	
 	if(isset($_REQUEST['socid'])) {
-		?><div class="tabsAction"><a href="?action=new&fk_soc=<?php echo $_REQUEST['socid'] ?>" class="butAction">Nouvelle simulation</a></div><?php
+        $href = '?action=new&fk_soc='.$_REQUEST['socid'];
+        foreach($_POST as $k => $v) $href.= '&'.$k.'='.$v;
+
+		?><div class="tabsAction"><a href="<?php echo $href; ?>" class="butAction">Nouvelle simulation</a></div><?php
 	}
 	
 	llxFooter();
@@ -888,6 +891,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	$form=new TFormCore($_SERVER['PHP_SELF'].'#calculateur','formSimulation','POST'); //,FALSE,'onsubmit="return soumettreUneSeuleFois(this);"'
 	$form->Set_typeaff($mode);
 	//$form->Set_typeaff('edit');
+	$fk_simu_cristal = GETPOST('fk_simu_cristal');
+	$fk_projet_cristal = GETPOST('fk_projet_cristal');
 
 	echo $form->hidden('id', $simulation->getId());
 	echo $form->hidden('action', 'save');
@@ -896,6 +901,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	echo $form->hidden('entity', $conf->entity);
 	echo $form->hidden('idLeaser', FIN_LEASER_DEFAULT);
 	echo $form->hidden('mode', $mode);
+	echo $form->hidden('fk_simu_cristal', empty($fk_simu_cristal) ? $simulation->fk_simu_cristal : $fk_simu_cristal);
+	echo $form->hidden('fk_projet_cristal', empty($fk_projet_cristal) ? $simulation->fk_projet_cristal : $fk_projet_cristal);
 
 	$TBS=new TTemplateTBS();
 	$ATMdb=new TPDOdb;
