@@ -146,8 +146,17 @@ class TFin_affaire extends TObjetStd {
 
 	}
 	function delete(&$db) {
+        // Delete into llx_affaire_commercial
+        $db->dbdelete(MAIN_DB_PREFIX.'fin_affaire_commercial', $this->getId(), 'fk_fin_affaire');
+
+        // Check if exists into dossier_affaire
+        if(! empty($this->TLien)) {
+            // At least one 'Dossier'
+            foreach($this->TLien as $dossier_affaire) $dossier_affaire->dossier->delete($db);
+        }
+        // Delete affaire
 		parent::delete($db);
-		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_affaire', $this->getId(), 'fk_fin_affaire' );
+//		$db->dbdelete(MAIN_DB_PREFIX.'fin_dossier_affaire', $this->getId(), 'fk_fin_affaire' );
 	}
 	function save(&$db) {
 		global $conf, $user;
