@@ -169,7 +169,7 @@ function _liste(&$ATMdb, &$affaire) {
 	$errone = GETPOST('errone');
 	
 	$r = new TSSRenderControler($affaire);
-	$sql="SELECT a.rowid as 'ID', a.reference, e.rowid as entity_id, a.montant as 'Montant', a.fk_soc, s.nom
+	$sql="SELECT a.rowid as 'ID', a.reference, e.label as entity_label, a.montant as 'Montant', a.fk_soc, s.nom
 	, a.nature_financement, a.type_financement, a.contrat, a.date_affaire
 		FROM @table@ a LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid)
 		LEFT JOIN ".MAIN_DB_PREFIX."entity e ON (a.entity = e.rowid)
@@ -178,7 +178,7 @@ function _liste(&$ATMdb, &$affaire) {
 	
 	if($errone){
 		$sql="SELECT a.rowid as 'ID', a.reference,
-                          ROUND(ABS(SUM(df.montant) - SUM(a.montant)), 2) as 'Ecart', e.rowid as entity_id, a.montant as 'Montant Affaire', SUM(df.montant) as 'Montant Financé', df.fk_fin_dossier, a.fk_soc, s.nom , a.nature_financement, a.type_financement, a.contrat, a.date_affaire 
+                          ROUND(ABS(SUM(df.montant) - SUM(a.montant)), 2) as 'Ecart', e.label as entity_label, a.montant as 'Montant Affaire', SUM(df.montant) as 'Montant Financé', df.fk_fin_dossier, a.fk_soc, s.nom , a.nature_financement, a.type_financement, a.contrat, a.date_affaire 
 			  FROM llx_fin_affaire a 
 			  	LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid) 
 			  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid) 
@@ -269,7 +269,7 @@ function _liste(&$ATMdb, &$affaire) {
 		,'title'=>array(
 			'reference'=>'Numéro d\'affaire'
 			,'nom'=>'Société'
-			,'entity_id'=>'Partenaire'
+			,'entity_label'=>'Partenaire'
 			,'nature_financement'=>'Nature'
 			,'type_financement'=> 'Type'
 			,'contrat'=> 'Type de contrat'
@@ -280,20 +280,20 @@ function _liste(&$ATMdb, &$affaire) {
 			'reference'=>true
 			,'nom'=>array('recherche'=>true,'table'=>'s')
 			,'nature_financement'=>$affaire->TNatureFinancement
-			,'entity_id'=>array('recherche'=>$TEntityName, 'table'=>'e', 'field'=>'rowid')
+			,'entity_label'=>array('recherche'=>$TEntityName, 'table'=>'e', 'field'=>'rowid')
 			,'type_financement'=>$affaire->TTypeFinancement
 			,'contrat'=>$affaire->TContrat
 			,'date_affaire'=>'calendar'
 		),'operator'=>array(
-			'entity_id' => '='
+			'entity_label' => '='
 		)
 		,'eval'=>array(
-			'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
+			
 		)
 		,'position'=>array(
 			'text-align'=>array(
 				'reference'=>'center'
-				,'entity_id'=>'center'
+				,'entity_label'=>'center'
 				,'nature_financement'=>'center'
 				,'type_financement'=>'center'
 				,'nom'=>'center'
@@ -446,10 +446,11 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 	
 	$entity = empty($affaire->entity) ? getEntity('fin_dossier') : $affaire->entity;
 	
+	$TEntityName = TFinancementTools::build_array_entities();
 	if(TFinancementTools::user_courant_est_admin_financement() && empty($conf->global->FINANCEMENT_DISABLE_SELECT_ENTITY)){
-		$entity_field = $form->combo('', 'entity', TFinancementTools::build_array_entities(), $entity);
+		$entity_field = $form->combo('', 'entity', $TEntityName, $entity);
 	} else {
-		$entity_field = TFinancementTools::get_entity_translation($entity).$form->hidden('entity', $entity);
+		$entity_field = $TEntityName[$entity].$form->hidden('entity', $entity);
 	}
 	
 	print $TBS->render('./tpl/affaire.tpl.php'

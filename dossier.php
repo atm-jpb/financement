@@ -392,7 +392,7 @@ function _liste(&$PDOdb, &$dossier) {
 	}
 	
 	$r = new TSSRenderControler($dossier);
-	$sql ="SELECT d.rowid as 'ID', fc.reference as refDosCli, e.rowid as entity_id, fl.reference as refDosLea, a.rowid as 'ID affaire', a.reference as 'Affaire', ";
+	$sql ="SELECT d.rowid as 'ID', fc.reference as refDosCli, e.label as entity_label, fl.reference as refDosLea, a.rowid as 'ID affaire', a.reference as 'Affaire', ";
 	$sql.="a.nature_financement, a.fk_soc, c.nom as nomCli, l.nom as nomLea, ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.duree ELSE fl.duree END as 'duree', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.montant ELSE fl.montant END as 'Montant', ";
@@ -475,7 +475,7 @@ function _liste(&$PDOdb, &$dossier) {
 			,'dureeLeaser'=>'Durée leaser'
 			,'montantLeaser'=>'Montant leaser'
 			,'echeanceLeaser'=>'Echéance leaser'
-			,'entity_id'=>'Partenaire'
+			,'entity_label'=>'Partenaire'
 			,'nomCli'=>'Client'
 			,'nomLea'=>'Leaser'
 			,'nature_financement'=>'Nature'
@@ -486,22 +486,21 @@ function _liste(&$PDOdb, &$dossier) {
 		,'search'=>array(
 			'refDosCli'=>array('recherche'=>true, 'table'=>'fc', 'field'=>'reference')
 			,'refDosLea'=>array('recherche'=>true, 'table'=>'fl', 'field'=>'reference')
-			,'entity_id'=>array('recherche'=>$TEntityName, 'table'=>'e', 'field'=>'rowid')
+			,'entity_label'=>array('recherche'=>$TEntityName, 'table'=>'e', 'field'=>'rowid')
 			,'nomCli'=>array('recherche'=>true, 'table'=>'c', 'field'=>'nom')
 			,'nomLea'=>array('recherche'=>true, 'table'=>'l', 'field'=>'nom')
 			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
 			//,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
 		),'operator'=>array(
-			'entity_id' => '='
+			'entity_label' => '='
 		)
 		,'eval'=>array(
 			'fact_materiel'=>'_get_facture_mat(@ID affaire@);'
-			,'entity_id' => 'TFinancementTools::get_entity_translation(@entity_id@)'
 		)
 		,'position'=>array(
 			'text-align'=>array(
 				'refDosCli'=>'center'
-				,'entity_id'=>'center'
+				,'entity_label'=>'center'
 				,'refDosLea'=>'center'
 				,'Affaire'=>'center'
 				,'nature_financement'=>'center'
@@ -965,10 +964,11 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	
 	$entity = empty($dossier->entity) ? getEntity('fin_dossier') : $dossier->entity;
 	
+	$TEntityName = TFinancementTools::build_array_entities();
 	if(TFinancementTools::user_courant_est_admin_financement() && empty($conf->global->FINANCEMENT_DISABLE_SELECT_ENTITY)){
-		$entity_field = $form->combo('', 'entity', TFinancementTools::build_array_entities(), $entity);
+		$entity_field = $form->combo('', 'entity', $TEntityName, $entity);
 	} else {
-		$entity_field = TFinancementTools::get_entity_translation($entity).$form->hidden('entity', $entity);
+		$entity_field = $TEntityName[$entity].$form->hidden('entity', $entity);
 	}
 
 
