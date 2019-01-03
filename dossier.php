@@ -211,7 +211,6 @@
 				
 				dol_include_once('/financement/class/dossier_transfert_xml.class.php');
                 $dtx = TFinDossierTransfertXML::create($fk_leaser, true);
-//				$dtx = new TFinDossierTransfertXML(GETPOST('fk_leaser'), true);
 				$filePath = $dtx->transfertXML($PDOdb);
 				
 				?>
@@ -225,7 +224,7 @@
 			case 'setnottransfer':
 				
 				dol_include_once('/financement/class/dossier_transfert_xml.class.php');
-				$dtx = new TFinDossierTransfertXML(GETPOST('fk_leaser'));
+				$dtx = TFinDossierTransfertXML::create($fk_leaser, true);
 				$dtx->resetAllDossiersInXML($PDOdb);
 				
 				?>

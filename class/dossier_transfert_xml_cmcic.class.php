@@ -98,7 +98,8 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 
 		$chaine = $xml->saveXML();
 
-		$name2 = 'test';
+		if(BASE_TEST) $name2 = 'UATFRCPROCMCICADLC_'.date('Ymd');
+        else $name2 = 'FRCPROCMCICADLC_'.date('Ymd');
 		dol_mkdir($this->fileFullPath);
 		file_put_contents($this->fileFullPath.$name2.'.xml', $chaine);
 
