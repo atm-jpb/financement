@@ -206,7 +206,7 @@ function repondreDemande($authentication, $TReponse)
 								$coeff = $TReponse['financement']['coeff_dossier'];
 								
 								$action = _getAction($fuser, $statut); // return accepter || refuser || attente
-								if ($action != 'attente')
+								if ($action != 'attente' && $simulation->accord != 'OK')
 								{
 									$simulationSuivi->doAction($PDOdb, $simulation, $action);
 								}

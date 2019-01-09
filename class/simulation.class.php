@@ -2879,10 +2879,10 @@ class TSimulationSuivi extends TObjetStd {
 			switch ($this->statut) {
 				case 'OK':
 					$this->coeff_leaser = ($suiviDemande->financement->montantLoyerPrincial / $suiviDemande->financement->montantFinance) * 100;
-					$this->doActionAccepter($PDOdb,$simulation);
+					if($simulation->accord != 'OK') $this->doActionAccepter($PDOdb,$simulation);
 					break;
 				case 'KO':
-					$this->doActionRefuser($PDOdb,$simulation);
+					if($simulation->accord != 'OK') $this->doActionRefuser($PDOdb,$simulation);
 					break;
 				default:
 					$this->save($PDOdb);
