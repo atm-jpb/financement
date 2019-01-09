@@ -1212,7 +1212,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 	
 	//pre($simulation,true);
 	
-	global $langs,$conf, $db, $bc;
+	global $langs,$conf, $db, $bc, $user;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 
 	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', e.rowid as 'entityDossier', a.contrat as 'Type contrat'";
