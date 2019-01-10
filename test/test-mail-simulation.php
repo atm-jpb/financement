@@ -15,7 +15,7 @@ $simulation=new TSimulation;
 
 
 	$ATMdb=new TPDOdb;
-	$simulation->load($ATMdb, $db, 12); // chargement test
+	$simulation->load($ATMdb, 12); // chargement test
 	
 	$simulation->send_mail_vendeur(false, 'd.cottier@cpro.fr');
 exit;	

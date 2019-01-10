@@ -20,7 +20,7 @@ $i = $j = 0;
 $fileContent = '';
 while($PDOdb->Get_line()) {
 	$id_simu = $PDOdb->Get_field('rowid');
-	$simu->load($PDOdb2, $db, $id_simu, false);
+	$simu->load($PDOdb2, $id_simu, false);
 	if(!empty($simu->dossiers_rachetes)
 		|| !empty($simu->dossiers_rachetes_p1)
 		|| !empty($simu->dossiers_rachetes_nr)

@@ -23,7 +23,7 @@ print "Début du calcul " . date("d-m-Y H:i:s")."\r";
 while($obj = $db->fetch_object($res)){
     
     $simulation = new TSimulation();
-    $simulation->load($ATMdb, $db, $obj->rowid);
+    $simulation->load($ATMdb, $obj->rowid);
     print "Calcul simulation n°".$obj->rowid;
     $simulation->get_attente($ATMdb);
     print " terminé \r";
