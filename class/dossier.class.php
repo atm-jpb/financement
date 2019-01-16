@@ -2594,8 +2594,8 @@ class TFin_financement extends TObjetStd {
 		return -$vpm;
 	}
 	
-	function valeur_actuelle($duree=0) {
-		if($duree==0) $duree = $this->duree_restante;
+	function valeur_actuelle($duree=-1) {
+		if($duree==-1) $duree = $this->duree_restante;
 		
 		//Cas spécifique Leaser = LOCAM
 		if($this->type == "LEASER" && $this->is_locam){
