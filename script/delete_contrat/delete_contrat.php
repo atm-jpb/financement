@@ -56,10 +56,8 @@ foreach($TData as $refContrat) {
 
         $affaire = new TFin_affaire;
         $affaire->load($PDOdb, $obj->rowid);
-//        var_dump($affaire->TLien[0]->dossier);exit;
 
-        // TODO: Modifier le comportement de la fonction delete, pour delete correctement les liens...
-//        $affaire->delete($PDOdb);
+        $affaire->delete($PDOdb);
     }
     else {
         if($debug) {
