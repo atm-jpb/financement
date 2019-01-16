@@ -12,8 +12,8 @@ dol_include_once('/user/class/user.class.php');
 dol_include_once('/financement/class/simulation.class.php');
 
 $code_artis = GETPOST('code_artis', 'alpha');
-$fk_simu = GETPOST('id', 'int');
-$fk_projet = GETPOST('fk_projet', 'int');
+$fk_simu = GETPOST('fk_simu', 'int');
+$fk_projet = GETPOST('id', 'int');
 $duree = GETPOST('duree');
 $budget = GETPOST('budget');
 $loyer = GETPOST('loyer');
