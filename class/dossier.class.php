@@ -877,6 +877,12 @@ class TFin_dossier extends TObjetStd {
 			
 			// Capé LRD
 			if($solde > $LRD && $capeLRD) return $LRD;
+
+            // Mini VR
+            if($solde < $this->financementLeaser->reste) {
+                return $this->financementLeaser->reste;
+            }
+
 		}
 
 		return $solde;
