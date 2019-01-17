@@ -662,7 +662,7 @@ function _liste(&$ATMdb, &$simulation) {
 		$THide[] = 'Client';
 	}
 	
-	$sql.= ' AND s.entity IN('.getEntity('fin_simulation', TFinancementTools::user_courant_est_admin_financement()).')';
+	$sql.= ' AND s.entity IN('.getEntity('fin_simulation', true).')';
 	$sql.= ' GROUP BY s.rowid';
 	
 	if(!$user->rights->financement->allsimul->suivi_leaser){
@@ -1229,7 +1229,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire_commercial ac ON ac.fk_fin_affaire = a.rowid";
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
 	//$sql.= " WHERE a.entity = ".$conf->entity;
-	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')';
+	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', true).')';
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
 	$sql.= " AND (a.fk_soc = ".$simulation->fk_soc;
 	if(!empty($simulation->societe->idprof1) && $search_by_siren) {

@@ -216,7 +216,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	$sqlwhere = " AND d.nature_financement = 'INTERNE'";
 	$sqlwhere.= " AND d.montant_solde = 0";
 	$sqlwhere.= " AND d.date_solde < '1970-00-00 00:00:00' ";
-	//$sqlwhere.= " AND d.entity IN (".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
+	//$sqlwhere.= " AND d.entity IN (".getEntity('fin_dossier', true).")";
 	$sqlwhere.= " AND d.entity = ".$conf->entity." ";
 	$sqlwhere.= " AND d.reference NOT LIKE '%old%' ";
 	$sqlwhere.= " AND d.reference NOT LIKE '%adj%' ";
