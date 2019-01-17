@@ -279,5 +279,6 @@
 <script>
 	$(document).ready(function() {
 		$("#date_demarrage" ).datepicker( "option", "maxDate", "+6m");
+		$("#date_demarrage" ).datepicker( "option", "minDate", "-1m");
 	});
 </script>
