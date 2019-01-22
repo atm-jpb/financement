@@ -1,6 +1,10 @@
 <?php
 
 class TSimulation extends TObjetStd {
+	
+	/** @var TSimulationSuivi[] $TSimulationSuivi */
+	public $TSimulationSuivi;
+	
 	function __construct($setChild=false) {
 		global $langs;
 		
@@ -2450,6 +2454,7 @@ class TSimulationSuivi extends TObjetStd {
 			//LIXXBAIL, CMCIC
 			case 'LIXXBAIL':
 			case 'CMCIC':
+			case 'GRENKE':
 				$res=$this->_createDemandeServiceFinancement();
 				break;
 			default:

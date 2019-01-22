@@ -26,17 +26,26 @@ dol_include_once('/financement/class/dossier_integrale.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
 
+// TODO remove in futur the next 6 includes will be move in webservice.lixxbail.class.php
 dol_include_once('/financement/class/xmlseclibs/src/XMLSecEnc.php');
 dol_include_once('/financement/class/xmlseclibs/src/XMLSecurityDSig.php');
 dol_include_once('/financement/class/xmlseclibs/src/XMLSecurityKey.php');
-
-
 dol_include_once('/financement/class/wse-php/WSASoap.php');
 dol_include_once('/financement/class/wse-php/WSSESoap.php');
 dol_include_once('/financement/class/wse-php/WSSESoapServer.php');
 
+
+dol_include_once('/financement/class/webservice/webservice.class.php');
+//dol_include_once('/financement/class/webservice/webservice.lixxbail.class.php');
+//dol_include_once('/financement/class/webservice/webservice.cmcic.class.php');
+dol_include_once('/financement/class/webservice/webservice.grenke.class.php');
+
+
 class ServiceFinancement {
 	
+	/**
+	 * TODO in futur remove all attributes
+	 */
 	public $simulation;
 	public $simulationSuivi;
 	
@@ -44,7 +53,7 @@ class ServiceFinancement {
 	
 	public $TMsg = array();
 	public $TError = array();
-	public $message_soap_returned = '';
+	public $message_soap_returned = ''; // TODO in futur keep this one
 	
 	public $soapClient;
 	public $result;
@@ -65,6 +74,9 @@ class ServiceFinancement {
 	 */
 	public function __construct(&$simulation, &$simulationSuivi)
 	{
+		/**
+		 * TODO rewrite content to init attribute as $ws as instance of WebServiceLixxbail or WebServiceCmcic or WebServiceGrenke
+		 */
 		global $conf;
 		
 		$this->simulation = &$simulation;
@@ -78,6 +90,9 @@ class ServiceFinancement {
 		$this->production = !empty($conf->global->FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD) ? true : false;
 	}
 	
+	/**
+	 * TODO remove in futur and use the webservice.class.php instead
+	 */
 	private function printHeader()
 	{
 		header("Content-type: text/html; charset=utf8");
@@ -123,6 +138,13 @@ class ServiceFinancement {
 		{
 			return $this->callCMCIC();
 		}
+		else if ($this->leaser->array_options['options_edi_leaser'] == 'GRENKE')
+		{
+//			return $this->callGrenke();
+			$ws = new WebServiceGrenke($this->simulation, $this->simulationSuivi, $this->debug);
+			return $ws->run();
+			
+		}
 		
 		if ($this->debug) var_dump('DEBUG :: Function call(): # aucun traitement prévu');
 		
@@ -130,6 +152,7 @@ class ServiceFinancement {
 	}
 	
 	/**
+	 * TODO remove in futur and use the webservice.cmcic.class.php instead
 	 * Function callCMCIC
 	 */
 	private function callCMCIC()
@@ -192,6 +215,7 @@ class ServiceFinancement {
 	
 	
 	/**
+	 * TODO remove in futur and use the webservice.cmcic.class.php instead
 	 * Return only body
 	 */
 	public function getXmlForCmCic()
@@ -279,6 +303,7 @@ class ServiceFinancement {
 	
 	
 	/**
+	 * TODO remove in futur and use the webservice.lixxbail.class.php instead
 	 * Function callLixxbail
 	 */
 	private function callLixxbail()
@@ -352,6 +377,8 @@ class ServiceFinancement {
 	
 	
 	/**
+	 * TODO remove in futur and use the webservice.cmcic.class.php instead
+	 * 
 	 * Renvoi l'identifiant de l'apporteur d'affaire (extrafield "entity")
 	 * @global type $db
 	 * @return type
@@ -366,6 +393,8 @@ class ServiceFinancement {
 		return $dao->array_options['options_cmcic_apporteur_id'];
 	}
 	/**
+	 * TODO remove in futur and use the webservice.cmcic.class.php instead
+	 * 
 	 * Renvoie l'id de l'apporteur et l'id du protocole (conditionné actuellement à l'entité de la simulation)
 	 */
 	public function getProtocolID()
@@ -380,6 +409,10 @@ class ServiceFinancement {
 		return $id;
 	}
 	
+	/**
+	 * TODO remove in futur and use the webservice.cmcic.class.php instead
+	 * @return type
+	 */
 	public function getMarqmatAndTypmat()
 	{
 		$TMarque = array(
@@ -414,6 +447,9 @@ class ServiceFinancement {
 		return array($m, $t);
 	}
 	
+	/**
+	 * TODO remove in futur and use the webservice.lixxbail.class.php instead
+	 */
 	private function getXmlForLixxbail()
 	{
 		global $db;
@@ -515,6 +551,14 @@ class ServiceFinancement {
 		return $xml;
 	}
 	
+	/**
+	 * TODO remove in futur and use the webservice.cmcic.class.php instead
+	 * TODO remove in futur and use the webservice.lixxbail.class.php instead
+	 * 
+	 * @global type $langs
+	 * @param type $opt_mode_reglement
+	 * @return boolean|string
+	 */
 	public function getIdModeRglt($opt_mode_reglement)
 	{
 		global $langs;
@@ -548,6 +592,9 @@ class ServiceFinancement {
 		return $TId[$opt_mode_reglement];
 	}
 	
+	/**
+	 * TODO remove in futur and use the webservice.lixxbail.class.php instead
+	 */
 	public function getCodePeriodiciteFinancement($opt_periodicite)
 	{
 		global $langs;
@@ -582,7 +629,10 @@ class ServiceFinancement {
 		return $TId[$opt_periodicite];
 	}
 	
-	/** Cal&f
+	/** 
+	 * TODO remove in futur and use the webservice.lixxbail.class.php instead
+	 * 
+	 * Cal&f
 	 *	CAT_ID	LIB_CAT
 	 *	2		INFORMATIQUE
 	 *	U		BUREAUTIQUE
@@ -594,7 +644,10 @@ class ServiceFinancement {
 		return 'U';
 	}
 
-	/** Cal&f
+	/** 
+	 * TODO remove in futur and use the webservice.lixxbail.class.php instead
+	 * 
+	 * Cal&f
 	 * NAT_ID	LIB_NAT
 	 * 209B	Micro ordinateur
 	 * 215B	Serveur vocal
@@ -640,6 +693,9 @@ class ServiceFinancement {
 		return '';
 	}
 	
+	/**
+	 * TODO remove in futur and use the webservice.lixxbail.class.php instead
+	 */
 	private function getNatureLabel($fk_nature_bien)
 	{
 		global $db;
@@ -656,7 +712,10 @@ class ServiceFinancement {
 		return '';
 	}
 	
-	/** Cal&f
+	/** 
+	 * TODO remove in futur and use the webservice.lixxbail.class.php instead
+	 * 
+	 * Cal&f
 	 * MRQ_ID	LIB_MRQ
 	 * Z999	GENERIQUE
 	 * T046	TOSHIBA
@@ -696,6 +755,9 @@ class ServiceFinancement {
 		return '';
 	}
 	
+	/**
+	 * TODO remove in futur and use the webservice.lixxbail.class.php instead
+	 */
 	private function getMarqueLabel($fk_marque_materiel)
 	{
 		global $db;
@@ -713,6 +775,8 @@ class ServiceFinancement {
 	}
 
 	/**
+	 * TODO remove in futur and use the webservice.lixxbail.class.php instead
+	 * 
 	 * TODO à construire
 	 * Code 	Libellé
 	 * produit	produit
@@ -726,6 +790,8 @@ class ServiceFinancement {
 	}
 	
 	/**
+	 * TODO remove in futur and use the webservice.lixxbail.class.php instead
+	 * 
 	 * TODO à combiner avec $this->getCodeProduit()
 	 * Type		Libellé type produit
 	 * produit
@@ -744,7 +810,9 @@ class ServiceFinancement {
 	}
 
 	
-	
+	/**
+	 * TODO remove in futur and use the webservice.class.php instead
+	 */
 	private function printDebugSoapCall($response)
 	{
 		// on affiche la requete et la reponse
@@ -779,6 +847,9 @@ class ServiceFinancement {
 		exit;
 	}
 	
+	/**
+	 * TODO remove in futur and use the webservice.class.php instead
+	 */
 	private function printTrace($e)
 	{
 		echo '<b>Caught exception:</b> ',  $e->getMessage(), "\n"; 
@@ -807,6 +878,8 @@ class ServiceFinancement {
 
 
 /**
+ * TODO remove in futur and use the webservice.lixxbail.class.php instead
+ * 
  * Becareful, this class is use only for callLixxbail
  */
 class MySoapClient extends SoapClient
@@ -852,6 +925,7 @@ class MySoapClient extends SoapClient
 }
 
 /**
+ * TODO remove in futur and use the webservice.cmcic.class.php instead
  * Soap class for CMCIC
  */
 class MySoapCmCic extends SoapClient
