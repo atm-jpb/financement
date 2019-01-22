@@ -142,8 +142,9 @@ class ServiceFinancement {
 		{
 //			return $this->callGrenke();
 			$ws = new WebServiceGrenke($this->simulation, $this->simulationSuivi, $this->debug);
-			return $ws->run();
-			
+			$res = $ws->run();
+			$this->message_soap_returned = $ws->message_soap_returned;
+			return $res;
 		}
 		
 		if ($this->debug) var_dump('DEBUG :: Function call(): # aucun traitement prévu');

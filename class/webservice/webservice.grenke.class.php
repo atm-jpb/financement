@@ -7,15 +7,160 @@ class WebServiceGrenke extends WebService
 		global $conf,$langs;
 		
 		// Production ou Test
-		if ($this->production) $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CMCIC_PROD) ? $conf->global->FINANCEMENT_WSDL_CMCIC_PROD : 'https://www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl';
-		else $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_CMCIC_RECETTE) ? $conf->global->FINANCEMENT_WSDL_CMCIC_RECETTE : 'https://uat-www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl';
+		if ($this->production) $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_GRENKE_PROD) ? $conf->global->FINANCEMENT_WSDL_GRENKE_PROD : '';
+		else $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_GRENKE_RECETTE) ? $conf->global->FINANCEMENT_WSDL_GRENKE_RECETTE : '';
 		
 		if ($this->debug) var_dump('DEBUG :: Function callCMCIC(): Production = '.json_encode($this->production).' ; WSDL = '.$this->wsdl.' ; endpoint = '.$this->endpoint);
 		
+		$options = array(
+			'exceptions'=>0
+			,'location' => $this->wsdl
+			,'trace' => 1
+		  	,'soap_version' => SOAP_1_1
+		  	,'connection_timeout' => 20
+		  	,'cache_wsdl' => WSDL_CACHE_NONE
+//		  	,'user_agent' => 'MySoapCmCic'
+//		  	,'use' => SOAP_LITERAL
+			,'keep_alive' => false
+		);
+		
+		try {
+//			$this->soapClient = new MySoapCmCic($this->wsdl, $options);
+			$this->soapClient = new SoapClient($this->wsdl, $options);
+//			$this->soapClient->ServiceFinancement = $this;
+			
+			dol_syslog("WEBSERVICE SENDING GRENKE : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_GRENKE');
+			
+			
+//			$string_xml_body = $this->getXml();
+//			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, null, null, null);
+			/** @var leaseRequestStatus $response */
+//			$response = $this->soapClient->addLeaseRequestWithLogin($soap_var_body);
+			$response = $this->soapClient->addLeaseRequestWithLogin($this->getXml());
+  
+			// TODO : issue de la doc => Dans l’éventualité où l’utilisateur est invalide, un message d’erreur est envoyé au partenaire
+			if ($this->debug)
+			{
+				$this->printDebugSoapCall($response);
+			}
+
+			$this->TMsg[] = $langs->trans('webservice_financement_msg_scoring_send', $this->leaser->name);
+			
+			// TODO voir comment est l'objet de retour...
+			if (!empty($response->ResponseDemFin))
+			{
+				$this->message_soap_returned = $langs->trans($response->ResponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_MSGRET);
+				return true;
+			}
+			else
+			{
+				$this->message_soap_returned = $langs->trans('ServiceFinancementWrongReturn');
+				return false;
+			}
+			
+		} catch (SoapFault $e) {
+			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_GRENKE');
+			$this->printTrace($e); // exit fait dans la méthode
+		}
 	}
 	
 	public function getXml()
 	{
+		$f = new TFin_financement();
+		$f->periodicite = $this->simulation->opt_periodicite;
+		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
 		
+		$res = array(
+			'user' => array(
+				'partner' => ''
+				,'login' => ''
+				,'password' => ''
+			)
+			,'leaseRequest' => array(
+				'calculation' => array(
+					// [(Acquisition value–initial payment)*leasing factor/100]*[1+(monthly extra charge/100)]=monthly instalment
+					'instalment' => 0.00 // double (Monthly leasing instalment you have calculated based on the provided conditions lists.)
+					,'contractDuration' => $dureeInMonth // short (Leasing period in terms of months)
+				)
+				,'proposal' => array(
+					'lessee'=> array(
+						'person' => array(
+							'address' => array(
+								'street' => substr($this->simulation->societe->address, 0, 50) // max 50 char
+								,'complement' => substr($this->simulation->societe->address, 51) // max 50 char
+								,'country' => (!empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR') // country code
+								,'postCode' => $this->simulation->societe->zip // max 5 char
+								,'city' => $this->simulation->societe->town // max 50 char
+								,'name' => ''
+							)
+							,'communication' => array(
+								'phone' => $this->simulation->societe->phone // max 50 char
+								,'phone2' => '' // max 50 char
+								,'email' => $this->simulation->societe->email // max 50 char
+								,'fax' => $this->simulation->societe->fax // max 50 char
+							)
+							,'identifications' => array(
+								'type' => '' // $mysoc ?
+								,'id' => '' // $mysoc ?
+							)
+							,'creditAgencyIdentifications' => array() // ???
+						)
+					)
+					,'articles' => array(
+						0 => array(
+							'price' => $this->simulation->montant // double
+							,'type' => '1'
+							,'description' => '' // max 50 char
+							,'producer' => '' // max 50 char
+						)
+					)
+				)
+				,'initialPayment' => 0.00 // double
+				,'commission' => 0.00// double
+				,'residualValue' => 0.00// double
+				,'estimatedDeliveryDate' => ''// Date (format non précisé)
+				,'paymentInfo' => array(
+					'accountInfo' => array(
+						'bankCode' => '' // max 10 char
+						,'bankName' => '' // max 50 char
+						,'accountHolder:' => '' // max 50 char
+						,'accountNumber' => '' // max 40 char
+						,'iban' => '' // max 34 char
+						,'bic' => '' // max 11 char
+					)
+					,'directDebit' => true // boolean
+					,'paymentInterval' => 'monthly' // or 'quarterly' (short = default:quarterly = 3)
+					,'invoiceRecipient'=> array(
+						'address' => array(
+							'street' => '' // max 50 char
+							,'complement' => '' // max 50 char
+							,'country' => ''
+							,'postCode' => '' // max 5 char
+							,'city' => '' // max 50 char
+							,'name' => ''
+						)
+						,'communication' => array(
+							'phone' => '' // max 50 char
+							,'phone2' => '' // max 50 char
+							,'email' => '' // max 50 char
+							,'fax' => '' // max 50 char
+						)
+						,'identifications:' => array(
+							'type' => ''
+							,'id' => ''
+						)
+						,'creditAgencyIdentifications' => array() // ???
+					)
+				)
+				,'currency' => 'EUR'
+				,'tax' => 0.00
+				,'costs' => array(
+					'description' => '' // max 50 char
+					,'amount' => 0.00
+				)
+			)
+		);
+		
+		return $res;
 	}
 }
