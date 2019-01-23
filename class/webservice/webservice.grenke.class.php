@@ -89,14 +89,14 @@ class WebServiceGrenke extends WebService
 		
 		$res = array(
 			'user' => array(
-				'partner' => $mysoc->idprof1
-				,'login' => ''
+				'partner' => '257-00049'
+				,'login' => 'financement@cpro.fr'
 				,'password' => ''
 			)
 			,'leaseRequest' => array(
 				'calculation' => array(
 					// [(Acquisition value–initial payment)*leasing factor/100]*[1+(monthly extra charge/100)]=monthly instalment
-					'instalment' => $this->simulation->echeance // double (Monthly leasing instalment you have calculated based on the provided conditions lists.)
+					'installment' => $this->simulation->echeance // double (Monthly leasing instalment you have calculated based on the provided conditions lists.)
 					,'contractDuration' => $dureeInMonth // short (Leasing period in terms of months)
 				)
 				,'proposal' => array(
@@ -104,7 +104,7 @@ class WebServiceGrenke extends WebService
 						'person' => array(
 							'address' => array(
 								'street' => substr($this->simulation->societe->address, 0, 50) // max 50 char
-								,'complement' => substr($this->simulation->societe->address, 51) // max 50 char
+								,'complement' => substr($this->simulation->societe->address, 51, 50) // max 50 char
 								,'country' => (!empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR') // country code
 								,'postCode' => $this->simulation->societe->zip // max 5 char
 								,'city' => $this->simulation->societe->town // max 50 char
@@ -117,8 +117,8 @@ class WebServiceGrenke extends WebService
 								,'fax' => $this->simulation->societe->fax // max 50 char
 							)
 							,'identifications' => array(
-								'type' => '' // $mysoc ?
-								,'id' => '' // $mysoc ?
+								'type' => '' // SIREN ?
+								,'id' => $this->simulation->societe->siren // $mysoc ?
 							)
 							,'creditAgencyIdentifications' => array() // ???
 						)
@@ -171,6 +171,7 @@ class WebServiceGrenke extends WebService
 				)
 				,'currency' => 'EUR'
 				,'tax' => 0.00
+				,'maintenanceCost' => 0.00
 				,'costs' => array(
 					'description' => '' // max 50 char
 					,'amount' => $this->simulation->cout_financement
