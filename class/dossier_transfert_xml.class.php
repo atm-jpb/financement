@@ -17,9 +17,7 @@ abstract class TFinDossierTransfertXML extends TObjetStd {
 
 		// Définition du chemin du fichier
 		$this->filePath.= 'XML/' . $this->leaser . '/';
-		$this->fileFullPath = DOL_DATA_ROOT . '/financement/';
-		if($conf->entity > 1) $this->filePath.= $conf->entity . '/';
-		$this->fileFullPath.= $this->filePath;
+		$this->fileFullPath = $conf->financement->multidir_output[$conf->entity].'/'.$this->filePath;
 	}
 
     /**
