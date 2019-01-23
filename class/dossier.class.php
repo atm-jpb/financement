@@ -833,8 +833,14 @@ class TFin_dossier extends TObjetStd {
 				else return $solde;
 			}
 			
+			
+			// Mini VR
+			if($solde < $this->financementLeaser->reste) {
+				$solde = $this->financementLeaser->reste;
+			}
+			
 			// Capé LRD
-			if($solde > $LRD_Leaser && $capeLRD) return $LRD_Leaser;
+			if($solde > $LRD_Leaser && $capeLRD) $solde = $LRD_Leaser;
 		}
 		else // INTERNE
 		{
@@ -876,13 +882,12 @@ class TFin_dossier extends TObjetStd {
 			}
 			
 			// Capé LRD
-			if($solde > $LRD && $capeLRD) return $LRD;
+			if($solde > $LRD && $capeLRD) $solde = $LRD;
 
-            // Mini VR
-            if($solde < $this->financementLeaser->reste) {
-                return $this->financementLeaser->reste;
-            }
-
+			// Mini VR
+			if($solde < $this->financement->reste) {
+				$solde = $this->financement->reste;
+			}
 		}
 
 		return $solde;
@@ -926,8 +931,13 @@ class TFin_dossier extends TObjetStd {
 				else return $LRD_Leaser;
 			}
 			
+			// Mini VR
+			if($solde < $this->financementLeaser->reste) {
+				$solde = $this->financementLeaser->reste;
+			}
+			
 			// Capé LRD
-			if($solde > $LRD_Leaser && $capeLRD) return $LRD_Leaser;
+			if($solde > $LRD_Leaser && $capeLRD) $solde = $LRD_Leaser;
 		}
 		else // INTERNE 
 		{
@@ -967,8 +977,13 @@ class TFin_dossier extends TObjetStd {
 				}
 			}
 			
+			// Mini VR
+			if($solde < $this->financement->reste) {
+				$solde = $this->financement->reste;
+			}
+			
 			// Capé LRD
-			if($solde > $LRD && $capeLRD) return $LRD;
+			if($solde > $LRD && $capeLRD) $solde = $LRD;
 		}
 			
 		return $solde;
