@@ -36,8 +36,12 @@ dol_include_once('/financement/class/wse-php/WSSESoapServer.php');
 
 
 dol_include_once('/financement/class/webservice/webservice.class.php');
-//dol_include_once('/financement/class/webservice/webservice.lixxbail.class.php');
-//dol_include_once('/financement/class/webservice/webservice.cmcic.class.php');
+define('PH_TOUCH', 0);
+if (PH_TOUCH)
+{
+	dol_include_once('/financement/class/webservice/webservice.lixxbail.class.php');
+	dol_include_once('/financement/class/webservice/webservice.cmcic.class.php');
+}
 dol_include_once('/financement/class/webservice/webservice.grenke.class.php');
 
 
@@ -129,19 +133,31 @@ class ServiceFinancement {
 			return true;
 		}
 		
+		$ws = null;
 		// TODO à revoir, peut être qu'un test sur code client ou mieux encore sur numéro SIRET
 		if ($this->leaser->array_options['options_edi_leaser'] == 'LIXXBAIL')
 		{
-			return $this->callLixxbail();
+			if (PH_TOUCH) {
+				$ws = new WebServiceLixxbail($this->simulation, $this->simulationSuivi, $this->debug);
+			} else {
+				return $this->callLixxbail();
+			}
 		}
 		else if ($this->leaser->array_options['options_edi_leaser'] == 'CMCIC')
 		{
-			return $this->callCMCIC();
+			if (PH_TOUCH) {
+				$ws = new WebServiceCmcic($this->simulation, $this->simulationSuivi, $this->debug);
+			} else {
+				return $this->callCMCIC();
+			}
 		}
 		else if ($this->leaser->array_options['options_edi_leaser'] == 'GRENKE')
 		{
-//			return $this->callGrenke();
 			$ws = new WebServiceGrenke($this->simulation, $this->simulationSuivi, $this->debug);
+		}
+		
+		if ($ws !== null)
+		{
 			$res = $ws->run();
 			$this->message_soap_returned = $ws->message_soap_returned;
 			return $res;
@@ -877,6 +893,8 @@ class ServiceFinancement {
 	
 } // End Class
 
+if (!PH_TOUCH)
+{
 
 /**
  * TODO remove in futur and use the webservice.lixxbail.class.php instead
@@ -966,4 +984,7 @@ class MySoapCmCic extends SoapClient
 		
 		return parent::__doRequest($this->realXML, $location, $saction, $version);
 	}
+}
+
+
 }
