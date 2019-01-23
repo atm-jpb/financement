@@ -1,10 +1,5 @@
 <?php
 
-define('PH_TOUCH', 0);
-
-if (!PH_TOUCH)
-{
-
 /**
  * Class used to call Lixbail Soap service
  * + used to call CM CIC Soap service
@@ -16,7 +11,7 @@ use RobRichards\XMLSecLibs\XMLSecurityKey;
 use RobRichards\WsePhp\WSSESoap;
 //use RobRichards\XMLSecLibs\XMLSecurityKey;
 
-}
+
 // This is to make Dolibarr working with Plesk
 set_include_path($_SERVER['DOCUMENT_ROOT'].'/htdocs');
 
