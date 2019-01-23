@@ -1,4 +1,10 @@
 <?php
+
+define('PH_TOUCH', 0);
+
+if (!PH_TOUCH)
+{
+
 /**
  * Class used to call Lixbail Soap service
  * + used to call CM CIC Soap service
@@ -10,6 +16,7 @@ use RobRichards\XMLSecLibs\XMLSecurityKey;
 use RobRichards\WsePhp\WSSESoap;
 //use RobRichards\XMLSecLibs\XMLSecurityKey;
 
+}
 // This is to make Dolibarr working with Plesk
 set_include_path($_SERVER['DOCUMENT_ROOT'].'/htdocs');
 
@@ -26,6 +33,8 @@ dol_include_once('/financement/class/dossier_integrale.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
 
+if (!PH_TOUCH)
+{
 // TODO remove in futur the next 6 includes will be move in webservice.lixxbail.class.php
 dol_include_once('/financement/class/xmlseclibs/src/XMLSecEnc.php');
 dol_include_once('/financement/class/xmlseclibs/src/XMLSecurityDSig.php');
@@ -33,10 +42,10 @@ dol_include_once('/financement/class/xmlseclibs/src/XMLSecurityKey.php');
 dol_include_once('/financement/class/wse-php/WSASoap.php');
 dol_include_once('/financement/class/wse-php/WSSESoap.php');
 dol_include_once('/financement/class/wse-php/WSSESoapServer.php');
-
+}
 
 dol_include_once('/financement/class/webservice/webservice.class.php');
-define('PH_TOUCH', 0);
+
 if (PH_TOUCH)
 {
 	dol_include_once('/financement/class/webservice/webservice.lixxbail.class.php');

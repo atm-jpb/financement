@@ -1,5 +1,9 @@
 <?php
 
+use RobRichards\XMLSecLibs\XMLSecurityDSig;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
+use RobRichards\WsePhp\WSSESoap;
+
 dol_include_once('/financement/class/xmlseclibs/src/XMLSecEnc.php');
 dol_include_once('/financement/class/xmlseclibs/src/XMLSecurityDSig.php');
 dol_include_once('/financement/class/xmlseclibs/src/XMLSecurityKey.php');
