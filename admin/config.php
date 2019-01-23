@@ -719,7 +719,7 @@ print '<td align="right" width="600">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 print '<input type="hidden" name="action" value="set_FINANCEMENT_WSDL_GRENKE_RECETTE">';
-print '<input type="text" name="FINANCEMENT_WSDL_GRENKE_RECETTE" value="'.$conf->global->FINANCEMENT_WSDL_GRENKE_RECETTE.'" size="60" placeholder="https://TODO.wsdl" />';
+print '<input type="text" name="FINANCEMENT_WSDL_GRENKE_RECETTE" value="'.$conf->global->FINANCEMENT_WSDL_GRENKE_RECETTE.'" size="60" placeholder="https://uatleasingapifr.grenke.net/mainservice.asmx?WSDL" />';
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
