@@ -94,16 +94,15 @@ class WebServiceGrenke extends WebService
 				,'password' => ''
 			)
 			,'leaseRequest' => array(
-				
 				'lessee'=> array(
 					'person' => array(
-						'address' => array(
+						'name' => $this->simulation->societe->nom
+						,'address' => array(
 							'street' => substr($this->simulation->societe->address, 0, 50) // max 50 char
 							,'complement' => substr($this->simulation->societe->address, 51, 50) // max 50 char
 							,'country' => (!empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR') // country code
 							,'postCode' => $this->simulation->societe->zip // max 5 char
 							,'city' => $this->simulation->societe->town // max 50 char
-							,'name' => ''
 						)
 						,'communication' => array(
 							'phone' => $this->simulation->societe->phone // max 50 char
@@ -114,7 +113,7 @@ class WebServiceGrenke extends WebService
 						,'identifications' => array(
 							'Identification' => array(
 								'type' => '' // SIREN ?
-								,'id' => $this->simulation->societe->siren // $mysoc ?
+								,'id' => $this->simulation->societe->idprof1 // $mysoc ?
 							)
 						)
 						,'creditAgencyIdentifications' => array() // ???
@@ -123,9 +122,9 @@ class WebServiceGrenke extends WebService
 				,'articles' => array(
 					'Article' => array(
 						'price' => $this->simulation->montant // double
-						,'type' => '1'
+						,'type' => '1.11.1' // Copying machine
 						,'description' => $this->simulation->type_materiel // max 50 char
-						,'producer' => $this->simulation->marque_materiel // max 50 char
+						,'producer' => 'Canon' // max 50 char
 					)
 				)
 				
@@ -134,12 +133,9 @@ class WebServiceGrenke extends WebService
 					'installment' => $this->simulation->echeance // double (Monthly leasing instalment you have calculated based on the provided conditions lists.)
 					,'contractDuration' => $dureeInMonth // short (Leasing period in terms of months)
 				)
-//				,'proposal' => array(
-//					
-//				)
 				,'initialPayment' => 0.00 // double
 				,'commission' => 0.00// double
-				,'residualValue' => 0.00// double
+				,'residualValue' => $this->simulation->vr // double
 				,'estimatedDeliveryDate' => date('Y-m-d', $this->simulation->date_demarrage) // Date (format non précisé)
 				,'paymentInfo' => array(
 					'accountInfo' => array(
@@ -151,7 +147,7 @@ class WebServiceGrenke extends WebService
 						,'bic' => '' // max 11 char
 					)
 					,'directDebit' => true // boolean
-					,'paymentInterval' => 'monthly' // or 'quarterly' (short = default:quarterly = 3)
+					,'paymentInterval' => $f->getiPeriode() // or 'quarterly' (short = default:quarterly = 3)
 					,'invoiceRecipient'=> array(
 						'address' => array(
 							'street' => substr($mysoc->address, 0, 50) // max 50 char
@@ -159,7 +155,7 @@ class WebServiceGrenke extends WebService
 							,'country' => (!empty($mysoc->country_code) ? $mysoc->country_code : 'FR') // country code
 							,'postCode' => $mysoc->zip // max 5 char
 							,'city' => $mysoc->town // max 50 char
-							,'name' => ''
+							,'name' => $mysoc->name
 						)
 						,'communication' => array(
 							'phone' => $mysoc->phone // max 50 char
@@ -169,8 +165,8 @@ class WebServiceGrenke extends WebService
 						)
 						,'identifications:' => array(
 							'Identification' => array(
-								'type' => ''
-								,'id' => ''
+								'type' => '' // SIREN ?
+								,'id' => $mysoc->idprof1
 							)
 						)
 						,'creditAgencyIdentifications' => array() // ???
@@ -179,12 +175,6 @@ class WebServiceGrenke extends WebService
 				,'currency' => 'EUR'
 				,'tax' => 0.00
 				,'maintenanceCost' => 0.00
-				,'costs' => array(
-					'AdditionalCost' => array(
-						'description' => '' // max 50 char
-						,'amount' => $this->simulation->cout_financement
-					)
-				)
 			)
 		);
 		
