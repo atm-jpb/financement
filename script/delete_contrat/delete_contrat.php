@@ -57,6 +57,12 @@ foreach($TData as $refContrat) {
         $affaire = new TFin_affaire;
         $affaire->load($PDOdb, $obj->rowid);
 
+        // Check if exists into dossier_affaire
+        if(! empty($affaire->TLien)) {
+            // At least one 'Dossier'
+            foreach($affaire->TLien as $dossier_affaire) $dossier_affaire->dossier->delete($PDOdb);
+        }
+
         $affaire->delete($PDOdb);
     }
     else {
