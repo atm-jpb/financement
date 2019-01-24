@@ -15,8 +15,6 @@
 			<td>Résultat</td>
 			<td>N° étude / Accord Leaser</td>
 			<td>Coeff.<br>Leaser</td>
-			<td>Date sélection<br>Leaser</td>
-			<td>Utilisateur</td>
 			<td>Commentaire</td>
 			<td>Enregistrer</td>
 			<td>Doc</td>
@@ -32,8 +30,6 @@
 			<td>[ligne.resultat;strconv=no]</td>
 			<td>[ligne.numero_accord_leaser;strconv=no]</td>
 			<td>[ligne.coeff_leaser;strconv=no; frm=0,0000]</td>
-			<td>[ligne.date_selection]</td>
-			<td>[ligne.utilisateur;strconv=no]</td>
 			<td>[ligne.commentaire;strconv=no]</td>
 			<td>[ligne.action_save;strconv=no]</td>
 			<td>[ligne.doc;strconv=no]</td>
@@ -57,8 +53,6 @@
 			<td>Résultat</td>
 			<td>N° étude / Accord Leaser</td>
 			<td>Coeff.<br>Leaser</td>
-			<td>Date sélection<br>Leaser</td>
-			<td>Utilisateur</td>
 			<td>Commentaire</td>
 		</tr>
 		
@@ -71,8 +65,6 @@
 			<td>[TLigneHistorized.resultat;strconv=no]</td>
 			<td>[TLigneHistorized.numero_accord_leaser;strconv=no]</td>
 			<td>[TLigneHistorized.coeff_leaser;strconv=no; frm=0,0000]</td>
-			<td>[TLigneHistorized.date_selection]</td>
-			<td>[TLigneHistorized.utilisateur;strconv=no]</td>
 			<td>[TLigneHistorized.commentaire;strconv=no]</td>
 		</tr>
 		
