@@ -2005,6 +2005,20 @@ class TSimulation extends TObjetStd {
 		
 		return false;
 	}
+	
+	function hasOtherSimulation(&$PDOdb, $nbDays=30) {
+		$sql = "SELECT rowid ";
+		$sql.= "FROM ".MAIN_DB_PREFIX."fin_simulation s ";
+		$sql.= "WHERE s.fk_soc = ".$this->fk_soc." ";
+		$sql.= "AND s.rowid != ".$this->getId()." ";
+		$sql.= "AND s.date_simul > '".date('Y-m-d',strtotime('-'.$nbDays.' days'))."' ";
+		
+		$TRes = $PDOdb->ExecuteAsArray($sql);
+		
+		if(count($TRes) > 0) return true;
+		
+		return false;
+	}
 
     function set_values_from_cristal($post) {
         $TValuesToModify = array(

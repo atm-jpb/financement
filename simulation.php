@@ -1167,7 +1167,12 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$refus_moins_6mois = $simulation->hasOtherSimulationRefused($ATMdb);
 	if($refus_moins_6mois) {
-		setEventMessage('Ce client a eu une demande de fi refusée il y a moins de 6 mois', 'warnings');
+		setEventMessage('Ce client a eu une demande de fi refusée il y a moins de 6 mois', 'errors');
+	}
+	
+	$simu_moins_30jours = $simulation->hasOtherSimulation($ATMdb);
+	if($simu_moins_30jours) {
+		setEventMessage('Ce client a déjà une demande de fi de moins de 30 jours', 'warnings');
 	}
 	
 	global $mesg, $error;
