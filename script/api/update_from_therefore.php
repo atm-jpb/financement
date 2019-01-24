@@ -126,21 +126,11 @@ function _check_dossier($ref_dossier) {
  * @param int $date    timestamp
  */
 function _get_date($date) {
-    $date_formated = date('Y-m-d', $date);
+    if(in_array(date('dm', $date), array('0101', '0104', '0107', '0110'))) return date('Y-m-d', $date);
 
-    $first_quarter = date('Y-m-d', strtotime('first day of January '.date('Y', $date)));
-    $second_quarter = date('Y-m-d', strtotime('first day of April '.date('Y', $date)));
-    $third_quarter = date('Y-m-d', strtotime('first day of July '.date('Y', $date)));
-    $fourth_quarter = date('Y-m-d', strtotime('first day of October '.date('Y', $date)));
-    $next_quarter = date('Y-m-d', strtotime('first day of January '.(date('Y', $date)+1)));
-
-    if($date_formated == $first_quarter) return $first_quarter;
-    if($date_formated == $second_quarter || $date_formated > $first_quarter && $date_formated < $second_quarter) return $second_quarter;
-    if($date_formated == $third_quarter || $date_formated > $second_quarter && $date_formated < $third_quarter) return $third_quarter;
-    if($date_formated == $fourth_quarter || $date_formated > $third_quarter && $date_formated < $fourth_quarter) return $fourth_quarter;
-    if($date_formated == $next_quarter || $date_formated > $fourth_quarter && $date_formated < $next_quarter) return $next_quarter;
-
-    return false;
+    $calc = (3 - ((date('n', $date)-1) % 3 ));  // Get nb day to add
+    $datet = date('Y-m-d', strtotime('first day of +'.$calc.' month', $date));  // Get next quarter
+    return $datet;
 }
 
 function _get_echeance($PDOdb, $fk_leaser, $type_contrat, $periodicite, $montant, $duree) {
