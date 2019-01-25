@@ -147,19 +147,19 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 			case 12: //CAPEA
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
-				$refPartenaire = "CPROMA01";
+				$refPartenaire = "CAPEMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 13: //BCMP
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
-				$refPartenaire = "CPROMA01";
+				$refPartenaire = "BCMPMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 14: //Perret
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
-				$refPartenaire = "CPROMA01";
+				$refPartenaire = "PERRMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			
