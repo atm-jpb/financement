@@ -114,14 +114,14 @@ class WebServiceGrenke extends WebService
 										<fax>'.$this->simulation->societe->fax.'</fax>
 									</communication>
 									<name>'.$this->simulation->societe->nom.'</name>
-									<!--<nameComplement>NameComplement of LegalPerson</nameComplement-->
-									<!--<legalForm>1</legalForm-->
-									<!--<foundationDate>0001-01-01T00:00:00</foundationDate-->
-									<!--<contact>
+									<nameComplement>NameComplement of LegalPerson</nameComplement>
+									<legalForm>1</legalForm>
+									<foundationDate>0001-01-01T00:00:00</foundationDate>
+									<contact>
 										<gender>male</gender>
 										<surname>Musterfrau</surname>
 										<forename>Maxime</forename>
-									</contact-->
+									</contact>
 								</person>
 								<customerID/>
 							</lessee>
@@ -168,10 +168,11 @@ class MySoapGrenke extends SoapClient
 {
 	function __doRequest($request, $location, $saction, $version)
 	{
-		echo '<pre>' . htmlspecialchars($request, ENT_QUOTES) . '</pre>';
 		
-		exit;
+//		echo '<pre>' . htmlspecialchars($request, ENT_QUOTES) . '</pre>';
+//		
+//		exit;
 		
-		return parent::__doRequest($this->realXML, $location, $saction, $version);
+		return parent::__doRequest($request, $location, $saction, $version);
 	}
 }
