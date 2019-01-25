@@ -2071,9 +2071,12 @@ class TSimulationSuivi extends TObjetStd {
 		parent::add_champs('numero_accord_leaser,statut','type=chaine;');
 		parent::add_champs('commentaire','type=text;');
 		parent::add_champs('rang', array('type'=>'integer'));
-		
+
 		parent::add_champs('surfact,surfactplus,commission,intercalaire,diff_solde,prime_volume,turn_over,renta_amount,renta_percent', array('type'=>'float'));
 		parent::add_champs('calcul_detail', array('type' => 'array'));
+		
+		// CM-CIC
+		parent::add_champs('b2b_nodef,b2b_noweb','type=chaine;');
 		
 		parent::start();
 		parent::_init_vars();
@@ -2182,10 +2185,13 @@ class TSimulationSuivi extends TObjetStd {
 	
 	//Retourne les actions possible pour ce suivi suivant les règles de gestion
 	function getAction(&$simulation, $just_save=false){
-		global $conf,$user;
+		global $conf,$user,$langs;
 		
 		$actions = '';
 		$ancre = '#suivi_leaser';
+		
+		// TODO ajouter le bouton permettant de refaire un appel webservice, rien d'autre à faire pour un update (en fait si, il faut aussi utiliser le code refactoré de l'appel webservice)
+		// le fait que les attributs "b2b_nodef" & "b2b_noweb" soit renseigné sur l'objet permettra de faire appel à la bonne méthode
 		
 		if($simulation->accord != "OK"){
 			//Demander
@@ -2235,6 +2241,8 @@ class TSimulationSuivi extends TObjetStd {
 		}
 		
 		if (!$just_save && !empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($this->leaser->array_options['options_edi_leaser'])) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.img_picto('Webservice', 'call').'</a>&nbsp;';
+		
+		if (!empty($this->b2b_nodef) && !empty($this->b2b_noweb)) $actions.= img_picto($langs->trans('SimulationSuiviInfoWebDemande', $this->b2b_nodef, $this->b2b_noweb), 'info.png', 'style="cursor: help"');
 		
 		return $actions;
 	}

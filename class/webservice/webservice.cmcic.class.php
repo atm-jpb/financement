@@ -30,7 +30,8 @@ class WebServiceCmcic extends WebService
 			
 			dol_syslog("WEBSERVICE SENDING CMCIC : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_CMCIC');
 			
-			$response = $this->soapClient->__soapCall('CreateDemFin', array());
+			if ($this->isUpdateCall()) $response = $this->soapClient->__soapCall('UpdateDemFin', array());
+			else $response = $this->soapClient->__soapCall('CreateDemFin', array());
   
 			// TODO : issue de la doc => Dans l’éventualité où l’utilisateur est invalide, un message d’erreur est envoyé au partenaire
 			if ($this->debug)
@@ -103,7 +104,17 @@ class WebServiceCmcic extends WebService
 				<ns1:B2B_ECTR_FLG>false</ns1:B2B_ECTR_FLG>
 				<ns1:B2B_NATURE_DEMANDE>S</ns1:B2B_NATURE_DEMANDE>
 				<ns1:B2B_REF_EXT>'.$this->simulation->reference.'</ns1:B2B_REF_EXT>
-				<ns1:B2B_TYPE_DEMANDE>E</ns1:B2B_TYPE_DEMANDE>
+				<ns1:B2B_TYPE_DEMANDE>E</ns1:B2B_TYPE_DEMANDE>';
+		
+		if ($this->isUpdateCall())
+		{
+			$xml.= '
+				<ns1:B2B_NOWEB>'.$this->simulationSuivi->b2b_noweb.'</ns1:B2B_NOWEB>
+				<ns1:B2B_NODEF>'.$this->simulationSuivi->b2b_nodef.'</ns1:B2B_NODEF>
+			';
+		}
+		
+		$xml.= '
 			</ns1:APP_CREA_Demande>
 			<ns1:Infos_Apporteur>
 				<ns1:B2B_APPORTEUR_ID>'.$this->getApporteurId().'</ns1:B2B_APPORTEUR_ID>
@@ -140,6 +151,12 @@ class WebServiceCmcic extends WebService
 		';
 		
 		return $xml;
+	}
+	
+	public function isUpdateCall()
+	{
+		// si B2B_NOWEB et B2B_NODEF sont fournis ce sera un update (UpdateDemFinRequest)
+		return (!empty($this->simulationSuivi->b2b_noweb) && !empty($this->simulationSuivi->b2b_nodef));
 	}
 	
 	/**
