@@ -104,9 +104,14 @@
 		<tr>
 			<td>Mode de règlement</td>
 			<td>[simulation.opt_mode_reglement; strconv=no]</td>
-			<td></td>
-			<td></td>
-			
+			[onshow;block=begin;when [simulation.cristal_project]!=0]
+			<td>Référence Cristal</td>
+			<td>[simulation.cristal_project; strconv=no]</td>
+			[onshow;block=end]
+			[onshow;block=begin;when [simulation.cristal_project]==0]
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			[onshow;block=end]
 		</tr>
 		<tr>
 			<td><span class="fieldrequired">Type de matériel financé</span></td>

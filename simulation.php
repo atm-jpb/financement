@@ -1019,6 +1019,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'entity'=>$entity_field
 		,'entity_partenaire'=>$simulation->entity
 		,'ref'=>$simulation->reference
+		,'cristal_project'=>$simulation->fk_projet_cristal
 		,'doc'=>($simulation->getId() > 0) ? $formfile->getDocumentsLink('financement', $filename, $filedir, 1) : ''
 		,'fk_soc'=>$simulation->fk_soc
 
