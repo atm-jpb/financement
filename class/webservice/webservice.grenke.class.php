@@ -2,6 +2,16 @@
 
 class WebServiceGrenke extends WebService 
 {
+	/** @var bool $update_status */
+	public $update_status;
+	
+	public function __construct(&$simulation, &$simulationSuivi, $debug = false, $update_status=false)
+	{
+		parent::__construct($simulation, $simulationSuivi, $debug);
+		
+		$this->update_status = $update_status;
+	}
+	
 	public function run()
 	{
 		global $conf,$langs;

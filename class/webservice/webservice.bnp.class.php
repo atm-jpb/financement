@@ -8,11 +8,11 @@ class WebServiceBnp extends WebService
 	/** @var TPDOdb $PDOdb */
 	public $PDOdb;
 	
-	/** @var bool $consulter */
-	public $consulter;
+	/** @var bool $update_status */
+	public $update_status;
 
 
-	public function __construct(&$simulation, &$simulationSuivi, $debug = false, $consulter=false)
+	public function __construct(&$simulation, &$simulationSuivi, $debug = false, $update_status=false)
 	{
 		global $conf;
 		
@@ -32,7 +32,7 @@ class WebServiceBnp extends WebService
 			$this->local_cert = "/usr/share/ca-certificates/extra/CPRO-BPLS-recette.crt";
 		}
 		
-		$this->consulter = $consulter;
+		$this->update_status = $update_status;
 		$this->PDOdb = new TPDOdb;
 	}
 	
@@ -59,7 +59,7 @@ class WebServiceBnp extends WebService
 //			var_dump($this->soapClient->__getFunctions());exit;
 			dol_syslog("WEBSERVICE SENDING GRENKE : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_GRENKE');
 			
-			if ($this->consulter)
+			if ($this->update_status)
 			{
 				$TconsulterSuivisDemandesRequest['consulterSuivisDemandesRequest'] = $this->_getBNPDataTabForConsultation();
 				$response = $this->soapClient->__call('consulterSuivisDemandes',$TconsulterSuivisDemandesRequest);
@@ -79,7 +79,7 @@ class WebServiceBnp extends WebService
 
 			$this->TMsg[] = $langs->trans('webservice_financement_msg_scoring_send', $this->leaser->name);
 			
-			if ($this->consulter)
+			if ($this->update_status)
 			{
 				$this->traiteBNPReponseSuivisDemande($response);
 			}

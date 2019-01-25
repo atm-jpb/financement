@@ -1,5 +1,7 @@
 <?php
 
+// TODO REMOVE @see financement/script/cron/webservice.cron.php
+
 	$path=dirname(__FILE__).'/';
 	define('INC_FROM_CRON_SCRIPT', true);
 	require_once($path."../config.php");
