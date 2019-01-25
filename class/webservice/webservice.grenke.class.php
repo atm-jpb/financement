@@ -16,10 +16,10 @@ class WebServiceGrenke extends WebService
 			'exceptions'=>0
 			,'location' => $this->wsdl
 			,'trace' => 1
-		  	,'soap_version' => SOAP_1_2
+		  	,'soap_version' => SOAP_1_1
 		  	,'connection_timeout' => 20
 		  	,'cache_wsdl' => WSDL_CACHE_NONE
-//		  	,'user_agent' => 'MySoapCmCic'
+		  	,'user_agent' => 'MySoapGrenke'
 //		  	,'use' => SOAP_LITERAL
 			,'keep_alive' => false
 			,'stream_context' => stream_context_create(array('ssl' => array(
@@ -32,7 +32,7 @@ class WebServiceGrenke extends WebService
 //		var_dump($this->wsdl);
 		try {
 //			$this->soapClient = new MySoapCmCic($this->wsdl, $options);
-			$this->soapClient = new SoapClient($this->wsdl, $options);
+			$this->soapClient = new MySoapGrenke($this->wsdl, $options);
 //			$this->soapClient->ServiceFinancement = $this;
 			
 //			var_dump($this->soapClient->__getFunctions());exit;
@@ -45,7 +45,9 @@ class WebServiceGrenke extends WebService
 
 //			var_dump($this->getXml());exit;			
 			/** @var addLeaseRequestWithLoginResponse $response */
-			$response = $this->soapClient->addLeaseRequestWithLogin($this->getXml());
+			$string_xml_body = $this->getXml();
+			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, null, null, null);
+			$response = $this->soapClient->addLeaseRequestWithLogin($soap_var_body);
 //  var_dump($response);exit;
 			
 			// TODO : issue de la doc => Dans l’éventualité où l’utilisateur est invalide, un message d’erreur est envoyé au partenaire
@@ -84,100 +86,92 @@ class WebServiceGrenke extends WebService
 		$f->periodicite = $this->simulation->opt_periodicite;
 		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
 		
-//		var_dump($mysoc);exit;
-//		var_dump($this->simulation);exit;
+		$paymentInterval = 'quarterly'; // valeur possible : 'quarterly', 'monthly'
+		$estimatedDeliveryDate = date('c', $this->simulation->date_demarrage); // contient ) si vide... 
 		
-		$res = array(
-			'user' => array(
-				'partner' => '257-00049'
-				,'login' => 'financement@cpro.fr'
-				,'password' => ''
-			)
-			,'leaseRequest' => array(
-				'lessee'=> array(
-					'person' => array(
-						'name' => $this->simulation->societe->nom
-						,'address' => array(
-							'street' => substr($this->simulation->societe->address, 0, 50) // max 50 char
-							,'complement' => substr($this->simulation->societe->address, 51, 50) // max 50 char
-							,'country' => (!empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR') // country code
-							,'postCode' => $this->simulation->societe->zip // max 5 char
-							,'city' => $this->simulation->societe->town // max 50 char
-						)
-						,'communication' => array(
-							'phone' => $this->simulation->societe->phone // max 50 char
-							,'phone2' => '' // max 50 char
-							,'email' => $this->simulation->societe->email // max 50 char
-							,'fax' => $this->simulation->societe->fax // max 50 char
-						)
-						,'identifications' => array(
-							'Identification' => array(
-								'type' => '' // SIREN ?
-								,'id' => $this->simulation->societe->idprof1 // $mysoc ?
-							)
-						)
-						,'creditAgencyIdentifications' => array() // ???
-					)
-				)
-				,'articles' => array(
-					'Article' => array(
-						'price' => $this->simulation->montant // double
-						,'type' => '1.11.1' // Copying machine
-						,'description' => $this->simulation->type_materiel // max 50 char
-						,'producer' => 'Canon' // max 50 char
-					)
-				)
-				
-				,'calculation' => array(
-					// [(Acquisition value–initial payment)*leasing factor/100]*[1+(monthly extra charge/100)]=monthly instalment
-					'installment' => $this->simulation->echeance // double (Monthly leasing instalment you have calculated based on the provided conditions lists.)
-					,'contractDuration' => $dureeInMonth // short (Leasing period in terms of months)
-				)
-				,'initialPayment' => 0.00 // double
-				,'commission' => 0.00// double
-				,'residualValue' => $this->simulation->vr // double
-				,'estimatedDeliveryDate' => date('Y-m-d', $this->simulation->date_demarrage) // Date (format non précisé)
-				,'paymentInfo' => array(
-					'accountInfo' => array(
-						'bankCode' => '' // max 10 char
-						,'bankName' => '' // max 50 char
-						,'accountHolder:' => '' // max 50 char
-						,'accountNumber' => '' // max 40 char
-						,'iban' => '' // max 34 char
-						,'bic' => '' // max 11 char
-					)
-					,'directDebit' => true // boolean
-					,'paymentInterval' => $f->getiPeriode() // or 'quarterly' (short = default:quarterly = 3)
-					,'invoiceRecipient'=> array(
-						'address' => array(
-							'street' => substr($mysoc->address, 0, 50) // max 50 char
-							,'complement' => substr($mysoc->address, 51) // max 50 char
-							,'country' => (!empty($mysoc->country_code) ? $mysoc->country_code : 'FR') // country code
-							,'postCode' => $mysoc->zip // max 5 char
-							,'city' => $mysoc->town // max 50 char
-							,'name' => $mysoc->name
-						)
-						,'communication' => array(
-							'phone' => $mysoc->phone // max 50 char
-							,'phone2' => '' // max 50 char
-							,'email' => $mysoc->email // max 50 char
-							,'fax' => $mysoc->fax // max 50 char
-						)
-						,'identifications:' => array(
-							'Identification' => array(
-								'type' => '' // SIREN ?
-								,'id' => $mysoc->idprof1
-							)
-						)
-						,'creditAgencyIdentifications' => array() // ???
-					)
-				)
-				,'currency' => 'EUR'
-				,'tax' => 0.00
-				,'maintenanceCost' => 0.00
-			)
-		);
+		$xml = '
+			<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+				<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+					<addLeaseRequestWithLogin xmlns="http://grenkeleasing.com/gfs.api.server.extern">
+						<user>
+							<login>financement@cpro.fr</login>
+							<partner>257-00049</partner>
+							<password></password>
+						</user>
+						<leaseRequest>
+							<lessee>
+								<person xsi:type="LegalPerson">
+									<address>
+										<street>'.substr($this->simulation->societe->address, 0, 50).'</street>
+										<complement>'.substr($this->simulation->societe->address, 51, 50).'</complement>
+										<country>'.( (!empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR') ).'</country>
+										<postCode>'.$this->simulation->societe->zip.'</postCode>
+										<city>'.$this->simulation->societe->town.'</city>
+									</address>
+									<communication>
+										<phone>'.$this->simulation->societe->phone.'</phone>
+										<email>'.$this->simulation->societe->email.'</email>
+										<fax>'.$this->simulation->societe->fax.'</fax>
+									</communication>
+									<name>'.$this->simulation->societe->nom.'</name>
+									<!--<nameComplement>NameComplement of LegalPerson</nameComplement-->
+									<!--<legalForm>1</legalForm-->
+									<!--<foundationDate>0001-01-01T00:00:00</foundationDate-->
+									<!--<contact>
+										<gender>male</gender>
+										<surname>Musterfrau</surname>
+										<forename>Maxime</forename>
+									</contact-->
+								</person>
+								<customerID/>
+							</lessee>
+							<articles>
+								<Article>
+									<price>'.$this->simulation->montant.'</price>
+									<type>1.11.1</type>
+									<description>'.$this->simulation->type_materiel.'</description>
+									<producer>Canon</producer>
+								</Article>
+							</articles>
+							<paymentInfo>
+								<accountInfo>
+									<accountHolder>Maximilia Musterfrau</accountHolder>
+									<iban>DE89370400440532013000</iban>
+								</accountInfo>
+								<directDebit>true</directDebit>
+								<paymentInterval>'.$paymentInterval.'</paymentInterval>
+							</paymentInfo>
+							<initialPayment>0</initialPayment>
+							<residualValue>'.$this->simulation->vr.'</residualValue>
+							<commission>0</commission>
+							<estimatedDeliveryDate>'.$estimatedDeliveryDate.'</estimatedDeliveryDate>
+							<currency>EUR</currency>
+							<tax>0</tax>
+							<maintenanceCost>0</maintenanceCost>
+							<calculation>
+								<installment>'.$this->simulation->echeance.'</installment>
+								<contractDuration>'.$dureeInMonth.'</contractDuration>
+							</calculation>
+						</leaseRequest>
+					</addLeaseRequestWithLogin>
+				</s:Body>
+			</s:Envelope>
+
+		';
 		
-		return $res;
+		return $xml;
+	}
+}
+
+
+class MySoapGrenke extends SoapClient
+{
+	function __doRequest($request, $location, $saction, $version)
+	{
+		echo '<pre>' . htmlspecialchars($request, ENT_QUOTES) . '</pre>';
+		
+		exit;
+		
+		return parent::__doRequest($this->realXML, $location, $saction, $version);
 	}
 }
