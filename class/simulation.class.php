@@ -2709,6 +2709,7 @@ class TSimulationSuivi extends TObjetStd {
 		return $TData;
 	}
 	
+	// TODO will be remove @see class/webservice/webservice.bnp.class.php
 	function _createDemandeBNP(&$PDOdb){
 		
 		if(BNP_TEST){
@@ -2772,6 +2773,7 @@ class TSimulationSuivi extends TObjetStd {
 		return 1;
 	}
 
+	// TODO will be remove @see class/webservice/webservice.bnp.class.php
 	function _consulterDemandeBNP($num_accord_leaser){
 		
 		if(BNP_TEST){
@@ -2820,6 +2822,7 @@ class TSimulationSuivi extends TObjetStd {
 		$this->traiteBNPReponseSuivisDemande($TreponseSuivisDemandes);
 	}
 	
+	// TODO will be remove @see class/webservice/webservice.bnp.class.php
 	function traiteBNPReponseDemandeFinancement(&$PDOdb,&$reponseDemandeFinancement){
 //		pre($reponseDemandeFinancemnent,true);exit;
 		$this->numero_accord_leaser = $reponseDemandeFinancement->numeroDemandeProvisoire;
@@ -2831,6 +2834,7 @@ class TSimulationSuivi extends TObjetStd {
 		}
 	}
 	
+	// TODO will be remove @see class/webservice/webservice.bnp.class.php
 	function traiteErrorsDemandeBNP($TObjError){
 		if($this->debug) {
 			echo 'REPONSE ERREUR :<hr>';
@@ -2869,6 +2873,7 @@ class TSimulationSuivi extends TObjetStd {
 		return $errorLabel;
 	}
 	
+	// TODO will be remove @see class/webservice/webservice.bnp.class.php
 	function traiteBNPReponseSuivisDemande(&$TreponseSuivisDemandes){
 		$PDOdb = new TPDOdb;
 		
@@ -2905,6 +2910,7 @@ class TSimulationSuivi extends TObjetStd {
 		}
 	}
 
+	// TODO will be remove @see class/webservice/webservice.bnp.class.php
 	function _getBNPDataTabForDemande(&$PDOdb){
 		global $db;
 		$entity = new DaoMulticompany($db);
@@ -2947,6 +2953,7 @@ class TSimulationSuivi extends TObjetStd {
 		return $TData;
 	}
 
+	// TODO will be remove @see class/webservice/webservice.bnp.class.php
 	function _getBNPDataTabClient(&$PDOdb){
 		global $db;
 
@@ -2992,6 +2999,7 @@ class TSimulationSuivi extends TObjetStd {
 		return $TClient;
 	}
 
+	// TODO will be remove @see class/webservice/webservice.bnp.class.php
 	function _getBNPDataTabMateriel(){
 		
 		$TCodeMarque = array(
@@ -3043,6 +3051,7 @@ class TSimulationSuivi extends TObjetStd {
 		return $TMateriel;
 	}
 
+	// TODO will be remove @see class/webservice/webservice.bnp.class.php
 	function _getBNPDataTabFinancement(&$TData){
 		global $db;
 		$codeCommercial = '02'; //02 par défaut; 23 = Top Full; 2Q = Secteur Public
@@ -3100,6 +3109,7 @@ class TSimulationSuivi extends TObjetStd {
 		return $TFinancement;
 	}
 
+	// TODO will be remove @see class/webservice/webservice.bnp.class.php
 	function _getBNPType() {
 		if(strpos($this->leaser->name, 'BNP PARIBAS LEASE GROUP MANDATE') !== false)
 			return 'MANDATE';
@@ -3107,6 +3117,7 @@ class TSimulationSuivi extends TObjetStd {
 			return 'CESSION';
 	}
 	
+	// TODO will be remove @see class/webservice/webservice.bnp.class.php
 	//CF drive -> Barème pour webservice CPRO.xlsx
 	function _getBNPBareme(&$TData,$codeCommercial){
 		global $db;
@@ -3137,6 +3148,7 @@ class TSimulationSuivi extends TObjetStd {
 		return $codeBareme;
 	}
 
+	// TODO will be remove @see class/webservice/webservice.bnp.class.php
 	function _getBNPDataTabForConsultation($num_accord_leaser){
 		global $db;
 		$entity = new DaoMulticompany($db);
