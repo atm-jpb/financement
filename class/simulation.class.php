@@ -2451,9 +2451,9 @@ class TSimulationSuivi extends TObjetStd {
 		$res = null;
 		switch ($this->leaser->array_options['options_edi_leaser']) {
 			//BNP PARIBAS LEASE GROUP
-			case 'BNP':
-				$res=$this->_createDemandeBNP($PDOdb);
-				break;
+//			case 'BNP':
+//				$res=$this->_createDemandeBNP($PDOdb);
+//				break;
 			//GE CAPITAL EQUIPEMENT FINANCE
 			case 'GE':
 				//$this->_createDemandeGE($PDOdb);
@@ -2463,6 +2463,7 @@ class TSimulationSuivi extends TObjetStd {
 			case 'LIXXBAIL':
 			case 'CMCIC':
 			case 'GRENKE':
+			case 'BNP':
 				$res=$this->_createDemandeServiceFinancement();
 				break;
 			default:

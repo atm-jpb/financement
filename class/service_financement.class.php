@@ -47,6 +47,7 @@ if (PH_TOUCH)
 	dol_include_once('/financement/class/webservice/webservice.cmcic.class.php');
 }
 dol_include_once('/financement/class/webservice/webservice.grenke.class.php');
+dol_include_once('/financement/class/webservice/webservice.bnp.class.php');
 
 
 class ServiceFinancement {
@@ -158,6 +159,10 @@ class ServiceFinancement {
 		else if ($this->leaser->array_options['options_edi_leaser'] == 'GRENKE')
 		{
 			$ws = new WebServiceGrenke($this->simulation, $this->simulationSuivi, $this->debug);
+		}
+		else if ($this->leaser->array_options['options_edi_leaser'] == 'BNP')
+		{
+			$ws = new WebServiceBnp($this->simulation, $this->simulationSuivi, $this->debug);
 		}
 		
 		if ($ws !== null)

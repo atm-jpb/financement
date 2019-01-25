@@ -11,6 +11,9 @@
 	dol_include_once('financement/class/dossier.class.php');
 	dol_include_once('financement/class/dossier_integrale.class.php');
 	
+	dol_include_once('/financement/class/webservice/webservice.class.php');
+	dol_include_once('/financement/class/webservice/webservice.bnp.class.php');
+	
 	global $db;
 	$PDOdb = new TPDOdb;
 	
@@ -29,11 +32,15 @@
 	echo $sql.'<br>';
 	$TRes = $PDOdb->ExecuteAsArray($sql);
 	
+	$simulation = new TSimulation;
 	foreach($TRes as $res){
+		
 		$TSimulationSuivi->load($PDOdb, $res->rowid);
-		$TreponseDemandes  = $TSimulationSuivi->_consulterDemandeBNP($res->numero_accord_leaser);
-	
-		pre($TreponseDemandes,true);
+		$ws = new WebServiceBnp($simulation, $TSimulationSuivi, false, true);
+		$ws->run();
+//		$TreponseDemandes  = $TSimulationSuivi->_consulterDemandeBNP($res->numero_accord_leaser);
+//	
+//		pre($TreponseDemandes,true);
 	}
 	
 	
