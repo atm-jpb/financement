@@ -662,7 +662,7 @@ function _liste(&$ATMdb, &$simulation) {
 		$THide[] = 'Client';
 	}
 	
-	$sql.= ' AND s.entity IN('.getEntity('fin_simulation', TFinancementTools::user_courant_est_admin_financement()).')';
+	$sql.= ' AND s.entity IN('.getEntity('fin_simulation', true).')';
 	$sql.= ' GROUP BY s.rowid';
 	
 	if(!$user->rights->financement->allsimul->suivi_leaser){
@@ -859,7 +859,7 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
 function _fiche(&$ATMdb, &$simulation, $mode) {
 	global $db, $langs, $user, $conf, $action;
 	
-	TFinancementTools::check_user_rights($simulation);
+    $result = restrictedArea($user, 'financement', $simulation->getID(), 'fin_simulation&fin_simulation', '', 'fk_soc', 'rowid');
 	
 	// Si simulation déjà préco ou demande faite, le "montant_accord" est renseigné, le vendeur ne peux modifier que certains champs
 	if($mode == 'edit') {
@@ -1019,6 +1019,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		,'entity'=>$entity_field
 		,'entity_partenaire'=>$simulation->entity
 		,'ref'=>$simulation->reference
+		,'cristal_project'=>$simulation->fk_projet_cristal
 		,'doc'=>($simulation->getId() > 0) ? $formfile->getDocumentsLink('financement', $filename, $filedir, 1) : ''
 		,'fk_soc'=>$simulation->fk_soc
 
@@ -1167,7 +1168,12 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$refus_moins_6mois = $simulation->hasOtherSimulationRefused($ATMdb);
 	if($refus_moins_6mois) {
-		setEventMessage('Ce client a eu une demande de fi refusée il y a moins de 6 mois', 'warnings');
+		setEventMessage('Ce client a eu une demande de fi refusée il y a moins de 6 mois', 'errors');
+	}
+	
+	$simu_moins_30jours = $simulation->hasOtherSimulation($ATMdb);
+	if($simu_moins_30jours) {
+		setEventMessage('Ce client a déjà une demande de fi de moins de 30 jours', 'warnings');
 	}
 	
 	global $mesg, $error;
@@ -1229,7 +1235,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire_commercial ac ON ac.fk_fin_affaire = a.rowid";
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
 	//$sql.= " WHERE a.entity = ".$conf->entity;
-	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')';
+	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', true).')';
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
 	$sql.= " AND (a.fk_soc = ".$simulation->fk_soc;
 	if(!empty($simulation->societe->idprof1) && $search_by_siren) {
