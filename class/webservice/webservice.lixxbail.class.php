@@ -379,6 +379,24 @@ class WebServiceLixxbail extends WebService
 	{
 		return 'LOCF';
 	}
+	
+	/**
+	 * TODO à combiner avec $this->getCodeProduit()
+	 * Type		Libellé type produit
+	 * produit
+	 * 
+	 * STAN		Standard
+	 * CESS		Cession de contrat (sans prestation)
+	 * LMAF		Location mandatée fichier
+	 * PROF		LOA professionnelle
+	 */
+	public function getTypeProduit()
+	{
+		if(strpos($this->leaser->name, 'LIXXBAIL MANDATE') !== false)
+			return 'LMAF';
+		if(strpos($this->leaser->name, 'LIXXBAIL') !== false)
+			return 'CESS';
+	}
 }
 
 /**
@@ -423,23 +441,5 @@ class MySoapClient extends SoapClient
 		
 		
 		return parent::__doRequest($this->realXML, $location, $saction, $version);
-	}
-	
-	/**
-	 * TODO à combiner avec $this->getCodeProduit()
-	 * Type		Libellé type produit
-	 * produit
-	 * 
-	 * STAN		Standard
-	 * CESS		Cession de contrat (sans prestation)
-	 * LMAF		Location mandatée fichier
-	 * PROF		LOA professionnelle
-	 */
-	public function getTypeProduit()
-	{
-		if(strpos($this->leaser->name, 'LIXXBAIL MANDATE') !== false)
-			return 'LMAF';
-		if(strpos($this->leaser->name, 'LIXXBAIL') !== false)
-			return 'CESS';
 	}
 }
