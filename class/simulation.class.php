@@ -1311,7 +1311,7 @@ class TSimulation extends TObjetStd {
 		// 2017.12.13
 		// Calcul VR
 		$this->vr = round($this->montant_total_finance * $this->pct_vr / 100, 2);
-        if(empty($this->vr)) $this->vr = 0.15;
+        if(empty($this->vr)) $this->vr = 1;
 		
 		if(!$calcul) { // Si calcul non correct
 			$this->montant_total_finance = 0;
