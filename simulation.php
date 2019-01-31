@@ -985,7 +985,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	if(empty($id_dossier)) $link_dossier = $simulation->numero_accord;
 	else $link_dossier = '<a href="'.dol_buildpath('/financement/dossier.php?id='.$id_dossier, 2).'" >'.$simulation->numero_accord.'</a>';
 	
-	$TOptCalageLabel = array('' => '', '1M'=>'1 mois', '2M'=>'2 mois', '3M'=>'3 mois');
+	$TOptCalageLabel = array('' => '', '1M'=>'1 mois', '2M'=>'2 mois', '3M'=>'3 mois', '4M'=>'4 mois', '5M'=>'5 mois');
 	
 	/**
 	 * Calcul à la volé pour connaitre le coef en fonction de la périodicité
