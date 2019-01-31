@@ -1164,6 +1164,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	echo $form->end_form();
 	// End of page
+	dol_fiche_end();
 	
 	if($user->rights->financement->allsimul->suivi_leaser){
 		_fiche_suivi($ATMdb, $simulation, $mode);
@@ -1179,7 +1180,6 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		setEventMessage('Ce client a déjà une demande de fi de moins de 30 jours', 'warnings');
 	}
 	
-	dol_fiche_end();
 	
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));

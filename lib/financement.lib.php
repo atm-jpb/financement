@@ -633,17 +633,24 @@ function simulation_prepare_head(TSimulation $object)
     $h = 0;
     $head = array();
 
-    $head[$h][0] = dol_buildpath('/financement/simulation.php').'?id='.$object->getID();
+    $id = $object->getId();
+
+    $url = dol_buildpath('/financement/simulation.php', 2);
+    if(empty($id)) $url .= '?action=new';
+    else $url .= '?id='.$id;
+    $url .= '&mainmenu=financement';
+
+    $head[$h][0] = $url;
     $head[$h][1] = $langs->trans("Card");
     $head[$h][2] = 'card';
     $h++;
 
-    if ($user->rights->financement->admin)
+    if ($user->rights->financement->admin && ! empty($id))
     {
 		$nbNote = 0;
         if(!empty($object->note_private)) $nbNote++;
 		if(!empty($object->note_public)) $nbNote++;
-        $head[$h][0] = dol_buildpath('/financement/simulation_notes.php').'?id='.$object->getID();
+        $head[$h][0] = dol_buildpath('/financement/simulation_note.php', 2).'?id='.$id.'&mainmenu=financement';
         $head[$h][1] = $langs->trans("Note");
 		if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
         $head[$h][2] = 'note';

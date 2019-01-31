@@ -17,6 +17,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('pct_vr,mt_vr', array('type'=>'float'));
 		parent::add_champs('fk_fin_dossier,fk_fin_dossier_adjonction', array('type'=>'integer'));
 		parent::add_champs('fk_simu_cristal,fk_projet_cristal', array('type'=>'integer'));
+		parent::add_champs('note_public,note_private', array('type'=>'chaine'));
 		
 		parent::start();
 		parent::_init_vars();
@@ -2067,6 +2068,24 @@ class TSimulation extends TObjetStd {
 
         if($get_count) return count($TSimu);
         return $TSimu;
+    }
+
+    function update_note($note, $suffix) {
+        global $db;
+
+        $db->begin();
+
+        $sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_simulation';
+        $sql.= ' SET note'.$suffix."='".$note."'";
+        $sql.= ' WHERE rowid='.$this->getId();
+
+        $resql = $db->query($sql);
+        if($resql) $db->commit();
+        else {
+            $db->rollback();
+            dol_print_error($db);
+            return -1;
+        }
     }
 }
 
