@@ -619,3 +619,44 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	
 	return $TDossiersError;
 }
+
+
+/**
+ * Return array of tabs to used on pages for third parties cards.
+ *
+ * @param 	Societe	$object		Object company shown
+ * @return 	array				Array of tabs
+ */
+function simulation_prepare_head(TSimulation $object)
+{
+    global $db, $langs, $conf, $user;
+    $h = 0;
+    $head = array();
+
+    $head[$h][0] = dol_buildpath('/financement/simulation.php').'?id='.$object->getID();
+    $head[$h][1] = $langs->trans("Card");
+    $head[$h][2] = 'card';
+    $h++;
+
+    if ($user->rights->financement->admin)
+    {
+		$nbNote = 0;
+        if(!empty($object->note_private)) $nbNote++;
+		if(!empty($object->note_public)) $nbNote++;
+        $head[$h][0] = dol_buildpath('/financement/simulation_notes.php').'?id='.$object->getID();
+        $head[$h][1] = $langs->trans("Note");
+		if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
+        $head[$h][2] = 'note';
+        $h++;
+    }
+
+    // Show more tabs from modules
+    // Entries must be declared in modules descriptor with line
+    // $this->tabs = array('entity:+tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to add new tab
+    // $this->tabs = array('entity:-tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to remove a tab
+    complete_head_from_modules($conf,$langs,$object,$head,$h,'simulation');
+
+    complete_head_from_modules($conf,$langs,$object,$head,$h,'simulation','remove');
+
+    return $head;
+}

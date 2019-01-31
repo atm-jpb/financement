@@ -883,6 +883,9 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$extrajs = array('/financement/js/financement.js', '/financement/js/dossier.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
+	
+	$head = simulation_prepare_head($simulation);
+	dol_fiche_head($head, 'card', $langs->trans("Simulation"),0,'simulation');
 
 	$affaire = new TFin_affaire;
 	$financement = new TFin_financement;
@@ -1175,6 +1178,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	if($simu_moins_30jours) {
 		setEventMessage('Ce client a déjà une demande de fi de moins de 30 jours', 'warnings');
 	}
+	
+	dol_fiche_end();
 	
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
