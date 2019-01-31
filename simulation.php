@@ -976,9 +976,9 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$TEntityName = TFinancementTools::build_array_entities();
 	if(TFinancementTools::user_courant_est_admin_financement() && empty($conf->global->FINANCEMENT_DISABLE_SELECT_ENTITY)){
-		$entity_field = $form->combo('', 'entity', $TEntityName, $entity);
+		$entity_field = $form->combo('', 'entity_partenaire', $TEntityName, $entity);   // select entities
 	} else {
-		$entity_field = $TEntityName[$entity].$form->hidden('entity', $entity);
+		$entity_field = $TEntityName[$entity].$form->hidden('entity_partenaire', $entity);  // NAME<input type="hidden" .../>
 	}
 	
 	$id_dossier = $simulation->fk_fin_dossier;
@@ -1017,7 +1017,6 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		
 		,'id'=>$simulation->rowid
 		,'entity'=>$entity_field
-		,'entity_partenaire'=>$simulation->entity
 		,'ref'=>$simulation->reference
 		,'cristal_project'=>$simulation->fk_projet_cristal
 		,'doc'=>($simulation->getId() > 0) ? $formfile->getDocumentsLink('financement', $filename, $filedir, 1) : ''
