@@ -2076,7 +2076,7 @@ class TSimulation extends TObjetStd {
         $db->begin();
 
         $sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_simulation';
-        $sql.= ' SET note'.$suffix."='".$note."'";
+        $sql.= ' SET note'.$suffix."='".$db->escape($note)."'";
         $sql.= ' WHERE rowid='.$this->getId();
 
         $resql = $db->query($sql);
