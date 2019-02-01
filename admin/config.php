@@ -737,6 +737,32 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_GRENKE_USERNAME").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_GRENKE_USERNAME">';
+print '<input type="text" name="FINANCEMENT_GRENKE_USERNAME" value="'.$conf->global->FINANCEMENT_GRENKE_USERNAME.'" size="30" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_GRENKE_PASSWORD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_GRENKE_PASSWORD">';
+print '<input type="password" name="FINANCEMENT_GRENKE_PASSWORD" value="'.$conf->global->FINANCEMENT_GRENKE_PASSWORD.'" size="30" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
 print '<tr '.$bc[$var].'><td>';
 print '</td></tr>';
 

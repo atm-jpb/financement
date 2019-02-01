@@ -65,6 +65,8 @@ FINANCEMENT_CMCIC_PASSWORD=CM-CIC paramètre password
 
 FINANCEMENT_WSDL_GRENKE_RECETTE=WSDL de <b>recette</b> de GRENKE
 FINANCEMENT_WSDL_GRENKE_PROD=WSDL de <b>production</b> de GRENKE
+FINANCEMENT_GRENKE_USERNAME=GRENKE paramètre username
+FINANCEMENT_GRENKE_PASSWORD=GRENKE paramètre password
 
 SimulationSuiviInfoWebDemande=Demande faite (%s - %s)
 

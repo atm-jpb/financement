@@ -16,11 +16,13 @@ class WebServiceGrenke extends WebService
 	{
 		global $conf,$langs;
 		
+		//$this->debug = true;
+		
 		// Production ou Test
 		if ($this->production) $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_GRENKE_PROD) ? $conf->global->FINANCEMENT_WSDL_GRENKE_PROD : '';
 		else $this->wsdl = !empty($conf->global->FINANCEMENT_WSDL_GRENKE_RECETTE) ? $conf->global->FINANCEMENT_WSDL_GRENKE_RECETTE : 'https://uatleasingapifr.grenke.net/mainservice.asmx?WSDL';
 		
-		if ($this->debug) var_dump('DEBUG :: Function callCMCIC(): Production = '.json_encode($this->production).' ; WSDL = '.$this->wsdl.' ; endpoint = '.$this->endpoint);
+		if ($this->debug) var_dump('DEBUG :: Function run(): Production = '.json_encode($this->production).' ; WSDL = '.$this->wsdl.' ; endpoint = '.$this->endpoint);
 		
 		$options = array(
 			'exceptions'=>0
@@ -88,25 +90,34 @@ class WebServiceGrenke extends WebService
 //		exit('FIN');
 	}
 	
+	/**
+	 * 
+	 * @global Societe $mysoc
+	 * @global type $conf
+	 * @return string
+	 */
 	public function getXml()
 	{
-		global $mysoc;
+		global $mysoc,$conf,$db;
 		
 		$f = new TFin_financement();
 		$f->periodicite = $this->simulation->opt_periodicite;
 		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
 		
 		$paymentInterval = 'quarterly'; // valeur possible : 'quarterly', 'monthly'
-		$estimatedDeliveryDate = date('c', $this->simulation->date_demarrage); // contient ) si vide... 
+		$estimatedDeliveryDate = date('c', $this->simulation->date_demarrage); // contient 0 si vide... 
+		
+		$entity = new DaoMulticompany($db);
+		$entity->fetch($this->simulation->entity);
 		
 		$xml = '
 			<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
 				<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 					<addLeaseRequestWithLogin xmlns="http://grenkeleasing.com/gfs.api.server.extern">
 						<user>
-							<login>financement@cpro.fr</login>
-							<partner>257-00049</partner>
-							<password></password>
+							<login>'.$conf->global->FINANCEMENT_GRENKE_USERNAME.'</login>
+							<partner>'.$entity->array_options['options_code_partner_grenke'].'</partner>
+							<password>'.$conf->global->FINANCEMENT_GRENKE_PASSWORD.'</password>
 						</user>
 						<leaseRequest>
 							<lessee>

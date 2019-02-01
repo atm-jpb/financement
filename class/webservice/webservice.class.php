@@ -76,7 +76,7 @@ abstract class WebService
 		echo '<br />';
 		echo "<h2>Request:</h2>";
 		echo '<h4>Function</h4>';
-		echo 'call DemandeCreationLeasingGN';
+		echo 'call Create Leasing';
 		echo '<h4>SOAP Message</h4>';
 		echo '<pre>' . htmlspecialchars($this->soapClient->__getLastRequest(), ENT_QUOTES) . '</pre>';
 
@@ -95,7 +95,7 @@ abstract class WebService
 		echo '<br />';
 		echo "<h2>Request realXML:</h2>";
 		echo '<h4>Function</h4>';
-		echo 'call DemandeCreationLeasingGN';
+		echo 'call Create Leasing';
 		echo '<h4>SOAP Message</h4>';
 		echo '<pre>' . htmlspecialchars($this->soapClient->realXML, ENT_QUOTES) . '</pre>';
 
