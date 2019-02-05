@@ -34,9 +34,8 @@ $langs->load("companies");
 $langs->load("financement@financement");
 
 // Security check
-$id = GETPOST('id')?GETPOST('id','int'):GETPOST('socid','int');
-if ($user->societe_id) $id=$user->societe_id;
-$result = restrictedArea($user, 'societe', $id, '&societe');
+$id = GETPOST('id', 'int');
+$result = restrictedArea($user, 'financement', $id, 'fin_simulation&fin_simulation');
 
 $action = GETPOST('action');
 
