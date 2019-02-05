@@ -1153,7 +1153,7 @@ function _genPDF(&$propal, $TData, $print_bloc_locataire=true) {
 	$TBS=new TTemplateTBS();
 	
 	$dir = $conf->propal->dir_output.'/'.$propal->ref;
-	@mkdir($dir);
+	@dol_mkdir($dir);
 	
 	$file_name = $propal->ref.'_avenant_'.date('Ymd');
 	
