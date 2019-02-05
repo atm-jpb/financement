@@ -89,8 +89,8 @@ function _liste(&$PDOdb, &$dossier) {
 	if (!$user->rights->financement->alldossier->read && $user->rights->financement->mydossier->read) {
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON sc.fk_soc = c.rowid";
 	}
-		
-	$sql.=" WHERE a.entity=".$conf->entity;
+
+    $sql.=" WHERE a.entity IN (".getEntity('fin_dossier', true).')';
 	$sql.=" AND a.contrat='INTEGRAL' ";
 	$sql.=" AND fc.duree > 0 ";
 	$sql.=" AND fc.echeance > 0 ";
