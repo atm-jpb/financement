@@ -894,11 +894,13 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	$fk_simu_cristal = GETPOST('fk_simu_cristal');
 	$fk_projet_cristal = GETPOST('fk_projet_cristal');
 
+	$ent = empty($simulation->entity) ? $conf->entity : $simulation->entity;
+
 	echo $form->hidden('id', $simulation->getId());
 	echo $form->hidden('action', 'save');
 	echo $form->hidden('fk_soc', $simulation->fk_soc);
 	echo $form->hidden('fk_user_author', !empty($simulation->fk_user_author) ? $simulation->fk_user_author : $user->id);
-	echo $form->hidden('entity', $conf->entity);
+	echo $form->hidden('entity', $ent);
 	echo $form->hidden('idLeaser', FIN_LEASER_DEFAULT);
 	echo $form->hidden('mode', $mode);
 	echo $form->hidden('fk_simu_cristal', empty($fk_simu_cristal) ? $simulation->fk_simu_cristal : $fk_simu_cristal);
@@ -976,9 +978,9 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$TEntityName = TFinancementTools::build_array_entities();
 	if(TFinancementTools::user_courant_est_admin_financement() && empty($conf->global->FINANCEMENT_DISABLE_SELECT_ENTITY)){
-		$entity_field = $form->combo('', 'entity', $TEntityName, $entity);
+		$entity_field = $form->combo('', 'entity_partenaire', $TEntityName, $entity);   // select entities
 	} else {
-		$entity_field = $TEntityName[$entity].$form->hidden('entity', $entity);
+		$entity_field = $TEntityName[$entity].$form->hidden('entity_partenaire', $entity);  // NAME<input type="hidden" .../>
 	}
 	
 	$id_dossier = $simulation->fk_fin_dossier;
@@ -1017,7 +1019,6 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		
 		,'id'=>$simulation->rowid
 		,'entity'=>$entity_field
-		,'entity_partenaire'=>$simulation->entity
 		,'ref'=>$simulation->reference
 		,'cristal_project'=>$simulation->fk_projet_cristal
 		,'doc'=>($simulation->getId() > 0) ? $formfile->getDocumentsLink('financement', $filename, $filedir, 1) : ''
