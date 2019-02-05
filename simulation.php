@@ -1161,10 +1161,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		array(),
 		array('charset'=>'utf-8')
 	);
-	
-	echo $form->end_form();
 	// End of page
-	dol_fiche_end();
 	
 	if($user->rights->financement->allsimul->suivi_leaser){
 		_fiche_suivi($ATMdb, $simulation, $mode);

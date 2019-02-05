@@ -256,6 +256,8 @@
 </td>
 </tr>
 </table>
+</form>
+</div>
 
 [onshow;block=begin;when [view.mode]=='view']
 <div class="tabsAction">
