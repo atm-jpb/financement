@@ -1,6 +1,14 @@
 $(document).ready(function() {
 	$('select[name="opt_periodicite"]').bind('change', get_periode);
 	$('select[name="fk_type_contrat"]').bind('change', get_periode);
+	$('select[name="entity_partenaire"]').bind('change', function() {
+		let entity = $('input#entity');
+		if(entity.val() !== $(this).val()) {
+			entity.val($(this).val());
+		}
+
+		get_periode();
+	});
 	$('select[name="fk_type_contrat"]').bind('change', restrict_grand_compte);
 	$('input[name^="opt_"]').bind('click', get_grille);
 	$('select[name^="opt_"]').bind('change', get_grille);

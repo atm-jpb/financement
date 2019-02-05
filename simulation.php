@@ -894,11 +894,13 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	$fk_simu_cristal = GETPOST('fk_simu_cristal');
 	$fk_projet_cristal = GETPOST('fk_projet_cristal');
 
+	$ent = empty($simulation->entity) ? $conf->entity : $simulation->entity;
+
 	echo $form->hidden('id', $simulation->getId());
 	echo $form->hidden('action', 'save');
 	echo $form->hidden('fk_soc', $simulation->fk_soc);
 	echo $form->hidden('fk_user_author', !empty($simulation->fk_user_author) ? $simulation->fk_user_author : $user->id);
-	echo $form->hidden('entity', $conf->entity);
+	echo $form->hidden('entity', $ent);
 	echo $form->hidden('idLeaser', FIN_LEASER_DEFAULT);
 	echo $form->hidden('mode', $mode);
 	echo $form->hidden('fk_simu_cristal', empty($fk_simu_cristal) ? $simulation->fk_simu_cristal : $fk_simu_cristal);
