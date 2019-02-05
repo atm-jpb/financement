@@ -421,7 +421,7 @@ class ServiceFinancement {
 		// Récupération configuration de l'entité de la simulation
         $old_conf = $conf;
         $old_mysoc = $mysoc;
-        switchEntity($conf->entity);
+        switchEntity($this->simulation->entity);
 		
 		// Need pour avoir la fonction de calcul de la périodicité
 		$f = new TFin_financement();
