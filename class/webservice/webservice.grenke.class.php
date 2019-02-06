@@ -43,25 +43,16 @@ class WebServiceGrenke extends WebService
 		
 //		var_dump($this->wsdl);
 		try {
-//			$this->soapClient = new MySoapCmCic($this->wsdl, $options);
 			$this->soapClient = new MySoapGrenke($this->wsdl, $options);
-//			$this->soapClient->ServiceFinancement = $this;
-			
+
 //			var_dump($this->soapClient->__getFunctions());exit;
 			dol_syslog("WEBSERVICE SENDING GRENKE : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_GRENKE');
 			
-			
-//			$string_xml_body = $this->getXml();
-//			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, null, null, null);
-//			$response = $this->soapClient->addLeaseRequestWithLogin($soap_var_body);
-
-//			var_dump($this->getXml());exit;			
 			/** @var addLeaseRequestWithLoginResponse $response */
 			$string_xml_body = $this->getXml();
 			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, null, null, null);
 			if ($this->update_status) $response = $this->soapClient->getLeaseRequestStatusWithLogin($soap_var_body);
 			else $response = $this->soapClient->addLeaseRequestWithLogin($soap_var_body);
-//  var_dump($response);exit;
 			
 			// TODO : issue de la doc => Dans l’éventualité où l’utilisateur est invalide, un message d’erreur est envoyé au partenaire
 			if ($this->debug)
@@ -71,9 +62,14 @@ class WebServiceGrenke extends WebService
 
 			$this->TMsg[] = $langs->trans('webservice_financement_msg_scoring_send', $this->leaser->name);
 			
+			if (get_class($response) == 'SoapFault')
+			{
+				$this->message_soap_returned = $response->getMessage();
+				return false;
+			}
 			//var_dump($response);exit;
 			// TODO voir comment est l'objet de retour...
-			if (!empty($response->addLeaseRequestWithLoginResponse->addLeaseRequestWithLoginResult->leaseRequestId))
+			else if (!empty($response->addLeaseRequestWithLoginResponse->addLeaseRequestWithLoginResult->leaseRequestId))
 			{
 				$this->message_soap_returned = $langs->trans($response->ResponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_MSGRET);
 				
@@ -239,7 +235,8 @@ class MySoapGrenke extends SoapClient
 {
 	function __doRequest($request, $location, $saction, $version)
 	{
-		
+		$request = preg_replace('/<\/?SOAP-ENV:Body.*>/', '', $request);
+		$request = preg_replace('/<\/?SOAP-ENV:Envelope.*>/', '', $request);
 //		echo '<pre>' . htmlspecialchars($request, ENT_QUOTES) . '</pre>';
 //		
 //		exit;
