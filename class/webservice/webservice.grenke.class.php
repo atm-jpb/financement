@@ -48,11 +48,14 @@ class WebServiceGrenke extends WebService
 //			var_dump($this->soapClient->__getFunctions());exit;
 			dol_syslog("WEBSERVICE SENDING GRENKE : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_GRENKE');
 			
-			/** @var addLeaseRequestWithLoginResponse $response */
+			/** @var LeaseRequestStatus $response */
 			$string_xml_body = $this->getXml();
-			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, null, null, null);
+			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, 'http://www.w3.org/2001/XMLSchema', null, null);
+			
 			if ($this->update_status) $response = $this->soapClient->getLeaseRequestStatusWithLogin($soap_var_body);
 			else $response = $this->soapClient->addLeaseRequestWithLogin($soap_var_body);
+			
+//			var_dump($response);exit;
 			
 			// TODO : issue de la doc => Dans l’éventualité où l’utilisateur est invalide, un message d’erreur est envoyé au partenaire
 			if ($this->debug)
@@ -67,22 +70,22 @@ class WebServiceGrenke extends WebService
 				$this->message_soap_returned = $response->getMessage();
 				return false;
 			}
-			//var_dump($response);exit;
+
 			// TODO voir comment est l'objet de retour...
-			else if (!empty($response->addLeaseRequestWithLoginResponse->addLeaseRequestWithLoginResult->leaseRequestId))
+			else if (!empty($response->leaseRequestId))
 			{
-				$this->message_soap_returned = $langs->trans($response->ResponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_MSGRET);
+				$this->message_soap_returned = $langs->trans($response->status);
 				
 				// Si nous sommes sur un appel de addLeaseRequestWithLogin()
 				if (!$this->update_status)
 				{
 					// TODO besoin de sauvegarder 'leaseRequestID' dans notre objet '$this->simulationSuivi'
-//					$this->simulationSuivi->leaseRequestID = $response->addLeaseRequestWithLoginResponse->addLeaseRequestWithLoginResult->leaseRequestId;
-//					$this->simulationSuivi->commentaire = $response->addLeaseRequestWithLoginResponse->addLeaseRequestWithLoginResult->status;
+//					$this->simulationSuivi->leaseRequestID = $response->leaseRequestId;
+//					$this->simulationSuivi->commentaire = $response->status;
 				}
 				else
 				{
-//					switch ($response->addLeaseRequestWithLoginResponse->addLeaseRequestWithLoginResult->status)
+//					switch ($response->status)
 //					{
 //						case 'pending':
 //							$this->simulationSuivi->statut = 'WAIT';
@@ -94,6 +97,9 @@ class WebServiceGrenke extends WebService
 //							break;
 //						case 'cancelled':
 //							$this->simulationSuivi->statut = 'KO';
+//							break;
+//						default:
+//							$this->simulationSuivi->statut = 'ERR'; // case unknown
 //							break;
 //					}
 				}
@@ -155,9 +161,77 @@ class WebServiceGrenke extends WebService
 		}
 		else
 		{
+//			$xml = '
+//				<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+//					<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+//						<addLeaseRequestWithLogin xmlns="http://grenkeleasing.com/gfs.api.server.extern">
+//							<user>
+//								<login>'.$conf->global->FINANCEMENT_GRENKE_USERNAME.'</login>
+//								<partner>'.$entity->array_options['options_code_partner_grenke'].'</partner>
+//								<password>'.$conf->global->FINANCEMENT_GRENKE_PASSWORD.'</password>
+//							</user>
+//							<leaseRequest>
+//								<lessee>
+//									<person xsi:type="LegalPerson">
+//										<address>
+//											<street>'.substr($this->simulation->societe->address, 0, 50).'</street>
+//											<complement>'.substr($this->simulation->societe->address, 51, 50).'</complement>
+//											<country>'.( (!empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR') ).'</country>
+//											<postCode>'.$this->simulation->societe->zip.'</postCode>
+//											<city>'.$this->simulation->societe->town.'</city>
+//										</address>
+//										<communication>
+//											<phone>'.$this->simulation->societe->phone.'</phone>
+//											<email>'.$this->simulation->societe->email.'</email>
+//											<fax>'.$this->simulation->societe->fax.'</fax>
+//										</communication>
+//										<name>'.$this->simulation->societe->nom.'</name>
+//										<!--<nameComplement>NameComplement of LegalPerson</nameComplement>
+//										<legalForm>1</legalForm>
+//										<foundationDate>0001-01-01T00:00:00</foundationDate>
+//										<contact>
+//											<gender>male</gender>
+//											<surname>Musterfrau</surname>
+//											<forename>Maxime</forename>
+//										</contact-->
+//									</person>
+//									<customerID/>
+//								</lessee>
+//								<articles>
+//									<Article>
+//										<price>'.$this->simulation->montant.'</price>
+//										<type>1.11.1</type>
+//										<description>'.$this->simulation->type_materiel.'</description>
+//										<producer>Canon</producer>
+//									</Article>
+//								</articles>
+//								<paymentInfo>
+//									<accountInfo>
+//										<accountHolder>Maximilia Musterfrau</accountHolder>
+//										<iban>DE89370400440532013000</iban>
+//									</accountInfo>
+//									<directDebit>true</directDebit>
+//									<paymentInterval>'.$paymentInterval.'</paymentInterval>
+//								</paymentInfo>
+//								<initialPayment>0</initialPayment>
+//								<residualValue>'.$this->simulation->vr.'</residualValue>
+//								<commission>0</commission>
+//								<estimatedDeliveryDate>'.$estimatedDeliveryDate.'</estimatedDeliveryDate>
+//								<currency>EUR</currency>
+//								<tax>0</tax>
+//								<maintenanceCost>0</maintenanceCost>
+//								<calculation>
+//									<installment>'.$this->simulation->echeance.'</installment>
+//									<contractDuration>'.$dureeInMonth.'</contractDuration>
+//								</calculation>
+//							</leaseRequest>
+//						</addLeaseRequestWithLogin>
+//					</s:Body>
+//				</s:Envelope>
+//
+//			';
+			
 			$xml = '
-				<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
-					<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 						<addLeaseRequestWithLogin xmlns="http://grenkeleasing.com/gfs.api.server.extern">
 							<user>
 								<login>'.$conf->global->FINANCEMENT_GRENKE_USERNAME.'</login>
@@ -220,8 +294,6 @@ class WebServiceGrenke extends WebService
 								</calculation>
 							</leaseRequest>
 						</addLeaseRequestWithLogin>
-					</s:Body>
-				</s:Envelope>
 
 			';
 		}
@@ -235,10 +307,9 @@ class MySoapGrenke extends SoapClient
 {
 	function __doRequest($request, $location, $saction, $version)
 	{
-		$request = preg_replace('/<\/?SOAP-ENV:Body.*>/', '', $request);
-		$request = preg_replace('/<\/?SOAP-ENV:Envelope.*>/', '', $request);
+//		$request = preg_replace('/<\/?SOAP-ENV:Body.*>/', '', $request);
+//		$request = preg_replace('/<\/?SOAP-ENV:Envelope.*>/', '', $request);
 //		echo '<pre>' . htmlspecialchars($request, ENT_QUOTES) . '</pre>';
-//		
 //		exit;
 		
 		return parent::__doRequest($request, $location, $saction, $version);
