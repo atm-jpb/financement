@@ -99,6 +99,7 @@ else if ($type == 'grenke')
 			AND suivi.statut_demande = 1
 			AND suivi.statut = 'WAIT'
 			AND suivi.leaseRequestID IS NOT NULL
+			AND suivi.leaseRequestID <> ''
 			AND suivi.date_demande > '".date('Y-m-d', strtotime('-20 days'))."'";
 	
 	print 'sql='.$sql.$eol.$eol;
