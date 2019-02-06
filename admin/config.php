@@ -148,6 +148,20 @@ print_fiche_titre($langs->trans("GlobalOptionsForFinancementSimulation"), $linkb
 
 dol_fiche_head($head, 'config', $langs->trans("Financement"), 0, 'financementico@financement');
 
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameter").'</td>';
+print '<td align="right">'.$langs->trans("Value").'</td>';
+print "</tr>\n";
+$var=true;
+
+print '<tr '.$bc[$var].'>';
+print '<td>'.$form->textwithpicto($langs->trans('FINANCEMENT_MODE_PROD'), $langs->trans('FINANCEMENT_MODE_PROD_TOOLTIP')).'</td>';
+print '<td align="right">';
+print ajax_constantonoff('FINANCEMENT_MODE_PROD',array(),0);
+print '</td></tr>';
+print '</table>';
+print '<br />';
 
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';
@@ -566,7 +580,6 @@ print '<td align="center">'.$langs->trans("Value").'</td>';
 print "</tr>\n";
 $var=true;
 
-
 $var=!$var;
 print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("FINANCEMENT_SHOW_RECETTE_BUTTON").'</td>';
@@ -581,15 +594,6 @@ print '<td>'.$langs->trans("FINANCEMENT_WEBSERVICE_ACTIVATE").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="600">';
 print ajax_constantonoff('FINANCEMENT_WEBSERVICE_ACTIVATE',array(),0);
-print '</td></tr>';
-
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="center" width="600">';
-print ajax_constantonoff('FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD',array(),0);
 print '</td></tr>';
 
 $var=!$var;
