@@ -75,35 +75,34 @@ class WebServiceGrenke extends WebService
 			else if (!empty($response->addLeaseRequestWithLoginResult->leaseRequestId))
 			{
 				$this->message_soap_returned = $langs->trans($response->addLeaseRequestWithLoginResult->status);
+				// besoin de sauvegarder 'leaseRequestID' dans notre objet '$this->simulationSuivi'
+				$this->simulationSuivi->leaseRequestID = $response->addLeaseRequestWithLoginResult->leaseRequestId;
+				$this->simulationSuivi->commentaire = $response->addLeaseRequestWithLoginResult->status;
 				
-				// Si nous sommes sur un appel de addLeaseRequestWithLogin()
-				if (!$this->update_status)
+				$this->simulationSuivi->save($this->PDOdb);
+				
+				return true;
+			}
+			else if (!empty($response->getLeaseRequestStatusWithLoginResult->leaseRequestId))
+			{
+				switch ($response->getLeaseRequestStatusWithLoginResult->status)
 				{
-					// besoin de sauvegarder 'leaseRequestID' dans notre objet '$this->simulationSuivi'
-					$this->simulationSuivi->leaseRequestID = $response->addLeaseRequestWithLoginResult->leaseRequestId;
-					$this->simulationSuivi->commentaire = $response->addLeaseRequestWithLoginResult->status;
+					case 'pending':
+						$this->simulationSuivi->statut = 'WAIT';
+						break;
+					case 'approved':
+					case 'order':
+					case 'contract':
+						$this->simulationSuivi->statut = 'OK';
+						break;
+					case 'cancelled':
+						$this->simulationSuivi->statut = 'KO';
+						break;
+					default:
+						$this->simulationSuivi->statut = 'ERR'; // case unknown
+						break;
 				}
-				else
-				{
-					switch ($response->addLeaseRequestWithLoginResult->status)
-					{
-						case 'pending':
-							$this->simulationSuivi->statut = 'WAIT';
-							break;
-						case 'approved':
-						case 'order':
-						case 'contract':
-							$this->simulationSuivi->statut = 'OK';
-							break;
-						case 'cancelled':
-							$this->simulationSuivi->statut = 'KO';
-							break;
-						default:
-							$this->simulationSuivi->statut = 'ERR'; // case unknown
-							break;
-					}
-				}
-
+				
 				$this->simulationSuivi->save($this->PDOdb);
 				
 				return true;
@@ -145,92 +144,18 @@ class WebServiceGrenke extends WebService
 		if ($this->update_status)
 		{
 			$xml = '
-				<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
-					<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-						<getLeaseRequestStatusWithLogin xmlns="http://grenkeleasing.com/gfs.api.server.extern">
-							<user>
-								<login>'.$conf->global->FINANCEMENT_GRENKE_USERNAME.'</login>
-								<partner>'.$entity->array_options['options_code_partner_grenke'].'</partner>
-								<password>'.$conf->global->FINANCEMENT_GRENKE_PASSWORD.'</password>
-							</user>
-							<leaseRequestID>'.$this->simulationSuivi->leaseRequestID.'</leaseRequestID>
-						</getLeaseRequestStatusWithLogin>
-					</s:Body>
-				</s:Envelope>
+				<getLeaseRequestStatusWithLogin xmlns="http://grenkeleasing.com/gfs.api.server.extern">
+					<user>
+						<login>'.$conf->global->FINANCEMENT_GRENKE_USERNAME.'</login>
+						<partner>'.$entity->array_options['options_code_partner_grenke'].'</partner>
+						<password>'.$conf->global->FINANCEMENT_GRENKE_PASSWORD.'</password>
+					</user>
+					<leaseRequestID>'.$this->simulationSuivi->leaseRequestID.'</leaseRequestID>
+				</getLeaseRequestStatusWithLogin>
 			';
 		}
 		else
 		{
-//			$xml = '
-//				<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
-//					<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-//						<addLeaseRequestWithLogin xmlns="http://grenkeleasing.com/gfs.api.server.extern">
-//							<user>
-//								<login>'.$conf->global->FINANCEMENT_GRENKE_USERNAME.'</login>
-//								<partner>'.$entity->array_options['options_code_partner_grenke'].'</partner>
-//								<password>'.$conf->global->FINANCEMENT_GRENKE_PASSWORD.'</password>
-//							</user>
-//							<leaseRequest>
-//								<lessee>
-//									<person xsi:type="LegalPerson">
-//										<address>
-//											<street>'.substr($this->simulation->societe->address, 0, 50).'</street>
-//											<complement>'.substr($this->simulation->societe->address, 51, 50).'</complement>
-//											<country>'.( (!empty($this->simulation->societe->country_code) ? $this->simulation->societe->country_code : 'FR') ).'</country>
-//											<postCode>'.$this->simulation->societe->zip.'</postCode>
-//											<city>'.$this->simulation->societe->town.'</city>
-//										</address>
-//										<communication>
-//											<phone>'.$this->simulation->societe->phone.'</phone>
-//											<email>'.$this->simulation->societe->email.'</email>
-//											<fax>'.$this->simulation->societe->fax.'</fax>
-//										</communication>
-//										<name>'.$this->simulation->societe->nom.'</name>
-//										<!--<nameComplement>NameComplement of LegalPerson</nameComplement>
-//										<legalForm>1</legalForm>
-//										<foundationDate>0001-01-01T00:00:00</foundationDate>
-//										<contact>
-//											<gender>male</gender>
-//											<surname>Musterfrau</surname>
-//											<forename>Maxime</forename>
-//										</contact-->
-//									</person>
-//									<customerID/>
-//								</lessee>
-//								<articles>
-//									<Article>
-//										<price>'.$this->simulation->montant.'</price>
-//										<type>1.11.1</type>
-//										<description>'.$this->simulation->type_materiel.'</description>
-//										<producer>Canon</producer>
-//									</Article>
-//								</articles>
-//								<paymentInfo>
-//									<accountInfo>
-//										<accountHolder>Maximilia Musterfrau</accountHolder>
-//										<iban>DE89370400440532013000</iban>
-//									</accountInfo>
-//									<directDebit>true</directDebit>
-//									<paymentInterval>'.$paymentInterval.'</paymentInterval>
-//								</paymentInfo>
-//								<initialPayment>0</initialPayment>
-//								<residualValue>'.$this->simulation->vr.'</residualValue>
-//								<commission>0</commission>
-//								<estimatedDeliveryDate>'.$estimatedDeliveryDate.'</estimatedDeliveryDate>
-//								<currency>EUR</currency>
-//								<tax>0</tax>
-//								<maintenanceCost>0</maintenanceCost>
-//								<calculation>
-//									<installment>'.$this->simulation->echeance.'</installment>
-//									<contractDuration>'.$dureeInMonth.'</contractDuration>
-//								</calculation>
-//							</leaseRequest>
-//						</addLeaseRequestWithLogin>
-//					</s:Body>
-//				</s:Envelope>
-//
-//			';
-			
 			$xml = '
 						<addLeaseRequestWithLogin xmlns="http://grenkeleasing.com/gfs.api.server.extern">
 							<user>

@@ -8,7 +8,7 @@ $script_file = basename(__FILE__);
 $path=dirname(__FILE__).'/';
 
 define('INC_FROM_CRON_SCRIPT', true);
-require_once($path."../config.php");
+require_once($path."../../config.php");
 
 dol_include_once('financement/class/simulation.class.php');
 dol_include_once('financement/class/affaire.class.php');
@@ -21,11 +21,11 @@ dol_include_once('/financement/class/webservice/webservice.class.php');
 dol_include_once('/financement/class/webservice/webservice.grenke.class.php');
 dol_include_once('/financement/class/webservice/webservice.bnp.class.php');
 
-// Test if batch mode
-if (substr($sapi_type, 0, 3) == 'cgi')
+// Test if apache or batch mode
+if (substr($sapi_type, 0, 3) == 'apa')
 {
 	$eol = '<br />';
-    $type = GETPOST('type');
+	$type = GETPOST('type');
 }
 else
 {
@@ -57,11 +57,11 @@ if (empty($type)) {	// Check parameters
 print '--- start'.$eol;
 print 'Type='.$type.$eol.$eol;
 
+$PDOdb = new TPDOdb;
+
 dol_syslog($script_file, LOG_DEBUG);
 if ($type == 'bnp')
 {
-	$PDOdb = new TPDOdb;
-	
 	$TSimulationSuivi = new TSimulationSuivi;
 	
 	$sql = "SELECT suivi.rowid, suivi.numero_accord_leaser 
@@ -91,7 +91,7 @@ if ($type == 'bnp')
 }
 else if ($type == 'grenke')
 {
-	$sql = "SELECT suivi.rowid, suivi.numero_accord_leaser 
+	$sql = "SELECT suivi.rowid, suivi.leaseRequestID 
 			FROM ".MAIN_DB_PREFIX."fin_simulation_suivi suivi
 			LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (suivi.fk_leaser = s.rowid)
 			LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields sext ON (s.rowid = sext.fk_object)
