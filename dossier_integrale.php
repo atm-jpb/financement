@@ -23,6 +23,10 @@ $dossier->load_facture($PDOdb,true);
 
 llxHeader('','Suivi intégrale');
 
+$head = dossier_prepare_head($dossier);
+$img_path = dol_buildpath('/financement/img/object_financeico.png', 2);
+dol_fiche_head($head, 'integrale', $langs->trans("Dossier"),0, $img_path, 1);
+
 if($action == 'addAvenantIntegrale'){
 	$calcul = false;
 	if(isset($_REQUEST['btSave'])) $file_path = _addAvenantIntegrale($dossier);
@@ -452,6 +456,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		+ $facIntegral->cout_unit_coul_mach
 		+ $facIntegral->cout_unit_coul_tech,5)) $avenantOK = false;
 
+	dol_fiche_end();
 	print '<div class="tabsAction">';
 	if (!empty($user->rights->financement->integrale->create_new_avenant) && $avenantOK) {
 		$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
