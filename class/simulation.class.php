@@ -17,6 +17,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('pct_vr,mt_vr', array('type'=>'float'));
 		parent::add_champs('fk_fin_dossier,fk_fin_dossier_adjonction', array('type'=>'integer'));
 		parent::add_champs('fk_simu_cristal,fk_projet_cristal', array('type'=>'integer'));
+		parent::add_champs('note_public,note_private', array('type'=>'chaine'));
 		
 		parent::start();
 		parent::_init_vars();
@@ -944,7 +945,7 @@ class TSimulation extends TObjetStd {
 		$sql = "SELECT ".OBJETSTD_MASTERKEY;
 		$sql.= " FROM ".$this->get_table();
 		$sql.= " WHERE fk_soc = ".$fk_soc;
-		$sql.= " AND entity IN(".getEntity('fin_simulation', TFinancementTools::user_courant_est_admin_financement()).')';
+		$sql.= " AND entity IN(".getEntity('fin_simulation', true).')';
 		
 		$TIdSimu = TRequeteCore::_get_id_by_sql($db, $sql, OBJETSTD_MASTERKEY);
 		$TResult = array();
@@ -1311,6 +1312,7 @@ class TSimulation extends TObjetStd {
 		// 2017.12.13
 		// Calcul VR
 		$this->vr = round($this->montant_total_finance * $this->pct_vr / 100, 2);
+        if(empty($this->vr)) $this->vr = 1;
 		
 		if(!$calcul) { // Si calcul non correct
 			$this->montant_total_finance = 0;
@@ -2005,6 +2007,20 @@ class TSimulation extends TObjetStd {
 		
 		return false;
 	}
+	
+	function hasOtherSimulation(&$PDOdb, $nbDays=30) {
+		$sql = "SELECT rowid ";
+		$sql.= "FROM ".MAIN_DB_PREFIX."fin_simulation s ";
+		$sql.= "WHERE s.fk_soc = ".$this->fk_soc." ";
+		$sql.= "AND s.rowid != ".$this->getId()." ";
+		$sql.= "AND s.date_simul > '".date('Y-m-d',strtotime('-'.$nbDays.' days'))."' ";
+		
+		$TRes = $PDOdb->ExecuteAsArray($sql);
+		
+		if(count($TRes) > 0) return true;
+		
+		return false;
+	}
 
     function set_values_from_cristal($post) {
         $TValuesToModify = array(
@@ -2052,6 +2068,24 @@ class TSimulation extends TObjetStd {
 
         if($get_count) return count($TSimu);
         return $TSimu;
+    }
+
+    function update_note($note, $suffix) {
+        global $db;
+
+        $db->begin();
+
+        $sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_simulation';
+        $sql.= ' SET note'.$suffix."='".$db->escape($note)."'";
+        $sql.= ' WHERE rowid='.$this->getId();
+
+        $resql = $db->query($sql);
+        if($resql) $db->commit();
+        else {
+            $db->rollback();
+            dol_print_error($db);
+            return -1;
+        }
     }
 }
 

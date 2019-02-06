@@ -1,6 +1,14 @@
 $(document).ready(function() {
 	$('select[name="opt_periodicite"]').bind('change', get_periode);
 	$('select[name="fk_type_contrat"]').bind('change', get_periode);
+	$('select[name="entity_partenaire"]').bind('change', function() {
+		let entity = $('input#entity');
+		if(entity.val() !== $(this).val()) {
+			entity.val($(this).val());
+		}
+
+		get_periode();
+	});
 	$('select[name="fk_type_contrat"]').bind('change', restrict_grand_compte);
 	$('input[name^="opt_"]').bind('click', get_grille);
 	$('select[name^="opt_"]').bind('change', get_grille);
@@ -34,12 +42,12 @@ $(document).ready(function() {
 		var today = new Date();
 		var diff_time = date_demarrage.getTime()-today.getTime();
 		var diff_jours = Math.ceil(diff_time/(1000*60*60*24));
-		if(diff_jours > 30 && diff_jours < 125) {
+		if(diff_jours > 30 && diff_jours < 210) {
 			$('#opt_calage').val(Math.floor(diff_jours/31)+'M');
 			$('#opt_calage_label').val(Math.floor(diff_jours/31)+'M');
-		} else if(diff_jours >= 125) {
-			$('#opt_calage').val('3M');
-			$('#opt_calage_label').val('3M');
+		} else if(diff_jours >= 210) {
+			$('#opt_calage').val('6M');
+			$('#opt_calage_label').val('6M');
 		}else {
 			$('#opt_calage').val('');
 			$('#opt_calage_label').val('');

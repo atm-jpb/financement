@@ -98,7 +98,7 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 
 	function getEnTeteByEntity(){
 		
-		$date = date('Ymd');
+		$date = date('ymd');
 		$entity = getEntity();
 		
 		switch ($entity) {
@@ -146,19 +146,19 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 				break;
 			case 12: //CAPEA
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
-				$nomFichier = "CPROMA0".$entity."IMMA".$date;
-				$refPartenaire = "CAPEAMA01";
+				$nomFichier = "CAPEMA0".$entity."IMMA".$date;
+				$refPartenaire = "CAPEMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 13: //BCMP
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
-				$nomFichier = "CPROMA0".$entity."IMMA".$date;
-				$refPartenaire = "BCMPMA01";
+				$nomFichier = "BUREMA0".$entity."IMMA".$date;
+				$refPartenaire = "BUREMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 14: //Perret
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
-				$nomFichier = "CPROMA0".$entity."IMMA".$date;
+				$nomFichier = "PERRMA0".$entity."IMMA".$date;
 				$refPartenaire = "PERRMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
