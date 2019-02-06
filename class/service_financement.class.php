@@ -28,24 +28,10 @@ dol_include_once('/financement/class/dossier_integrale.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
 
-if (!PH_TOUCH)
-{
-// TODO remove in futur the next 6 includes will be move in webservice.lixxbail.class.php
-dol_include_once('/financement/class/xmlseclibs/src/XMLSecEnc.php');
-dol_include_once('/financement/class/xmlseclibs/src/XMLSecurityDSig.php');
-dol_include_once('/financement/class/xmlseclibs/src/XMLSecurityKey.php');
-dol_include_once('/financement/class/wse-php/WSASoap.php');
-dol_include_once('/financement/class/wse-php/WSSESoap.php');
-dol_include_once('/financement/class/wse-php/WSSESoapServer.php');
-}
 
 dol_include_once('/financement/class/webservice/webservice.class.php');
-
-if (PH_TOUCH)
-{
-	dol_include_once('/financement/class/webservice/webservice.lixxbail.class.php');
-	dol_include_once('/financement/class/webservice/webservice.cmcic.class.php');
-}
+dol_include_once('/financement/class/webservice/webservice.lixxbail.class.php');
+dol_include_once('/financement/class/webservice/webservice.cmcic.class.php');
 dol_include_once('/financement/class/webservice/webservice.grenke.class.php');
 dol_include_once('/financement/class/webservice/webservice.bnp.class.php');
 
@@ -142,19 +128,11 @@ class ServiceFinancement {
 		// TODO à revoir, peut être qu'un test sur code client ou mieux encore sur numéro SIRET
 		if ($this->leaser->array_options['options_edi_leaser'] == 'LIXXBAIL')
 		{
-			if (PH_TOUCH) {
-				$ws = new WebServiceLixxbail($this->simulation, $this->simulationSuivi, $this->debug);
-			} else {
-				return $this->callLixxbail();
-			}
+			$ws = new WebServiceLixxbail($this->simulation, $this->simulationSuivi, $this->debug);
 		}
 		else if ($this->leaser->array_options['options_edi_leaser'] == 'CMCIC')
 		{
-			if (PH_TOUCH) {
-				$ws = new WebServiceCmcic($this->simulation, $this->simulationSuivi, $this->debug);
-			} else {
-				return $this->callCMCIC();
-			}
+			$ws = new WebServiceCmcic($this->simulation, $this->simulationSuivi, $this->debug);
 		}
 		else if ($this->leaser->array_options['options_edi_leaser'] == 'GRENKE')
 		{
@@ -901,99 +879,3 @@ class ServiceFinancement {
 	}
 	
 } // End Class
-
-if (!PH_TOUCH)
-{
-
-/**
- * TODO remove in futur and use the webservice.lixxbail.class.php instead
- * 
- * Becareful, this class is use only for callLixxbail
- */
-class MySoapClient extends SoapClient
-{
-	function __doRequest($request, $location, $saction, $version)
-	{
-		$doc = new DOMDocument('1.0');
-		$doc->loadXML($request);
-		
-		$doc->ref_ext = $this->ref_ext;
-		
-		$objWSSE = new WSSESoap($doc);
-		
-		/* timestamp expires after five minutes */
-		$objWSSE->addTimestamp(4000);
-		
-		/* create key object, set passphrase and load key */
-		$objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, array('type'=>'private'));
-		//$objKey->passphrase = 'My password.';
-		$objKey->loadKey('/etc/apache2/ssl/cert.key', TRUE);
-	
-		/* sign message */
-		$options = array('algorithm' => 'http://www.w3.org/2001/04/xmlenc#sha256');
-		$objWSSE->signAllHeaders = true; // Obligatoire car j'ajoute la balise "Calf_Header_GN" dans l'objet via ma méthode privée "locateSecurityHeader", du coup la librairie n'est pas utilisable pour les autres
-		$objWSSE->signSoapDoc($objKey, $options);
-		
-		/* add certificate */
-		$token = $objWSSE->addBinaryToken(file_get_contents('/etc/apache2/ssl/cert.prod.crt'));
-		$objWSSE->attachTokentoSig($token);
-		
-		// this DOES print the header
-		// echo $objWSSE->saveXML();
-		
-		/*echo '<pre>' . htmlspecialchars($objWSSE->saveXML(), ENT_QUOTES) . '</pre>';
-		exit;*/
-		
-		$this->realXML = $objWSSE->saveXML();
-		$this->realXML = str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $this->realXML);
-		
-		
-		return parent::__doRequest($this->realXML, $location, $saction, $version);
-	}
-}
-
-/**
- * TODO remove in futur and use the webservice.cmcic.class.php instead
- * Soap class for CMCIC
- */
-class MySoapCmCic extends SoapClient
-{
-	public $ServiceFinancement;
-	
-	function __doRequest($request, $location, $saction, $version)
-	{
-		global $conf;
-		
-		// TODO Username & Password en conf
-		$request = '
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://www.ge.com/capital/eef/france/extranet/service/wsdemande/document" xmlns:ns2="https://uat-www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl">
-	<SOAP-ENV:Header>
-		<ns2:Security>
-			<UsernameToken>
-				<Username>'.$conf->global->FINANCEMENT_CMCIC_USERNAME.'</Username>
-				<Password>'.$conf->global->FINANCEMENT_CMCIC_PASSWORD.'</Password>
-			</UsernameToken>
-		</ns2:Security>
-	</SOAP-ENV:Header>
-	<SOAP-ENV:Body>
-		'.$this->ServiceFinancement->getXmlForCmCic().'
-	</SOAP-ENV:Body>
-</SOAP-ENV:Envelope>';
-		
-		
-		
-		$this->realXML = $request;
-//		$this->realXML = str_replace(array('SOAP-ENV', 'ns1', 'ns2:'), array('soapenv', 'doc', ''), $this->realXML);
-//		$this->realXML = preg_replace('/ xmlns:ns2=".*"/', '', $this->realXML);
-		
-//		$this->realXML = str_replace('<soapenv:Body>', '<soapenv:Header/><soapenv:Body>', $this->realXML);
-/*		$this->realXML = str_replace('<?xml version="1.0" encoding="UTF-8"?>'."\n", '', $this->realXML);
-*/		
-		$this->realXML = str_replace('<ns1:B2B_CTR_REN_ADJ></ns1:B2B_CTR_REN_ADJ>', '<ns1:B2B_CTR_REN_ADJ/>', $this->realXML);
-		
-		return parent::__doRequest($this->realXML, $location, $saction, $version);
-	}
-}
-
-
-}
