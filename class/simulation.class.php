@@ -2077,6 +2077,8 @@ class TSimulationSuivi extends TObjetStd {
 		
 		// CM-CIC
 		parent::add_champs('b2b_nodef,b2b_noweb','type=chaine;');
+		// GRENKE
+		parent::add_champs('leaseRequestID','type=chaine;');
 		
 		parent::start();
 		parent::_init_vars();

@@ -35,6 +35,8 @@ abstract class WebService
 	/** @var Societe $leaser */
 	public $leaser;
 	
+	/** @var TPDOdb $PDOdb */
+	public $PDOdb;
 	
 	abstract public function run();
 	abstract public function getXml();
@@ -56,6 +58,8 @@ abstract class WebService
 		
 		$this->activate = !empty($conf->global->FINANCEMENT_WEBSERVICE_ACTIVATE) ? true : false;
 		$this->production = !empty($conf->global->FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD) ? true : false;
+		
+		$this->PDOdb = new TPDOdb;
 	}
 	
 	protected function printHeader()
