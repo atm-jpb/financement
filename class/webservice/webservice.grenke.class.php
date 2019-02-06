@@ -72,36 +72,36 @@ class WebServiceGrenke extends WebService
 			}
 
 			// TODO voir comment est l'objet de retour...
-			else if (!empty($response->leaseRequestId))
+			else if (!empty($response->addLeaseRequestWithLoginResult->leaseRequestId))
 			{
-				$this->message_soap_returned = $langs->trans($response->status);
+				$this->message_soap_returned = $langs->trans($response->addLeaseRequestWithLoginResult->status);
 				
 				// Si nous sommes sur un appel de addLeaseRequestWithLogin()
 				if (!$this->update_status)
 				{
-					// TODO besoin de sauvegarder 'leaseRequestID' dans notre objet '$this->simulationSuivi'
-//					$this->simulationSuivi->leaseRequestID = $response->leaseRequestId;
-//					$this->simulationSuivi->commentaire = $response->status;
+					// besoin de sauvegarder 'leaseRequestID' dans notre objet '$this->simulationSuivi'
+					$this->simulationSuivi->leaseRequestID = $response->addLeaseRequestWithLoginResult->leaseRequestId;
+					$this->simulationSuivi->commentaire = $response->addLeaseRequestWithLoginResult->status;
 				}
 				else
 				{
-//					switch ($response->status)
-//					{
-//						case 'pending':
-//							$this->simulationSuivi->statut = 'WAIT';
-//							break;
-//						case 'approved':
-//						case 'order':
-//						case 'contract':
-//							$this->simulationSuivi->statut = 'OK';
-//							break;
-//						case 'cancelled':
-//							$this->simulationSuivi->statut = 'KO';
-//							break;
-//						default:
-//							$this->simulationSuivi->statut = 'ERR'; // case unknown
-//							break;
-//					}
+					switch ($response->addLeaseRequestWithLoginResult->status)
+					{
+						case 'pending':
+							$this->simulationSuivi->statut = 'WAIT';
+							break;
+						case 'approved':
+						case 'order':
+						case 'contract':
+							$this->simulationSuivi->statut = 'OK';
+							break;
+						case 'cancelled':
+							$this->simulationSuivi->statut = 'KO';
+							break;
+						default:
+							$this->simulationSuivi->statut = 'ERR'; // case unknown
+							break;
+					}
 				}
 
 				$this->simulationSuivi->save($this->PDOdb);
