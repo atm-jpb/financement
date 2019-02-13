@@ -23,7 +23,7 @@
 	foreach($TidSimulations as $idSimulation){
 		//$cpt ++;
 		$simulation = new TSimulation;
-		$simulation->load($PDOdb, $db, $idSimulation);
+		$simulation->load($PDOdb, $idSimulation);
 		
 		//pre($simulation->dossiers_rachetes,true);//exit;
 		

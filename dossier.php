@@ -190,43 +190,28 @@
 				
 				break;
 			case 'generateXML':
+				dol_include_once('/financement/class/dossier_transfert_xml.class.php');
+
+                $fk_leaser = GETPOST('fk_leaser');
+
+                $dt = TFinDossierTransfertXML::create($fk_leaser);
+//                if($fk_leaser == 21382) {
+//                    $dt = new TFinTransfertCMCIC($fk_leaser);
+//                }
+//                else if($fk_leaser == 19483) {
+//                    $dt = new TFinTransfertLixxbail($fk_leaser);
+//                }
+				$filePath = $dt->transfertXML($PDOdb);
 				
-				$affaire = new TFin_affaire;
-				
-				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
-				$dirName = $affaire->genLixxbailXML($PDOdb, $TAffaires);
-				
-				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=".$conf->entity."&file=XML/Lixxbail/".$dirName.".xml",2));
+				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=".$conf->entity."&file=".$filePath,2));
 				
 				break;
 			
 			case 'generateXMLandupload':
 				
-				//TODO a mettre dans des variables donfigurable, voir dans la BDD pour les futurs envoi leaser
-				/*$host = "test.b2b.eurofactor.com";
-				$user = "cpro";
-				$directory = "";*/
-				
-				$affaire = new TFin_affaire;
-				
-				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
-				$filename = $affaire->genLixxbailXML($PDOdb, $TAffaires,true);
-				$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
-				
-				if($conf->entity > 1)
-					$dirname = DOL_DATA_ROOT.'/'.$conf->entity.'/financement/XML/Lixxbail/'.$filename.'.xml';
-				else
-					$dirname = DOL_DATA_ROOT.'/financement/XML/Lixxbail/'.$filename.'.xml';
-				
-				dol_mkdir($dirname);
-
-				//$affaire->uploadXMLOnLeaserServer($host,$user,$directory,$dirname,$filename.'.xml');
-//echo $dirname;exit;
-				if(BASE_TEST) {
-					exec('sh bash/lixxbailxml_test.sh '.$dirname);
-				} else {
-					exec('sh bash/lixxbailxml.sh '.$dirname);
-				}
+				dol_include_once('/financement/class/dossier_transfert_xml.class.php');
+                $dtx = TFinDossierTransfertXML::create($fk_leaser, true);
+				$filePath = $dtx->transfertXML($PDOdb);
 				
 				?>
 				<script language="javascript">
@@ -238,9 +223,9 @@
 				
 			case 'setnottransfer':
 				
-				$affaire = new TFin_affaire;
-				$TAffaires = $affaire->getAffairesForXML($PDOdb,GETPOST('fk_leaser'));
-				$affaire->resetAllDossiersInXML($PDOdb,$TAffaires);
+				dol_include_once('/financement/class/dossier_transfert_xml.class.php');
+				$dtx = TFinDossierTransfertXML::create($fk_leaser, true);
+				$dtx->resetAllDossiersInXML($PDOdb);
 				
 				?>
 				<script language="javascript">
@@ -417,7 +402,7 @@ function _liste(&$PDOdb, &$dossier) {
 	
 	//$sql.=" WHERE a.entity=".$conf->entity;
 	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])) $sql.=" WHERE a.entity = ".$conf->entity;
-	else $sql.=" WHERE a.entity IN(".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
+	else $sql.=" WHERE a.entity IN(".getEntity('fin_dossier', true).")";
 	
 	//Filtrage sur leaser et uniquement dossier avec "Bon pour transfert" = 1 (Oui)
 	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
@@ -539,9 +524,9 @@ function _liste(&$PDOdb, &$dossier) {
 		?>
 		<div class="tabsAction">
 				<a href="?action=exportXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Exporter</a>
-				<a href="?action=generateXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Générer le XML Lixxbail</a>
-				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Générer le XML Lixxbail et envoyer au Leaser</a>
-				<a href="?action=setnottransfer&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre tous les Dossiers non transférable</a>
+				<a href="?action=generateXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Télécharger le XML</a>
+				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Envoyer le XML</a>
+				<a href="?action=setnottransfer&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre les dossiers non transférables</a>
 		</div>
 		<?php
 	}
@@ -810,13 +795,15 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	else $mode_aff_fLeaser='view';
 	
 	$formRestricted->Set_typeaff( $mode_aff_fLeaser );
-	
+
 	$id_simu = _getIDSimuByReferenceDossierLeaser($PDOdb, $financementLeaser->fk_fin_dossier);
 	if(!empty($id_simu)) $link_simu = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$id_simu, 2).'" >'.$financementLeaser->reference.'</a>';
+    $referenceToShow = (empty($link_simu) || GETPOST('action') == 'edit') ? $formRestricted->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir') : $link_simu;
+    $referenceToShow.= $dossier->printOtherDossierLink();   // On ajoute le lien pour les autres dossiers s'ils existent
 	
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()
-			,'reference'=>(empty($link_simu) || GETPOST('action') == 'edit') ? $formRestricted->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir') : $link_simu
+			,'reference'=>$referenceToShow
 			,'montant'=>$formRestricted->texte('', 'leaser[montant]', $financementLeaser->montant, 10,255,'','','à saisir')
 			,'taux'=> $financementLeaser->taux
 			

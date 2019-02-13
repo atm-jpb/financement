@@ -188,7 +188,7 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 			$TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $simulation->get_table(), array('reference'=>$ref_simulation));
 			if (!empty($TId[0]))
 			{
-				$simulation->load($PDOdb, $db, $TId[0]);
+				$simulation->load($PDOdb, $TId[0]);
 
 				$found = false;
 				foreach ($simulation->TSimulationSuivi as &$simulationSuivi)
@@ -238,8 +238,8 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 						dol_syslog('2.3 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$langs->trans($ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 						
 
-						if ($statut == 'Status.APPROVED') $simulationSuivi->doAction($PDOdb, $simulation, 'accepter');
-						else if ($statut == 'Status.REJECTED') $simulationSuivi->doAction($PDOdb, $simulation, 'refuser');
+						if ($statut == 'Status.APPROVED' && $simulation->accord != 'OK') $simulationSuivi->doAction($PDOdb, $simulation, 'accepter');
+						else if ($statut == 'Status.REJECTED' && $simulation->accord != 'OK') $simulationSuivi->doAction($PDOdb, $simulation, 'refuser');
 						else $simulationSuivi->save($PDOdb);
 						
 						if (!empty($ResponseDemFinComplete['REP_AccordPDF_B2B']))

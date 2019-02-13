@@ -237,7 +237,42 @@ class TFin_dossier extends TObjetStd {
 		}
 		
 	}
-	
+
+    function isSimilarRefExists() {
+        global $db;
+        if(empty($this->financementLeaser->reference)) return false;
+
+        $sql = 'SELECT *';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_dossier_financement';
+        $sql.= " WHERE reference LIKE '".$this->financementLeaser->reference."%'";
+        $sql.= " AND type = 'LEASER'";
+        $sql.= ' AND fk_fin_dossier <> '.$this->id;
+        $sql.= " AND reference <> '' AND reference is not null";
+
+        $resql = $db->query($sql);
+        if($resql) {
+            if($obj = $db->fetch_object($resql)) return true;
+            return false;
+        }
+        else {
+            dol_print_error($db);
+            exit;
+        }
+    }
+
+    function printOtherDossierLink(&$ref = '') {
+        global $langs;
+        if(! $this->isSimilarRefExists()) return '';
+
+        if(empty($ref)) $ref = $this->financementLeaser->reference;
+
+        $out = ' <a href="'.$_SERVER['PHP_SELF'].'?TListTBS[list_llx_fin_dossier][search][refDosLea]='.$ref.'">';
+        $out.= '('.$langs->trans('OtherDossier').')';
+        $out.= '</a>';
+
+        return $out;
+    }
+
 	function checkRef(&$db) {
 		
 		if($this->nature_financement == 'INTERNE') {
@@ -857,8 +892,14 @@ class TFin_dossier extends TObjetStd {
 				else return $solde;
 			}
 			
+			
+			// Mini VR
+			if($solde < $this->financementLeaser->reste) {
+				$solde = $this->financementLeaser->reste;
+			}
+			
 			// Capé LRD
-			if($solde > $LRD_Leaser && $capeLRD) return $LRD_Leaser;
+			if($solde > $LRD_Leaser && $capeLRD) $solde = $LRD_Leaser;
 		}
 		else // INTERNE
 		{
@@ -900,7 +941,12 @@ class TFin_dossier extends TObjetStd {
 			}
 			
 			// Capé LRD
-			if($solde > $LRD && $capeLRD) return $LRD;
+			if($solde > $LRD && $capeLRD) $solde = $LRD;
+
+			// Mini VR
+			if($solde < $this->financement->reste) {
+				$solde = $this->financement->reste;
+			}
 		}
 
 		return $solde;
@@ -944,8 +990,13 @@ class TFin_dossier extends TObjetStd {
 				else return $LRD_Leaser;
 			}
 			
+			// Mini VR
+			if($solde < $this->financementLeaser->reste) {
+				$solde = $this->financementLeaser->reste;
+			}
+			
 			// Capé LRD
-			if($solde > $LRD_Leaser && $capeLRD) return $LRD_Leaser;
+			if($solde > $LRD_Leaser && $capeLRD) $solde = $LRD_Leaser;
 		}
 		else // INTERNE 
 		{
@@ -985,8 +1036,13 @@ class TFin_dossier extends TObjetStd {
 				}
 			}
 			
+			// Mini VR
+			if($solde < $this->financement->reste) {
+				$solde = $this->financement->reste;
+			}
+			
 			// Capé LRD
-			if($solde > $LRD && $capeLRD) return $LRD;
+			if($solde > $LRD && $capeLRD) $solde = $LRD;
 		}
 			
 		return $solde;
@@ -2653,8 +2709,8 @@ class TFin_financement extends TObjetStd {
 		return -$vpm;
 	}
 	
-	function valeur_actuelle($duree=0) {
-		if($duree==0) $duree = $this->duree_restante;
+	function valeur_actuelle($duree=-1) {
+		if($duree==-1) $duree = $this->duree_restante;
 		
 		//Cas spécifique Leaser = LOCAM
 		if($this->type == "LEASER" && $this->is_locam){

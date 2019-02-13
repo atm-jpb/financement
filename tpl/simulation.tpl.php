@@ -1,14 +1,11 @@
 <table width="100%"cellpadding="0" cellspacing="0">
 <tr>
 	
-[onshow;block=begin;when [view.type]=='simul']
 <td valign="top">
 	<div id="simulateur" style="width: 100%;">
 	<div style="float:right;"><a href="mailto:financement@cpro.fr?subject=Demande d'infos : [user.firstname] [user.lastname] - [client.siren] - [client.nom]">[view.pictoMail;strconv=no] Demande d'infos</a></div>
 		[simulation.titre_simul; strconv=no]
 	<br />
-	
-	<input type="hidden" name="entity_partenaire" id="entity_partenaire" value="[simulation.entity_partenaire; strconv=no]" />
 	
 	<table width="100%"  class="border">
 		<tr class="liste_titre">
@@ -19,7 +16,7 @@
 	</table>
 	
 	<br />
-	
+	[onshow;block=begin;when [view.type]=='simul']
 	<table class="border" width="100%">
 		<tr class="liste_titre">
 			<td colspan="4">Informations client</td>
@@ -71,10 +68,10 @@
 	<br />
 	[client.liste_dossier; strconv=no]
 	<br />
-		
+	[onshow;block=end]
 	</div>
 </td></tr>
-[onshow;block=end]
+
 <tr><td valign="top">
 	<div id="calculateur" style="width: 100%;">
 		[simulation.titre_calcul; strconv=no]
@@ -104,9 +101,14 @@
 		<tr>
 			<td>Mode de règlement</td>
 			<td>[simulation.opt_mode_reglement; strconv=no]</td>
-			<td></td>
-			<td></td>
-			
+			[onshow;block=begin;when [simulation.cristal_project]!=0]
+			<td>Référence Cristal</td>
+			<td>[simulation.cristal_project; strconv=no]</td>
+			[onshow;block=end]
+			[onshow;block=begin;when [simulation.cristal_project]==0]
+			<td>&nbsp;</td>
+			<td>&nbsp;</td>
+			[onshow;block=end]
 		</tr>
 		<tr>
 			<td><span class="fieldrequired">Type de matériel financé</span></td>
@@ -251,6 +253,8 @@
 </td>
 </tr>
 </table>
+</form>
+</div>
 
 [onshow;block=begin;when [view.mode]=='view']
 <div class="tabsAction">
@@ -279,5 +283,6 @@
 <script>
 	$(document).ready(function() {
 		$("#date_demarrage" ).datepicker( "option", "maxDate", "+6m");
+		$("#date_demarrage" ).datepicker( "option", "minDate", "-1m");
 	});
 </script>

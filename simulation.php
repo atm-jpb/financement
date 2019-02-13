@@ -106,7 +106,7 @@ if(!empty($_REQUEST['mode_search']) && $_REQUEST['mode_search'] == 'search_matri
 
 if(!empty($fk_soc)) {
 	$simulation->fk_soc = $fk_soc;
-	$simulation->load_annexe($ATMdb, $db);
+	$simulation->load_annexe($ATMdb);
 
 	// Si l'utilisateur n'a pas le droit d'accès à tous les tiers
 	if(!$user->rights->societe->client->voir) {
@@ -164,7 +164,7 @@ if(!empty($action)) {
 			break;
 		case 'calcul':
 		    
-			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
+			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $_REQUEST['id']);
 			
 			if(empty($simulation->modifs['montant']) && (float)$_REQUEST['montant'] !== $simulation->montant) $simulation->modifs['montant'] = $simulation->montant;
 			if(empty($simulation->modifs['echeance']) && (float)$_REQUEST['echeance'] !== $simulation->echeance) $simulation->modifs['echeance'] = $simulation->echeance;
@@ -205,15 +205,15 @@ if(!empty($action)) {
 			break;	
 		case 'edit'	:
 		
-			$simulation->load($ATMdb, $db, $_REQUEST['id']);
-			
+			$simulation->load($ATMdb, $_REQUEST['id']);
+			$simulation->set_values_from_cristal($_REQUEST);
 			_fiche($ATMdb, $simulation,'edit');
 			
 			break;
 			
 		case 'clone':
 		
-			$simulation->load($ATMdb, $db, $_REQUEST['id']);
+			$simulation->load($ATMdb, $_REQUEST['id']);
 			$simulation->accord = 'SS';
 			$simulation->save($ATMdb, $db, false);
 			$simulation->clone_simu();
@@ -226,7 +226,7 @@ if(!empty($action)) {
 		
 		case 'save_suivi':
 			
-			$simulation->load($ATMdb, $db, $_REQUEST['id']);
+			$simulation->load($ATMdb, $_REQUEST['id']);
 			if(!empty($_REQUEST['TSuivi'])) {
 				foreach($_REQUEST['TSuivi'] as $id_suivi => $TVal) {
 					if(!empty($simulation->TSimulationSuivi[$id_suivi])) {
@@ -248,7 +248,7 @@ if(!empty($action)) {
 // $ATMdb->beginTransaction();
 			
 			//pre($_REQUEST,true);
-			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $db, $_REQUEST['id']);
+			if(!empty($_REQUEST['id'])) $simulation->load($ATMdb, $_REQUEST['id']);
 			
 			$oldAccord = $simulation->accord;
 			$oldsimu = clone $simulation;
@@ -451,7 +451,7 @@ if(!empty($action)) {
 				
 				header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->getId()); exit;
 				
-				$simulation->load_annexe($ATMdb, $db);
+				$simulation->load_annexe($ATMdb);
 				
 				_fiche($ATMdb, $simulation,'view');
 				
@@ -462,7 +462,7 @@ if(!empty($action)) {
 		
 		case 'changeAccord':
 		    $newAccord = GETPOST('accord');
-		    $simulation->load($ATMdb, $db, $_REQUEST['id']);
+		    $simulation->load($ATMdb, $_REQUEST['id']);
 		    
 		    if ($newAccord == 'OK') $simulation->montant_accord = $simulation->montant_total_finance;
 
@@ -474,7 +474,7 @@ if(!empty($action)) {
 		    
 		case 'send_accord':
 			if(!empty($_REQUEST['id'])) {
-				$simulation->load($ATMdb, $db, $_REQUEST['id']);
+				$simulation->load($ATMdb, $_REQUEST['id']);
 				if($simulation->accord == 'OK') {
 					$simulation->send_mail_vendeur();
 				}
@@ -484,7 +484,7 @@ if(!empty($action)) {
 			break;
 		
 		case 'delete':
-			$simulation->load($ATMdb, $db, $_REQUEST['id']);
+			$simulation->load($ATMdb, $_REQUEST['id']);
 			//$ATMdb->db->debug=true;
 			$simulation->delete_accord_history($ATMdb);
 			$simulation->delete($ATMdb);
@@ -497,7 +497,7 @@ if(!empty($action)) {
 			
 			break;
 		case 'trywebservice':
-			$simulation->load($ATMdb, $db, GETPOST('id'));
+			$simulation->load($ATMdb, GETPOST('id'));
 			$id_suivi = GETPOST('id_suivi');
 			$simulation->TSimulationSuivi[$id_suivi]->debug = true;
 			$simulation->TSimulationSuivi[$id_suivi]->doAction($ATMdb, $simulation, 'demander');
@@ -511,7 +511,7 @@ if(!empty($action)) {
 			$id_suivi = GETPOST('id_suivi');
 			if($id_suivi){
 				
-				$simulation->load($ATMdb, $db, GETPOST('id'));
+				$simulation->load($ATMdb, GETPOST('id'));
 				foreach ($simulation->TSimulationSuivi as $k => $simulationSuivi) {
 				    if ($simulationSuivi->rowid == $id_suivi){
 				        $id_suivi = $k;
@@ -545,7 +545,7 @@ if(!empty($action)) {
 	
 }
 elseif(isset($_REQUEST['id'])) {
-    $simulation->load($ATMdb, $db, $_REQUEST['id']);
+    $simulation->load($ATMdb, $_REQUEST['id']);
 	_fiche($ATMdb, $simulation, 'view');
 }
 else {
@@ -662,7 +662,7 @@ function _liste(&$ATMdb, &$simulation) {
 		$THide[] = 'Client';
 	}
 	
-	$sql.= ' AND s.entity IN('.getEntity('fin_simulation', TFinancementTools::user_courant_est_admin_financement()).')';
+	$sql.= ' AND s.entity IN('.getEntity('fin_simulation', true).')';
 	$sql.= ' GROUP BY s.rowid';
 	
 	if(!$user->rights->financement->allsimul->suivi_leaser){
@@ -795,7 +795,10 @@ function _liste(&$ATMdb, &$simulation) {
 	$form->end();
 	
 	if(isset($_REQUEST['socid'])) {
-		?><div class="tabsAction"><a href="?action=new&fk_soc=<?php echo $_REQUEST['socid'] ?>" class="butAction">Nouvelle simulation</a></div><?php
+        $href = '?action=new&fk_soc='.$_REQUEST['socid'];
+        foreach($_POST as $k => $v) $href.= '&'.$k.'='.$v;
+
+		?><div class="tabsAction"><a href="<?php echo $href; ?>" class="butAction">Nouvelle simulation</a></div><?php
 	}
 	
 	llxFooter();
@@ -856,7 +859,7 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
 function _fiche(&$ATMdb, &$simulation, $mode) {
 	global $db, $langs, $user, $conf, $action;
 	
-	TFinancementTools::check_user_rights($simulation);
+    $result = restrictedArea($user, 'financement', $simulation->getID(), 'fin_simulation&fin_simulation', '', 'fk_soc', 'rowid');
 	
 	// Si simulation déjà préco ou demande faite, le "montant_accord" est renseigné, le vendeur ne peux modifier que certains champs
 	if($mode == 'edit') {
@@ -880,6 +883,9 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$extrajs = array('/financement/js/financement.js', '/financement/js/dossier.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
+	
+	$head = simulation_prepare_head($simulation);
+	dol_fiche_head($head, 'card', $langs->trans("Simulation"),0,'simulation');
 
 	$affaire = new TFin_affaire;
 	$financement = new TFin_financement;
@@ -888,14 +894,20 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	$form=new TFormCore($_SERVER['PHP_SELF'].'#calculateur','formSimulation','POST'); //,FALSE,'onsubmit="return soumettreUneSeuleFois(this);"'
 	$form->Set_typeaff($mode);
 	//$form->Set_typeaff('edit');
+	$fk_simu_cristal = GETPOST('fk_simu_cristal');
+	$fk_projet_cristal = GETPOST('fk_projet_cristal');
+
+	$ent = empty($simulation->entity) ? $conf->entity : $simulation->entity;
 
 	echo $form->hidden('id', $simulation->getId());
 	echo $form->hidden('action', 'save');
 	echo $form->hidden('fk_soc', $simulation->fk_soc);
 	echo $form->hidden('fk_user_author', !empty($simulation->fk_user_author) ? $simulation->fk_user_author : $user->id);
-	echo $form->hidden('entity', $conf->entity);
+	echo $form->hidden('entity', $ent);
 	echo $form->hidden('idLeaser', FIN_LEASER_DEFAULT);
 	echo $form->hidden('mode', $mode);
+	echo $form->hidden('fk_simu_cristal', empty($fk_simu_cristal) ? $simulation->fk_simu_cristal : $fk_simu_cristal);
+	echo $form->hidden('fk_projet_cristal', empty($fk_projet_cristal) ? $simulation->fk_projet_cristal : $fk_projet_cristal);
 
 	$TBS=new TTemplateTBS();
 	$ATMdb=new TPDOdb;
@@ -969,16 +981,16 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$TEntityName = TFinancementTools::build_array_entities();
 	if(TFinancementTools::user_courant_est_admin_financement() && empty($conf->global->FINANCEMENT_DISABLE_SELECT_ENTITY)){
-		$entity_field = $form->combo('', 'entity', $TEntityName, $entity);
+		$entity_field = $form->combo('', 'entity_partenaire', $TEntityName, $entity);   // select entities
 	} else {
-		$entity_field = $TEntityName[$entity].$form->hidden('entity', $entity);
+		$entity_field = $TEntityName[$entity].$form->hidden('entity_partenaire', $entity);  // NAME<input type="hidden" .../>
 	}
 	
 	$id_dossier = $simulation->fk_fin_dossier;
 	if(empty($id_dossier)) $link_dossier = $simulation->numero_accord;
 	else $link_dossier = '<a href="'.dol_buildpath('/financement/dossier.php?id='.$id_dossier, 2).'" >'.$simulation->numero_accord.'</a>';
 	
-	$TOptCalageLabel = array('' => '', '1M'=>'1 mois', '2M'=>'2 mois', '3M'=>'3 mois');
+	$TOptCalageLabel = array('' => '', '1M'=>'1 mois', '2M'=>'2 mois', '3M'=>'3 mois', '4M'=>'4 mois', '5M'=>'5 mois');
 	
 	/**
 	 * Calcul à la volé pour connaitre le coef en fonction de la périodicité
@@ -1010,8 +1022,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		
 		,'id'=>$simulation->rowid
 		,'entity'=>$entity_field
-		,'entity_partenaire'=>$simulation->entity
 		,'ref'=>$simulation->reference
+		,'cristal_project'=>$simulation->fk_projet_cristal
 		,'doc'=>($simulation->getId() > 0) ? $formfile->getDocumentsLink('financement', $filename, $filedir, 1) : ''
 		,'fk_soc'=>$simulation->fk_soc
 
@@ -1150,8 +1162,6 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		array(),
 		array('charset'=>'utf-8')
 	);
-	
-	echo $form->end_form();
 	// End of page
 	
 	if($user->rights->financement->allsimul->suivi_leaser){
@@ -1160,8 +1170,14 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$refus_moins_6mois = $simulation->hasOtherSimulationRefused($ATMdb);
 	if($refus_moins_6mois) {
-		setEventMessage('Ce client a eu une demande de fi refusée il y a moins de 6 mois', 'warnings');
+		setEventMessage('Ce client a eu une demande de fi refusée il y a moins de 6 mois', 'errors');
 	}
+	
+	$simu_moins_30jours = $simulation->hasOtherSimulation($ATMdb);
+	if($simu_moins_30jours) {
+		setEventMessage('Ce client a déjà une demande de fi de moins de 30 jours', 'warnings');
+	}
+	
 	
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
@@ -1205,7 +1221,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 	
 	//pre($simulation,true);
 	
-	global $langs,$conf, $db, $bc;
+	global $langs,$conf, $db, $bc, $user;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 
 	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', e.rowid as 'entityDossier', a.contrat as 'Type contrat'";
@@ -1222,7 +1238,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire_commercial ac ON ac.fk_fin_affaire = a.rowid";
 	//$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user u ON ac.fk_user = u.rowid";
 	//$sql.= " WHERE a.entity = ".$conf->entity;
-	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).')';
+	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', true).')';
 	//$sql.= " AND a.fk_soc = ".$simulation->fk_soc;
 	$sql.= " AND (a.fk_soc = ".$simulation->fk_soc;
 	if(!empty($simulation->societe->idprof1) && $search_by_siren) {
@@ -1554,7 +1570,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			,'messageNothing'=>"Il n'y a aucun dossier à afficher"
 			,'order_down'=>img_picto('','1downarrow.png', '', 0)
 			,'order_up'=>img_picto('','1uparrow.png', '', 0)
-			,'display_montant' => (in_array($conf->entity,array(6,12,13,14,15))) ? 0 : 1
+			,'display_montant' => (! empty($user->rights->financement->admin->write)) ? 1 : 0
 			,'display_retraitcopie' => $display_retrait_copie
 		)
 	));

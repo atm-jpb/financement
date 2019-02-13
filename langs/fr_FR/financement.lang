@@ -1,6 +1,7 @@
 # GLOBAL
 Financement=Financement
 ListOfDossierFinancement=Dossiers de financement
+OtherDossier = autres dossiers
 
 #WARNING
 CareAboutExportMayBeTakeLongTime=Attention l'export peut prendre du temps, %s factures doivent être vérifiées
@@ -299,3 +300,4 @@ ListMessageNothingToShow=Aucune donnée à afficher
 FinCA_Client=CA Client
 FinCA_Leaser=HA Leaser
 FinRecurrent=Récurrence
+NoteLabel=La Mine
