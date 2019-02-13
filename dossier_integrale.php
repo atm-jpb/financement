@@ -1028,7 +1028,10 @@ function setBilledVol(&$tab){
 
 function _addAvenantIntegrale(&$dossier) {
 	
-	global $db, $user;
+	global $db, $user, $conf, $mysoc;
+
+	$old_conf = $conf;
+	switchEntity($dossier->entity);
 	
 	$p = new Propal($db);
 	$p->socid = GETPOST('fk_soc');
@@ -1069,7 +1072,8 @@ function _addAvenantIntegrale(&$dossier) {
 									,'date_fin_periode'=>GETPOST('date_fin_periode')
 									,'client'=>_getInfosClient($p->socid)
 								  ));
-		
+
+		switchEntity($old_conf->entity);
 		return $file_path;
 		
 	}

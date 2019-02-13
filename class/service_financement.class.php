@@ -416,15 +416,12 @@ class ServiceFinancement {
 	
 	private function getXmlForLixxbail()
 	{
-		global $db;
+		global $db, $conf, $mysoc;
 		
 		// Récupération configuration de l'entité de la simulation
-		$confentity = new Conf();
-		$confentity->entity = $this->simulation->entity;
-		$confentity->setValues($db);
-		
-		$mysocentity=new Societe($db);
-		$mysocentity->setMysoc($confentity);
+        $old_conf = $conf;
+        $old_mysoc = $mysoc;
+        switchEntity($this->simulation->entity);
 		
 		// Need pour avoir la fonction de calcul de la périodicité
 		$f = new TFin_financement();
@@ -448,8 +445,8 @@ class ServiceFinancement {
 		$mt_vr = $this->simulation->mt_vr;
 		
 		// SIRET / NIC
-		$sirenCPRO = substr($mysocentity->idprof2,0,9);
-		$nicCPRO = substr($mysocentity->idprof2, -5, 5);
+		$sirenCPRO = substr($mysoc->idprof2,0,9);
+		$nicCPRO = substr($mysoc->idprof2, -5, 5);
 		$sirenCLIENT = substr($this->simulation->societe->idprof2, 0, 9);
 		$nicCLIENT = strlen($this->simulation->societe->idprof2) == 14 ? substr($this->simulation->societe->idprof2, -5, 5) : '';
 		$nicCLIENT = ''; // On envoie vide car depuis correction des SIRET si on envoie pas le bon établissement, LIXXBAIL renvoie une erreur
@@ -463,7 +460,7 @@ class ServiceFinancement {
 			            <v1:PARTENAIRE>
 			               <v1:SIREN_PARTENAIRE>'.$sirenCPRO.'</v1:SIREN_PARTENAIRE>
 			               <v1:NIC_PARTENAIRE>'.$nicCPRO.'</v1:NIC_PARTENAIRE>
-			               <v1:COMMERCIAL_EMAIL>'.$mysocentity->email.'</v1:COMMERCIAL_EMAIL>
+			               <v1:COMMERCIAL_EMAIL>'.$mysoc->email.'</v1:COMMERCIAL_EMAIL>
 			               <v1:REF_EXT>'.$this->simulation->reference.'</v1:REF_EXT>
 			            </v1:PARTENAIRE>
 			            <v1:BIEN>
@@ -511,6 +508,8 @@ class ServiceFinancement {
 			         </v1:Request>
 				</v1:DemandeCreationLeasingGN>
 		';
+
+		switchEntity($old_conf->entity);
 	
 		return $xml;
 	}
