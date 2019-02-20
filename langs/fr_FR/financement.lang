@@ -53,7 +53,8 @@ FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI=Règles de calcul à prendre en compte 
 # EDI
 FINANCEMENT_SHOW_RECETTE_BUTTON=Affiche un bouton dans la colonne "Actions" des suivis leaser pour forcer l'appel au webservice (si l'utilisateur courant est admin et entité 0)
 FINANCEMENT_WEBSERVICE_ACTIVATE=Activer les appels webservice
-FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD=Mode production (si non active les appels ce feront sur les URLs de recette
+FINANCEMENT_MODE_PROD=Mode production
+FINANCEMENT_MODE_PROD_TOOLTIP=Si non active les appels webservices se feront sur les URLs de recette
 FINANCEMENT_ENDPOINT_CALF_RECETTE=URL de <b>recette</b> pour CAL&f (endpoint)
 FINANCEMENT_ENDPOINT_CALF_PROD=URL de <b>production</b> CAL&f (endpoint)
 FINANCEMENT_WSDL_CMCIC_RECETTE=WSDL de <b>recette</b> de CM-CIC
