@@ -35,12 +35,12 @@ $nb_record = $db->num_rows($resql);
 if($debug) {
     print '<span>Nb record : ' . $nb_record . '</span><br />';
     print '<pre>--------------------</pre>';
-    print '<span>Conf "FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN" : ' . $conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN . '</span>';
+    print '<span>Conf "FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN" : ' . $conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN . '</span><br />';
 }
 
 while($obj = $db->fetch_object($resql)) {
     if($debug) {
-        print '<br />------------------------------------------------------------------------------------------------------------------------';
+        print '<pre>---------------------------------------------------------------------------------------------------------</pre>';
         var_dump($obj->rowid);
     }
     $simu = new TSimulation;
@@ -61,9 +61,9 @@ while($obj = $db->fetch_object($resql)) {
         if($suivi->date_demande < 0) $suivi->date_demande = null;   // DateTime with this string '0999-11-30 00:00:00' will provide a negative timestamp
 
         if(empty($suivi->date_demande)) {
-            if(isEDI($suivi) && ($k == 0 || $simu->TSimulationSuivi[$k-1]->date_demande <= (time() + $conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN*60))) {
+            if(isEDI($suivi) && ($k == 0 || $simu->TSimulationSuivi[$k-1]->date_demande + $conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN*60 <= time() && $simu->TSimulationSuivi[$k-1]->statut != 'ERR')) {
                 if($debug) var_dump('doActionDemander !!');
-//                $suivi->doActionDemander($PDOdb, $simu);
+                $suivi->doActionDemander($PDOdb, $simu);
                 $nb_commit++;
             }
             else {
@@ -89,6 +89,7 @@ function isEDI(TSimulationSuivi $suivi) {
 }
 if($debug) {
     ?>
+    <hr>
     <table>
         <tr>
             <th colspan="2">Recap</th>
@@ -102,14 +103,11 @@ if($debug) {
             <td><?php echo $nb_rollback; ?></td>
         </tr>
         <tr>
-            <td>Nb Action manuelle demandée</td>
+            <td>Nb Action manuelle demandee</td>
             <td><?php echo $nb_ignored; ?></td>
         </tr>
     </table>
     <br/>
-    <!--<span>Nb doActionDemander : --><?php //echo $nb_commit; ?><!--</span><br />-->
-    <!--<span>Nb Erreur : --><?php //echo $nb_rollback; ?><!--</span><br />-->
-    <!--<span>Nb Action manuelle demandée : --><?php //echo $nb_ignored; ?><!--</span>-->
     <?php
     $b = microtime(true);
     print 'Execution time : ' . ($b - $a) . ' seconds';
