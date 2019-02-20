@@ -450,7 +450,8 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	// - avenant impossible si cout unitaire loyer à 0
 	$avenantOK = true;
 	$facIntegral = array_pop($TIntegrale);
-	if(empty($facIntegral->cout_unit_noir_loyer) || (empty($facIntegral->cout_unit_coul_loyer) && !empty($facIntegral->vol_coul_engage))) $avenantOK = false;
+	// 2019.02.20 : Avenant ok même si cout unitaire loyer à 0
+	//if(empty($facIntegral->cout_unit_noir_loyer) || (empty($facIntegral->cout_unit_coul_loyer) && !empty($facIntegral->vol_coul_engage))) $avenantOK = false;
 	if(round($facIntegral->cout_unit_noir,5) !=
 		round($facIntegral->cout_unit_noir_loyer
 		+ $facIntegral->cout_unit_noir_mach
