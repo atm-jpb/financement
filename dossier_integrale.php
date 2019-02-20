@@ -1,6 +1,7 @@
 <?php
 
 require('config.php');
+dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/dossier_integrale.class.php');
