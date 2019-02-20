@@ -1,7 +1,7 @@
 <?php
 $a = microtime(true);
 
-require_once('../config.php');
+require_once('../../config.php');
 dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/grille.class.php');
