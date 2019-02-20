@@ -709,7 +709,7 @@ function _get_facture_mat($fk_source,$withlink=true){
 }
 
 function _fiche(&$PDOdb, &$dossier, $mode) {
-	global $user,$db,$conf;
+	global $user,$db,$conf, $langs;
 	
 	TFinancementTools::check_user_rights($dossier);
 	
@@ -755,8 +755,13 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	
 	$extrajs = array('/financement/js/dossier.js');
 	llxHeader('','Dossier','','','','',$extrajs);
+
+    $head = dossier_prepare_head($dossier);
+    $img_path = dol_buildpath('/financement/img/object_financeico.png', 2);
+    dol_fiche_head($head, 'card', $langs->trans("Dossier"),1, $img_path, 1);
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formAff','POST');
+	print '<div class="tabBar">';
 	$form->Set_typeaff($mode);
 	
 	echo $form->hidden('id', $dossier->rowid);
