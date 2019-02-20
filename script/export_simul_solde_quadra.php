@@ -20,6 +20,7 @@ $user->getrights();
 dol_include_once('/categories/class/categorie.class.php');
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/dossier.class.php');
+dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
 
 $PDOdb = new TPDOdb();
@@ -124,8 +125,8 @@ function get_date_et_solde(&$PDOdb, &$simu, $idDossier) {
 	global $db, $TLeaserCat, $TLeaserName;
 	
 	$d = new TFin_dossier();
-	$d->load($PDOdb, $idDossier, false, false);
-	$d->load_financement($PDOdb);
+	$d->load($PDOdb, $idDossier, false, true);
+	$d->load_affaire($PDOdb);
 	
 	$echeance = $d->_get_num_echeance_from_date($simu->date_simul);
 	
@@ -158,10 +159,10 @@ function get_date_et_solde(&$PDOdb, &$simu, $idDossier) {
 	}
 	
 	if($sameLeaser || $refus) {
-		$solde = $d->getSolde($PDOdb, 'SRCPRO', $echeance + 1);
+		$solde = $d->getSolde($PDOdb, 'SRBANK', $echeance + 1);
 		$typesolde = 'R';
 	} else {
-		$solde = $d->getSolde($PDOdb, 'SNRCPRO', $echeance + 1);
+		$solde = $d->getSolde($PDOdb, 'SNRBANK', $echeance + 1);
 		$typesolde = 'NR';
 	}
 
