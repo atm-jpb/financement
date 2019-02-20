@@ -667,3 +667,17 @@ function simulation_prepare_head(TSimulation $object)
 
     return $head;
 }
+
+function switchEntity($target) {
+    global $db, $conf, $mysoc;
+
+    if($conf->entity != $target) {
+        // Récupération configuration de l'entité de la simulation
+        $confentity = &$conf;
+        $confentity->entity = $target;
+        $confentity->setValues($db);
+
+        $mysocentity = &$mysoc;
+        $mysocentity->setMysoc($confentity);
+    }
+}

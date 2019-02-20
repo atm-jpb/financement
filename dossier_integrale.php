@@ -269,6 +269,8 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		$TIntegrale[$integrale->date_periode]->TIds = array(0 => $integrale->getId());
 	}
 
+    $old_entity = $conf->entity;
+    switchEntity($dossier->entity);
 	$facture->fetchObjectLinked('', 'propal', $facture->id, 'facture');
 	
 	if(!empty($facture->linkedObjects['propal'])) {
@@ -278,12 +280,13 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 			
 			$links = $p->getNomUrl(1);
 			if($p->fin_validite >= strtotime(date('Y-m-d'))) { // Affichage du PDF si encore valide
-				$links.= $formfile->getDocumentsLink($p->element, $filename, $filedir, $p->entity);
+				$links.= $formfile->getDocumentsLink($p->element, $filename, $filedir, $conf->entity);
 			}
 			$links.= "<br>";
 			$TIntegrale[$integrale->date_periode]->propal .= $links;
 		}
 	}
+    switchEntity($old_entity);
 	
 	return $TIntegrale;
 	
@@ -1028,7 +1031,10 @@ function setBilledVol(&$tab){
 
 function _addAvenantIntegrale(&$dossier) {
 	
-	global $db, $user;
+	global $db, $user, $conf, $mysoc;
+
+	$old_conf = $conf;
+	switchEntity($dossier->entity);
 	
 	$p = new Propal($db);
 	$p->socid = GETPOST('fk_soc');
@@ -1069,7 +1075,8 @@ function _addAvenantIntegrale(&$dossier) {
 									,'date_fin_periode'=>GETPOST('date_fin_periode')
 									,'client'=>_getInfosClient($p->socid)
 								  ));
-		
+
+		switchEntity($old_conf->entity);
 		return $file_path;
 		
 	}
