@@ -4,7 +4,7 @@ class WebServiceGrenke extends WebService
 {
 	/** @var bool $update_status */
 	public $update_status;
-	
+
 	public function __construct(&$simulation, &$simulationSuivi, $debug = false, $update_status=false)
 	{
 		parent::__construct($simulation, $simulationSuivi, $debug);
@@ -51,7 +51,7 @@ class WebServiceGrenke extends WebService
 			/** @var LeaseRequestStatus $response */
 			$string_xml_body = $this->getXml();
 			$soap_var_body = new SoapVar($string_xml_body, XSD_ANYXML, 'http://www.w3.org/2001/XMLSchema', null, null);
-			
+
 			if ($this->update_status) $response = $this->soapClient->getLeaseRequestStatusWithLogin($soap_var_body);
 			else $response = $this->soapClient->addLeaseRequestWithLogin($soap_var_body);
 			
@@ -67,22 +67,21 @@ class WebServiceGrenke extends WebService
 			
 			if (get_class($response) == 'SoapFault')
 			{
-				$this->message_soap_returned = $response->getMessage();
+				if (!empty($this->simulationSuivi->commentaire)) $this->simulationSuivi->commentaire.= "\n";
+				$this->simulationSuivi->commentaire.= $response->getMessage();
 				return false;
 			}
 
-			// TODO voir comment est l'objet de retour...
+			// Envoie d'une demande
 			else if (!empty($response->addLeaseRequestWithLoginResult->leaseRequestId))
 			{
-				$this->message_soap_returned = $langs->trans($response->addLeaseRequestWithLoginResult->status);
 				// besoin de sauvegarder 'leaseRequestID' dans notre objet '$this->simulationSuivi'
 				$this->simulationSuivi->leaseRequestID = $response->addLeaseRequestWithLoginResult->leaseRequestId;
-				$this->simulationSuivi->commentaire = $response->addLeaseRequestWithLoginResult->status;
-				
-				$this->simulationSuivi->save($this->PDOdb);
-				
+				$this->simulationSuivi->commentaire = $langs->trans($response->addLeaseRequestWithLoginResult->status);
+
 				return true;
 			}
+			// MAJ du statut
 			else if (!empty($response->getLeaseRequestStatusWithLoginResult->leaseRequestId))
 			{
 				switch ($response->getLeaseRequestStatusWithLoginResult->status)
@@ -102,20 +101,23 @@ class WebServiceGrenke extends WebService
 						$this->simulationSuivi->statut = 'ERR'; // case unknown
 						break;
 				}
-				
+
+				$this->simulationSuivi->commentaire.= $langs->trans($response->getLeaseRequestStatusWithLoginResult->status);
+
 				$this->simulationSuivi->save($this->PDOdb);
 				
 				return true;
 			}
 			else
 			{
-				$this->message_soap_returned = $langs->trans('ServiceFinancementWrongReturn');
+				if (!empty($this->simulationSuivi->commentaire)) $this->simulationSuivi->commentaire.= "\n";
+				$this->simulationSuivi->commentaire.= $langs->trans('ServiceFinancementWrongReturn');
 				return false;
 			}
 			
 		} catch (SoapFault $e) {
 			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_GRENKE');
-			$this->printTrace($e); // exit fait dans la méthode
+			parent::caughtError($e);
 		}
 		
 		return false;

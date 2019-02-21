@@ -44,19 +44,21 @@ class WebServiceCmcic extends WebService
 			
 			if (!empty($response->ResponseDemFin))
 			{
-				$this->message_soap_returned = $langs->trans($response->ResponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_MSGRET);
+				$this->simulationSuivi->commentaire = $langs->trans($response->ResponseDemFin->ResponseDemFinShort->Rep_Statut_B2B->B2B_MSGRET);
 				return true;
 			}
 			else
 			{
-				$this->message_soap_returned = $langs->trans('ServiceFinancementWrongReturn');
+				$this->simulationSuivi->commentaire = $langs->trans('ServiceFinancementWrongReturn');
 				return false;
 			}
 			
 		} catch (SoapFault $e) {
 			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_CMCIC');
-			$this->printTrace($e); // exit fait dans la méthode
+			parent::caughtError($e);
 		}
+
+		return false;
 	}
 	
 	/**

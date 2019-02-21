@@ -22,17 +22,8 @@ class WebServiceLixxbail extends WebService
 		// Production ou Test
 		if ($this->production) $this->endpoint = !empty($conf->global->FINANCEMENT_ENDPOINT_CALF_PROD) ? $conf->global->FINANCEMENT_ENDPOINT_CALF_PROD : 'https://archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1';
 		else $this->endpoint = !empty($conf->global->FINANCEMENT_ENDPOINT_CALF_RECETTE) ? $conf->global->FINANCEMENT_ENDPOINT_CALF_RECETTE : 'https://hom-archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1';
-		
-		
+
 		if ($this->debug) var_dump('DEBUG :: Function callLixxbail(): Production = '.json_encode($this->production).' ; WSDL = '.$this->wsdl.' ; endpoint = '.$this->endpoint);
-		
-		// TODO normalement ce if sert à rien => à delete
-		if (!empty($this->TError))
-		{
-			if ($this->debug) var_dump('DEBUG :: error catch =v', $this->TError);
-			return false;
-		}
-		
 		
 		$options = array(
 			'exceptions'=>0
@@ -45,7 +36,6 @@ class WebServiceLixxbail extends WebService
 		  	,'user_agent' => 'MySoapClient'
 		  	
 		);
-			
 			
 		try {
 			$this->soapClient = new MySoapClient($this->wsdl, $options);
@@ -64,22 +54,16 @@ class WebServiceLixxbail extends WebService
 			}
 
 			$this->TMsg[] = $langs->trans('webservice_financement_msg_scoring_send', $this->leaser->name);
-			
-			// TODO récupérer le message exact de la réponse pour le mettre dans ->message_soap_returned
-			// afin de savoir si la demande a bien été prise en compte
-			// use $response
-			// nécessite de serialiser le retour et de faire un dolibarr_set_const pour connaitre maintenant le format exact du retour car l'url de test n'est plus opérationnelle
-//global $db;
-//dolibarr_set_const($db, 'SERVICE_FINANCEMENT_LIXXBAIL_RESPONSE', serialize($obj_response), 'chaine', 0, '', $conf->entity);
-			
-			$this->message_soap_returned = $langs->trans('ServiceFinancementCallDone');
-//			$this->message_soap_returned = $langs->trans('ServiceFinancementWrongReturn');
+
+			$this->simulationSuivi->commentaire = $langs->trans('ServiceFinancementCallDone');
 			
 			return true;
 		} catch (SoapFault $e) {
 			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_CALF');
-			$this->printTrace($e); // exit fait dans la méthode
+			parent::caughtError($e);
 		}
+
+		return false;
 	}
 	
 	public function getXml()

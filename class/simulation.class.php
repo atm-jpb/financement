@@ -2250,13 +2250,13 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	//Exécute une action et met en oeuvre les règles de gestion en conséquence
-	function doAction(&$PDOdb,&$simulation,$action){
-		
+	function doAction(&$PDOdb,&$simulation,$action, $debug=false)
+	{
 		//if($simulation->accord != "OK"){
-		
+
 			switch ($action) {
 				case 'demander':
-					$this->doActionDemander($PDOdb,$simulation);
+					$this->doActionDemander($PDOdb,$simulation, $debug);
 					break;
 				case 'accepter':
 					$this->doActionAccepter($PDOdb,$simulation);
@@ -2278,9 +2278,9 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	//Effectuer l'action de faire la demande de financement au leaser
-	function doActionDemander(&$PDOdb,&$simulation){
+	function doActionDemander(&$PDOdb,&$simulation, $debug=false){
 		global $db, $conf;
-		
+
 	    // Leaser ACECOM = demande BNP mandaté et BNP cession + Lixxbail mandaté et Lixxbail cession
 		if($this->fk_leaser == 18305){
 			// 20113 = BNP Mandatée // 3382 = BNP Cession (Location simple) // 19483 = Lixxbail Mandatée // 6065 = Lixxbail Cession (Location simple)
@@ -2303,7 +2303,7 @@ class TSimulationSuivi extends TObjetStd {
 		if(!empty($this->leaser->array_options['options_edi_leaser'])
 			&& empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON)
 			&& (empty($this->statut))){ // On n'envoie le scoring par EDI que la 1ère fois
-			$this->_sendDemandeAuto($PDOdb);
+			$this->_sendDemandeAuto($PDOdb, $debug);
 		} else {
 			$this->statut_demande = 1;
 			$this->date_demande = time();
@@ -2434,7 +2434,7 @@ class TSimulationSuivi extends TObjetStd {
 		}
 	}
 	
-	function _sendDemandeAuto(&$PDOdb){
+	function _sendDemandeAuto(&$PDOdb, $debug=false){
 		global $db,$langs;
 		
 		$this->simulation->societe = new Societe($db);
@@ -2466,7 +2466,7 @@ class TSimulationSuivi extends TObjetStd {
 			case 'CMCIC':
 			case 'GRENKE':
 			case 'BNP':
-				$res=$this->_createDemandeServiceFinancement();
+				$res=$this->_createDemandeServiceFinancement($debug);
 				break;
 			default:
 				// techniquement il est impossible d'arriver dans ce cas
@@ -2487,14 +2487,14 @@ class TSimulationSuivi extends TObjetStd {
 		$this->save($PDOdb);
 	}
 	
-	function _createDemandeServiceFinancement(){
+	function _createDemandeServiceFinancement($debug=false){
 		dol_include_once('/financement/class/service_financement.class.php');
-		$service = new ServiceFinancement($this->simulation, $this);
+		$service = new ServiceFinancement($this->simulation, $this, $debug);
 //		$service->debug = $this->debug;
 		// La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active) 
 		$res = $service->call();
 		
-		$this->commentaire = $service->message_soap_returned;
+//		$this->commentaire = $service->message_soap_returned;
 		if (!$res)
 		{
 			$this->statut = 'ERR';
