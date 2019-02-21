@@ -9,6 +9,7 @@ dol_include_once('/financement/class/grille.class.php');
 if(empty($conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN)) exit('empty conf !');    // No need to run this script if empty conf
 
 $PDOdb = new TPDOdb;
+$fk_simu = GETPOST('fk_simu', 'int');
 $limit = GETPOST('limit', 'int');
 $force_rollback = GETPOST('force_rollback', 'int');
 $debug = array_key_exists('debug', $_GET);
@@ -39,6 +40,7 @@ if($debug) {
 }
 
 while($obj = $db->fetch_object($resql)) {
+    if($debug && ! empty($fk_simu) && $obj->rowid != $fk_simu) continue;
     if($debug) {
         print '<pre>---------------------------------------------------------------------------------------------------------</pre>';
         var_dump($obj->rowid);
