@@ -374,9 +374,11 @@ class WebServiceBnp extends WebService
 	
 	function _getBNPDataTabForConsultation()
 	{
+		global $db;
+
 		$num_accord_leaser = $this->simulationSuivi->numero_accord_leaser;
 		
-		$entity = new DaoMulticompany($this->db);
+		$entity = new DaoMulticompany($db);
 		$entity->fetch($this->simulationSuivi->entity);
 		
 		$TData = array();
