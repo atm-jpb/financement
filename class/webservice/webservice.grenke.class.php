@@ -84,6 +84,8 @@ class WebServiceGrenke extends WebService
 			// MAJ du statut
 			else if (!empty($response->getLeaseRequestStatusWithLoginResult->leaseRequestId))
 			{
+				$this->simulationSuivi->commentaire.= $langs->trans($response->getLeaseRequestStatusWithLoginResult->status);
+
 				switch ($response->getLeaseRequestStatusWithLoginResult->status)
 				{
 					case 'pending':
@@ -93,6 +95,10 @@ class WebServiceGrenke extends WebService
 					case 'order':
 					case 'contract':
 						$this->simulationSuivi->statut = 'OK';
+
+						// Get ref and PDF
+						$this->getRefAndDoc();
+
 						break;
 					case 'cancelled':
 						$this->simulationSuivi->statut = 'KO';
@@ -101,8 +107,6 @@ class WebServiceGrenke extends WebService
 						$this->simulationSuivi->statut = 'ERR'; // case unknown
 						break;
 				}
-
-				$this->simulationSuivi->commentaire.= $langs->trans($response->getLeaseRequestStatusWithLoginResult->status);
 
 				$this->simulationSuivi->save($this->PDOdb);
 				
@@ -226,6 +230,78 @@ class WebServiceGrenke extends WebService
 		}
 		
 		return $xml;
+	}
+
+	private function getRefAndDoc()
+	{
+		global $db,$conf;
+
+		$options = array(
+			'exceptions'=>0
+			,'location' => $this->wsdl
+			,'trace' => 1
+			,'soap_version' => SOAP_1_1
+			,'connection_timeout' => 20
+			,'cache_wsdl' => WSDL_CACHE_NONE
+			,'user_agent' => 'MySoapGrenke'
+			,'keep_alive' => false
+			,'stream_context' => stream_context_create(array('ssl' => array(
+					'verify_peer' => false,
+					'verify_peer_name' => false,
+					'allow_self_signed' => true
+				)))
+		);
+
+		$entity = new DaoMulticompany($db);
+		$entity->fetch($this->simulation->entity);
+
+		$xml = '
+			<getDocumentWithLogin xmlns="http://grenkeleasing.com/gfs.api.server.extern">
+				<user>
+					<login>'.$conf->global->FINANCEMENT_GRENKE_USERNAME.'</login>
+					<partner>'.$entity->array_options['options_code_partner_grenke'].'</partner>
+					<password>'.$conf->global->FINANCEMENT_GRENKE_PASSWORD.'</password>
+				</user>
+				<leaseRequestID>'.$this->simulationSuivi->leaseRequestID.'</leaseRequestID>
+			</getDocumentWithLogin>
+		';
+
+		try {
+			$this->soapClient = new MySoapGrenke($this->wsdl, $options);
+
+			dol_syslog("WEBSERVICE GET DOC GRENKE : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_GRENKE');
+
+			$soap_var_body = new SoapVar($xml, XSD_ANYXML, 'http://www.w3.org/2001/XMLSchema', null, null);
+			$response = $this->soapClient->getDocumentWithLogin($soap_var_body);
+
+			if (!empty($response->getDocumentWithLoginResult))
+			{
+				$this->simulationSuivi->numero_accord_leaser = $response->getDocumentWithLoginResult->proposalID;
+
+				$dir = $this->simulation->getFilePath();
+				$subdir = '/'.$this->simulationSuivi->leaser->array_options['options_edi_leaser'];
+				dol_mkdir($dir.$subdir);
+				if (file_exists($dir.$subdir))
+				{
+					$pdf_decoded = base64_decode($response->getDocumentWithLoginResult->documentExtension);
+					$pdf = fopen($dir.$subdir.'/'.dol_sanitizeFileName($this->simulation->reference).'_grenke.pdf', 'w');
+					fwrite($pdf, $pdf_decoded);
+					fclose($pdf);
+				}
+
+				return true;
+			}
+			else
+			{
+				$this->simulationSuivi->commentaire.= "\nErreur sur la récupération de la référence et du PDF";
+			}
+
+		} catch (SoapFault $e) {
+			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_GRENKE');
+			parent::caughtError($e);
+		}
+
+		return false;
 	}
 }
 
