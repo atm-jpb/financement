@@ -216,7 +216,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	$sqlwhere = " AND d.nature_financement = 'INTERNE'";
 	$sqlwhere.= " AND d.montant_solde = 0";
 	$sqlwhere.= " AND d.date_solde < '1970-00-00 00:00:00' ";
-	//$sqlwhere.= " AND d.entity IN (".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
+	//$sqlwhere.= " AND d.entity IN (".getEntity('fin_dossier', true).")";
 	$sqlwhere.= " AND d.entity = ".$conf->entity." ";
 	$sqlwhere.= " AND d.reference NOT LIKE '%old%' ";
 	$sqlwhere.= " AND d.reference NOT LIKE '%adj%' ";
@@ -618,4 +618,106 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	//exit;
 	
 	return $TDossiersError;
+}
+
+
+/**
+ * Return array of tabs to used on pages for simulation cards.
+ *
+ * @param 	TSimulation	$object		Object simulation shown
+ * @return 	array				    Array of tabs
+ */
+function simulation_prepare_head(TSimulation $object)
+{
+    global $db, $langs, $conf, $user;
+    $h = 0;
+    $head = array();
+
+    $id = $object->getId();
+
+    $url = dol_buildpath('/financement/simulation.php', 2);
+    if(empty($id)) $url .= '?action=new';
+    else $url .= '?id='.$id;
+    $url .= '&mainmenu=financement';
+
+    $head[$h][0] = $url;
+    $head[$h][1] = $langs->trans("Card");
+    $head[$h][2] = 'card';
+    $h++;
+
+    if ($user->rights->financement->admin && ! empty($id))
+    {
+		$nbNote = 0;
+        if(!empty($object->note_private)) $nbNote++;
+		if(!empty($object->note_public)) $nbNote++;
+        $head[$h][0] = dol_buildpath('/financement/simulation_note.php', 2).'?id='.$id.'&mainmenu=financement';
+        $head[$h][1] = $langs->trans("NoteLabel");
+		if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
+        $head[$h][2] = 'note';
+        $h++;
+    }
+
+    // Show more tabs from modules
+    // Entries must be declared in modules descriptor with line
+    // $this->tabs = array('entity:+tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to add new tab
+    // $this->tabs = array('entity:-tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to remove a tab
+    complete_head_from_modules($conf,$langs,$object,$head,$h,'simulation');
+
+    complete_head_from_modules($conf,$langs,$object,$head,$h,'simulation','remove');
+
+    return $head;
+}
+
+/**
+ * Return array of tabs to used on pages for dossier cards.
+ *
+ * @param 	TFin_dossier	$object		Object dossier shown
+ * @return 	array				        Array of tabs
+ */
+function dossier_prepare_head(TFin_dossier $object)
+{
+    global $db, $langs, $conf, $user;
+    $h = 0;
+    $head = array();
+
+    $id = $object->getId();
+
+    $head[$h][0] = dol_buildpath('/financement/dossier.php', 2).'?id='.$id.'&mainmenu=financement';;
+    $head[$h][1] = $langs->trans("Card");
+    $head[$h][2] = 'card';
+    $h++;
+
+    $head[$h][0] = dol_buildpath('/financement/dossier_integrale.php', 2).'?id='.$id.'&mainmenu=financement';
+    $head[$h][1] = $langs->trans("SuiviIntegral");
+    $head[$h][2] = 'integrale';
+    $h++;
+
+    $head[$h][0] = FIN_THEREFORE_DOSSIER_URL.$object->financement->referance;
+    $head[$h][1] = $langs->trans("Therefore");
+    $head[$h][2] = 'therefore';
+    $h++;
+
+    // Show more tabs from modules
+    // Entries must be declared in modules descriptor with line
+    // $this->tabs = array('entity:+tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to add new tab
+    // $this->tabs = array('entity:-tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to remove a tab
+    complete_head_from_modules($conf,$langs,$object,$head,$h,'dossier');
+
+    complete_head_from_modules($conf,$langs,$object,$head,$h,'dossier','remove');
+
+    return $head;
+}
+
+function switchEntity($target) {
+    global $db, $conf, $mysoc;
+
+    if($conf->entity != $target) {
+        // Récupération configuration de l'entité de la simulation
+        $confentity = &$conf;
+        $confentity->entity = $target;
+        $confentity->setValues($db);
+
+        $mysocentity = &$mysoc;
+        $mysocentity->setMysoc($confentity);
+    }
 }

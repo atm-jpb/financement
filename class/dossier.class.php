@@ -833,8 +833,14 @@ class TFin_dossier extends TObjetStd {
 				else return $solde;
 			}
 			
+			
+			// Mini VR
+			if($solde < $this->financementLeaser->reste) {
+				$solde = $this->financementLeaser->reste;
+			}
+			
 			// Capé LRD
-			if($solde > $LRD_Leaser && $capeLRD) return $LRD_Leaser;
+			if($solde > $LRD_Leaser && $capeLRD) $solde = $LRD_Leaser;
 		}
 		else // INTERNE
 		{
@@ -876,7 +882,12 @@ class TFin_dossier extends TObjetStd {
 			}
 			
 			// Capé LRD
-			if($solde > $LRD && $capeLRD) return $LRD;
+			if($solde > $LRD && $capeLRD) $solde = $LRD;
+
+			// Mini VR
+			if($solde < $this->financement->reste) {
+				$solde = $this->financement->reste;
+			}
 		}
 
 		return $solde;
@@ -920,8 +931,13 @@ class TFin_dossier extends TObjetStd {
 				else return $LRD_Leaser;
 			}
 			
+			// Mini VR
+			if($solde < $this->financementLeaser->reste) {
+				$solde = $this->financementLeaser->reste;
+			}
+			
 			// Capé LRD
-			if($solde > $LRD_Leaser && $capeLRD) return $LRD_Leaser;
+			if($solde > $LRD_Leaser && $capeLRD) $solde = $LRD_Leaser;
 		}
 		else // INTERNE 
 		{
@@ -961,8 +977,13 @@ class TFin_dossier extends TObjetStd {
 				}
 			}
 			
+			// Mini VR
+			if($solde < $this->financement->reste) {
+				$solde = $this->financement->reste;
+			}
+			
 			// Capé LRD
-			if($solde > $LRD && $capeLRD) return $LRD;
+			if($solde > $LRD && $capeLRD) $solde = $LRD;
 		}
 			
 		return $solde;
@@ -2594,8 +2615,8 @@ class TFin_financement extends TObjetStd {
 		return -$vpm;
 	}
 	
-	function valeur_actuelle($duree=0) {
-		if($duree==0) $duree = $this->duree_restante;
+	function valeur_actuelle($duree=-1) {
+		if($duree==-1) $duree = $this->duree_restante;
 		
 		//Cas spécifique Leaser = LOCAM
 		if($this->type == "LEASER" && $this->is_locam){

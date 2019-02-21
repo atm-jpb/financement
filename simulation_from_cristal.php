@@ -56,8 +56,12 @@ if(empty($simu->rowid)) {
             $soc->address = GETPOST('address');
             $soc->zip = GETPOST('cp');
             $soc->town = GETPOST('ville');
+			$soc->country_id = 1;
+			$soc->idprof1 = substr($siret,0,9);
             $soc->idprof2 = $siret;
             $soc->entity = $conf->entity;
+			$soc->commercial_id = $user->id;
+			$soc->client = 2;
 
             $fk_soc = $soc->create($user);
             if($fk_soc <= 0) {

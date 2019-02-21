@@ -70,7 +70,7 @@
 	
 	define('BASE_TEST', 0);
 	
-	define('BNP_TEST',empty($conf->global->FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD));
+	define('BNP_TEST',empty($conf->global->FINANCEMENT_MODE_PROD));
 	define('BNP_WSDL_URL_PROD','https://leaseoffers.leasingsolutions.bnpparibas.fr:4494/ExtranetEuroWS/services/demandeDeFinancementService/demandeDeFinancementWSDLv1.wsdl');
 	define('BNP_WSDL_URL_TEST','https://leaseoffersu.leasingsolutions.bnpparibas.fr:4444/ExtranetEuroWS/services/demandeDeFinancementService/demandeDeFinancementWSDLv1.wsdl');
 	
