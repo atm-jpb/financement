@@ -675,7 +675,7 @@ class TSimulation extends TObjetStd {
 				$ligne['object'] = $simulationSuivi;
 				$ligne['show_renta_percent'] = $formDolibarr->textwithpicto(price($simulationSuivi->renta_percent), implode('<br />', $simulationSuivi->calcul_detail),1,'help','',0,3);
 				$ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png',1).'" />' : '' ;
-				$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande') : '' ;
+				$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande', 'd/m/Y H:i:s') : '' ;
 				$img = $simulationSuivi->statut;
 				if(!empty($simulationSuivi->date_selection)) $img = 'super_ok';
 				$ligne['resultat'] = ($simulationSuivi->statut) ? '<img title="'.$simulationSuivi->TStatut[$simulationSuivi->statut].'" src="'.dol_buildpath('/financement/img/'.$img.'.png',1).'" />' : '';
