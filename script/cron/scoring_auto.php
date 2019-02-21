@@ -17,6 +17,8 @@ $limit = GETPOST('limit', 'int');
 $force_rollback = GETPOST('force_rollback', 'int');
 $debug = array_key_exists('debug', $_GET);
 
+$langs->load('financement@financement');
+
 $sql = 'SELECT s.rowid';
 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation s';
 $sql.= " WHERE s.accord = 'WAIT'";    // Toutes les simulations "En étude"
