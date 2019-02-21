@@ -73,8 +73,8 @@ SimulationSuiviInfoWebDemande=Demande faite (%s - %s)
 
 pending=En attente
 approved=Approuvée
-order=Commander
-contract=Contracter
+order=Commandée
+contract=Contractée
 cancelled=Annulée
 
 # SIMULATIONS
