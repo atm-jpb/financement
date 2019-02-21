@@ -721,7 +721,7 @@ $var=true;
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
-print '<td>'.$form->textwithpicto($langs->trans("FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN"), $langs->trans("FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN_TOOLTIP")).'</td>';
+print '<td>'.$langs->trans("FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="600">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
