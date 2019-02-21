@@ -71,6 +71,12 @@ FINANCEMENT_GRENKE_PASSWORD=GRENKE paramètre password
 
 SimulationSuiviInfoWebDemande=Demande faite (%s - %s)
 
+pending=En attente
+approved=Approuvée
+order=Commandée
+contract=Contractée
+cancelled=Annulée
+
 # SIMULATIONS
 Simulations=Simulations
 Calculator=Calculateur

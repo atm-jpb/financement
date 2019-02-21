@@ -121,7 +121,7 @@ else if ($type == 'grenke')
 
 // -------------------- END OF YOUR CODE --------------------
 
-
+print '--- End'.$eol;
 $db->close();	// Close $db database opened handler
 
 exit;

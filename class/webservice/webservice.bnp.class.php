@@ -82,30 +82,29 @@ class WebServiceBnp extends WebService
 			if ($this->update_status)
 			{
 				$this->traiteBNPReponseSuivisDemande($response);
+				return true;
 			}
 			else
 			{
 				if (!empty($response->numeroDemandeProvisoire))
 				{
 					$this->simulationSuivi->numero_accord_leaser = $response->numeroDemandeProvisoire;
-					$this->simulationSuivi->save($this->PDOdb);
-
-					$this->message_soap_returned = $langs->trans('ServiceFinancementCallDone');
+					$this->simulationSuivi->commentaire = $langs->trans('ServiceFinancementCallDone');
 
 					return true;
 				}
 				else
 				{
-					$this->message_soap_returned = $langs->trans('ServiceFinancementWrongReturn');
+					$this->simulationSuivi->commentaire = $langs->trans('ServiceFinancementWrongReturn');
 
 					return false;
 				}
 			}
 			
 		} catch (SoapFault $e) {
-			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_GRENKE');
-			//$this->printTrace($e); // exit fait dans la méthode
-			
+			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_BNP');
+			if ($this->debug) $this->printTrace($e); // exit fait dans la méthode
+
 			$errorLabel = '';
 			if (!empty($e->detail->retourErreur->erreur))
 			{
@@ -132,12 +131,11 @@ class WebServiceBnp extends WebService
 				}
 			}
 
-			$this->message_soap_returned = $errorLabel;
-			
-			return false;
+			if (!empty($this->simulationSuivi->commentaire)) $this->simulationSuivi->commentaire.= "\n";
+			$this->simulationSuivi->commentaire = $errorLabel;
 		}
-		
-//		exit('FIN');
+
+		return false;
 	}
 	
 	public function getXml()
@@ -376,9 +374,11 @@ class WebServiceBnp extends WebService
 	
 	function _getBNPDataTabForConsultation()
 	{
+		global $db;
+
 		$num_accord_leaser = $this->simulationSuivi->numero_accord_leaser;
 		
-		$entity = new DaoMulticompany($this->db);
+		$entity = new DaoMulticompany($db);
 		$entity->fetch($this->simulationSuivi->entity);
 		
 		$TData = array();

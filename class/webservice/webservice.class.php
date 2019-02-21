@@ -62,18 +62,6 @@ abstract class WebService
 		$this->PDOdb = new TPDOdb;
 	}
 	
-	protected function printHeader()
-	{
-		header("Content-type: text/html; charset=utf8");
-		print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">'."\n";
-		echo '<html>'."\n";
-		echo '<head>';
-		echo '<title>WebService Test: callTest</title>';
-		echo '</head>'."\n";
-		
-		echo '<body>'."\n";
-	}
-	
 	protected function printDebugSoapCall($response)
 	{
 		// on affiche la requete et la reponse
@@ -130,6 +118,16 @@ abstract class WebService
 
 		echo ($e->__toString());
 		exit;
+	}
+
+	protected function caughtError(SoapFault $e)
+	{
+		if ($this->debug) $this->printTrace($e); // exit fait dans la méthode
+		else
+		{
+			if (!empty($this->simulationSuivi->commentaire)) $this->simulationSuivi->commentaire.= "\n";
+			$this->simulationSuivi->commentaire.= $e->getMessage();
+		}
 	}
 	
 }
