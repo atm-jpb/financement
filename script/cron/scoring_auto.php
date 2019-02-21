@@ -1,8 +1,10 @@
 #!/usr/bin/php
 <?php
 $a = microtime(true);
+$path=dirname(__FILE__).'/';
 
-require_once('../../config.php');
+define('INC_FROM_CRON_SCRIPT', true);
+require_once($path.'../../config.php');
 dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/grille.class.php');
