@@ -63,8 +63,8 @@ while($obj = $db->fetch_object($resql)) {
     }
 
     if($debug) print '<pre>Nb suivi : '.count($simu->TSimulationSuivi).'</pre>';
-
-    foreach($simu->TSimulationSuivi as $k => $suivi) {
+	$TSuivi = array_values($simu->TSimulationSuivi);
+    foreach($TSuivi as $k => $suivi) {
         if($suivi->date_demande < 0) $suivi->date_demande = null;   // DateTime with this string '0999-11-30 00:00:00' will provide a negative timestamp
 
         if(empty($suivi->date_demande)) {
