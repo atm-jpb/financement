@@ -49,6 +49,7 @@ FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY=Répartition affaires. Ex : "012:3;", les a
 SimulationMontantPrestationObligatoire=Montant prestation obligatoire sur les simulations
 FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE=Écart autorisé de modification du montant sur simulation
 FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI=Règles de calcul à prendre en compte pour l'aiguillage du suivi
+FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN=Enchaîner les appels EDI automatiques toutes les X minutes
 
 # EDI
 FINANCEMENT_SHOW_RECETTE_BUTTON=Affiche un bouton dans la colonne "Actions" des suivis leaser pour forcer l'appel au webservice (si l'utilisateur courant est admin et entité 0)
