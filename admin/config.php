@@ -568,8 +568,8 @@ print '</form>';
 */
 
 print '</table>';
-print '<br />';
 
+print '<br />';
 print_titre($langs->trans("WebService"));
 
 print '<table class="noborder" width="100%">';
@@ -622,8 +622,12 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
-print '<tr '.$bc[$var].'><td>';
-print '</td></tr>';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td></td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600"></td>';
+print '</tr>';
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
@@ -703,34 +707,72 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
-print '<tr '.$bc[$var].'><td>';
-print '</td></tr>';
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td></td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600"></td>';
+print '</tr>';
 
-print '</table>';
-print '<br />';
-
-print_fiche_titre($langs->trans("EDI"), '', '');
-
-print '<table class="noborder" width="100%">';
-print '<tr class="liste_titre">';
-print '<td>'.$langs->trans("Parameter").'</td>';
-print '<td width="80">&nbsp;</td>';
-print '<td align="center">'.$langs->trans("Value").'</td>';
-print "</tr>\n";
-$var=true;
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN").'</td>';
+print '<td>'.$langs->trans("FINANCEMENT_WSDL_GRENKE_RECETTE").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="600">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set_FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN">';
-print '<input type="number" name="FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN" value="'.$conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN.'" min="0" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_WSDL_GRENKE_RECETTE">';
+print '<input type="text" name="FINANCEMENT_WSDL_GRENKE_RECETTE" value="'.$conf->global->FINANCEMENT_WSDL_GRENKE_RECETTE.'" size="60" placeholder="https://uatleasingapifr.grenke.net/mainservice.asmx?WSDL" />';
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_WSDL_GRENKE_PROD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_WSDL_GRENKE_PROD">';
+print '<input type="text" name="FINANCEMENT_WSDL_GRENKE_PROD" value="'.$conf->global->FINANCEMENT_WSDL_GRENKE_PROD.'" size="60" placeholder="https://TODO.wsdl" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_GRENKE_USERNAME").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_GRENKE_USERNAME">';
+print '<input type="text" name="FINANCEMENT_GRENKE_USERNAME" value="'.$conf->global->FINANCEMENT_GRENKE_USERNAME.'" size="30" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_GRENKE_PASSWORD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_GRENKE_PASSWORD">';
+print '<input type="password" name="FINANCEMENT_GRENKE_PASSWORD" value="'.$conf->global->FINANCEMENT_GRENKE_PASSWORD.'" size="30" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+print '<tr '.$bc[$var].'><td>';
+print '</td></tr>';
+
+
+print '</table>';
+
 
 dol_htmloutput_mesg($mesg);
 

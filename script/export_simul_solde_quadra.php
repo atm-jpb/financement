@@ -97,6 +97,8 @@ function generate_csv_simul_solde(&$PDOdb, $entities, $filename='') {
 					$suffix = '_m1';
 				}
 				list($date, $solde, $typesolde, $leaser) = get_date_et_solde($PDOdb, $simu, $idDossier);
+				if(!empty($d['date_fin_periode_client'.$suffix])) $date = $d['date_fin_periode_client'.$suffix];
+				
 				$data = array(
 					$simu->reference . '-' . $d['num_contrat_leaser']	// Clé unique pour eux
 					,$simu->reference									// Ref simulation
