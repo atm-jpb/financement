@@ -102,6 +102,10 @@ class WebServiceGrenke extends WebService
 						break;
 					case 'cancelled':
 						$this->simulationSuivi->statut = 'KO';
+
+						// Get ref and PDF
+						$this->getRefAndDoc();
+
 						break;
 					default:
 						$this->simulationSuivi->statut = 'ERR'; // case unknown
