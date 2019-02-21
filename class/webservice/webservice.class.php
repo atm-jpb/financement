@@ -57,7 +57,7 @@ abstract class WebService
 		$this->debug = $debug;
 		
 		$this->activate = !empty($conf->global->FINANCEMENT_WEBSERVICE_ACTIVATE) ? true : false;
-		$this->production = !empty($conf->global->FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD) ? true : false;
+		$this->production = !empty($conf->global->FINANCEMENT_MODE_PROD) ? true : false;
 		
 		$this->PDOdb = new TPDOdb;
 	}
