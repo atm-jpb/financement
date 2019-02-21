@@ -1621,12 +1621,6 @@ class TSimulation extends TObjetStd {
 			$i++;
 		}
 		
-		// Lancement de la demande automatique via EDI pour le premier leaser de la liste
-		if(!empty($suiviAutoLaunch) && empty($this->no_auto_edi) && $suiviAutoLaunch->statut_demande == 0
-			&& in_array($suiviAutoLaunch->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP','CMCIC'))) {
-			$suiviAutoLaunch->doAction($PDOdb, $this, 'demander');
-		}
-		
 		// On remet la conf d'origine
         switchEntity($oldconf->entity);
 	}
