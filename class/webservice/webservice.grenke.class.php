@@ -287,7 +287,7 @@ class WebServiceGrenke extends WebService
 				dol_mkdir($dir.$subdir);
 				if (file_exists($dir.$subdir))
 				{
-					$pdf_decoded = base64_decode($response->getDocumentWithLoginResult->documentExtension);
+					$pdf_decoded = $response->getDocumentWithLoginResult->data;
 					$pdf = fopen($dir.$subdir.'/'.dol_sanitizeFileName($this->simulation->reference).'_grenke.pdf', 'w');
 					fwrite($pdf, $pdf_decoded);
 					fclose($pdf);
