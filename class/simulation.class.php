@@ -2346,6 +2346,8 @@ class TSimulationSuivi extends TObjetStd {
             $simulation->type_financement = null;
             $simulation->save($PDOdb, $db);
         }
+
+        $this->accordAuto($PDOdb, $simulation);
 	}
 	
 	//Effectue l'action de passer au statut refusé la demande de financement leaser
@@ -2765,5 +2767,24 @@ class TSimulationSuivi extends TObjetStd {
 		
 		return $TSuiviDemande;
 	}
+
+	function accordAuto(TPDOdb $PDOdb, TSimulation $simu) {
+	    $isAccordAutoAllowed = $this->checkAccordAutoConstraint($simu);
+
+	    if($isAccordAutoAllowed) {
+	        $this->doActionSelectionner($PDOdb, $simu);
+        }
+    }
+
+    private function checkAccordAutoConstraint(TSimulation $simu) {
+	    global $conf;
+
+	    return ! empty($conf->global->FINANCEMENT_ACTIVATE_ACCORD_AUTO)                     // Active
+            && $simu->montant_total_finance < $conf->global->FINANCEMENT_SIMUL_MAX_AMOUNT   // Montant max
+            && empty($simu->commentaire)                                                    // Pas de commentaire
+            && empty($simu->opt_adjonction)                                                 // Adjonction pas coché
+            && ! empty($simu->opt_no_case_to_settle)                                        // Aucun solde selectionné
+            && ! empty($this->numero_accord_leaser);                                        // Numéro accord leaser renseigné
+    }
 }
 
