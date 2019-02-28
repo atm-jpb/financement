@@ -75,7 +75,7 @@ while($obj = $db->fetch_object($resql)) {
                 $suivi->doActionDemander($PDOdb, $simulation);
                 $nb_commit++;
             }
-            else if(! isEDI($suivi) && $suivi->fk_leaser == 18495 && $k == 0 && empty($simulation->commentaire)) {
+            else if(! isEDI($suivi) && $suivi->fk_leaser == 18495 && $k == 0) {
                 if($debug) var_dump('Qui a demandé une LOC PURE ?!');
                 $suivi->doActionDemander($PDOdb, $simulation);
                 $suivi->doActionAccepter($PDOdb, $simulation);
