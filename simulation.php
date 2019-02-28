@@ -1092,6 +1092,11 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 		$mode = 'edit';
 		$form->Set_typeaff($mode);
 		$simuArray['montant'] = $form->texte('', 'montant', $simulation->montant, 10).(!empty($simulation->modifs['montant']) ? ' (Ancienne valeur : '.$simulation->modifs['montant'].')' : '');
+		$simuArray['montant_rachete'] = $form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10);
+		$simuArray['montant_decompte_copies_sup'] = $form->texteRO('', 'montant_decompte_copies_sup', $simulation->montant_decompte_copies_sup, 10);
+		$simuArray['montant_rachat_final'] = $form->texteRO('', 'montant_rachat_final', $simulation->montant_rachat_final, 10);
+		$simuArray['montant_rachete_concurrence'] = $form->texte('', 'montant_rachete_concurrence', $simulation->montant_rachete_concurrence, 10);
+		
 		$simuArray['echeance'] = $form->texte('', 'echeance', $simulation->echeance, 10).(!empty($simulation->modifs['echeance']) ? ' (Ancienne valeur : '.$simulation->modifs['echeance'].')' : '');
 		$simuArray['montant_presta_trim'] = $form->texte('', 'montant_presta_trim', $simulation->montant_presta_trim, 10).(!empty($simulation->modifs['montant_presta_trim']) ? ' (Ancienne valeur : '.$simulation->modifs['montant_presta_trim'].')' : '');
 		$simuArray['type_materiel'] = $form->texte('','type_materiel', $simulation->type_materiel, 50).(!empty($simulation->modifs['type_materiel']) ? ' (Ancienne valeur : '.$simulation->modifs['type_materiel'].')' : '');
