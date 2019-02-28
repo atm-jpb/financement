@@ -431,19 +431,21 @@ class WebServiceBnp extends WebService
 			$this->simulationSuivi->statut = $TCodeStatut[$suiviDemande->etat->codeStatutDemande];
 			$this->simulationSuivi->commentaire = $suiviDemande->etat->libelleStatutDemande;
 			
-			if (!empty($suiviDemande->numeroDemandeDefinitif)) $this->simulationSuivi->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
+			if (!empty($suiviDemande->numeroDemandeDefinitif)) {
+				$this->simulationSuivi->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
 			
-			switch ($this->simulationSuivi->statut) {
-				case 'OK':
-					$this->simulationSuivi->coeff_leaser = ($suiviDemande->financement->montantLoyerPrincial / $suiviDemande->financement->montantFinance) * 100;
-					if ($simulation->accord != 'OK') $this->simulationSuivi->doActionAccepter($this->PDOdb,$simulation);
-					break;
-				case 'KO':
-					if ($simulation->accord != 'OK') $this->simulationSuivi->doActionRefuser($this->PDOdb,$simulation);
-					break;
-				default:
-					$this->simulationSuivi->save($this->PDOdb);
-					break;
+				switch ($this->simulationSuivi->statut) {
+					case 'OK':
+						$this->simulationSuivi->coeff_leaser = ($suiviDemande->financement->montantLoyerPrincial / $suiviDemande->financement->montantFinance) * 100;
+						if ($simulation->accord != 'OK') $this->simulationSuivi->doActionAccepter($this->PDOdb,$simulation);
+						break;
+					case 'KO':
+						if ($simulation->accord != 'KO') $this->simulationSuivi->doActionRefuser($this->PDOdb,$simulation);
+						break;
+					default:
+						$this->simulationSuivi->save($this->PDOdb);
+						break;
+				}
 			}
 		}
 	}
