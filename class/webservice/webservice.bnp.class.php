@@ -428,10 +428,9 @@ class WebServiceBnp extends WebService
 		
 		if ($suiviDemande->numeroDemandeProvisoire == $this->simulationSuivi->numero_accord_leaser || $suiviDemande->numeroDemandeDefinitif == $this->simulationSuivi->numero_accord_leaser)
 		{
-			$this->simulationSuivi->statut = $TCodeStatut[$suiviDemande->etat->codeStatutDemande];
-			$this->simulationSuivi->commentaire = $suiviDemande->etat->libelleStatutDemande;
-			
-			if (!empty($suiviDemande->numeroDemandeDefinitif)) {
+			if (!empty($suiviDemande->numeroDemandeDefinitif)) { // Tant que l'on a pas de numéro définitif de demande on ne fait rien
+				$this->simulationSuivi->statut = $TCodeStatut[$suiviDemande->etat->codeStatutDemande];
+				$this->simulationSuivi->commentaire = $suiviDemande->etat->libelleStatutDemande;
 				$this->simulationSuivi->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
 			
 				switch ($this->simulationSuivi->statut) {
