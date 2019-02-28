@@ -305,6 +305,8 @@ class TSimulation extends TObjetStd {
 		$leaser = new stdClass();
 		// Ajout des autres leasers de la liste (sauf le prio)
 		foreach($grille as $TData) {
+		    if($this->montant < 1000 && $TData['fk_leaser'] != 18495) continue;     // Spécifique LOC PURE
+
 			//if($TData['fk_leaser'] == $idLeaserPrio) continue;
 			$simulationSuivi = new TSimulationSuivi;
 			$simulationSuivi->leaser = new Fournisseur($db);
@@ -2384,7 +2386,7 @@ class TSimulationSuivi extends TObjetStd {
 	
 	//Effectue l'action de choisir définitivement un leaser pour financer la simulation
 	function doActionSelectionner(&$PDOdb,&$simulation){
-		global $db;
+		global $db, $user;
 		
 		$TTypeFinancement = array(3=>'ADOSSEE', 4=>'MANDATEE', 18=>'PURE', 19=>'FINANCIERE'); // En cléf : id categorie, en valeur, type financement associé
 		$TCateg_tiers = array();
@@ -2427,6 +2429,7 @@ class TSimulationSuivi extends TObjetStd {
 		$simulation->numero_accord = $this->numero_accord_leaser;
 		$simulation->fk_leaser = $this->fk_leaser;
 		$simulation->montant_accord = $simulation->montant_total_finance;
+		$simulation->fk_user_suivi = empty($user->id) ? 1035 : $user->id;   // $user->id ou 'admin_financement'
 		if(!empty($TTypeFinancement[$TCateg_tiers[0]])) $simulation->type_financement = $TTypeFinancement[$TCateg_tiers[0]];
 		$simulation->save($PDOdb, $db);
 
@@ -2784,7 +2787,8 @@ class TSimulationSuivi extends TObjetStd {
             && empty($simu->commentaire)                                                    // Pas de commentaire
             && empty($simu->opt_adjonction)                                                 // Adjonction pas coché
             && ! empty($simu->opt_no_case_to_settle)                                        // Aucun solde selectionné
-            && ! empty($this->numero_accord_leaser);                                        // Numéro accord leaser renseigné
+            && ! empty($this->numero_accord_leaser)                                         // Numéro accord leaser renseigné
+            || ($this->fk_leaser == 18495 && empty($simu->commentaire));                    // LOC PURE
     }
 }
 
