@@ -7,6 +7,9 @@ define('INC_FROM_CRON_SCRIPT', true);
 require_once($path.'../../config.php');
 dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/simulation.class.php');
+dol_include_once('/financement/class/affaire.class.php');
+dol_include_once('/financement/class/dossier.class.php');
+dol_include_once('/financement/class/score.class.php');
 dol_include_once('/financement/class/grille.class.php');
 
 if(empty($conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN)) exit('empty conf !');    // No need to run this script if empty conf
@@ -50,11 +53,10 @@ while($obj = $db->fetch_object($resql)) {
         print '<pre>---------------------------------------------------------------------------------------------------------</pre>';
         var_dump($obj->rowid);
     }
-    $simu = new TSimulation;
-    $simu->load($PDOdb, $obj->rowid, false);
-    $simu->load_suivi_simulation($PDOdb);
+    $simulation = new TSimulation;
+    $simulation->load($PDOdb, $obj->rowid);
 
-    if(empty($simu->TSimulationSuivi)) {
+    if(empty($simulation->TSimulationSuivi)) {
         if($debug) {
             print '<pre><span style="background-color: #ff0000">&nbsp;&nbsp;&nbsp;</span> Simulation sans suivi Leaser !</pre>';
         }
@@ -62,16 +64,21 @@ while($obj = $db->fetch_object($resql)) {
         continue;
     }
 
-    if($debug) print '<pre>Nb suivi : '.count($simu->TSimulationSuivi).'</pre>';
-	$TSuivi = array_values($simu->TSimulationSuivi);
+    if($debug) print '<pre>Nb suivi : '.count($simulation->TSimulationSuivi).'</pre>';
+	$TSuivi = array_values($simulation->TSimulationSuivi);
     foreach($TSuivi as $k => $suivi) {
         if($suivi->date_demande < 0) $suivi->date_demande = null;   // DateTime with this string '0999-11-30 00:00:00' will provide a negative timestamp
 
         if(empty($suivi->date_demande)) {
             if(isEDI($suivi) && ($k == 0 || $TSuivi[$k-1]->date_demande + $conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN*60 <= time() && $TSuivi[$k-1]->statut != 'ERR')) {
                 if($debug) var_dump('doActionDemander !!');
-                $suivi->doActionDemander($PDOdb, $simu);
+                $suivi->doActionDemander($PDOdb, $simulation);
                 $nb_commit++;
+            }
+            else if(! isEDI($suivi) && $suivi->fk_leaser == 18495 && $k == 0) {
+                if($debug) var_dump('Qui a demandé une LOC PURE ?!');
+                $suivi->doActionDemander($PDOdb, $simulation);
+                $suivi->doActionAccepter($PDOdb, $simulation);
             }
             else {
                 // TODO: Action manuelle demandée ?
