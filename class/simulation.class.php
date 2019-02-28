@@ -2772,11 +2772,17 @@ class TSimulationSuivi extends TObjetStd {
 	}
 
 	function accordAuto(TPDOdb $PDOdb, TSimulation $simu) {
-	    $isAccordAutoAllowed = $this->checkAccordAutoConstraint($simu);
+	    global $conf;
+        if(! function_exists('switchEntity')) dol_include_once('/financement/lib/financement.lib.php');
+        $old_entity = $conf->entity;
+        switchEntity($simu->entity);
+
+        $isAccordAutoAllowed = $this->checkAccordAutoConstraint($simu);
 
 	    if($isAccordAutoAllowed) {
 	        $this->doActionSelectionner($PDOdb, $simu);
         }
+	    switchEntity($old_entity);
     }
 
     private function checkAccordAutoConstraint(TSimulation $simu) {

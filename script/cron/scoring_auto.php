@@ -12,8 +12,6 @@ dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/score.class.php');
 dol_include_once('/financement/class/grille.class.php');
 
-if(empty($conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN)) exit('empty conf !');    // No need to run this script if empty conf
-
 $PDOdb = new TPDOdb;
 $fk_simu = GETPOST('fk_simu', 'int');
 $limit = GETPOST('limit', 'int');
@@ -63,6 +61,8 @@ while($obj = $db->fetch_object($resql)) {
         $nb_rollback++;
         continue;
     }
+    switchEntity($simulation->entity);  // To load conf from the right entity
+    if(empty($conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN)) continue;    // Can't do auto job
 
     if($debug) print '<pre>Nb suivi : '.count($simulation->TSimulationSuivi).'</pre>';
 	$TSuivi = array_values($simulation->TSimulationSuivi);
