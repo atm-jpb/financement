@@ -2075,6 +2075,8 @@ class TFin_financement extends TObjetStd {
 			,'1M'=>'1 mois'
 			,'2M'=>'2 mois'
 			,'3M'=>'3 mois'
+            ,'4M'=>'4 mois'
+            ,'5M'=>'5 mois'
 		);
 		
 		$this->TReglement=array();
