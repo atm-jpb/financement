@@ -49,6 +49,7 @@ FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY=Répartition affaires. Ex : "012:3;", les a
 SimulationMontantPrestationObligatoire=Montant prestation obligatoire sur les simulations
 FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE=Écart autorisé de modification du montant sur simulation
 FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI=Règles de calcul à prendre en compte pour l'aiguillage du suivi
+SetupShowSoldeMinTaux=Indisponibilité du solde dans la simulation si taux inférieur à X %%
 FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN=Enchaîner les appels EDI automatiques toutes les X minutes
 
 # EDI
@@ -302,5 +303,4 @@ NoteLabel=La Mine
 SuiviIntegral = Suivi intégrale
 AccordAuto = Accord Automatique
 FinancementActivateAccordAuto = Activer les accords automatiques
-FinancementActivateAccordAuto_tooltip = Conditions :<ul><li>Zone commentaire vide</li><li>Montant total financé inférieur à %s€</li><li>Numéro d'accord Leaser renseigné</li><li>Aucun solde selectionné</li><li>Adjonction non coché</li></ul>
-FinancementSimulMaxAmount = Montant total financé maximum
+FinancementActivateAccordAuto_tooltip = Conditions :<ul><li>Zone commentaire vide</li><li>Montant total financé inférieur à %s€</li><li>Nu

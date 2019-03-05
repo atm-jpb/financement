@@ -2023,6 +2023,60 @@ class TFin_dossier extends TObjetStd {
 		
 		return $TDoss;
 	}
+	
+	/**
+	 * Règles spécifique permettant de savoir si le solde du dossier doit être affiché ou non sur les simulations
+	 * @return 0 s'il ne faut pas afficher le solde, 1 sinon
+	 */
+	function get_display_solde() {
+		global $conf;
+		
+		if(empty($this->display_solde)) return -1; // Champ manuel de la fiche dossier
+		
+		// Règle du montant max
+		$min_amount = price2num($conf->global->FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE);
+		if(empty($min_amount)) $min_amount = 50000;
+		if($this->montant >= $min_amount) return -2;
+		
+		// Règle du solde perso (toujours utilisé ?)
+		if($this->soldepersodispo == 2) return -3;
+		
+		if($this->nature_financement == 'EXTERNE') {
+			// Règle de l'incident de paiement sur les externes
+			if($this->financementLeaser->incident_paiement == 'OUI') return -4;
+			// Règle du taux min
+			if(($this->financementLeaser->taux * $this->financementLeaser->getiPeriode() / 3) < $conf->global->FINANCEMENT_MIN_TAUX_TO_SHOW_SOLDE) return -5;
+			// Règle du nombre de mois min
+			$nb_month_passe = ($this->financementLeaser->numero_prochaine_echeance - 1) * $this->financementLeaser->getiPeriode();
+		} else {
+			// Règle du taux min
+			if(($this->financement->taux * $this->financement->getiPeriode() / 3) < $conf->global->FINANCEMENT_MIN_TAUX_TO_SHOW_SOLDE) return -5;
+			// Règle du nombre de mois min
+			$nb_month_passe = ($this->financement->numero_prochaine_echeance - 1) * $this->financement->getiPeriode();
+		}
+		
+		// Règle du nombre de mois min
+		if($nb_month_passe <= $conf->global->FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH) return -6;
+		
+		// Règle du nombre d'impayé client
+		$cpt = 0;
+		$TFactures = array_reverse($this->TFacture,true);
+		foreach ($TFactures as $echeance => $facture) {
+			if(!is_array($facture)) $facture = array($facture);
+
+			foreach ($facture as $key => $fact) {
+				if($fact->paye == 0){
+					$cpt ++;
+					if($cpt > FINANCEMENT_NB_INVOICE_UNPAID){
+						return -7;
+					}
+				}
+			}
+		}
+		
+		// Si aucune règle ci-dessus ne s'applique, on peut donc afficher le solde
+		return 1;
+	}
 }
 
 /*
