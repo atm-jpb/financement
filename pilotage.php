@@ -78,7 +78,7 @@ echo $date_fin.'<br>';*/
 	$dash=new TReport_dashboard;
 	$dash->initByCode($PDOdb, 'PRODUCTIONLEASER',$TParam);
 	
-	?>$('#chart_prod_leaser').html('<div id="chart_prod_leaser" style="height:<?=$dash->hauteur?>px; margin-bottom:20px;"></div>');<?php
+	?>$('#chart_prod_leaser').html('<div id="chart_prod_leaser" style="height:<?php echo $dash->hauteur; ?>px; margin-bottom:20px;"></div>');<?php
 	
 	$dash->get('chart_prod_leaser', true," €");
 
@@ -510,7 +510,7 @@ function _listeSommeCRDLeaserParCategoriesFournisseur(&$ATMdb,$date_debut,$date_
 						<td class="justifie"><?php echo number_format($TCategorieLeaser['Mandatee'],2,',',' '); ?> €</td>
 						<td class="justifie"><?php echo number_format($TCategorieLeaser['Adossee'],2,',',' '); ?> €</td>
 						<td class="justifie"><?php echo number_format($TCategorieLeaser['Adossee'] + $TCategorieLeaser['Mandatee'] + $TCategorieLeaser['Cession'],2,',',' '); ?> €</td>
-						<td><?=number_format(($TCategorieLeaser['Adossee'] + $TCategorieLeaser['Mandatee'] + $TCategorieLeaser['Cession']) * 100 / $TTotaux['total'],2,',',''); ?> %</td>
+						<td><?php echo number_format(($TCategorieLeaser['Adossee'] + $TCategorieLeaser['Mandatee'] + $TCategorieLeaser['Cession']) * 100 / $TTotaux['total'],2,',',''); ?> %</td>
 					</tr>
 					<?php
 				}

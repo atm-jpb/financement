@@ -21,6 +21,7 @@ $(document).ready(function() {
 	$('input[name^="dossiers_rachetes"]').bind('click', calcul_montant_rachat);
 	$('input[name^="dossiers_rachetes"]').bind('click', prevent_dbl_select);
 	$('select[name="fk_type_contrat"]').bind('change', calcul_montant_rachat);
+	$('#montant_rachete_concurrence').bind('change', calcul_montant_rachat);
 	
 	init_selected_dossier();
 	

@@ -141,7 +141,7 @@ if (empty($conf->global->MAIN_USE_JQUERY_MULTISELECT))
 }
 
 llxHeader('',$langs->trans("FinancementSetup"), '', '', 0, 0, $TJS, $TCss);
-$head = financement_admin_prepare_head(null);
+$head = financement_admin_prepare_head();
 
 $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
 print_fiche_titre($langs->trans("GlobalOptionsForFinancementSimulation"), $linkback);
@@ -579,11 +579,10 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 */
-
 print '</table>';
+print '<br />';
 
-
-print_titre($langs->trans("WebService"));
+print_fiche_titre($langs->trans("EDI"), '', '');
 
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';
@@ -595,133 +594,18 @@ $var=true;
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("FINANCEMENT_SHOW_RECETTE_BUTTON").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="center" width="600">';
-print ajax_constantonoff('FINANCEMENT_SHOW_RECETTE_BUTTON',array(),0);
-print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("FINANCEMENT_WEBSERVICE_ACTIVATE").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="center" width="600">';
-print ajax_constantonoff('FINANCEMENT_WEBSERVICE_ACTIVATE',array(),0);
-print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("FINANCEMENT_ENDPOINT_CALF_RECETTE").'</td>';
+print '<td>'.$langs->trans("FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN").'</td>';
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="right" width="600">';
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set_FINANCEMENT_ENDPOINT_CALF_RECETTE">';
-print '<input type="text" name="FINANCEMENT_ENDPOINT_CALF_RECETTE" value="'.$conf->global->FINANCEMENT_ENDPOINT_CALF_RECETTE.'" size="60" placeholder="https://hom-archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN">';
+print '<input type="number" name="FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN" value="'.$conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN.'" min="0" />';
 print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
 print '</form>';
 print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("FINANCEMENT_ENDPOINT_CALF_PROD").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="right" width="600">';
-print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set_FINANCEMENT_ENDPOINT_CALF_PROD">';
-print '<input type="text" name="FINANCEMENT_ENDPOINT_CALF_PROD" value="'.$conf->global->FINANCEMENT_ENDPOINT_CALF_PROD.'" size="60" placeholder="https://archipels.ca-lf.com/archplGN/ws/DemandeCreationLeasingGNV1" />';
-print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-print '</form>';
-print '</td></tr>';
-
-print '<tr '.$bc[$var].'><td>';
-print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("FINANCEMENT_WSDL_CMCIC_RECETTE").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="right" width="600">';
-print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set_FINANCEMENT_WSDL_CMCIC_RECETTE">';
-print '<input type="text" name="FINANCEMENT_WSDL_CMCIC_RECETTE" value="'.$conf->global->FINANCEMENT_WSDL_CMCIC_RECETTE.'" size="60" placeholder="https://uat-www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl" />';
-print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-print '</form>';
-print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("FINANCEMENT_WSDL_CMCIC_PROD").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="right" width="600">';
-print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set_FINANCEMENT_WSDL_CMCIC_PROD">';
-print '<input type="text" name="FINANCEMENT_WSDL_CMCIC_PROD" value="'.$conf->global->FINANCEMENT_WSDL_CMCIC_PROD.'" size="60" placeholder="https://www.espacepartenaires.cmcic-leasing.fr/imanageB2B/ws/dealws.wsdl" />';
-print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-print '</form>';
-print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="right" width="600">';
-print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set_FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC">';
-print '<input type="text" name="FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC" value="'.$conf->global->FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC.'" size="60" placeholder="'.dol_buildpath('/financement/script/webservice/scoring_cmcic.php?wsdl', 2).'" />';
-print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-print '</form>';
-print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("FINANCEMENT_CMCIC_B2B_VENDEUR_ID").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="right" width="600">';
-print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set_FINANCEMENT_CMCIC_B2B_VENDEUR_ID">';
-print '<input type="text" name="FINANCEMENT_CMCIC_B2B_VENDEUR_ID" value="'.$conf->global->FINANCEMENT_CMCIC_B2B_VENDEUR_ID.'" size="30" />';
-print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-print '</form>';
-print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("FINANCEMENT_CMCIC_USERNAME").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="right" width="600">';
-print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set_FINANCEMENT_CMCIC_USERNAME">';
-print '<input type="text" name="FINANCEMENT_CMCIC_USERNAME" value="'.$conf->global->FINANCEMENT_CMCIC_USERNAME.'" size="30" />';
-print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-print '</form>';
-print '</td></tr>';
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("FINANCEMENT_CMCIC_PASSWORD").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="right" width="600">';
-print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set_FINANCEMENT_CMCIC_PASSWORD">';
-print '<input type="password" name="FINANCEMENT_CMCIC_PASSWORD" value="'.$conf->global->FINANCEMENT_CMCIC_PASSWORD.'" size="30" />';
-print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-print '</form>';
-print '</td></tr>';
-
-print '<tr '.$bc[$var].'><td>';
-print '</td></tr>';
-
 
 print '</table>';
-
 
 dol_htmloutput_mesg($mesg);
 
