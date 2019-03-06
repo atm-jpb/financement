@@ -81,6 +81,7 @@ class TSimulation extends TObjetStd {
 		);
 		*/
 		$this->TMarqueMateriel = self::getMarqueMateriel();
+		$this->logo = '';
 	}
 	
 	public static function getMarqueMateriel()
