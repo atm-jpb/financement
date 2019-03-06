@@ -928,7 +928,6 @@ class modFinancement extends DolibarrModules
 		$extra = new ExtraFields($db);
 		$extra->addExtraField('fk_leaser_webservice', 'Identifiant du leaser associé pour les réponses de demande de financement', 'int', '1', '', 'user', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		$extra->addExtraField('cmcic_apporteur_id', 'Apporteur ID', 'varchar', 10, 255, 'entity');
-		$extra->addExtraField('code_partner_grenke', 'Code partner GRENKE', 'varchar', 10, 255, 'entity');
 		
 		
 		$extra->addExtraField('percent_duree_vie', '% durée de vie', 'double', 15, '24,8', 'entity', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
