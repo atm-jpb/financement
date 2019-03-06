@@ -113,7 +113,7 @@ else if ($type == 'grenke')
 		$simulation = new TSimulation;
 		$simulation->load($PDOdb, $TSimulationSuivi->fk_simulation);
 
-		$ws = new WebServiceGrenke($TSimulationSuivi->simulation, $TSimulationSuivi, false, true);
+		$ws = new WebServiceGrenke($simulation, $TSimulationSuivi, false, true);
 		$result = $ws->run();
 		
 		if ($result) print '--- run (suivi_id='.$res->rowid.') ok'.$eol.$eol;
