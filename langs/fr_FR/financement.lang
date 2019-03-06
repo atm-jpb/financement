@@ -51,7 +51,7 @@ FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE=Écart autorisé de modification du mon
 FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI=Règles de calcul à prendre en compte pour l'aiguillage du suivi
 SetupShowSoldeMinTaux=Indisponibilité du solde dans la simulation si taux inférieur à X %%
 FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN=Enchaîner les appels EDI automatiques toutes les X minutes
-FINANCEMENT_DEFAULT_MAIL_RECIPIENT=Adresse e-mail du destinataire utilisée par défaut pour l'envoi des mails
+FINANCEMENT_DEFAULT_MAIL_RECIPIENT=Envoyer les accords de financement en copie à :
 
 # EDI
 FINANCEMENT_SHOW_RECETTE_BUTTON=Affiche un bouton dans la colonne "Actions" des suivis leaser pour forcer l'appel au webservice (si l'utilisateur courant est admin et entité 0)

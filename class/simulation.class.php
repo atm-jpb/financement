@@ -1085,9 +1085,6 @@ class TSimulation extends TObjetStd {
 		$subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance,2,',',' ').' Euros - '.$accord;
 		
 		if(empty($mailto))$mailto = $this->user->email;
-		if(! empty($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT) && isValidEmail($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT)) {
-		    $mailto = $conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT;
-        }
 		
 		/*$mailfile = new CMailFile(
 			$subject,
@@ -1103,10 +1100,9 @@ class TSimulation extends TObjetStd {
 			0
 		);*/
 		$r=new TReponseMail($conf->notification->email_from, $mailto, $subject, $mesg);
-		// Spécifique Copy Concept, M. Tizien en copie
-		if($this->entity == 7) {
-			$r->emailtoBcc = "nicolas.tizien@copy-concept.fr";
-		}
+        if(! empty($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT) && isValidEmail($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT)) {
+            $mailto = $conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT;
+        }
 
         foreach($filename as $k=>$file) {
                 $r->add_piece_jointe($filename[$k], $filepath[$k]);
