@@ -146,20 +146,13 @@ class WebServiceGrenke extends WebService
 		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
 		
 		$paymentInterval = 'quarterly'; // valeur possible : 'quarterly', 'monthly'
-		$estimatedDeliveryDate = date('c', $this->simulation->date_demarrage); // contient 0 si vide... 
-		
-		$entity = new DaoMulticompany($db);
-		$entity->fetch($this->simulation->entity);
+		$estimatedDeliveryDate = date('c', $this->simulation->date_demarrage); // contient 0 si vide...
 		
 		if ($this->update_status)
 		{
 			$xml = '
 				<getLeaseRequestStatusWithLogin xmlns="http://grenkeleasing.com/gfs.api.server.extern">
-					<user>
-						<login>'.$conf->global->FINANCEMENT_GRENKE_USERNAME.'</login>
-						<partner>'.$entity->array_options['options_code_partner_grenke'].'</partner>
-						<password>'.$conf->global->FINANCEMENT_GRENKE_PASSWORD.'</password>
-					</user>
+					'.$this->getUserSection().'
 					<leaseRequestID>'.$this->simulationSuivi->leaseRequestID.'</leaseRequestID>
 				</getLeaseRequestStatusWithLogin>
 			';
@@ -168,11 +161,7 @@ class WebServiceGrenke extends WebService
 		{
 			$xml = '
 						<addLeaseRequestWithLogin xmlns="http://grenkeleasing.com/gfs.api.server.extern">
-							<user>
-								<login>'.$conf->global->FINANCEMENT_GRENKE_USERNAME.'</login>
-								<partner>'.$entity->array_options['options_code_partner_grenke'].'</partner>
-								<password>'.$conf->global->FINANCEMENT_GRENKE_PASSWORD.'</password>
-							</user>
+							'.$this->getUserSection().'
 							<leaseRequest>
 								<lessee>
 									<person xsi:type="LegalPerson">
@@ -256,16 +245,9 @@ class WebServiceGrenke extends WebService
 				)))
 		);
 
-		$entity = new DaoMulticompany($db);
-		$entity->fetch($this->simulation->entity);
-
 		$xml = '
 			<getDocumentWithLogin xmlns="http://grenkeleasing.com/gfs.api.server.extern">
-				<user>
-					<login>'.$conf->global->FINANCEMENT_GRENKE_USERNAME.'</login>
-					<partner>'.$entity->array_options['options_code_partner_grenke'].'</partner>
-					<password>'.$conf->global->FINANCEMENT_GRENKE_PASSWORD.'</password>
-				</user>
+				'.$this->getUserSection().'
 				<leaseRequestID>'.$this->simulationSuivi->leaseRequestID.'</leaseRequestID>
 			</getDocumentWithLogin>
 		';
@@ -307,6 +289,23 @@ class WebServiceGrenke extends WebService
 
 		return false;
 	}
+
+	private function getUserSection()
+    {
+        global $conf;
+
+        // Code dépendant du type de demande (CESSION / MANDATEE)
+        $codePartner = $conf->global->FINANCEMENT_GRENKE_CODE_CESSION;
+        if(strpos($this->simulationSuivi->leaser->name, 'MANDATEE')) $codePartner = $conf->global->FINANCEMENT_GRENKE_CODE_MANDATEE;
+
+        $xml = '<user>
+					<login>'.$conf->global->FINANCEMENT_GRENKE_USERNAME.'</login>
+					<partner>'.$codePartner.'</partner>
+					<password>'.$conf->global->FINANCEMENT_GRENKE_PASSWORD.'</password>
+				</user>';
+
+        return $xml;
+    }
 }
 
 

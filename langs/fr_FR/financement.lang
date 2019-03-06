@@ -70,6 +70,8 @@ FINANCEMENT_WSDL_GRENKE_RECETTE=WSDL de <b>recette</b> de GRENKE
 FINANCEMENT_WSDL_GRENKE_PROD=WSDL de <b>production</b> de GRENKE
 FINANCEMENT_GRENKE_USERNAME=GRENKE paramètre username
 FINANCEMENT_GRENKE_PASSWORD=GRENKE paramètre password
+FINANCEMENT_GRENKE_CODE_CESSION=Identifiant partenaire cession
+FINANCEMENT_GRENKE_CODE_MANDATEE=Identifiant partenaire mandatée
 
 SimulationSuiviInfoWebDemande=Demande faite (%s - %s)
 
