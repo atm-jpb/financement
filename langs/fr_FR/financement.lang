@@ -306,3 +306,4 @@ SuiviIntegral = Suivi intégrale
 AccordAuto = Accord Automatique
 FinancementActivateAccordAuto = Activer les accords automatiques
 FinancementActivateAccordAuto_tooltip = Conditions :<ul><li>Zone commentaire vide</li><li>Montant total financé inférieur à %s€</li><li>Nu
+FinancementSimulMaxAmount = Montant total financé maximum
