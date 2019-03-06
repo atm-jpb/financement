@@ -2483,6 +2483,7 @@ class TFin_financement extends TObjetStd {
 			$dossier = new TFin_dossier;
 			$dossier->load($ATMdb, $this->fk_fin_dossier,false);
 			$dossier->financement->calage = $this->calage;
+			if($dossier->financement->date_debut != $this->date_debut) $dossier->financement->date_debut = $this->date_debut;
 			
 			$echeance = $dossier->_get_num_echeance_from_date(time());
 			$echeance = $echeance +2;
