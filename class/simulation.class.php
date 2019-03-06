@@ -2781,6 +2781,7 @@ class TSimulationSuivi extends TObjetStd {
         $isAccordAutoAllowed = $this->checkAccordAutoConstraint($simu);
 
 	    if($isAccordAutoAllowed) {
+	        dol_syslog('Un accord auto, un ! (Switched to entity '.$conf->entity.' ; fk_simu='.$simu->rowid.', fk_suivi='.$this->rowid.')', LOG_CRIT, 0, '_accord_auto');
 	        $this->doActionSelectionner($PDOdb, $simu);
         }
 	    switchEntity($old_entity);
