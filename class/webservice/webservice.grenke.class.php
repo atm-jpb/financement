@@ -15,6 +15,9 @@ class WebServiceGrenke extends WebService
 	public function run()
 	{
 		global $conf,$langs;
+
+		$oldconf = $conf;
+		switchEntity($this->simulation->entity);
 		
 		//$this->debug = true;
 		
@@ -127,6 +130,8 @@ class WebServiceGrenke extends WebService
 			dol_syslog("WEBSERVICE ERROR : ".$e->getMessage(), LOG_ERR, 0, '_EDI_GRENKE');
 			parent::caughtError($e);
 		}
+
+        switchEntity($oldconf->entity);
 		
 		return false;
 	}
@@ -178,14 +183,6 @@ class WebServiceGrenke extends WebService
 											<fax>'.$this->simulation->societe->fax.'</fax>
 										</communication>
 										<name>'.$this->simulation->societe->nom.'</name>
-										<!--<nameComplement>NameComplement of LegalPerson</nameComplement>
-										<legalForm>1</legalForm>
-										<foundationDate>0001-01-01T00:00:00</foundationDate>
-										<contact>
-											<gender>male</gender>
-											<surname>Musterfrau</surname>
-											<forename>Maxime</forename>
-										</contact-->
 									</person>
 									<customerID/>
 								</lessee>
@@ -199,8 +196,8 @@ class WebServiceGrenke extends WebService
 								</articles>
 								<paymentInfo>
 									<accountInfo>
-										<accountHolder>Maximilia Musterfrau</accountHolder>
-										<iban>DE89370400440532013000</iban>
+										<accountHolder></accountHolder>
+										<iban></iban>
 									</accountInfo>
 									<directDebit>true</directDebit>
 									<paymentInterval>'.$paymentInterval.'</paymentInterval>
