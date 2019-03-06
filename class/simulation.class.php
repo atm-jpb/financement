@@ -1101,7 +1101,7 @@ class TSimulation extends TObjetStd {
 		);*/
 		$r=new TReponseMail($conf->notification->email_from, $mailto, $subject, $mesg);
         if(! empty($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT) && isValidEmail($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT)) {
-            $mailto = $conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT;
+            $r->emailtoBcc = $conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT;
         }
 
         foreach($filename as $k=>$file) {
