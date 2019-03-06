@@ -1085,6 +1085,9 @@ class TSimulation extends TObjetStd {
 		$subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance,2,',',' ').' Euros - '.$accord;
 		
 		if(empty($mailto))$mailto = $this->user->email;
+		if(! empty($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT) && isValidEmail($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT)) {
+		    $mailto = $conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT;
+        }
 		
 		/*$mailfile = new CMailFile(
 			$subject,
@@ -2807,7 +2810,7 @@ class TSimulationSuivi extends TObjetStd {
         $logMessage.= 'NoAdjonction = '.$isAdjonctionNotChecked."\n";
         $logMessage.= 'NoCaseToSettle = '.$isNoCaseToSettleChecked."\n";
         $logMessage.= 'NotEmptyNumAccordLeaser = '.$isNotEmptyNumAccordLeaser."\n";
-        $logMessage.= 'IsLocPure = '.$isLocPure;
+        $logMessage.= 'IsLocPure = '.$isLocPure."\n";
 	    dol_syslog($logMessage, LOG_CRIT, 0, '_accord_auto_constraint');
 
 	    return $isActive                            // Active
