@@ -2781,7 +2781,8 @@ class TSimulationSuivi extends TObjetStd {
         $isAccordAutoAllowed = $this->checkAccordAutoConstraint($simu);
 
 	    if($isAccordAutoAllowed) {
-	        dol_syslog('Un accord auto, un ! (Switched to entity '.$conf->entity.' ; fk_simu='.$simu->rowid.', fk_suivi='.$this->rowid.')', LOG_CRIT, 0, '_accord_auto');
+	        $message = 'Un accord auto, un ! (Switched to entity '.$conf->entity.' ; fk_simu='.$simu->rowid.', fk_suivi='.$this->rowid.')';
+	        dol_syslog($message, LOG_CRIT, 0, '_accord_auto');
 	        $this->doActionSelectionner($PDOdb, $simu);
         }
 	    switchEntity($old_entity);
@@ -2790,13 +2791,32 @@ class TSimulationSuivi extends TObjetStd {
     private function checkAccordAutoConstraint(TSimulation $simu) {
 	    global $conf;
 
-	    return ! empty($conf->global->FINANCEMENT_ACTIVATE_ACCORD_AUTO)                     // Active
-            && $simu->montant_total_finance < $conf->global->FINANCEMENT_SIMUL_MAX_AMOUNT   // Montant max
-            && empty($simu->commentaire)                                                    // Pas de commentaire
-            && empty($simu->opt_adjonction)                                                 // Adjonction pas coché
-            && ! empty($simu->opt_no_case_to_settle)                                        // Aucun solde selectionné
-            && ! empty($this->numero_accord_leaser)                                         // Numéro accord leaser renseigné
-            || ($this->fk_leaser == 18495 && empty($simu->commentaire));                    // LOC PURE
+	    // Separate into variable only to log them
+	    $isActive = ! empty($conf->global->FINANCEMENT_ACTIVATE_ACCORD_AUTO) ? 1 : 0;   // false is converted to "" and not to "0"
+	    $isLessThanMaxAmount = $simu->montant_total_finance < $conf->global->FINANCEMENT_SIMUL_MAX_AMOUNT ? 1 : 0;
+	    $isEmptyComment = empty($simu->commentaire) ? 1 : 0;
+        $isAdjonctionNotChecked = empty($simu->opt_adjonction) ? 1 : 0;
+        $isNoCaseToSettleChecked = ! empty($simu->opt_no_case_to_settle) ? 1 : 0;
+        $isNotEmptyNumAccordLeaser = ! empty($this->numero_accord_leaser) ? 1 : 0;
+        $isLocPure = ($this->fk_leaser == 18495) ? 1 : 0;
+
+        $logMessage = 'CONSTRAINTS FOR FK_SIMU='.$simu->rowid."\n";
+        $logMessage.= 'AccordAuto active = '.$isActive."\n";
+        $logMessage.= 'LessThanMaxAmount = '.$isLessThanMaxAmount."\n";
+        $logMessage.= 'NoComment = '.$isEmptyComment."\n";
+        $logMessage.= 'NoAdjonction = '.$isAdjonctionNotChecked."\n";
+        $logMessage.= 'NoCaseToSettle = '.$isNoCaseToSettleChecked."\n";
+        $logMessage.= 'NotEmptyNumAccordLeaser = '.$isNotEmptyNumAccordLeaser."\n";
+        $logMessage.= 'IsLocPure = '.$isLocPure;
+	    dol_syslog($logMessage, LOG_CRIT, 0, '_accord_auto_constraint');
+
+	    return $isActive                            // Active
+            && $isLessThanMaxAmount                 // Montant max
+            && $isEmptyComment                      // Pas de commentaire
+            && $isAdjonctionNotChecked              // Adjonction pas coché
+            && $isNoCaseToSettleChecked             // Aucun solde selectionné
+            && $isNotEmptyNumAccordLeaser           // Numéro accord leaser renseigné
+            || ($isLocPure && $isEmptyComment);     // LOC PURE
     }
 }
 
