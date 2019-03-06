@@ -305,5 +305,5 @@ NoteLabel=La Mine
 SuiviIntegral = Suivi intégrale
 AccordAuto = Accord Automatique
 FinancementActivateAccordAuto = Activer les accords automatiques
-FinancementActivateAccordAuto_tooltip = Conditions :<ul><li>Zone commentaire vide</li><li>Montant total financé inférieur à %s€</li><li>Nu
+FinancementActivateAccordAuto_tooltip = Conditions :<ul><li>Zone commentaire vide</li><li>Montant total financé inférieur à %s€</li><li>Numéro d'accord Leaser renseigné</li><li>Aucun solde selectionné</li><li>Adjonction non coché</li></ul>
 FinancementSimulMaxAmount = Montant total financé maximum
