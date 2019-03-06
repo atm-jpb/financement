@@ -196,8 +196,8 @@ class WebServiceGrenke extends WebService
 								</articles>
 								<paymentInfo>
 									<accountInfo>
-										<accountHolder></accountHolder>
-										<iban></iban>
+										<accountHolder>'.$this->simulation->societe->nom.'</accountHolder>
+										<iban>DE89370400440532013000</iban>
 									</accountInfo>
 									<directDebit>true</directDebit>
 									<paymentInterval>'.$paymentInterval.'</paymentInterval>
