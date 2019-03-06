@@ -2375,6 +2375,7 @@ class TFin_financement extends TObjetStd {
 				$a->montant = $data['montant'];
 				$a->fk_soc = $idClient;
 				$a->nature_financement = 'EXTERNE';
+				$a->type_financement = 'FINANCIERE';
 				if ($data['montant_prestation'] > 0
 					&& !empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE)
 					&& !empty($a->TContrat[$conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE])) {
