@@ -435,14 +435,16 @@ function _getNbDossier($TEntity, $date_simul_start, $date_simul_end)
 	
 	$TRes = array();
 	
-	$sql = 'SELECT a.entity, a.contrat, count(*) as nb';
+	$sql = 'SELECT d.entity, a.contrat, count(*) as nb';
 	$sql.= ' FROM '.MAIN_DB_PREFIX.'fin_affaire a';
 	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_affaire = a.rowid)';
 	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (d.rowid = da.fk_fin_dossier)';
-	$sql.= ' WHERE a.contrat IS NOT NULL AND a.contrat <> "" AND a.entity IN ('.implode(',', $TEntity).')';
-	$sql.= ' AND a.date_affaire >= "'.$db->idate($date_simul_start).'" AND a.date_affaire <= "'.$db->idate($date_simul_end).'"';
+	$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid)';
+	$sql.= ' WHERE d.entity IN ('.implode(',', $TEntity).')';
+	$sql.= ' AND df.date_debut >= "'.$db->idate($date_simul_start).'" AND df.date_debut <= "'.$db->idate($date_simul_end).'"';
 	$sql.= ' AND (d.date_solde IS NULL OR d.date_solde <= \'1000-01-01 00:00:00\')';
-	$sql.= ' GROUP BY a.entity, a.contrat';
+	$sql.= ' AND df.type = \'CLIENT\'';
+	$sql.= ' GROUP BY d.entity, a.contrat';
 	
 	$resql = $db->query($sql);
 	if ($resql)

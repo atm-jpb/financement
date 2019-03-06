@@ -622,10 +622,10 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 
 
 /**
- * Return array of tabs to used on pages for third parties cards.
+ * Return array of tabs to used on pages for simulation cards.
  *
- * @param 	Societe	$object		Object company shown
- * @return 	array				Array of tabs
+ * @param 	TSimulation	$object		Object simulation shown
+ * @return 	array				    Array of tabs
  */
 function simulation_prepare_head(TSimulation $object)
 {
@@ -666,4 +666,58 @@ function simulation_prepare_head(TSimulation $object)
     complete_head_from_modules($conf,$langs,$object,$head,$h,'simulation','remove');
 
     return $head;
+}
+
+/**
+ * Return array of tabs to used on pages for dossier cards.
+ *
+ * @param 	TFin_dossier	$object		Object dossier shown
+ * @return 	array				        Array of tabs
+ */
+function dossier_prepare_head(TFin_dossier $object)
+{
+    global $db, $langs, $conf, $user;
+    $h = 0;
+    $head = array();
+
+    $id = $object->getId();
+
+    $head[$h][0] = dol_buildpath('/financement/dossier.php', 2).'?id='.$id.'&mainmenu=financement';;
+    $head[$h][1] = $langs->trans("Card");
+    $head[$h][2] = 'card';
+    $h++;
+
+    $head[$h][0] = dol_buildpath('/financement/dossier_integrale.php', 2).'?id='.$id.'&mainmenu=financement';
+    $head[$h][1] = $langs->trans("SuiviIntegral");
+    $head[$h][2] = 'integrale';
+    $h++;
+
+    $head[$h][0] = FIN_THEREFORE_DOSSIER_URL.$object->financement->referance;
+    $head[$h][1] = $langs->trans("Therefore");
+    $head[$h][2] = 'therefore';
+    $h++;
+
+    // Show more tabs from modules
+    // Entries must be declared in modules descriptor with line
+    // $this->tabs = array('entity:+tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to add new tab
+    // $this->tabs = array('entity:-tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to remove a tab
+    complete_head_from_modules($conf,$langs,$object,$head,$h,'dossier');
+
+    complete_head_from_modules($conf,$langs,$object,$head,$h,'dossier','remove');
+
+    return $head;
+}
+
+function switchEntity($target) {
+    global $db, $conf, $mysoc;
+
+    if($conf->entity != $target) {
+        // Récupération configuration de l'entité de la simulation
+        $confentity = &$conf;
+        $confentity->entity = $target;
+        $confentity->setValues($db);
+
+        $mysocentity = &$mysoc;
+        $mysocentity->setMysoc($confentity);
+    }
 }

@@ -50,11 +50,14 @@ SimulationMontantPrestationObligatoire=Montant prestation obligatoire sur les si
 FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE=Écart autorisé de modification du montant sur simulation
 FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI=Règles de calcul à prendre en compte pour l'aiguillage du suivi
 FINANCEMENT_DEFAULT_EXTERNAL_RELOCATION_PERCENT=Pourcentage de commission par défaut pour les dossiers externes en relocation
+SetupShowSoldeMinTaux=Indisponibilité du solde dans la simulation si taux inférieur à X %%
+FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN=Enchaîner les appels EDI automatiques toutes les X minutes
 
 # EDI
 FINANCEMENT_SHOW_RECETTE_BUTTON=Affiche un bouton dans la colonne "Actions" des suivis leaser pour forcer l'appel au webservice (si l'utilisateur courant est admin et entité 0)
 FINANCEMENT_WEBSERVICE_ACTIVATE=Activer les appels webservice
-FINANCEMENT_WEBSERVICE_ACTIVE_FOR_PROD=Mode production (si non active les appels ce feront sur les URLs de recette
+FINANCEMENT_MODE_PROD=Mode production
+FINANCEMENT_MODE_PROD_TOOLTIP=Si non active les appels webservices se feront sur les URLs de recette
 FINANCEMENT_ENDPOINT_CALF_RECETTE=URL de <b>recette</b> pour CAL&f (endpoint)
 FINANCEMENT_ENDPOINT_CALF_PROD=URL de <b>production</b> CAL&f (endpoint)
 FINANCEMENT_WSDL_CMCIC_RECETTE=WSDL de <b>recette</b> de CM-CIC
@@ -63,6 +66,21 @@ FINANCEMENT_OUR_WSDL_GIVE_TO_CMCIC=URL du WSDL du module financement pour CM-CIC
 FINANCEMENT_CMCIC_B2B_VENDEUR_ID=CM-CIC paramètre B2B_VENDEUR_ID
 FINANCEMENT_CMCIC_USERNAME=CM-CIC paramètre username
 FINANCEMENT_CMCIC_PASSWORD=CM-CIC paramètre password
+
+FINANCEMENT_WSDL_GRENKE_RECETTE=WSDL de <b>recette</b> de GRENKE
+FINANCEMENT_WSDL_GRENKE_PROD=WSDL de <b>production</b> de GRENKE
+FINANCEMENT_GRENKE_USERNAME=GRENKE paramètre username
+FINANCEMENT_GRENKE_PASSWORD=GRENKE paramètre password
+FINANCEMENT_GRENKE_CODE_CESSION=Identifiant partenaire cession
+FINANCEMENT_GRENKE_CODE_MANDATEE=Identifiant partenaire mandatée
+
+SimulationSuiviInfoWebDemande=Demande faite (%s - %s)
+
+pending=En attente
+approved=Approuvée
+order=Commandée
+contract=Contractée
+cancelled=Annulée
 
 # SIMULATIONS
 Simulations=Simulations
@@ -301,3 +319,8 @@ FinCA_Client=CA Client
 FinCA_Leaser=HA Leaser
 FinRecurrent=Récurrence
 NoteLabel=La Mine
+SuiviIntegral = Suivi intégrale
+AccordAuto = Accord Automatique
+FinancementActivateAccordAuto = Activer les accords automatiques
+FinancementActivateAccordAuto_tooltip = Conditions :<ul><li>Zone commentaire vide</li><li>Montant total financé inférieur à %s€</li><li>Nu
+FinancementSimulMaxAmount = Montant total financé maximum

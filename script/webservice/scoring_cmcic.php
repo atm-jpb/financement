@@ -233,7 +233,9 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 						}
 						$simulationSuivi->coeff_leaser = $coeff;
 						$simulationSuivi->numero_accord_leaser = $ResponseDemFinComplete['REP_Demande']['B2B_NODEF'];
-						
+						$simulationSuivi->b2b_nodef = $ResponseDemFinComplete['REP_Demande']['B2B_NODEF'];
+						$simulationSuivi->b2b_noweb = $ResponseDemFinComplete['REP_Demande']['B2B_NOWEB'];
+
 						dol_syslog('2.3 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'], LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 						dol_syslog('2.3 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$langs->trans($ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 						

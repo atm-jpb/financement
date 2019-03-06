@@ -1,6 +1,7 @@
 <?php
 
 require('config.php');
+dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/dossier_integrale.class.php');
@@ -22,6 +23,10 @@ $dossier->load($PDOdb, $id_dossier);
 $dossier->load_facture($PDOdb,true);
 
 llxHeader('','Suivi intégrale');
+
+$head = dossier_prepare_head($dossier);
+$img_path = dol_buildpath('/financement/img/object_financeico.png', 2);
+dol_fiche_head($head, 'integrale', $langs->trans("Dossier"),0, $img_path, 1);
 
 if($action == 'addAvenantIntegrale'){
 	$calcul = false;
@@ -269,6 +274,8 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 		$TIntegrale[$integrale->date_periode]->TIds = array(0 => $integrale->getId());
 	}
 
+    $old_entity = $conf->entity;
+    switchEntity($dossier->entity);
 	$facture->fetchObjectLinked('', 'propal', $facture->id, 'facture');
 	
 	if(!empty($facture->linkedObjects['propal'])) {
@@ -278,12 +285,13 @@ function addInTIntegrale(&$PDOdb,&$facture,&$TIntegrale,&$dossier){
 			
 			$links = $p->getNomUrl(1);
 			if($p->fin_validite >= strtotime(date('Y-m-d'))) { // Affichage du PDF si encore valide
-				$links.= $formfile->getDocumentsLink($p->element, $filename, $filedir, $p->entity);
+				$links.= $formfile->getDocumentsLink($p->element, $filename, $filedir, $conf->entity);
 			}
 			$links.= "<br>";
 			$TIntegrale[$integrale->date_periode]->propal .= $links;
 		}
 	}
+    switchEntity($old_entity);
 	
 	return $TIntegrale;
 	
@@ -442,7 +450,8 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	// - avenant impossible si cout unitaire loyer à 0
 	$avenantOK = true;
 	$facIntegral = array_pop($TIntegrale);
-	if(empty($facIntegral->cout_unit_noir_loyer) || (empty($facIntegral->cout_unit_coul_loyer) && !empty($facIntegral->vol_coul_engage))) $avenantOK = false;
+	// 2019.02.20 : Avenant ok même si cout unitaire loyer à 0
+	//if(empty($facIntegral->cout_unit_noir_loyer) || (empty($facIntegral->cout_unit_coul_loyer) && !empty($facIntegral->vol_coul_engage))) $avenantOK = false;
 	if(round($facIntegral->cout_unit_noir,5) !=
 		round($facIntegral->cout_unit_noir_loyer
 		+ $facIntegral->cout_unit_noir_mach
@@ -452,6 +461,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		+ $facIntegral->cout_unit_coul_mach
 		+ $facIntegral->cout_unit_coul_tech,5)) $avenantOK = false;
 
+	dol_fiche_end();
 	print '<div class="tabsAction">';
 	if (!empty($user->rights->financement->integrale->create_new_avenant) && $avenantOK) {
 		$label = (GETPOST('action') === 'addAvenantIntegrale') ? 'Réinitialiser simulateur' : 'Nouveau calcul d\'avenant';
@@ -1028,7 +1038,10 @@ function setBilledVol(&$tab){
 
 function _addAvenantIntegrale(&$dossier) {
 	
-	global $db, $user;
+	global $db, $user, $conf, $mysoc;
+
+	$old_conf = $conf;
+	switchEntity($dossier->entity);
 	
 	$p = new Propal($db);
 	$p->socid = GETPOST('fk_soc');
@@ -1069,7 +1082,8 @@ function _addAvenantIntegrale(&$dossier) {
 									,'date_fin_periode'=>GETPOST('date_fin_periode')
 									,'client'=>_getInfosClient($p->socid)
 								  ));
-		
+
+		switchEntity($old_conf->entity);
 		return $file_path;
 		
 	}
