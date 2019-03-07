@@ -427,6 +427,19 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" /
 print "</td></tr>\n";
 print '</form>';
 
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_DEFAULT_MAIL_RECIPIENT" />';
+print '<tr '.$bc[$var].'><td>';
+print $langs->trans("FINANCEMENT_DEFAULT_MAIL_RECIPIENT").'</td>';
+print '<td align="right">';
+print '<input type="text" name="FINANCEMENT_DEFAULT_MAIL_RECIPIENT" value="'.$conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT.'" size="40" />';
+print '</td><td align="right">';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
+print "</td></tr>\n";
+print '</form>';
+
 print '</table><br /><br />';
 
 print_titre($langs->trans("PenalitesForSimulation"));

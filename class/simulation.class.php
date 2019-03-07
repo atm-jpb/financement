@@ -1100,10 +1100,9 @@ class TSimulation extends TObjetStd {
 			0
 		);*/
 		$r=new TReponseMail($conf->notification->email_from, $mailto, $subject, $mesg);
-		// Spécifique Copy Concept, M. Tizien en copie
-		if($this->entity == 7) {
-			$r->emailtoBcc = "nicolas.tizien@copy-concept.fr";
-		}
+        if(! empty($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT) && isValidEmail($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT)) {
+            $r->emailtoBcc = $conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT;
+        }
 
         foreach($filename as $k=>$file) {
                 $r->add_piece_jointe($filename[$k], $filepath[$k]);
@@ -2807,7 +2806,7 @@ class TSimulationSuivi extends TObjetStd {
         $logMessage.= 'NoAdjonction = '.$isAdjonctionNotChecked."\n";
         $logMessage.= 'NoCaseToSettle = '.$isNoCaseToSettleChecked."\n";
         $logMessage.= 'NotEmptyNumAccordLeaser = '.$isNotEmptyNumAccordLeaser."\n";
-        $logMessage.= 'IsLocPure = '.$isLocPure;
+        $logMessage.= 'IsLocPure = '.$isLocPure."\n";
 	    dol_syslog($logMessage, LOG_CRIT, 0, '_accord_auto_constraint');
 
 	    return $isActive                                        // Active
