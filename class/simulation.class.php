@@ -2510,7 +2510,11 @@ class TSimulationSuivi extends TObjetStd {
 	
 	function _createDemandeServiceFinancement($debug=false){
 		dol_include_once('/financement/class/service_financement.class.php');
-		$service = new ServiceFinancement($this->simulation, $this, $debug);
+		$PDOdb = new TPDOdb;
+		// Chargement d'un objet TSimulation dans une nouvelle variable pour éviter les problème d'adressage
+		$simulation = new TSimulation();
+		$simulation->load($PDOdb, $this->fk_simulation);
+		$service = new ServiceFinancement($simulation, $this, $debug);
 //		$service->debug = $this->debug;
 		// La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active) 
 		$res = $service->call();
