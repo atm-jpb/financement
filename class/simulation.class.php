@@ -1027,7 +1027,7 @@ class TSimulation extends TObjetStd {
 	}
 	
 	function send_mail_vendeur($auto=false, $mailto='') {
-		global $langs, $conf;
+		global $langs, $conf, $db;
 		
 		dol_include_once('/core/class/html.formmail.class.php');
 		dol_include_once('/core/lib/files.lib.php');
@@ -2385,7 +2385,7 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	//Effectue l'action de choisir définitivement un leaser pour financer la simulation
-	function doActionSelectionner(&$PDOdb,&$simulation){
+	function doActionSelectionner(&$PDOdb, TSimulation &$simulation){
 		global $db, $user;
 		
 		$TTypeFinancement = array(3=>'ADOSSEE', 4=>'MANDATEE', 18=>'PURE', 19=>'FINANCIERE'); // En cléf : id categorie, en valeur, type financement associé
