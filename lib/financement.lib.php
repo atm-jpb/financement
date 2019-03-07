@@ -651,7 +651,7 @@ function simulation_prepare_head(TSimulation $object)
         if(!empty($object->note_private)) $nbNote++;
 		if(!empty($object->note_public)) $nbNote++;
         $head[$h][0] = dol_buildpath('/financement/simulation_note.php', 2).'?id='.$id.'&mainmenu=financement';
-        $head[$h][1] = $langs->trans("NoteLabel");
+        $head[$h][1] = '<i class="fas fa-snowplow"></i>&nbsp;'.$langs->trans("NoteLabel");
 		if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
         $head[$h][2] = 'note';
         $h++;

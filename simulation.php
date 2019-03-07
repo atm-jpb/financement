@@ -560,6 +560,7 @@ function _liste(&$ATMdb, &$simulation) {
 	$affaire = new TFin_affaire();
 	
 	llxHeader('','Simulations');
+    print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 	
 	$r = new TSSRenderControler($simulation);
 	
@@ -851,6 +852,7 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
 	$suivi_leaser.= ' <span style="color: #00AA00;">' . $nb_ok . '</span>';
 	$suivi_leaser.= ' <span style="color: #FF0000;">' . $nb_refus . '</span>';
 	$suivi_leaser.= ' <span>' . ($nb_ok + $nb_refus + $nb_wait + $nb_err) . '</span>';
+//	$suivi_leaser.= ' <i class="fas fa-hand-peace" style="color: deeppink"></i>';
 	
 	return $suivi_leaser;
 }
@@ -882,6 +884,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$extrajs = array('/financement/js/financement.js', '/financement/js/dossier.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
+	print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 	
 	$head = simulation_prepare_head($simulation);
 	dol_fiche_head($head, 'card', $langs->trans("Simulation"),0,'simulation');
