@@ -2810,13 +2810,13 @@ class TSimulationSuivi extends TObjetStd {
         $logMessage.= 'IsLocPure = '.$isLocPure;
 	    dol_syslog($logMessage, LOG_CRIT, 0, '_accord_auto_constraint');
 
-	    return $isActive                            // Active
-            && $isLessThanMaxAmount                 // Montant max
-            && $isEmptyComment                      // Pas de commentaire
-            && $isAdjonctionNotChecked              // Adjonction pas coché
-            && $isNoCaseToSettleChecked             // Aucun solde selectionné
-            && $isNotEmptyNumAccordLeaser           // Numéro accord leaser renseigné
-            || ($isLocPure && $isEmptyComment);     // LOC PURE
+	    return $isActive                                        // Active
+            && $isLessThanMaxAmount                             // Montant max
+            && $isEmptyComment                                  // Pas de commentaire
+            && $isAdjonctionNotChecked                          // Adjonction pas coché
+            && $isNoCaseToSettleChecked                         // Aucun solde selectionné
+            && $isNotEmptyNumAccordLeaser                       // Numéro accord leaser renseigné
+            || ($isActive && $isLocPure && $isEmptyComment);    // LOC PURE
     }
 }
 
