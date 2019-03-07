@@ -1189,7 +1189,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	llxFooter();
 }
 
-function _fiche_suivi(&$ATMdb, &$simulation, $mode){
+function _fiche_suivi(&$ATMdb, TSimulation &$simulation, $mode){
 	global $conf, $db, $langs;
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'].'#suivi_leaser','form_suivi_simulation','POST');

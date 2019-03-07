@@ -689,6 +689,7 @@ class TSimulation extends TObjetStd {
 				
 				$ligne['coeff_leaser'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][coeff_accord]', $simulationSuivi->coeff_leaser, 6,0,'style="text-align:right;"') : (($simulationSuivi->coeff_leaser>0) ? $simulationSuivi->coeff_leaser : '');
 				$ligne['commentaire'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->zonetexte('', 'TSuivi['.$simulationSuivi->rowid.'][commentaire]', $simulationSuivi->commentaire, 25,0) : nl2br($simulationSuivi->commentaire);
+				$ligne['commentaire_interne'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->zonetexte('', 'TSuivi['.$simulationSuivi->rowid.'][commentaire_interne]', $simulationSuivi->commentaire_interne, 25,0) : nl2br($simulationSuivi->commentaire_interne);
 				$ligne['actions'] = $simulationSuivi->getAction($this);
 				$ligne['action_save'] = $simulationSuivi->getAction($this, true);
 				
@@ -2086,7 +2087,7 @@ class TSimulationSuivi extends TObjetStd {
 		parent::add_champs('coeff_leaser','type=float;');
 		parent::add_champs('date_demande,date_accord,date_selection,date_historization','type=date;');
 		parent::add_champs('numero_accord_leaser,statut','type=chaine;');
-		parent::add_champs('commentaire','type=text;');
+		parent::add_champs('commentaire,commentaire_interne','type=text;');
 		parent::add_champs('rang', array('type'=>'integer'));
 
 		parent::add_champs('surfact,surfactplus,commission,intercalaire,diff_solde,prime_volume,turn_over,renta_amount,renta_percent', array('type'=>'float'));

@@ -16,6 +16,7 @@
 			<td>N° étude / Accord Leaser</td>
 			<td>Coeff.<br>Leaser</td>
 			<td>Commentaire</td>
+			<td>Commentaire Interne</td>
 			<td>Enregistrer</td>
 			<td>Doc</td>
 			<td>Actions</td>
@@ -31,6 +32,7 @@
 			<td>[ligne.numero_accord_leaser;strconv=no]</td>
 			<td>[ligne.coeff_leaser;strconv=no; frm=0,0000]</td>
 			<td>[ligne.commentaire;strconv=no]</td>
+			<td>[ligne.commentaire_interne;strconv=no]</td>
 			<td>[ligne.action_save;strconv=no]</td>
 			<td>[ligne.doc;strconv=no]</td>
 			<td>[ligne.actions;strconv=no]</td>
