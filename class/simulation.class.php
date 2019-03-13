@@ -2348,8 +2348,6 @@ class TSimulationSuivi extends TObjetStd {
             $simulation->type_financement = null;
             $simulation->save($PDOdb, $db);
         }
-
-        $this->accordAuto($PDOdb, $simulation);
 	}
 	
 	//Effectue l'action de passer au statut refusé la demande de financement leaser
