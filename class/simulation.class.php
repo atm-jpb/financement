@@ -2348,8 +2348,6 @@ class TSimulationSuivi extends TObjetStd {
             $simulation->type_financement = null;
             $simulation->save($PDOdb, $db);
         }
-
-        $this->accordAuto($PDOdb, $simulation);
 	}
 	
 	//Effectue l'action de passer au statut refusé la demande de financement leaser
@@ -2802,6 +2800,7 @@ class TSimulationSuivi extends TObjetStd {
         $isNoCaseToSettleChecked = ! empty($simu->opt_no_case_to_settle) ? 1 : 0;
         $isNotEmptyNumAccordLeaser = ! empty($this->numero_accord_leaser) ? 1 : 0;
         $isLocPure = ($this->fk_leaser == 18495) ? 1 : 0;
+        $isFirst = ($this->rang == 0) ? 1 : 0;
 
         $logMessage = 'CONSTRAINTS FOR FK_SIMU='.$simu->rowid."\n";
         $logMessage.= 'AccordAuto active = '.$isActive."\n";
@@ -2811,13 +2810,14 @@ class TSimulationSuivi extends TObjetStd {
         $logMessage.= 'NoCaseToSettle = '.$isNoCaseToSettleChecked."\n";
         $logMessage.= 'NotEmptyNumAccordLeaser = '.$isNotEmptyNumAccordLeaser."\n";
         $logMessage.= 'IsLocPure = '.$isLocPure."\n";
+        $logMessage.= 'isFirst = '.$isFirst."\n";
 	    dol_syslog($logMessage, LOG_CRIT, 0, '_accord_auto_constraint');
 
 	    return $isActive                                        // Active
             && $isLessThanMaxAmount                             // Montant max
             && $isEmptyComment                                  // Pas de commentaire
-            && $isAdjonctionNotChecked                          // Adjonction pas coché
-            && $isNoCaseToSettleChecked                         // Aucun solde selectionné
+            && ($isAdjonctionNotChecked || $isFirst)            // Adjonction pas coché
+            && ($isNoCaseToSettleChecked || $isFirst)           // Aucun solde selectionné
             && $isNotEmptyNumAccordLeaser                       // Numéro accord leaser renseigné
             || ($isActive && $isLocPure && $isEmptyComment);    // LOC PURE
     }
