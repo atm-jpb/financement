@@ -149,6 +149,9 @@ class WebServiceGrenke extends WebService
 		$f = new TFin_financement();
 		$f->periodicite = $this->simulation->opt_periodicite;
 		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
+		if($dureeInMonth < 36) $dureeInMonth = 36;
+		if($dureeInMonth > 66) $dureeInMonth = 66;
+
 		$echeanceInMonth = round($this->simulation->echeance / $f->getiPeriode(),2);
 
         // Montant minimum 500 €

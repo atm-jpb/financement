@@ -2820,7 +2820,7 @@ class TSimulationSuivi extends TObjetStd {
         $isNoCaseToSettleChecked = ! empty($simu->opt_no_case_to_settle) ? 1 : 0;
         $isNotEmptyNumAccordLeaser = ! empty($this->numero_accord_leaser) ? 1 : 0;
         $isLocPure = ($this->fk_leaser == 18495) ? 1 : 0;
-        $isFirst = ($this->rang == 0) ? 1 : 0;
+        $isFirst = ($this->rang == -1) ? 1 : 0;
 
         $logMessage = 'CONSTRAINTS FOR FK_SIMU='.$simu->rowid."\n";
         $logMessage.= 'AccordAuto active = '.$isActive."\n";
