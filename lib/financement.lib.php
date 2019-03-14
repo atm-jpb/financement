@@ -728,3 +728,23 @@ function switchEntity($target) {
         $mysocentity->setMysoc($confentity);
     }
 }
+
+function get_picto($name) {
+    $iconSize = 'font-size: 21px;';
+    $img = '';
+    switch($name) {
+        case 'refus':
+            $img .= '<i class="fas fa-times-circle" style="color: #b90000; ' .$iconSize.'"></i>';
+            break;
+        case 'wait':
+            $img .= '<i class="fas fa-clock" style="color: #22b8cf; '.$iconSize.'"></i>';
+            break;
+        case 'err':
+            $img .= '<i class="fas fa-exclamation-triangle" style="color: #ffd507; ' .$iconSize.'"></i>';
+            break;
+        default:
+            break;
+    }
+
+    return $img;
+}

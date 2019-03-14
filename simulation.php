@@ -836,13 +836,14 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
 	$s = new TSimulation;
 	$s->load($PDOdb, $idSimulation, false);
 
+    $iconSize = 'font-size: 21px;';
 	if($s->fk_action_manuelle > 0) {
         $sql = 'SELECT label FROM '.MAIN_DB_PREFIX.'c_financement_action_manuelle WHERE rowid = '.$s->fk_action_manuelle;
         $resql = $db->query($sql);
 
         $color = 'deeppink';
         if($s->fk_action_manuelle == 2) $color = 'green';
-        $suivi_leaser .= ' <i class="fas fa-star" style="color: '.$color.'; font-size: 21px; vertical-align: top"';
+        $suivi_leaser .= ' <i class="fas fa-star" style="color: '.$color.'; '.$iconSize.' vertical-align: top"';
 
         if($obj = $db->fetch_object($resql)) {
             $suivi_leaser .= ' title="'.$langs->trans($obj->label).'"';
@@ -855,16 +856,16 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
 
         if(!empty($fk_fin_dossier)) { // La simulation a été financée, lien direct vers le dossier
             $suivi_leaser = '<a href="' . dol_buildpath('/financement/dossier.php?id=' . $fk_fin_dossier, 1) . '">';
-            $suivi_leaser .= '<FONT size="4">€</FONT>';
+            $suivi_leaser .= '<i class="fas fa-coins" style="'.$iconSize.'"></i>';
             $suivi_leaser .= '</a>';
         }
-        else if($statut == 'OK') $suivi_leaser .= '<img title="' . $langs->trans('Accord') . '" src="' . dol_buildpath('/financement/img/super_ok.png', 1) . '" />';
-        else if($statut == 'WAIT_SELLER') $suivi_leaser .= '<img title="' . $langs->trans('Etude_Vendeur') . '" src="' . dol_buildpath('/financement/img/WAIT_VENDEUR.png', 1) . '" />';
-        else if($statut == 'WAIT_LEASER') $suivi_leaser .= '<img title="' . $langs->trans('Etude_Leaser') . '" src="' . dol_buildpath('/financement/img/WAIT_LEASER.png', 1) . '" />';
-        else if($nb_ok > 0) $suivi_leaser .= '<img title="' . $langs->trans('Etude') . '" src="' . dol_buildpath('/financement/img/OK.png', 1) . '" />';
-        else if($nb_refus > 0) $suivi_leaser .= '<img title="' . $langs->trans('Refus') . '" src="' . dol_buildpath('/financement/img/KO.png', 1) . '" />';
-        else if($nb_wait > 0) $suivi_leaser .= '<img title="' . $langs->trans('Etude') . '" src="' . dol_buildpath('/financement/img/WAIT.png', 1) . '" />';
-        else if($nb_err > 0) $suivi_leaser .= '<img title="Erreur" src="' . dol_buildpath('/financement/img/ERR.png', 1) . '" />';
+        else if($statut == 'OK') $suivi_leaser .= '<i class="fas fa-check-circle" style="color: green; '.$iconSize.'"></i>';
+        else if($statut == 'WAIT_SELLER') $suivi_leaser .= '<i class="fas fa-briefcase" style="'.$iconSize.'"></i>';
+        else if($statut == 'WAIT_LEASER') $suivi_leaser .= '<i class="fas fa-piggy-bank" style="'.$iconSize.'"></i>';
+        else if($nb_ok > 0) $suivi_leaser .= '<i class="fas fa-check-circle" style="color: grey; ' .$iconSize.'"></i>';
+        else if($nb_refus > 0) $suivi_leaser .= '<i class="fas fa-times-circle" style="color: #b90000; ' .$iconSize.'"></i>';
+        else if($nb_wait > 0) $suivi_leaser .= '<i class="fas fa-clock" style="color: #22b8cf; '.$iconSize.'"></i>';
+        else if($nb_err > 0) $suivi_leaser .= '<i class="fas fa-exclamation-triangle" style="color: #ffd507; ' .$iconSize.'"></i>';
         else $suivi_leaser .= '';//'<img title="'.$langs->trans('Etude').'" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
         $suivi_leaser .= '</a>';
     }
@@ -1548,11 +1549,8 @@ function _has_valid_simulations(&$ATMdb, $socid){
 }
 
 function _simu_edit_link($simulId, $date){
-    
-    global $db, $ATMdb;
-    
     if(strtotime($date) > dol_now()){
-        $return = '<a href="?id='.$simulId.'&action=edit">'.img_picto('modifier','./img/pencil.png', '', 1).'</a>';
+        $return = '<a href="?id='.$simulId.'&action=edit"><i class="fas fa-edit" style="color: darkorange;font-size: 21px;"></i></a>';
     } else {
         $return = '';
     }
