@@ -37,7 +37,7 @@
 			<td>CP / Ville</td>
 			<td>[client.cpville]</td>
 			<td>SIRET</td>
-			<td>[client.siret]</td>
+			<td>[client.siret; strconv=no]</td>
 		</tr>
 		<tr>
 			<td>&nbsp;</td>
