@@ -1127,7 +1127,8 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	}
 
 	$siret = ($simulation->accord == 'OK' && !empty($simulation->thirdparty_idprof2_siret)) ? $simulation->thirdparty_idprof2_siret : $simulation->societe->idprof2;
-	$siretlink = '<a target="_blank" href="https://portail.infolegale.fr/identity/'.$siret.'">'.$siret.'</a>';
+	$siren = substr($siret,0,9);
+	$siretlink = '<a target="_blank" href="https://portail.infolegale.fr/identity/'.$siren.'">'.$siret.'</a>';
 	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
