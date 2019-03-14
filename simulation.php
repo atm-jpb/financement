@@ -1125,6 +1125,9 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	if(!empty($simulation->societe->array_options['options_no_regroup_fin_siren'])) {
 		$search_by_siren = false;
 	}
+
+	$siret = ($simulation->accord == 'OK' && !empty($simulation->thirdparty_idprof2_siret)) ? $simulation->thirdparty_idprof2_siret : $simulation->societe->idprof2;
+	$siretlink = '<a href="https://portail.infolegale.fr/identity/'.$siret.'">'.$siret.'</a>';
 	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
@@ -1137,7 +1140,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 				,'autres_simul'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/simulation.php?socid='.$simulation->fk_soc.'">(autres simulations)</a>'
 				,'adresse'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_address)) ? $simulation->thirdparty_address : $simulation->societe->address
 				,'cpville'=>( ($simulation->accord == 'OK' && !empty($simulation->thirdparty_zip)) ? $simulation->thirdparty_zip : $simulation->societe->zip ) .' / '. ( ($simulation->accord == 'OK' && !empty($simulation->thirdparty_town)) ? $simulation->thirdparty_town : $simulation->societe->town )
-				,'siret'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_idprof2_siret)) ? $simulation->thirdparty_idprof2_siret : $simulation->societe->idprof2
+				,'siret'=>$siretlink
 				,'naf'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_idprof3_naf)) ? $simulation->thirdparty_idprof3_naf : $simulation->societe->idprof3
 				,'code_client'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_code_client)) ? $simulation->thirdparty_code_client : $simulation->societe->code_client
 				,'display_score'=>$user->rights->financement->score->read ? 1 : 0
