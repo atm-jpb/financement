@@ -15,6 +15,7 @@ class WebServiceGrenke extends WebService
 	public function run()
 	{
 		global $conf,$langs;
+		$langs->load('financement@financement');
 
 		$oldconf = $conf;
 		switchEntity($this->simulation->entity);
@@ -87,7 +88,7 @@ class WebServiceGrenke extends WebService
 			// MAJ du statut
 			else if (!empty($response->getLeaseRequestStatusWithLoginResult->leaseRequestId))
 			{
-				$this->simulationSuivi->commentaire.= $langs->trans($response->getLeaseRequestStatusWithLoginResult->status);
+				$this->simulationSuivi->commentaire = $langs->trans($response->getLeaseRequestStatusWithLoginResult->status);
 
 				switch ($response->getLeaseRequestStatusWithLoginResult->status)
 				{

@@ -883,7 +883,7 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
 function _fiche(&$ATMdb, &$simulation, $mode) {
 	global $db, $langs, $user, $conf, $action;
 	
-    $result = restrictedArea($user, 'financement', $simulation->getID(), 'fin_simulation&fin_simulation', '', 'fk_soc', 'rowid');
+    $result = restrictedArea($user, 'financement', $simulation->getID(), 'fin_simulation&societe', '', 'fk_soc', 'rowid');
 	
 	// Si simulation déjà préco ou demande faite, le "montant_accord" est renseigné, le vendeur ne peux modifier que certains champs
 	if($mode == 'edit') {
