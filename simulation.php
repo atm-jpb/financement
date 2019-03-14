@@ -840,11 +840,15 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
         $sql = 'SELECT label FROM '.MAIN_DB_PREFIX.'c_financement_action_manuelle WHERE rowid = '.$s->fk_action_manuelle;
         $resql = $db->query($sql);
 
-        $suivi_leaser .= ' <i class="fas fa-star" style="color: deeppink"';
+        $color = 'deeppink';
+        if($s->fk_action_manuelle == 2) $color = 'green';
+        $suivi_leaser .= ' <i class="fas fa-star" style="color: '.$color.'; font-size: 21px; vertical-align: top"';
+
         if($obj = $db->fetch_object($resql)) {
             $suivi_leaser .= ' title="'.$langs->trans($obj->label).'"';
         }
         $suivi_leaser .= '></i>&nbsp;';
+        $db->free($resql);
     }
 	$suivi_leaser .= '<a href="'.dol_buildpath('/financement/simulation.php?id='.$idSimulation, 1).'#suivi_leaser">';
 	

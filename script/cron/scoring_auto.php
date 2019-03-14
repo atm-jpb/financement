@@ -95,8 +95,10 @@ while($obj = $db->fetch_object($resql)) {
                     print "\n";
                 }
 
-                $simulation->fk_action_manuelle = 1;    // Can't do scoring auto
-                $simulation->save($PDOdb, $db, false);
+                if($TSuivi[$k-1]->date_demande + $conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN*60 <= time()) {
+                    $simulation->fk_action_manuelle = 1;    // Can't do scoring auto
+                    $simulation->save($PDOdb, $db, false);
+                }
             }
 
             break;

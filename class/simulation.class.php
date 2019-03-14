@@ -2443,14 +2443,7 @@ class TSimulationSuivi extends TObjetStd {
 		$simulation->fk_user_suivi = empty($user->id) ? 1035 : $user->id;   // $user->id ou 'admin_financement'
 		if(!empty($TTypeFinancement[$TCateg_tiers[0]])) $simulation->type_financement = $TTypeFinancement[$TCateg_tiers[0]];
 
-        if($simulation->fk_action_manuelle > 0) {
-            $sql = 'SELECT code FROM '.MAIN_DB_PREFIX.'c_financement_action_manuelle WHERE rowid = '.$simulation->fk_action_manuelle;
-            $resql = $db->query($sql);
-
-            if($obj = $db->fetch_object($resql)) {
-                if($obj->code == 'accord') $simulation->fk_action_manuelle = 0;
-            }
-        }
+        if($simulation->fk_action_manuelle > 0) $simulation->fk_action_manuelle = 0;    // Si OK pour un leaser, plus aucune action manuelle n'est nécessaire
 
 		$simulation->save($PDOdb, $db);
 
