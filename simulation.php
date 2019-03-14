@@ -829,7 +829,7 @@ function print_attente($compteur){
 }
 
 function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_refus, $nb_wait, $nb_err) {
-	global $langs;
+	global $langs, $db;
 	
 	$suivi_leaser = '';
 	$PDOdb = new TPDOdb;
@@ -837,7 +837,14 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
 	$s->load($PDOdb, $idSimulation, false);
 
 	if($s->fk_action_manuelle > 0) {
-        $suivi_leaser .= ' <i class="fas fa-star" style="color: deeppink"></i>&nbsp;';
+        $sql = 'SELECT label FROM '.MAIN_DB_PREFIX.'c_financement_action_manuelle WHERE rowid = '.$s->fk_action_manuelle;
+        $resql = $db->query($sql);
+
+        $suivi_leaser .= ' <i class="fas fa-star" style="color: deeppink"';
+        if($obj = $db->fetch_object($resql)) {
+            $suivi_leaser .= ' title="'.$langs->trans($obj->label).'"';
+        }
+        $suivi_leaser .= '></i>&nbsp;';
     }
 	$suivi_leaser .= '<a href="'.dol_buildpath('/financement/simulation.php?id='.$idSimulation, 1).'#suivi_leaser">';
 	
