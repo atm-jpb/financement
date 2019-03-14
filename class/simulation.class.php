@@ -2365,7 +2365,7 @@ class TSimulationSuivi extends TObjetStd {
 		foreach ($simulation->TSimulationSuivi as $id_suivi => $suivi) {
 			if($found && empty($suivi->statut)) {
 				// [PH] TODO ajouter ici les noms de leaser pour déclancher en automatique l'appel
-				if(in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP','CMCIC'))) {
+				if(in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL','BNP','CMCIC','GRENKE'))) {
 					$suivi->doAction($PDOdb, $this->simulation, 'demander');
 				}
 				break;

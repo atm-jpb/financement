@@ -109,7 +109,7 @@ function isEDI(TSimulationSuivi $suivi) {
     $leaser->fetch($suivi->fk_leaser);
     if(empty($leaser->array_options)) $leaser->fetch_optionals();
 
-    return (! empty($leaser->array_options['options_edi_leaser']) && in_array($leaser->array_options['options_edi_leaser'], array('BNP', 'GE', 'LIXXBAIL', 'CMCIC')));
+    return (! empty($leaser->array_options['options_edi_leaser']) && in_array($leaser->array_options['options_edi_leaser'], array('BNP', 'LIXXBAIL', 'CMCIC', 'GRENKE')));
 }
 if($debug) {
     ?>
