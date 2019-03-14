@@ -150,6 +150,13 @@ class WebServiceGrenke extends WebService
 		$f->periodicite = $this->simulation->opt_periodicite;
 		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
 		$echeanceInMonth = round($this->simulation->echeance / $f->getiPeriode(),2);
+
+        // Montant minimum 500 €
+        $montant = $this->simulation->montant;
+        // Scoring par le montant leaser
+        $montant += $this->simulationSuivi->surfact + $this->simulationSuivi->surfactplus;
+        $montant = round($montant,2);
+        if($montant < 500) $montant = 500;
 		
 		$paymentInterval = 'quarterly'; // valeur possible : 'quarterly', 'monthly'
 		$estimatedDeliveryDate = date('c', $this->simulation->date_demarrage); // contient 0 si vide...
@@ -189,7 +196,7 @@ class WebServiceGrenke extends WebService
 								</lessee>
 								<articles>
 									<Article>
-										<price>'.$this->simulation->montant.'</price>
+										<price>'.$montant.'</price>
 										<type>1.11.1</type>
 										<description>'.$this->simulation->type_materiel.'</description>
 										<producer>Canon</producer>
