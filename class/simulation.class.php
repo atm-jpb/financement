@@ -22,6 +22,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('fk_fin_dossier,fk_fin_dossier_adjonction', array('type'=>'integer'));
 		parent::add_champs('fk_simu_cristal,fk_projet_cristal', array('type'=>'integer'));
 		parent::add_champs('note_public,note_private', array('type'=>'chaine'));
+        parent::add_champs('fk_action_manuelle', array('type'=>'integer'));
 		
 		parent::start();
 		parent::_init_vars();
@@ -2328,6 +2329,18 @@ class TSimulationSuivi extends TObjetStd {
 			$this->date_selection = 0;
 			$this->save($PDOdb);
 		}
+
+		if($simulation->fk_action_manuelle > 0) {
+		    $sql = 'SELECT code FROM '.MAIN_DB_PREFIX.'c_financement_action_manuelle WHERE rowid = '.$simulation->fk_action_manuelle;
+		    $resql = $db->query($sql);
+
+		    if($obj = $db->fetch_object($resql)) {
+		        if($obj->code == 'scoring') {
+		            $simulation->fk_action_manuelle = 0;
+                    $simulation->save($PDOdb, $db, false);
+                }
+            }
+        }
 	}
 	
 	//Effectue l'action de passer au statut accepter la demande de financement leaser
@@ -2429,6 +2442,16 @@ class TSimulationSuivi extends TObjetStd {
 		$simulation->montant_accord = $simulation->montant_total_finance;
 		$simulation->fk_user_suivi = empty($user->id) ? 1035 : $user->id;   // $user->id ou 'admin_financement'
 		if(!empty($TTypeFinancement[$TCateg_tiers[0]])) $simulation->type_financement = $TTypeFinancement[$TCateg_tiers[0]];
+
+        if($simulation->fk_action_manuelle > 0) {
+            $sql = 'SELECT code FROM '.MAIN_DB_PREFIX.'c_financement_action_manuelle WHERE rowid = '.$simulation->fk_action_manuelle;
+            $resql = $db->query($sql);
+
+            if($obj = $db->fetch_object($resql)) {
+                if($obj->code == 'accord') $simulation->fk_action_manuelle = 0;
+            }
+        }
+
 		$simulation->save($PDOdb, $db);
 
 		$simulation->send_mail_vendeur();
@@ -2774,7 +2797,7 @@ class TSimulationSuivi extends TObjetStd {
 	}
 
 	function accordAuto(TPDOdb $PDOdb, TSimulation $simu) {
-	    global $conf;
+	    global $conf, $db;
         if(! function_exists('switchEntity')) dol_include_once('/financement/lib/financement.lib.php');
         $old_entity = $conf->entity;
         switchEntity($simu->entity);
@@ -2785,6 +2808,10 @@ class TSimulationSuivi extends TObjetStd {
 	        $message = 'Un accord auto, un ! (Switched to entity '.$conf->entity.' ; fk_simu='.$simu->rowid.', fk_suivi='.$this->rowid.')';
 	        dol_syslog($message, LOG_CRIT, 0, '_accord_auto');
 	        $this->doActionSelectionner($PDOdb, $simu);
+        }
+	    else {
+	        $simu->fk_action_manuelle = 2;  // Can't give accord auto
+	        $simu->save($PDOdb, $db, false);
         }
 	    switchEntity($old_entity);
     }

@@ -88,12 +88,15 @@ while($obj = $db->fetch_object($resql)) {
                 $suivi->doActionAccepter($PDOdb, $simulation);
             }
             else {
-                // TODO: Action manuelle demandée ?
+                // Action manuelle demandée !
                 $nb_ignored++;
                 if($debug) {
                     var_dump('what\'s new here ?');
                     print "\n";
                 }
+
+                $simulation->fk_action_manuelle = 1;    // Can't do scoring auto
+                $simulation->save($PDOdb, $db, false);
             }
 
             break;

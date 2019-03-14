@@ -832,8 +832,14 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
 	global $langs;
 	
 	$suivi_leaser = '';
-	
-	$suivi_leaser = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$idSimulation, 1).'#suivi_leaser">';
+	$PDOdb = new TPDOdb;
+	$s = new TSimulation;
+	$s->load($PDOdb, $idSimulation, false);
+
+	if($s->fk_action_manuelle > 0) {
+        $suivi_leaser .= ' <i class="fas fa-star" style="color: deeppink"></i>&nbsp;';
+    }
+	$suivi_leaser .= '<a href="'.dol_buildpath('/financement/simulation.php?id='.$idSimulation, 1).'#suivi_leaser">';
 	
 	if(!empty($fk_fin_dossier)) { // La simulation a été financée, lien direct vers le dossier
 		$suivi_leaser = '<a href="'.dol_buildpath('/financement/dossier.php?id='.$fk_fin_dossier, 1).'">';
@@ -853,7 +859,6 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
 	$suivi_leaser.= ' <span style="color: #00AA00;">' . $nb_ok . '</span>';
 	$suivi_leaser.= ' <span style="color: #FF0000;">' . $nb_refus . '</span>';
 	$suivi_leaser.= ' <span>' . ($nb_ok + $nb_refus + $nb_wait + $nb_err) . '</span>';
-//	$suivi_leaser.= ' <i class="fas fa-hand-peace" style="color: deeppink"></i>';
 	
 	return $suivi_leaser;
 }
