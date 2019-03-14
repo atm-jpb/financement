@@ -847,26 +847,28 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
         if($obj = $db->fetch_object($resql)) {
             $suivi_leaser .= ' title="'.$langs->trans($obj->label).'"';
         }
-        $suivi_leaser .= '></i>&nbsp;';
+        $suivi_leaser .= '></i>';
         $db->free($resql);
     }
-	$suivi_leaser .= '<a href="'.dol_buildpath('/financement/simulation.php?id='.$idSimulation, 1).'#suivi_leaser">';
-	
-	if(!empty($fk_fin_dossier)) { // La simulation a été financée, lien direct vers le dossier
-		$suivi_leaser = '<a href="'.dol_buildpath('/financement/dossier.php?id='.$fk_fin_dossier, 1).'">';
-		$suivi_leaser.= '<FONT size="4">€</FONT>';
-		$suivi_leaser.= '</a>';
-	}
-	elseif ($statut == 'OK') $suivi_leaser.= '<img title="'.$langs->trans('Accord').'" src="'.dol_buildpath('/financement/img/super_ok.png',1).'" />';
-	elseif ($statut == 'WAIT_SELLER') $suivi_leaser.= '<img title="'.$langs->trans('Etude_Vendeur').'" src="'.dol_buildpath('/financement/img/WAIT_VENDEUR.png',1).'" />';
-	elseif ($statut == 'WAIT_LEASER') $suivi_leaser.= '<img title="'.$langs->trans('Etude_Leaser').'" src="'.dol_buildpath('/financement/img/WAIT_LEASER.png',1).'" />';
-	elseif($nb_ok > 0) $suivi_leaser.= '<img title="'.$langs->trans('Etude').'" src="'.dol_buildpath('/financement/img/OK.png',1).'" />';
-	elseif($nb_refus > 0) $suivi_leaser.= '<img title="'.$langs->trans('Refus').'" src="'.dol_buildpath('/financement/img/KO.png',1).'" />';
-	elseif($nb_wait > 0) $suivi_leaser.= '<img title="'.$langs->trans('Etude').'" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
-	elseif($nb_err > 0) $suivi_leaser.= '<img title="Erreur" src="'.dol_buildpath('/financement/img/ERR.png',1).'" />';
-	else $suivi_leaser.= '';//'<img title="'.$langs->trans('Etude').'" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
-	$suivi_leaser.= '</a>';
-	
+	else {
+        $suivi_leaser .= '<a href="' . dol_buildpath('/financement/simulation.php?id=' . $idSimulation, 1) . '#suivi_leaser">';
+
+        if(!empty($fk_fin_dossier)) { // La simulation a été financée, lien direct vers le dossier
+            $suivi_leaser = '<a href="' . dol_buildpath('/financement/dossier.php?id=' . $fk_fin_dossier, 1) . '">';
+            $suivi_leaser .= '<FONT size="4">€</FONT>';
+            $suivi_leaser .= '</a>';
+        }
+        else if($statut == 'OK') $suivi_leaser .= '<img title="' . $langs->trans('Accord') . '" src="' . dol_buildpath('/financement/img/super_ok.png', 1) . '" />';
+        else if($statut == 'WAIT_SELLER') $suivi_leaser .= '<img title="' . $langs->trans('Etude_Vendeur') . '" src="' . dol_buildpath('/financement/img/WAIT_VENDEUR.png', 1) . '" />';
+        else if($statut == 'WAIT_LEASER') $suivi_leaser .= '<img title="' . $langs->trans('Etude_Leaser') . '" src="' . dol_buildpath('/financement/img/WAIT_LEASER.png', 1) . '" />';
+        else if($nb_ok > 0) $suivi_leaser .= '<img title="' . $langs->trans('Etude') . '" src="' . dol_buildpath('/financement/img/OK.png', 1) . '" />';
+        else if($nb_refus > 0) $suivi_leaser .= '<img title="' . $langs->trans('Refus') . '" src="' . dol_buildpath('/financement/img/KO.png', 1) . '" />';
+        else if($nb_wait > 0) $suivi_leaser .= '<img title="' . $langs->trans('Etude') . '" src="' . dol_buildpath('/financement/img/WAIT.png', 1) . '" />';
+        else if($nb_err > 0) $suivi_leaser .= '<img title="Erreur" src="' . dol_buildpath('/financement/img/ERR.png', 1) . '" />';
+        else $suivi_leaser .= '';//'<img title="'.$langs->trans('Etude').'" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
+        $suivi_leaser .= '</a>';
+    }
+
 	$suivi_leaser.= ' <span style="color: #00AA00;">' . $nb_ok . '</span>';
 	$suivi_leaser.= ' <span style="color: #FF0000;">' . $nb_refus . '</span>';
 	$suivi_leaser.= ' <span>' . ($nb_ok + $nb_refus + $nb_wait + $nb_err) . '</span>';
