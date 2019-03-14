@@ -651,7 +651,14 @@ function simulation_prepare_head(TSimulation $object)
         if(!empty($object->note_private)) $nbNote++;
 		if(!empty($object->note_public)) $nbNote++;
         $head[$h][0] = dol_buildpath('/financement/simulation_note.php', 2).'?id='.$id.'&mainmenu=financement';
-        $head[$h][1] = '<i class="fas fa-snowplow"></i>&nbsp;'.$langs->trans("NoteLabel");
+
+        $cssFlipStyle = '-moz-transform: scaleX(-1);';
+        $cssFlipStyle.= ' -o-transform: scaleX(-1);';
+        $cssFlipStyle.= ' -webkit-transform: scaleX(-1);';
+        $cssFlipStyle.= ' transform: scaleX(-1);';
+        $cssFlipStyle.= ' filter: FlipH;';
+        $cssFlipStyle.= ' -ms-filter: "FlipH";';
+        $head[$h][1] = '<i class="fas fa-snowplow"></i>&nbsp;'.$langs->trans("NoteLabel").'&nbsp;<i class="fas fa-snowplow" style="'.$cssFlipStyle.'"></i>';
 		if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
         $head[$h][2] = 'note';
         $h++;
