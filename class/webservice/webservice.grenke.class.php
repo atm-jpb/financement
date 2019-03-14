@@ -149,6 +149,7 @@ class WebServiceGrenke extends WebService
 		$f = new TFin_financement();
 		$f->periodicite = $this->simulation->opt_periodicite;
 		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
+		$echeanceInMonth = round($this->simulation->echeance / $f->getiPeriode(),2);
 		
 		$paymentInterval = 'quarterly'; // valeur possible : 'quarterly', 'monthly'
 		$estimatedDeliveryDate = date('c', $this->simulation->date_demarrage); // contient 0 si vide...
@@ -184,7 +185,7 @@ class WebServiceGrenke extends WebService
 										</communication>
 										<name>'.$this->simulation->societe->nom.'</name>
 									</person>
-									<customerID/>
+									<customerID>'.$this->simulation->societe->idprof1.'</customerID>
 								</lessee>
 								<articles>
 									<Article>
@@ -195,22 +196,18 @@ class WebServiceGrenke extends WebService
 									</Article>
 								</articles>
 								<paymentInfo>
-									<accountInfo>
-										<accountHolder>'.$this->simulation->societe->nom.'</accountHolder>
-										<iban>DE89370400440532013000</iban>
-									</accountInfo>
 									<directDebit>true</directDebit>
 									<paymentInterval>'.$paymentInterval.'</paymentInterval>
 								</paymentInfo>
 								<initialPayment>0</initialPayment>
-								<residualValue>'.$this->simulation->vr.'</residualValue>
+								<residualValue>0</residualValue>
 								<commission>0</commission>
 								<estimatedDeliveryDate>'.$estimatedDeliveryDate.'</estimatedDeliveryDate>
 								<currency>EUR</currency>
 								<tax>0</tax>
 								<maintenanceCost>0</maintenanceCost>
 								<calculation>
-									<installment>'.$this->simulation->echeance.'</installment>
+									<installment>'.$echeanceInMonth.'</installment>
 									<contractDuration>'.$dureeInMonth.'</contractDuration>
 								</calculation>
 							</leaseRequest>
