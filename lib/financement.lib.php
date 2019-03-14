@@ -731,22 +731,61 @@ function switchEntity($target) {
     }
 }
 
-function get_picto($name) {
+function get_picto($name, $title = '', $color = '') {
     $iconSize = 'font-size: 21px;';
     $img = '';
-    switch($name) {
+    $lo_name = strtolower($name);
+    switch($lo_name) {
         case 'refus':
-            $img .= '<i class="fas fa-times-circle" style="color: #b90000; ' .$iconSize.'"></i>';
+            $img .= '<i class="fas fa-times-circle" style="color: #b90000; ' .$iconSize.'"';
             break;
         case 'wait':
-            $img .= '<i class="fas fa-clock" style="color: #22b8cf; '.$iconSize.'"></i>';
+            $img .= '<i class="fas fa-clock" style="color: #22b8cf; '.$iconSize.'"';
             break;
         case 'err':
-            $img .= '<i class="fas fa-exclamation-triangle" style="color: #ffd507; ' .$iconSize.'"></i>';
+            $img .= '<i class="fas fa-exclamation-triangle" style="color: #ffd507; ' .$iconSize.'"';
+            break;
+        case 'super_ok':
+            $img .= '<i class="fas fa-check-circle" style="color: green; '.$iconSize.'"';
+            break;
+        case 'wait_seller':
+            $img .= '<i class="fas fa-briefcase" style="'.$iconSize.'"';
+            break;
+        case 'wait_leaser':
+            $img .= '<i class="fas fa-piggy-bank" style="'.$iconSize.'"';
+            break;
+        case 'ok':
+            $img .= '<i class="fas fa-check-circle"';
+            $img .= ' style="color: grey; ' .$iconSize.'"';
+            break;
+        case 'edit':
+            $img .= '<i class="fas fa-edit" style="color: darkorange; '.$iconSize.'"';
+            break;
+        case 'money':
+            $img .= '<i class="fas fa-coins" style="'.$iconSize.'"';
+            break;
+        case 'sans_suite':
+            $img .= '<i class="fas fa-times-circle" style="'.$iconSize.'"';
+            break;
+        case 'phone':
+            $img .= '<i class="fas fa-phone" style="'.$iconSize.'"';
+            break;
+        case 'webservice':
+            $img .= '<i class="fas fa-satellite-dish" style="color: green; '.$iconSize.'"';
+            break;
+        case 'save':
+            $img .= '<i class="fas fa-save" style="'.$iconSize.'"';
+            break;
+        case 'manual':
+            $img .= '<i class="fas fa-coins" style="'.$iconSize;
+            if(! empty($color)) $img .= ' color: '.$color.';';
+            $img .= ' vertical-align: top;"';
             break;
         default:
-            break;
+            return '';
     }
 
+    if(! empty($title)) $img .= ' title="'.$title.'"';
+    $img .= '></i>';
     return $img;
 }

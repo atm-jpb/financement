@@ -7,6 +7,7 @@ class TSimulation extends TObjetStd {
 	
 	function __construct($setChild=false) {
 		global $langs;
+		if(! function_exists('get_picto')) dol_include_once('/financement/lib/financement.lib.php');
 		
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation');
 		parent::add_champs('entity,fk_soc,fk_user_author,fk_user_suivi,fk_leaser,accord_confirme','type=entier;');
@@ -41,16 +42,16 @@ class TSimulation extends TObjetStd {
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
-		
-		$this->TStatutIcons=array(
-		    'OK'=>'./img/super_ok.png'
-		    ,'WAIT'=>'./img/WAIT.png'
-		    ,'WAIT_LEASER'=>'./img/Leaser.png'
-		    ,'WAIT_SELLER'=>'./img/Vendeur.png'
-		    ,'WAIT_MODIF'=>'./img/pencil.png'
-		    ,'KO'=>'./img/KO.png'
-		    ,'SS'=>'./img/SANSSUITE.png'
-		);
+
+        $this->TStatutIcons = array(
+            'OK'            => 'super_ok',
+            'WAIT'          => 'wait',
+            'WAIT_LEASER'   => 'wait_leaser',
+            'WAIT_SELLER'   => 'wait_seller',
+            'WAIT_MODIF'    => 'edit',
+            'KO'            => 'refus',
+            'SS'            => 'sans_suite'
+        );
 		
 		$this->TStatutShort=array(
 			'OK'=>$langs->trans('Accord')
@@ -682,7 +683,7 @@ class TSimulation extends TObjetStd {
 				$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande', 'd/m/Y H:i:s') : '' ;
 				$img = $simulationSuivi->statut;
 				if(!empty($simulationSuivi->date_selection)) $img = 'super_ok';
-				$ligne['resultat'] = ($simulationSuivi->statut) ? '<img title="'.$simulationSuivi->TStatut[$simulationSuivi->statut].'" src="'.dol_buildpath('/financement/img/'.$img.'.png',1).'" />' : '';
+				$ligne['resultat'] = ($simulationSuivi->statut) ? get_picto($img, $simulationSuivi->TStatut[$simulationSuivi->statut]) : '';
 				$ligne['numero_accord_leaser'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][num_accord]', $simulationSuivi->numero_accord_leaser, 25,0,'style="text-align:right;"') : $simulationSuivi->numero_accord_leaser;
 				
 				$ligne['date_selection'] = ($simulationSuivi->get_Date('date_selection')) ? $simulationSuivi->get_Date('date_selection') : '' ;
@@ -2217,7 +2218,7 @@ class TSimulationSuivi extends TObjetStd {
 			//Demander
 			if($this->statut_demande != 1){// && $this->date_demande < 0){
 				if(!$just_save && !empty($simulation->societe->idprof2))
-					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Demande transmise au leaser"><img src="'.dol_buildpath('/financement/img/demander.png',1).'" /></a>&nbsp;';
+					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Demande transmise au leaser">'.get_picto('phone').'</a>&nbsp;';
 			}
 			else{
 				//Sélectionner
@@ -2227,8 +2228,8 @@ class TSimulationSuivi extends TObjetStd {
 						$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
 					} else {
 						//Reset
-						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler"><img src="'.dol_buildpath('/financement/img/WAIT.png',1).'" /></a>&nbsp;';
-						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=selectionner'.$ancre.'" title="Sélectionner ce leaser"><img src="'.dol_buildpath('/financement/img/super_ok.png',1).'" /></a>&nbsp;';
+						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler">'.get_picto('wait').'</a>&nbsp;';
+						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=selectionner'.$ancre.'" title="Sélectionner ce leaser">'.get_picto('super_ok').'</a>&nbsp;';
 					}
 				}
 				else{
@@ -2240,15 +2241,15 @@ class TSimulationSuivi extends TObjetStd {
 						}
 						else {
 							//Accepter
-							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Demande acceptée"><img src="'.dol_buildpath('/financement/img/OK.png',1).'" /></a>&nbsp;';
+							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Demande acceptée">'.get_picto('ok').'</a>&nbsp;';
 							//Refuser
-							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser'.$ancre.'" title="Demande refusée"><img src="'.dol_buildpath('/financement/img/KO.png',1).'" /></a>&nbsp;';
+							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser'.$ancre.'" title="Demande refusée">'.get_picto('refus').'</a>&nbsp;';
 						}
 					
 					} elseif($simulation->accord != "KO") {
 						if(!$just_save) {
 							//Reset
-							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler"><img src="'.dol_buildpath('/financement/img/WAIT.png',1).'" /></a>&nbsp;';
+							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler">'.get_picto('wait').'</a>&nbsp;';
 						}
 					}
 				}
@@ -2256,11 +2257,11 @@ class TSimulationSuivi extends TObjetStd {
 		} elseif($simulation->accord == "OK" && !empty($this->date_selection)) {
 			if(!$just_save) {
 				//Reset
-				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Annuler"><img src="'.dol_buildpath('/financement/img/OK.png',1).'" /></a>&nbsp;';
+				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Annuler">'.get_picto('ok').'</a>&nbsp;';
 			}
 		}
 		
-		if (!$just_save && !empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($this->leaser->array_options['options_edi_leaser'])) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.img_picto('Webservice', 'call').'</a>&nbsp;';
+		if (!$just_save && !empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($this->leaser->array_options['options_edi_leaser'])) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.get_picto('webservice').'</a>&nbsp;';
 		
 		//if (!empty($this->b2b_nodef) && !empty($this->b2b_noweb)) $actions.= img_picto($langs->trans('SimulationSuiviInfoWebDemande', $this->b2b_nodef, $this->b2b_noweb), 'info.png', 'style="cursor: help"');
 
