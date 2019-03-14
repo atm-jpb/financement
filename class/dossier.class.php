@@ -2045,12 +2045,12 @@ class TFin_dossier extends TObjetStd {
 			// Règle de l'incident de paiement sur les externes
 			if($this->financementLeaser->incident_paiement == 'OUI') return -4;
 			// Règle du taux min
-			if(($this->financementLeaser->taux * $this->financementLeaser->getiPeriode() / 3) < $conf->global->FINANCEMENT_MIN_TAUX_TO_SHOW_SOLDE) return -5;
+			if(($this->financementLeaser->taux) < $conf->global->FINANCEMENT_MIN_TAUX_TO_SHOW_SOLDE) return -5;
 			// Règle du nombre de mois min
 			$nb_month_passe = ($this->financementLeaser->numero_prochaine_echeance - 1) * $this->financementLeaser->getiPeriode();
 		} else {
 			// Règle du taux min
-			if(($this->financement->taux * $this->financement->getiPeriode() / 3) < $conf->global->FINANCEMENT_MIN_TAUX_TO_SHOW_SOLDE) return -5;
+			if(($this->financement->taux) < $conf->global->FINANCEMENT_MIN_TAUX_TO_SHOW_SOLDE) return -5;
 			// Règle du nombre de mois min
 			$nb_month_passe = ($this->financement->numero_prochaine_echeance - 1) * $this->financement->getiPeriode();
 		}
