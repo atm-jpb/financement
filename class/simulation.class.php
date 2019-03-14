@@ -1027,7 +1027,7 @@ class TSimulation extends TObjetStd {
 	}
 	
 	function send_mail_vendeur($auto=false, $mailto='') {
-		global $langs, $conf;
+		global $langs, $conf, $db;
 		
 		dol_include_once('/core/class/html.formmail.class.php');
 		dol_include_once('/core/lib/files.lib.php');
@@ -1100,10 +1100,9 @@ class TSimulation extends TObjetStd {
 			0
 		);*/
 		$r=new TReponseMail($conf->notification->email_from, $mailto, $subject, $mesg);
-		// Spécifique Copy Concept, M. Tizien en copie
-		if($this->entity == 7) {
-			$r->emailtoBcc = "nicolas.tizien@copy-concept.fr";
-		}
+        if(! empty($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT) && isValidEmail($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT)) {
+            $r->emailtoBcc = $conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT;
+        }
 
         foreach($filename as $k=>$file) {
                 $r->add_piece_jointe($filename[$k], $filepath[$k]);
@@ -2349,8 +2348,6 @@ class TSimulationSuivi extends TObjetStd {
             $simulation->type_financement = null;
             $simulation->save($PDOdb, $db);
         }
-
-        $this->accordAuto($PDOdb, $simulation);
 	}
 	
 	//Effectue l'action de passer au statut refusé la demande de financement leaser
@@ -2386,7 +2383,7 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	//Effectue l'action de choisir définitivement un leaser pour financer la simulation
-	function doActionSelectionner(&$PDOdb,&$simulation){
+	function doActionSelectionner(&$PDOdb, TSimulation &$simulation){
 		global $db, $user;
 		
 		$TTypeFinancement = array(3=>'ADOSSEE', 4=>'MANDATEE', 18=>'PURE', 19=>'FINANCIERE'); // En cléf : id categorie, en valeur, type financement associé
@@ -2510,7 +2507,11 @@ class TSimulationSuivi extends TObjetStd {
 	
 	function _createDemandeServiceFinancement($debug=false){
 		dol_include_once('/financement/class/service_financement.class.php');
-		$service = new ServiceFinancement($this->simulation, $this, $debug);
+		$PDOdb = new TPDOdb;
+		// Chargement d'un objet TSimulation dans une nouvelle variable pour éviter les problème d'adressage
+		$simulation = new TSimulation();
+		$simulation->load($PDOdb, $this->fk_simulation);
+		$service = new ServiceFinancement($simulation, $this, $debug);
 //		$service->debug = $this->debug;
 		// La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active) 
 		$res = $service->call();
@@ -2799,6 +2800,7 @@ class TSimulationSuivi extends TObjetStd {
         $isNoCaseToSettleChecked = ! empty($simu->opt_no_case_to_settle) ? 1 : 0;
         $isNotEmptyNumAccordLeaser = ! empty($this->numero_accord_leaser) ? 1 : 0;
         $isLocPure = ($this->fk_leaser == 18495) ? 1 : 0;
+        $isFirst = ($this->rang == 0) ? 1 : 0;
 
         $logMessage = 'CONSTRAINTS FOR FK_SIMU='.$simu->rowid."\n";
         $logMessage.= 'AccordAuto active = '.$isActive."\n";
@@ -2807,14 +2809,15 @@ class TSimulationSuivi extends TObjetStd {
         $logMessage.= 'NoAdjonction = '.$isAdjonctionNotChecked."\n";
         $logMessage.= 'NoCaseToSettle = '.$isNoCaseToSettleChecked."\n";
         $logMessage.= 'NotEmptyNumAccordLeaser = '.$isNotEmptyNumAccordLeaser."\n";
-        $logMessage.= 'IsLocPure = '.$isLocPure;
+        $logMessage.= 'IsLocPure = '.$isLocPure."\n";
+        $logMessage.= 'isFirst = '.$isFirst."\n";
 	    dol_syslog($logMessage, LOG_CRIT, 0, '_accord_auto_constraint');
 
 	    return $isActive                                        // Active
             && $isLessThanMaxAmount                             // Montant max
             && $isEmptyComment                                  // Pas de commentaire
-            && $isAdjonctionNotChecked                          // Adjonction pas coché
-            && $isNoCaseToSettleChecked                         // Aucun solde selectionné
+            && ($isAdjonctionNotChecked || $isFirst)            // Adjonction pas coché
+            && ($isNoCaseToSettleChecked || $isFirst)           // Aucun solde selectionné
             && $isNotEmptyNumAccordLeaser                       // Numéro accord leaser renseigné
             || ($isActive && $isLocPure && $isEmptyComment);    // LOC PURE
     }
