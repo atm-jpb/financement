@@ -879,7 +879,7 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
 	return $suivi_leaser;
 }
 	
-function _fiche(&$ATMdb, &$simulation, $mode) {
+function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 	global $db, $langs, $user, $conf, $action;
 	
     $result = restrictedArea($user, 'financement', $simulation->getID(), 'fin_simulation&societe', '', 'fk_soc', 'rowid');
@@ -1028,7 +1028,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	if($simulation->montant_decompte_copies_sup < 0) $simulation->montant_decompte_copies_sup = 0;
 	
-	$accordIcon = (!empty($simulation->accord)) ? get_picto($simulation->accord) : '';
+	$accordIcon = (! empty($simulation->accord)) ? get_picto($simulation->TStatutIcons[$simulation->accord]) : '';
 	
 	// Retrait copie uniquement à afficher pour Cpro impression
 	$display_retrait_copie = 0;
