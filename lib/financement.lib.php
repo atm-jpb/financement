@@ -766,7 +766,7 @@ function get_picto($name, $title = '', $color = '') {
             break;
         case 'ss':
         case 'sans_suite':
-            $img .= '<i class="fas fa-times-circle" style="'.$iconSize.'"';
+            $img .= '<i class="fas fa-minus-circle" style="'.$iconSize.'"';
             break;
         case 'phone':
             $img .= '<i class="fas fa-phone" style="'.$iconSize.'"';
