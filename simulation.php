@@ -846,11 +846,10 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
         $resql = $db->query($sql);
 
         if($obj = $db->fetch_object($resql)) {
-            $title = ' title="'.$langs->trans($obj->label).'"';
+            $title = $langs->trans($obj->label);
         }
 
         $suivi_leaser .= get_picto('manual', $title, $color);
-        $suivi_leaser .= '></i>';
 
         $db->free($resql);
     }

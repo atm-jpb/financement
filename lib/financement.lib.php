@@ -764,6 +764,7 @@ function get_picto($name, $title = '', $color = '') {
         case 'money':
             $img .= '<i class="fas fa-coins" style="'.$iconSize.'"';
             break;
+        case 'ss':
         case 'sans_suite':
             $img .= '<i class="fas fa-times-circle" style="'.$iconSize.'"';
             break;
@@ -777,7 +778,7 @@ function get_picto($name, $title = '', $color = '') {
             $img .= '<i class="fas fa-save" style="'.$iconSize.'"';
             break;
         case 'manual':
-            $img .= '<i class="fas fa-coins" style="'.$iconSize;
+            $img .= '<i class="fas fa-bell" style="'.$iconSize;
             if(! empty($color)) $img .= ' color: '.$color.';';
             $img .= ' vertical-align: top;"';
             break;
