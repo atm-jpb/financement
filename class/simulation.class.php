@@ -1534,10 +1534,9 @@ class TSimulation extends TObjetStd {
 
 	public function calculAiguillageSuivi(&$PDOdb, $force_calcul=false)
 	{
-		global $db, $conf, $mysoc;
+		global $conf;
 		
 		$oldconf = $conf;
-		$oldmysoc = $mysoc;
 		switchEntity($this->entity);
 		
 		if (empty($conf->global->FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI)) return 0;
@@ -1596,38 +1595,38 @@ class TSimulation extends TObjetStd {
 			}
 		}
 
-		uasort($this->TSimulationSuivi, array($this, 'aiguillageSuivi'));
-		
-		//$idLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb);
-		$catLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb,true);
+        uasort($this->TSimulationSuivi, array($this, 'aiguillageSuivi'));
 
-		// Update du rang pour priorisation
-		$i=0;
-		$suiviAutoLaunch = 0;
-		foreach ($this->TSimulationSuivi as &$suivi)
-		{
-			// On ne s'occupe pas des suivis historisés
-			if($suivi->date_historization > 0) continue;
-			
-			$suivi->rang = $i;
-			if($i == 0) $suiviAutoLaunch = $suivi;
-			if($suivi->fk_leaser == $this->fk_leaser_adjonction) {
-				$suivi->rang = -1; // Priorité au leaser concerné par l'adjonction
-				$suiviAutoLaunch = $suivi;
-			}
-			if($suivi->leaser->array_options['options_prio_solde'] == 1 && !empty($catLeaserDossierSolde)) {
-				$catLeaserSuivi = $this->getTCatLeaserFromLeaserId($suivi->fk_leaser);
-				$intersect = array_intersect(array_keys($catLeaserDossierSolde), array_keys($catLeaserSuivi));
-				if(!empty($intersect)) {
-					$suivi->rang = -1; // Priorité au leaser concerné par le solde
-					$suiviAutoLaunch = $suivi;
-				}
-			}
-			$suivi->save($PDOdb);
-			$i++;
-		}
-		
-		// On remet la conf d'origine
+        $catLeaserDossierSolde = $this->getIdLeaserDossierSolde($PDOdb, true);
+
+        // Update du rang pour priorisation
+        $TSuivi = array_values($this->TSimulationSuivi);
+        foreach($TSuivi as $k => &$suivi) {
+            if($suivi->date_historization > 0) continue;    // On ne s'occupe pas des suivis historisés
+
+            $suivi->rang = $k;
+
+            // Priorité au leaser concerné par l'adjonction
+            if($k > 0 && $suivi->fk_leaser == $this->fk_leaser_adjonction) {
+                $suivi->rang = -1;
+                for($i = 0 ; $i <= $k ; $i++) $TSuivi[$i]->rang += 1;   // Pour éviter les -1 et les trous dans les rangs
+            }
+
+            // Priorité au leaser concerné par le solde
+            if($k > 0 && $suivi->leaser->array_options['options_prio_solde'] == 1 && ! empty($catLeaserDossierSolde)) {
+                $catLeaserSuivi = $this->getTCatLeaserFromLeaserId($suivi->fk_leaser);
+
+                $intersect = array_intersect(array_keys($catLeaserDossierSolde), array_keys($catLeaserSuivi));
+                if(! empty($intersect)) {
+                    $suivi->rang = -1;
+                    for($i = 0 ; $i <= $k ; $i++) $TSuivi[$i]->rang += 1;   // Pour éviter les -1 et les trous dans les rangs
+                }
+            }
+        }
+
+        foreach($this->TSimulationSuivi as &$suivi) $suivi->save($PDOdb);   // Pour des soucis de lisibilité
+
+        // On remet la conf d'origine
         switchEntity($oldconf->entity);
 	}
 
@@ -2794,7 +2793,7 @@ class TSimulationSuivi extends TObjetStd {
         $isNoCaseToSettleChecked = ! empty($simu->opt_no_case_to_settle) ? 1 : 0;
         $isNotEmptyNumAccordLeaser = ! empty($this->numero_accord_leaser) ? 1 : 0;
         $isLocPure = ($this->fk_leaser == 18495) ? 1 : 0;
-        $isFirst = ($this->rang == -1) ? 1 : 0;
+        $isFirst = ($this->rang == 0) ? 1 : 0;
 
         $logMessage = 'CONSTRAINTS FOR FK_SIMU='.$simu->rowid."\n";
         $logMessage.= 'AccordAuto active = '.$isActive."\n";
