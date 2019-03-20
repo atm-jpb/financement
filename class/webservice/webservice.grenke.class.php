@@ -198,7 +198,7 @@ class WebServiceGrenke extends WebService
 											<email>'.$this->simulation->societe->email.'</email>
 											<fax>'.$this->simulation->societe->fax.'</fax>
 										</communication>
-										<name>'.$this->simulation->societe->nom.'</name>
+										<name>'.htmlentities($this->simulation->societe->nom).'</name>
 									</person>
 									<customerID>'.$this->simulation->societe->idprof1.'</customerID>
 								</lessee>
