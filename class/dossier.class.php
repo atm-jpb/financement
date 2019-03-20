@@ -187,6 +187,9 @@ class TFin_dossier extends TObjetStd {
 			$this->TLien[$i]->fk_fin_affaire = $affaire->getId();  
 			 
 			$this->TLien[$i]->affaire= $affaire;
+
+			// Très important car le dossier est créé dans la base et on présente à l'utilisateur le card en mode edit et l'entité n'est pas set à la création
+            $this->entity = $affaire->entity;
 			
 		//	print_r($this->TLien[$i]);
 		
