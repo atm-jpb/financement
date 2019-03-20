@@ -25,16 +25,6 @@ class TFinancementTools {
 		return false;		
 	}
 	
-	function check_user_rights(&$object) {
-		
-		global $user, $conf,$db;
-		
-		dol_include_once('/core/lib/security.lib.php');
-
-		if(!TFinancementTools::user_courant_est_admin_financement() && GETPOST('action') != 'new' && $object->entity != getEntity()) accessforbidden();
-		
-	}
-	
 	static function build_array_entities() {
 		
 		global $mc;
