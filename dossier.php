@@ -710,8 +710,8 @@ function _get_facture_mat($fk_source,$withlink=true){
 
 function _fiche(&$PDOdb, &$dossier, $mode) {
 	global $user,$db,$conf, $langs;
-	
-	TFinancementTools::check_user_rights($dossier);
+
+    $result = restrictedArea($user, 'financement', $dossier->getID(), 'fin_dossier&societe', 'alldossier', 'fk_soc', 'rowid');
 	
 	$html=new Form($db);
 	/*

@@ -187,6 +187,9 @@ class TFin_dossier extends TObjetStd {
 			$this->TLien[$i]->fk_fin_affaire = $affaire->getId();  
 			 
 			$this->TLien[$i]->affaire= $affaire;
+
+			// Très important car le dossier est créé dans la base et on présente à l'utilisateur le card en mode edit et l'entité n'est pas set à la création
+            $this->entity = $affaire->entity;
 			
 		//	print_r($this->TLien[$i]);
 		
@@ -2049,7 +2052,9 @@ class TFin_dossier extends TObjetStd {
 			// Règle du nombre de mois min
 			$nb_month_passe = ($this->financementLeaser->numero_prochaine_echeance - 1) * $this->financementLeaser->getiPeriode();
 		} else {
-			// Règle du taux min
+            // Règle de l'incident de paiement sur les externes
+            if($this->financement->incident_paiement == 'OUI') return -4;
+            // Règle du taux min
 			if(($this->financement->taux) < $conf->global->FINANCEMENT_MIN_TAUX_TO_SHOW_SOLDE) return -5;
 			// Règle du nombre de mois min
 			$nb_month_passe = ($this->financement->numero_prochaine_echeance - 1) * $this->financement->getiPeriode();

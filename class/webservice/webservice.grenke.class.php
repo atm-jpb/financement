@@ -89,6 +89,7 @@ class WebServiceGrenke extends WebService
 			else if (!empty($response->getLeaseRequestStatusWithLoginResult->leaseRequestId))
 			{
 				$this->simulationSuivi->commentaire = $langs->trans($response->getLeaseRequestStatusWithLoginResult->status);
+				$PDOdb = new TPDOdb;
 
 				switch ($response->getLeaseRequestStatusWithLoginResult->status)
 				{
@@ -98,21 +99,24 @@ class WebServiceGrenke extends WebService
 					case 'approved':
 					case 'order':
 					case 'contract':
-						$this->simulationSuivi->statut = 'OK';
+						$this->simulationSuivi->doActionAccepter($PDOdb, $this->simulation);
+//						$this->simulationSuivi->statut = 'OK';
 
 						// Get ref and PDF
 						$this->getRefAndDoc();
 
 						break;
 					case 'cancelled':
-						$this->simulationSuivi->statut = 'KO';
+						$this->simulationSuivi->doActionRefuser($PDOdb, $this->simulation);
+//						$this->simulationSuivi->statut = 'KO';
 
 						// Get ref and PDF
 						$this->getRefAndDoc();
 
 						break;
 					default:
-						$this->simulationSuivi->statut = 'ERR'; // case unknown
+						$this->simulationSuivi->doActionErreur($PDOdb); // case unknown
+//						$this->simulationSuivi->statut = 'ERR'; // case unknown
 						break;
 				}
 
@@ -194,7 +198,7 @@ class WebServiceGrenke extends WebService
 											<email>'.$this->simulation->societe->email.'</email>
 											<fax>'.$this->simulation->societe->fax.'</fax>
 										</communication>
-										<name>'.$this->simulation->societe->nom.'</name>
+										<name>'.htmlentities($this->simulation->societe->nom).'</name>
 									</person>
 									<customerID>'.$this->simulation->societe->idprof1.'</customerID>
 								</lessee>
