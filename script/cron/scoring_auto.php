@@ -5,6 +5,7 @@ $path=dirname(__FILE__).'/';
 
 define('INC_FROM_CRON_SCRIPT', true);
 require_once($path.'../../config.php');
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/affaire.class.php');

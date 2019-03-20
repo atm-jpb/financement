@@ -1158,7 +1158,7 @@ class TSimulation extends TObjetStd {
 	}
 	
 	function gen_simulation_pdf(&$ATMdb, &$doliDB) {
-		global $conf;
+		global $conf, $mysoc;
 		$a = new TFin_affaire;
 		$f = new TFin_financement;
 		
@@ -1251,12 +1251,8 @@ class TSimulation extends TObjetStd {
 		else $simu2->coeff_by_periodicite = $simu2->coeff; // TRIMESTRE
 		
 		// Récupération du logo de l'entité correspondant à la simulation
-		$companyconf = $conf;
-		$companyconf->entity = $this->entity;
-		$companyconf->setValues($doliDB);
-		$company = new Societe($doliDB);
-		$company->setMysoc($companyconf);
-		$logo = DOL_DATA_ROOT.'/'.(($this->entity>1)?$this->entity.'/':'').'mycompany/logos/'.$company->logo;
+        switchEntity($this->entity);    // $conf and $mysoc may be changed
+		$logo = DOL_DATA_ROOT.'/'.(($this->entity>1)?$this->entity.'/':'').'mycompany/logos/'.$mysoc->logo;
 		$simu2->logo = $logo;
 		
 		$TBS = new TTemplateTBS;
