@@ -2352,8 +2352,6 @@ class TSimulationSuivi extends TObjetStd {
 	
 	//Effectue l'action de passer au statut refusé la demande de financement leaser
 	function doActionRefuser(&$PDOdb,&$simulation){
-		global $db;
-		
 		$this->statut = 'KO';
 		$this->save($PDOdb);
 		
@@ -2375,9 +2373,7 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	//Effectue l'action de passer au statut erreur la demande de financement leaser
-	function doActionErreur(&$PDOdb,&$simulation){
-		global $db;
-		
+	function doActionErreur(&$PDOdb) {
 		$this->statut = 'ERR';
 		$this->save($PDOdb);
 	}
@@ -2441,8 +2437,6 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	function save(&$PDOdb){
-		global $db;
-		
 		$res = parent::save($PDOdb);
 		
 		if(!empty($this->fk_simulation)){
@@ -2453,7 +2447,7 @@ class TSimulationSuivi extends TObjetStd {
 	}
 	
 	function _sendDemandeAuto(&$PDOdb, $debug=false){
-		global $db,$langs;
+		global $db;
 		
 		$this->simulation->societe = new Societe($db);
 		$this->simulation->societe->fetch($this->simulation->fk_soc);
