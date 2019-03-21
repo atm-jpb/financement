@@ -1978,6 +1978,7 @@ class TSimulation extends TObjetStd {
 		
 		// Pas d'appel auto aux EDI sur un clone
 		$this->no_auto_edi = true;
+		$this->fk_action_manuelle = 0;
 	}
 
 	function hasOtherSimulationRefused(&$PDOdb) {
