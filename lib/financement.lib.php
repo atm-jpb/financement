@@ -729,6 +729,7 @@ function get_picto($name, $title = '', $color = '') {
 
     $lo_name = strtolower($name);
     switch($lo_name) {
+        case 'ko':
         case 'refus':
             $img .= '<i class="fas fa-times-circle" style="color: #b90000; ' .$iconSize.'"'.$lo_title.'></i>';
             break;

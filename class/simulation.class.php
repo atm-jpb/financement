@@ -668,14 +668,17 @@ class TSimulation extends TObjetStd {
 		if (!empty($TSuivi))
 		{
 			//Construction d'un tableau de ligne pour futur affichage TBS
-			foreach($TSuivi as $simulationSuivi){
+            $TSuiviStdKeys = array_values($TSuivi);
+			foreach($TSuiviStdKeys as $k => $simulationSuivi){
+			    if($simulationSuivi->date_selection < 0) $simulationSuivi->date_selection = null;   // Prevent negative timestamps
+
 				//echo $simulationSuivi->rowid.'<br>';
 				$link_user = '<a href="'.DOL_URL_ROOT.'/user/card.php?id='.$simulationSuivi->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulationSuivi->user->login.'</a>';
 				
 				$ligne = array();
 				//echo $simulationSuivi->get_Date('date_demande').'<br>';
 				$ligne['rowid'] = $simulationSuivi->getId();
-				$ligne['class'] = (count($TLignes) % 2) ? 'impair' : 'pair';
+				$ligne['class'] = ($k % 2) ? 'impair' : 'pair';
 				$ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
 				$ligne['object'] = $simulationSuivi;
 				$ligne['show_renta_percent'] = $formDolibarr->textwithpicto(price($simulationSuivi->renta_percent), implode('<br />', $simulationSuivi->calcul_detail),1,'help','',0,3);
