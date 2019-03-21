@@ -642,7 +642,7 @@ function simulation_prepare_head(TSimulation $object)
 		if(!empty($object->note_public)) $nbNote++;
 
         $head[$h][0] = dol_buildpath('/financement/simulation_note.php', 2).'?id='.$id.'&mainmenu=financement';
-        $head[$h][1] = '<i class="fas fa-snowplow"></i>&nbsp;'.$langs->trans("NoteLabel");
+        $head[$h][1] = get_picto('snowplow').'&nbsp;'.$langs->trans("NoteLabel");
 		if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
 
         $cssFlipStyle = '-moz-transform: scaleX(-1);';
@@ -650,8 +650,8 @@ function simulation_prepare_head(TSimulation $object)
         $cssFlipStyle.= ' -webkit-transform: scaleX(-1);';
         $cssFlipStyle.= ' transform: scaleX(-1);';
         $cssFlipStyle.= ' filter: FlipH;';
-        $cssFlipStyle.= ' -ms-filter: "FlipH";';
-		$head[$h][1].= '&nbsp;<i class="fas fa-snowplow" style="'.$cssFlipStyle.'"></i>';
+        $cssFlipStyle.= " -ms-filter: 'FlipH';";
+		$head[$h][1].= '&nbsp;'.get_picto('snowplow', '', '', $cssFlipStyle);
         $head[$h][2] = 'note';
         $h++;
     }
@@ -721,7 +721,7 @@ function switchEntity($target) {
     }
 }
 
-function get_picto($name, $title = '', $color = '') {
+function get_picto($name, $title = '', $color = '', &$style = '') {
     $img = '';
     $lo_title = '';
     if(! empty($title)) $lo_title = ' title="'.$title.'"';
@@ -776,6 +776,16 @@ function get_picto($name, $title = '', $color = '') {
             $style .= ' vertical-align: top;"';
 
             $img .= '<i class="fas fa-bell" '.$style.$lo_title.'></i>';
+            break;
+        case 'fish':
+            $iconSize = 'font-size: 14px;';
+            $style .= ' '.$iconSize;
+            $img .= '<i class="fas fa-fish" style="'.$style.'"'.$lo_title.'></i>';
+            break;
+        case 'snowplow':
+            $iconSize = 'font-size: 14px;';
+            $style .= ' '.$iconSize;
+            $img .= '<i class="fas fa-snowplow" style="'.$style.'"'.$lo_title.'></i>';
             break;
         default:
             return '';
