@@ -640,9 +640,18 @@ function simulation_prepare_head(TSimulation $object)
 		$nbNote = 0;
         if(!empty($object->note_private)) $nbNote++;
 		if(!empty($object->note_public)) $nbNote++;
+
         $head[$h][0] = dol_buildpath('/financement/simulation_note.php', 2).'?id='.$id.'&mainmenu=financement';
-        $head[$h][1] = $langs->trans("NoteLabel");
+        $head[$h][1] = '<i class="fas fa-snowplow"></i>&nbsp;'.$langs->trans("NoteLabel");
 		if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
+
+        $cssFlipStyle = '-moz-transform: scaleX(-1);';
+        $cssFlipStyle.= ' -o-transform: scaleX(-1);';
+        $cssFlipStyle.= ' -webkit-transform: scaleX(-1);';
+        $cssFlipStyle.= ' transform: scaleX(-1);';
+        $cssFlipStyle.= ' filter: FlipH;';
+        $cssFlipStyle.= ' -ms-filter: "FlipH";';
+		$head[$h][1].= '&nbsp;<i class="fas fa-snowplow" style="'.$cssFlipStyle.'"></i>';
         $head[$h][2] = 'note';
         $h++;
     }
@@ -710,4 +719,67 @@ function switchEntity($target) {
         $mysocentity = &$mysoc;
         $mysocentity->setMysoc($confentity);
     }
+}
+
+function get_picto($name, $title = '', $color = '') {
+    $img = '';
+    $lo_title = '';
+    if(! empty($title)) $lo_title = ' title="'.$title.'"';
+    $iconSize = 'font-size: 21px;';
+
+    $lo_name = strtolower($name);
+    switch($lo_name) {
+        case 'ko':
+        case 'refus':
+            $img .= '<i class="fas fa-times-circle" style="color: #b90000; ' .$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'wait':
+            $img .= '<i class="fas fa-clock" style="color: #22b8cf; '.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'err':
+            $img .= '<i class="fas fa-exclamation-triangle" style="color: #ffd507; ' .$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'super_ok':
+            $img .= '<i class="fas fa-check-circle" style="color: green; '.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'wait_seller':
+            $img .= '<i class="fas fa-briefcase" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'wait_leaser':
+            $img .= '<i class="fas fa-piggy-bank" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'ok':
+            $img .= '<i class="fas fa-check-circle" style="color: grey; ' .$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'edit':
+            $img .= '<i class="fas fa-edit" style="color: darkorange; '.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'money':
+            $img .= '<i class="fas fa-coins" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'ss':
+        case 'sans_suite':
+            $img .= '<i class="fas fa-minus-circle" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'phone':
+            $img .= '<i class="fas fa-phone" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'webservice':
+            $img .= '<i class="fas fa-satellite-dish" style="color: green; '.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'save':    // This will use the unicode value of 'fas fa-save' only to keep the input
+            $img .= '<input type="submit" class="fa fa-input" style="'.$iconSize.' border: none;" value="&#xf0c7" title="Enregistrer" />';
+            break;
+        case 'manual':
+            $style = 'style="'.$iconSize;
+            if(! empty($color)) $style .= ' color: '.$color.';';
+            $style .= ' vertical-align: top;"';
+
+            $img .= '<i class="fas fa-bell" '.$style.$lo_title.'></i>';
+            break;
+        default:
+            return '';
+    }
+
+    return $img;
 }

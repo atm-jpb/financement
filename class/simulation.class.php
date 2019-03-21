@@ -7,6 +7,7 @@ class TSimulation extends TObjetStd {
 	
 	function __construct($setChild=false) {
 		global $langs;
+		if(! function_exists('get_picto')) dol_include_once('/financement/lib/financement.lib.php');
 		
 		parent::set_table(MAIN_DB_PREFIX.'fin_simulation');
 		parent::add_champs('entity,fk_soc,fk_user_author,fk_user_suivi,fk_leaser,accord_confirme','type=entier;');
@@ -22,6 +23,7 @@ class TSimulation extends TObjetStd {
 		parent::add_champs('fk_fin_dossier,fk_fin_dossier_adjonction', array('type'=>'integer'));
 		parent::add_champs('fk_simu_cristal,fk_projet_cristal', array('type'=>'integer'));
 		parent::add_champs('note_public,note_private', array('type'=>'chaine'));
+        parent::add_champs('fk_action_manuelle', array('type'=>'integer'));
 		
 		parent::start();
 		parent::_init_vars();
@@ -40,16 +42,16 @@ class TSimulation extends TObjetStd {
 			,'KO'=>$langs->trans('Refus')
 			,'SS'=>$langs->trans('SansSuite')
 		);
-		
-		$this->TStatutIcons=array(
-		    'OK'=>'./img/super_ok.png'
-		    ,'WAIT'=>'./img/WAIT.png'
-		    ,'WAIT_LEASER'=>'./img/Leaser.png'
-		    ,'WAIT_SELLER'=>'./img/Vendeur.png'
-		    ,'WAIT_MODIF'=>'./img/pencil.png'
-		    ,'KO'=>'./img/KO.png'
-		    ,'SS'=>'./img/SANSSUITE.png'
-		);
+
+        $this->TStatutIcons = array(
+            'OK'            => 'super_ok',
+            'WAIT'          => 'wait',
+            'WAIT_LEASER'   => 'wait_leaser',
+            'WAIT_SELLER'   => 'wait_seller',
+            'WAIT_MODIF'    => 'edit',
+            'KO'            => 'refus',
+            'SS'            => 'sans_suite'
+        );
 		
 		$this->TStatutShort=array(
 			'OK'=>$langs->trans('Accord')
@@ -666,14 +668,17 @@ class TSimulation extends TObjetStd {
 		if (!empty($TSuivi))
 		{
 			//Construction d'un tableau de ligne pour futur affichage TBS
-			foreach($TSuivi as $simulationSuivi){
+            $TSuiviStdKeys = array_values($TSuivi);
+			foreach($TSuiviStdKeys as $k => $simulationSuivi){
+			    if($simulationSuivi->date_selection < 0) $simulationSuivi->date_selection = null;   // Prevent negative timestamps
+
 				//echo $simulationSuivi->rowid.'<br>';
 				$link_user = '<a href="'.DOL_URL_ROOT.'/user/card.php?id='.$simulationSuivi->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$simulationSuivi->user->login.'</a>';
 				
 				$ligne = array();
 				//echo $simulationSuivi->get_Date('date_demande').'<br>';
 				$ligne['rowid'] = $simulationSuivi->getId();
-				$ligne['class'] = (count($TLignes) % 2) ? 'impair' : 'pair';
+				$ligne['class'] = ($k % 2) ? 'impair' : 'pair';
 				$ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('','object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
 				$ligne['object'] = $simulationSuivi;
 				$ligne['show_renta_percent'] = $formDolibarr->textwithpicto(price($simulationSuivi->renta_percent), implode('<br />', $simulationSuivi->calcul_detail),1,'help','',0,3);
@@ -681,7 +686,7 @@ class TSimulation extends TObjetStd {
 				$ligne['date_demande'] = ($simulationSuivi->get_Date('date_demande')) ? $simulationSuivi->get_Date('date_demande', 'd/m/Y H:i:s') : '' ;
 				$img = $simulationSuivi->statut;
 				if(!empty($simulationSuivi->date_selection)) $img = 'super_ok';
-				$ligne['resultat'] = ($simulationSuivi->statut) ? '<img title="'.$simulationSuivi->TStatut[$simulationSuivi->statut].'" src="'.dol_buildpath('/financement/img/'.$img.'.png',1).'" />' : '';
+				$ligne['resultat'] = ($simulationSuivi->statut) ? get_picto($img, $simulationSuivi->TStatut[$simulationSuivi->statut]) : '';
 				$ligne['numero_accord_leaser'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][num_accord]', $simulationSuivi->numero_accord_leaser, 25,0,'style="text-align:right;"') : $simulationSuivi->numero_accord_leaser;
 				
 				$ligne['date_selection'] = ($simulationSuivi->get_Date('date_selection')) ? $simulationSuivi->get_Date('date_selection') : '' ;
@@ -1973,6 +1978,7 @@ class TSimulation extends TObjetStd {
 		
 		// Pas d'appel auto aux EDI sur un clone
 		$this->no_auto_edi = true;
+		$this->fk_action_manuelle = 0;
 	}
 
 	function hasOtherSimulationRefused(&$PDOdb) {
@@ -2211,38 +2217,38 @@ class TSimulationSuivi extends TObjetStd {
 			//Demander
 			if($this->statut_demande != 1){// && $this->date_demande < 0){
 				if(!$just_save && !empty($simulation->societe->idprof2))
-					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Demande transmise au leaser"><img src="'.dol_buildpath('/financement/img/demander.png',1).'" /></a>&nbsp;';
+					$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Demande transmise au leaser">'.get_picto('phone').'</a>&nbsp;';
 			}
 			else{
 				//Sélectionner
 				if($this->statut === 'OK'){
 					if($just_save) {
 						//Enregistrer
-						$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
+						$actions .= get_picto('save').'&nbsp;';
 					} else {
 						//Reset
-						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler"><img src="'.dol_buildpath('/financement/img/WAIT.png',1).'" /></a>&nbsp;';
-						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=selectionner'.$ancre.'" title="Sélectionner ce leaser"><img src="'.dol_buildpath('/financement/img/super_ok.png',1).'" /></a>&nbsp;';
+						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler">'.get_picto('wait').'</a>&nbsp;';
+						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=selectionner'.$ancre.'" title="Sélectionner ce leaser">'.get_picto('super_ok').'</a>&nbsp;';
 					}
 				}
 				else{
 					if($this->statut !== 'KO'){
 						if($just_save) {
 							//Enregistrer
-							$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
+                            $actions .= get_picto('save').'&nbsp;';
 
 						}
 						else {
 							//Accepter
-							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Demande acceptée"><img src="'.dol_buildpath('/financement/img/OK.png',1).'" /></a>&nbsp;';
+							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Demande acceptée">'.get_picto('ok').'</a>&nbsp;';
 							//Refuser
-							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser'.$ancre.'" title="Demande refusée"><img src="'.dol_buildpath('/financement/img/KO.png',1).'" /></a>&nbsp;';
+							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser'.$ancre.'" title="Demande refusée">'.get_picto('refus').'</a>&nbsp;';
 						}
 					
 					} elseif($simulation->accord != "KO") {
 						if(!$just_save) {
 							//Reset
-							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler"><img src="'.dol_buildpath('/financement/img/WAIT.png',1).'" /></a>&nbsp;';
+							$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler">'.get_picto('wait').'</a>&nbsp;';
 						}
 					}
 				}
@@ -2250,11 +2256,11 @@ class TSimulationSuivi extends TObjetStd {
 		} elseif($simulation->accord == "OK" && !empty($this->date_selection)) {
 			if(!$just_save) {
 				//Reset
-				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Annuler"><img src="'.dol_buildpath('/financement/img/OK.png',1).'" /></a>&nbsp;';
+				$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Annuler">'.get_picto('ok').'</a>&nbsp;';
 			}
 		}
 		
-		if (!$just_save && !empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($this->leaser->array_options['options_edi_leaser'])) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.img_picto('Webservice', 'call').'</a>&nbsp;';
+		if (!$just_save && !empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && !empty($this->leaser->array_options['options_edi_leaser'])) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.get_picto('webservice').'</a>&nbsp;';
 		
 		//if (!empty($this->b2b_nodef) && !empty($this->b2b_noweb)) $actions.= img_picto($langs->trans('SimulationSuiviInfoWebDemande', $this->b2b_nodef, $this->b2b_noweb), 'info.png', 'style="cursor: help"');
 
@@ -2323,6 +2329,18 @@ class TSimulationSuivi extends TObjetStd {
 			$this->date_selection = 0;
 			$this->save($PDOdb);
 		}
+
+		if($simulation->fk_action_manuelle > 0) {
+		    $sql = 'SELECT code FROM '.MAIN_DB_PREFIX.'c_financement_action_manuelle WHERE rowid = '.$simulation->fk_action_manuelle;
+		    $resql = $db->query($sql);
+
+		    if($obj = $db->fetch_object($resql)) {
+		        if($obj->code == 'scoring') {
+		            $simulation->fk_action_manuelle = 0;
+                    $simulation->save($PDOdb, $db, false);
+                }
+            }
+        }
 	}
 	
 	//Effectue l'action de passer au statut accepter la demande de financement leaser
@@ -2420,6 +2438,9 @@ class TSimulationSuivi extends TObjetStd {
 		$simulation->montant_accord = $simulation->montant_total_finance;
 		$simulation->fk_user_suivi = empty($user->id) ? 1035 : $user->id;   // $user->id ou 'admin_financement'
 		if(!empty($TTypeFinancement[$TCateg_tiers[0]])) $simulation->type_financement = $TTypeFinancement[$TCateg_tiers[0]];
+
+        if($simulation->fk_action_manuelle > 0) $simulation->fk_action_manuelle = 0;    // Si OK pour un leaser, plus aucune action manuelle n'est nécessaire
+
 		$simulation->save($PDOdb, $db);
 
 		$simulation->send_mail_vendeur();
@@ -2763,7 +2784,7 @@ class TSimulationSuivi extends TObjetStd {
 	}
 
 	function accordAuto(TPDOdb $PDOdb, TSimulation $simu) {
-	    global $conf;
+	    global $conf, $db;
         if(! function_exists('switchEntity')) dol_include_once('/financement/lib/financement.lib.php');
         $old_entity = $conf->entity;
         switchEntity($simu->entity);
@@ -2774,6 +2795,10 @@ class TSimulationSuivi extends TObjetStd {
 	        $message = 'Un accord auto, un ! (Switched to entity '.$conf->entity.' ; fk_simu='.$simu->rowid.', fk_suivi='.$this->rowid.')';
 	        dol_syslog($message, LOG_CRIT, 0, '_accord_auto');
 	        $this->doActionSelectionner($PDOdb, $simu);
+        }
+	    else {
+	        $simu->fk_action_manuelle = 2;  // Can't give accord auto
+	        $simu->save($PDOdb, $db, false);
         }
 	    switchEntity($old_entity);
     }
