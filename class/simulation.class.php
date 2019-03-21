@@ -2220,7 +2220,7 @@ class TSimulationSuivi extends TObjetStd {
 				if($this->statut === 'OK'){
 					if($just_save) {
 						//Enregistrer
-						$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
+						$actions .= get_picto('save').'&nbsp;';
 					} else {
 						//Reset
 						$actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler">'.get_picto('wait').'</a>&nbsp;';
@@ -2231,7 +2231,7 @@ class TSimulationSuivi extends TObjetStd {
 					if($this->statut !== 'KO'){
 						if($just_save) {
 							//Enregistrer
-							$actions .= '<input type="image" src="'.dol_buildpath('/financement/img/save.png',1).'" value="submit" title="Enregistrer">&nbsp;';
+                            $actions .= get_picto('save').'&nbsp;';
 
 						}
 						else {
