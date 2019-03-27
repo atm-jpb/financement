@@ -898,16 +898,19 @@ class TSimulation extends TObjetStd
                 }
             }
         }
+
         return $TDossier;
     }
 
     function dossier_used(&$simu, &$TDossiers_rachetes, $nb_jour_diff) {
         global $conf;
+
         if(! is_array($TDossiers_rachetes)) $TDossiers_rachetes = array();
         if(array_key_exists('checked', $TDossiers_rachetes)
             && $nb_jour_diff <= $conf->global->FINANCEMENT_SIMU_NB_JOUR_DOSSIER_INDISPO) {
             return true;
         }
+
         return false;
     }
 
@@ -923,6 +926,7 @@ class TSimulation extends TObjetStd
         dol_include_once('/core/class/html.formmail.class.php');
         dol_include_once('/core/lib/files.lib.php');
         dol_include_once('/core/class/CMailFile.class.php');
+        if(! function_exists('switchEntity')) dol_include_once('/financement/lib/financement.lib.php');
 
         $PDFName = dol_sanitizeFileName($this->getRef()).'.pdf';
         $PDFPath = $this->getFilePath();
@@ -981,9 +985,15 @@ class TSimulation extends TObjetStd
         if(empty($mailto)) $mailto = $this->user->email;
 
         $r = new TReponseMail($conf->notification->email_from, $mailto, $subject, $mesg);
+
+        $old_entity = $conf->entity;
+        switchEntity($this->entity);    // Switch to simulation entity
+
         if(! empty($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT) && isValidEmail($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT)) {
             $r->emailtoBcc = $conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT;
         }
+
+        switchEntity($old_entity);
 
         foreach($filename as $k => $file) {
             $r->add_piece_jointe($filename[$k], $filepath[$k]);
@@ -1365,6 +1375,7 @@ class TSimulation extends TObjetStd
                 $start = $end;
             }
         }
+
         return $start;
     }
 
@@ -1887,6 +1898,7 @@ class TSimulation extends TObjetStd
         $TSimu = $simu->load_by_soc($PDOdb, $db, $fk_soc);
 
         if($get_count) return count($TSimu);
+
         return $TSimu;
     }
 
@@ -1904,6 +1916,7 @@ class TSimulation extends TObjetStd
         else {
             $db->rollback();
             dol_print_error($db);
+
             return -1;
         }
     }
@@ -2042,8 +2055,9 @@ class TSimulationSuivi extends TObjetStd
         if($simulation->accord != "OK") {
             //Demander
             if($this->statut_demande != 1) {
-                if(! $just_save && ! empty($simulation->societe->idprof2))
+                if(! $just_save && ! empty($simulation->societe->idprof2)) {
                     $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Demande transmise au leaser">'.get_picto('phone').'</a>&nbsp;';
+                }
             }
             else {
                 //Sélectionner
@@ -2087,7 +2101,9 @@ class TSimulationSuivi extends TObjetStd
             }
         }
 
-        if(! $just_save && ! empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && ! empty($this->leaser->array_options['options_edi_leaser'])) $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.get_picto('webservice').'</a>&nbsp;';
+        if(! $just_save && ! empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && ! empty($this->leaser->array_options['options_edi_leaser'])) {
+            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.get_picto('webservice').'</a>&nbsp;';
+        }
 
         return $actions;
     }
@@ -2621,4 +2637,3 @@ class TSimulationSuivi extends TObjetStd
             || ($isActive && $isLocPure && $isEmptyComment);    // LOC PURE
     }
 }
-
