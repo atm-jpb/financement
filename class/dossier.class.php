@@ -810,8 +810,9 @@ class TFin_dossier extends TObjetStd {
 		
 		if ($nature_financement == 'EXTERNE')
 		{
+            $date_deb_periode = $this->getDateDebutPeriode($iPeriode-1);
 			$p = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
-			$TSoldeRule = $this->getRuleSolde($p);
+			$TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
 			
 			if($TSoldeRule->base_solde == 'MF') {
 				$solde = $this->financementLeaser->montant;
@@ -826,7 +827,6 @@ class TFin_dossier extends TObjetStd {
 				if ($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste; // TODO check si ça doit rester
 				
 				// Add Pen Leaser + CPro
-				$date_deb_periode = $this->getDateDebutPeriode($iPeriode-1);
 				$solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode) / 100) * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
 				if ($solde > $LRD_Leaser) return $LRD_Leaser; // Capé LRD dans tous les cas car solde vendeur
 				//Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
@@ -848,11 +848,11 @@ class TFin_dossier extends TObjetStd {
 		else // INTERNE
 		{
 			$p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
-			$TSoldeRule = $this->getRuleSolde($p);
+            $date_deb_periode = $this->getDateDebutPeriode($iPeriode-1, 'CLIENT');
+			$TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
 			
 			// SPECIFIQUE LEASER HEXAPAGE => calculer le solde comme un externe avec la pénalité leaser
 			if(in_array($this->financementLeaser->fk_soc,array(204904,204905,204906))) {
-				$date_deb_periode = $this->getDateDebutPeriode($iPeriode-1, 'CLIENT');
 				$solde = $CRD * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
 			} else if($TSoldeRule->base_solde == 'MF') {
 				$solde = $this->financement->montant;
@@ -914,8 +914,9 @@ class TFin_dossier extends TObjetStd {
 		
 		if ($nature_financement == 'EXTERNE')
 		{
-			$p = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
-			$TSoldeRule = $this->getRuleSolde($p);
+            $date_deb_periode = $this->getDateDebutPeriode($iPeriode-1);
+            $p = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
+			$TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
 			
 			if($TSoldeRule->base_solde == 'MF') {
 				$solde = $this->financementLeaser->montant;
@@ -944,8 +945,9 @@ class TFin_dossier extends TObjetStd {
 		}
 		else // INTERNE 
 		{
-			$p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
-			$TSoldeRule = $this->getRuleSolde($p);
+            $date_deb_periode = $this->getDateDebutPeriode($iPeriode-1, 'CLIENT');
+            $p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
+			$TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
 			
 			// SPECIFIQUE LEASER HEXAPAGE => calculer le solde comme un externe avec la pénalité leaser
 			if(in_array($this->financementLeaser->fk_soc,array(204904,204905,204906))) {
@@ -1949,12 +1951,12 @@ class TFin_dossier extends TObjetStd {
 	{
 		global $db,$conf;
 		
-		$sql = "SELECT periode, base_solde, percent, percent_nr FROM ".MAIN_DB_PREFIX."c_financement_conf_solde
+		$sql = "SELECT periode, base_solde, percent, date_application, percent_nr FROM ".MAIN_DB_PREFIX."c_financement_conf_solde
 				WHERE entity = ".$this->entity." 
 				AND active = 1 
 				AND fk_type_contrat = '".$this->contrat."'
 				AND fk_nature = '".$this->nature_financement."'
-				ORDER BY periode ASC";
+				ORDER BY periode, date_application ASC";
 		$res = array();
 		$resql = $db->query($sql);
 		
@@ -1962,7 +1964,7 @@ class TFin_dossier extends TObjetStd {
 		{
 			while ($line = $db->fetch_object($resql))
 			{
-				$res[$line->periode] = $line;
+				$res[] = $line;
 			}
 		}
 		
@@ -1970,10 +1972,11 @@ class TFin_dossier extends TObjetStd {
 		return $res;
 	}
 	
-	function getRuleSolde($periode) {
+	function getRuleSolde($periode, $date_periode) {
 		$confsolde = array_reverse($this->TConfSolde,true);
-		foreach($confsolde as $p => $rule) {
-			if($periode >= $p) return $rule;
+
+		foreach($confsolde as $rule) {
+			if($periode >= $rule->periode && (is_null($rule->date_application) || $date_periode > $rule->date_application)) return $rule;
 		}
 	}
 	
