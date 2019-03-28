@@ -15,6 +15,7 @@ class WebServiceGrenke extends WebService
 	public function run()
 	{
 		global $conf,$langs;
+		$langs->load('financement@financement');
 
 		$oldconf = $conf;
 		switchEntity($this->simulation->entity);
@@ -87,7 +88,8 @@ class WebServiceGrenke extends WebService
 			// MAJ du statut
 			else if (!empty($response->getLeaseRequestStatusWithLoginResult->leaseRequestId))
 			{
-				$this->simulationSuivi->commentaire.= $langs->trans($response->getLeaseRequestStatusWithLoginResult->status);
+				$this->simulationSuivi->commentaire = $langs->trans($response->getLeaseRequestStatusWithLoginResult->status);
+				$PDOdb = new TPDOdb;
 
 				switch ($response->getLeaseRequestStatusWithLoginResult->status)
 				{
@@ -97,21 +99,24 @@ class WebServiceGrenke extends WebService
 					case 'approved':
 					case 'order':
 					case 'contract':
-						$this->simulationSuivi->statut = 'OK';
+						$this->simulationSuivi->doActionAccepter($PDOdb, $this->simulation);
+//						$this->simulationSuivi->statut = 'OK';
 
 						// Get ref and PDF
 						$this->getRefAndDoc();
 
 						break;
 					case 'cancelled':
-						$this->simulationSuivi->statut = 'KO';
+						$this->simulationSuivi->doActionRefuser($PDOdb, $this->simulation);
+//						$this->simulationSuivi->statut = 'KO';
 
 						// Get ref and PDF
 						$this->getRefAndDoc();
 
 						break;
 					default:
-						$this->simulationSuivi->statut = 'ERR'; // case unknown
+						$this->simulationSuivi->doActionErreur($PDOdb); // case unknown
+//						$this->simulationSuivi->statut = 'ERR'; // case unknown
 						break;
 				}
 
@@ -149,7 +154,17 @@ class WebServiceGrenke extends WebService
 		$f = new TFin_financement();
 		$f->periodicite = $this->simulation->opt_periodicite;
 		$dureeInMonth = $this->simulation->duree * $f->getiPeriode();
+		if($dureeInMonth < 36) $dureeInMonth = 36;
+		if($dureeInMonth > 66) $dureeInMonth = 66;
+
 		$echeanceInMonth = round($this->simulation->echeance / $f->getiPeriode(),2);
+
+        // Montant minimum 500 €
+        $montant = $this->simulation->montant;
+        // Scoring par le montant leaser
+        $montant += $this->simulationSuivi->surfact + $this->simulationSuivi->surfactplus;
+        $montant = round($montant,2);
+        if($montant < 500) $montant = 500;
 		
 		$paymentInterval = 'quarterly'; // valeur possible : 'quarterly', 'monthly'
 		$estimatedDeliveryDate = date('c', $this->simulation->date_demarrage); // contient 0 si vide...
@@ -183,13 +198,13 @@ class WebServiceGrenke extends WebService
 											<email>'.$this->simulation->societe->email.'</email>
 											<fax>'.$this->simulation->societe->fax.'</fax>
 										</communication>
-										<name>'.$this->simulation->societe->nom.'</name>
+										<name>'.htmlentities($this->simulation->societe->nom).'</name>
 									</person>
-									<customerID/>
+									<customerID>'.$this->simulation->societe->idprof1.'</customerID>
 								</lessee>
 								<articles>
 									<Article>
-										<price>'.$this->simulation->montant.'</price>
+										<price>'.$montant.'</price>
 										<type>1.11.1</type>
 										<description>'.$this->simulation->type_materiel.'</description>
 										<producer>Canon</producer>
@@ -200,7 +215,7 @@ class WebServiceGrenke extends WebService
 									<paymentInterval>'.$paymentInterval.'</paymentInterval>
 								</paymentInfo>
 								<initialPayment>0</initialPayment>
-								<residualValue>'.$this->simulation->vr.'</residualValue>
+								<residualValue>0</residualValue>
 								<commission>0</commission>
 								<estimatedDeliveryDate>'.$estimatedDeliveryDate.'</estimatedDeliveryDate>
 								<currency>EUR</currency>

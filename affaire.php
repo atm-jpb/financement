@@ -15,6 +15,7 @@
 	$langs->load('financement@financement');
 	
 	if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
+
 	
 	$affaire=new TFin_Affaire;
 	$ATMdb = new TPDOdb;
@@ -314,8 +315,8 @@ function _liste(&$ATMdb, &$affaire) {
 	
 function _fiche(&$ATMdb, &$affaire, $mode) {
 	global $db,$user,$conf;
-	
-	TFinancementTools::check_user_rights($affaire);
+
+    $result = restrictedArea($user, 'financement', $affaire->getID(), 'fin_affaire&societe', 'affaire', 'fk_soc', 'rowid');
 	
 	if(empty($affaire->societe) || empty($affaire->societe->id)) {
 		$affaire->societe = new Societe($db);

@@ -25,16 +25,6 @@ class TFinancementTools {
 		return false;		
 	}
 	
-	function check_user_rights(&$object) {
-		
-		global $user, $conf,$db;
-		
-		dol_include_once('/core/lib/security.lib.php');
-
-		if(!TFinancementTools::user_courant_est_admin_financement() && GETPOST('action') != 'new' && $object->entity != getEntity()) accessforbidden();
-		
-	}
-	
 	static function build_array_entities() {
 		
 		global $mc;
@@ -650,9 +640,18 @@ function simulation_prepare_head(TSimulation $object)
 		$nbNote = 0;
         if(!empty($object->note_private)) $nbNote++;
 		if(!empty($object->note_public)) $nbNote++;
+
         $head[$h][0] = dol_buildpath('/financement/simulation_note.php', 2).'?id='.$id.'&mainmenu=financement';
-        $head[$h][1] = $langs->trans("NoteLabel");
+        $head[$h][1] = get_picto('snowplow').'&nbsp;'.$langs->trans("NoteLabel");
 		if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
+
+        $cssFlipStyle = '-moz-transform: scaleX(-1);';
+        $cssFlipStyle.= ' -o-transform: scaleX(-1);';
+        $cssFlipStyle.= ' -webkit-transform: scaleX(-1);';
+        $cssFlipStyle.= ' transform: scaleX(-1);';
+        $cssFlipStyle.= ' filter: FlipH;';
+        $cssFlipStyle.= " -ms-filter: 'FlipH';";
+		$head[$h][1].= '&nbsp;'.get_picto('snowplow', '', '', $cssFlipStyle);
         $head[$h][2] = 'note';
         $h++;
     }
@@ -720,4 +719,77 @@ function switchEntity($target) {
         $mysocentity = &$mysoc;
         $mysocentity->setMysoc($confentity);
     }
+}
+
+function get_picto($name, $title = '', $color = '', &$style = '') {
+    $img = '';
+    $lo_title = '';
+    if(! empty($title)) $lo_title = ' title="'.$title.'"';
+    $iconSize = 'font-size: 21px;';
+
+    $lo_name = strtolower($name);
+    switch($lo_name) {
+        case 'ko':
+        case 'refus':
+            $img .= '<i class="fas fa-times-circle" style="color: #b90000; ' .$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'wait':
+            $img .= '<i class="fas fa-clock" style="color: #22b8cf; '.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'err':
+            $img .= '<i class="fas fa-exclamation-triangle" style="color: #ffd507; ' .$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'super_ok':
+            $img .= '<i class="fas fa-check-circle" style="color: green; '.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'wait_seller':
+            $img .= '<i class="fas fa-briefcase" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'wait_leaser':
+            $img .= '<i class="fas fa-piggy-bank" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'ok':
+            $img .= '<i class="fas fa-check-circle" style="color: grey; ' .$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'edit':
+            $img .= '<i class="fas fa-edit" style="color: darkorange; '.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'money':
+            $img .= '<i class="fas fa-coins" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'ss':
+        case 'sans_suite':
+            $img .= '<i class="fas fa-minus-circle" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'phone':
+            $img .= '<i class="fas fa-phone" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'webservice':
+            $img .= '<i class="fas fa-satellite-dish" style="color: green; '.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'save':    // This will use the unicode value of 'fas fa-save' only to keep the input
+            $img .= '<input type="submit" class="fa fa-input" style="'.$iconSize.' border: none;" value="&#xf0c7" title="Enregistrer" />';
+            break;
+        case 'manual':
+            $style = 'style="'.$iconSize;
+            if(! empty($color)) $style .= ' color: '.$color.';';
+            $style .= ' vertical-align: top;"';
+
+            $img .= '<i class="fas fa-bell" '.$style.$lo_title.'></i>';
+            break;
+        case 'fish':
+            $iconSize = 'font-size: 14px;';
+            $style .= ' '.$iconSize;
+            $img .= '<i class="fas fa-fish" style="'.$style.'"'.$lo_title.'></i>';
+            break;
+        case 'snowplow':
+            $iconSize = 'font-size: 14px;';
+            $style .= ' '.$iconSize;
+            $img .= '<i class="fas fa-snowplow" style="'.$style.'"'.$lo_title.'></i>';
+            break;
+        default:
+            return '';
+    }
+
+    return $img;
 }

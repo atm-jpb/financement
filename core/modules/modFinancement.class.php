@@ -157,6 +157,7 @@ class modFinancement extends DolibarrModules
 			,MAIN_DB_PREFIX.'c_financement_statut_dossier'
 			,MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano'
 			,MAIN_DB_PREFIX.'c_financement_conf_solde'
+			,MAIN_DB_PREFIX.'c_financement_action_manuelle'
 		)
 		,'tablib'=>array(
 			'Type de contrat'
@@ -166,6 +167,7 @@ class modFinancement extends DolibarrModules
 			,'Statut dossier'
 			,'Statut renta négative anomalie'
 			,'Configuration des soldes'
+			,'ManualActionType'
 		)
 		,'tabsql'=>array(
 			'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_type_contrat as f WHERE entity = '.$conf->entity
@@ -175,6 +177,7 @@ class modFinancement extends DolibarrModules
 			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_statut_dossier as f WHERE entity IN (0, '.$conf->entity.')'
 			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano as f WHERE entity IN (0, '.$conf->entity.')'
 			,'SELECT f.rowid as rowid, f.fk_nature, f.fk_type_contrat, f.periode, f.base_solde, f.percent, f.percent_nr, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_conf_solde as f WHERE entity = '.$conf->entity
+			,'SELECT rowid, code, label, entity, active FROM '.MAIN_DB_PREFIX.'c_financement_action_manuelle WHERE entity IN (0, '.$conf->entity.')'
 		)
 		,'tabsqlsort'=>array(
 			'label ASC'
@@ -184,6 +187,7 @@ class modFinancement extends DolibarrModules
 			,'label ASC'
 			,'label ASC'
 			,'fk_nature, fk_type_contrat, periode ASC'
+			,'label ASC'
 		)
 		,'tabfield'=>array(
 			'code,label'
@@ -193,6 +197,7 @@ class modFinancement extends DolibarrModules
 			,'code,label,entity'
 			,'code,label,entity'
 			,'fk_nature,fk_type_contrat,periode,base_solde,percent,percent_nr'
+			,'code,label'
 		)
 		,'tabfieldvalue'=>array(
 			'code,label,entity'
@@ -202,6 +207,7 @@ class modFinancement extends DolibarrModules
 			,'code,label,entity'
 			,'code,label,entity'
 			,'fk_nature,fk_type_contrat,periode,base_solde,percent,percent_nr,entity'
+			,'code,label'
 		)
 		,'tabfieldinsert'=>array(
 			'code,label,entity'
@@ -211,6 +217,7 @@ class modFinancement extends DolibarrModules
 			,'code,label,entity'
 			,'code,label,entity'
 			,'fk_nature,fk_type_contrat,periode,base_solde,percent,percent_nr,entity'
+			,'code,label'
 		)
 		,'tabrowid'=>array(
 			'rowid'
@@ -220,9 +227,11 @@ class modFinancement extends DolibarrModules
 			,'rowid'
 			,'rowid'
 			,'rowid'
+			,'rowid'
 		)
 		,'tabcond'=>array(
 			$conf->financement->enabled
+			,$conf->financement->enabled
 			,$conf->financement->enabled
 			,$conf->financement->enabled
 			,$conf->financement->enabled
