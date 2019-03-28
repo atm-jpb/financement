@@ -2,9 +2,7 @@
 
 class TFin_affaire extends TObjetStd {
 	function __construct() { /* declaration */
-		global $langs;
-
-		parent::set_table(MAIN_DB_PREFIX.'fin_affaire');
+	    parent::set_table(MAIN_DB_PREFIX.'fin_affaire');
 		parent::add_champs('reference,nature_financement,contrat,type_financement,type_materiel,xml_fic_transfert','type=chaine;');
 		parent::add_champs('date_affaire,xml_date_transfert','type=date;');
 		parent::add_champs('fk_soc,entity','type=entier;index;');
@@ -17,14 +15,6 @@ class TFin_affaire extends TObjetStd {
 		$this->TCommercial=array();
 		$this->TAsset=array();
 		$this->contrat = 'LOCSIMPLE';
-		
-		// TODO remove
-		/*$this->TContrat=array(
-			'LOCSIMPLE'=>$langs->trans('LocSimple')
-			,'FORFAITGLOBAL'=>$langs->trans('ForfaitGlobal')
-			,'INTEGRAL'=>$langs->trans('Integral')
-			,'GRANDCOMPTE'=>$langs->trans('GrandCompte')
-		);*/
 		
 		$this->TContrat=$this->load_c_type_contrat();
 		$this->TBaseSolde=array(
@@ -156,7 +146,7 @@ class TFin_affaire extends TObjetStd {
 		parent::delete($db);
 	}
 	function save(&$db) {
-		global $conf, $user;
+		global $user;
 		
 		if(!$user->rights->financement->affaire->write) return false;
 		
@@ -213,7 +203,6 @@ class TFin_affaire extends TObjetStd {
 			/*
 			 * Le dossier existe liaison
 			 */
-			//print_r($this->TLien);
 			foreach($this->TLien as $k=>$lien) {
 				if($lien->fk_fin_dossier==$dossier->getId()) {return false;}
 			}		 
@@ -224,13 +213,11 @@ class TFin_affaire extends TObjetStd {
 			$this->TLien[$i]->fk_fin_dossier = $dossier->rowid;  
 
 			$this->TLien[$i]->dossier= $dossier;
-			
-		//	print_r($this->TLien[$i]);
+
 			$this->calculSolde();
 			return true;
 		}
 		else {
-			//exit('Echec');
 			return false;
 		}
 		
@@ -254,28 +241,17 @@ class TFin_affaire extends TObjetStd {
 
 					$asset=new TAsset;
 					if($asset->loadReference($ATMdb, $serial)) {
-						//pre($asset,true);exit;
 						$asset->fk_soc = $this->fk_soc;
 
 						$asset->add_link($this->getId(),'affaire');
-						$asset->add_link($facture_mat->id,'facture');
+						$asset->add_link($facture_mat->id,'facture');   // FIXME Undefined variable $facture_mat
 
 						$asset->save($ATMdb);
 					}
 
 				}
-				
-				//Vérification si lien affaire => facture matériel déjà existant
-				/*$ATMdb->Execute("SELECT rowid FROM ".MAIN_DB_PREFIX."element_element WHERE sourcetype = 'affaire' AND targettype = 'facture' AND fk_target = ".$facture_mat->id);
 
-				if($ATMdb->Get_line()){
-					$this->addError($ATMdb, 'ErrorCreatingLinkAffaireFactureMaterielAlreidyExist', $data['code_affaire']." => ".$facture_mat->ref, 'ERROR');
-				}
-				else{*/
-					// Création du lien facture matériel / affaire financement
-					
 					$facture->add_object_linked('affaire', $this->getId());
-				//}
 			}
 		}
 		
