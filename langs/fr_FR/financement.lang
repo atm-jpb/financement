@@ -49,6 +49,7 @@ FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY=Répartition affaires. Ex : "012:3;", les a
 SimulationMontantPrestationObligatoire=Montant prestation obligatoire sur les simulations
 FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE=Écart autorisé de modification du montant sur simulation
 FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI=Règles de calcul à prendre en compte pour l'aiguillage du suivi
+FINANCEMENT_DEFAULT_EXTERNAL_RELOCATION_PERCENT=Pourcentage de commission par défaut pour les dossiers externes en relocation
 SetupShowSoldeMinTaux=Indisponibilité du solde dans la simulation si taux inférieur à X %%
 FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN=Enchaîner les appels EDI automatiques toutes les X minutes
 FINANCEMENT_DEFAULT_MAIL_RECIPIENT=Envoyer les accords de financement en copie à :
@@ -283,6 +284,22 @@ Status.NEED_MORE_INFORMATION=A revoir par sales
 Status.NEED_MORE_INFORMATION_FRANCE=En attente d'information
 Status.RE_EXAMINATED=En ré-examen
 Status.MANUAL_APPROVAL_WITH_CONDITIONS_TO_CONFIRM=Accords manuel avec conditions à revalider
+
+#BoxIndicateurs
+BoxIndicatorsTitle=Financement - Indicateurs
+BoxIndicatorsIndicator=Indicateur
+BoxIndicatorsNumber=Nombre
+BoxIndicatorsNumberTodo=À traiter
+BoxIndicatorsAmount=Montant
+BoxIndicatorsInternalFilesRelocation=Dossiers internes en relocation
+BoxIndicatorsExternalFilesRelocation=Dossiers externes en relocation
+BoxIndicatorsExternalFilesIntercalaire=Dossiers externes avec loyer intercalaire
+BoxIndicatorsQualityControl=Contrôles qualité
+
+#Contrôle qualité
+QualityControl=Contrôle qualité
+QualityControlRules=Règles du contrôle qualité
+QualityControlSQLTooltip=Liste des tables SQL disponibles :<table><tr><td>d</td><td>Dossier</td></tr><tr><td>a</td><td>Affaire</td></tr><tr><td>dfc</td><td>Financement client</td></tr><tr><td>dfl</td><td>Financement leaser</td></tr></table>
 
 # Reports
 ReportFinancement=Rapports
