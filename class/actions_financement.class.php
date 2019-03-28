@@ -370,7 +370,10 @@ class ActionsFinancement
 			}
             else if($value == 'date_application') {
                 print '<td>';
-                print date('d/m/Y', strtotime($object->$value));
+
+                if(is_null($object->$value)) print '';
+                else print date('d/m/Y', strtotime($object->$value));
+
                 print '</td>';
             }
 			else

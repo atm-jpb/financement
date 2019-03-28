@@ -1976,7 +1976,7 @@ class TFin_dossier extends TObjetStd {
 		$confsolde = array_reverse($this->TConfSolde,true);
 
 		foreach($confsolde as $rule) {
-			if($periode >= $rule->periode && (is_null($rule->date_application) || $date_periode > $rule->date_application)) return $rule;
+			if($periode >= $rule->periode && (is_null($rule->date_application) || $date_periode >= $rule->date_application)) return $rule;
 		}
 	}
 	
