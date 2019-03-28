@@ -1,4 +1,4 @@
-<table class="centpercent">
+<table class="centpercent noborder">
 	<tr class="liste_titre">
 		<td>ID</td>
 		<td>Nom</td>

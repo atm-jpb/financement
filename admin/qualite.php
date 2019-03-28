@@ -142,7 +142,7 @@ if(! is_object($form))
 }
 
 llxHeader('',$langs->trans("FinancementSetup"));
-$head = financement_admin_prepare_head(null);
+$head = financement_admin_prepare_head();
 
 $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
 print_fiche_titre($langs->trans("QualityControlRules"), $linkback);

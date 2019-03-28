@@ -67,7 +67,7 @@ elseif($test->result === 'TODO')
 	$buttons = '
 		<div class="tabsAction">
 			<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $test->getid() . '&action=validate">' . $langs->trans('Validate') . '</a>
-			<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $test->getid() . '&action=refuse">Refuser</a>
+			<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $test->getid() . '&action=refuse">' . $langs->trans('Deny') . '</a>
 		</div>';
 }
 

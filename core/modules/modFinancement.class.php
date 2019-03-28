@@ -753,8 +753,8 @@ class modFinancement extends DolibarrModules
 				'url'=>'/financement/qualite/list.php',
 				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 				'position'=>425,
-				'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-				'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 				'target'=>'',
 				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
@@ -767,8 +767,8 @@ class modFinancement extends DolibarrModules
 				'url'=>'/financement/qualite/list.php?TListTBS[list_' . MAIN_DB_PREFIX . 'fin_quality_test][search][result]=TODO',
 				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 				'position'=>426,
-				'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-				'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 				'target'=>'',
 				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
@@ -781,8 +781,8 @@ class modFinancement extends DolibarrModules
 				'url'=>'/financement/qualite/list.php?TListTBS[list_' . MAIN_DB_PREFIX . 'fin_quality_test][search][result]=OK',
 				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 				'position'=>427,
-				'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-				'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 				'target'=>'',
 				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
@@ -795,8 +795,8 @@ class modFinancement extends DolibarrModules
 				'url'=>'/financement/qualite/list.php?TListTBS[list_' . MAIN_DB_PREFIX . 'fin_quality_test][search][result]=KO',
 				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 				'position'=>428,
-				'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-				'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 				'target'=>'',
 				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
