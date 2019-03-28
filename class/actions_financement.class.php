@@ -278,6 +278,11 @@ class ActionsFinancement
 				print $form->selectarray($value, $aff->TBaseSolde,$object->$value);
 				print '</td>';
 			}
+			else if($value == 'date_application') {
+			    print '<td>';
+			    print '<input type="date" class="flat" name="date_application" />';
+			    print '</td>';
+            }
 			else
 			{
 				print '<td>';
@@ -318,6 +323,11 @@ class ActionsFinancement
 				print $form->selectarray($value, $aff->TBaseSolde,$object->$value);
 				print '</td>';
 			}
+            else if($value == 'date_application') {
+                print '<td>';
+                print '<input type="date" class="flat" name="date_application" value="'.$object->$value.'" />';
+                print '</td>';
+            }
 			else
 			{
 				print '<td>';
@@ -358,6 +368,14 @@ class ActionsFinancement
 				print $aff->TBaseSolde[$object->$value];
 				print '</td>';
 			}
+            else if($value == 'date_application') {
+                print '<td>';
+
+                if(is_null($object->$value)) print '';
+                else print date('d/m/Y', strtotime($object->$value));
+
+                print '</td>';
+            }
 			else
 			{
 				print '<td>';
