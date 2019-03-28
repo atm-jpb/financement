@@ -23,9 +23,6 @@ class TIntegrale extends TObjetStd {
 	
 	function load(&$db, $id, $annexe=false) {
 		parent::load($db, $id);
-		// Ce n'est plus utile de recalculer les totaux au load car maintenant toutes les données sont stockées
-		// Le calcul des totaux et écart se fait juste avant le save
-		//$this->calcule_totaux();
 		
 		if($annexe && !empty($this->facnumber)) {
 			$this->load_annexe($db);
@@ -112,7 +109,6 @@ class TIntegrale extends TObjetStd {
 		global $conf;
 
 		$TData = array();
-		//echo $cout_unitaire.'<br>';
 		if(!empty($nouveau_cout_unitaire_manuel)) $nouveau_cout_unitaire = $cout_unitaire;
 		else {
 			// Calcul du nouveau coût unitaire en fonction des règles demandées
@@ -141,35 +137,16 @@ class TIntegrale extends TObjetStd {
 		if($engagement > 0) {
 			$cout_unitaire = ($cout_act + $diff2 * $this->{'cout_unit_'.$type.'_tech'}) / $engagement;
 		}
-		/*$cout_unitaire = ($engagement * $this->{'cout_unit_'.$type}
-								 + (($engagement - $this->{'vol_'.$type.'_engage'}) + (abs($this->{'vol_'.$type.'_engage'} - $engagement)) * ($conf->global->FINANCEMENT_PENALITE_SUIVI_INTEGRALE/100)
-								 * $this->{'cout_unit_'.$type.'_tech'}))
-								 / $engagement;*/
 		
 		return $this->ceil($cout_unitaire);
 	}
 	
 	function calcul_cout_unitaire_by_fas($TDetailCouts, $engagement, $new_fas, $pourcentage) {
-		// 18000 * (0.00352+0.03821) = 751.14
-		// - (413 - 313.33) * 82 / 100 = 669.4106
-		// / 18000 = 0.03719
-		// + 0.00844 = 
-		/*echo 'ENG : '.$engagement.'<br>';
-		echo 'PERC: '.$pourcentage.'<br>';
-		echo 'MACH: '.$TDetailCouts['nouveau_cout_unitaire_mach'].'<br>';
-		echo 'LOY : '.$TDetailCouts['nouveau_cout_unitaire_loyer'].'<br>';
-		echo 'TECH: '.$TDetailCouts['nouveau_cout_unitaire_tech'].'<br>';
-		pre($TDetailCouts,true);*/
 		
 		$l1 = $engagement * ($TDetailCouts['nouveau_cout_unitaire_mach'] + $TDetailCouts['nouveau_cout_unitaire_loyer']);
 		$l2 = abs($new_fas - $this->fas) * $pourcentage / 100;
 		$l3 = ($engagement > 0) ? ($l1 - $l2) / $engagement : 0;
 		$l4 = $l3 + $TDetailCouts['nouveau_cout_unitaire_tech'];
-		
-		/*echo 'L1 : '.$l1.'<br>';
-		echo 'L2 : '.$l2.'<br>';
-		echo 'L3 : '.$l3.'<br>';
-		echo 'L4 : '.$l4.'<br>';*/
 		
 		return $this->ceil($l4);
 	}
@@ -212,8 +189,6 @@ class TIntegrale extends TObjetStd {
 		$fas_max = $this->{'vol_'.$type.'_engage'} * $TData['nouveau_cout_unitaire_loyer'] / 2;
 		if($fas_max < $this->fas) $fas_max = $this->fas;
 		$fas_necessaire = ($TData['cout_unitaire'] - $cu_manuel) * $engagement;
-		
-		//echo $fas_max.' - '.$fas_necessaire;
 		
 		if($fas_necessaire <= 0) return 0;
 		if($fas_necessaire > $fas_max) {
@@ -278,7 +253,6 @@ class TIntegrale extends TObjetStd {
 	 * Retourne la ligne propal ayant le fk_product passé en param
 	 */
 	static function get_line_from_propal(&$propal, $ref_product) {
-		//pre($propal->lines ,true);
 		foreach($propal->lines as $line) {
 			if($line->ref == $ref_product) return $line;
 		}
@@ -286,8 +260,6 @@ class TIntegrale extends TObjetStd {
 	}
 	
 	function calcul_percent_couleur($cout_unit_noir_loyer=0, $engagement_noir=0, $cout_unitaire_coul_loyer=0, $engagement_couleur=0) {
-		//return "25.23";
-		// (cout loyer couleur * engagement couleur) / ((Cout loyer noir * engagement noir) + (cout loyer couleur * engagement couleur))
 		if(empty($cout_unit_noir_loyer)) $cout_unit_noir_loyer = $this->cout_unit_noir_loyer;
 		if(empty($engagement_noir)) $engagement_noir = $this->vol_noir_engage;
 		if(empty($cout_unitaire_coul_loyer)) $cout_unitaire_coul_loyer = $this->cout_unit_coul_loyer;
@@ -295,7 +267,7 @@ class TIntegrale extends TObjetStd {
 		
 		$loyer_noir = $cout_unit_noir_loyer * $engagement_noir;
 		$loyer_couleur = $cout_unitaire_coul_loyer * $engagement_couleur;
-		//echo 'TADA'.$loyer_couleur. '-' .$loyer_noir;
+
 		$total_loyer = ($loyer_noir + $loyer_couleur);
 		if($total_loyer > 0) {
 			return round($loyer_couleur / $total_loyer * 100);
