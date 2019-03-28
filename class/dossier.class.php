@@ -317,7 +317,9 @@ class TFin_dossier extends TObjetStd {
 		
 		$this->calculSolde();
 		$this->calculRenta($db);
-		
+		if(! empty($this->financement)) $this->calculMontantRestantRelocation($this->financement);
+		if(! empty($this->financementLeaser)) $this->calculMontantRestantRelocation($this->financementLeaser);
+
 		$res = $this->checkRef($db);
 		//echo $res.'<br>';
 		//echo "$res == -1<br>";
@@ -401,7 +403,63 @@ class TFin_dossier extends TObjetStd {
 		$this->marge_attendue = $this->getMargeAttendue($ATMdb);
 		$this->marge_reelle = $this->getMargeReelle();
 	}
-		
+
+	function calculMontantRestantRelocation(TFin_financement &$financement) {
+		global $db, $conf;
+
+		$financement->encours_reloc = 0;
+
+		$numLastEcheance = $financement->numero_prochaine_echeance - 1;
+
+		if(! empty($financement->date_solde))
+		{
+			$financement->reloc = 'NON';
+			$financement->relocOK = 'OUI';
+
+			return;
+		}
+
+		if($financement->relocOK == 'OUI' || $financement->duree <= 0 || $numLastEcheance < $financement->duree)
+		{
+			return;
+		}
+
+		$coeff = 1;
+
+		$TFactures = &$this->TFacture;
+
+		if($financement->type == 'LEASER')
+		{			
+			$TFactures = &$this->TFactureFournisseur;
+
+			$leaser = new Societe($db);
+			$leaser->fetch($financement->fk_soc);
+			if(empty($leaser->array_options) && method_exists($leaser, 'fetch_optionals'))
+			{
+				$leaser->fetch_optionals();
+			}
+
+			$coeff = (! empty($leaser->array_options['options_percent_relocation']) ? $leaser->array_options['options_percent_relocation'] : floatval($conf->global->FINANCEMENT_DEFAULT_EXTERNAL_RELOCATION_PERCENT) ) / 100;
+		}
+
+		if(empty($TFactures[$numLastEcheance - 1]))
+		{
+			$financement->encours_reloc = price2num($coeff * $financement->echeance, 'MT');
+		}
+
+/* Pour commencer, on ne regarde que si la dernière échéance est en retard. A décommenter pour un calcul complet de toutes les échéances en retard
+		$somme = 0;
+
+		for($i = $financement->duree; $i < $numLastEcheance; $i++) {
+			if(empty($TFactures[$i])) {
+				$somme += $coeff * $financement->echeance;
+			}
+		}
+
+		$financement->encours_reloc = $somme;
+*/
+	}
+
 	function load_facture(&$ATMdb, $all=false) {
 		global $db;
 		$this->somme_facture = 0;
@@ -542,6 +600,7 @@ class TFin_dossier extends TObjetStd {
 		
 		$flag = true; $cpt = 0; 
 		$t = $f->date_debut + $f->calage; 
+
 		$iEcheance = 0;
 		while($flag && $cpt<100) {
 			
@@ -1306,7 +1365,7 @@ class TFin_dossier extends TObjetStd {
 		 * Loyers HT 
 		 * Loyers TTC
 		 */
-		$total_capital_amortit = 0;
+		$total_capital_amorti = 0;
 		$total_part_interet = 0;
 		$total_assurance = 0;
 		$total_loyer = 0;
@@ -1319,33 +1378,35 @@ class TFin_dossier extends TObjetStd {
 //re($this->TFacture,true);
 
 		//if($type_echeancier=='CLIENT') $this->load_facture($ATMdb,true);
+
+		$lastEcheance = max($f->duree, $f->numero_prochaine_echeance - 1);
 				
-		for($i=($echeanceInit-1); $i<$f->duree; $i++) {
+		for($i=($echeanceInit-1); $i<$lastEcheance; $i++) {
 			
 			//$time = strtotime('+'.($i*$f->getiPeriode()).' month',  $f->date_debut + $f->calage);
 			$time = $this->_add_month($i*$f->getiPeriode(),  $f->date_debut + $f->calage);
 
-			$capital_amortit = $f->amortissement_echeance( $i + 1 ,$capital_restant);
-			$part_interet = $f->echeance -$capital_amortit;
+			$capital_amorti = $f->amortissement_echeance( $i + 1 ,$capital_restant);
+			$part_interet = $f->echeance - $capital_amorti;
 
-			$capital_restant-=$capital_amortit;
+			$capital_restant-=$capital_amorti;
 			$f->capital_restant = $capital_restant;
 			$total_loyer+=$f->echeance;
 			
 			$f->total_loyer -= $f->echeance;
 			
 			$total_assurance+=$f->assurance;
-			$total_capital_amortit+=$capital_amortit;
+			$total_capital_amorti+=$capital_amorti;
 			$total_part_interet+=$part_interet;
 			//echo date('d/m/Y', $time),' ', date('d/m/Y', $f->date_debut + $f->calage),'+'.($i*$f->getiPeriode()).' month',  $f->date_debut,' + ' , $f->calage/86400,'<br>';
 			// Construction donnée pour échéancier
 			$data=array(
 				'date'=>date('d/m/Y', $time)
 				/*,'valeur_rachat'=>$capital_restant*$this->getPenalite($ATMdb,'NR')*/
-				,'capital'=>$capital_restant
-				,'amortissement'=>$capital_amortit
-				,'interet'=>$part_interet
-				,'assurance'=>$f->assurance
+				,'capital'=>($i < $f->duree ? $capital_restant : ' - ')
+				,'amortissement'=>($i < $f->duree ? $capital_amorti : ' - ')
+				,'interet'=>($i < $f->duree ? $part_interet : ' - ')
+				,'assurance'=>($i < $f->duree ? $f->assurance : ' - ')
 				,'loyerHT'=>$f->echeance
 				,'loyer'=>($f->echeance+$f->assurance) * FIN_TVA_DEFAUT
 			);
@@ -1496,7 +1557,7 @@ class TFin_dossier extends TObjetStd {
 			'reste'=>$f->reste
 			,'resteTTC'=>($f->reste*FIN_TVA_DEFAUT)
 			,'capitalInit'=>$capital_restant_init
-			,'total_capital_amortit'=>$total_capital_amortit
+			,'total_capital_amortit'=>$total_capital_amorti
 			,'total_part_interet'=>$total_part_interet
 			,'total_loyer'=>$total_loyer
 			,'total_assurance'=>$total_assurance
@@ -1669,9 +1730,20 @@ class TFin_dossier extends TObjetStd {
 		if($paid) {
 			$result=$object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
 		}
-		
+
+		$TFactures = &$this->TFacture;
+		if($f->type == 'LEASER') $TFactures = &$this->TFactureFournisseur;
+
+		if(is_array($TFactures[$echeance])) {
+			$TFactures[$echeance][] = $object;
+		} elseif(! empty($TFactures[$echeance])) {
+			$TFactures[$echeance] = array($TFactures[$echeance], $object);
+		} else {
+			$TFactures[$echeance] = $object;
+		}
+
 		$res.= "Création facture client ($id) : ".$object->ref."<br />";
-	
+
 		return $res;
 	}
 
@@ -1979,6 +2051,15 @@ class TFin_dossier extends TObjetStd {
 			if($periode >= $rule->periode && (is_null($rule->date_application) || $date_periode >= $rule->date_application)) return $rule;
 		}
 	}
+
+	function getNomUrl()
+	{
+		$link = dol_buildpath('/financement/dossier.php', 1) . '?id=' . $this->getId();
+		$label = ! empty($this->reference)  ? $this->reference : 'ID ' . $this->getId();
+		$picto  = img_picto($label, 'object_financementico@financement');
+
+		return '<a href="' . $link . '">' . $picto . ' ' . $label . '</a>';
+	}
 	
 	/**
 	 * Liste des dossier clients en cours pour choix dans la simulation lors d'une demande d'adjonction
@@ -2116,11 +2197,11 @@ class TFin_financement extends TObjetStd {
 	
 		parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
 		parent::add_champs('duree,numero_prochaine_echeance,terme','type=entier;');
-		parent::add_champs('montant_prestation,montant,echeance,loyer_intercalaire,reste,taux,capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier,loyer_actualise,assurance_actualise','type=float;');
+		parent::add_champs('montant_prestation,montant,echeance,loyer_intercalaire,reste,taux,capital_restant,assurance,montant_solde,penalite_reprise,taux_commission,frais_dossier,loyer_actualise,assurance_actualise,encours_reloc','type=float;');
 		parent::add_champs('reference,periodicite,reglement,incident_paiement,type','type=chaine;');
 		parent::add_champs('date_debut,date_fin,date_prochaine_echeance,date_solde','type=date;index;');
 		parent::add_champs('fk_soc,fk_fin_dossier','type=entier;index;');
-		parent::add_champs('okPourFacturation,transfert,reloc','type=chaine;index;');
+		parent::add_champs('okPourFacturation,transfert,reloc,relocOK,intercalaireOK','type=chaine;index;');
 				
 		parent::start();
 		parent::_init_vars();
@@ -2197,6 +2278,18 @@ class TFin_financement extends TObjetStd {
 			,'NON'=>'Non'
 		);
 		$this->reloc = 'NON';
+		
+		$this->TRelocOK=array(
+			'OUI'=>'Oui'
+			,'NON'=>'Non'
+		);
+		$this->relocOK = 'OUI';
+
+		$this->TIntercalaireOK=array(
+				'OUI'=>'Oui'
+				,'NON'=>'Non'
+		);
+		$this->intercalaireOK = 'OUI';
 	}
 	/*
 	 * Définie la date de prochaine échéance et le numéro d'échéance en fonction de nb
