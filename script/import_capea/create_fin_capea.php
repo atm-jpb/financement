@@ -126,3 +126,14 @@ function createDossier(&$PDOdb, $TData) {
 
     return 1;
 }
+
+// Recherche du client par SIREN
+function getSocieteBySIREN(&$PDOdb, $siren) {
+    if(empty($siren)) return 0;
+
+    $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'societe WHERE entity = 12 AND siren = \''.substr($siren, 0,9).'\'';
+    $Tab = $PDOdb->ExecuteAsArray($sql);
+    if(!empty($Tab)) return $Tab[0]->rowid;
+
+    return 0;
+}
