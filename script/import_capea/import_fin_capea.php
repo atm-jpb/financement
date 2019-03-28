@@ -38,8 +38,8 @@ function getUsefulData($TLine) {
         'financement' => array(
             'reference' => $TLine[$TIndex['num_contrat']],
             'montant' => price2num($TLine[$TIndex['montant']]),
-            'date_debut' => $TLine[$TIndex['date_debut']],
-            'date_fin' => $TLine[$TIndex['date_fin']],
+            'date_debut' => strtotime($TLine[$TIndex['date_debut']]),
+            'date_fin' => strtotime($TLine[$TIndex['date_fin']]),
             'loyer_intercalaire' => $TLine[$TIndex['loyer_intercalaire']],
             'fk_soc' => 1
         ),
