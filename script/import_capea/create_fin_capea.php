@@ -5,6 +5,7 @@ dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/dossier_integrale.class.php');
 dol_include_once('/financement/class/grille.class.php');
+dol_include_once('/financement/lib/financement.lib.php');
 
 set_time_limit(0);
 
@@ -22,6 +23,8 @@ $TTranslate = array(
     'location simple' => 'LOCSIMPLE',
     'INTEGRAL' => 'INTEGRAL'
 );
+
+switchEntity(15);   // 15 => CAPEA Bordeaux ; Utile pour le getEntity un peu plus loin
 
 $TData = array();
 $f = fopen(__DIR__.'/financements_capea_toAdd.csv', 'r');
@@ -131,7 +134,7 @@ function createDossier(&$PDOdb, $TData) {
 function getSocieteBySIREN(&$PDOdb, $siren) {
     if(empty($siren)) return 0;
 
-    $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'societe WHERE entity = 12 AND siren = \''.substr($siren, 0,9).'\'';
+    $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'societe WHERE entity IN ('.getEntity('societe', true).') AND siren = \''.substr($siren, 0,9).'\'';
     $Tab = $PDOdb->ExecuteAsArray($sql);
     if(!empty($Tab)) return $Tab[0]->rowid;
 
