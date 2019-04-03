@@ -99,6 +99,8 @@ function createDossier(&$PDOdb, $TData) {
     $doss = new TFin_dossier();
     $doss->commentaire = $TData['financementLeaser']['commentaire'];
     $doss->financement->set_values($TData['financementLeaser']);
+
+    unset($TData['financementLeaser']['loyer_intercalaire']);   // On ne garde pas le loyer_intercalaire du côté leaser
     $doss->financementLeaser->set_values($TData['financementLeaser']);
     $doss->entity = 12;
     $doss->save($PDOdb);
