@@ -34,12 +34,19 @@ function getUsefulData($TLine) {
         'loyer_intercalaire' => 16
     );
 
+    // Format date
+    $TDateDebut = explode('/', $TLine[$TIndex['date_debut']]);
+    $date_debut = mktime(null, null, null, $TDateDebut[1], $TDateDebut[0], $TDateDebut[2]);
+
+    $TDateFin = explode('/', $TLine[$TIndex['date_fin']]);
+    $date_fin = mktime(null, null, null, $TDateFin[1], $TDateFin[0], $TDateFin[2]);
+
     $TData = array(
         'financement' => array(
             'reference' => $TLine[$TIndex['num_contrat']],
             'montant' => price2num($TLine[$TIndex['montant']]),
-            'date_debut' => strtotime($TLine[$TIndex['date_debut']]),
-            'date_fin' => strtotime($TLine[$TIndex['date_fin']]),
+            'date_debut' => $date_debut,
+            'date_fin' => $date_fin,
             'loyer_intercalaire' => $TLine[$TIndex['loyer_intercalaire']],
             'fk_soc' => 1
         ),
