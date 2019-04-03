@@ -55,7 +55,8 @@ function parseline(&$PDOdb, &$TData, $line) {
         'nb_loyer' => 18,
         'montant' => 19,
         'echeance' => 20,
-        'loyer_intercalaire' => 21
+        'loyer_intercalaire' => 21,
+        'date_debut_leaser' => 22
     );
 
     // Pas de référence => ligne à ignorer
@@ -72,7 +73,8 @@ function parseline(&$PDOdb, &$TData, $line) {
         return 0;
     }
 
-    if($line[$TIndex['date_debut']] != '') $data['financementLeaser']['date_debut'] = $line[$TIndex['date_debut']];
+    if($line[$TIndex['date_debut']] != '') $data['financement']['date_debut'] = $line[$TIndex['date_debut']];
+    if($line[$TIndex['date_debut_leaser']] != '') $data['financementLeaser']['date_debut'] = $line[$TIndex['date_debut_leaser']];
     if($line[$TIndex['date_fin']] != '') $data['financementLeaser']['date_fin'] = $line[$TIndex['date_fin']];
     if($line[$TIndex['periodicite']] != '') $data['financementLeaser']['periodicite'] = $TPeriodicite[$line[$TIndex['periodicite']]];
     if($line[$TIndex['nb_loyer']] != '') $data['financementLeaser']['duree'] = price2num($line[$TIndex['nb_loyer']]);
@@ -99,6 +101,7 @@ function createDossier(&$PDOdb, $TData) {
     $doss = new TFin_dossier();
     $doss->commentaire = $TData['financementLeaser']['commentaire'];
     $doss->financement->set_values($TData['financementLeaser']);
+    $doss->financementLeaser->set_date('date_debut', $TData['financement']['date_debut']);    // Les date leaser & clients sont différentes
 
     unset($TData['financementLeaser']['loyer_intercalaire']);   // On ne garde pas le loyer_intercalaire du côté leaser
     $doss->financementLeaser->set_values($TData['financementLeaser']);
