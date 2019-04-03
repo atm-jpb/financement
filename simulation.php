@@ -582,16 +582,20 @@ function _liste(&$ATMdb, &$simulation) {
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX.'entity as e ON (e.rowid = s.entity) ';
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX.'fin_simulation_suivi as ss ON (s.rowid = ss.fk_simulation) ';
 	
-	if (!$user->rights->societe->client->voir && !$user->rights->financement->allsimul->simul_list) {
+	if (!$user->rights->societe->client->voir) {
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON (sc.fk_soc = soc.rowid)";
 	}
 	//$sql.= " WHERE s.entity = ".$conf->entity;
 	$sql.= " WHERE 1=1 ";
 	$sql.= " AND (ss.date_historization < '1970-00-00 00:00:00' OR ss.date_historization IS NULL) ";
-	if (!$user->rights->societe->client->voir && !$user->rights->financement->allsimul->simul_list) //restriction
+	if (!$user->rights->societe->client->voir) //restriction
 	{
 		$sql.= " AND sc.fk_user = " .$user->id;
 	}
+	if($user->rights->societe->client->voir && !$user->rights->financement->allsimul->simul_list)
+	{
+        $sql.= " AND s.fk_user_author = " .$user->id;
+    }
 	if(!empty($searchnumetude)){
 		$sql.=" AND ss.numero_accord_leaser='".$searchnumetude."'";
 	}
