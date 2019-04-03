@@ -78,6 +78,13 @@ class financement_indicateurs_box extends ModeleBoxes
             'text' => $text,
             'limit' => dol_strlen($text)
         );
+
+        if(!$user->rights->financement->admin->write) { // Accès à la box uniquement pour les admins
+                $this->info_box_contents[0][0] = array('td' => 'align="left"',
+                    'text' => $langs->trans("ReadPermissionNotAllowed"));
+                return;
+        }
+
 		$r = 0;
 
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsIndicator'));
