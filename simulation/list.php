@@ -16,6 +16,7 @@ dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
 $langs->load('other');
+$langs->load('dict');
 $langs->load('financement@financement');
 
 $simulation = new TSimulation(true);
@@ -233,7 +234,7 @@ print '<tr class="liste_titre">';
 
 // Entity
 print '<td colspan="14" style="min-width: 150px;">';
-print '<span>'.$langs->trans('Entity').' : </span>';
+print '<span>'.$langs->trans('DemandReasonTypeSRC_PARTNER').' : </span>';
 print Form::multiselectarray('search_entity', $TEntity, $search_entity, 0, 0, 'style="min-width: 250px;"');
 print '</td>';
 
