@@ -32,8 +32,10 @@ $search_typeContrat = GETPOST('search_typeContrat');
 $year = GETPOST('search_dateSimulyear');
 $month = GETPOST('search_dateSimulmonth');
 $day = GETPOST('search_dateSimulday');
-$search_dateSimul = dol_mktime(12, 0, 0, $month, $day, $year);
-$search_dateSimul = date('Y-m-d', $search_dateSimul);
+if(! empty($year) && ! empty($month) && ! empty($day)) {
+    $search_dateSimul = dol_mktime(12, 0, 0, $month, $day, $year);
+    $search_dateSimul = date('Y-m-d', $search_dateSimul);
+}
 $search_user = GETPOST('search_user');
 $search_statut = GETPOST('search_statut');
 $search_leaser = GETPOST('search_leaser');
