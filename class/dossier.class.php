@@ -313,11 +313,11 @@ class TFin_dossier extends TObjetStd
 
         $res = $this->checkRef($db);
 
-        if($res == -1) {
+        if($res === -1) {
             setEventMessage("Référence Client déjà utilisée ou en doublon", "errors");
             return false;
         }
-        else if($res == -2) {
+        else if($res === -2) {
             setEventMessage("Référence Leaser déjà utilisée ou en doublon", "errors");
             return false;
         }
