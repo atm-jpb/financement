@@ -984,10 +984,10 @@ class TSimulation extends TObjetStd
 
         if(empty($mailto)) $mailto = $this->user->email;
 
-        $r = new TReponseMail($conf->notification->email_from, $mailto, $subject, $mesg);
-
         $old_entity = $conf->entity;
         switchEntity($this->entity);    // Switch to simulation entity
+
+        $r = new TReponseMail($conf->global->MAIN_MAIL_EMAIL_FROM, $mailto, $subject, $mesg);
 
         if(! empty($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT) && isValidEmail($conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT)) {
             $r->emailtoBcc = $conf->global->FINANCEMENT_DEFAULT_MAIL_RECIPIENT;
