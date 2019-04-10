@@ -49,6 +49,7 @@ FINANCEMENT_IMPORT_PREFIX_FOR_ENTITY=Répartition affaires. Ex : "012:3;", les a
 SimulationMontantPrestationObligatoire=Montant prestation obligatoire sur les simulations
 FINANCEMENT_PERCENT_MODIF_SIMUL_AUTORISE=Écart autorisé de modification du montant sur simulation
 FINANCEMENT_METHOD_TO_CALCUL_RENTA_SUIVI=Règles de calcul à prendre en compte pour l'aiguillage du suivi
+FINANCEMENT_DEFAULT_EXTERNAL_RELOCATION_PERCENT=Pourcentage de commission par défaut pour les dossiers externes en relocation
 SetupShowSoldeMinTaux=Indisponibilité du solde dans la simulation si taux inférieur à X %%
 FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN=Enchaîner les appels EDI automatiques toutes les X minutes
 FINANCEMENT_DEFAULT_MAIL_RECIPIENT=Envoyer les accords de financement en copie à :
@@ -211,7 +212,7 @@ Periode=A partir du mois
 Base_solde=Base de calcul du solde
 Percent=Variation solde R(%%)
 Percent_nr=Variation solde NR (%%)
-
+Date_application=Date d'application
 
 # GRILLE COEF LEASER
 GrilleLeaser=Grille de coefficients
@@ -284,6 +285,22 @@ Status.NEED_MORE_INFORMATION_FRANCE=En attente d'information
 Status.RE_EXAMINATED=En ré-examen
 Status.MANUAL_APPROVAL_WITH_CONDITIONS_TO_CONFIRM=Accords manuel avec conditions à revalider
 
+#BoxIndicateurs
+BoxIndicatorsTitle=Financement - Indicateurs
+BoxIndicatorsIndicator=Indicateur
+BoxIndicatorsNumber=Nombre
+BoxIndicatorsNumberTodo=À traiter
+BoxIndicatorsAmount=Montant
+BoxIndicatorsInternalFilesRelocation=Dossiers internes en relocation
+BoxIndicatorsExternalFilesRelocation=Dossiers externes en relocation
+BoxIndicatorsExternalFilesIntercalaire=Dossiers externes avec loyer intercalaire
+BoxIndicatorsQualityControl=Contrôles qualité
+
+#Contrôle qualité
+QualityControl=Contrôle qualité
+QualityControlRules=Règles du contrôle qualité
+QualityControlSQLTooltip=Liste des tables SQL disponibles :<table><tr><td>d</td><td>Dossier</td></tr><tr><td>a</td><td>Affaire</td></tr><tr><td>dfc</td><td>Financement client</td></tr><tr><td>dfl</td><td>Financement leaser</td></tr></table>
+
 # Reports
 ReportFinancement=Rapports
 ReportFinancementDemandesDeFinancement=Demandes de financement
@@ -308,3 +325,8 @@ AccordAuto = Accord Automatique
 FinancementActivateAccordAuto = Activer les accords automatiques
 FinancementActivateAccordAuto_tooltip = Conditions :<ul><li>Zone commentaire vide</li><li>Montant total financé inférieur à %s€</li><li>Numéro d'accord Leaser renseigné</li><li>Aucun solde selectionné</li><li>Adjonction non coché</li></ul>
 FinancementSimulMaxAmount = Montant total financé maximum
+ManualActionType = Types d'actions manuelles
+
+# Actions manuelles
+CantDoAutoScoring = Impossible de scorer en automatique
+CantGiveAccordAuto = Impossible de donner un accord automatique

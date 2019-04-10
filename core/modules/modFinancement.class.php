@@ -134,7 +134,7 @@ class modFinancement extends DolibarrModules
         	'thirdparty:+scores:ScoreList:financement@financement:$user->rights->financement->score->read:/financement/score.php?socid=__ID__'
         	,'thirdparty:+transfert:Dossiers Transférable:financement@financement:$user->rights->financement->affaire->write:/financement/dossier.php?fk_leaser=__ID__'
         	,'thirdparty:+affaire:Financement:financement@financement:$user->rights->financement->affaire->read:/financement/affaire.php?socid=__ID__'
-        	,'thirdparty:+simulation:Simulations:financement@financement:$user->rights->financement->allsimul->simul_list || $user->rights->financement->mysimul->simul_list:/financement/simulation.php?socid=__ID__'
+        	,'thirdparty:+simulation:Simulations:financement@financement:$user->rights->financement->allsimul->simul_list || $user->rights->financement->mysimul->simul_list:/financement/simulation/simulation.php?socid=__ID__'
         	,'thirdparty:+penaliteR:penaliteR:financement@financement:$user->rights->financement->admin->write:/financement/admin/penalite.php?type=R&socid=__ID__'
         	,'thirdparty:+penaliteNR:penaliteNR:financement@financement:$user->rights->financement->admin->write:/financement/admin/penalite.php?type=NR&socid=__ID__'
 			,'thirdparty:+grille:GrilleLeaser:financement@financement:$user->rights->financement->admin->write:/financement/grille.php?socid=__ID__'
@@ -157,6 +157,7 @@ class modFinancement extends DolibarrModules
 			,MAIN_DB_PREFIX.'c_financement_statut_dossier'
 			,MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano'
 			,MAIN_DB_PREFIX.'c_financement_conf_solde'
+			,MAIN_DB_PREFIX.'c_financement_action_manuelle'
 		)
 		,'tablib'=>array(
 			'Type de contrat'
@@ -166,6 +167,7 @@ class modFinancement extends DolibarrModules
 			,'Statut dossier'
 			,'Statut renta négative anomalie'
 			,'Configuration des soldes'
+			,'ManualActionType'
 		)
 		,'tabsql'=>array(
 			'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_type_contrat as f WHERE entity = '.$conf->entity
@@ -174,7 +176,8 @@ class modFinancement extends DolibarrModules
 			,'SELECT f.rowid as rowid, f.nat_id, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_nature_bien as f WHERE entity IN (0, '.$conf->entity.')'
 			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_statut_dossier as f WHERE entity IN (0, '.$conf->entity.')'
 			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano as f WHERE entity IN (0, '.$conf->entity.')'
-			,'SELECT f.rowid as rowid, f.fk_nature, f.fk_type_contrat, f.periode, f.base_solde, f.percent, f.percent_nr, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_conf_solde as f WHERE entity = '.$conf->entity
+			,'SELECT f.rowid as rowid, f.fk_nature, f.fk_type_contrat, f.periode, f.date_application, f.base_solde, f.percent, f.percent_nr, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_conf_solde as f WHERE entity = '.$conf->entity
+			,'SELECT rowid, code, label, entity, active FROM '.MAIN_DB_PREFIX.'c_financement_action_manuelle WHERE entity IN (0, '.$conf->entity.')'
 		)
 		,'tabsqlsort'=>array(
 			'label ASC'
@@ -183,7 +186,8 @@ class modFinancement extends DolibarrModules
 			,'label ASC'
 			,'label ASC'
 			,'label ASC'
-			,'fk_nature, fk_type_contrat, periode ASC'
+			,'fk_nature, fk_type_contrat, periode, date_application ASC'
+			,'label ASC'
 		)
 		,'tabfield'=>array(
 			'code,label'
@@ -192,7 +196,8 @@ class modFinancement extends DolibarrModules
 			,'nat_id,label,entity'
 			,'code,label,entity'
 			,'code,label,entity'
-			,'fk_nature,fk_type_contrat,periode,base_solde,percent,percent_nr'
+			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,percent_nr'
+			,'code,label'
 		)
 		,'tabfieldvalue'=>array(
 			'code,label,entity'
@@ -201,7 +206,8 @@ class modFinancement extends DolibarrModules
 			,'nat_id,label,entity'
 			,'code,label,entity'
 			,'code,label,entity'
-			,'fk_nature,fk_type_contrat,periode,base_solde,percent,percent_nr,entity'
+			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,percent_nr,entity'
+			,'code,label'
 		)
 		,'tabfieldinsert'=>array(
 			'code,label,entity'
@@ -210,7 +216,8 @@ class modFinancement extends DolibarrModules
 			,'nat_id,label,entity'
 			,'code,label,entity'
 			,'code,label,entity'
-			,'fk_nature,fk_type_contrat,periode,base_solde,percent,percent_nr,entity'
+			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,percent_nr,entity'
+			,'code,label'
 		)
 		,'tabrowid'=>array(
 			'rowid'
@@ -220,9 +227,11 @@ class modFinancement extends DolibarrModules
 			,'rowid'
 			,'rowid'
 			,'rowid'
+			,'rowid'
 		)
 		,'tabcond'=>array(
 			$conf->financement->enabled
+			,$conf->financement->enabled
 			,$conf->financement->enabled
 			,$conf->financement->enabled
 			,$conf->financement->enabled
@@ -445,7 +454,7 @@ class modFinancement extends DolibarrModules
 								'titre'=>$langs->trans('Financement'),
 								'mainmenu'=>'financement',
 								'leftmenu'=>'financement',
-								'url'=>'/financement/simulation.php?action=new',
+								'url'=>'/financement/simulation/simulation.php?action=new',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>100,
 								'enabled'=>'$conf->financement->enabled && ($user->rights->financement->allsimul->calcul || $user->rights->financement->allsimul->simul ||
@@ -461,7 +470,7 @@ class modFinancement extends DolibarrModules
 								'titre'=>$langs->trans('Simulations'),
 								'mainmenu'=>'financement',
 								'leftmenu'=>'simulation',
-								'url'=>'/financement/simulation.php',
+								'url'=>'/financement/simulation/simulation.php',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>110,
 								'enabled'=>'$conf->financement->enabled && ($user->rights->financement->allsimul->calcul || $user->rights->financement->allsimul->simul ||
@@ -476,7 +485,7 @@ class modFinancement extends DolibarrModules
 								'titre'=>$langs->trans('Calculator'),
 								'mainmenu'=>'financement',
 								'leftmenu'=>'calculateur',
-								'url'=>'/financement/simulation.php?action=new',
+								'url'=>'/financement/simulation/simulation.php?action=new',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>112,
 								'enabled'=>'$conf->financement->enabled && $user->rights->financement->allsimul->calcul',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
@@ -489,7 +498,7 @@ class modFinancement extends DolibarrModules
 								'titre'=>$langs->trans('SimulationList'),
 								'mainmenu'=>'financement',
 								'leftmenu'=>'simulation_list',
-								'url'=>'/financement/simulation.php?action=list',
+								'url'=>'/financement/simulation/list.php',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>114,
 								'enabled'=>'$conf->financement->enabled && ($user->rights->financement->allsimul->simul_list || $user->rights->financement->mysimul->simul_list)',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
@@ -502,7 +511,7 @@ class modFinancement extends DolibarrModules
 								'titre'=>$langs->trans('SimulationStats'),
 								'mainmenu'=>'financement',
 								'leftmenu'=>'simulation_list',
-								'url'=>'/financement/simulation_stats.php',
+								'url'=>'/financement/stats.php',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>116,
 								'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
@@ -708,6 +717,90 @@ class modFinancement extends DolibarrModules
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 		
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+								'type'=>'left',			                // This is a Left menu entry
+								'titre'=>'Dossiers en relocation',
+								'mainmenu'=>'financement',
+								'leftmenu'=>'dossier_list',
+								'url'=>'/financement/dossier.php?reloc=1',
+								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+								'position'=>423,
+								'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								'target'=>'',
+								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+				'type'=>'left',			                // This is a Left menu entry
+				'titre'=>'Qualite',
+				'mainmenu'=>'financement',
+				'leftmenu'=>'qualite',
+				'url'=>'/financement/qualite/list.php',
+				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+				'position'=>424,
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->alldossier->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'target'=>'',
+				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=qualite',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+				'type'=>'left',			                // This is a Left menu entry
+				'titre'=>'Liste des tests',
+				'mainmenu'=>'financement',
+				'leftmenu'=>'test_list',
+				'url'=>'/financement/qualite/list.php',
+				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+				'position'=>425,
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'target'=>'',
+				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=test_list',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+				'type'=>'left',			                // This is a Left menu entry
+				'titre'=>'À faire',
+				'mainmenu'=>'financement',
+				'leftmenu'=>'test_todo_list',
+				'url'=>'/financement/qualite/list.php?TListTBS[list_' . MAIN_DB_PREFIX . 'fin_quality_test][search][result]=TODO',
+				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+				'position'=>426,
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'target'=>'',
+				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=test_list',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+				'type'=>'left',			                // This is a Left menu entry
+				'titre'=>'Validés',
+				'mainmenu'=>'financement',
+				'leftmenu'=>'qualite',
+				'url'=>'/financement/qualite/list.php?TListTBS[list_' . MAIN_DB_PREFIX . 'fin_quality_test][search][result]=OK',
+				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+				'position'=>427,
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'target'=>'',
+				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=test_list',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+				'type'=>'left',			                // This is a Left menu entry
+				'titre'=>'Refusés',
+				'mainmenu'=>'financement',
+				'leftmenu'=>'qualite',
+				'url'=>'/financement/qualite/list.php?TListTBS[list_' . MAIN_DB_PREFIX . 'fin_quality_test][search][result]=KO',
+				'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+				'position'=>428,
+				'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+				'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+				'target'=>'',
+				'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+
 		$this->menu[$r]=array(
 			            'fk_menu'=>'fk_mainmenu=report',			// Put 0 if this is a top menu
 			        	'type'=> 'left',			// This is a Top menu entry
@@ -738,9 +831,9 @@ class modFinancement extends DolibarrModules
 						'target'=> '',
 						'user'=> 2	// 0=Menu for internal users, 1=external users, 2=both
         );
-		
+
 		$r++;
-		
+
 		$this->menu[$r]=array(
 			            'fk_menu'=>'fk_mainmenu=report,fk_leftmenu=pilotage',			// Put 0 if this is a top menu
 			        	'type'=> 'left',			// This is a Top menu entry
@@ -884,6 +977,7 @@ class modFinancement extends DolibarrModules
 								'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;*/
 
+		$this->boxes=array(array('file'=>'financement_indicateurs_box.php@financement','note'=>'','enabledbydefaulton'=>'Home'));
 
 		// Exports
 		$r=1;
@@ -937,6 +1031,7 @@ class modFinancement extends DolibarrModules
 		$extra->addExtraField('percent_commission', '% commission', 'double', 15, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		$extra->addExtraField('percent_intercalaire', '% intercalaire', 'double', 20, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		$extra->addExtraField('percent_prime_volume', '% prime volume', 'double', 25, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
+		$extra->addExtraField('percent_relocation', '% relocation', 'double', 27, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		$extra->addExtraField('bonus_renta', 'Bonus renta', 'double', 30, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		
 		return $this->_init($sql, $options);

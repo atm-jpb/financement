@@ -25,7 +25,7 @@
  *   \ingroup    societe
  */
 
-require 'config.php';
+require '../config.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/lib/financement.lib.php');
@@ -65,6 +65,7 @@ if(preg_match('/setnote/', $action)) {
 $form = new Form($db);
 
 llxHeader('',$langs->trans("Simulation").' - '.$langs->trans("Notes"));
+print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 
 if ($id > 0)
 {

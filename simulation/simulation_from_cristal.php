@@ -5,7 +5,7 @@ $method = strtoupper($method);
 
 if($method == 'GET' && ! defined('NOLOGIN')) define('NOLOGIN', 1);
 
-require 'config.php';
+require '../config.php';
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/societe/class/societe.class.php');
 dol_include_once('/user/class/user.class.php');
@@ -87,7 +87,7 @@ if(empty($fk_soc)) {
 llxHeader();
 
 if($method == 'PUT') {
-    $url = dol_buildpath('/financement/simulation.php', 2);
+    $url = dol_buildpath('/financement/simulation/simulation.php', 2);
     $TParam = array(
         'duree' => $duree,
         'montant' => $montant_finance,

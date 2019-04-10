@@ -1,14 +1,14 @@
 <?php
-require('config.php');
-require('./class/simulation.class.php');
-require('./class/grille.class.php');
-require('./class/affaire.class.php');
-require('./class/dossier.class.php');
-require('./class/dossier_integrale.class.php');
-require('./class/score.class.php');
-require('./lib/financement.lib.php');
+require('../config.php');
+dol_include_once('/financement/class/simulation.class.php');
+dol_include_once('/financement/class/grille.class.php');
+dol_include_once('/financement/class/affaire.class.php');
+dol_include_once('/financement/class/dossier.class.php');
+dol_include_once('/financement/class/dossier_integrale.class.php');
+dol_include_once('/financement/class/score.class.php');
+dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
-dol_include_once('/user/class/usergroup.class.php');
+require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
 
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
@@ -561,6 +561,7 @@ function _liste(&$ATMdb, &$simulation) {
 	$affaire = new TFin_affaire();
 	
 	llxHeader('','Simulations');
+    print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 	
 	$r = new TSSRenderControler($simulation);
 	
@@ -581,16 +582,20 @@ function _liste(&$ATMdb, &$simulation) {
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX.'entity as e ON (e.rowid = s.entity) ';
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX.'fin_simulation_suivi as ss ON (s.rowid = ss.fk_simulation) ';
 	
-	if (!$user->rights->societe->client->voir && !$user->rights->financement->allsimul->simul_list) {
+	if (!$user->rights->societe->client->voir) {
 		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON (sc.fk_soc = soc.rowid)";
 	}
 	//$sql.= " WHERE s.entity = ".$conf->entity;
 	$sql.= " WHERE 1=1 ";
 	$sql.= " AND (ss.date_historization < '1970-00-00 00:00:00' OR ss.date_historization IS NULL) ";
-	if (!$user->rights->societe->client->voir && !$user->rights->financement->allsimul->simul_list) //restriction
+	if (!$user->rights->societe->client->voir) //restriction
 	{
 		$sql.= " AND sc.fk_user = " .$user->id;
 	}
+	if($user->rights->societe->client->voir && !$user->rights->financement->allsimul->simul_list)
+	{
+        $sql.= " AND s.fk_user_author = " .$user->id;
+    }
 	if(!empty($searchnumetude)){
 		$sql.=" AND ss.numero_accord_leaser='".$searchnumetude."'";
 	}
@@ -828,27 +833,49 @@ function print_attente($compteur){
 }
 
 function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_refus, $nb_wait, $nb_err) {
-	global $langs;
-	
+	global $langs, $db;
+	if(! function_exists('get_picto')) dol_include_once('/financement/lib/financement.lib.php');
+
 	$suivi_leaser = '';
-	
-	$suivi_leaser = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$idSimulation, 1).'#suivi_leaser">';
-	
-	if(!empty($fk_fin_dossier)) { // La simulation a été financée, lien direct vers le dossier
-		$suivi_leaser = '<a href="'.dol_buildpath('/financement/dossier.php?id='.$fk_fin_dossier, 1).'">';
-		$suivi_leaser.= '<FONT size="4">€</FONT>';
-		$suivi_leaser.= '</a>';
-	}
-	elseif ($statut == 'OK') $suivi_leaser.= '<img title="'.$langs->trans('Accord').'" src="'.dol_buildpath('/financement/img/super_ok.png',1).'" />';
-	elseif ($statut == 'WAIT_SELLER') $suivi_leaser.= '<img title="'.$langs->trans('Etude_Vendeur').'" src="'.dol_buildpath('/financement/img/WAIT_VENDEUR.png',1).'" />';
-	elseif ($statut == 'WAIT_LEASER') $suivi_leaser.= '<img title="'.$langs->trans('Etude_Leaser').'" src="'.dol_buildpath('/financement/img/WAIT_LEASER.png',1).'" />';
-	elseif($nb_ok > 0) $suivi_leaser.= '<img title="'.$langs->trans('Etude').'" src="'.dol_buildpath('/financement/img/OK.png',1).'" />';
-	elseif($nb_refus > 0) $suivi_leaser.= '<img title="'.$langs->trans('Refus').'" src="'.dol_buildpath('/financement/img/KO.png',1).'" />';
-	elseif($nb_wait > 0) $suivi_leaser.= '<img title="'.$langs->trans('Etude').'" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
-	elseif($nb_err > 0) $suivi_leaser.= '<img title="Erreur" src="'.dol_buildpath('/financement/img/ERR.png',1).'" />';
-	else $suivi_leaser.= '';//'<img title="'.$langs->trans('Etude').'" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
-	$suivi_leaser.= '</a>';
-	
+	$PDOdb = new TPDOdb;
+	$s = new TSimulation;
+	$s->load($PDOdb, $idSimulation, false);
+
+    $iconSize = 'font-size: 21px;';
+	if($s->fk_action_manuelle > 0) {
+        $title = '';
+        $color = 'deeppink';
+        if($s->fk_action_manuelle == 2) $color = 'green';
+        $sql = 'SELECT label FROM '.MAIN_DB_PREFIX.'c_financement_action_manuelle WHERE rowid = '.$s->fk_action_manuelle;
+        $resql = $db->query($sql);
+
+        if($obj = $db->fetch_object($resql)) {
+            $title = $langs->trans($obj->label);
+        }
+
+        $suivi_leaser .= get_picto('manual', $title, $color);
+
+        $db->free($resql);
+    }
+	else {
+        $suivi_leaser .= '<a href="' . dol_buildpath('/financement/simulation/simulation.php?id=' . $idSimulation, 1) . '#suivi_leaser">';
+
+        if(!empty($fk_fin_dossier)) { // La simulation a été financée, lien direct vers le dossier
+            $suivi_leaser = '<a href="' . dol_buildpath('/financement/dossier.php?id=' . $fk_fin_dossier, 1) . '">';
+            $suivi_leaser .= get_picto('money');
+            $suivi_leaser .= '</a>';
+        }
+        else if($statut == 'OK') $suivi_leaser .= get_picto('super_ok');
+        else if($statut == 'WAIT_SELLER') $suivi_leaser .= get_picto('wait_seller');
+        else if($statut == 'WAIT_LEASER') $suivi_leaser .= get_picto('wait_leaser');
+        else if($nb_ok > 0) $suivi_leaser .= get_picto('ok');
+        else if($nb_refus > 0) $suivi_leaser .= get_picto('refus');
+        else if($nb_wait > 0) $suivi_leaser .= get_picto('wait');
+        else if($nb_err > 0) $suivi_leaser .= get_picto('err');
+        else $suivi_leaser .= '';//'<img title="'.$langs->trans('Etude').'" src="'.dol_buildpath('/financement/img/WAIT.png',1).'" />';
+        $suivi_leaser .= '</a>';
+    }
+
 	$suivi_leaser.= ' <span style="color: #00AA00;">' . $nb_ok . '</span>';
 	$suivi_leaser.= ' <span style="color: #FF0000;">' . $nb_refus . '</span>';
 	$suivi_leaser.= ' <span>' . ($nb_ok + $nb_refus + $nb_wait + $nb_err) . '</span>';
@@ -856,10 +883,10 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
 	return $suivi_leaser;
 }
 	
-function _fiche(&$ATMdb, &$simulation, $mode) {
+function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 	global $db, $langs, $user, $conf, $action;
 	
-    $result = restrictedArea($user, 'financement', $simulation->getID(), 'fin_simulation&fin_simulation', '', 'fk_soc', 'rowid');
+    $result = restrictedArea($user, 'financement', $simulation->getID(), 'fin_simulation&societe', '', 'fk_soc', 'rowid');
 	
 	// Si simulation déjà préco ou demande faite, le "montant_accord" est renseigné, le vendeur ne peux modifier que certains champs
 	if($mode == 'edit') {
@@ -883,6 +910,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	$extrajs = array('/financement/js/financement.js', '/financement/js/dossier.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
+	print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 	
 	$head = simulation_prepare_head($simulation);
 	dol_fiche_head($head, 'card', $langs->trans("Simulation"),0,'simulation');
@@ -1004,7 +1032,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	
 	if($simulation->montant_decompte_copies_sup < 0) $simulation->montant_decompte_copies_sup = 0;
 	
-	$accordIcon = (!empty($simulation->accord)) ? img_picto('accord', $simulation->TStatutIcons[$simulation->accord], '', 1) : '';
+	$accordIcon = (! empty($simulation->accord)) ? get_picto($simulation->TStatutIcons[$simulation->accord]) : '';
 	
 	// Retrait copie uniquement à afficher pour Cpro impression
 	$display_retrait_copie = 0;
@@ -1117,7 +1145,7 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	if(TFinancementTools::user_courant_est_admin_financement()) {
 	    $simuArray['accord'] .= '<br />';
 	    foreach ($simulation->TStatutIcons as $k => $icon) {
-	        if ($k !== $simulation->accord) $simuArray['accord'] .= '<a href="'.$_SERVER['PHP_SELF'].'?id='.$simulation->id.'&action=changeAccord&accord='.$k.'">'.img_picto('Changer vers ' . $simulation->TStatut[$k], $icon, '', 1) . '</a>&nbsp;&nbsp;';
+	        if ($k !== $simulation->accord) $simuArray['accord'] .= '<a href="'.$_SERVER['PHP_SELF'].'?id='.$simulation->id.'&action=changeAccord&accord='.$k.'">'.get_picto($icon, 'Changer vers ' . $simulation->TStatut[$k]) . '</a>&nbsp;&nbsp;';
 	    }
 	}
 	// Recherche par SIREN
@@ -1125,6 +1153,10 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 	if(!empty($simulation->societe->array_options['options_no_regroup_fin_siren'])) {
 		$search_by_siren = false;
 	}
+
+	$siret = ($simulation->accord == 'OK' && !empty($simulation->thirdparty_idprof2_siret)) ? $simulation->thirdparty_idprof2_siret : $simulation->societe->idprof2;
+	$siren = substr($siret,0,9);
+	$siretlink = '<a target="_blank" href="https://portail.infolegale.fr/identity/'.$siren.'">'.$siret.'</a>';
 	
 	print $TBS->render('./tpl/simulation.tpl.php'
 		,array(
@@ -1134,10 +1166,10 @@ function _fiche(&$ATMdb, &$simulation, $mode) {
 			'simulation'=>$simuArray
 			,'client'=>array(
 				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.(!empty($simulation->thirdparty_name) ? $simulation->thirdparty_name : $simulation->societe->nom).'</a>'
-				,'autres_simul'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/simulation.php?socid='.$simulation->fk_soc.'">(autres simulations)</a>'
+				,'autres_simul'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/simulation/simulation.php?socid='.$simulation->fk_soc.'">(autres simulations)</a>'
 				,'adresse'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_address)) ? $simulation->thirdparty_address : $simulation->societe->address
 				,'cpville'=>( ($simulation->accord == 'OK' && !empty($simulation->thirdparty_zip)) ? $simulation->thirdparty_zip : $simulation->societe->zip ) .' / '. ( ($simulation->accord == 'OK' && !empty($simulation->thirdparty_town)) ? $simulation->thirdparty_town : $simulation->societe->town )
-				,'siret'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_idprof2_siret)) ? $simulation->thirdparty_idprof2_siret : $simulation->societe->idprof2
+				,'siret'=>$siretlink
 				,'naf'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_idprof3_naf)) ? $simulation->thirdparty_idprof3_naf : $simulation->societe->idprof3
 				,'code_client'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_code_client)) ? $simulation->thirdparty_code_client : $simulation->societe->code_client
 				,'display_score'=>$user->rights->financement->score->read ? 1 : 0
@@ -1365,7 +1397,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 
 		$TEntityName = TFinancementTools::build_array_entities();
 		$numcontrat_entity_leaser = ($simulation->dossiers[$idDoss]['num_contrat']) ? $simulation->dossiers[$idDoss]['num_contrat'] :$fin->reference;
-		$numcontrat_entity_leaser = '<a href="dossier.php?id='.$idDoss.'">'.$numcontrat_entity_leaser.'</a> / '.$TEntityName[$ATMdb->Get_field('entityDossier')];
+		$numcontrat_entity_leaser = '<a href="'.dol_buildpath('/financement/dossier.php', 1).'?id='.$idDoss.'">'.$numcontrat_entity_leaser.'</a> / '.$TEntityName[$ATMdb->Get_field('entityDossier')];
 		$numcontrat_entity_leaser.= '<br>'.$leaser->getNomUrl(0);
 		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
@@ -1431,7 +1463,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			,'serial' => implode(', ', $TSerial)
 		);
 		if($row['type_contrat'] == 'Intégral'){
-			$row['type_contrat']='<a href="dossier_integrale.php?id='.$idDoss.'">Intégral</a>';
+			$row['type_contrat']='<a href="'.dol_buildpath('/financement/dossier_integrale.php', 1).'?id='.$idDoss.'">Intégral</a>';
 		}
 
 		$TDossier[$dossier->getId()] = $row;
@@ -1460,8 +1492,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			'num_affaire' => 'DESC'
 		)
 		,'link'=>array(
-			'num_affaire'=>'<a href="affaire.php?id=@id_affaire@">@val@</a>'
-			,'num_contrat'=>'<a href="dossier.php?id=@id_dossier@">@val@</a>'
+			'num_affaire'=>'<a href="'.dol_buildpath('/financement/affaire.php', 1).'?id=@id_affaire@">@val@</a>'
+			,'num_contrat'=>'<a href="'.dol_buildpath('/financement/dossier.php', 1).'?id=@id_dossier@">@val@</a>'
 			,'user'=>'<a href="'.DOL_URL_ROOT.'/user/card.php?id=@fk_user@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
 		)
 		,'hide'=>$THide
@@ -1527,11 +1559,10 @@ function _has_valid_simulations(&$ATMdb, $socid){
 }
 
 function _simu_edit_link($simulId, $date){
-    
-    global $db, $ATMdb;
-    
+    if(! function_exists('get_picto')) dol_include_once('/financement/lib/financement.lib.php');
+
     if(strtotime($date) > dol_now()){
-        $return = '<a href="?id='.$simulId.'&action=edit">'.img_picto('modifier','./img/pencil.png', '', 1).'</a>';
+        $return = '<a href="?id='.$simulId.'&action=edit">'.get_picto('edit').'</a>';
     } else {
         $return = '';
     }

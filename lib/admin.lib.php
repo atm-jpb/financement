@@ -30,15 +30,20 @@ function financement_admin_prepare_head()
 	$head[$h][2] = 'leaser';
 	$h++;
 
+	$head[$h][0] = dol_buildpath('/financement/admin/qualite.php', 1);
+	$head[$h][1] = $langs->trans("QualityControl");
+	$head[$h][2] = 'quality';
+	$h++;
+
 	$head[$h][0] = dol_buildpath('/financement/admin/webservice.php', 1);
 	$head[$h][1] = $langs->trans("WebService");
 	$head[$h][2] = 'webservice';
 	$h++;
 
-    $head[$h][0] = dol_buildpath('/financement/admin/accord_auto.php', 1);
-    $head[$h][1] = $langs->trans("AccordAuto");
-    $head[$h][2] = 'accord_auto';
-    $h++;
+	$head[$h][0] = dol_buildpath('/financement/admin/accord_auto.php', 1);
+	$head[$h][1] = $langs->trans("AccordAuto");
+	$head[$h][2] = 'accord_auto';
+	$h++;
 
     return $head;
 }

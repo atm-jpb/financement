@@ -94,9 +94,11 @@ class WebServiceCmcic extends WebService
 		$montant += $this->simulationSuivi->surfact + $this->simulationSuivi->surfactplus;
 		$montant = round($montant,2);
 		if($montant < 800) $montant = 800;
+
+		$callType = ($this->isUpdateCall()) ? 'UpdateDemFinRequest' : 'CreateDemFinRequest';
 		
 		$xml = '
-		<ns1:CreateDemFinRequest>
+		<ns1:'.$callType.'>
 			<ns1:APP_Infos_B2B>
 				<ns1:B2B_CLIENT>CPRO001</ns1:B2B_CLIENT>
 				<ns1:B2B_TIMESTAMP>'.date('c').'</ns1:B2B_TIMESTAMP>
@@ -149,7 +151,7 @@ class WebServiceCmcic extends WebService
 				<ns1:B2B_INF_EXT>'.$this->simulation->reference.'</ns1:B2B_INF_EXT>
 				<ns1:B2B_MODE>A</ns1:B2B_MODE>
 			</ns1:APP_Reponse_B2B>
-		</ns1:CreateDemFinRequest>
+		</ns1:'.$callType.'>
 		';
 		
 		return $xml;
