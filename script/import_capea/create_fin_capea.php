@@ -101,7 +101,7 @@ function createDossier(&$PDOdb, $TData) {
     $doss = new TFin_dossier();
     $doss->commentaire = $TData['financementLeaser']['commentaire'];
     $doss->financement->set_values($TData['financementLeaser']);
-    $doss->financementLeaser->set_date('date_debut', $TData['financement']['date_debut']);    // Les date leaser & clients sont différentes
+    $doss->financement->set_date('date_debut', $TData['financement']['date_debut']);    // Les date leaser & clients sont différentes
 
     unset($TData['financementLeaser']['loyer_intercalaire']);   // On ne garde pas le loyer_intercalaire du côté leaser
     $doss->financementLeaser->set_values($TData['financementLeaser']);
