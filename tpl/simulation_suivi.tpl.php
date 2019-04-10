@@ -47,7 +47,7 @@
 		<tr class="liste_titre" style="text-align: center;">
 			<td>Leaser</td>
 			<td>Montant Renta</td>
-			<td>% ranta</td>
+			<td>% renta</td>
 			<!--<td>Demande</td> -->
 			<td>Date<br>demande</td>
 			<td>Résultat</td>
