@@ -625,7 +625,7 @@ function simulation_prepare_head(TSimulation $object)
 
     $id = $object->getId();
 
-    $url = dol_buildpath('/financement/simulation.php', 2);
+    $url = dol_buildpath('/financement/simulation/simulation.php', 2);
     if(empty($id)) $url .= '?action=new';
     else $url .= '?id='.$id;
     $url .= '&mainmenu=financement';
@@ -641,7 +641,7 @@ function simulation_prepare_head(TSimulation $object)
         if(!empty($object->note_private)) $nbNote++;
 		if(!empty($object->note_public)) $nbNote++;
 
-        $head[$h][0] = dol_buildpath('/financement/simulation_note.php', 2).'?id='.$id.'&mainmenu=financement';
+        $head[$h][0] = dol_buildpath('/financement/simulation/note.php', 2).'?id='.$id.'&mainmenu=financement';
         $head[$h][1] = get_picto('snowplow').'&nbsp;'.$langs->trans("NoteLabel");
 		if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
 

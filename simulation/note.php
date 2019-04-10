@@ -25,7 +25,7 @@
  *   \ingroup    societe
  */
 
-require 'config.php';
+require '../config.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/lib/financement.lib.php');
