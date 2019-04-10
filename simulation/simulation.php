@@ -1397,7 +1397,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 
 		$TEntityName = TFinancementTools::build_array_entities();
 		$numcontrat_entity_leaser = ($simulation->dossiers[$idDoss]['num_contrat']) ? $simulation->dossiers[$idDoss]['num_contrat'] :$fin->reference;
-		$numcontrat_entity_leaser = '<a href="dossier.php?id='.$idDoss.'">'.$numcontrat_entity_leaser.'</a> / '.$TEntityName[$ATMdb->Get_field('entityDossier')];
+		$numcontrat_entity_leaser = '<a href="'.dol_buildpath('/financement/dossier.php', 1).'?id='.$idDoss.'">'.$numcontrat_entity_leaser.'</a> / '.$TEntityName[$ATMdb->Get_field('entityDossier')];
 		$numcontrat_entity_leaser.= '<br>'.$leaser->getNomUrl(0);
 		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
@@ -1463,7 +1463,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			,'serial' => implode(', ', $TSerial)
 		);
 		if($row['type_contrat'] == 'Intégral'){
-			$row['type_contrat']='<a href="dossier_integrale.php?id='.$idDoss.'">Intégral</a>';
+			$row['type_contrat']='<a href="'.dol_buildpath('/financement/dossier_integrale.php', 1).'?id='.$idDoss.'">Intégral</a>';
 		}
 
 		$TDossier[$dossier->getId()] = $row;
@@ -1492,8 +1492,8 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			'num_affaire' => 'DESC'
 		)
 		,'link'=>array(
-			'num_affaire'=>'<a href="affaire.php?id=@id_affaire@">@val@</a>'
-			,'num_contrat'=>'<a href="dossier.php?id=@id_dossier@">@val@</a>'
+			'num_affaire'=>'<a href="'.dol_buildpath('/financement/affaire.php', 1).'?id=@id_affaire@">@val@</a>'
+			,'num_contrat'=>'<a href="'.dol_buildpath('/financement/dossier.php', 1).'?id=@id_dossier@">@val@</a>'
 			,'user'=>'<a href="'.DOL_URL_ROOT.'/user/card.php?id=@fk_user@">'.img_picto('','object_user.png', '', 0).' @val@</a>'
 		)
 		,'hide'=>$THide
