@@ -1,14 +1,14 @@
 <?php
-require('config.php');
-require('./class/simulation.class.php');
-require('./class/grille.class.php');
-require('./class/affaire.class.php');
-require('./class/dossier.class.php');
-require('./class/dossier_integrale.class.php');
-require('./class/score.class.php');
-require('./lib/financement.lib.php');
+require('../config.php');
+dol_include_once('/financement/class/simulation.class.php');
+dol_include_once('/financement/class/grille.class.php');
+dol_include_once('/financement/class/affaire.class.php');
+dol_include_once('/financement/class/dossier.class.php');
+dol_include_once('/financement/class/dossier_integrale.class.php');
+dol_include_once('/financement/class/score.class.php');
+dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
-dol_include_once('/user/class/usergroup.class.php');
+require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
 
 require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
@@ -858,7 +858,7 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
         $db->free($resql);
     }
 	else {
-        $suivi_leaser .= '<a href="' . dol_buildpath('/financement/simulation.php?id=' . $idSimulation, 1) . '#suivi_leaser">';
+        $suivi_leaser .= '<a href="' . dol_buildpath('/financement/simulation/simulation.php?id=' . $idSimulation, 1) . '#suivi_leaser">';
 
         if(!empty($fk_fin_dossier)) { // La simulation a été financée, lien direct vers le dossier
             $suivi_leaser = '<a href="' . dol_buildpath('/financement/dossier.php?id=' . $fk_fin_dossier, 1) . '">';
@@ -1166,7 +1166,7 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 			'simulation'=>$simuArray
 			,'client'=>array(
 				'societe'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulation->fk_soc.'">'.img_picto('','object_company.png', '', 0).' '.(!empty($simulation->thirdparty_name) ? $simulation->thirdparty_name : $simulation->societe->nom).'</a>'
-				,'autres_simul'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/simulation.php?socid='.$simulation->fk_soc.'">(autres simulations)</a>'
+				,'autres_simul'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/simulation/simulation.php?socid='.$simulation->fk_soc.'">(autres simulations)</a>'
 				,'adresse'=>($simulation->accord == 'OK' && !empty($simulation->thirdparty_address)) ? $simulation->thirdparty_address : $simulation->societe->address
 				,'cpville'=>( ($simulation->accord == 'OK' && !empty($simulation->thirdparty_zip)) ? $simulation->thirdparty_zip : $simulation->societe->zip ) .' / '. ( ($simulation->accord == 'OK' && !empty($simulation->thirdparty_town)) ? $simulation->thirdparty_town : $simulation->societe->town )
 				,'siret'=>$siretlink
