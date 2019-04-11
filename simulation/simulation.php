@@ -470,6 +470,12 @@ if(!empty($action)) {
 		    $simulation->save($ATMdb, $db);
 		    if($newAccord == 'KO') $simulation->send_mail_vendeur();
 		    $simulation->historise_accord($ATMdb);
+
+            if($simulation->fk_action_manuelle > 0) {
+                $simulation->fk_action_manuelle = 0;
+                $simulation->save($ATMdb, $db, false);
+            }
+
 		    header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->id); exit;
 		    break;
 		    
