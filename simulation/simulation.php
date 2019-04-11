@@ -444,6 +444,10 @@ if(!empty($action)) {
 				// Si l'accord vient d'être donné (par un admin)
 				if(($simulation->accord == 'OK' || $simulation->accord == 'KO') && $simulation->accord != $oldAccord) {
 					$simulation->send_mail_vendeur();
+
+					if($simulation->accord == 'OK' && $simulation->entity = 18 && empty($simulation->opt_no_case_to_settle)) {
+					    $simulation->send_mail_vendeur_esus();
+                    }
 				}
 				
 				if (empty($oldAccord) || ($oldAccord !== $simulation->accord)) {
@@ -485,6 +489,10 @@ if(!empty($action)) {
 				$simulation->load($ATMdb, $_REQUEST['id']);
 				if($simulation->accord == 'OK') {
 					$simulation->send_mail_vendeur();
+
+                    if($simulation->entity = 18 && empty($simulation->opt_no_case_to_settle)) {
+                        $simulation->send_mail_vendeur_esus();
+                    }
 				}
 			}
 			

@@ -1011,6 +1011,89 @@ class TSimulation extends TObjetStd
         setEventMessage('Accord envoyé à : '.$mailto, 'mesgs');
     }
 
+    /**
+     * Fonction spécifique à ESUS pour lui envoyer des PDF tout aussi spécifiques, la classe...
+     */
+    function send_mail_vendeur_esus($auto = false) {
+        global $langs, $conf, $db;
+
+        dol_include_once('/core/class/html.formmail.class.php');
+        dol_include_once('/core/lib/files.lib.php');
+        dol_include_once('/core/class/CMailFile.class.php');
+        if(! function_exists('switchEntity')) dol_include_once('/financement/lib/financement.lib.php');
+
+        $PDFName = dol_sanitizeFileName($this->getRef()).'-esus.pdf';
+        $PDFPath = $this->getFilePath();
+
+        $formmail = new FormMail($db);
+        $formmail->clear_attached_files();
+        $formmail->add_attached_files($PDFPath.'/'.$PDFName, $PDFName, dol_mimetype($PDFName));
+
+        $attachedfiles = $formmail->get_attached_files();
+        $filepath = $attachedfiles['paths'];
+        $filename = $attachedfiles['names'];
+        $mimetype = $attachedfiles['mimes'];
+
+        if($this->accord == 'OK') {
+            $accord = ($auto) ? 'Accord automatique' : 'Accord de la cellule financement';
+            $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
+            $mesg .= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n '.$this->reference.'.'."\n\n";
+            if(! empty($this->commentaire)) $mesg .= 'Commentaire : '."\n".$this->commentaire."\n\n";
+        }
+        else {
+            $retourLeaser = '';
+            foreach($this->TSimulationSuivi as $suivi) {
+                if(! empty($suivi->commentaire)) {
+                    $retourLeaser .= ' - '.$suivi->commentaire."\n";
+                }
+            }
+
+            $accord = 'Demande de financement refusée';
+            $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
+            $mesg .= 'La demande de financement pour le client '.$this->societe->name.' d\'un montant de '.price($this->montant_total_finance).' € n\'est pas acceptée.'."\n";
+            $mesg .= 'Nous n\'avons que des refus pour le ou les motifs suivants :'."\n";
+            $mesg .= $retourLeaser."\n";
+
+            // Message spécifique CPRO
+            if(in_array($this->entity, array(1, 2, 3))) {
+                $mesg .= 'Nous allons réétudier la demande en interne afin de voir s\'il est possible de trouver une solution favorable au financement du dossier.'."\n";
+                $mesg .= 'Si c\'est le cas, le coeff de la demande sera augmenté en fonction du risque que porte C\'PRO.'."\n\n";
+
+                $mesg .= 'Pour cela merci de nous faire parvenir le dernier bilan du client.'."\n\n";
+            }
+            else if(in_array($this->entity, array(5, 6, 7, 9))) { // Idem OUEST sans la mention réétude
+                $mesg .= '';
+            }
+            else { // Message générique
+                $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
+                $mesg .= 'Votre demande de financement via la simulation n '.$this->reference.' n\'a pas été acceptée.'."\n\n";
+                if(! empty($this->commentaire)) $mesg .= 'Commentaire : '."\n".$this->commentaire."\n\n";
+            }
+        }
+
+        $mesg .= 'Cordialement,'."\n\n";
+        $mesg .= 'La cellule financement'."\n\n";
+
+        $subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance, 2, ',', ' ').' Euros - '.$accord;
+
+        $mailto = 'nicolas.prevost@atm-consulting.fr';
+
+        $old_entity = $conf->entity;
+        switchEntity($this->entity);    // Switch to simulation entity
+
+        $r = new TReponseMail($conf->global->MAIN_MAIL_EMAIL_FROM, $mailto, $subject, $mesg);
+
+        switchEntity($old_entity);
+
+        foreach($filename as $k => $file) {
+            $r->add_piece_jointe($filename[$k], $filepath[$k]);
+        }
+
+        $r->send(false);
+
+        setEventMessage('Accord envoyé à : '.$mailto, 'mesgs');
+    }
+
     function _getDossierSelected() {
         $TDossier = array();
 
@@ -1368,6 +1451,10 @@ class TSimulation extends TObjetStd
 
             if($mode == 'save' && ($this->accord == 'OK' || $this->accord == 'KO')) { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
                 $this->send_mail_vendeur(true);
+
+                if($this->accord = 'OK' && $this->entity = 18 && empty($this->opt_no_case_to_settle)) {
+                    $this->send_mail_vendeur_esus(true);
+                }
             }
         }
     }
@@ -2445,6 +2532,10 @@ class TSimulationSuivi extends TObjetStd
         $simulation->save($PDOdb, $db);
 
         $simulation->send_mail_vendeur();
+
+        if($simulation->entity = 18 && empty($simulation->opt_no_case_to_settle)) {
+            $simulation->send_mail_vendeur_esus();
+        }
 
         $this->date_selection = time();
 
