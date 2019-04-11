@@ -600,13 +600,12 @@ class TSimulation extends TObjetStd
                 $img = $simulationSuivi->statut;
                 if(! empty($simulationSuivi->date_selection)) $img = 'super_ok';
                 $ligne['resultat'] = ($simulationSuivi->statut) ? get_picto($img, $simulationSuivi->TStatut[$simulationSuivi->statut]) : '';
-                $ligne['numero_accord_leaser'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][num_accord]', $simulationSuivi->numero_accord_leaser, 25, 0, 'style="text-align:right;"') : $simulationSuivi->numero_accord_leaser;
+                $ligne['numero_accord_leaser'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][num_accord]', $simulationSuivi->numero_accord_leaser, 15, 0, 'style="text-align:right;"') : $simulationSuivi->numero_accord_leaser;
 
                 $ligne['date_selection'] = ($simulationSuivi->get_Date('date_selection')) ? $simulationSuivi->get_Date('date_selection') : '';
                 $ligne['utilisateur'] = ($simulationSuivi->fk_user_author && $simulationSuivi->date_cre != $simulationSuivi->date_maj) ? $link_user : '';
 
-                $ligne['coeff_leaser'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->texte('', 'TSuivi['.$simulationSuivi->rowid.'][coeff_accord]', $simulationSuivi->coeff_leaser, 6, 0, 'style="text-align:right;"') : (($simulationSuivi->coeff_leaser > 0) ? $simulationSuivi->coeff_leaser : '');
-                $ligne['commentaire'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->zonetexte('', 'TSuivi['.$simulationSuivi->rowid.'][commentaire]', $simulationSuivi->commentaire, 25, 0) : nl2br($simulationSuivi->commentaire);
+                $ligne['commentaire'] = nl2br($simulationSuivi->commentaire);
                 $ligne['commentaire_interne'] = (($simulationSuivi->statut == 'WAIT' || $simulationSuivi->statut == 'OK') && $simulationSuivi->date_selection <= 0) ? $form->zonetexte('', 'TSuivi['.$simulationSuivi->rowid.'][commentaire_interne]', $simulationSuivi->commentaire_interne, 25, 0) : nl2br($simulationSuivi->commentaire_interne);
                 $ligne['actions'] = $simulationSuivi->getAction($this);
                 $ligne['action_save'] = $simulationSuivi->getAction($this, true);

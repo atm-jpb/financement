@@ -14,8 +14,7 @@
 			<td>Date<br>demande</td>
 			<td>Résultat</td>
 			<td>N° étude / Accord Leaser</td>
-			<td>Coeff.<br>Leaser</td>
-			<td>Commentaire</td>
+			<td>Retours Leaser</td>
 			<td>Commentaire Interne</td>
 			<td>Enregistrer</td>
 			<td>Doc</td>
@@ -30,7 +29,6 @@
 			<td>[ligne.date_demande]</td>
 			<td>[ligne.resultat;strconv=no]</td>
 			<td>[ligne.numero_accord_leaser;strconv=no]</td>
-			<td>[ligne.coeff_leaser;strconv=no; frm=0,0000]</td>
 			<td>[ligne.commentaire;strconv=no]</td>
 			<td>[ligne.commentaire_interne;strconv=no]</td>
 			<td>[ligne.action_save;strconv=no]</td>
