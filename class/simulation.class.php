@@ -147,7 +147,14 @@ class TSimulation extends TObjetStd
             $this->date_validite = strtotime('+ 5 months', $this->date_accord);
         }
 
-        if($generatePDF) $this->gen_simulation_pdf($db, $doliDB);
+        if($generatePDF) {
+            $this->gen_simulation_pdf($db, $doliDB);
+
+            // Uniquement pour les simuls d'ESUS qui ont des dossiers à solder !
+            if($this->entity == 18 && empty($this->opt_no_case_to_settle)) {
+                $this->gen_simulation_pdf_esus($db, $doliDB);
+            }
+        }
 
         parent::save($db);
 
@@ -1136,6 +1143,162 @@ class TSimulation extends TObjetStd
 
         $TBS = new TTemplateTBS;
         $file = $TBS->render('./tpl/doc/simulation.odt'
+            , array(
+                'dossier' => $TDossier
+            )
+            , array(
+                'simulation' => $simu2
+                , 'client' => $this->societe
+                , 'leaser' => array('nom' => (($this->leaser->nom != '') ? $this->leaser->nom : ''))
+                , 'autre' => array('terme' => ($this->TTerme[$simu2->opt_terme]) ? $this->TTerme[$simu2->opt_terme] : ''
+                                   , 'type' => ($this->hasdossier) ? 1 : 0)
+            )
+            , array()
+            , array(
+                'outFile' => $filePath.'/'.$fileName
+                , 'charset' => 'utf-8'
+            )
+        );
+
+        $simu->opt_adjonction = $back_opt_adjonction;
+        $simu->opt_calage = $back_opt_calage;
+
+        // Transformation en PDF
+        $cmd = 'export HOME=/tmp'."\n";
+        $cmd .= 'libreoffice --invisible --norestore --headless --convert-to pdf --outdir '.$filePath.' '.$filePath.'/'.$fileName;
+        ob_start();
+        system($cmd);
+        $res = ob_get_clean();
+    }
+
+    /**
+     * Fonction spécifique à ESUS qi demande des infos en plus dans un autre PDF...
+     */
+    function gen_simulation_pdf_esus(&$ATMdb, &$doliDB) {
+        global $mysoc, $TLeaserCat, $db;
+
+        if(empty($TLeaserCat)) {
+            $sql = 'SELECT cf.fk_soc, cf.fk_cat';
+            $sql .= 'FROM llx_categorie_fournisseur cf';
+            $sql .= 'LEFT JOIN llx_categorie c ON (c.rowid = cf.fk_categorie)';
+            $sql .= 'LEFT JOIN llx_categorie c2 ON (c2.rowid = c.fk_parent)';
+            $sql .= "WHERE c2.label = 'Leaser'";
+
+            $resql = $db->query($sql);
+            if($resql) {
+                while($obj = $db->fetch_object($resql)) $TLeaserCat[$obj->fk_soc] = $obj->fk_cat;
+            }
+        }
+
+        $a = new TFin_affaire;
+        $f = new TFin_financement;
+
+        // Infos de la simulation
+        $simu = $this;
+        $simu->type_contrat = $a->TContrat[$this->fk_type_contrat];
+        $simu->periodicite = $f->TPeriodicite[$this->opt_periodicite];
+        $simu->mode_rglt = $f->TReglement[$this->opt_mode_reglement];
+        $simu->statut = html_entity_decode($this->getStatut());
+        $back_opt_calage = $simu->opt_calage;
+        $simu->opt_calage = $f->TCalage[$simu->opt_calage];
+        $back_opt_adjonction = $simu->opt_adjonction;
+        $simu->opt_adjonction = ($simu->opt_adjonction) ? "Oui" : "Non";
+
+        // Dossiers rachetés dans la simulation
+        $TDossier = array();
+        $TDossierperso = array();
+
+        $TSimuDossier = $this->_getDossierSelected();
+        foreach($TSimuDossier as $idDossier => $Tdata) {
+            $d = new TFin_dossier();
+            $d->load($ATMdb, $idDossier);
+
+            if($d->nature_financement == 'INTERNE') {
+                $f = &$d->financement;
+                $type = 'CLIENT';
+            }
+            else {
+                $f = &$d->financementLeaser;
+                $type = 'LEASER';
+            }
+
+            if($d->nature_financement == 'INTERNE') {
+                $f->reference .= ' / '.$d->financementLeaser->reference;
+            }
+
+            $periode_solde = ! empty($this->dossiers[$idDossier]['choice']) ? $this->dossiers[$idDossier]['choice'] : '';
+            $periode_solde = strtr($periode_solde, array('prev' => '_m1', 'curr' => '', 'next' => '_p1'));
+            $datemax_deb = $this->dossiers[$idDossier]['date_debut_periode_client'.$periode_solde];
+            $datemax_fin = $this->dossiers[$idDossier]['date_fin_periode_client'.$periode_solde];
+            $solde_r = $this->dossiers[$idDossier]['solde_vendeur'.$periode_solde];
+
+            $leaser = $this->dossiers[$idDossier]['object_leaser'];
+
+            $refus = false;
+            foreach($simu->TSimulationSuivi as $suivi) {
+                if($TLeaserCat[$d->financementLeaser->fk_soc] == $TLeaserCat[$suivi->fk_leaser] && $suivi->statut == 'KO') {
+                    $refus = true;
+                    break;
+                }
+            }
+
+            $echeance = $d->_get_num_echeance_from_date($simu->date_simul);
+            if($refus || $TLeaserCat[$simu->fk_leaser] == $TLeaserCat[$d->financementLeaser->fk_soc]) {
+                $solde_banque = $d->getSolde($ATMdb, 'SRBANK', $echeance+1);
+            }
+            else {
+                $solde_banque = $d->getSolde($ATMdb, 'SNRBANK', $echeance+1);
+            }
+
+            $TDossier[] = array(
+                'reference' => $f->reference
+                , 'leaser' => $leaser->name
+                , 'type_contrat' => $d->type_contrat
+                , 'solde_r' => $solde_r
+                , 'solde_banque' => $solde_banque
+                , 'datemax_debut' => $datemax_deb
+                , 'datemax_fin' => $datemax_fin
+            );
+        }
+
+        $this->hasdossier = count($TDossier) + count($TDossierperso);
+
+        // Création du répertoire
+        $fileName = dol_sanitizeFileName($this->getRef()).'-esus.odt';
+        $filePath = $this->getFilePath();
+        dol_mkdir($filePath);
+
+        if($this->fk_leaser) {
+            $leaser = new Societe($doliDB);
+            $leaser->fetch($this->fk_leaser);
+            $this->leaser = $leaser;
+        }
+
+        $simu2 = $simu;
+        // Le type de contrat est en utf8 (libellé vient de la table), contrairement au mode de prélèvement qui vient d'un fichier de langue.
+        $simu2->type_contrat = utf8_decode($simu2->type_contrat);
+        // Génération en ODT
+
+        if(! empty($this->thirdparty_address)) $this->societe->address = $this->thirdparty_address;
+        if(! empty($this->thirdparty_zip)) $this->societe->zip = $this->thirdparty_zip;
+        if(! empty($this->thirdparty_town)) $this->societe->town = $this->thirdparty_town;
+
+        if(! empty($this->thirdparty_code_client)) $this->societe->code_client = $this->thirdparty_code_client;
+        if(! empty($this->thirdparty_idprof2_siret)) $this->societe->idprof2 = $this->thirdparty_idprof2_siret;
+        if(! empty($this->thirdparty_idprof3_naf)) $this->societe->idprof3 = $this->thirdparty_idprof3_naf;
+
+        if($simu2->opt_periodicite == 'MOIS') $simu2->coeff_by_periodicite = $simu2->coeff / 3;
+        else if($simu2->opt_periodicite == 'SEMESTRE') $simu2->coeff_by_periodicite = $simu2->coeff * 2;
+        else if($simu2->opt_periodicite == 'ANNEE') $simu2->coeff_by_periodicite = $simu2->coeff * 4;
+        else $simu2->coeff_by_periodicite = $simu2->coeff; // TRIMESTRE
+
+        // Récupération du logo de l'entité correspondant à la simulation
+        switchEntity($this->entity);    // $conf and $mysoc may be changed
+        $logo = DOL_DATA_ROOT.'/'.(($this->entity > 1) ? $this->entity.'/' : '').'mycompany/logos/'.$mysoc->logo;
+        $simu2->logo = $logo;
+
+        $TBS = new TTemplateTBS;
+        $file = $TBS->render('./tpl/doc/simulation_esus.odt'
             , array(
                 'dossier' => $TDossier
             )
