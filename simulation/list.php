@@ -486,7 +486,7 @@ function _simu_edit_link($simulId, $date) {
     if(! function_exists('get_picto')) dol_include_once('/financement/lib/financement.lib.php');
 
     if(strtotime($date) > dol_now()) {
-        $return = '<a href="?id='.$simulId.'&action=edit">'.get_picto('edit').'</a>';
+        $return = '<a href="'.dol_buildpath('/financement/simulation/simulation.php', 1).'?id='.$simulId.'&action=edit">'.get_picto('edit').'</a>';
     }
     else {
         $return = '';
