@@ -177,7 +177,8 @@ class financement_indicateurs_box extends ModeleBoxes
 
 
         // Loyers intercalaires des dossiers externes
-		$r++;
+        // En standy by sur cette partie, à revoir + tard
+		/*$r++;
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxIndicatorsExternalFilesIntercalaire'));
 
         $sql = 'SELECT COUNT(*) as number
@@ -215,7 +216,7 @@ class financement_indicateurs_box extends ModeleBoxes
         $this->info_box_contents[$r][3] = array(
         		'td' => 'align="right"'
         		, 'text' => price($obj->loyers)
-        );
+        );*/
 		
 		// Contrôles qualité
 		$r++;
