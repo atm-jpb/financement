@@ -949,8 +949,8 @@ class TSimulation extends TObjetStd
         else {
             $retourLeaser = '';
             foreach($this->TSimulationSuivi as $suivi) {
-                if(! empty($suivi->commentaire)) {
-                    $retourLeaser .= ' - '.$suivi->commentaire."\n";
+                if(! empty($suivi->commentaire_interne)) {
+                    $retourLeaser .= ' - '.$suivi->commentaire_interne."\n";
                 }
             }
 
