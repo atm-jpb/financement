@@ -1261,11 +1261,11 @@ class TSimulation extends TObjetStd
         global $mysoc, $TLeaserCat, $db;
 
         if(empty($TLeaserCat)) {
-            $sql = 'SELECT cf.fk_soc, cf.fk_cat';
-            $sql .= 'FROM llx_categorie_fournisseur cf';
-            $sql .= 'LEFT JOIN llx_categorie c ON (c.rowid = cf.fk_categorie)';
-            $sql .= 'LEFT JOIN llx_categorie c2 ON (c2.rowid = c.fk_parent)';
-            $sql .= "WHERE c2.label = 'Leaser'";
+            $sql = 'SELECT cf.fk_societe as fk_soc, cf.fk_categorie as fk_cat';
+            $sql .= ' FROM llx_categorie_fournisseur cf';
+            $sql .= ' LEFT JOIN llx_categorie c ON (c.rowid = cf.fk_categorie)';
+            $sql .= ' LEFT JOIN llx_categorie c2 ON (c2.rowid = c.fk_parent)';
+            $sql .= " WHERE c2.label = 'Leaser'";
 
             $resql = $db->query($sql);
             if($resql) {
