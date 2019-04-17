@@ -52,8 +52,8 @@
 			<td>Date<br>demande</td>
 			<td>Résultat</td>
 			<td>N° étude / Accord Leaser</td>
-			<td>Coeff.<br>Leaser</td>
 			<td>Commentaire</td>
+            <td>Commentaire Interne</td>
 		</tr>
 		
 		<tr class="[TLigneHistorized.class]">
@@ -64,8 +64,8 @@
 			<td>[TLigneHistorized.date_demande]</td>
 			<td>[TLigneHistorized.resultat;strconv=no]</td>
 			<td>[TLigneHistorized.numero_accord_leaser;strconv=no]</td>
-			<td>[TLigneHistorized.coeff_leaser;strconv=no; frm=0,0000]</td>
 			<td>[TLigneHistorized.commentaire;strconv=no]</td>
+            <td>[TLigneHistorized.commentaire_interne;strconv=no]</td>
 		</tr>
 		
 	</table>
