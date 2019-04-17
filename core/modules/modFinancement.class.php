@@ -511,7 +511,7 @@ class modFinancement extends DolibarrModules
 								'titre'=>$langs->trans('SimulationStats'),
 								'mainmenu'=>'financement',
 								'leftmenu'=>'simulation_list',
-								'url'=>'/financement/stats.php',
+								'url'=>'/financement/simulation/stats.php',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>116,
 								'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
