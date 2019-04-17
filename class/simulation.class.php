@@ -1081,6 +1081,8 @@ class TSimulation extends TObjetStd
         $old_entity = $conf->entity;
         switchEntity($this->entity);    // Switch to simulation entity
 
+        if(empty($conf->global->FINANCEMENT_MODE_PROD)) return;   // Juste au cas où on se trouve sur la base TEST
+
         $r = new TReponseMail($conf->global->MAIN_MAIL_EMAIL_FROM, $mailto, $subject, $mesg);
 
         switchEntity($old_entity);
