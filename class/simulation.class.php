@@ -2533,7 +2533,7 @@ class TSimulationSuivi extends TObjetStd
 
         $simulation->send_mail_vendeur();
 
-        if($simulation->entity = 18 && empty($simulation->opt_no_case_to_settle)) {
+        if($simulation->entity == 18 && empty($simulation->opt_no_case_to_settle)) {
             $simulation->send_mail_vendeur_esus();
         }
 
