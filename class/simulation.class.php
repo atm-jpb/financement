@@ -1292,7 +1292,7 @@ class TSimulation extends TObjetStd
         $TDossierperso = array();
 
         $TSimuDossier = $this->_getDossierSelected();
-        foreach($TSimuDossier as $idDossier => $Tdata) {
+        foreach($TSimuDossier as $idDossier) {
             $d = new TFin_dossier();
             $d->load($ATMdb, $idDossier);
 
@@ -1325,7 +1325,7 @@ class TSimulation extends TObjetStd
                 }
             }
 
-            $echeance = $d->_get_num_echeance_from_date($simu->date_simul);
+            $echeance = $d->_get_num_echeance_from_date($datemax_deb);
             if($refus || $TLeaserCat[$simu->fk_leaser] == $TLeaserCat[$d->financementLeaser->fk_soc]) {
                 $solde_banque = $d->getSolde($ATMdb, 'SRBANK', $echeance+1);
             }
