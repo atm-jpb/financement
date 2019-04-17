@@ -1076,7 +1076,7 @@ class TSimulation extends TObjetStd
 
         $subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance, 2, ',', ' ').' Euros - '.$accord;
 
-        $mailto = 'nicolas.prevost@atm-consulting.fr';
+        $mailto = 'rachat.esus@zeenmail.com';
 
         $old_entity = $conf->entity;
         switchEntity($this->entity);    // Switch to simulation entity
