@@ -1300,6 +1300,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 					)";
 	}
 	$sql .=" )";
+	$sql .=" ORDER BY e.rowid ASC";
 
 	$TDossier = array();
 	$form=new TFormCore;
