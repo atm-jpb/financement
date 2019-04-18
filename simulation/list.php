@@ -245,7 +245,7 @@ print '<tr class="liste_titre">';
 
 // Reference
 print '<td align="center">';
-print '<input type="text" name="search_ref" value="'.$search_ref.'" size="10" />';
+print '<input type="text" name="search_ref" value="'.$search_ref.'" size="6" />';
 print '</td>';
 
 // Entity
@@ -272,13 +272,13 @@ print '<td>&nbsp;</td>';
 print '<td>&nbsp;</td>';
 
 // Date simulation
-print '<td style="width: 105px;">';
+print '<td style="min-width: 105px;">';
 print $form->select_date($search_dateSimul, 'search_dateSimul', 0, 0, 1);
 print '</td>';
 
 // Utilisateur
 print '<td>';
-print '<input type="text" name="search_user" value="'.$search_user.'" size="20" />';
+print '<input type="text" name="search_user" value="'.$search_user.'" size="15" />';
 print '</td>';
 
 // Statut

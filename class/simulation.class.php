@@ -964,7 +964,7 @@ class TSimulation extends TObjetStd
             $accord = 'Demande de financement refusée';
             $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
             $mesg .= 'La demande de financement pour le client '.$this->societe->name.' d\'un montant de '.price($this->montant_total_finance).' € n\'est pas acceptée.'."\n";
-            $mesg .= 'Nous n\'avons que des refus pour le ou les motifs suivants :'."\n";
+            $mesg .= 'Nous n\'avons des refus pour le ou les motifs suivants :'."\n";
             $mesg .= $retourLeaser."\n";
 
             // Message spécifique CPRO
@@ -973,14 +973,6 @@ class TSimulation extends TObjetStd
                 $mesg .= 'Si c\'est le cas, le coeff de la demande sera augmenté en fonction du risque que porte C\'PRO.'."\n\n";
 
                 $mesg .= 'Pour cela merci de nous faire parvenir le dernier bilan du client.'."\n\n";
-            }
-            else if(in_array($this->entity, array(5, 6, 7, 9))) { // Idem OUEST sans la mention réétude
-                $mesg .= '';
-            }
-            else { // Message générique
-                $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-                $mesg .= 'Votre demande de financement via la simulation n '.$this->reference.' n\'a pas été acceptée.'."\n\n";
-                if(! empty($this->commentaire)) $mesg .= 'Commentaire : '."\n".$this->commentaire."\n\n";
             }
         }
 
