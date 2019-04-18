@@ -249,8 +249,7 @@ print '<input type="text" name="search_ref" value="'.$search_ref.'" size="6" />'
 print '</td>';
 
 // Entity
-print '<td style="min-width: 150px;">';
-print '</td>';
+print '<td></td>';
 
 // Thirdparty
 print '<td>';
@@ -263,7 +262,7 @@ print Form::selectarray('search_typeContrat', $affaire->TContrat, $search_typeCo
 print '</td>';
 
 // Montant
-print '<td>&nbsp;</td>';
+print '<td style="min-width: 70px;">&nbsp;</td>';
 
 // Echeance
 print '<td>&nbsp;</td>';
