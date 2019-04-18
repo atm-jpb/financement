@@ -85,7 +85,7 @@ function updateDossier(&$PDOdb, $data) {
     }
 
     $fin = new TFin_financement();
-    if($fin->loadReference($PDOdb, $data['financement']['reference'], 'CLIENT') > 0) {
+    if($fin->loadReference($PDOdb, $data['financement']['reference']) > 0) {
         $doss = new TFin_dossier();
         $doss->load($PDOdb, $fin->fk_fin_dossier, false, true);
 
