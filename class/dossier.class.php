@@ -848,11 +848,7 @@ class TFin_dossier extends TObjetStd
             $date_deb_periode = $this->getDateDebutPeriode($iPeriode - 1, 'CLIENT');
             $TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
 
-            // SPECIFIQUE LEASER HEXAPAGE => calculer le solde comme un externe avec la pénalité leaser
-            if(in_array($this->financementLeaser->fk_soc, array(204904, 204905, 204906))) {
-                $solde = $CRD * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
-            }
-            else if($TSoldeRule->base_solde == 'MF') {
+            if($TSoldeRule->base_solde == 'MF') {
                 $solde = $this->financement->montant;
                 $capeLRD = false;
             }
