@@ -11,7 +11,7 @@ set_time_limit(0);
 $PDOdb = new TPDOdb;
 
 $TData = array();
-$f = fopen(__DIR__.'/grenke_esus.csv', 'r');
+$f = fopen(__DIR__.'/esus_bnp_hexa.csv', 'r');
 while($TLine = fgetcsv($f, 2048, ';', '"')) {
     $TData[] = getUsefulData($PDOdb, $TLine);
 }
@@ -49,16 +49,18 @@ function getUsefulData(&$PDOdb, $TLine) {
     $TDateDebut = explode('/', $TLine[$TIndex['date_debut']]);
     $date_debut = mktime(null, null, null, $TDateDebut[1], $TDateDebut[0], $TDateDebut[2]);
 
+    $iPeriode = getiPeriode($TLine[$TIndex['periodicite']]);
+
     $TData = array(
         'financement' => array(
             'fk_soc' => getSocieteBySIREN($PDOdb, $TLine[$TIndex['siren_client']]),
-            'reference' => $TLine[$TIndex['ref_contrat_client']],
+            'reference' => $TLine[$TIndex['ref_client']],
             'date_debut' => $date_debut,
-            'montant' => $TLine[$TIndex['montant_client']],
-            'duree' => $TLine[$TIndex['duree']],
+            'montant' => str_replace(' ', '', $TLine[$TIndex['montant_client']]),
+            'duree' => intval($TLine[$TIndex['duree']] / $iPeriode),
             'terme' => $TLine[$TIndex['terme']],
             'echeance' => $TLine[$TIndex['echeance']],
-            'loyer_intercalaire' => $TLine[$TIndex['loyer_intercalaire']],
+            'loyer_intercalaire' => 0,
             'reste' => $TLine[$TIndex['reste']],    // Valeur résiduelle
             'montant_prestation' => $TLine[$TIndex['montant_prestation']],
             'periodicite' => $TLine[$TIndex['periodicite']],
@@ -68,7 +70,7 @@ function getUsefulData(&$PDOdb, $TLine) {
         'financementLeaser' => array(
             'reference' => $TLine[$TIndex['ref_leaser']],
             'montant' => price2num($TLine[$TIndex['montant_finance_leaser']]),
-            'fk_soc' => 204906
+            'fk_soc' => 204904
         )
     );
 
@@ -149,4 +151,13 @@ function getSocieteBySIREN(&$PDOdb, $siren) {
     if(!empty($Tab)) return $Tab[0]->rowid;
 
     return 0;
+}
+
+function getiPeriode($periodicite = 'TRIMESTRE') {
+    if($periodicite == 'TRIMESTRE') $iPeriode = 3;
+    else if($periodicite == 'SEMESTRE') $iPeriode = 6;
+    else if($periodicite == 'ANNEE') $iPeriode = 12;
+    else $iPeriode = 1;
+
+    return $iPeriode;
 }
