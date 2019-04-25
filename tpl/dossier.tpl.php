@@ -130,6 +130,14 @@
                                 <td>Taux de commission</td>
                                 <td>[financement.taux_commission; strconv=no; frm=0,00] %</td>
                             </tr>
+                            <tr class="pair">
+                                <td>Loyer de référence</td>
+                                <td>[financement.loyer_reference; strconv=no; frm=0,00] €</td>
+                            </tr>
+                            <tr class="impair">
+                                <td>Date d'application</td>
+                                <td>[financement.date_application; strconv=no; frm=0,00]</td>
+                            </tr>
 
                             <tr class="pair">
                                 <td colspan="2" align="center">&nbsp;</td>

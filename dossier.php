@@ -850,7 +850,9 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			
 			,'detail_fact' => dol_buildpath('/fourn/facture/list.php?search_ref_supplier='.$financementLeaser->reference,2)
-			
+            ,'loyer_reference'=>$formRestricted->texte('', 'leaser[loyer_reference]', $financementLeaser->loyer_reference, 10,255,'','','à saisir')
+            ,'date_application'=>$formRestricted->calendrier('', 'leaser[date_application]', $financementLeaser->date_application, 10,255,'','','à saisir')
+
 			
 	);
 	//print $financement->get_date('date_solde','d/m/Y',true);
@@ -897,11 +899,14 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'detail_fact' => ''
 			
 			,'client'=>$TAffaire[0]['client']
+            ,'loyer_reference'=>$formRestricted->texte('', 'leaser[loyer_reference]', $financement->loyer_reference, 10,255,'','','à saisir')
+            ,'date_application'=>$formRestricted->calendrier('', 'leaser[date_application]', $financement->date_application, 10,255,'','','à saisir')
 		);
 	}
 	else {
 		$TFinancement= array('id'=>0,
 				'reference'=>''
+
 				,'montant'=>0
 				,'taux'=> 0
 				,'loyer_intercalaire'=> 0
@@ -909,24 +914,26 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'echeance'=> 0
 				,'reste'=> 0
 				,'montant_prestation'=>0
-					
+
 				,'terme'=>''
 				,'numero_prochaine_echeance'=> 0
 				,'duree'=>0
-									
-				,'assurance'=>0	
-								
+
+				,'assurance'=>0
+
 				,'periodicite'=>0
 				,'reglement'=>0
 				,'incident_paiement'=>0
-				
+
 				,'date_debut'=> 0
 				,'date_fin'=>0
 				,'date_prochaine_echeance'=>0
 				,'echeancier'=>''
 				,'taux_commission'=>0
-				,'penalite_reprise'=>0
-			);
+				, 'penalite_reprise' => 0
+                , 'loyer_reference' => 0
+                , 'date_application' => 0
+        );
 	}
 	$TBS->TBS->protect=false;
 	$TBS->TBS->noerr=true;
