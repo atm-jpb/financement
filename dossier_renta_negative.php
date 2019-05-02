@@ -94,13 +94,24 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 	
 	echo $form->hidden('id_dossier', GETPOST('id_dossier'));
 	echo $form->hidden('visaauto', GETPOST('visaauto'));
-	
-	echo $form->checkbox1('Règle 1', 'TRule[rule1]', 1, !empty($TRule['rule1']) ? $TRule['rule1'] : 0, 'title="Echéance Client < Echéance Leaser"');
-	echo $form->checkbox1('Règle 2', 'TRule[rule2]', 1, !empty($TRule['rule2']) ? $TRule['rule2'] : 0, 'title="Facture Client < Loyer leaser"');
-	echo $form->checkbox1('Règle 3', 'TRule[rule3]', 1, !empty($TRule['rule3']) ? $TRule['rule3'] : 0, 'title="Facture Client < Loyer client"');
-	echo $form->checkbox1('Règle 4', 'TRule[rule4]', 1, !empty($TRule['rule4']) ? $TRule['rule4'] : 0, 'title="Facture Client impayée"');
-	echo $form->checkbox1('Règle 5', 'TRule[rule5]', 1, !empty($TRule['rule5']) ? $TRule['rule5'] : 0, 'title="Echéance client non facturée"');
-	echo $form->checkbox1('Règle 6', 'TRule[rule6]', 1, !empty($TRule['rule6']) ? $TRule['rule6'] : 0, 'title="Anomalie"');
+
+    $Tab = array(
+        1 => 'Echéance Client < Echéance Leaser',
+        2 => 'Facture Client < Loyer leaser',
+        3 => 'Facture Client < Loyer client',
+        4 => 'Facture Client impayée',
+        5 => 'Echéance client non facturée',
+        6 => 'Anomalie',
+    );
+    foreach($Tab as $ruleNumber => $ruleTitle) {
+        print '&nbsp;';
+
+        $checked = '';
+        if(! empty($TRule['rule'.$ruleNumber]) && $TRule['rule'.$ruleNumber] == true) $checked = 'checked="checked" ';
+
+        print '<label for="TRule[rule'.$ruleNumber.']">Règle '.$ruleNumber.' </label>';
+        print '<input type="checkbox" name="TRule[rule'.$ruleNumber.']" id="TRule[rule'.$ruleNumber.']" title="'.$ruleTitle.'" '.$checked.'/>';
+    }
 	
 	echo $form->btsubmit('Lancer', 'run');
 	if(!empty($TDossiersError['all'])) {

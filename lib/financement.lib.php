@@ -367,6 +367,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	if(!empty($TRule['rule3'])) {
 		$sql = "SELECT DISTINCT d.rowid";
 		$sql.= ", $sqlfields";
+		$sql.= ", dfcli.loyer_reference, dfcli.date_application";
 		$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_extrafields fext ON (fext.fk_object = f.rowid)";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
@@ -401,8 +402,12 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 				
 				// Attention on vérifie les factures et regroupements de factures
 				$montant_facture = 0;
+				$date_application_reference = strtotime($res->date_application);
 				foreach($dossier->TFacture as $p => $d) {
 					// Récupération du montant facturé au client pour comparer aux loyers. Si plusieurs factures, on fait la somme
+                    $date_debut = $dossier->getDateDebutPeriode($p, 'client');
+                    $tms_deb = strtotime($date_debut);
+
 					if(is_array($d)) {
 						foreach ($d as $i => $f) {
 							$montant_facture += $f->total_ht;
@@ -416,7 +421,11 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 					if($p == -1 && $montant_facture >= round($dossier->financement->loyer_intercalaire,2)) {
 						$intercalaireOK = true;
 					}
-					
+
+					if(! empty($res->loyer_reference) && $tms_deb >= $date_application_reference) {
+					    $total_echeances = $res->loyer_reference;
+                    }
+
 					// Comparaison au loyer client
 					// Si règle 3 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
 					if($montant_facture < $total_echeances && !$intercalaireOK) {
