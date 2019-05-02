@@ -7,6 +7,8 @@ $action = GETPOST('action');
 change_all($action);
 
 function change_all($case) {
+    global $user;
+
 	$PDOdb=new TPDOdb;
 	
 	$id_integrale = GETPOST('id_integrale');
@@ -81,6 +83,8 @@ function change_all($case) {
 	$fas_min = $integrale->fas;
 	$fas_max = $integrale->calcul_fas_max($TDetailCoutNoir, $TDetailCoutCoul, $engagement_noir, $engagement_coul, $fas);
 	$fas_max = max($fas_max, $integrale->fas);
+	// Si admin, on autorise à mettre + de FAS
+	if($user->rights->financement->admin->write) $fas_max = $total_hors_frais;
 	
 	$data = array(
 		'couts_noir'	=> $TDetailCoutNoir,
