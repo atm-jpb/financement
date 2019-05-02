@@ -422,7 +422,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 						$intercalaireOK = true;
 					}
 
-					if(! empty($res->loyer_reference) && $date_debut >= $date_application_reference) {
+					if(! empty($res->loyer_reference) && $tms_deb >= $date_application_reference) {
 					    $total_echeances = $res->loyer_reference;
                     }
 
