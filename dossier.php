@@ -900,7 +900,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			
 			,'client'=>$TAffaire[0]['client']
             ,'loyer_reference'=>$formRestricted->texte('', 'loyer_reference', $financement->loyer_reference, 10,255,'','','à saisir')
-            ,'date_application'=>$formRestricted->calendrier('', 'date_application', $financement->date_application, 10,255,'','','à saisir')
+            ,'date_application'=>$formRestricted->calendrier('', 'date_application', $financement->date_application, 10,255)
 		);
 	}
 	else {
