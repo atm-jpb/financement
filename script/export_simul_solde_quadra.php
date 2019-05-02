@@ -96,7 +96,7 @@ function generate_csv_simul_solde(&$PDOdb, $entities, $filename='') {
 				} else if ($choice == 'prev') {
 					$suffix = '_m1';
 				}
-				list($date, $solde, $typesolde, $leaser) = get_date_et_solde($PDOdb, $simu, $idDossier, $suffix);
+				list($date, $solde, $typesolde, $leaser) = get_date_et_solde($PDOdb, $simu, $idDossier);
 				if(!empty($d['date_fin_periode_client'.$suffix])) $date = $d['date_fin_periode_client'.$suffix];
 				
 				$data = array(
@@ -123,27 +123,24 @@ function generate_csv_simul_solde(&$PDOdb, $entities, $filename='') {
 }
 
 
-function get_date_et_solde(&$PDOdb, &$simu, $idDossier, $suffix) {
+function get_date_et_solde(&$PDOdb, &$simu, $idDossier) {
 	global $db, $TLeaserCat, $TLeaserName;
 	
 	$d = new TFin_dossier();
 	$d->load($PDOdb, $idDossier, false, true);
 	$d->load_affaire($PDOdb);
-
-    $date_periode = date('Y-m-d', $simu->dossiers[$idDossier]['date_debut_periode_client'.$suffix]);
-    $date_fin = date('Y-m-d', $simu->dossiers[$idDossier]['date_fin_periode_client'.$suffix]);
-
-	$echeance = $d->_get_num_echeance_from_date($date_periode);
-    /*
-    // Si coché P-1 => on calcule la date de période précédente, P en cours, P+1 période suivante
-    if(!empty($simu->dossiers_rachetes_m1[$idDossier]['checked']) || !empty($simu->dossiers_rachetes_nr_m1[$idDossier]['checked'])) {
-        $echeance--;
-    } else if (!empty($simu->dossiers_rachetes_p1[$idDossier]['checked']) || !empty($simu->dossiers_rachetes_nr_p1[$idDossier]['checked'])) {
-        $echeance++;
-    }
-
-    $date_periode = $d->getDateDebutPeriode($echeance);
-    $date_fin = $d->getDateFinPeriode($echeance);*/
+	
+	$echeance = $d->_get_num_echeance_from_date($simu->date_simul);
+	
+	// Si coché P-1 => on calcule la date de période précédente, P en cours, P+1 période suivante
+	if(!empty($simu->dossiers_rachetes_m1[$idDossier]['checked']) || !empty($simu->dossiers_rachetes_nr_m1[$idDossier]['checked'])) {
+		$echeance--;
+	} else if (!empty($simu->dossiers_rachetes_p1[$idDossier]['checked']) || !empty($simu->dossiers_rachetes_nr_p1[$idDossier]['checked'])) {
+		$echeance++;
+	}
+	
+	$date_periode = $d->getDateDebutPeriode($echeance);
+	$date_fin = $d->getDateFinPeriode($echeance);
 	
 	// Solde final : si LEASER dossier = LEASER PRECO => SOLDE R
 	// Sinon, si LEASER DOSSIER A REFUSÉ (dans le suivi) => SOLDE R
