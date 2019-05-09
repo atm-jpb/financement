@@ -280,8 +280,15 @@ class TFin_dossier extends TObjetStd
             $id_fin = (int) $this->financement->getId();
 
             if(! empty($refClient)) {
-                $db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
-				WHERE type='CLIENT' AND reference='".$refClient."' AND rowid!=".$id_fin);
+                $sql = 'SELECT count(df.*) as nb';
+                $sql .= ' FROM '.MAIN_DB_PREFIX.'fin_dossier_financement df';
+                $sql .= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (df.fk_fin_dossier=d.rowid)';
+                $sql .= " WHERE df.type='CLIENT'";
+                $sql .= " AND df.reference='".$refClient."'";
+                $sql .= ' AND df.rowid!='.$id_fin;
+                $sql .= ' AND d.entity = '.$this->entity;
+
+                $db->Execute($sql);
                 $obj = $db->Get_line();
                 if($obj->nb > 0) return -1;
             }
@@ -291,8 +298,15 @@ class TFin_dossier extends TObjetStd
         $id_finLeaser = $this->financementLeaser->getId();
 
         if(! empty($refLeaser)) {
-            $db->Execute("SELECT count(*) as nb FROM ".MAIN_DB_PREFIX."fin_dossier_financement 
-			WHERE type='LEASER' AND reference='".$refLeaser."' AND rowid!=".$id_finLeaser);
+            $sql = 'SELECT count(df.*) as nb';
+            $sql .= ' FROM '.MAIN_DB_PREFIX.'fin_dossier_financement df';
+            $sql .= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (df.fk_fin_dossier=d.rowid)';
+            $sql .= " WHERE df.type='LEASER'";
+            $sql .= " AND df.reference='".$refLeaser."'";
+            $sql .= ' AND df.rowid!='.$id_finLeaser;
+            $sql .= ' AND d.entity = '.$this->entity;
+
+            $db->Execute($sql);
             $obj = $db->Get_line();
             if($obj->nb > 0) return -2;
         }
