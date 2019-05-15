@@ -5,7 +5,7 @@ $method = strtoupper($method);
 
 if($method == 'GET' && ! defined('NOLOGIN')) define('NOLOGIN', 1);
 
-require 'config.php';
+require '../config.php';
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/societe/class/societe.class.php');
 dol_include_once('/user/class/user.class.php');
@@ -56,8 +56,12 @@ if(empty($simu->rowid)) {
             $soc->address = GETPOST('address');
             $soc->zip = GETPOST('cp');
             $soc->town = GETPOST('ville');
+			$soc->country_id = 1;
+			$soc->idprof1 = substr($siret,0,9);
             $soc->idprof2 = $siret;
             $soc->entity = $conf->entity;
+			$soc->commercial_id = $user->id;
+			$soc->client = 2;
 
             $fk_soc = $soc->create($user);
             if($fk_soc <= 0) {
@@ -83,7 +87,7 @@ if(empty($fk_soc)) {
 llxHeader();
 
 if($method == 'PUT') {
-    $url = dol_buildpath('/financement/simulation.php', 2);
+    $url = dol_buildpath('/financement/simulation/simulation.php', 2);
     $TParam = array(
         'duree' => $duree,
         'montant' => $montant_finance,

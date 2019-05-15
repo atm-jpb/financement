@@ -139,6 +139,7 @@ function _liste(&$ATMdb, &$score) {
 				,'idprof1'=>$societe->idprof1
 				,'adresse'=>$societe->address
 				,'cpville'=>$societe->zip.($societe->zip && $societe->town ? " / ":"").$societe->town
+				,'code_client'=>$societe->code_client
 				,'pays'=>picto_from_langcode($societe->country_code).' '.$societe->country
 			)
 			,'view'=>array(

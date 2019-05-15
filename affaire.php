@@ -15,6 +15,7 @@
 	$langs->load('financement@financement');
 	
 	if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
+
 	
 	$affaire=new TFin_Affaire;
 	$ATMdb = new TPDOdb;
@@ -173,7 +174,7 @@ function _liste(&$ATMdb, &$affaire) {
 	, a.nature_financement, a.type_financement, a.contrat, a.date_affaire
 		FROM @table@ a LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid)
 		LEFT JOIN ".MAIN_DB_PREFIX."entity e ON (a.entity = e.rowid)
-		WHERE a.entity IN(".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
+		WHERE a.entity IN(".getEntity('fin_dossier', true).")";
 	//echo $sql; exit;
 	
 	if($errone){
@@ -185,7 +186,7 @@ function _liste(&$ATMdb, &$affaire) {
 			  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (d.rowid = da.fk_fin_dossier) 
 			  	LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid)
 				LEFT JOIN ".MAIN_DB_PREFIX."entity e ON (a.entity = e.rowid) 
-			  WHERE a.entity IN(".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")
+			  WHERE a.entity IN(".getEntity('fin_dossier', true).")
 			  	AND df.type = 'LEASER' ";
 //			  	AND df.montant != a.montant ";
 //	$sql.="		  	AND ABS(df.montant - a.montant) > 0.01";
@@ -223,6 +224,7 @@ function _liste(&$ATMdb, &$affaire) {
 					,'adresse'=>$societe->address
 					,'cpville'=>$societe->zip.($societe->zip && $societe->town ? " / ":"").$societe->town
 					,'pays'=>picto_from_langcode($societe->country_code).' '.$societe->country
+					,'code_client'=>$societe->code_client
 				)
 				,'view'=>array(
 					'mode'=>'view'
@@ -314,8 +316,8 @@ function _liste(&$ATMdb, &$affaire) {
 	
 function _fiche(&$ATMdb, &$affaire, $mode) {
 	global $db,$user,$conf;
-	
-	TFinancementTools::check_user_rights($affaire);
+
+    $result = restrictedArea($user, 'financement', $affaire->getID(), 'fin_affaire&societe', 'affaire', 'fk_soc', 'rowid');
 	
 	if(empty($affaire->societe) || empty($affaire->societe->id)) {
 		$affaire->societe = new Societe($db);

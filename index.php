@@ -1,3 +1,3 @@
 <?php
 
-header('Location: simulation.php');
+header('Location: simulation/simulation.php');

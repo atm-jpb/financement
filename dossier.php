@@ -97,7 +97,7 @@
 				//pre($dossier);exit;
 				
 				if(isset($dossier->financement))$dossier->financement->set_values($_REQUEST);
-				
+
 				if(isset($_REQUEST['leaser'])){
 					$dossier->financementLeaser->set_values($_REQUEST['leaser']);
 				}
@@ -378,7 +378,7 @@ function _liste(&$PDOdb, &$dossier) {
 	
 	$r = new TSSRenderControler($dossier);
 	$sql ="SELECT d.rowid as 'ID', fc.reference as refDosCli, e.label as entity_label, fl.reference as refDosLea, a.rowid as 'ID affaire', a.reference as 'Affaire', ";
-	$sql.="a.nature_financement, a.fk_soc, c.nom as nomCli, l.nom as nomLea, ";
+	$sql.="a.nature_financement, a.fk_soc, c.nom as nomCli, l.nom as nomLea, COALESCE(fc.relocOK, 'OUI') as relocClientOK, COALESCE(fl.relocOK, 'OUI') as relocLeaserOK, COALESCE(fl.intercalaireOK, 'OUI') as intercalaireLeaserOK, ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.duree ELSE fl.duree END as 'duree', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.montant ELSE fl.montant END as 'Montant', ";
 	$sql.="CASE WHEN a.nature_financement = 'INTERNE' THEN fc.echeance ELSE fl.echeance END as 'echeance', ";
@@ -402,7 +402,7 @@ function _liste(&$PDOdb, &$dossier) {
 	
 	//$sql.=" WHERE a.entity=".$conf->entity;
 	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])) $sql.=" WHERE a.entity = ".$conf->entity;
-	else $sql.=" WHERE a.entity IN(".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
+	else $sql.=" WHERE a.entity IN(".getEntity('fin_dossier', true).")";
 	
 	//Filtrage sur leaser et uniquement dossier avec "Bon pour transfert" = 1 (Oui)
 	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
@@ -416,7 +416,14 @@ function _liste(&$PDOdb, &$dossier) {
 //	echo $sql;
 	}
 
+	if(GETPOST('reloc')) {
+		$sql.= " AND (fc.reloc = 'OUI' OR fl.reloc = 'OUI')";
+	}
+
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
+
+	if(GETPOST('reloc')) echo $form->hidden('reloc', 1);
+
 	$aff = new TFin_affaire;
 	
 	$TEntityName = TFinancementTools::build_array_entities();
@@ -438,8 +445,11 @@ function _liste(&$PDOdb, &$dossier) {
 		)
 		,'translate'=>array(
 			'nature_financement'=>$aff->TNatureFinancement
+			, 'relocClientOK'=>$dossier->financement->TRelocOK
+			, 'relocLeaserOK'=>$dossier->financementLeaser->TRelocOK
+			, 'intercalaireLeaserOK'=>$dossier->financementLeaser->TIntercalaireOK
 		)
-		,'hide'=>array('fk_soc','ID','ID affaire','fk_fact_materiel')
+		,'hide'=>array('fk_soc','ID','ID affaire','fk_fact_materiel', 'relocLeaserOK', 'relocClientOK', 'intercalaireLeaserOK')
 		,'type'=>array('date_debut'=>'date','Fin'=>'date','Prochaine'=>'date', 'Montant'=>'money', 'echeance'=>'money', 'montantLeaser'=>'money', 'echeanceLeaser'=>'money')
 		,'liste'=>array(
 			'titre'=>"Liste des dossiers"
@@ -466,6 +476,9 @@ function _liste(&$PDOdb, &$dossier) {
 			,'nature_financement'=>'Nature'
 			,'date_debut'=>'Début'
 			,'fact_materiel'=>'Facture matériel'
+			,'relocClientOK'=>'Relocation client OK ?'
+			,'relocLeaserOK'=>'Relocation leaser OK ?'
+			,'intercalaireLeaserOK'=>'Loyer intercalaire leaser OK ?'
 		)
 		,'orderBy'=> array('ID'=>'DESC','fc.reference'=>'ASC')
 		,'search'=>array(
@@ -475,6 +488,9 @@ function _liste(&$PDOdb, &$dossier) {
 			,'nomCli'=>array('recherche'=>true, 'table'=>'c', 'field'=>'nom')
 			,'nomLea'=>array('recherche'=>true, 'table'=>'l', 'field'=>'nom')
 			,'nature_financement'=>array('recherche'=>$aff->TNatureFinancement,'table'=>'a')
+			,'relocClientOK'=>array('recherche'=> $dossier->financement->TRelocOK, 'table' => 'fc', 'field' => 'relocOK')
+			,'relocLeaserOK'=>array('recherche'=> $dossier->financementLeaser->TRelocOK, 'table' => 'fl', 'field' => 'relocOK')
+			,'intercalaireLeaserOK'=>array('recherche'=>$dossier->financementLeaser->TIntercalaireOK, 'table' => 'fl', 'field' => 'intercalaireOK')
 			//,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
 		),'operator'=>array(
 			'entity_label' => '='
@@ -709,9 +725,9 @@ function _get_facture_mat($fk_source,$withlink=true){
 }
 
 function _fiche(&$PDOdb, &$dossier, $mode) {
-	global $user,$db,$conf;
-	
-	TFinancementTools::check_user_rights($dossier);
+	global $user,$db,$conf, $langs;
+
+    $result = restrictedArea($user, 'financement', $dossier->getID(), 'fin_dossier&societe', 'alldossier', 'fk_soc', 'rowid');
 	
 	$html=new Form($db);
 	/*
@@ -755,8 +771,13 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	
 	$extrajs = array('/financement/js/dossier.js');
 	llxHeader('','Dossier','','','','',$extrajs);
+
+    $head = dossier_prepare_head($dossier);
+    $img_path = dol_buildpath('/financement/img/object_financeico.png', 2);
+    dol_fiche_head($head, 'card', $langs->trans("Dossier"),1, $img_path, 1);
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formAff','POST');
+	print '<div class="tabBar">';
 	$form->Set_typeaff($mode);
 	
 	echo $form->hidden('id', $dossier->rowid);
@@ -781,7 +802,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	$formRestricted->Set_typeaff( $mode_aff_fLeaser );
 
 	$id_simu = _getIDSimuByReferenceDossierLeaser($PDOdb, $financementLeaser->fk_fin_dossier);
-	if(!empty($id_simu)) $link_simu = '<a href="'.dol_buildpath('/financement/simulation.php?id='.$id_simu, 2).'" >'.$financementLeaser->reference.'</a>';
+	if(!empty($id_simu)) $link_simu = '<a href="'.dol_buildpath('/financement/simulation/simulation.php?id='.$id_simu, 2).'" >'.$financementLeaser->reference.'</a>';
     $referenceToShow = (empty($link_simu) || GETPOST('action') == 'edit') ? $formRestricted->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir') : $link_simu;
     $referenceToShow.= $dossier->printOtherDossierLink();   // On ajoute le lien pour les autres dossiers s'ils existent
 	
@@ -793,6 +814,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			
 			,'assurance'=>$formRestricted->texte('', 'leaser[assurance]', $financementLeaser->assurance, 10,255,'','','à saisir')
 			,'loyer_intercalaire'=>$formRestricted->texte('', 'leaser[loyer_intercalaire]', $financementLeaser->loyer_intercalaire, 10,255,'','','à saisir')
+			,'intercalaireOK'=>$formRestricted->combo('', 'leaser[intercalaireOK]', $financementLeaser->TIntercalaireOK, $financementLeaser->intercalaireOK)
 			,'echeance'=>$formRestricted->texte('', 'leaser[echeance]', $financementLeaser->echeance, 10,255,'','','à saisir')
 			,'reste'=>$formRestricted->texte('', 'leaser[reste]', $financementLeaser->reste, 10,255,'','','à saisir')
 			,'montant_prestation'=>$formRestricted->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 10,255,'','','à saisir')
@@ -809,6 +831,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'reglement'=>$formRestricted->combo('', 'leaser[reglement]', $financementLeaser->TReglement , $financementLeaser->reglement)
 			,'incident_paiement'=>$formRestricted->combo('', 'leaser[incident_paiement]', $financementLeaser->TIncidentPaiement , $financementLeaser->incident_paiement)
 			,'reloc'=>$formRestricted->combo('', 'leaser[reloc]', $financementLeaser->TReloc, $financementLeaser->reloc)
+			,'relocOK'=>$formRestricted->combo('', 'leaser[relocOK]', $financementLeaser->TRelocOK, $financementLeaser->relocOK)
+			,'encours_reloc'=> price($financementLeaser->encours_reloc)
 			
 			,'date_debut'=>$formRestricted->calendrier('', 'leaser[date_debut]', $financementLeaser->get_date('date_debut'),10)
 			,'date_fin'=>$financementLeaser->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
@@ -826,7 +850,9 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			
 			,'detail_fact' => dol_buildpath('/fourn/facture/list.php?search_ref_supplier='.$financementLeaser->reference,2)
-			
+//            ,'loyer_reference'=>$formRestricted->texte('', 'leaser[loyer_reference]', $financementLeaser->loyer_reference, 10,255,'','','à saisir')
+//            ,'date_application'=>$formRestricted->calendrier('', 'leaser[date_application]', $financementLeaser->date_application, 10,255,'','','à saisir')
+
 			
 	);
 	//print $financement->get_date('date_solde','d/m/Y',true);
@@ -840,6 +866,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'assurance'=>$formRestricted->texte('', 'assurance', $financement->assurance, 10,255,'','','à saisir')
 			,'assurance_actualise' => $financement->assurance_actualise
 			,'loyer_intercalaire'=>$formRestricted->texte('', 'loyer_intercalaire', $financement->loyer_intercalaire, 10,255,'','','à saisir')
+			,'intercalaireOK'=>$formRestricted->combo('', 'intercalaireOK', $financement->TIntercalaireOK, $financement->intercalaireOK)
 			,'echeance'=>$formRestricted->texte('', 'echeance', $financement->echeance, 10,255,'','','à saisir')
 			,'loyer_actualise' => $financement->loyer_actualise
 			,'reste'=>$formRestricted->texte('', 'reste', $financement->reste, 10,255,'','','à saisir')
@@ -856,6 +883,8 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'reglement'=>$formRestricted->combo('', 'reglement', $financement->TReglement , $financement->reglement)
 			,'incident_paiement'=>$formRestricted->combo('', 'incident_paiement', $financement->TIncidentPaiement , $financement->incident_paiement)
 			,'reloc'=>$formRestricted->combo('', 'reloc', $financement->TReloc, $financement->reloc)
+			,'relocOK'=>$formRestricted->combo('', 'relocOK', $financement->TRelocOK, $financement->relocOK)
+			,'encours_reloc'=> price($financement->encours_reloc)
 			
 			,'date_debut'=>$formRestricted->calendrier('', 'date_debut', $financement->get_date('date_debut'),10)
 			,'date_fin'=>$financement->get_date('date_fin') //$form->calendrier('', 'date_fin', $financement->get_date('date_fin'),10)
@@ -870,35 +899,41 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'detail_fact' => ''
 			
 			,'client'=>$TAffaire[0]['client']
+            ,'loyer_reference'=>$formRestricted->texte('', 'loyer_reference', $financement->loyer_reference, 10,255,'','','à saisir')
+            ,'date_application'=>$formRestricted->calendrier('', 'date_application', $financement->date_application, 10,255)
 		);
 	}
 	else {
 		$TFinancement= array('id'=>0,
 				'reference'=>''
+
 				,'montant'=>0
 				,'taux'=> 0
 				,'loyer_intercalaire'=> 0
+				, 'intercalaireOK' => ''
 				,'echeance'=> 0
 				,'reste'=> 0
 				,'montant_prestation'=>0
-					
+
 				,'terme'=>''
 				,'numero_prochaine_echeance'=> 0
 				,'duree'=>0
-									
-				,'assurance'=>0	
-								
+
+				,'assurance'=>0
+
 				,'periodicite'=>0
 				,'reglement'=>0
 				,'incident_paiement'=>0
-				
+
 				,'date_debut'=> 0
 				,'date_fin'=>0
 				,'date_prochaine_echeance'=>0
 				,'echeancier'=>''
 				,'taux_commission'=>0
-				,'penalite_reprise'=>0
-			);
+				, 'penalite_reprise' => 0
+                , 'loyer_reference' => 0
+                , 'date_application' => 0
+        );
 	}
 	$TBS->TBS->protect=false;
 	$TBS->TBS->noerr=true;

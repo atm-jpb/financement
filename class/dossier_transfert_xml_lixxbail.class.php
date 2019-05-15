@@ -14,8 +14,10 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
     }
 
     function upload($filename) {
+	    global $conf;
+
         $dirname = $this->fileFullPath . $filename . '.xml';
-        if(BASE_TEST) {
+        if(empty($conf->global->FINANCEMENT_MODE_PROD)) {
             exec('sh bash/lixxbailxml_test.sh '.$dirname);
         } else {
             exec('sh bash/lixxbailxml.sh '.$dirname);
@@ -75,6 +77,9 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 			case 5: //ABG
 				return "M000290985";
 				break;
+            case 6: //COPEM
+                return "M000448171";
+                break;
 			case 7: //Copy Concept
 				return "M000252940";
 				break;
@@ -90,6 +95,9 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 			case 14: //Perret
 				return "M000342697";
 				break;
+            case 18: //ESUS
+                return "M000326725";
+                break;
 			default:
 				return "M000355961";
 				break;
@@ -132,6 +140,12 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 				$refPartenaire = "ABGMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
+            case 6: //COPEM
+                $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+                $nomFichier = "CPROMA0".$entity."IMMA".$date;
+                $refPartenaire = "COPEMA01";
+                $numLot = "IMMA".date('ymd');
+                break;
 			case 7: //Copie concept
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;
@@ -146,22 +160,28 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 				break;
 			case 12: //CAPEA
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
-				$nomFichier = "CPROMA0".$entity."IMMA".$date;
-				$refPartenaire = "CPROMA01";
+				$nomFichier = "CAPEMA0".$entity."IMMA".$date;
+				$refPartenaire = "CAPEMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 13: //BCMP
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
-				$nomFichier = "CPROMA0".$entity."IMMA".$date;
-				$refPartenaire = "CPROMA01";
+				$nomFichier = "BUREMA0".$entity."IMMA".$date;
+				$refPartenaire = "BUREMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
 			case 14: //Perret
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
-				$nomFichier = "CPROMA0".$entity."IMMA".$date;
-				$refPartenaire = "CPROMA01";
+				$nomFichier = "PERRMA0".$entity."IMMA".$date;
+				$refPartenaire = "PERRMA01";
 				$numLot = "IMMA".date('ymd');
 				break;
+            case 18: //ESUS
+                $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+                $nomFichier = "CPROMA0".$entity."IMMA".$date;
+                $refPartenaire = "ESUSMA01";
+                $numLot = "IMMA".date('ymd');
+                break;
 			
 			default:
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;

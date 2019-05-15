@@ -15,6 +15,7 @@
 	dol_include_once('/financement/class/import.class.php');
 	dol_include_once('/financement/class/import_error.class.php');
 	dol_include_once('/financement/class/grille.class.php');
+	dol_include_once('/financement/class/quality.class.php');
 
 	$ATMdb=new TPDOdb;
 	$ATMdb->db->debug=true;
@@ -74,3 +75,10 @@
 
 	$o=new TFin_facture_fournisseur;
 	$o->init_db_by_vars($ATMdb);
+
+	$o=new TFin_QualityRule();
+	$o->init_db_by_vars($ATMdb);
+
+	$o=new TFin_QualityTest();
+	$o->init_db_by_vars($ATMdb);
+

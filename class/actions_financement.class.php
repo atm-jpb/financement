@@ -34,8 +34,8 @@ class ActionsFinancement
 		 $res = printSearchForm(DOL_URL_ROOT.'/custom/financement/dossier.php', DOL_URL_ROOT.'/custom/financement/dossier.php', img_picto('',dol_buildpath('/financement/img/object_financeico.png', 1), '', true).' '.$langs->trans("Dossiers"), 'searchdossier', 'searchdossier');
 		 $res .= printSearchForm(DOL_URL_ROOT.'/compta/facture/list.php', DOL_URL_ROOT.'/compta/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Clients"), 'products', 'search_ref');
 		 $res .= printSearchForm(DOL_URL_ROOT.'/fourn/facture/list.php', DOL_URL_ROOT.'/fourn/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Leasers"), 'products', 'search_ref');
-		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation.php', DOL_URL_ROOT.'/custom/financement/simulation.php', img_object('','invoice').' N° étude / Accord Leaser', 'searchnumetude', 'searchnumetude');
-		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation.php', DOL_URL_ROOT.'/custom/financement/simulation.php', img_object('','resource').' Matricule', 'search_matricule', 'search_matricule');
+		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', img_object('','invoice').' N° étude / Accord Leaser', 'searchnumetude', 'searchnumetude');
+		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', img_object('','resource').' Matricule', 'search_matricule', 'search_matricule');
 		 $hookmanager->resPrint.= $res;
 		 
 		 return 0;
@@ -278,6 +278,11 @@ class ActionsFinancement
 				print $form->selectarray($value, $aff->TBaseSolde,$object->$value);
 				print '</td>';
 			}
+			else if($value == 'date_application') {
+			    print '<td>';
+			    print '<input type="date" class="flat" name="date_application" />';
+			    print '</td>';
+            }
 			else
 			{
 				print '<td>';
@@ -318,6 +323,11 @@ class ActionsFinancement
 				print $form->selectarray($value, $aff->TBaseSolde,$object->$value);
 				print '</td>';
 			}
+            else if($value == 'date_application') {
+                print '<td>';
+                print '<input type="date" class="flat" name="date_application" value="'.$object->$value.'" />';
+                print '</td>';
+            }
 			else
 			{
 				print '<td>';
@@ -358,6 +368,14 @@ class ActionsFinancement
 				print $aff->TBaseSolde[$object->$value];
 				print '</td>';
 			}
+            else if($value == 'date_application') {
+                print '<td>';
+
+                if(is_null($object->$value)) print '';
+                else print date('d/m/Y', strtotime($object->$value));
+
+                print '</td>';
+            }
 			else
 			{
 				print '<td>';

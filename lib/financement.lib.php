@@ -25,16 +25,6 @@ class TFinancementTools {
 		return false;		
 	}
 	
-	function check_user_rights(&$object) {
-		
-		global $user, $conf,$db;
-		
-		dol_include_once('/core/lib/security.lib.php');
-
-		if(!TFinancementTools::user_courant_est_admin_financement() && GETPOST('action') != 'new' && $object->entity != getEntity()) accessforbidden();
-		
-	}
-	
 	static function build_array_entities() {
 		
 		global $mc;
@@ -216,7 +206,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	$sqlwhere = " AND d.nature_financement = 'INTERNE'";
 	$sqlwhere.= " AND d.montant_solde = 0";
 	$sqlwhere.= " AND d.date_solde < '1970-00-00 00:00:00' ";
-	//$sqlwhere.= " AND d.entity IN (".getEntity('fin_dossier', TFinancementTools::user_courant_est_admin_financement()).")";
+	//$sqlwhere.= " AND d.entity IN (".getEntity('fin_dossier', true).")";
 	$sqlwhere.= " AND d.entity = ".$conf->entity." ";
 	$sqlwhere.= " AND d.reference NOT LIKE '%old%' ";
 	$sqlwhere.= " AND d.reference NOT LIKE '%adj%' ";
@@ -377,6 +367,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	if(!empty($TRule['rule3'])) {
 		$sql = "SELECT DISTINCT d.rowid";
 		$sql.= ", $sqlfields";
+		$sql.= ", dfcli.loyer_reference, dfcli.date_application";
 		$sql.= " FROM ".MAIN_DB_PREFIX."facture f";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."facture_extrafields fext ON (fext.fk_object = f.rowid)";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
@@ -411,8 +402,12 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 				
 				// Attention on vérifie les factures et regroupements de factures
 				$montant_facture = 0;
+				$date_application_reference = strtotime($res->date_application);
 				foreach($dossier->TFacture as $p => $d) {
 					// Récupération du montant facturé au client pour comparer aux loyers. Si plusieurs factures, on fait la somme
+                    $date_debut = $dossier->getDateDebutPeriode($p, 'client');
+                    $tms_deb = strtotime($date_debut);
+
 					if(is_array($d)) {
 						foreach ($d as $i => $f) {
 							$montant_facture += $f->total_ht;
@@ -426,7 +421,11 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 					if($p == -1 && $montant_facture >= round($dossier->financement->loyer_intercalaire,2)) {
 						$intercalaireOK = true;
 					}
-					
+
+					if(! empty($res->loyer_reference) && $tms_deb >= $date_application_reference) {
+					    $total_echeances = $res->loyer_reference;
+                    }
+
 					// Comparaison au loyer client
 					// Si règle 3 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
 					if($montant_facture < $total_echeances && !$intercalaireOK) {
@@ -618,4 +617,188 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	//exit;
 	
 	return $TDossiersError;
+}
+
+
+/**
+ * Return array of tabs to used on pages for simulation cards.
+ *
+ * @param 	TSimulation	$object		Object simulation shown
+ * @return 	array				    Array of tabs
+ */
+function simulation_prepare_head(TSimulation $object)
+{
+    global $db, $langs, $conf, $user;
+    $h = 0;
+    $head = array();
+
+    $id = $object->getId();
+
+    $url = dol_buildpath('/financement/simulation/simulation.php', 2);
+    if(empty($id)) $url .= '?action=new';
+    else $url .= '?id='.$id;
+    $url .= '&mainmenu=financement';
+
+    $head[$h][0] = $url;
+    $head[$h][1] = $langs->trans("Card");
+    $head[$h][2] = 'card';
+    $h++;
+
+    if ($user->rights->financement->admin && ! empty($id))
+    {
+		$nbNote = 0;
+        if(!empty($object->note_private)) $nbNote++;
+		if(!empty($object->note_public)) $nbNote++;
+
+        $head[$h][0] = dol_buildpath('/financement/simulation/note.php', 2).'?id='.$id.'&mainmenu=financement';
+        $head[$h][1] = get_picto('snowplow').'&nbsp;'.$langs->trans("NoteLabel");
+		if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
+
+        $cssFlipStyle = '-moz-transform: scaleX(-1);';
+        $cssFlipStyle.= ' -o-transform: scaleX(-1);';
+        $cssFlipStyle.= ' -webkit-transform: scaleX(-1);';
+        $cssFlipStyle.= ' transform: scaleX(-1);';
+        $cssFlipStyle.= ' filter: FlipH;';
+        $cssFlipStyle.= " -ms-filter: 'FlipH';";
+		$head[$h][1].= '&nbsp;'.get_picto('snowplow', '', '', $cssFlipStyle);
+        $head[$h][2] = 'note';
+        $h++;
+    }
+
+    // Show more tabs from modules
+    // Entries must be declared in modules descriptor with line
+    // $this->tabs = array('entity:+tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to add new tab
+    // $this->tabs = array('entity:-tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to remove a tab
+    complete_head_from_modules($conf,$langs,$object,$head,$h,'simulation');
+
+    complete_head_from_modules($conf,$langs,$object,$head,$h,'simulation','remove');
+
+    return $head;
+}
+
+/**
+ * Return array of tabs to used on pages for dossier cards.
+ *
+ * @param 	TFin_dossier	$object		Object dossier shown
+ * @return 	array				        Array of tabs
+ */
+function dossier_prepare_head(TFin_dossier $object)
+{
+    global $db, $langs, $conf, $user;
+    $h = 0;
+    $head = array();
+
+    $id = $object->getId();
+
+    $head[$h][0] = dol_buildpath('/financement/dossier.php', 2).'?id='.$id.'&mainmenu=financement';;
+    $head[$h][1] = $langs->trans("Card");
+    $head[$h][2] = 'card';
+    $h++;
+
+    $head[$h][0] = dol_buildpath('/financement/dossier_integrale.php', 2).'?id='.$id.'&mainmenu=financement';
+    $head[$h][1] = $langs->trans("SuiviIntegral");
+    $head[$h][2] = 'integrale';
+    $h++;
+
+    $head[$h][0] = FIN_THEREFORE_DOSSIER_URL.$object->financement->referance;
+    $head[$h][1] = $langs->trans("Therefore");
+    $head[$h][2] = 'therefore';
+    $h++;
+
+    // Show more tabs from modules
+    // Entries must be declared in modules descriptor with line
+    // $this->tabs = array('entity:+tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to add new tab
+    // $this->tabs = array('entity:-tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to remove a tab
+    complete_head_from_modules($conf,$langs,$object,$head,$h,'dossier');
+
+    complete_head_from_modules($conf,$langs,$object,$head,$h,'dossier','remove');
+
+    return $head;
+}
+
+function switchEntity($target) {
+    global $db, $conf, $mysoc;
+
+    if($conf->entity != $target) {
+        // Récupération configuration de l'entité de la simulation
+        $confentity = &$conf;
+        $confentity->entity = $target;
+        $confentity->setValues($db);
+
+        $mysocentity = &$mysoc;
+        $mysocentity->setMysoc($confentity);
+    }
+}
+
+function get_picto($name, $title = '', $color = '', &$style = '') {
+    $img = '';
+    $lo_title = '';
+    if(! empty($title)) $lo_title = ' title="'.$title.'"';
+    $iconSize = 'font-size: 21px;';
+
+    $lo_name = strtolower($name);
+    switch($lo_name) {
+        case 'ko':
+        case 'refus':
+            $img .= '<i class="fas fa-times-circle" style="color: #b90000; ' .$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'wait':
+            $img .= '<i class="fas fa-clock" style="color: #22b8cf; '.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'err':
+            $img .= '<i class="fas fa-exclamation-triangle" style="color: #ffd507; ' .$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'super_ok':
+            $img .= '<i class="fas fa-check-circle" style="color: green; '.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'wait_seller':
+            $img .= '<i class="fas fa-briefcase" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'wait_leaser':
+            $img .= '<i class="fas fa-piggy-bank" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'ok':
+            $img .= '<i class="fas fa-check-circle" style="color: grey; ' .$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'edit':
+            $img .= '<i class="fas fa-edit" style="color: darkorange; '.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'money':
+            $img .= '<i class="fas fa-coins" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'ss':
+        case 'sans_suite':
+            $img .= '<i class="fas fa-minus-circle" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'phone':
+            $img .= '<i class="fas fa-phone" style="'.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'webservice':
+            $img .= '<i class="fas fa-satellite-dish" style="color: green; '.$iconSize.'"'.$lo_title.'></i>';
+            break;
+        case 'save':    // This will use the unicode value of 'fas fa-save' only to keep the input
+            $img .= '<input type="submit" class="fa fa-input" style="'.$iconSize.' border: none;" value="&#xf0c7" title="Enregistrer" />';
+            break;
+        case 'manual':
+            $style = 'style="'.$iconSize;
+            if(! empty($color)) $style .= ' color: '.$color.';';
+            $style .= ' vertical-align: top;"';
+
+            $img .= '<i class="fas fa-bell" '.$style.$lo_title.'></i>';
+            break;
+        case 'fish':
+            $iconSize = 'font-size: 14px;';
+            $style .= ' '.$iconSize;
+            $img .= '<i class="fas fa-fish" style="'.$style.'"'.$lo_title.'></i>';
+            break;
+        case 'snowplow':
+            $iconSize = 'font-size: 14px;';
+            $style .= ' '.$iconSize;
+            $img .= '<i class="fas fa-snowplow" style="'.$style.'"'.$lo_title.'></i>';
+            break;
+        default:
+            return '';
+    }
+
+    return $img;
 }
