@@ -316,6 +316,81 @@ print '</td></tr>';
 
 print '</table>';
 
+print '<br />';
+print_fiche_titre('FRANFINANCE', '', '');
+print '<table class="noborder" width="100%">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameter").'</td>';
+print '<td colspan="2" align="center">'.$langs->trans("Value").'</td>';
+print "</tr>\n";
+$var=true;
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_WSDL_FRANFINANCE_RECETTE").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_WSDL_FRANFINANCE_RECETTE">';
+print '<input type="text" name="FINANCEMENT_WSDL_FRANFINANCE_RECETTE" value="'.$conf->global->FINANCEMENT_WSDL_FRANFINANCE_RECETTE.'" size="60" placeholder="https://www-homo.flashlease.com/ws_acq/services/acquerirDemande" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_WSDL_FRANFINANCE_PROD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_WSDL_FRANFINANCE_PROD">';
+print '<input type="text" name="FINANCEMENT_WSDL_FRANFINANCE_PROD" value="'.$conf->global->FINANCEMENT_WSDL_FRANFINANCE_PROD.'" size="60" placeholder="https://www-homo.flashlease.com/ws_acq/services/acquerirDemande" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_OUR_WSDL_GIVE_TO_FRANFINANCE").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_OUR_WSDL_GIVE_TO_FRANFINANCE">';
+print '<input type="text" name="FINANCEMENT_OUR_WSDL_GIVE_TO_FRANFINANCE" value="'.$conf->global->FINANCEMENT_OUR_WSDL_GIVE_TO_FRANFINANCE.'" size="60" placeholder="'.dol_buildpath('/financement/script/webservice/scoring_franfinance.php?wsdl', 2).'" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_FRANFINANCE_USERNAME").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_FRANFINANCE_USERNAME">';
+print '<input type="text" name="FINANCEMENT_FRANFINANCE_USERNAME" value="'.$conf->global->FINANCEMENT_FRANFINANCE_USERNAME.'" size="30" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FINANCEMENT_FRANFINANCE_PASSWORD").'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="600">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_FRANFINANCE_PASSWORD">';
+print '<input type="password" name="FINANCEMENT_FRANFINANCE_PASSWORD" value="'.$conf->global->FINANCEMENT_FRANFINANCE_PASSWORD.'" size="30" />';
+print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
+print '</form>';
+print '</td></tr>';
+print '</table>';
+
 
 dol_htmloutput_mesg($mesg);
 

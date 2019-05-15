@@ -2576,6 +2576,7 @@ class TSimulationSuivi extends TObjetStd
             case 'CMCIC':
             case 'GRENKE':
             case 'BNP':
+            case 'FRANFINANCE':
                 $res = $this->_createDemandeServiceFinancement($debug);
                 break;
             default:
