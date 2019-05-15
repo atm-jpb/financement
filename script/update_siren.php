@@ -94,11 +94,6 @@ while($dataline = fgetcsv($fileHandler, 1024, FIN_IMPORT_FIELD_DELIMITER, FIN_IM
 }
 fclose($fileHandler);
 
-// Traitement spécifique sur les factures location : envoi e-mail à la fin de l'intégration du fichier pour alertes dépassement (ticket 551)
-if($fileType == 'facture_location') {
-	//$imp->sendAlertEmailIntegrale($ATMdb, $TInfosGlobale);
-}
-
 print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;
 
 $ATMdb->close();
