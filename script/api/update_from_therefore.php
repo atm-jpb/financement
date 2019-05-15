@@ -66,24 +66,24 @@ else {  // LEASER
     $vr = _get_vr($fk_leaser);
 }
 
-$financement->montant = $montant_finance;
-$financement->periodicite = $periodicite;
-$financement->duree = $duree;
-$financement->date_debut = $date_start;
-$financement->loyer_intercalaire = $loyer_inter;
-$financement->frais_dossier = $frais_dossier;
-$financement->echeance = $echeance;
-$financement->reste = $vr;
-$financement->terme = $terme;
-$financement->assurance = $assurance;
-$financement->reglement = $mode_reglement;
+if(! empty($montant_finance)) $financement->montant = $montant_finance;
+if(! empty($periodicite)) $financement->periodicite = $periodicite;
+if(! empty($duree)) $financement->duree = $duree;
+if(! empty($date_start)) $financement->date_debut = $date_start;
+if(! empty($loyer_inter)) $financement->loyer_intercalaire = $loyer_inter;
+if(! empty($frais_dossier)) $financement->frais_dossier = $frais_dossier;
+if(! empty($echeance)) $financement->echeance = $echeance;
+if(! empty($vr)) $financement->reste = $vr;
+if(! empty($terme)) $financement->terme = $terme;
+if(! empty($assurance)) $financement->assurance = $assurance;
+if(! empty($mode_reglement)) $financement->reglement = $mode_reglement;
 
 $res = $dossier->save($PDOdb);
 
 print $res."<br />\n";
 
 function _check_auth() {
-    global $db;
+    global $db, $user;
 
     $auth_error = false;
 
@@ -105,6 +105,9 @@ function _check_auth() {
             ));
         http_response_code(401);
         exit;
+    }
+    else {
+        $user->getrights('financement');
     }
 }
 
