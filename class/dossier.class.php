@@ -298,7 +298,7 @@ class TFin_dossier extends TObjetStd
         $id_finLeaser = $this->financementLeaser->getId();
 
         if(! empty($refLeaser)) {
-            $sql = 'SELECT count(df.*) as nb';
+            $sql = 'SELECT count(df.rowid) as nb';
             $sql .= ' FROM '.MAIN_DB_PREFIX.'fin_dossier_financement df';
             $sql .= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (df.fk_fin_dossier=d.rowid)';
             $sql .= " WHERE df.type='LEASER'";
