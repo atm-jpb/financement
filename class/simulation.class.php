@@ -2287,11 +2287,20 @@ class TSimulationSuivi extends TObjetStd
     }
 
     //Retourne les actions possible pour ce suivi suivant les règles de gestion
-    function getAction(&$simulation, $just_save = false) {
-        global $conf;
+    function getAction(TSimulation &$simulation, $just_save = false) {
+        global $conf, $langs;
+        $PDOdb = new TPDOdb;
 
         $actions = '';
         $ancre = '#suivi_leaser';
+
+        $iHaveToConfirm = false;
+        if(empty($simulation->TSimulationSuivi)) $simulation->load_suivi_simulation($PDOdb);
+        $TSuivi = array_values($simulation->TSimulationSuivi);
+        $firstSuivi = $TSuivi[0];
+
+        // Si le 1er leaser est toujours en étude et qu'on cherche à sélectionner un autre leaser plus bas
+        if($firstSuivi->rowid != $this->rowid && $firstSuivi->statut == 'WAIT') $iHaveToConfirm = true;
 
         // TODO ajouter le bouton permettant de refaire un appel webservice, rien d'autre à faire pour un update (en fait si, il faut aussi utiliser le code refactoré de l'appel webservice)
         // le fait que les attributs "b2b_nodef" & "b2b_noweb" soit renseigné sur l'objet permettra de faire appel à la bonne méthode
@@ -2313,7 +2322,11 @@ class TSimulationSuivi extends TObjetStd
                     else {
                         //Reset
                         $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler">'.get_picto('wait').'</a>&nbsp;';
-                        $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=selectionner'.$ancre.'" title="Sélectionner ce leaser">'.get_picto('super_ok').'</a>&nbsp;';
+
+                        $url = '?id='.$simulation->getId().'&id_suivi='.$this->getId();
+                        if($iHaveToConfirm) $url .= '&action=confirm_selectionner';
+                        else $url .= '&action=selectionner'.$ancre;
+                        $actions .= '<a href="'.$url.'" title="'.$langs->trans('SelectThisLeaser').'">'.get_picto('super_ok').'</a>&nbsp;';
                     }
                 }
                 else {

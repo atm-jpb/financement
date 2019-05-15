@@ -331,3 +331,6 @@ ManualActionType = Types d'actions manuelles
 # Actions manuelles
 CantDoAutoScoring = Impossible de scorer en automatique
 CantGiveAccordAuto = Impossible de donner un accord automatique
+
+SelectThisLeaser=Sélectionner ce leaser
+ConfirmSelectThisLeaser=Etes-vous sûr(e) de vouloir sélectionner ce leaser ?

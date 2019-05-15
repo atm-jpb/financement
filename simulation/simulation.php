@@ -926,6 +926,10 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 	$extrajs = array('/financement/js/financement.js', '/financement/js/dossier.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
 	print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
+	if($action == 'confirm_selectionner') {
+        $form = new Form($db);
+        print $form->formconfirm($_SERVER['PHP_SELF'].'?id='.$simulation->rowid, $langs->trans('SelectThisLeaser'), $langs->trans('ConfirmSelectThisLeaser'), 'selectionner', '', '', 2);
+    }
 	
 	$head = simulation_prepare_head($simulation);
 	dol_fiche_head($head, 'card', $langs->trans("Simulation"),0,'simulation');
