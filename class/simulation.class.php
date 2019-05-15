@@ -2854,6 +2854,7 @@ class TSimulationSuivi extends TObjetStd
 
     private function checkAccordAutoConstraint(TSimulation $simu) {
         global $conf;
+        $PDOdb = new TPDOdb;
 
         // Separate into variable only to log them
         $isActive = ! empty($conf->global->FINANCEMENT_ACTIVATE_ACCORD_AUTO) ? 1 : 0;   // false is converted to "" and not to "0"
@@ -2865,6 +2866,18 @@ class TSimulationSuivi extends TObjetStd
         $isLocPure = ($this->fk_leaser == 18495) ? 1 : 0;
         $isFirst = ($this->rang == 0) ? 1 : 0;
 
+        $isDiffBelowMaxDiffPercentage = 1;  // Si la conf 'FINANCEMENT_MAX_DIFF_RENTA' n'est pas active, ça ne bloque pas les accords auto
+        if(! empty($conf->global->FINANCEMENT_MAX_DIFF_RENTA)) {
+            $isDiffBelowMaxDiffPercentage = 0;
+
+            if(empty($simu->TSimulationSuivi)) $simu->load_suivi_simulation($PDOdb);
+            $firstSuivi = array_shift($simu->TSimulationSuivi);
+
+            if($firstSuivi->rowid == $this->rowid || ($firstSuivi->renta_percent - $this->renta_percent) < $conf->global->FINANCEMENT_MAX_DIFF_RENTA) {
+                $isDiffBelowMaxDiffPercentage = 1;
+            }
+        }
+
         $logMessage = 'CONSTRAINTS FOR FK_SIMU='.$simu->rowid."\n";
         $logMessage .= 'AccordAuto active = '.$isActive."\n";
         $logMessage .= 'LessThanMaxAmount = '.$isLessThanMaxAmount."\n";
@@ -2874,6 +2887,9 @@ class TSimulationSuivi extends TObjetStd
         $logMessage .= 'NotEmptyNumAccordLeaser = '.$isNotEmptyNumAccordLeaser."\n";
         $logMessage .= 'IsLocPure = '.$isLocPure."\n";
         $logMessage .= 'isFirst = '.$isFirst."\n";
+        if(! empty($conf->global->FINANCEMENT_MAX_DIFF_RENTA)) {
+            $logMessage .= 'isDiffBelowMaxDiffPercentage = '.$isDiffBelowMaxDiffPercentage."\n";
+        }
         dol_syslog($logMessage, LOG_CRIT, 0, '_accord_auto_constraint');
 
         return $isActive                                        // Active
@@ -2882,6 +2898,7 @@ class TSimulationSuivi extends TObjetStd
             && ($isAdjonctionNotChecked || $isFirst)            // Adjonction pas coché
             && ($isNoCaseToSettleChecked || $isFirst)           // Aucun solde selectionné
             && $isNotEmptyNumAccordLeaser                       // Numéro accord leaser renseigné
+            && $isDiffBelowMaxDiffPercentage                    // Différence de renta
             || ($isActive && $isLocPure && $isEmptyComment);    // LOC PURE
     }
 }

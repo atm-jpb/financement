@@ -57,11 +57,9 @@ if ($action == 'setvalue')
     if(!$res > 0) $error++;
 
     if(!$error) {
-//        $mesg = "<font class=\"ok\">".$langs->trans("SetupSaved")."</font>";
         setEventMessages($langs->trans("SetupSaved"), array());
     }
     else {
-//        $mesg = "<font class=\"error\">".$langs->trans("Error")."</font>";
         setEventMessages($langs->trans("Error"), array(), 'errors');
     }
 }
@@ -70,7 +68,7 @@ if ($action == 'setvalue')
  * View
  */
 
-$TJs = $TCss = array();
+$TJS = $TCss = array();
 if (empty($conf->global->MAIN_USE_JQUERY_MULTISELECT))
 {
 	$conf->global->MAIN_USE_JQUERY_MULTISELECT = 'select2';
@@ -89,14 +87,14 @@ dol_fiche_head($head, 'accord_auto', $langs->trans("Financement"), 0, 'financeme
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';
 print '<td>'.$langs->trans("Parameter").'</td>';
-print '<td align="center" width="20%">'.$langs->trans("Value").'</td>';
+print '<td align="center" width="20%" colspan="2">'.$langs->trans("Value").'</td>';
 print "</tr>\n";
 $var=true;
 
 $var=!$var;
 print '<tr '.$bc[$var].'>';
 print '<td>'.$form->textwithpicto($langs->trans('FinancementActivateAccordAuto'), $langs->trans('FinancementActivateAccordAuto_tooltip', $conf->global->FINANCEMENT_SIMUL_MAX_AMOUNT)).'</td>';
-print '<td>'.ajax_constantonoff('FINANCEMENT_ACTIVATE_ACCORD_AUTO').'</td>';
+print '<td colspan="2">'.ajax_constantonoff('FINANCEMENT_ACTIVATE_ACCORD_AUTO').'</td>';
 print '</tr>';
 
 $var=!$var;
@@ -107,15 +105,25 @@ print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("FinancementSimulMaxAmount").'</td>';
 print '<td width="80">';
 print '<input type="number" name="FINANCEMENT_SIMUL_MAX_AMOUNT" min="0" value="'.$conf->global->FINANCEMENT_SIMUL_MAX_AMOUNT.'" />';
+print '</td><td>';
 print '<input type="submit" class="button" value="'.$langs->trans("Enregistrer").'" />';
 print '</td>';
 print '</tr>';
 print '</form>';
 
-//print '<tr '.$bc[$var].'>';
-//print '<td>'.$langs->trans('FinancementSimulMaxAmount').'</td>';
-//print '<td>'.ajax_constantonoff('FINANCEMENT_SIMUL_MAX_AMOUNT').'</td>';
-//print '</tr>';
+$var=!$var;
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_MAX_DIFF_RENTA" />';
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FinancementMaxDiffRenta").'</td>';
+print '<td width="80">';
+print '<input type="number" name="FINANCEMENT_MAX_DIFF_RENTA" min="0" value="'.$conf->global->FINANCEMENT_MAX_DIFF_RENTA.'" />%';
+print '</td><td>';
+print '<input type="submit" class="button" value="'.$langs->trans("Enregistrer").'" />';
+print '</td>';
+print '</tr>';
+print '</form>';
 
 print '</table>';
 
