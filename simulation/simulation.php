@@ -1163,6 +1163,8 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
         $simuArray['date_demarrage'] = $form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12);
         $simuArray['opt_calage_label'] = $form->combo('', 'opt_calage_label', $TOptCalageLabel, $simulation->opt_calage, 0, '', TFinancementTools::user_courant_est_admin_financement() ? '' : 'disabled');
         $simuArray['opt_calage'] = $form->hidden('opt_calage', $simulation->opt_calage);
+	$mode = 'edit';
+        $form->Set_typeaff($mode);
     }
 	
 	if(TFinancementTools::user_courant_est_admin_financement()) {
