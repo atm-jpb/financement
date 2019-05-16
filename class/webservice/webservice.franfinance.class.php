@@ -44,21 +44,18 @@ class WebServiceFranfinance extends WebService
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
 
-        $result = curl_exec($curl);
+        $this->curl->result = curl_exec($curl);
 
-        if (!$result)
-            trigger_error(curl_error($curl));
+        if (!$this->curl->result)
+            $this->curl->error = curl_error($curl);
 
-        $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
-        $header = substr($result, 0, $header_size);
-        $body = substr($result, $header_size);
-
-        var_dump($header_size, $header, $body);
-//        echo '<pre>'; print_r($header);
+        $this->curl->header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+        $this->curl->header = substr($this->curl->result, 0, $this->curl->header_size);
+        $this->curl->body = substr($this->curl->result, $this->curl->header_size);
 
         curl_close($curl);
 
-        return $result;
+        return $this->curl->result;
     }
 
 	public function run()
@@ -72,40 +69,29 @@ class WebServiceFranfinance extends WebService
 		if ($this->debug) var_dump('DEBUG :: Function callFRANFINANCE(): Production = '.json_encode($this->production).' ; WSDL = '.$this->wsdl.' ; endpoint = '.$this->endpoint);
 
         $data = $this->getBody();
-//        var_dump($data);
-//		$data = '{
-//	"media": "WSFL",
-//	"loginVendeur": "WSCPRO1",
-//	"demande": {
-//		"duree": "26",
-//		"montant": "25000",
-//		"nature": "LF",
-//		"numeroSiren": "552120222",
-//		"blocPlanFinancement": {
-//			"premierLoyer": "0",
-//			"codeAmortissement": "L",
-//              "vr": "0"
-//		},
-//          "blocMateriel": {
-//	          "codeInseeMateriel": "300212",
-//	          "materielOccasion": "true",
-//	          "anneeMateriel": "2016",
-//               "codeNiveauUtilisationMateriel": "NEU",
-//               "codeNiveauOptionsMateriel": "NEU",
-//               "nombreMateriel": "10"
-//		}
-//	}
-//
-//}';
-//        var_dump($data);
-exit;
-		var_dump(
-		    $this->CallAPI(
-		        'POST'
-                ,$this->wsdl
-                ,$data
-            )
+
+        dol_syslog("WEBSERVICE SENDING FRANFINANCE : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_FRANFINANCE');
+
+        $res = $this->CallAPI(
+            'POST'
+            ,$this->wsdl
+            ,$data
         );
+
+        if ($res)
+        {
+//            var_dump($this->curl->header_size, $this->curl->header, $this->curl->body);
+//            var_dump(json_decode($this->curl->body));
+            $resp = json_decode($this->curl->body);
+
+            if ($resp['code'] == 201)
+            {
+                $this->simulationSuivi->commentaire = $resp['numeroDemande'];
+                return true;
+            }
+
+        }
+
 
 		exit;
 
@@ -144,7 +130,7 @@ exit;
             var_dump($this->soapClient); exit;
 			$this->soapClient->ServiceFinancement = $this;
 			
-			dol_syslog("WEBSERVICE SENDING CMCIC : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_CMCIC');
+
 			
 			if ($this->isUpdateCall()) $response = $this->soapClient->__soapCall('UpdateDemFin', array());
 			else $response = $this->soapClient->__soapCall('CreateDemFin', array());
@@ -186,8 +172,8 @@ exit;
 	public function getBody()
     {
 
-        print '<pre>';
-        var_dump($this->simulation); exit;
+//        print '<pre>';
+//        var_dump($this->simulation); exit;
 
         $sirenClient = $this->simulation->societe->idprof1;
         if (empty($sirenClient)) $sirenClient = substr($this->simulation->societe->idprof2, 0, 9);
