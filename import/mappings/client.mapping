@@ -13,6 +13,7 @@ code_wb=code_wb
 9=code_compta
 10=type_tiers
 11=code_wb
+12=organisation
 
 [more]
 client=1

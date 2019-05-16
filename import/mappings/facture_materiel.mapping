@@ -1,17 +1,18 @@
 search_key=facnumber
 search_key_fac_annulee=facture_annulee
-search_key_client=code_client
+search_key_client=code_client_leaser
 
 [mapping]
 1=facnumber
 2=date
-3=code_client
+3=code_client_leaser
 4=code_affaire
 5=total_ht
 6=date_lim_reglement
 7=matricule
 8=reference_dossier_interne
 9=facture_annulee
+10=organisation
 
 [more]
 

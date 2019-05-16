@@ -6,6 +6,7 @@
 5=marque
 6=type_copie
 7=cout_copie
+8=organisation
 
 [format]
 cout_copie=float

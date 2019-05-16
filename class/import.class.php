@@ -11,7 +11,7 @@ class TImport extends TObjetStd {
 		parent::add_champs('fk_user_author,entity','type=entier;');
 		parent::add_champs('nb_lines,nb_errors,nb_create,nb_update','type=entier;');
 		parent::add_champs('date','type=date;');
-		parent::add_champs('type_import,filename','type=chaine;');
+		parent::add_champs('type_import,filename,artis','type=chaine;');
 		parent::start();
 		parent::_init_vars();
 		
@@ -105,7 +105,6 @@ class TImport extends TObjetStd {
 	 * @param $is_sql : Erreur SQL (0 = non, 1 = oui ATMdb, 2 = oui Doli db)
 	 */
 	function addError(&$ATMdb, $errMsg, $errData, $type='ERROR', $is_sql=0, $doliError='') {
-		global $user;
 		$thisErr = new TImportError();
 		$thisErr->fk_import = $this->getId();
 		$thisErr->num_line = $this->nb_lines;
@@ -128,6 +127,32 @@ class TImport extends TObjetStd {
 		if($type == 'ERROR') $this->nb_errors++;
 	}
 	
+	function importFile(&$ATMdb, $filePath) {
+		global $TInfosGlobale;
+
+		$fileHandler = fopen($filePath, 'r');
+		
+		// Traitement du fichier contenant toutes les factures non payées, on classe d'abord payées toutes les factures Dolibarr
+		if($this->type_import == 'ecritures_non_lettrees') {
+			$nbfact = filesize($filePath) / 42;
+			if($nbfact < 4000) {
+				$this->classifyPaidAllInvoices($ATMdb);
+			}
+		}
+		
+		// Traitement du fichier contenant tous les soldes client, on vide d'abord la table
+		if($this->type_import == 'solde_client') {
+			$sql = 'TRUNCATE TABLE '.MAIN_DB_PREFIX.'societe_solde';
+			$ATMdb->Execute($sql);
+		}
+		
+		$TInfosGlobale = array();
+		while($dataline = fgetcsv($fileHandler, 4096, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
+			$this->importLine($ATMdb, $dataline, $TInfosGlobale);
+		}
+		fclose($fileHandler);
+	}
+	
 	function importLine(&$ATMdb, $dataline, &$TInfosGlobale) {
 		global $db;
 		
@@ -140,7 +165,7 @@ class TImport extends TObjetStd {
 		if($this->nb_lines % 500 == 0) sleep(1);
 		if(!$this->checkData()) return false;
 		$data = $this->contructDataTab();
-		
+
 		switch ($this->type_import) {
 			case 'client':
 				$this->importLineTiers($ATMdb, $data);
@@ -207,16 +232,22 @@ class TImport extends TObjetStd {
 
 	function createFacture(&$ATMdb,&$data,&$TInfosGlobale){
 		global $db,$user;
+		
 		// Recherche si facture existante dans la base
-		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
-		//pre($facid,true).'<br>';
-		//Si existe pas alors on la créé
-		if(!$facid && $socid){
-			//echo '-'.$socid.'<br>';
+		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']], false, $data['entity']);
+		// Recherche du client
+		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true, true, $data['entity']);
+		// Recherche du contrat
+		$contid = $this->_recherche_dossier($ATMdb, $data['reference_dossier_interne'],true, $data['entity']);
+		
+		// Si existe pas alors on la créé
+		if(!$facid && $socid && $contid){
+
 			$data['socid'] = $socid;
+			switchEntity($data['entity']);
+
 			$facture_loc = new Facture($db);
-			//pre($facture_loc,true);
+			
 			foreach ($data as $key => $value) {
 				$facture_loc->{$key} = $value;
 			}
@@ -224,15 +255,15 @@ class TImport extends TObjetStd {
 			// Gestion des avoirs
 			if(!empty($data['facture_annulee'])) {
 				// Recherche de la facture annulee par l'avoir
-				$avoirid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']]);
+				$avoirid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']], true, true, $data['entity']);
 				if($avoirid === false) return false;
 				
 				$facture_loc->type = 2;
-				if(!empty($avoirid)) $facture_loc->fk_facture_source = $avoirid;
+				$facture_loc->fk_facture_source = $avoirid;
 			}
 			
 			$res = $facture_loc->create($user);
-			//echo $res.'<br>';
+			
 			// Erreur : la création n'a pas marché
 			if($res < 0) {
 				$this->addError($ATMdb, 'ErrorWhileCreatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_loc->error);
@@ -247,89 +278,17 @@ class TImport extends TObjetStd {
 			
 			// La validation entraine le recalcul de la date d'échéance de la facture, on remet celle fournie
 			$facture_loc->date_lim_reglement = $data['date_lim_reglement'];
-			$facture_loc->update($user, 0);
-			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_loc), $facture_loc->id,'update',$data);
+			$res = $facture_loc->update($user, 0);
 
-			// Création des liens
-			$financement=new TFin_financement;
-			if($financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
-				$nb = ($facture_loc->type == 2) ? -1 : 1;
-				// On ne va changer l'échéance que si c'est la première fois que cette facture est intégrée dans Dolibarr
-
-				if(empty($facid)) {
-					$dossier = new TFin_dossier;
-					$dossier->load($ATMdb, $financement->fk_fin_dossier,false);
-					// update de l'entité de la facture car le dossier existe et possède déjà la bonne entité qui provient de l'affaire qui a créé le dossier
-					if ($this->getObjectEntity($facture_loc) != $dossier->entity) $this->updateObjectEntity($facture_loc, $dossier->entity);
-					
-					$financement->setProchaineEcheanceClient($ATMdb,$dossier);
-				}
-				//echo date('d/m/Y',$financement->date_prochaine_echeance).'<br>';
-				$financement->save($ATMdb,false);
-
-				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($financement), $financement->getId(),'update',$data);
-				//echo date('d/m/Y',$financement->date_prochaine_echeance).'<br>';
-				// Création du lien entre dossier et facture
-				$facture_loc->linked_objects['dossier'] = $financement->fk_fin_dossier;
-			} else {
-				$dossier = new TFin_dossier;
-				$dossier->entity = 1;
-				if($dossier->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'])) { // Dossier trouvé, financement non => erreur de qualification (EXTERNE) 
-					$dossier->nature_financement = 'INTERNE';
-					$dossier->financement->reference = $data['reference_dossier_interne'];
-					$nb = ($facture_loc->type == 2) ? -1 : 1;
-					//$dossier->financement->setEcheance($nb);
-					
-					//Cacul de la date et du numéro de prochaine échéance
-					$sql = "SELECT f.reference, COUNT(i.rowid) as nbFact, SUM(CASE WHEN i.type = 0 THEN 1 ELSE -1 END) as echeance_passee
-							FROM ".MAIN_DB_PREFIX."fin_dossier_financement f
-							LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON ee.fk_source = f.fk_fin_dossier AND ee.sourcetype = 'dossier' AND ee.targettype = 'facture'
-							LEFT JOIN ".MAIN_DB_PREFIX."facture i ON i.rowid = ee.fk_target
-							WHERE f.reference = '".$dossier->financement->reference."'";
-
-					$ATMdb->Execute($sql);
-					$TData = $ATMdb->Get_All();
-					
-					foreach($TData as $tdata) {
-						$fin = new TFin_financement();
-						if($fin->loadReference($ATMdb, $tdata->reference, 'CLIENT')) {
-							$fin->initEcheance();
-							$fin->setEcheance($tdata->echeance_passee);
-							$fin->save($ATMdb);
-						}
-					}
-					// update de l'entité de la facture car le dossier existe déjà et possède déjà la bonne entité qui provient de l'affaire qui a créé le dossier
-					if ($this->getObjectEntity($facture_loc) != $dossier->entity) $this->updateObjectEntity($facture_loc, $dossier->entity);
-					
-					$dossier->save($ATMdb);
-					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update',$data);
-					$this->addError($ATMdb, 'InfoWrongNatureAffaire', $data['reference_dossier_interne'], 'WARNING');
-				} else {
-					/* PAS OK */
-					$this->addError($ATMdb, 'ErrorWhereIsFinancement', $data['reference_dossier_interne']);
-				}
-			}
-		
-			// Mise à jour
-			$res = $facture_loc->update($user);
 			// Erreur : la mise à jour n'a pas marché
 			if($res < 0) {
 				$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture_loc->error);
 				return false;
 			} else {
-				$this->nb_update++;
-				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_loc), $facture_loc->id,'update',$data);
-				
-				// Ajout objet lié
-				if(!empty($facture_loc->linked_objects['dossier'])) {
-					$facture_loc->add_object_linked('dossier', $facture_loc->linked_objects['dossier']);
-				}
+				$facture_loc->add_object_linked('dossier', $contid);
+				$this->updateObjectEntity($facture_loc, $data['entity']);
+				$TInfosGlobale['newfacture'][$data['entity'].'-'.$data[$this->mapping['search_key']]] = $facture_loc->id;
 			}
-			
-			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facture_loc->id;
-		}
-		else{
-		//	$TInfosGlobale[$data[$this->mapping['search_key']]] = $facid->rowid; Effet de bord ticket 5356
 		}
 	}
 
@@ -460,16 +419,10 @@ class TImport extends TObjetStd {
 
 	function importLineTiers(&$ATMdb, $data) {
 		global $user, $db;
-		
-		// Recherche si tiers existant dans la base via code client Artis
-		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
+
+		// Recherche si tiers existant dans la base via code Artis
+		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']], false, true, $data['entity']);
 		if($socid === false) return false;
-		
-		if(empty($socid)) {
-			// Recherche si tiers existant dans la base via code prospect WonderBase
-			$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key'], $data[$this->mapping['code_wb']]);
-			if($socid === false) return false;
-		}
 		
 		// Construction de l'objet final
 		$societe = new Societe($db);
@@ -514,26 +467,16 @@ class TImport extends TObjetStd {
 
 	function importLineFactureMateriel(&$ATMdb, $data, &$TInfosGlobale) {
 		global $user, $db;
-		
-		if(empty($TInfosGlobale['fact'][$data[$this->mapping['search_key']]])) {
-			// Recherche si facture existante dans la base
-			$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-			if($facid === false) return false;
-			
-			$TInfosGlobale[$data[$this->mapping['search_key']]] = $facid;
-		} else {
-			$facid = &$TInfosGlobale['fact'][$data[$this->mapping['search_key']]];
-		}
-			
-		if(empty($TInfosGlobale['societe'][$data[$this->mapping['search_key_client']]])) {
-			// Recherche tiers associé à la facture existant dans la base
-			$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
-			if(!$socid) return false;
-			
-			$TInfosGlobales['societe'][$data[$this->mapping['search_key_client']]] = $socid;
-		} else {
-			$socid = &$TInfosGlobale['societe'][$data[$this->mapping['search_key_client']]];
-		}
+
+		// Recherche si facture existante dans la base
+		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']], false, $data['entity']);
+		if($facid === false) return false;
+
+
+		// Recherche tiers associé à la facture existant dans la base
+		$key = !empty($this->artis) ? 'code_artis_'.$this->artis : 'code_artis';
+		$socid = $this->_recherche_fournisseur($ATMdb, $key, '%'.$data[$this->mapping['search_key_client']].'%', false, true, 17); // Recherche du leaser sur base commune
+		if(!$socid) return false;
 		
 		// 2016.11.18 MKO : si la facture matériel ne concerne pas un leaser, on ne l'importe pas, ni le contrat
 		if(!in_array($socid, $TInfosGlobale['TIdLeaser'])) {
@@ -546,6 +489,7 @@ class TImport extends TObjetStd {
 		// Construction de l'objet final
 		$facture_mat = new Facture($db);
 		if($facid > 0) {
+			switchEntity(17); // Permet de fetcher toutes les factures car TEAM admin voit tout
 			$facture_mat->fetch($facid);
 		}
 
@@ -555,13 +499,15 @@ class TImport extends TObjetStd {
 			
 		// Gestion des avoirs
 		if(!empty($data['facture_annulee'])) {
-			$avoirid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']], true);
+			$avoirid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key_fac_annulee']], true, $data['entity']);
 			if($avoirid === false) return false;
 			
 			$facture_mat->type = 2;
 			$facture_mat->fk_facture_source = $avoirid;
 		}
-		
+
+		switchEntity($data['entity']);
+
 		// Création des liens
 		$affaire = new TFin_affaire;
 		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
@@ -569,7 +515,7 @@ class TImport extends TObjetStd {
 			if($facid > 0) {
 				$res = $facture_mat->update($user);
 				// Association à la bonne entity
-				if ($this->getObjectEntity($facture_mat) != $affaire->entity) $this->updateObjectEntity($facture_mat, $affaire->entity);
+				if ($facture_mat->entity != $data['entity']) $this->updateObjectEntity($facture_mat, $data['entity']);
 				
 				// Erreur : la mise à jour n'a pas marché
 				if($res < 0) {
@@ -587,12 +533,16 @@ class TImport extends TObjetStd {
 					return false;
 				} else {
 					// Association à la bonne entity
-					if ($conf->entity != $affaire->entity) $this->updateObjectEntity($facture_mat, $affaire->entity);
+					if ($facture_mat->entity != $data['entity']) $this->updateObjectEntity($facture_mat, $data['entity']);
 					$this->nb_create++;
 					TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture_mat), $facture_mat->id,'create',$data);
 				}
 			}
 			
+			// Si l'affaire n'a pas de nature (INTERNE/EXTERNE), on le déduit du leaser
+			if(empty($affaire->nature_financement)) {
+				$affaire->nature_financement = $this->get_nature_by_leaser($ATMdb, $socid);
+			}
 			
 			// Mise à jour de l'affaire
 			$affaire->montant = $this->validateValue('total_ht',$data['total_ht']);	
@@ -688,7 +638,7 @@ class TImport extends TObjetStd {
 		$ATMdb->Execute("SELECT rowid FROM ".MAIN_DB_PREFIX."element_element WHERE sourcetype = 'affaire' AND targettype = 'facture' AND fk_target = ".$facture_mat->id);
 		
 		if($ATMdb->Get_line()){
-			$this->addError($ATMdb, 'ErrorCreatingLinkAffaireFactureMaterielAlreidyExist', $data['code_affaire']." => ".$facture_mat->ref, 'ERROR');
+			$this->addError($ATMdb, 'ErrorCreatingLinkAffaireFactureMaterielAlreadyExist', $data['code_affaire']." => ".$facture_mat->ref, 'WARNING');
 		}
 		else{
 			// Création du lien facture matériel / affaire financement
@@ -749,33 +699,13 @@ class TImport extends TObjetStd {
 	function importLineFactureLocation(&$ATMdb, $data, &$TInfosGlobale) {
 		global $user, $db;
 		
-		if(!in_array($data['ref_service'], array(
-			'SSC101',
-			'SSC102',
-			'SSC106',
-			'037004',
-			'037003',
-			'033741',
-			'SSC109',
-			'SSC108',
-			'SSC104',
-			'SSC107',
-			'018528',
-			'020021',
-			'SSC128',
-			'SSC151',
-			'SSC132',
-			'055868'
-			))) {
-			//On importe uniquement certaine ref produit
-			//$this->addError($ATMdb, 'InfoRefServiceNotNeededNow', $data['ref_service'], 'WARNING');
-			return false;
-		}
+		// On ne traite que les lignes ayant un code service qui nous intéresse
+		if(! $this->checkCodeService($data['ref_service'])) return false;
 		
 		$firstLine = true;
 
-		$facid = &$TInfosGlobale[$data[$this->mapping['search_key']]];
-		
+		$facid = $TInfosGlobale['newfacture'][$data['entity'].'-'.$data[$this->mapping['search_key']]];
+
 		if($facid){
 			$facture_loc = new Facture($db);
 			$facture_loc->fetch($facid);
@@ -821,15 +751,13 @@ class TImport extends TObjetStd {
 				$dossier->load_affaire($ATMdb);
 				
 				if(!empty($dossier->TLien[0]->affaire) && ($dossier->TLien[0]->affaire->contrat == 'FORFAITGLOBAL' || $dossier->TLien[0]->affaire->contrat == 'INTEGRAL')) {
-					if($data['ref_service'] == '037004') {
+					if($this->checkCodeService($data['ref_service'], 'assurance')) {
 						$dossier->financement->assurance_actualise = $data['total_ht'];
 					}
 					
 					// Addition de différents SSC pour le calcul du montant prestation
 					// Addition de différents SSC pour le calcul du loyer actualisé
-					if(in_array($data['ref_service'], array('SSC124','SSC105','SSC054','SSC05','SSC015','SSC010',
-															'SSC114','SSC004','SSC121','SSC014','SSC118','SSC008',
-															))) {
+					if($this->checkCodeService($data['ref_service'], 'presta')) {
 						if($firstLine) {
 							$dossier->financement->montant_prestation = $data['pu'];
 							$firstLine = false;
@@ -839,8 +767,7 @@ class TImport extends TObjetStd {
 					}
 				
 					// Addition de différents SSC pour le calcul du loyer actualisé
-					if(in_array($data['ref_service'], array('18528','20021','SSC101','SSC102','SSC106','33741'
-															,'SSC104'))) {
+					if($this->checkCodeService($data['ref_service'], 'loyer_actu')) {
 						if($firstLine) {
 							$dossier->financement->loyer_actualise = $data['pu'];
 							$firstLine = false;
@@ -853,8 +780,6 @@ class TImport extends TObjetStd {
 					}
 					
 					$dossier->save($ATMdb);
-					// Association à la bonne entity
-					if ($this->getObjectEntity($facture_loc) != $dossier->entity) $this->updateObjectEntity($facture_loc, $dossier->entity);
 				}
 			}
 		}
@@ -866,13 +791,14 @@ class TImport extends TObjetStd {
 	}
 
 	function importLineFactureIntegrale(&$ATMdb, $data, &$TInfosGlobale) {
-		global $user, $db;
+		global $db;
 		//pre($data,true);
-		
-		if(empty($TInfosGlobale[$data[$this->mapping['search_key']]])) return false;
+
+		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']], false, $data['entity']);
+		if(empty($facid)) return false;
 
 		$facture_loc = new Facture($db);
-		$facture_loc->fetch($TInfosGlobale[$data[$this->mapping['search_key']]]);
+		$facture_loc->fetch($facid);
 		
 		if(empty($TInfosGlobale['integrale'][$facture_loc->ref])) {
 			$facture_loc->fetchObjectLinked('','dossier');
@@ -910,16 +836,7 @@ class TImport extends TObjetStd {
 		//Gère les frais de gestion lié à l'intégrale
 		$this->importILFI_gestion($data,$integrale);
 		
-		$TRefSRVLabelCout = array(	// Copies NB
-									'SSC005'=>'mach',
-									'SSC015'=>'tech',
-									'SSC102'=>'loyer',
-									'SSC106'=>'loyer',
-									// Copies couleur
-									'SSC010'=>'tech'
-									// SSC005, pareil que nb : tech
-									// SSC102 & SSC106, pareil : loyer
-									);
+		$TRefSRVLabelCout = $this->checkCodeService('','label_cout',true);
 		
 		//Gère les copies NOIR
 		$this->importILFI_noir($data,$integrale,$TRefSRVLabelCout);
@@ -964,8 +881,7 @@ class TImport extends TObjetStd {
 		
 		// Gestion des frais divers
 		// FASS
-		$TFASS = array('SSC025', 'SSC054', 'SSC114', 'SSC115', 'SSC121', 'SSC124', 'SSC127','SSC032');
-		if(in_array($data['ref_service'], $TFASS)) {
+		if($this->checkCodeService($data['ref_service'], 'fass')) {
 			if(empty($integrale->fass_somme)) { // Gestion FASS sur plusieurs lignes
 				$integrale->fass	= $data['total_ht'];
 				$integrale->fass_somme = true;
@@ -995,15 +911,15 @@ class TImport extends TObjetStd {
 		}
 		
 		// Frais dossier
-		if($data['ref_service'] == '037003') {
+		if($this->checkCodeService($data['ref_service'], 'frais_dossier')) {
 			$integrale->frais_dossier = $data['total_ht'];
 		}
 		// Frais bris de machine
-		if($data['ref_service'] == '037004') {
+		if($this->checkCodeService($data['ref_service'], 'assurance')) {
 			$integrale->frais_bris_machine	= $data['total_ht'];
 		}
 		// Frais de facturation
-		if($data['libelle_ligne'] == 'FRAIS DE FACTURATION') {
+		if($this->checkCodeService($data['libelle_ligne'], 'frais_facture')) {
 			$integrale->frais_facturation	= $data['total_ht'];
 		}
 	} 
@@ -1012,7 +928,7 @@ class TImport extends TObjetStd {
 	private function importILFI_noir(&$data,&$integrale,&$TRefSRVLabelCout){
 		
 		// ENGAGEMENT NOIR
-		if($data['ref_service'] == 'SSC015' && $data['total_ht'] != 0) {
+		if($this->checkCodeService($data['ref_service'], 'eng_noir') && $data['total_ht'] != 0) {
 			if(empty($integrale->materiel_noir)) {
 				$integrale->materiel_noir = $data['matricule'];
 				$integrale->vol_noir_engage = $data['quantite'];
@@ -1033,11 +949,11 @@ class TImport extends TObjetStd {
 		}
 		
 		// COPIE SUP NOIR
-		if($data['ref_service'] == 'SSC016') {
+		if($this->checkCodeService($data['ref_service'], 'cop_sup_noir')) {
 			$integrale->vol_noir_facture+= $data['quantite'];
 		}
 		// COPIE ECHUES NOIR
-		if($data['ref_service'] == 'SSC017') {
+		if($this->checkCodeService($data['ref_service'], 'cop_ech_noir')) {
 			$integrale->vol_noir_realise += $data['quantite_integrale'];
 			$integrale->vol_noir_facture += $data['quantite'];
 			
@@ -1047,10 +963,8 @@ class TImport extends TObjetStd {
 		
 		// Enregistrement du détail du coût unitaire
 		// Copies noires
-		if(($data['ref_service'] == 'SSC005'
-			|| $data['ref_service'] == 'SSC015'
-			|| $data['ref_service'] == 'SSC102'
-			|| $data['ref_service'] == 'SSC106') && $data['pu'] > 0 && stripos($data['label_integrale'], 'COPIES NB')) {
+		if($this->checkCodeService($data['ref_service'], 'couts_noir') && $data['pu'] > 0
+			&& (stripos($data['label_integrale'], 'COPIES NB') || stripos($data['label_integrale'], 'COPIES N/B'))) {
 			$integrale->{'cout_unit_noir_'.$TRefSRVLabelCout[$data['ref_service']]} = $data['pu'];
 		}
 		
@@ -1059,7 +973,7 @@ class TImport extends TObjetStd {
 	//Gère les copies COULEUR
 	private function importILFI_couleur(&$data,&$integrale,&$TRefSRVLabelCout){
 		// ENGAGEMENT COULEUR
-		if($data['ref_service'] == 'SSC010' && $data['total_ht'] != 0) {
+		if($this->checkCodeService($data['ref_service'], 'eng_coul') && $data['total_ht'] != 0) {
 			if(empty($integrale->materiel_coul)) {
 				$integrale->materiel_coul = $data['matricule'];
 				$integrale->vol_coul_engage = $data['quantite'];
@@ -1076,11 +990,11 @@ class TImport extends TObjetStd {
 				$integrale->cout_unit_coul = $data['cout_integrale'];
 		}
 		// COPIE SUP COULEUR
-		if($data['ref_service'] == 'SSC011') {
+		if($this->checkCodeService($data['ref_service'], 'cop_sup_coul')) {
 			$integrale->vol_coul_facture+= $data['quantite'];
 		}
 		// COPIE ECHUES COULEUR
-		if($data['ref_service'] == 'SSC012') {
+		if($this->checkCodeService($data['ref_service'], 'cop_ech_coul')) {
 			$integrale->vol_coul_realise+= $data['quantite_integrale'];
 			$integrale->vol_coul_facture+= $data['quantite'];
 			
@@ -1090,140 +1004,17 @@ class TImport extends TObjetStd {
 		
 		// Enregistrement du détail du coût unitaire
 		// Copies couleur
-		if(($data['ref_service'] == 'SSC005'
-			|| $data['ref_service'] == 'SSC010'
-			|| $data['ref_service'] == 'SSC102'
-			|| $data['ref_service'] == 'SSC106') && $data['pu'] > 0 && stripos($data['label_integrale'], 'COPIES COULEUR')) {
+		if($this->checkCodeService($data['ref_service'], 'couts_coul') && $data['pu'] > 0 && stripos($data['label_integrale'], 'COPIES COULEUR')) {
 			$integrale->{'cout_unit_coul_'.$TRefSRVLabelCout[$data['ref_service']]} = $data['pu'];
 		}
 
 	}
 
-	function sendAlertEmailIntegrale(&$ATMdb, &$TInfosGlobale) { //TODO delete ??
-		global $conf, $db, $langs;
-		
-		$TMailToSend = array();
-		foreach ($TInfosGlobale['integrale'] as $facnumber => $integrale) {
-			if(empty($TInfosGlobale[$facnumber])) continue;
-			if($integrale->ecart < $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL) continue;
-			
-			// Récupération des informations à envoyer au commercial
-			$sql= "SELECT s.nom, df.reference, d.rowid";
-			$sql.= " FROM llx_facture f";
-			$sql.= " LEFT JOIN llx_societe s ON s.rowid = f.fk_soc";
-			$sql.= " LEFT JOIN llx_element_element ee ON ee.fk_target = f.rowid AND ee.targettype = 'facture'";
-			$sql.= " LEFT JOIN llx_fin_dossier d ON d.rowid = ee.fk_source AND ee.sourcetype = 'dossier'";
-			$sql.= " LEFT JOIN llx_fin_dossier_financement df ON df.fk_fin_dossier = d.rowid";
-			$sql.= " WHERE f.facnumber = ".$facnumber;
-			$sql.= " AND df.type = 'CLIENT'";
-			
-			$ATMdb->Execute($sql);
-			$TRes = $ATMdb->Get_All();
-			$obj = $TRes[0];
-			
-			//Compilation avant envois
-			$data = array(
-				'client' => $obj->nom
-				,'contrat' => $obj->reference
-				,'id_dossier' => $obj->rowid
-				,'facture' => $facnumber
-				,'montant_engage' => $integrale->total_ht_engage
-				,'montant_facture' => $integrale->total_ht_facture
-				,'ecart' => $integrale->ecart
-				,'1-Copieur'=>''
-				,'2-Traceur'=>''
-				,'3-Solution'=>''
-			);
-			
-			// Récupération du destinataire
-			$sql= "SELECT u.rowid as id_user, u.firstname, u.name, u.email, u.login, ";
-			$sql.=" CASE sc.type_activite_cpro WHEN 'Copieur' THEN '1-Copieur' WHEN 'Traceur' THEN '2-Traceur' WHEN 'Solution' THEN '3-Solution' END activite";
-			$sql.= " FROM llx_facture f";
-			$sql.= " LEFT JOIN llx_societe s ON s.rowid = f.fk_soc";
-			$sql.= " LEFT JOIN llx_societe_commerciaux sc ON sc.fk_soc = s.rowid AND sc.type_activite_cpro IN ('Copieur','Traceur','Solution')";
-			$sql.= " LEFT JOIN llx_user u ON u.rowid = sc.fk_user";
-			$sql.= " WHERE f.facnumber = ".$facnumber;
-			$sql.= " ORDER BY activite, u.login";
-			
-			$ATMdb->Execute($sql);
-			$TRes = $ATMdb->Get_All();
-			
-			if(!empty($TRes[0])) {
-				$email = $TRes[0]->email;
-				$name = $TRes[0]->firstname.' '.$TRes[0]->name;
-				$id_user = $TRes[0]->id_user;
-			} else {
-				$email = 'financement@cpro.fr';
-				$name = 'Cellule financement';
-				$id_user = 999999;
-			}
-			
-			foreach($TRes as $user) {
-				if(!empty($data[$user->activite])) {
-					$data[$user->activite].= ', '.$user->login;
-				} else {
-					$data[$user->activite] = $user->login;
-				}
-			}
-			
-			$TMailToSend[$id_user]['usermail'] = $email;
-			$TMailToSend[$id_user]['username'] = $name;
-			$TMailToSend[$id_user]['content'][] = $data;
-		}
-//pre($TMailToSend,true);
-		$contentMail = '';
-		$csvfile = fopen(FIN_IMPORT_FOLDER.'alertesintegrale'.date('Ymd').'.csv', 'w');
-		foreach($TMailToSend as $data) {
-			$tabalert = '<table cellpadding="2">';
-			$tabalert.='<tr>';
-			$tabalert.='<th>Client</th>';
-			$tabalert.='<th>Contrat Artis</th>';
-			$tabalert.='<th>Facture</th>';
-			$tabalert.='<th>Montant engagement</th>';
-			$tabalert.='<th>Montant factur&eacute;</th>';
-			$tabalert.='<th>&Eacute;cart</th>';
-			$tabalert.='<th>Copieur</th>';
-			$tabalert.='<th>Traceur</th>';
-			$tabalert.='<th>Solution</th>';
-			$tabalert.='</tr>';
-			foreach ($data['content'] as $infos) {
-				$link = '<a href="'.dol_buildpath('/financement/dossier_integrale.php?id='.$infos['id_dossier'],2).'">'.$infos['contrat'].'</a>';
-				
-				$tabalert.='<tr>';
-				$tabalert.='<td align="center">'.$infos['client'].'</td>';
-				$tabalert.='<td align="center">'.$link.'</td>';
-				$tabalert.='<td align="center">'.$infos['facture'].'</td>';
-				$tabalert.='<td align="center">'.price($infos['montant_engage'],0,'',1,-1,2).' &euro;</td>';
-				$tabalert.='<td align="center">'.price($infos['montant_facture'],0,'',1,-1,2).' &euro;</td>';
-				$tabalert.='<td align="center">'.price($infos['ecart'],0,'',1,-1,2).' %</td>';
-				$tabalert.='<td align="center">'.$infos['1-Copieur'].'</td>';
-				$tabalert.='<td align="center">'.$infos['2-Traceur'].'</td>';
-				$tabalert.='<td align="center">'.$infos['3-Solution'].'</td>';
-				$tabalert.='</tr>';
-				
-				fputs($csvfile, implode(';', $infos)."\n");
-			}
-			$tabalert.= '</table>';
-			
-			$mailto = $data['usermail'];
-			$mailto = 'financement@cpro.fr';
-			$subjectMail = '[Lease Board] - Alertes facturation int&eacute;grale pour '.$data['username'];
-			$contentMail = $langs->transnoentitiesnoconv('IntegraleEmailAlert', $data['username'], $conf->global->FINANCEMENT_INTEGRALE_ECART_ALERTE_EMAIL, $tabalert).'<br><br>';
-			
-			$r=new TReponseMail($conf->notification->email_from, $mailto, $subjectMail, $contentMail);
-			$r->send(true);
-			
-			//echo "<hr>".$subjectMail."<br>".$contentMail;
-		}
-
-		fclose($csvfile);
-	}
-	
 	function importLineLettrage(&$ATMdb, $data, $mode) {
 		global $user, $db;
 		
 		// Recherche si facture existante dans la base
-		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
+		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']], false, $data['entity']);
 		if(!$facid) return false;
 		
 		// Construction de l'objet final
@@ -1266,54 +1057,8 @@ class TImport extends TObjetStd {
 
 		return true;
 	}
-
-	function importLineFactureLettree(&$ATMdb, $data) {
-		global $user, $db;
-		
-		// Recherche si facture existante dans la base
-		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		if(!$facid) return false;
-		
-		// Construction de l'objet final
-		$facture = new Facture($db);
-		$facture->fetch($facid);
-		$res = $facture->set_paid($user, '', $data['code_lettrage']);
-		if($res < 0) {
-			$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture->error);
-			return false;
-		} else {
-			$this->nb_update++;
-			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture), $facture->id,'update',$data);
-		}
-
-		return true;
-	}
-
-	function importLineFactureRejetee(&$ATMdb, $data) {
-		global $user, $db;
-		
-		// Recherche si facture existante dans la base
-		$facid = $this->_recherche_facture($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
-		if(!$facid) return false;
-		
-		// Construction de l'objet final
-		$facture = new Facture($db);
-		$facture->fetch($facid);
-		$res = $facture->set_unpaid($user);
-		if($res < 0) {
-			$this->addError($ATMdb, 'ErrorWhileUpdatingLine', $data[$this->mapping['search_key']], 'ERROR', 2, $facture->error);
-			return false;
-		} else {
-			$this->nb_update++;
-			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($facture), $facture->id,'update',$data);
-		}
-
-		return true;
-	}
 	
 	function importSoldeClient(&$ATMdb, $data) {
-		global $user, $db;
-		
 		// Si solde à 0, on n'importe pas la donnée, inutile
 		if(empty($data['solde'])) return false;
 		
@@ -1347,7 +1092,7 @@ class TImport extends TObjetStd {
 
 	function importLineAffaire(&$ATMdb, $data, &$TInfosGlobale) {
 		global $user;
-		
+
 		if(empty($TInfosGlobale['user'][$data[$this->mapping['search_key_user']]])) {
 			$fk_user = $this->_recherche_user($ATMdb, $this->mapping['search_key_user'], $data[$this->mapping['search_key_user']]);
 			if($fk_user === false) return false;
@@ -1358,22 +1103,12 @@ class TImport extends TObjetStd {
 			$fk_user = $TInfosGlobale['user'][$data[$this->mapping['search_key_user']]];
 		}
 		
-		if(empty($TInfosGlobales['societe'][$data[$this->mapping['search_key_client']]])) {
-			$fk_soc = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
-			if($fk_soc === false) return false;
-			
-			$TInfosGlobales['societe'][$data[$this->mapping['search_key_client']]] = $fk_soc;
-		} else {
-			$fk_soc = $TInfosGlobales['societe'][$data[$this->mapping['search_key_client']]];
-		}
-		
+		$fk_soc = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true, true, $data['entity']);
+		if($fk_soc === false) return false;
+
 		$a=new TFin_affaire;
 		$a->loadReference($ATMdb, $data[$this->mapping['search_key']]);
-		
-		if(empty($a->entity)) { // On ne renseigne l'entité en auto que lors de la création
-			$a->entity = $this->getEntityByRefAffaire($data[$this->mapping['search_key']]);
-		}
-		
+
 		if($a->fk_soc > 0 && $a->fk_soc != $fk_soc) { // client ne correspond pas
 			$this->addError($ATMdb, 'ErrorClientDifferent', $data[$this->mapping['search_key']]);
 			return false;
@@ -1399,21 +1134,6 @@ class TImport extends TObjetStd {
 		$a->save($ATMdb);
 		
 		return true;
-	}
-
-	public function getEntityByRefAffaire($ref)
-	{
-		if (empty($ref) || empty($this->TEntityByPrefix)) return 1;
-		
-		foreach ($this->TEntityByPrefix as $prefix => $fk_entity)
-		{
-			if (preg_match('/^'.$prefix.'/', $ref))
-			{
-				return $fk_entity;
-			}
-		}
-		
-		return 1;
 	}
 
 	function createProduct($data, $type=0) {
@@ -1467,8 +1187,6 @@ class TImport extends TObjetStd {
 	}
 
 	function importLineMateriel(&$ATMdb, $data) {
-		global $user,$conf;
-	
 		$fk_produit = $this->createProduct($data,0);
 	
 		$TSerial = explode(' - ',$data['serial_number']);
@@ -1493,7 +1211,7 @@ class TImport extends TObjetStd {
 				TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($asset), $asset->getId(),'create',$data);
 			}
 			
-			$asset->entity = $conf->entity;
+			$asset->entity = $data['entity'];
 			
 			$asset->save($ATMdb);
 		}
@@ -1502,8 +1220,6 @@ class TImport extends TObjetStd {
 	}
 
 	function importLineMaterielParc(&$ATMdb, $data) {
-		global $user,$conf;
-		//echo '<hr>'.$data['matricule'].'<hr>';	
 		if(strlen($data['matricule']) < 3) {			
 			return false;
 		} else {
@@ -1559,8 +1275,6 @@ class TImport extends TObjetStd {
 	}
 
 	function importLineCommercial(&$ATMdb, $data, &$TInfosGlobales) { 
-		global $user, $conf, $db;
-
 		if(empty($TInfosGlobales['user'][$data[$this->mapping['search_key']]])) {
 			$fk_user = $this->_recherche_user($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']]);
 			if($fk_user === false) return false;
@@ -1572,7 +1286,7 @@ class TImport extends TObjetStd {
 		}
 		
 		if(empty($TInfosGlobales['societe'][$data[$this->mapping['search_key_client']]])) {
-			$fk_soc = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true);
+			$fk_soc = $this->_recherche_client($ATMdb, $this->mapping['search_key_client'], $data[$this->mapping['search_key_client']], true, true, $data['entity']);
 			if($fk_soc === false) return false;
 			
 			$TInfosGlobales['societe'][$data[$this->mapping['search_key_client']]] = $fk_soc;
@@ -1653,8 +1367,6 @@ class TImport extends TObjetStd {
 	}
 
 	function importDossierInit(&$ATMdb, $data) {
-		global $user, $db;
-		
 		if(empty($data['code_affaire']) || empty($data['reference_dossier_interne']) || empty($data['reference_dossier_leaser'])
 			|| empty($data['montant']) //|| empty($data['leaser_montant'])
 			|| empty($data['periodicite']) || empty($data['duree']) || empty($data['date_debut'])
@@ -1778,7 +1490,7 @@ class TImport extends TObjetStd {
 	}
 
 	function _createFactureFournisseur(&$f, &$d, &$affaire) {
-		global $user, $db, $conf;
+		global $user, $db;
 		
 		$tva = (FIN_TVA_DEFAUT-1)*100;
 		
@@ -1819,12 +1531,6 @@ class TImport extends TObjetStd {
 	}
 
 	function importDossierInitLocPure(&$ATMdb, $data, &$TInfosGlobale) {
-		global $user, $db;
-		
-		//$ATMdb->debug = true;
-		//if($this->nb_lines > 4) return false;
-		//if($data['reference_dossier_interne'] != '04062022') return false;
-		
 		$data['reference_dossier_interne'] = str_pad($data['reference_dossier_interne'], 8, '0', STR_PAD_LEFT);
 		
 		echo $data['reference_dossier_interne'].';';
@@ -1937,6 +1643,7 @@ class TImport extends TObjetStd {
 	}
 	
 	function contructDataTab() {
+		global $conf, $mc;
 		// Construction du tableau de données
 		$data = array();
 		array_walk($this->current_line, 'trim');
@@ -1949,7 +1656,9 @@ class TImport extends TObjetStd {
 		if(isset($this->current_line[9999])) $data['idLeaser'] = $this->current_line[9999];
 		
 		if(isset($this->mapping['more'])) $data = array_merge($data, $this->mapping['more']); // Ajout des valeurs autres
-		
+
+		if(empty($data['entity'])) $data['entity'] = $this->get_data_entity($data); // Entity gérée comme une colonne dans le fichier source
+
 		return $data;
 	}
 	
@@ -1994,60 +1703,202 @@ class TImport extends TObjetStd {
 		return $value;
 	}
 
-	function _recherche_facture(&$ATMdb, $key, $val, $errorNotFound = false) {
-		global $conf;
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'facture',array($key=>$val));
-		
-		$rowid = 0;
-		$num = count($TRes);
-		if($num == 1) { // Enregistrement trouvé, mise à jour
-			$rowid = $TRes[0];
-		} else if($num > 1) { // Plusieurs trouvés, erreur
-			$this->addError($ATMdb, 'ErrorMultipleFactureFound', $val);
-			return false;
-		} else if($errorNotFound) {
-			$this->addError($ATMdb, 'ErrorFactureNotFound', $val);
-			return false;
-		}
-		
-		return $rowid;
-	}
-/*
-	
-	//Nouvelle version de la fonction précédente
-	//Maintenant on recherche une association ref_facture + num_dossier pour gérer la facturation multi-dossiers
-	function _recherche_facture_2(&$ATMdb, $key, $val, $errorNotFound = false) {
-		global $conf;
-		
-		$sql = "SELECT f.rowid
-				FROM ".MAIN_DB_PREFIX."facture as f
-					LEFT JOIN ".MAIN_DB_PREFIX."element_element as ee ON (ee.fk_target = f.rowid AND targettype = 'facture' AND sourcetype = 'dossier')
-					LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier as d ON (d.rowid = ee.fk_source)
-					LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement as df ON (df.fk_fin_dossier = d.rowid)
-				WHERE  df.type = 'CLIENT' AND df.reference = '".$val['reference_dossier_interne']."' AND f.facnumber LIKE '".$val['facnumber']."%'";
-		
-		$TRes = $ATMdb->ExecuteAsArray($sql);
-		
-		$rowid = 0;
-		$num = count($TRes);
-		if($num == 1) { // Enregistrement trouvé, mise à jour
-			$rowid = $TRes[0];
-		} else if($num > 1) { // Plusieurs trouvés, erreur
-			$this->addError($ATMdb, 'ErrorMultipleFactureFound', $val);
-			return false;
-		} else if($errorNotFound) {
-			$this->addError($ATMdb, 'ErrorFactureNotFound', $val);
-			return false;
-		}
-		
-		return $rowid;
-	}
-*/
+	function _recherche_facture(&$ATMdb, $key, $val, $errorNotFound = false, $entity=1) {
+		global $TInfosGlobale;
 
-	function _recherche_client(&$ATMdb, $key, $val, $errorNotFound = false, $errorMultipleFound = true) {
-		global $conf;
-		$TRes = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'societe',array($key=>$val));
+		// On vérifie si la facture n'a pas déjà été trouvée
+		if(!empty($TInfosGlobale['facture'][$entity.'-'.$val])) return $TInfosGlobale['facture'][$entity.'-'.$val];
+
+		$entities = in_array($entity, $this->get_entity_groups()) ? $this->get_entity_groups() : array($entity);
+
+		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'facture';
+		$sql.= ' WHERE '.$key.' LIKE \''.addslashes($val).'\'';
+		if(!empty($entities)) $sql.= ' AND entity IN ('.implode(',', $entities).')';
+
+		$TRes = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 		
+		$rowid = 0;
+		$num = count($TRes);
+		if($num == 1) { // Enregistrement trouvé, mise à jour
+			$rowid = $TRes[0];
+		} else if($num > 1) { // Plusieurs trouvés, erreur
+			$this->addError($ATMdb, 'ErrorMultipleFactureFound', $val);
+			return false;
+		} else if($errorNotFound) {
+			$this->addError($ATMdb, 'ErrorFactureNotFound', $val);
+			return false;
+		}
+
+		$TInfosGlobale['facture'][$entity.'-'.$val] = $rowid;
+		return $rowid;
+	}
+	
+	function _recherche_dossier(&$ATMdb, $refDossier, $errorNotFound = false, $entity=1) {
+		global $TInfosGlobale;
+
+		// On vérifie si le dossier n'a pas déjà été trouvé
+		if(isset($TInfosGlobale['dossier'][$entity.'-'.$refDossier])) return $TInfosGlobale['dossier'][$entity.'-'.$refDossier];
+
+		$sql = 'SELECT d.rowid FROM '.MAIN_DB_PREFIX.'fin_dossier d';
+		$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (d.rowid = df.fk_fin_dossier)';
+		$sql.= ' WHERE df.reference = \''.addslashes($refDossier).'\'';
+		$sql.= ' AND df.type = \'CLIENT\'';
+		$sql.= ' AND d.entity = '.$entity;
+
+		$TRes = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
+		
+		$rowid = 0;
+		$num = count($TRes);
+		if($num == 1) { // Enregistrement trouvé, mise à jour
+			$rowid = $TRes[0];
+		} else if($num > 1) { // Plusieurs trouvés, erreur
+			$this->addError($ATMdb, 'ErrorMultipleDossierFound', $refDossier);
+			$rowid = false;
+		} else if($errorNotFound) {
+			$this->addError($ATMdb, 'ErrorDossierNotFound', $refDossier);
+			$rowid = false;
+		}
+
+		$TInfosGlobale['dossier'][$entity.'-'.$refDossier] = $rowid;
+		return $rowid;
+	}
+
+	/**
+	 * Détection du numéro d'entité Dolibarr en fonction du code organisation ARTIS
+	 *
+	 * @param $data Données de la ligne en cours d'import
+	 * @return int Entité
+	 */
+	function get_data_entity(&$data) {
+		$entity = 1;
+		if($this->artis == 'ouest') { // Artis OUEST
+			if($data['organisation'] == 'ABG') $entity = 5;
+			elseif($data['organisation'] == 'CC') $entity = 7;
+			elseif($data['organisation'] == 'QUADRA') $entity = 9;
+		} else { // Artis AURA
+			if($data['organisation'] == '005') $entity = 2;
+			elseif($data['organisation'] == '010') $entity = 6;
+			elseif($data['organisation'] == '012') $entity = 3;
+			elseif($data['organisation'] == '015') $entity = 10;
+			elseif($data['organisation'] == '016') $entity = 10;
+		}
+		
+		return $entity;
+	}
+
+	function get_entity_groups() {
+		if($this->artis == 'ouest') {
+			$entities = array(5,7,9); // Artis OUEST est utilisé par 5,7 et 9
+		} else {
+			$entities = array(1,2,3,6,10); // Artis AURA est utilisé par 1,2,3,6 et 10
+		}
+
+		return $entities;
+	}
+	
+	function get_nature_by_leaser(&$ATMdb, $socid) {
+		global $db;
+		$cat = new Categorie($db);
+		$Tab = $cat->containing($socid, 1);
+		foreach ($Tab as $leacat) {
+			if($leacat->fk_parent == 2) { // On vérifie la sous-catégorie de "Type de financement"
+				if(in_array($leacat->id, array(3, 4))) return 'INTERNE'; // Mandatée et Adossée = INTERNE
+			}
+		}
+		return 'EXTERNE';
+	}
+	
+	function checkCodeService($ref,$type='all',$retArray=false,$checkKeys=false) {
+		$TArtisEst = array(
+			'all' => array(
+				'SSC101', 'SSC102', 'SSC106', '037004', '037003', '033741',
+				'SSC109', 'SSC108', 'SSC104', 'SSC107', '018528', '020021',
+				'SSC128', 'SSC151', 'SSC132', '055868'
+			),
+			'assurance' => array(
+				'037004'
+			),
+			'presta' => array(
+				'SSC124','SSC105','SSC054','SSC005','SSC015','SSC010',
+				'SSC114','SSC004','SSC121','SSC014','SSC118','SSC008',
+			),
+			'loyer_actu' => array(
+				'18528','20021','SSC101','SSC102','SSC106','33741',
+				'SSC104'
+			),
+			'fass' => array(
+				'SSC025', 'SSC054', 'SSC114', 'SSC115', 'SSC121', 'SSC124',
+				'SSC127','SSC032', 'SSC204'
+			),
+			'frais_dossier' => array('037003'),
+			'frais_facture' => array('FRAIS DE FACTURATION'),
+			'eng_noir' => array('SSC015'),
+			'cop_sup_noir' => array('SSC016'),
+			'cop_ech_noir' => array('SSC017'),
+			'couts_noir' => array('SSC005','SSC015','SSC102','SSC106'),
+			'eng_coul' => array('SSC010'),
+			'cop_sup_coul' => array('SSC011'),
+			'cop_ech_coul' => array('SSC012'),
+			'couts_coul' => array('SSC005','SSC010','SSC102','SSC106'),
+			'label_cout' => array(	
+				'SSC005'=>'mach',
+				'SSC015'=>'tech', // Copies NB
+				'SSC102'=>'loyer',
+				'SSC106'=>'loyer',
+				'SSC010'=>'tech' // Copies couleur
+			)
+		);
+		$TArtisOuest = array(
+			'all' => array(
+				'000001', '000005', '000020', '000021', '000050', '000051',
+				'000053', '000057', '000060', '007117', '010977', '010980',
+				'013537', '013689', '013690', '013691',
+				'013692', '013696', '013697', '013698'
+				//'013828', '013829', '013686'
+			),
+			'assurance' => array('013687'),
+			'presta' => array(),
+			'loyer_actu' => array(),
+			'fass' => array(),
+			'frais_dossier' => array('013696'),
+			'frais_facture' => array('FRAIS DE FACTURE'),
+			'eng_noir' => array('013828'),
+			'cop_sup_noir' => array('000053'),
+			'cop_ech_noir' => array(),
+			'couts_noir' => array('013686','013828','013689'),
+			'eng_coul' => array('013829'),
+			'cop_sup_coul' => array('000057'),
+			'cop_ech_coul' => array(),
+			'couts_coul' => array('013686','013829','013689'),
+			'label_cout' => array(
+				'013686'=>'mach',
+				'013828'=>'tech', // Copies NB
+				'013689'=>'loyer',
+				'013829'=>'tech' // Copies couleur
+			)
+		);
+		
+		$src = $TArtisEst;
+		if($this->artis == 'ouest') $src = $TArtisOuest;
+		
+		if($retArray) return $src[$type];
+		return $checkKeys ? array_key_exists($ref, $src[$type]) : in_array($ref, $src[$type]);
+	}
+
+	function _recherche_client(&$ATMdb, $key, $val, $errorNotFound = false, $errorMultipleFound = true, $entity) {
+		global $TInfosGlobale;
+
+		// On vérifie si le tiers n'a pas déjà été trouvé
+		if(!empty($TInfosGlobale['societe'][$entity.'-'.$val])) return $TInfosGlobale['societe'][$entity.'-'.$val];
+
+		$entities = in_array($entity, $this->get_entity_groups()) ? $this->get_entity_groups() : array($entity);
+
+		$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'societe';
+		$sql.= ' WHERE '.$key.' LIKE \''.addslashes($val).'\'';
+		if(!empty($entities)) $sql.= ' AND entity IN ('.implode(',', $entities).')';
+
+		$TRes = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
+
 		$rowid = 0;
 		$num = count($TRes);
 		if($num == 1) { // Enregistrement trouvé
@@ -2063,7 +1914,41 @@ class TImport extends TObjetStd {
 			$this->addError($ATMdb, 'ErrorClientNotFound', $val);
 			return false;
 		}
+
+		$TInfosGlobale['societe'][$entity.'-'.$val] = $rowid;
+		return $rowid;
+	}
+	
+	function _recherche_fournisseur(&$ATMdb, $key, $val, $errorNotFound = false, $errorMultipleFound = true, $entity=1) {
+		global $TInfosGlobale;
+
+		// On vérifie si le tiers n'a pas déjà été trouvé
+		if(!empty($TInfosGlobale['societe'][$entity.'-'.$val])) return $TInfosGlobale['societe'][$entity.'-'.$val];
+
+		$sql = 'SELECT sext.fk_object FROM '.MAIN_DB_PREFIX.'societe_extrafields sext';
+		$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe s ON (s.rowid = sext.fk_object)';
+		$sql.= ' WHERE '.$key.' LIKE \''.addslashes($val).'\'';
+		if(!empty($entity)) $sql.= ' AND s.entity = '.$entity;
 		
+		$TRes = TRequeteCore::_get_id_by_sql($ATMdb, $sql, 'fk_object');
+
+		$rowid = 0;
+		$num = count($TRes);
+		if($num == 1) { // Enregistrement trouvé
+			$rowid = $TRes[0];
+		} else if($num > 1) { // Plusieurs trouvés
+			if($errorMultipleFound) {
+				$this->addError($ATMdb, 'ErrorMultipleLeaserFound', $val);
+				return false;
+			} else {
+				$rowid = $TRes;
+			}
+		} else if($errorNotFound) { // Non trouvé, erreur seulement si précisé
+			$this->addError($ATMdb, 'ErrorLeaserNotFound', $val);
+			return false;
+		}
+
+		$TInfosGlobale['societe'][$entity.'-'.$val] = $rowid;
 		return $rowid;
 	}
 	
@@ -2087,6 +1972,7 @@ class TImport extends TObjetStd {
 	}
 	
 	function deleteSocieteCommerciauxLinks(&$PDOdb,&$TCommercialCpro){
+		global $conf;
 		
 		//$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe_commerciaux WHERE fk_soc = ".$TCommercialCpro->fk_soc." AND fk_user != ".$TCommercialCpro->fk_user." AND type_activite_cpro = '".$TCommercialCpro->type_activite_cpro."'";
 		// On supprime tous les commerciaux de l'entité sur laquelle on est (par défaut la 1)
@@ -2144,7 +2030,7 @@ class TImport extends TObjetStd {
 		$sql.= 'WHERE paye = 0 ';
 		$sql.= 'AND fk_statut = 1 ';
 		//$sql.= 'AND type = 0 ';
-		$sql.= 'AND entity IN (1,2,3,4,10) ';
+		$sql.= 'AND entity IN ('.implode(',', $this->get_entity_groups()).')';
 		
 		$PDOdb->Execute($sql);
 	}

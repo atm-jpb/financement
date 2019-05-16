@@ -57,7 +57,6 @@ $result=$user->fetch('',DOL_ADMIN_USER);	// Load user for login 'admin'. Comment
 if (! $result > 0) { dol_print_error('',$user->error); exit; }
 $user->getrights();
 
-
 print "***** ".$script_file." (".$version.") *****".$eol;
 print '--- start'.$eol;
 /*print 'Argument 1='.$argv[1].$eol;
@@ -75,20 +74,28 @@ dol_include_once("/financement/class/dossier.class.php");
 dol_include_once("/financement/class/dossier_integrale.class.php");
 dol_include_once("/financement/class/grille.class.php");
 dol_include_once("/financement/class/score.class.php");
+dol_include_once("/financement/lib/financement.lib.php");
 dol_include_once("/asset/class/asset.class.php");
 dol_include_once("/societe/class/societe.class.php");
 dol_include_once("/compta/facture/class/facture.class.php");
 dol_include_once("/product/class/product.class.php");
 dol_include_once("/core/class/html.form.class.php");
-		
+
+switchEntity(17); // Bascule sur l'entité TEAM ADMIN pour avoir la vue globale de l'import
+
+$artis = $argv[1];
+$folder = '';
+if($artis == 'ouest') $folder = 'ouest/';
+
 $ATMdb = new TPDOdb();
 $imp=new TImport();
 $imp->entity = $conf->entity;
 $imp->fk_user_author = $user->id;
+$imp->artis = $artis;
 
 $listOfFileType = $imp->TType_import_interne;
-$importFolder = FIN_IMPORT_FOLDER.'todo/';
-$importFolderOK = FIN_IMPORT_FOLDER.'done/';
+$importFolder = FIN_IMPORT_FOLDER.'todo/'.$folder;
+$importFolderOK = FIN_IMPORT_FOLDER.'done/'.$folder;
 $importFolderMapping = FIN_IMPORT_FOLDER.'mappings/';
 
 // STEP 1 : récupération des fichiers source
@@ -104,31 +111,12 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 	print date('Y-m-d H:i:s').' : Récupération fichiers "'.$filePrefix.'", '.count($filesToImport).' fichier(s) trouvé(s)'.$eol;
 
 	foreach($filesToImport as $fileName) { // Pour chaque fichier à importer
+		switchEntity(17); // Bascule sur l'entité TEAM ADMIN pour avoir la vue globale de l'import
 		$imp->start();
 		$imp->init($fileName, $fileType);
 		$imp->save($ATMdb); // Création de l'import
 		
-		$fileHandler = fopen($importFolder.$fileName, 'r');
-		
-		// Traitement du fichier contenant toutes les factures non payées, on classe d'abord payées toutes les factures Dolibarr
-		if($imp->type_import == 'ecritures_non_lettrees') {
-			$nbfact = filesize($importFolder.$fileName) / 42;
-			if($nbfact < 4000) continue;
-			
-			$imp->classifyPaidAllInvoices($ATMdb);
-		}
-		
-		// Traitement du fichier contenant tous les soldes client, on vide d'abord la table
-		if($imp->type_import == 'solde_client') {
-			$sql = 'TRUNCATE TABLE '.MAIN_DB_PREFIX.'societe_solde';
-			$ATMdb->Execute($sql);
-		}
-		
-		$TInfosGlobale = array();
-		while($dataline = fgetcsv($fileHandler, 4096, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
-			$imp->importLine($ATMdb, $dataline, $TInfosGlobale);
-		}
-		fclose($fileHandler);
+		$imp->importFile($ATMdb, $importFolder.$fileName);
 		
 		$imp->save($ATMdb); // Mise à jour pour nombre de lignes et nombre d'erreurs
 		
