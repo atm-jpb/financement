@@ -1656,8 +1656,8 @@ class TImport extends TObjetStd {
 		if(isset($this->current_line[9999])) $data['idLeaser'] = $this->current_line[9999];
 		
 		if(isset($this->mapping['more'])) $data = array_merge($data, $this->mapping['more']); // Ajout des valeurs autres
-		
-		$data['entity'] = $this->get_data_entity($data); // Entity gérée comme une colonne dans le fichier source
+
+		if(empty($data['entity'])) $data['entity'] = $this->get_data_entity($data); // Entity gérée comme une colonne dans le fichier source
 
 		return $data;
 	}
