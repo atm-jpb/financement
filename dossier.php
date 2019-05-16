@@ -242,7 +242,8 @@
 				$idDossier = GETPOST('id_dossier');
 				$origine = new FactureFournisseur($db);
 				$origine->fetch($idFactureFourn);
-				
+				$curent = $conf->entity;
+                switchEntity($origine->entity);
 				$fact = new FactureFournisseur($db);
 				$idClone = $fact->createFromClone($idFactureFourn);
 				$fact->fetch($idClone);
@@ -257,9 +258,9 @@
 					$line->pu_ht *= -1;
 					$fact->updateline($line->rowid, $line->libelle, $line->pu_ht, $line->tva_tx,0,0,$line->qty,$line->fk_product);
 				}
-				
+
 				$fact->validate($user);
-				
+                switchEntity($curent);
 				// Ajout lien dossier
 				$fact->add_object_linked('dossier', $idDossier);
 
