@@ -11,12 +11,12 @@ dol_include_once('/financement/class/service_financement.class.php');
 $PDOdb = new TPDOdb;
 
 $simulation = new TSimulation(true);
-$simulation->load($PDOdb, 18510);
+$simulation->load($PDOdb, 28310);
 
 //var_dump($conf->global->WEBSERVICES_KEY);
 //exit;
 
-$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[209126]);
+$service = new ServiceFinancement($simulation, $simulation->TSimulationSuivi[291081]);
 
 /*
 $xml_data = new SimpleXMLElement('<?xml version="1.0"?><data></data>');
@@ -43,20 +43,25 @@ function array_to_xml( $data, &$xml_data ) {
 }
 
 
-$service->wsdl = 'https://leaseboard-test.cpro.fr/webservice/scoring_cmcic.php?wsdl';
+$service->wsdl = 'http://127.0.0.1/dolibarr/client/cpro-fin/htdocs/custom/financement/script/webservice/scoring_franfinance.php?wsdl';
 
 // Call the WebService method and store its result in $result.
 $authentication=array(
     'dolibarrkey'=>$conf->global->WEBSERVICES_KEY,
     'sourceapplication'=>'edi_cmcic',
-    'login'=>'cmcic',
-    'password'=>'cmcic'
+    'login'=>'franfinance',
+    'password'=>'d6y4x9k5'
 );
 
 $TParam = array(
-	'partenaire' => array()
-	,'client' => array()
-	,'financement' => array()
+    "numeroDemande" => "115492",
+	"dateDemande"=> "16/05/2019",
+	"numeroSIREN"=> "200072007",
+	"montant"=> "8718.05",
+	"duree" => "66",
+	"codeDecision" => "ACC",
+	"commentaireDecision" => "exemple de commentaire",
+	"dateValiditeDecision" => "XX/XX/XXXX"
 );
 
 try {
@@ -64,7 +69,7 @@ try {
 
 	$soapClient = new nusoap_client($service->wsdl/*, $params_connection*/);
 	
-//	$result = $soapClient->call('repondreDemandeCmCic', array('authentication'=>$authentication, 'TParam' => $TParam), $ns, '');
+	$result = $soapClient->call('ReturnResponseDemFin', array('authentication'=>$authentication, 'TParam' => $TParam), $ns, '');
 
 } catch (SoapFault $e) {
 	var_dump($e);
@@ -86,17 +91,6 @@ echo '<h4>Function</h4>';
 echo 'callTest';
 echo '<h4>SOAP Message</h4>';
 echo '<pre>' . htmlspecialchars($soapClient->request, ENT_QUOTES) . '</pre>';
-
-echo '<hr>';
-
-echo "<h2>Response:</h2>";
-echo '<h4>Result</h4>';
-echo '<pre>';
-print_r($result);
-echo '</pre>';
-echo '<h4>SOAP Message</h4>';
-echo '<pre>' . $soapClient->response, ENT_QUOTES . '</pre>';
-
 
 echo '<hr>';
 
