@@ -178,12 +178,12 @@ function DiffusionDemande($authentication, $ResponseDemFin)
             $result_code='PERMISSION_DENIED';
             $result_label='L\'utilisateur n\'a pas les permissions suffisantes pour cette requête';
         }
-        else if (empty($fuser->array_options['options_fk_leaser_webservice']))
+        /*else if (empty($fuser->array_options['options_fk_leaser_webservice']))
         {
             $error++;
             $result_code='MISSING_CONFIGURATION';
             $result_label='Configuration du compte utilisateur manquante. Le compte n\'est pas associé à un leaser';
-        }
+        }*/
 
         if (empty($error)) // user connecté et qualifié
         {
