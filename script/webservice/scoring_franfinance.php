@@ -21,7 +21,7 @@ require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 // TODO inclure les class nécessaire pour le scoring
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 
-dol_syslog("WEBSERVICE CALL : start calling webservice", LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+dol_syslog("WEBSERVICE CALL : start calling webservice", LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
 
 $langs->setDefaultLang('fr_FR');
 $langs->load("main");
@@ -45,8 +45,7 @@ $server->wsdl->addComplexType(
     array(
         'dolibarrkey' => array('name'=>'dolibarrkey','type'=>'xsd:string'),
     	'login' => array('name'=>'login','type'=>'xsd:string'),
-        'password' => array('name'=>'password','type'=>'xsd:string'),
-        'entity' => array('name'=>'entity','type'=>'xsd:string')
+        'password' => array('name'=>'password','type'=>'xsd:string')
     )
 );
 // Define WSDL Return object
@@ -123,36 +122,30 @@ $styleuse='encoded';   // encoded/literal/literal wrapped
 
 // Register WSDL
 $server->register(
-	'ReturnRespDemFinRequest',
-	array('authentication'=>'tns:authentication','ResponseDemFinShort'=>'tns:ResponseDemFinShort','ResponseDemFinComplete'=>'tns:ResponseDemFinComplete'),
-	array('result'=>'tns:result','date'=>'xsd:dateTime','timezone'=>'xsd:string'),
-	$ns,
-    $ns.'#ReturnRespDemFin',
-    $styledoc,
-    $styleuse,
-    'WS retour de ReturnRespDemFinRequest'
-);
-
-$server->register(
-    'ReturnResponseDemFin',
+    'DiffusionDemande',
     array('authentication'=>'tns:authentication','ResponseDemFin'=>'tns:ResponseDemFinShort'),
     array('result'=>'tns:result','date'=>'xsd:dateTime','timezone'=>'xsd:string'),
     $ns,
-    $ns.'#ReturnRespDemFin',
+    $ns.'#DiffusionDemande',
     $styledoc,
     $styleuse,
-    'WS retour de ReturnResponseDemFin'
+    'WS retour de DiffusionDemande'
 );
 
-function ReturnResponseDemFin($authentication, $ResponseDemFin)
+function DiffusionDemande($authentication, $ResponseDemFin)
 {
     global $db,$conf,$dolibarr_main_authentication,$langs;
     $dolibarr_main_authentication='dolibarr';
 
     $langs->load('financement@financement');
 
-    dol_syslog("1. WEBSERVICE ReturnResponseDemFin called", LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
-    dol_syslog("2. WEBSERVICE ResponseDemFin=".print_r($ResponseDemFinShort, true), LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
+    if (is_string($ResponseDemFin))
+    {
+        $ResponseDemFin = json_decode($ResponseDemFin, true);
+    }
+
+    dol_syslog("1. WEBSERVICE DiffusionDemande called", LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
+    dol_syslog("2. WEBSERVICE ResponseDemFin=".print_r($ResponseDemFin, true), LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
 
     dol_include_once('/financement/class/simulation.class.php');
     dol_include_once('/financement/class/score.class.php');
@@ -203,14 +196,57 @@ function ReturnResponseDemFin($authentication, $ResponseDemFin)
             $commentaire = $ResponseDemFin['commentaireDecision'];
             $validite = $ResponseDemFin['dateValiditeDecision'];
 
-            // récupération du suivi à partir du numéro de demande et du fk_leaser
-            $TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $suivi->get_table(), array('numero_accord_leaser'=>$numdemande, 'fk_leaser' => $fuser->array_options['options_fk_leaser_webservice']));
-            if (!empty($TId[0]))
+            if (empty($numdemande))
             {
-                $suivi->load($PDOdb, $TId[0]);
-                $simulation = &$suivi->simulation;
+                $error++;
+                $result_code = "MISSING_REQUEST_NUMBER";
+                $result_label = "Numéro de demande non-fourni";
+            }
+            elseif (empty($codeDecision) || !in_array($codeDecision,array('ACC', 'ASI', 'RFR', 'RFD', 'ANO')))
+            {
+                $error++;
+                $result_code = "MISSING_CODE_DECISION";
+                $result_label = "Code décision invalide";
+            }
 
+            if (empty($error))
+            {
+                // récupération du suivi à partir du numéro de demande et du fk_leaser
+                $TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $suivi->get_table(), array('b2b_nodef'=>$numdemande));
+                if (!empty($TId[0]))
+                {
+                    $suivi->load($PDOdb, $TId[0]);
 
+                    if (!empty($suivi->commentaire)) $suivi->commentaire.= "\n";
+                    $suivi->commentaire.= $commentaire;
+
+                    switch ($codeDecision)
+                    {
+                        case 'ACC': // ok
+                        case 'ASI': // ok
+                            $suivi->doAction($PDOdb, $simulation, 'accepter');
+                            break;
+
+                        case 'RFR': // ko
+                        case 'RFD': // ko
+                            $suivi->doAction($PDOdb, $simulation, 'refuser');
+                            break;
+
+                        case 'ANO': // err
+                            $suivi->doAction($PDOdb, $simulation, 'erreur');
+                            break;
+                    }
+
+                    $result_code = 'SUCCESS';
+                    $result_label = '"suivi leaser" mis à jour';
+
+                }
+                else
+                {
+                    $error++;
+                    $result_code = "REQUEST_NUMBER_NOT_FOUND";
+                    $result_label= 'Le numéro de demande fourni n\'a pas été trouvé';
+                }
             }
         }
 
@@ -221,7 +257,7 @@ function ReturnResponseDemFin($authentication, $ResponseDemFin)
     $objectresp['timezone'] = $date->getTimezone()->getName();
     $objectresp['result'] = array('result_code' => $result_code, 'result_label' => $result_label);
 
-    dol_syslog("3. WEBSERVICE ReturnResponseDemFin return = ".print_r($objectresp,true), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
+    dol_syslog("3. WEBSERVICE DiffusionDemande return = ".print_r($objectresp,true), LOG_ERR, 0, '_EDI_SCORING_Franfinance');
 
     return $objectresp;
 }
@@ -385,7 +421,7 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 	$objectresp['result'] = array('result_code' => $result_code, 'result_label' => $result_label);
 	
 	dol_syslog("3. WEBSERVICE ReturnRespDemFinRequest return = ".print_r($objectresp,true), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
-	
+
 	return $objectresp;
 }
 

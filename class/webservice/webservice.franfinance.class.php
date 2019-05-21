@@ -35,6 +35,7 @@ class WebServiceFranfinance extends WebService
             if ($resp->code == 201)
             {
                 $this->simulationSuivi->numero_accord_leaser = $resp->numeroDemande;
+                $this->simulationSuivi->b2b_nodef = $resp->numeroDemande;
                 return true;
             }
             else

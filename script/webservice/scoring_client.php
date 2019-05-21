@@ -48,7 +48,7 @@ $service->wsdl = 'http://127.0.0.1/dolibarr/client/cpro-fin/htdocs/custom/financ
 // Call the WebService method and store its result in $result.
 $authentication=array(
     'dolibarrkey'=>$conf->global->WEBSERVICES_KEY,
-    'sourceapplication'=>'edi_cmcic',
+    'sourceapplication'=>'edi_franfinance',
     'login'=>'franfinance',
     'password'=>'d6y4x9k5'
 );
@@ -69,7 +69,7 @@ try {
 
 	$soapClient = new nusoap_client($service->wsdl/*, $params_connection*/);
 	
-	$result = $soapClient->call('ReturnResponseDemFin', array('authentication'=>$authentication, 'TParam' => $TParam), $ns, '');
+	$result = $soapClient->call('DiffusionDemande', array('authentication'=>$authentication, 'TParam' => $TParam), $ns, '');
 
 } catch (SoapFault $e) {
 	var_dump($e);
