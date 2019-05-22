@@ -2296,11 +2296,17 @@ class TSimulationSuivi extends TObjetStd
 
         $iHaveToConfirm = false;
         if(empty($simulation->TSimulationSuivi)) $simulation->load_suivi_simulation($PDOdb);
-        $TSuivi = array_values($simulation->TSimulationSuivi);
-        $firstSuivi = $TSuivi[0];
+        foreach($simulation->TSimulationSuivi as $suivi) {
+            if($suivi->statut == 'WAIT') {
+                $firstSuivi = $suivi;
+                break;
+            }
 
-        // Si le 1er leaser est toujours en étude et qu'on cherche à sélectionner un autre leaser plus bas
-        if($firstSuivi->rowid != $this->rowid && $firstSuivi->statut == 'WAIT') $iHaveToConfirm = true;
+            if($suivi->rowid == $this->rowid) break;    // Aucun leaser "En étude" au dessus de moi
+        }
+
+        // S'il y a un leaser "En étude" au dessus de moi
+        if(isset($firstSuivi) && $firstSuivi->rowid != $this->rowid) $iHaveToConfirm = true;
 
         // TODO ajouter le bouton permettant de refaire un appel webservice, rien d'autre à faire pour un update (en fait si, il faut aussi utiliser le code refactoré de l'appel webservice)
         // le fait que les attributs "b2b_nodef" & "b2b_noweb" soit renseigné sur l'objet permettra de faire appel à la bonne méthode
@@ -2884,9 +2890,18 @@ class TSimulationSuivi extends TObjetStd
             $isDiffBelowMaxDiffPercentage = 0;
 
             if(empty($simu->TSimulationSuivi)) $simu->load_suivi_simulation($PDOdb);
-            $firstSuivi = array_shift($simu->TSimulationSuivi);
+            // On doit prendre non pas le 1er leaser, mais le 1er leaser qui est en étude !
+            foreach($simu->TSimulationSuivi as $suivi) {
+                if($suivi->statut == 'WAIT') {
+                    $firstSuivi = $suivi;
+                    break;
+                }
 
-            if($firstSuivi->rowid == $this->rowid || ($firstSuivi->renta_percent - $this->renta_percent) < $conf->global->FINANCEMENT_MAX_DIFF_RENTA) {
+                if($suivi->rowid == $this->rowid) break;    // Aucun leaser "En étude" au dessus de moi
+            }
+
+            // On peut donner un accord si on est le 1er leaser en étude ou si la différence de renta entre le 1er leaser en étude et moi-même est inférieure à la conf
+            if(! isset($firstSuivi) || ($firstSuivi->renta_percent - $this->renta_percent) < $conf->global->FINANCEMENT_MAX_DIFF_RENTA) {
                 $isDiffBelowMaxDiffPercentage = 1;
             }
         }
