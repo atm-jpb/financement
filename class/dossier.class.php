@@ -2212,9 +2212,22 @@ class TFin_financement extends TObjetStd
         }
     }
 
-    function loadReference(&$db, $reference, $type = 'LEASER') {
-        $Tab = TRequeteCore::get_id_from_what_you_want($db, $this->get_table(), array('reference' => $reference, 'type' => $type));
-        if(count($Tab) > 0) return $this->load($db, $Tab[0]);
+    function loadReference(&$PDOdb, $reference, $type = 'LEASER', $entity = null) {
+        global $db;
+
+        $sql = 'SELECT df.rowid';
+        $sql .= ' FROM '.MAIN_DB_PREFIX.'fin_dossier_financement df';
+        $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX."fin_dossier d ON (df.fk_fin_dossier=d.rowid AND df.type='".$db->escape($type)."')";
+        $sql .= " WHERE df.reference LIKE '".$db->escape($reference)."'";
+        if(! is_null($entity) && is_numeric($entity)) $sql .= ' AND d.entity = '.$entity;
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        if($obj = $db->fetch_object($resql)) return $this->load($PDOdb, $obj->rowid);
 
         return false;
     }
