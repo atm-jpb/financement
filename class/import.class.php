@@ -510,7 +510,7 @@ class TImport extends TObjetStd {
 
 		// Création des liens
 		$affaire = new TFin_affaire;
-		if($affaire->loadReference($ATMdb, $data['code_affaire'])) {
+		if($affaire->loadReference($ATMdb, $data['code_affaire'], false, $data['entity'])) {
 			// Mise à jour ou création de la facture
 			if($facid > 0) {
 				$res = $facture_mat->update($user);
@@ -556,7 +556,7 @@ class TImport extends TObjetStd {
 				$serial = trim($serial);
 				
 				$asset=new TAsset;
-				if($asset->loadReference($ATMdb, $serial)) {
+				if($asset->loadReference($ATMdb, $serial, $data['entity'])) {
 					$asset->fk_soc = $affaire->fk_soc;
 					// Association à la bonne entity
 					$asset->entity = $affaire->entity;
@@ -574,9 +574,9 @@ class TImport extends TObjetStd {
 			
 			// Création du dossier de financement si non existant
 			$financement=new TFin_financement;
-			if(!empty($data['reference_dossier_interne']) && !$financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT')) {
+			if(!empty($data['reference_dossier_interne']) && !$financement->loadReference($ATMdb, $data['reference_dossier_interne'],'CLIENT', $data['entity'])) {
 				$dossier = new TFin_dossier;
-				if(!$dossier->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'])) {
+				if(!$dossier->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'], $data['entity'])) {
 					if($dossier->addAffaire($ATMdb, $affaire->getId())) {
 						// Association à la bonne entity
 						$dossier->entity = $affaire->entity;
@@ -1107,7 +1107,7 @@ class TImport extends TObjetStd {
 		if($fk_soc === false) return false;
 
 		$a=new TFin_affaire;
-		$a->loadReference($ATMdb, $data[$this->mapping['search_key']]);
+		$a->loadReference($ATMdb, $data[$this->mapping['search_key']], false, $data['entity']);
 
 		if($a->fk_soc > 0 && $a->fk_soc != $fk_soc) { // client ne correspond pas
 			$this->addError($ATMdb, 'ErrorClientDifferent', $data[$this->mapping['search_key']]);
@@ -1224,7 +1224,7 @@ class TImport extends TObjetStd {
 			return false;
 		} else {
 			$asset=new TAsset;
-			$asset->loadReference($ATMdb,$data['matricule']);
+			$asset->loadReference($ATMdb,$data['matricule'], $data['entity']);
 			
 			// Matériel existe déjà, vérification si c'est sur le même contrat et même entité
 			if($asset->getId() > 0) {
@@ -1246,7 +1246,7 @@ class TImport extends TObjetStd {
 				
 			} else { // Création du matériel et rattachement au contrat
 				$fin = new TFin_financement();
-				$fin->loadReference($ATMdb, $data['reference']);
+				$fin->loadReference($ATMdb, $data['reference'], $data['entity']);
 				
 				if($fin->getId() > 0) {
 					$doss = new TFin_dossier();
@@ -1326,7 +1326,7 @@ class TImport extends TObjetStd {
 		global $user, $db;
 		
 		// Recherche si tiers existant dans la base
-		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']], true, false);
+		$socid = $this->_recherche_client($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']], true, false, $data['entity']);
 		if($socid === false) return false;
 		
 		if(!is_array($socid)) $socid = array($socid);
@@ -1391,7 +1391,7 @@ class TImport extends TObjetStd {
 		// Chargement de l'affaire
 		$affaire = new TFin_affaire;
 		$found = false;
-		if($affaire->loadReference($ATMdb, $data['code_affaire'], true)) {
+		if($affaire->loadReference($ATMdb, $data['code_affaire'], true, $data['entity'])) {
 			// Vérification client
 			if(!empty($data['code_client']) && $affaire->societe->code_client != $data['code_client']) {
 				$this->addError($ATMdb, 'ErrorClientDifferent', $data['code_affaire'].' - '.$data['code_client'], 'WARNING');
@@ -1419,7 +1419,7 @@ class TImport extends TObjetStd {
 		
 		if(!$found) {
 			$doss = new TFin_dossier;
-			if($doss->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'], true)) { // Dossier existe, âs rattaché à l'affaire attendue
+			if($doss->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'], true, $data['entity'])) { // Dossier existe, âs rattaché à l'affaire attendue
 				$this->addError($ATMdb, 'InfoWrongAffaireForDossier', $data['code_affaire'], 'WARNING');
 				if(!empty($doss->TLien[0])) {
 					$affaire = &$doss->TLien[0]->affaire;
@@ -1537,11 +1537,11 @@ class TImport extends TObjetStd {
 		//pre($data,true);
 		
 		$d = new TFin_dossier();
-		$d->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'], true);
+		$d->loadReferenceContratDossier($ATMdb, $data['reference_dossier_interne'], true, $data['entity']);
 		if($d->getId() == 0) {
 		
 			$fin = new TFin_financement();
-			$fin->loadReference($ATMdb, $data['reference_dossier_interne'], 'CLIENT');
+			$fin->loadReference($ATMdb, $data['reference_dossier_interne'], 'CLIENT', $data['entity']);
 			
 			if($fin->getId() == 0) {
 				echo 'ERR : dossier inconnu<br>';
