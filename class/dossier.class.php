@@ -63,9 +63,9 @@ class TFin_dossier extends TObjetStd
 
     function loadReferenceContratDossier(&$db, $reference, $annexe = false, $entity = null) {
         $checkEntity = '';
-        if(! is_null($entity) && is_numeric($entity) $checkEntity .= ' AND entity = '.$entity;
+        if(! is_null($entity) && is_numeric($entity)) $checkEntity .= ' AND entity = '.$entity;
 
-        $db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference_contrat_interne='".$reference."'".$entity);
+        $db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference_contrat_interne='".$reference."'".$checkEntity);
 
         if($db->Get_line()) {
             return $this->load($db, $db->Get_field('rowid'), $annexe);
