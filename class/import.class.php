@@ -510,7 +510,7 @@ class TImport extends TObjetStd {
 
 		// Création des liens
 		$affaire = new TFin_affaire;
-		if($affaire->loadReference($ATMdb, $data['code_affaire'], $data['entity'])) {
+		if($affaire->loadReference($ATMdb, $data['code_affaire'], false, $data['entity'])) {
 			// Mise à jour ou création de la facture
 			if($facid > 0) {
 				$res = $facture_mat->update($user);
@@ -1107,7 +1107,7 @@ class TImport extends TObjetStd {
 		if($fk_soc === false) return false;
 
 		$a=new TFin_affaire;
-		$a->loadReference($ATMdb, $data[$this->mapping['search_key']], $this->mapping, $data['entity']);
+		$a->loadReference($ATMdb, $data[$this->mapping['search_key']], false, $data['entity']);
 
 		if($a->fk_soc > 0 && $a->fk_soc != $fk_soc) { // client ne correspond pas
 			$this->addError($ATMdb, 'ErrorClientDifferent', $data[$this->mapping['search_key']]);
