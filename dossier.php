@@ -21,10 +21,13 @@
 	$langs->load('financement@financement');
 	
 	if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
-	
+
+	$confirm = GETPOST('confirm');
+
 	$dossier=new TFin_Dossier;
 	$PDOdb=new TPDOdb;
 	$tbs = new TTemplateTBS;
+	$form = new Form($db);
 	
 	$mesg = '';
 	$error=false;
@@ -195,20 +198,23 @@
                 $fk_leaser = GETPOST('fk_leaser');
 
                 $dt = TFinDossierTransfertXML::create($fk_leaser);
-//                if($fk_leaser == 21382) {
-//                    $dt = new TFinTransfertCMCIC($fk_leaser);
-//                }
-//                else if($fk_leaser == 19483) {
-//                    $dt = new TFinTransfertLixxbail($fk_leaser);
-//                }
 				$filePath = $dt->transfertXML($PDOdb);
 				
 				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=".$conf->entity."&file=".$filePath,2));
 				
 				break;
-			
+
+            case 'confirm_generateXMLandupload':
+                _liste($PDOdb, $dossier);
+
+                $question = 'Etes-vous certain de vouloir générer puis uploader le fichier XML ?';
+                print $form->formconfirm($_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser, 'Dossiers', $question, 'generateXMLandupload', '', 'no', 1);
+                break;
 			case 'generateXMLandupload':
-				
+				if($confirm != 'yes') {
+				    header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
+				    exit;
+                }
 				dol_include_once('/financement/class/dossier_transfert_xml.class.php');
                 $dtx = TFinDossierTransfertXML::create($fk_leaser, true);
 				$filePath = $dtx->transfertXML($PDOdb);
@@ -220,8 +226,18 @@
 				<?php
 				
 				break;
+            case 'confirm_setnottransfer':
+                _liste($PDOdb, $dossier);
+
+                $question = 'Etes-vous certain de vouloir rendre non transférable les dossiers ?';
+                print $form->formconfirm($_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser, 'Dossiers', $question, 'setnottransfer', '', 'no', 1);
+                break;
 				
 			case 'setnottransfer':
+                if($confirm != 'yes') {
+                    header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
+                    exit;
+                }
 				
 				dol_include_once('/financement/class/dossier_transfert_xml.class.php');
 				$dtx = TFinDossierTransfertXML::create($fk_leaser, true);
@@ -526,8 +542,8 @@ function _liste(&$PDOdb, &$dossier) {
 		<div class="tabsAction">
 				<a href="?action=exportXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Exporter</a>
 				<a href="?action=generateXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Télécharger le XML</a>
-				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Envoyer le XML</a>
-				<a href="?action=setnottransfer&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre les dossiers non transférables</a>
+				<a href="?action=confirm_generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Envoyer le XML</a>
+				<a href="?action=confirm_setnottransfer&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Rendre les dossiers non transférables</a>
 		</div>
 		<?php
 	}
