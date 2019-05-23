@@ -1126,7 +1126,11 @@ class TSimulation extends TObjetStd
     }
 
     function gen_simulation_pdf(&$ATMdb, &$doliDB) {
-        global $mysoc;
+        global $mysoc, $conf;
+
+        $old_entity = $conf->entity;
+        switchEntity($this->entity);    // $conf and $mysoc may be changed
+
         $a = new TFin_affaire;
         $f = new TFin_financement;
 
@@ -1214,7 +1218,6 @@ class TSimulation extends TObjetStd
         else $simu2->coeff_by_periodicite = $simu2->coeff; // TRIMESTRE
 
         // Récupération du logo de l'entité correspondant à la simulation
-        switchEntity($this->entity);    // $conf and $mysoc may be changed
         $logo = DOL_DATA_ROOT.'/'.(($this->entity > 1) ? $this->entity.'/' : '').'mycompany/logos/'.$mysoc->logo;
         $simu2->logo = $logo;
 
@@ -1246,13 +1249,18 @@ class TSimulation extends TObjetStd
         ob_start();
         system($cmd);
         $res = ob_get_clean();
+
+        switchEntity($old_entity);    // $conf and $mysoc may be changed
     }
 
     /**
      * Fonction spécifique à ESUS qi demande des infos en plus dans un autre PDF...
      */
     function gen_simulation_pdf_esus(&$ATMdb, &$doliDB) {
-        global $mysoc, $TLeaserCat, $db;
+        global $mysoc, $TLeaserCat, $db, $conf;
+
+        $old_entity = $conf->entity;
+        switchEntity($this->entity);    // $conf and $mysoc may be changed
 
         if(empty($TLeaserCat)) {
             $sql = 'SELECT cf.fk_societe as fk_soc, cf.fk_categorie as fk_cat';
@@ -1370,7 +1378,6 @@ class TSimulation extends TObjetStd
         else $simu2->coeff_by_periodicite = $simu2->coeff; // TRIMESTRE
 
         // Récupération du logo de l'entité correspondant à la simulation
-        switchEntity($this->entity);    // $conf and $mysoc may be changed
         $logo = DOL_DATA_ROOT.'/'.(($this->entity > 1) ? $this->entity.'/' : '').'mycompany/logos/'.$mysoc->logo;
         $simu2->logo = $logo;
 
@@ -1402,6 +1409,8 @@ class TSimulation extends TObjetStd
         ob_start();
         system($cmd);
         $res = ob_get_clean();
+
+        switchEntity($old_entity);    // $conf and $mysoc may be changed
     }
 
     function _calcul(&$ATMdb, $mode = 'calcul', $options = array(), $forceoptions = false) {
