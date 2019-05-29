@@ -219,7 +219,7 @@ if(!empty($action)) {
 			$simulation->clone_simu();
 			$simulation->save($ATMdb, $db, false);
 			
-			header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->getId());
+			header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->getId().'&action=edit');
 			exit();
 			
 			break;

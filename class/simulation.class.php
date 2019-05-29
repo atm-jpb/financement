@@ -2057,6 +2057,8 @@ class TSimulation extends TObjetStd
     }
 
     function clone_simu() {
+        global $langs;
+
         $this->start();
         $this->TSimulationSuivi = array();
         $this->TSimulationSuiviHistorized = array();
@@ -2075,6 +2077,18 @@ class TSimulation extends TObjetStd
         // Pas d'appel auto aux EDI sur un clone
         $this->no_auto_edi = true;
         $this->fk_action_manuelle = 0;
+
+        // On vide les sélection de solde de dossier pour forcer à revalider les dossiers à solder
+        if($this->has_solde_dossier_selected()) setEventMessages($langs->trans('SimuCheckSoldesAfterClone'), '', 'warnings');
+        $this->dossiers = array();
+        $this->dossiers_rachetes_m1 = array();
+        $this->dossiers_rachetes_nr_m1 = array();
+        $this->dossiers_rachetes = array();
+        $this->dossiers_rachetes_p1 = array();
+        $this->dossiers_rachetes_nr = array();
+        $this->dossiers_rachetes_nr_p1 = array();
+        $this->dossiers_rachetes_perso = array();
+        $this->montant_rachete = 0;
     }
 
     function hasOtherSimulationRefused(&$PDOdb) {
