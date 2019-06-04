@@ -1,5 +1,8 @@
 <?php
 
+require __DIR__ . '/../../vendor/autoload.php';
+use \Curl\Curl;
+
 class WebServiceFranfinance extends WebService
 {
 
@@ -15,6 +18,30 @@ class WebServiceFranfinance extends WebService
 
         $data = $this->getBody();
 
+        // @see http://www.robertprice.co.uk/robblog/posting-json-to-a-web-service-with-php/
+//        $post = file_get_contents($this->wsdl,null, stream_context_create(array(
+//            'http' => array(
+//                'protocol_version' => 1.1
+////                ,'user_agent'       => 'PHPExample'
+//                ,'method'           => 'POST'
+//                ,'header'           => "Content-type: application/json\r\n".
+//                                        "Connection: close\r\n" .
+//                                        "Content-length: " . strlen($data) . "\r\n" .
+//                                        "Authorization: Basic ".base64_encode($conf->global->FINANCEMENT_FRANFINANCE_USERNAME.":".$conf->global->FINANCEMENT_FRANFINANCE_PASSWORD)."\r\n"
+//            ,'content'          => $data,
+//
+//            )
+//        )));
+//
+//        if ($post) {
+//            echo $post;
+//        } else {
+//            echo "POST failed";
+//        }
+//        var_dump($post);
+//        exit;
+//exit;
+
         dol_syslog("WEBSERVICE SENDING FRANFINANCE : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_FRANFINANCE');
 
         $res = $this->CallAPI(
@@ -22,7 +49,7 @@ class WebServiceFranfinance extends WebService
             ,$this->wsdl
             ,$data
         );
-
+//var_dump($this->curl->body);exit;
         if ($res)
         {
             $this->simulationSuivi->numero_accord_leaser = '';
@@ -54,54 +81,70 @@ class WebServiceFranfinance extends WebService
     function CallAPI($method, $url, $data = false)
     {
         global $conf;
-        $curl = curl_init();
+//        $curl = curl_init();
+//        var_dump(json_decode($data, true));exit;
+        $curl = new Curl();
+        $curl->setBasicAuthentication($conf->global->FINANCEMENT_FRANFINANCE_USERNAME, $conf->global->FINANCEMENT_FRANFINANCE_PASSWORD);
         //var_dump(array($method, $url, $data));
 
-        switch ($method)
-        {
-            case "POST":
-                curl_setopt($curl, CURLOPT_POST, 1);
-
-                if ($data)
-                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-                break;
-            case "PUT":
-                curl_setopt($curl, CURLOPT_PUT, 1);
-                break;
-            default:
-                if ($data)
-                    $url = sprintf("%s?%s", $url, http_build_query($data));
-        }
+//        switch ($method)
+//        {
+//            case "POST":
+//                curl_setopt($curl, CURLOPT_POST, 1);
+//
+//                if ($data)
+//                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+//                break;
+//            case "PUT":
+//                curl_setopt($curl, CURLOPT_PUT, 1);
+//                break;
+//            default:
+//                if ($data)
+//                    $url = sprintf("%s?%s", $url, http_build_query($data));
+//        }
 
         // Optional Authentication:
 
-        $headr = array();
-        $headr[] = 'Content-length: '.strlen($data);
-        $headr[] = 'Content-type: application/json';
+//        $headr = array();
+//        $headr[] = 'Content-length: '.strlen($data);
+//        $headr[] = 'Content-type: application/json';
 
-        curl_setopt($curl, CURLOPT_HTTPHEADER,$headr);
+        $curl->setHeader('Content-Length', strlen($data));
+        $curl->setHeader('Content-Type', 'application/json');
 
-        curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-        curl_setopt($curl, CURLOPT_USERPWD, $conf->global->FINANCEMENT_FRANFINANCE_USERNAME.":".$conf->global->FINANCEMENT_FRANFINANCE_PASSWORD);
+//        curl_setopt($curl, CURLOPT_HTTPHEADER,$headr);
+//
+//        curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+//        curl_setopt($curl, CURLOPT_USERPWD, $conf->global->FINANCEMENT_FRANFINANCE_USERNAME.":".$conf->global->FINANCEMENT_FRANFINANCE_PASSWORD);
 
-        curl_setopt($curl, CURLOPT_HEADER, true);
+//        curl_setopt($curl, CURLOPT_HEADER, true);
 
-        curl_setopt($curl, CURLOPT_VERBOSE, true);
+//        curl_setopt($curl, CURLOPT_VERBOSE, true);
 
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+//        curl_setopt($curl, CURLOPT_URL, $url);
+//        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+//        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
 
-        $this->curl->result = curl_exec($curl);
+//        $this->curl->result = curl_exec($curl);
 
+//        $curl->setDefaultJsonDecoder($assoc = true);
+        $curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
+        $this->curl->result = $curl->post($this->wsdl, $data);
+//var_dump($this->curl->result);
+//        $curl->close();
+//exit;
         if (!$this->curl->result)
-            $this->curl->error = curl_error($curl);
+            $this->curl->error = $curl->getErrorMessage(); //curl_error($curl);
 
-        $this->curl->header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
-        $this->curl->header = substr($this->curl->result, 0, $this->curl->header_size);
-        $this->curl->body = substr($this->curl->result, $this->curl->header_size);
+//        $this->curl->header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+        $this->curl->header_size = $curl->getInfo(CURLINFO_HEADER_SIZE);
+//        $this->curl->header = substr($this->curl->result, 0, $this->curl->header_size);
+        $this->curl->header = $curl->getResponseHeaders();
+//        $this->curl->body = substr($this->curl->result, $this->curl->header_size);
+        $this->curl->body = $curl->getResponse();
 
-        curl_close($curl);
+//        curl_close($curl);
+        $curl->close();
 
         return $this->curl->result;
     }
