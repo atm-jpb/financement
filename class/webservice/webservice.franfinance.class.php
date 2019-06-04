@@ -1,8 +1,5 @@
 <?php
 
-require __DIR__ . '/../../vendor/autoload.php';
-use \Curl\Curl;
-
 class WebServiceFranfinance extends WebService
 {
 
@@ -17,48 +14,41 @@ class WebServiceFranfinance extends WebService
 		if ($this->debug) var_dump('DEBUG :: Function callFRANFINANCE(): Production = '.json_encode($this->production).' ; WSDL = '.$this->wsdl.' ; endpoint = '.$this->endpoint);
 
         $data = $this->getBody();
+        $data_json = json_encode($data);
 
         // @see http://www.robertprice.co.uk/robblog/posting-json-to-a-web-service-with-php/
-//        $post = file_get_contents($this->wsdl,null, stream_context_create(array(
-//            'http' => array(
-//                'protocol_version' => 1.1
-////                ,'user_agent'       => 'PHPExample'
-//                ,'method'           => 'POST'
-//                ,'header'           => "Content-type: application/json\r\n".
-//                                        "Connection: close\r\n" .
-//                                        "Content-length: " . strlen($data) . "\r\n" .
-//                                        "Authorization: Basic ".base64_encode($conf->global->FINANCEMENT_FRANFINANCE_USERNAME.":".$conf->global->FINANCEMENT_FRANFINANCE_PASSWORD)."\r\n"
-//            ,'content'          => $data,
-//
-//            )
-//        )));
-//
-//        if ($post) {
-//            echo $post;
-//        } else {
-//            echo "POST failed";
-//        }
-//        var_dump($post);
-//        exit;
-//exit;
+        // @see https://stackoverflow.com/questions/15076819/file-get-contents-ignoring-verify-peer-false
+        $options = array(
+            'http' => array(
+                'protocol_version' => 1.1
+                ,'method' => 'POST'
+                ,'header' =>
+                    "Content-Type: application/json\r\n".
+                    "Content-Length: ".strlen($data_json)."\r\n".
+                    "Accept: */*\r\n".
+                    "Connection: close\r\n".
+                    "Authorization: Basic ".base64_encode($conf->global->FINANCEMENT_FRANFINANCE_USERNAME.":".$conf->global->FINANCEMENT_FRANFINANCE_PASSWORD)."\r\n"
+                ,'content' => $data_json
+                ,"timeout" => (float)10.0
+            )
+            ,'ssl'=>array(
+                'allow_self_signed' => true
+                ,'verify_peer' => false
+                ,'verify_peer_name' => false
+            )
+        );
 
+        $context  = stream_context_create($options);
+        $res = file_get_contents($this->wsdl,null, $context);
+//var_dump($res);exit;
         dol_syslog("WEBSERVICE SENDING FRANFINANCE : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_FRANFINANCE');
 
-        $res = $this->CallAPI(
-            'POST'
-            ,$this->wsdl
-            ,$data
-        );
-//var_dump($this->curl->body);exit;
         if ($res)
         {
             $this->simulationSuivi->numero_accord_leaser = '';
             $this->simulationSuivi->commentaire = '';
 
-//            var_dump($this->curl->header_size, $this->curl->header, $this->curl->body);
-//            var_dump(json_decode($this->curl->body));
-            $resp = json_decode($this->curl->body);
-
+            $resp = json_decode($res);
             if ($resp->code == 201)
             {
                 $this->simulationSuivi->numero_accord_leaser = $resp->numeroDemande;
@@ -78,77 +68,6 @@ class WebServiceFranfinance extends WebService
 		return false;
 	}
 
-    function CallAPI($method, $url, $data = false)
-    {
-        global $conf;
-//        $curl = curl_init();
-//        var_dump(json_decode($data, true));exit;
-        $curl = new Curl();
-        $curl->setBasicAuthentication($conf->global->FINANCEMENT_FRANFINANCE_USERNAME, $conf->global->FINANCEMENT_FRANFINANCE_PASSWORD);
-        //var_dump(array($method, $url, $data));
-
-//        switch ($method)
-//        {
-//            case "POST":
-//                curl_setopt($curl, CURLOPT_POST, 1);
-//
-//                if ($data)
-//                    curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-//                break;
-//            case "PUT":
-//                curl_setopt($curl, CURLOPT_PUT, 1);
-//                break;
-//            default:
-//                if ($data)
-//                    $url = sprintf("%s?%s", $url, http_build_query($data));
-//        }
-
-        // Optional Authentication:
-
-//        $headr = array();
-//        $headr[] = 'Content-length: '.strlen($data);
-//        $headr[] = 'Content-type: application/json';
-
-        $curl->setHeader('Content-Length', strlen($data));
-        $curl->setHeader('Content-Type', 'application/json');
-
-//        curl_setopt($curl, CURLOPT_HTTPHEADER,$headr);
-//
-//        curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-//        curl_setopt($curl, CURLOPT_USERPWD, $conf->global->FINANCEMENT_FRANFINANCE_USERNAME.":".$conf->global->FINANCEMENT_FRANFINANCE_PASSWORD);
-
-//        curl_setopt($curl, CURLOPT_HEADER, true);
-
-//        curl_setopt($curl, CURLOPT_VERBOSE, true);
-
-//        curl_setopt($curl, CURLOPT_URL, $url);
-//        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-//        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-
-//        $this->curl->result = curl_exec($curl);
-
-//        $curl->setDefaultJsonDecoder($assoc = true);
-        $curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
-        $this->curl->result = $curl->post($this->wsdl, $data);
-//var_dump($this->curl->result);
-//        $curl->close();
-//exit;
-        if (!$this->curl->result)
-            $this->curl->error = $curl->getErrorMessage(); //curl_error($curl);
-
-//        $this->curl->header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
-        $this->curl->header_size = $curl->getInfo(CURLINFO_HEADER_SIZE);
-//        $this->curl->header = substr($this->curl->result, 0, $this->curl->header_size);
-        $this->curl->header = $curl->getResponseHeaders();
-//        $this->curl->body = substr($this->curl->result, $this->curl->header_size);
-        $this->curl->body = $curl->getResponse();
-
-//        curl_close($curl);
-        $curl->close();
-
-        return $this->curl->result;
-    }
-
 	/**
 	 * Return json content of the request
 	 */
@@ -157,41 +76,33 @@ class WebServiceFranfinance extends WebService
 
 //        print '<pre>';
 //        var_dump($this->simulation); exit;
-
         $sirenClient = $this->simulation->societe->idprof1;
         if (empty($sirenClient)) $sirenClient = substr($this->simulation->societe->idprof2, 0, 9);
-        $json = '{';
 
-        $json.= '"media": "WSFL",';
-        $json.= '"loginVendeur": "WSCPRO1",';
-        // bloc demande
-        $json.= '"demande": {';
-        $json.= '"duree": "'.$this->getDuree().'",';
-        $json.= '"montant": "'.$this->simulation->montant.'",';
-        $json.= '"nature": "LF",';
-        $json.= '"numeroSiren": "'.$sirenClient.'",';
+        $data = new stdClass();
+        $data->media = 'WSFL';
+        $data->loginVendeur = 'WSCPRO1';
 
-        // bloc Plan Financement dans demande
-        $json.= '"blocPlanFinancement": {';
-        $json.= '"premierLoyer": "0",';
-        $json.= '"codeAmortissement": "L",';
-        $json.= '"vr": "'.$this->simulation->pct_vr.'"';
-        $json.= '},'; // fin bloc plan
+        $data->demande = new stdClass();
+        $data->demande->duree = $this->getDuree();
+        $data->demande->montant = $this->simulation->montant;
+        $data->demande->nature = 'LF';
+        $data->demande->numeroSiren = $sirenClient;
 
-        // bloc matériel dans demande
-        $json.= '"blocMateriel": {';
-        $json.= '"codeInseeMateriel": "300121",';
-        $json.= '"materielOccasion": "false",';
-        //$json.= '"anneeMateriel": "'.date("Y").'",';
-        $json.= '"codeNiveauUtilisationMateriel": "NEU",';
-        $json.= '"codeNiveauOptionsMateriel": "NEU",';
-        $json.= '"nombreMateriel": "1"';
-        $json.= '}'; // fin matériel
+        $data->demande->blocPlanFinancement = new stdClass();
+        $data->demande->blocPlanFinancement->premierLoyer = '0';
+        $data->demande->blocPlanFinancement->codeAmortissement = 'L';
+        $data->demande->blocPlanFinancement->vr = $this->simulation->pct_vr;
 
-        $json.= '}'; // fin demande
-        $json.= '}'; // fin corp de requête
+        $data->demande->blocMateriel = new stdClass();
+        $data->demande->blocMateriel->codeInseeMateriel = '300121';
+        $data->demande->blocMateriel->materielOccasion = false;
+//        $data->demande->blocMateriel->anneeMateriel = date("Y");
+        $data->demande->blocMateriel->codeNiveauUtilisationMateriel = 'NEU';
+        $data->demande->blocMateriel->codeNiveauOptionsMateriel = 'NEU';
+        $data->demande->blocMateriel->nombreMateriel = 1;
 
-        return $json;
+        return $data;
     }
 
 
