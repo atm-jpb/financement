@@ -232,7 +232,6 @@ if(!empty($action)) {
 					if(!empty($simulation->TSimulationSuivi[$id_suivi])) {
 						$simulation->TSimulationSuivi[$id_suivi]->numero_accord_leaser = $TVal['num_accord'];
 						$simulation->TSimulationSuivi[$id_suivi]->coeff_leaser = $TVal['coeff_accord'];
-						$simulation->TSimulationSuivi[$id_suivi]->commentaire = $TVal['commentaire'];
 						$simulation->TSimulationSuivi[$id_suivi]->commentaire_interne = $TVal['commentaire_interne'];
 						$simulation->TSimulationSuivi[$id_suivi]->save($ATMdb);
 					}
