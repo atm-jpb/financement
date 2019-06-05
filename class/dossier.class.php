@@ -2012,6 +2012,10 @@ class TFin_dossier_affaire extends TObjetStd
 
 class TFin_financement extends TObjetStd
 {
+    const STATUS_TRANSFER_NO    = 0;
+    const STATUS_TRANSFER_YES   = 1;
+    const STATUS_TRANSFER_READY = 2;
+    const STATUS_TRANSFER_SENT  = 3;
 
     function __construct() { /* declaration */
         parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
@@ -2081,8 +2085,10 @@ class TFin_financement extends TObjetStd
         );
 
         $this->TTransfert = array(
-            '0' => 'Non'
-            , '1' => 'Oui'
+            self::STATUS_TRANSFER_NO => 'Non',
+            self::STATUS_TRANSFER_YES => 'Oui',
+            self::STATUS_TRANSFER_READY => 'Prêt',
+            self::STATUS_TRANSFER_SENT => 'Envoyé'
         );
 
         $this->date_solde = 0;

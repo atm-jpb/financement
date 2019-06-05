@@ -336,3 +336,12 @@ SelectThisLeaser=Sélectionner ce leaser
 ConfirmSelectThisLeaser=Etes-vous sûr(e) de vouloir sélectionner ce leaser ?
 
 SimuCheckSoldesAfterClone=Merci de vérifier les soldes des dossiers
+SelectAction = Sélectionner l'action
+RelocCustomerOK = Relocation client OK ?
+RelocLeaserOK = Relocation leaser OK ?
+LoyerLeaserOK = Loyer intercalaire leaser OK ?
+DownloadXML = Télécharger le XML
+SendXML = Envoyer le XML
+SetNoTransferable = Rendre les dossiers non transférables
+setReady = Passer au statut "Prêt"
+setSent = Passer au statut "Envoyé"

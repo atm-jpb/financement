@@ -5,12 +5,7 @@ dol_include_once('/financement/class/dossier.class.php');
 
 abstract class TFinDossierTransfertXML extends TObjetStd {
 
-//    const TLeaserTransfert = array(
-//			19483 => 'LIXXBAIL',
-//			21382 => 'CMCIC'
-//		);
-
-	function __construct($transfert=false) {
+	function __construct($transfert = false) {
 		global $conf;
 
 		$this->transfert = $transfert;
@@ -23,16 +18,18 @@ abstract class TFinDossierTransfertXML extends TObjetStd {
     /**
      * Function that need to be override by children
      */
-    abstract function generate(&$PDOdb, &$TAffaires,$andUpload=false);
+    abstract function generate(&$PDOdb, &$TAffaires, $andUpload = false);
 
     /**
-     * Function that need to be override by children
+     * @param   TPDOdb    $PDOdb
+     * @param   array     $TAffaireId
+     * @return  string
      */
-	function transfertXML(&$PDOdb) {
+	function transfertXML(&$PDOdb, $TAffaireId = array()) {
 		if(empty($this->leaser)) return false;
 
 		// Récupération des affaires
-		$TAffaires = $this->getAffairesForXML($PDOdb);
+		$TAffaires = $this->getAffairesForXML($PDOdb, $TAffaireId);
 
 		// Génération du fichier
 		$filename = $this->generate($PDOdb, $TAffaires);
@@ -45,27 +42,34 @@ abstract class TFinDossierTransfertXML extends TObjetStd {
 		return $this->filePath . $filename . '.xml';
     }
 
+    /**
+     * Function that need to be override by children
+     */
     abstract function upload($filename);
 
-	function getAffairesForXML(&$PDOdb){
-		global $conf;
-		
+    /**
+     * @param   TPDOdb  $PDOdb
+     * @param   array   $TAffaireId
+     * @return  array
+     */
+	function getAffairesForXML(&$PDOdb, $TAffaireId){
+	    global $conf;
 		$TAffaires = array();
 		
-		$sql = 'SELECT DISTINCT(fa.rowid) 
-				FROM '.MAIN_DB_PREFIX.'fin_affaire as fa
-					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire as da ON (da.fk_fin_affaire = fa.rowid)
-					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement as df ON (df.fk_fin_dossier = da.fk_fin_dossier)
-					LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = df.fk_soc)
-				WHERE fa.type_financement = "MANDATEE"
-					AND df.type = "LEASER"
-					AND s.rowid = '.static::fk_leaser.'
-					AND df.transfert = 1
-					AND fa.entity = '.$conf->entity;
+//		$sql = 'SELECT DISTINCT(fa.rowid)
+//				FROM '.MAIN_DB_PREFIX.'fin_affaire as fa
+//					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire as da ON (da.fk_fin_affaire = fa.rowid)
+//					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement as df ON (df.fk_fin_dossier = da.fk_fin_dossier)
+//					LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = df.fk_soc)
+//				WHERE fa.type_financement = "MANDATEE"
+//					AND df.type = "LEASER"
+//					AND s.rowid = '.static::fk_leaser.'
+//					AND df.transfert = 1
+//					AND fa.entity = '.$conf->entity;
+//
+//		$TIdAffaire = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
 		
-		$TIdAffaire = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
-		
-		foreach($TIdAffaire as $idAffaire){
+		foreach($TAffaireId as $idAffaire){
 			$affaire = new  TFin_affaire;
 			$affaire->load($PDOdb, $idAffaire);
 			$TAffaires[] = $affaire;
@@ -74,9 +78,13 @@ abstract class TFinDossierTransfertXML extends TObjetStd {
 		return $TAffaires;
 	}
 
-	function resetAllDossiersInXML(&$PDOdb){
+    /**
+     * @param   TPDOdb  $PDOdb
+     * @param   array   $TAffaireId
+     */
+	function resetAllDossiersInXML(&$PDOdb, $TAffaireId){
 		// Récupération des affaires
-		$TAffaires = $this->getAffairesForXML($PDOdb);
+		$TAffaires = $this->getAffairesForXML($PDOdb, $TAffaireId);
 		
 		foreach($TAffaires as $affaire){
 
@@ -87,6 +95,11 @@ abstract class TFinDossierTransfertXML extends TObjetStd {
 		}
 	}
 
+    /**
+     * @param   int     $fk_leaser
+     * @param   bool    $transfert
+     * @return  TFinDossierTransfertXML
+     */
     static function create($fk_leaser, $transfert = false) {
         if(! class_exists('TFinTransfertCMCIC')) dol_include_once('/financement/class/dossier_transfert_xml_cmcic.class.php');
         if(! class_exists('TFinTransfertLixxbail')) dol_include_once('/financement/class/dossier_transfert_xml_lixxbail.class.php');

@@ -24,7 +24,7 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
         }
     }
 	
-	function generate(&$PDOdb, &$TAffaires,$andUpload=false){
+	function generate(&$PDOdb, &$TAffaires, $andUpload=false){
 		global $conf;
 		
 		$xml = new DOMDocument('1.0','UTF-8');
@@ -199,6 +199,7 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 		$affaire = $xml->createElement("affaire");
 
 		foreach($Affaire->TLien as $i => $Tdata){
+//		    var_dump($Affaire->TLien[$i]->dossier->financementLeaser->transfert);exit;
 			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert == 1){
 				
 				$affaire->appendChild($xml->createElement("dateSignature",date("Y-m-d",$Affaire->date_affaire)));

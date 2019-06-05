@@ -24,7 +24,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
         }
     }
 
-	function generate(&$PDOdb, &$TAffaires,$andUpload=false){
+	function generate(&$PDOdb, &$TAffaires, $andUpload=false){
 		global $conf, $db;
 
 		if(empty($conf->global->FINANCEMENT_MODE_PROD)) $name2 = 'UATFRCPROCMCICADLC_'.date('Ymd');
