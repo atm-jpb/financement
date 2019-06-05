@@ -6,10 +6,10 @@
 		<td align="center">Montant</td>
 		[onshow;block=end]
 		<td align="center">Durée<br>Terme</td>
-		<td align="center">Loyer<br>Loyer act.</td>
+		<td align="center">Loyer<!--<br>Loyer act.--></td>
 		<td align="center">D&eacute;but<br>Fin</td>
 		<td align="center">Prochaine<br>&eacute;ch&eacute;ance</td>
-		<td align="center">Ass.<br>Ass. act</td>
+		<td align="center">Ass.<!--<br>Ass. act--></td>
 		<td align="center">Maint.</td>
 		<td align="center" colspan="3">Solde après paiement de la période du :</td>
 		[onshow;block=begin;when [liste.display_retraitcopie]=='1']
@@ -33,7 +33,7 @@
 		</td>
 		<td id="echeance" align="right" nowrap="nowrap">
 			[champs.echeance; strconv=no; frm=0 000,00]<br>
-			[champs.loyer_actualise; strconv=no; frm=0 000,00]
+			<!--[champs.loyer_actualise; strconv=no; frm=0 000,00]-->
 		
 		</td>
 		<td id="debut_fin" align="center">
@@ -49,7 +49,7 @@
 		</td>
 		<td id="assurance" align="right" nowrap="nowrap">
 			[champs.assurance; strconv=no; frm=0 000,00]<br>
-			[champs.assurance_actualise; strconv=no; frm=0 000,00]
+			<!--[champs.assurance_actualise; strconv=no; frm=0 000,00]-->
 		</td>
 		<td id="maintenance" align="right" nowrap="nowrap">[champs.maintenance; strconv=no; frm=0 000,00]</td>
 		[onshow;block=begin;when [champs.display_solde]=='0']
