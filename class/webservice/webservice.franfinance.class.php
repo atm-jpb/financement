@@ -76,23 +76,31 @@ class WebServiceFranfinance extends WebService
 
 //        print '<pre>';
 //        var_dump($this->simulation); exit;
-        $sirenClient = $this->simulation->societe->idprof1;
-        if (empty($sirenClient)) $sirenClient = substr($this->simulation->societe->idprof2, 0, 9);
+        $sirenClient = substr($this->simulation->societe->idprof2, 0, 9);
+        // Need pour avoir la fonction de calcul de la périodicité
+        $f = new TFin_financement();
+        $f->periodicite = $this->simulation->opt_periodicite;
+        $dureeInMonth = $this->simulation->duree * $f->getiPeriode();
+
+        $montant = $this->simulation->montant;
+        // Scoring par le montant leaser
+        $montant += $this->simulationSuivi->surfact + $this->simulationSuivi->surfactplus;
+        $montant = round($montant,2);
 
         $data = new stdClass();
         $data->media = 'WSFL';
         $data->loginVendeur = 'WSCPRO1';
 
         $data->demande = new stdClass();
-        $data->demande->duree = $this->getDuree();
-        $data->demande->montant = $this->simulation->montant;
+        $data->demande->duree = $dureeInMonth;
+        $data->demande->montant = $montant;
         $data->demande->nature = 'LF';
         $data->demande->numeroSiren = $sirenClient;
 
         $data->demande->blocPlanFinancement = new stdClass();
         $data->demande->blocPlanFinancement->premierLoyer = '0';
         $data->demande->blocPlanFinancement->codeAmortissement = 'L';
-        $data->demande->blocPlanFinancement->vr = $this->simulation->pct_vr;
+        $data->demande->blocPlanFinancement->vr = $this->simulation->vr;
 
         $data->demande->blocMateriel = new stdClass();
         $data->demande->blocMateriel->codeInseeMateriel = '300121';
@@ -103,36 +111,6 @@ class WebServiceFranfinance extends WebService
         $data->demande->blocMateriel->nombreMateriel = 1;
 
         return $data;
-    }
-
-
-    /**
-     * Retourne la duree de financement en mois
-     */
-    public function getDuree()
-    {
-        $duree = 0;
-
-        switch ($this->simulation->opt_periodicite)
-        {
-            case 'MOIS':
-                $duree = $this->simulation->duree;
-                break;
-
-            case 'TRIMESTRE':
-                $duree = $this->simulation->duree * 3;
-                break;
-
-            case 'SEMESTRE':
-                $duree = $this->simulation->duree * 6;
-                break;
-
-            case 'ANNEE':
-                $duree = $this->simulation->duree * 12;
-                break;
-        }
-
-        return $duree;
     }
 	
 	/**
