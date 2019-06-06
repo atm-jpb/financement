@@ -73,7 +73,7 @@ class WebServiceFranfinance extends WebService
 	 */
 	public function getBody()
     {
-
+        global $conf;
 //        print '<pre>';
 //        var_dump($this->simulation); exit;
         $sirenClient = substr($this->simulation->societe->idprof2, 0, 9);
@@ -89,7 +89,7 @@ class WebServiceFranfinance extends WebService
 
         $data = new stdClass();
         $data->media = 'WSFL';
-        $data->loginVendeur = 'WSCPRO1';
+        $data->loginVendeur = $conf->global->FINANCEMENT_FRANFINANCE_USERNAME;
 
         $data->demande = new stdClass();
         $data->demande->duree = $dureeInMonth;
