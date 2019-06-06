@@ -430,7 +430,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		$errmsg = 'Régule autre que trimestrielle, merci de consulter vos VMM et factures sur Cristal';
 	}
 	
-	if (!empty($user->rights->financement->admin->write)) $error = 0;
+	//if (!empty($user->rights->financement->admin->write)) $error = 0;
 	
 	echo $TBS->render('./tpl/dossier_integrale.tpl.php'
 		,array(
@@ -460,6 +460,8 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		round($facIntegral->cout_unit_coul_loyer
 		+ $facIntegral->cout_unit_coul_mach
 		+ $facIntegral->cout_unit_coul_tech,5)) $avenantOK = false;
+
+    if($dossier->type_regul != 3) $avenantOK = false;
 
 	dol_fiche_end();
 	print '<div class="tabsAction">';
