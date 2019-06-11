@@ -55,20 +55,23 @@ abstract class TFinDossierTransfertXML extends TObjetStd {
 	function getAffairesForXML(&$PDOdb, $TAffaireId){
 	    global $conf;
 		$TAffaires = array();
-		
-//		$sql = 'SELECT DISTINCT(fa.rowid)
-//				FROM '.MAIN_DB_PREFIX.'fin_affaire as fa
-//					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire as da ON (da.fk_fin_affaire = fa.rowid)
-//					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement as df ON (df.fk_fin_dossier = da.fk_fin_dossier)
-//					LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = df.fk_soc)
-//				WHERE fa.type_financement = "MANDATEE"
-//					AND df.type = "LEASER"
-//					AND s.rowid = '.static::fk_leaser.'
-//					AND df.transfert = 1
-//					AND fa.entity = '.$conf->entity;
-//
-//		$TIdAffaire = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
-		
+
+		if(empty($TAffaireId)) {
+            $sql = 'SELECT DISTINCT(fa.rowid)
+				FROM '.MAIN_DB_PREFIX.'fin_affaire as fa
+					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire as da ON (da.fk_fin_affaire = fa.rowid)
+					LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement as df ON (df.fk_fin_dossier = da.fk_fin_dossier)
+					LEFT JOIN '.MAIN_DB_PREFIX.'societe as s ON (s.rowid = df.fk_soc)
+				WHERE fa.type_financement = "MANDATEE"
+					AND df.type = "LEASER"
+					AND s.rowid = '.static::fk_leaser.'
+					AND df.transfert = '.TFin_financement::STATUS_TRANSFER_YES.'
+					AND fa.entity = '.$conf->entity.'
+				ORDER BY df.fk_fin_dossier DESC';
+
+            $TAffaireId = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
+        }
+
 		foreach($TAffaireId as $idAffaire){
 			$affaire = new  TFin_affaire;
 			$affaire->load($PDOdb, $idAffaire);
@@ -82,18 +85,17 @@ abstract class TFinDossierTransfertXML extends TObjetStd {
      * @param   TPDOdb  $PDOdb
      * @param   array   $TAffaireId
      */
-	function resetAllDossiersInXML(&$PDOdb, $TAffaireId){
-		// Récupération des affaires
-		$TAffaires = $this->getAffairesForXML($PDOdb, $TAffaireId);
-		
-		foreach($TAffaires as $affaire){
+    function resetAllDossiersInXML(&$PDOdb, $TAffaireId) {
+        // Récupération des affaires
+        $TAffaires = $this->getAffairesForXML($PDOdb, $TAffaireId);
 
-			foreach($affaire->TLien as $i => $TData ){
-				$TData->dossier->financementLeaser->transfert = 0;
-				$TData->dossier->save($PDOdb);
-			}
-		}
-	}
+        foreach($TAffaires as $affaire) {
+            foreach($affaire->TLien as $i => $TData) {
+                $TData->dossier->financementLeaser->transfert = 0;
+                $TData->dossier->save($PDOdb);
+            }
+        }
+    }
 
     /**
      * @param   int     $fk_leaser

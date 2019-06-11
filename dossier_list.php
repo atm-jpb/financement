@@ -103,8 +103,6 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
         exit;
     }
     else if($massaction == 'setReady') {
-        var_dump($arrayofselected);exit;
-        // FIXME: C'est des IDs de dossiers !!!
         foreach($arrayofselected as $fk_affaire) {
             $a = new TFin_affaire;
             $a->load($PDOdb, $fk_affaire, false);
@@ -115,14 +113,25 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
                 $d->financementLeaser->transfert = TFin_financement::STATUS_TRANSFER_READY;
 
                 $d->save($PDOdb);
-                var_dump($d->financementLeaser->transfert);
             }
         }
-var_dump($PDOdb);exit;
-//        header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
-//        exit;
+
+        header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
+        exit;
     }
     else if($massaction == 'setSent') {
+        foreach($arrayofselected as $fk_affaire) {
+            $a = new TFin_affaire;
+            $a->load($PDOdb, $fk_affaire, false);
+            $a->loadDossier($PDOdb);
+
+            if(! empty($a->TLien[0]->dossier->rowid)) {
+                $d = $a->TLien[0]->dossier;
+                $d->financementLeaser->transfert = TFin_financement::STATUS_TRANSFER_SENT;
+
+                $d->save($PDOdb);
+            }
+        }
 
         header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
         exit;
@@ -586,7 +595,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     else {
         // Matériel
         print '<td align="center" style="width: 80px;">';
-        if(! empty($p->id)) print $form->textwithtooltip($p->getNomUrl(1), $p->label);
+        if(! empty($p->id)) print $form->textwithtooltip(substr($p->label, 0, 7).'...', $p->label);
         else print '&nbsp';
         print '</td>';
 
@@ -647,7 +656,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     if(! empty($fk_leaser)) {
         $selected = 0;
         if(in_array($obj->fk_fin_dossier, $arrayofselected)) $selected=1;
-        print '<input id="cb'.$obj->fk_fin_affaire.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->fk_fin_dossier.'" '.($selected ? 'checked="checked"' : '').'/>';
+        print '<input id="cb'.$obj->fk_fin_affaire.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->fk_fin_affaire.'" '.($selected ? 'checked="checked"' : '').'/>';
     }
     else print '&nbsp';
     print '</td>';
