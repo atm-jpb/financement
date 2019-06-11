@@ -79,10 +79,7 @@ if(GETPOST('envoiXML')) {
 
 // On fait rien si on ne sélectionne pas de dossiers...
 if(! empty($arrayofselected) && ! empty($fk_leaser)) {
-    if($massaction == 'exportXML') {
-        // TODO: Récupérer le comportement de la fonction _getExportXML(...)
-    }
-    else if($massaction == 'generateXML') {
+    if($massaction == 'generateXML') {
         $dt = TFinDossierTransfertXML::create($fk_leaser);
         $filePath = $dt->transfertXML($PDOdb, $arrayofselected);
 
@@ -525,12 +522,14 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
         $leaserStatic->name = $obj->nomLea;
     }
 
-    $affaire->load($PDOdb, $obj->fk_fin_affaire, false);
-    $affaire->loadEquipement($PDOdb);
-    if(! empty($affaire->TAsset[0])) {
-        $asset = $affaire->TAsset[0]->asset;
-        $p = new Product($db);
-        $p->fetch($asset->fk_product);
+    if(! empty($fk_leaser)) {
+        $affaire->load($PDOdb, $obj->fk_fin_affaire, false);
+        $affaire->loadEquipement($PDOdb);
+        if(! empty($affaire->TAsset[0])) {
+            $asset = $affaire->TAsset[0]->asset;
+            $p = new Product($db);
+            if(! empty($asset->fk_product)) $p->fetch($asset->fk_product);
+        }
     }
 
     print '<tr class="'.$class.'">';
