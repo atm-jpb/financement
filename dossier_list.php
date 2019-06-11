@@ -168,9 +168,6 @@ $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe l ON (fl.fk_soc=l.rowid)';
 $sql .= ' INNER JOIN '.MAIN_DB_PREFIX.'entity e ON (e.rowid = d.entity)';
 $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX."element_element ee ON (ee.fk_source = a.rowid AND ee.sourcetype = 'affaire' AND ee.targettype = 'facture')";
 $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'facture f ON (f.rowid = ee.fk_target)';
-//$sql .= ' INNER JOIN '.MAIN_DB_PREFIX."asset_link al ON (al.type_document = 'affaire' AND al.fk_document = a.rowid)";
-//$sql .= ' INNER JOIN '.MAIN_DB_PREFIX."asset asset ON (asset.rowid = al.fk_asset)";
-//$sql .= ' INNER JOIN '.MAIN_DB_PREFIX.'product p ON (p.rowid = asset.fk_product)';
 $sql .= ' WHERE 1=1';
 
 if(isset($fk_leaser) && ! empty($fk_leaser)) {
@@ -232,7 +229,7 @@ $num = $db->num_rows($resql);
 llxHeader('', 'Dossiers');
 print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 
-//Affichage de l'en-tête société si fk_leaser
+// Affichage de l'en-tête société si on a un fk_leaser
 if(isset($fk_leaser) && ! empty($fk_leaser)) {
     $societe = new Societe($db);
     $societe->fetch($fk_leaser);
@@ -256,7 +253,7 @@ if(! empty($loyer_leaser_ok)) $param .= '&loyer_leaser_ok='.urlencode($loyer_lea
 
 // List of mass actions available
 $arrayofmassactions =  array(
-    'exportXML'=>$langs->trans("Export"),
+//    'exportXML'=>$langs->trans("Export"),
     'generateXML'=>$langs->trans("DownloadXML"),
     'generateXMLandupload'=>$langs->trans("SendXML"),
     'setnottransfer'=>$langs->trans("SetNoTransferable"),
@@ -639,7 +636,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     // Facture matériel
     if(! empty($obj->TInvoiceData)) {
         $TInvoiceData = explode(',', $obj->TInvoiceData);
-//        var_dump($TInvoiceData);
+
         print '<td align="center">';
         foreach($TInvoiceData as $invoiceData) {
             $TData = explode('-', $invoiceData);
@@ -667,30 +664,13 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
 print '</table>';
 print '</div>';
 
-//if(GETPOST('reloc')) echo $form->hidden('reloc', 1);
+if(isset($fk_leaser) && ! empty($fk_leaser)) {
+    print '<div class="tabsAction">';
+    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?action=exportXML&fk_leaser='.$fk_leaser.'">'.$langs->trans('Export').'</a>';
+    print '</div>';
+}
 
-//$aff = new TFin_affaire;
-
-//$TEntityName = TFinancementTools::build_array_entities();
-//    TFinancementTools::add_css();
-//print $sql;exit;
-
-//$form->end();
-
-//if(isset($fk_leaser) && ! empty($fk_leaser)) {
-//    ?>
-<!--    <div class="tabsAction">-->
-<!--        <a href="?action=exportXML&fk_leaser=--><?php //echo $fk_leaser; ?><!--" class="butAction">Exporter</a>-->
-<!--        <a href="?action=generateXML&fk_leaser=--><?php //echo $fk_leaser; ?><!--" class="butAction">Télécharger le XML</a>-->
-<!--        <a href="?action=generateXMLandupload&fk_leaser=--><?php //echo $fk_leaser; ?><!--" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Envoyer-->
-<!--            le XML</a>-->
-<!--        <a href="?action=setnottransfer&fk_leaser=--><?php //echo $fk_leaser; ?><!--" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre les-->
-<!--            dossiers non transférables</a>-->
-<!--    </div>-->
-<!--    --><?php
-//}
-
-//Cas action export CSV de la liste des futurs affaire transféré en XML
+// Cas action export CSV de la liste des futurs affaire transféré en XML
 $action = GETPOST('action');
 if($action === 'exportXML') {
     _getExportXML($sql);
@@ -699,14 +679,9 @@ if($action === 'exportXML') {
 llxFooter();
 
 function _getExportXML($sql) {
-    global $conf;
+    global $conf, $db;
 
-    $PDOdb = new TPDOdb;;
-
-    $sql = str_replace('@table@', 'llx_fin_dossier', $sql);
-
-    //On met l'order by ajouter par le render()
-    $sql .= " ORDER BY ID DESC, fc.reference ASC";
+    $PDOdb = new TPDOdb;
 
     $PDOdb->Execute($sql);
     $TTRes = $PDOdb->Get_All(PDO::FETCH_ASSOC);
@@ -724,18 +699,44 @@ function _getExportXML($sql) {
     $file = fopen($filepath, 'w');
 
     //Ajout première ligne libelle
-    $TLabel = array('Contrat', 'Partenaire', 'Contrat Leaser', 'Affaire', 'Nature', 'Client', 'Leaser', 'Duree', 'Montant Client', 'Echeance Client', 'Duree Leaser', 'Montant Leaser', 'Echeance Leaser', 'Prochaine', 'Debut', 'Fin', 'Facture Materiel');
+    $TLabel = array(
+        'Partenaire',
+        'Contrat Leaser',
+        'Client',
+        'Leaser',
+        'Siren Client',
+        'Debut',
+        'VR',
+        'Terme',
+        'Transfert',
+        'Duree Leaser',
+        'Montant Leaser',
+        'Echeance Leaser',
+        'Materiel',
+        'Num. serie',
+        'Facture Materiel'
+    );
     fputcsv($file, $TLabel, ';', '"');
 
     foreach($TTRes as $TRes) {
+        $affaire = new TFin_affaire;
+        $affaire->load($PDOdb, $TRes['fk_fin_affaire'], false);
+        $affaire->loadEquipement($PDOdb);
+        if(! empty($affaire->TAsset[0])) {
+            $asset = $affaire->TAsset[0]->asset;
+            $p = new Product($db);
+            $p->fetch($asset->fk_product);
+            $TRes['materiel'] = $p->label;
+            $TRes['serial_number'] = $asset->serial_number;
+        }
 
         //On renseigne la facture mat car on l'a avec un eval() dans la liste
-        $TRes['fact_materiel'] = _get_facture_mat($TRes['ID affaire'], false);
+        $TRes['fact_materiel'] = _get_facture_mat($TRes['fk_fin_affaire'], false);
 
         //Suppression des colonnes inutiles
-        unset($TRes['ID']);
-        unset($TRes['ID affaire']);
-        unset($TRes['fk_soc']);
+        unset($TRes['fk_fin_dossier'], $TRes['fk_fin_affaire'], $TRes['fk_soc'], $TRes['refDosCli'], $TRes['fk_leaser'], $TRes['nature_financement']);
+        unset($TRes['prochaine'], $TRes['date_start'], $TRes['date_end'], $TRes['TInvoiceData'], $TRes['ref_affaire']);
+        unset($TRes['duree'], $TRes['Montant'], $TRes['echeance'], $TRes['relocClientOK'], $TRes['relocLeaserOK'],$TRes['intercalaireLeaserOK']);
 
         fputcsv($file, $TRes, ';', '"');
     }
