@@ -575,7 +575,10 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
 
     // Leaser
     print '<td>';
-    print $form->textwithtooltip($leaserStatic->getNomUrl(1, '', 18), $leaserStatic->name);
+    if(! empty($leaserStatic->id)) {
+        print $form->textwithtooltip($leaserStatic->getNomUrl(1, '', 18), $leaserStatic->name);
+    }
+    else print '&nbsp;';
     print '</td>';
 
     if(empty($fk_leaser)) {
