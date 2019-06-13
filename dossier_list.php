@@ -668,7 +668,7 @@ print '</div>';
 
 if(isset($fk_leaser) && ! empty($fk_leaser)) {
     print '<div class="tabsAction">';
-    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?action=exportXML&fk_leaser='.$fk_leaser.'">'.$langs->trans('Export').'</a>';
+    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?action=exportXML&fk_leaser='.$fk_leaser.$param.'">'.$langs->trans('Export').'</a>';
     print '</div>';
 }
 
@@ -684,6 +684,7 @@ function _getExportXML($sql) {
     global $conf, $db;
 
     $PDOdb = new TPDOdb;
+    $fin = new TFin_financement;
 
     $PDOdb->Execute($sql);
     $TTRes = $PDOdb->Get_All(PDO::FETCH_ASSOC);
@@ -705,12 +706,10 @@ function _getExportXML($sql) {
         'Partenaire',
         'Contrat Leaser',
         'Client',
-        'Leaser',
         'Siren Client',
         'Debut',
         'VR',
         'Terme',
-        'Transfert',
         'Duree Leaser',
         'Montant Leaser',
         'Echeance Leaser',
@@ -734,10 +733,11 @@ function _getExportXML($sql) {
 
         //On renseigne la facture mat car on l'a avec un eval() dans la liste
         $TRes['fact_materiel'] = _get_facture_mat($TRes['fk_fin_affaire'], false);
+        $TRes['terme'] = $fin->TTerme[$TRes['terme']];  // Il faut traduire le terme
 
         //Suppression des colonnes inutiles
         unset($TRes['fk_fin_dossier'], $TRes['fk_fin_affaire'], $TRes['fk_soc'], $TRes['refDosCli'], $TRes['fk_leaser'], $TRes['nature_financement']);
-        unset($TRes['prochaine'], $TRes['date_start'], $TRes['date_end'], $TRes['TInvoiceData'], $TRes['ref_affaire']);
+        unset($TRes['prochaine'], $TRes['date_start'], $TRes['date_end'], $TRes['TInvoiceData'], $TRes['ref_affaire'], $TRes['nomLea'], $TRes['transfert']);
         unset($TRes['duree'], $TRes['Montant'], $TRes['echeance'], $TRes['relocClientOK'], $TRes['relocLeaserOK'],$TRes['intercalaireLeaserOK']);
 
         fputcsv($file, $TRes, ';', '"');
