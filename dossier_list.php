@@ -713,10 +713,14 @@ function _getExportXML($sql) {
         $affaire->loadEquipement($PDOdb);
         if(! empty($affaire->TAsset[0])) {
             $asset = $affaire->TAsset[0]->asset;
-            $p = new Product($db);
-            $p->fetch($asset->fk_product);
-            $TRes['materiel'] = $p->label;
+            $TRes['materiel'] = '';
             $TRes['serial_number'] = $asset->serial_number;
+
+            if(! empty($asset->fk_product)) {
+                $p = new Product($db);
+                $p->fetch($asset->fk_product);
+                $TRes['materiel'] = $p->label;
+            }
         }
 
         //On renseigne la facture mat car on l'a avec un eval() dans la liste
