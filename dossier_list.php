@@ -99,7 +99,12 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
         header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
         exit;
     }
-    else if($massaction == 'setReady') {
+    elseif(in_array($massaction, array('setReady', 'setSent', 'setYes'))) {
+        $statusToSet = substr($massaction, 3);  // 'READY', 'SENT' or 'YES'
+        if($statusToSet == 'Ready') $const = TFin_financement::STATUS_TRANSFER_READY;
+        else if($statusToSet == 'Sent') $const = TFin_financement::STATUS_TRANSFER_SENT;
+        else if($statusToSet == 'Yes') $const = TFin_financement::STATUS_TRANSFER_YES;
+
         foreach($arrayofselected as $fk_affaire) {
             $a = new TFin_affaire;
             $a->load($PDOdb, $fk_affaire, false);
@@ -107,24 +112,7 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
 
             if(! empty($a->TLien[0]->dossier->rowid)) {
                 $d = $a->TLien[0]->dossier;
-                $d->financementLeaser->transfert = TFin_financement::STATUS_TRANSFER_READY;
-
-                $d->save($PDOdb);
-            }
-        }
-
-        header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
-        exit;
-    }
-    else if($massaction == 'setSent') {
-        foreach($arrayofselected as $fk_affaire) {
-            $a = new TFin_affaire;
-            $a->load($PDOdb, $fk_affaire, false);
-            $a->loadDossier($PDOdb);
-
-            if(! empty($a->TLien[0]->dossier->rowid)) {
-                $d = $a->TLien[0]->dossier;
-                $d->financementLeaser->transfert = TFin_financement::STATUS_TRANSFER_SENT;
+                $d->financementLeaser->transfert = $const;
 
                 $d->save($PDOdb);
             }
@@ -250,10 +238,10 @@ if(! empty($loyer_leaser_ok)) $param .= '&loyer_leaser_ok='.urlencode($loyer_lea
 
 // List of mass actions available
 $arrayofmassactions =  array(
-//    'exportXML'=>$langs->trans("Export"),
     'generateXML'=>$langs->trans("DownloadXML"),
     'generateXMLandupload'=>$langs->trans("SendXML"),
     'setnottransfer'=>$langs->trans("SetNoTransferable"),
+    'setYes'=>$langs->trans("setYes"),
     'setReady'=>$langs->trans("setReady"),
     'setSent'=>$langs->trans("setSent")
 );
