@@ -267,12 +267,16 @@
                                     [onshow;block=tr;when '[dossier.affaire1.type_financement]'=='Location mandatée']
                                 </td>
                             </tr>
-
                             <tr class="impair">
-                                <td colspan="2">&nbsp;</td>
+                                <td>Date d'envoi</td>
+                                <td>[financementLeaser.date_envoi; strconv=no]</td>
                             </tr>
 
                             <tr class="pair">
+                                <td colspan="2">&nbsp;</td>
+                            </tr>
+
+                            <tr class="impair">
                                 <td colspan="2" align="center"><a href="[financementLeaser.detail_fact]">D&eacute;tail facturation</a></td>
                             </tr>
 

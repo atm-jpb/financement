@@ -2026,7 +2026,7 @@ class TFin_financement extends TObjetStd
         parent::add_champs('fk_soc,fk_fin_dossier', 'type=entier;index;');
         parent::add_champs('okPourFacturation,transfert,reloc,relocOK,intercalaireOK', 'type=chaine;index;');
         parent::add_champs('loyer_reference', 'type=float;');
-        parent::add_champs('date_application', 'type=date;index;');
+        parent::add_champs('date_application,date_envoi', 'type=date;index;');
 
         parent::start();
         parent::_init_vars();

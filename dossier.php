@@ -867,8 +867,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			
 			,'detail_fact' => dol_buildpath('/fourn/facture/list.php?search_ref_supplier='.$financementLeaser->reference,2)
-//            ,'loyer_reference'=>$formRestricted->texte('', 'leaser[loyer_reference]', $financementLeaser->loyer_reference, 10,255,'','','à saisir')
-//            ,'date_application'=>$formRestricted->calendrier('', 'leaser[date_application]', $financementLeaser->date_application, 10,255,'','','à saisir')
+            ,'date_envoi'=>$formRestricted->calendrier('', 'leaser[date_envoi]', $financementLeaser->date_envoi, 10,255)
 
 			
 	);

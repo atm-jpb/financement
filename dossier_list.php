@@ -89,6 +89,17 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
         $dt = TFinDossierTransfertXML::create($fk_leaser, true);
         $filePath = $dt->transfertXML($PDOdb, $arrayofselected);
 
+        // On renseigne une date d'envoi
+        foreach($arrayofselected as $fk_affaire) {
+            $a = new TFin_affaire;
+            $a->load($PDOdb, $fk_affaire, false);
+            $a->loadDossier($PDOdb);
+
+            $dossier = $a->TLien[0]->dossier;
+            $dossier->financementLeaser->date_envoi = dol_now();
+            $dossier->financementLeaser->save($PDOdb);
+        }
+
         header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser.'&envoiXML=ok');
         exit;
     }
@@ -769,79 +780,4 @@ function _get_facture_mat($fk_source, $withlink = true) {
     $PDOdb->close();
 
     return $link;
-}
-
-/*
- * LISTE SPECIFIQUE
- */
-function _liste_dossiers_incomplets(&$PDOdb, &$dossier) {
-    global $conf;
-
-    llxHeader('', 'Dossiers incomplets');
-
-    $r = new TSSRenderControler($dossier);
-    $sql = "SELECT d.rowid as 'ID', f.reference, a.rowid as 'ID affaire', a.reference as 'N° affaire', a.contrat, a.fk_soc as 'fk_soc', s.nom, 
-	f.montant as 'Montant', f.duree as 'Durée', f.echeance as 'Echéance', f.date_prochaine_echeance as 'Prochaine', f.date_debut
-	FROM ((((@table@ d
-		LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire l ON (d.rowid=l.fk_fin_dossier))
-		LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (l.fk_fin_affaire=a.rowid))
-		LEFT OUTER JOIN ".MAIN_DB_PREFIX."fin_dossier_financement f ON (d.rowid=f.fk_fin_dossier ))
-		LEFT OUTER JOIN ".MAIN_DB_PREFIX."societe s ON (a.fk_soc=s.rowid))
-		
-	WHERE a.entity=".$conf->entity."
-	AND a.nature_financement = 'INTERNE'
-	AND (f.type = 'LEASER' AND (f.reference IS NULL OR f.reference = '' OR f.duree = 0 OR f.echeance = 0))
-	AND d.date_maj > '2013-06-13 00:00:00'
-	GROUP BY d.rowid";
-
-    $form = new TFormCore($_SERVER['PHP_SELF'], 'formDossier', 'GET');
-    echo $form->hidden('liste_incomplet', '1');
-    $aff = new TFin_affaire;
-
-    $r->liste($PDOdb, $sql, array(
-        'limit' => array(
-            'page' => 1
-            , 'nbLine' => 1000
-        )
-        , 'link' => array(
-            'nom' => '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@"><img border="0" title="Afficher société: test" alt="Afficher société: test" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_company.png"> @val@</a>'
-            , 'reference' => '<a href="?id=@ID@">@val@</a>'
-            , 'N° affaire' => '<a href="'.DOL_URL_ROOT.'/custom/financement/affaire.php?id=@ID affaire@">@val@</a>'
-        )
-        , 'translate' => array(
-            'Incident de paiment' => $dossier->TIncidentPaiement
-            , 'nature_financement' => $aff->TNatureFinancement
-            , 'contrat' => $aff->TContrat
-        )
-        , 'hide' => array('fk_soc', 'ID', 'ID affaire')
-        , 'type' => array('date_debut' => 'date', 'Fin' => 'date', 'Prochaine' => 'date', 'Montant financé' => 'money', 'Echéance' => 'money')
-        , 'liste' => array(
-            'titre' => "Liste des dossiers"
-            , 'image' => img_picto('', 'title.png', '', 0)
-            , 'picto_precedent' => img_picto('', 'previous.png', '', 0)
-            , 'picto_suivant' => img_picto('', 'next.png', '', 0)
-            , 'order_down' => img_picto('', '1downarrow.png', '', 0)
-            , 'order_up' => img_picto('', '1uparrow.png', '', 0)
-            , 'noheader' => false
-            , 'messageNothing' => "Il n'y a aucun dossier"
-            , 'picto_search' => img_picto('', 'search.png', '', 0)
-        )
-        , 'title' => array(
-            'reference' => 'N° contrat'
-            , 'nom' => 'Société'
-            , 'nature_financement' => 'Nature'
-            , 'date_debut' => 'Début'
-            , 'contrat' => 'Contrat'
-        )
-        , 'orderBy' => array('ID' => 'DESC', 'f.reference' => 'ASC')
-        , 'search' => array(
-            'N° affaire' => array('recherche' => true, 'table' => 'a')
-            , 'nom' => array('recherche' => true, 'table' => 's')
-            , 'contrat' => array('recherche' => $aff->TContrat, 'table' => 'a')
-            //,'date_debut'=>array('recherche'=>'calendars', 'table'=>'f')
-        )
-    ));
-    $form->end();
-
-    llxFooter();
 }
