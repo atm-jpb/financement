@@ -48,10 +48,17 @@ class TFin_affaire extends TObjetStd
     }
 
     function load_c_type_contrat() {
-        global $db, $conf;
+        global $db, $conf, $user;
 
         $res = array();
-        $resql = $db->query('SELECT code, label FROM '.MAIN_DB_PREFIX.'c_financement_type_contrat WHERE entity = '.$conf->entity.' AND active = 1');
+        $sql = "SELECT tc.code, tc.label FROM ".MAIN_DB_PREFIX."c_financement_type_contrat tc";
+        $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_financement_type_contrat tc2 ON tc.code = tc2.code";
+        $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON tc2.rowid = ee.fk_source AND ee.sourcetype = 'type_contrat'";
+        $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."usergroup ug ON ug.rowid = ee.fk_target AND ee.targettype = 'usergroup'";
+        $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."usergroup_user uu ON ug.rowid = uu.fk_usergroup";
+        $sql.= " WHERE tc.entity = ".$conf->entity." AND tc.active = 1 AND uu.fk_user = ".$user->id;
+
+        $resql = $db->query($sql);
 
         if($resql) {
             while($line = $db->fetch_object($resql)) {
