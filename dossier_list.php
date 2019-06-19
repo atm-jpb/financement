@@ -35,6 +35,7 @@ $search_nature = GETPOST('search_nature');
 $search_thirdparty = GETPOST('search_thirdparty');
 $search_leaser = GETPOST('search_leaser');
 $search_transfert = GETPOST('search_transfert', 'int');
+$search_dateEnvoi = dol_mktime(0, 0, 0, GETPOST('search_dateEnvoimonth'), GETPOST('search_dateEnvoiday'), GETPOST('search_dateEnvoiyear'));
 if($search_transfert === '') $search_transfert = -1;
 $reloc_customer_ok = GETPOST('reloc_customer_ok');
 $reloc_leaser_ok = GETPOST('reloc_leaser_ok');
@@ -136,7 +137,7 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
 
 // Remove filters
 if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) {
-    unset($search_ref_client, $search_ref_leaser, $search_entity, $search_nature, $search_thirdparty, $search_leaser, $reloc_customer_ok, $reloc_leaser_ok, $loyer_leaser_ok, $search_transfert);
+    unset($search_ref_client, $search_ref_leaser, $search_entity, $search_nature, $search_thirdparty, $search_leaser, $reloc_customer_ok, $reloc_leaser_ok, $loyer_leaser_ok, $search_transfert, $search_dateEnvoi);
 }
 
 $sql = "SELECT d.rowid as fk_fin_dossier, e.label as entity_label, fc.reference as refDosCli, fl.fk_soc as fk_leaser, fl.reference as refDosLea, a.rowid as fk_fin_affaire, a.reference as ref_affaire, ";
@@ -153,7 +154,7 @@ $sql .= "fl.echeance as 'echeanceLeaser', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END) as 'prochaine', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END) as 'date_start', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END) as 'date_end', ";
-$sql .= "GROUP_CONCAT(f.rowid, '-', f.facnumber) as TInvoiceData";
+$sql .= "GROUP_CONCAT(f.rowid, '-', f.facnumber) as TInvoiceData, fl.date_envoi";
 $sql .= ' FROM '.MAIN_DB_PREFIX.'fin_dossier d';
 $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (d.rowid=da.fk_fin_dossier)';
 $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire=a.rowid)';
@@ -189,6 +190,7 @@ if(! empty($search_ref_leaser)) $sql .= natural_search('fl.reference', $search_r
 if(! empty($search_nature) && $search_nature != -1) $sql .= natural_search('a.nature_financement', $search_nature);
 if(! empty($search_thirdparty)) $sql .= natural_search('c.nom', $search_thirdparty);
 if(! empty($search_leaser)) $sql .= natural_search('l.nom', $search_leaser);
+if(! empty($search_dateEnvoi)) $sql .= " AND fl.date_envoi = '".date('Y-m-d', $search_dateEnvoi)."'";
 if(! empty($search_entity)) {
     $TSearchEntity = array_intersect($TEntityShared, $search_entity);
     $sql .= ' AND d.entity IN ('.implode(',', $TSearchEntity).')';
@@ -202,7 +204,7 @@ if(! empty($loyer_leaser_ok) && $loyer_leaser_ok != -1) $sql .= " AND fl.interca
 if(isset($search_transfert) && $search_transfert != -1) $sql .= ' AND fl.transfert = '.$search_transfert;
 
 $sql .= ' GROUP BY d.rowid, fc.reference, fl.fk_soc, fl.reference, a.rowid, fc.relocOK, fl.relocOK, fl.intercalaireOK, fc.duree, fl.duree, fc.montant, fl.montant, fc.echeance, fl.echeance';
-$sql .= ', fc.date_prochaine_echeance, fl.date_prochaine_echeance, fc.date_debut, fl.date_debut, fc.date_fin, fl.date_fin, fl.date_debut, fl.reste, fl.terme, fl.transfert';
+$sql .= ', fc.date_prochaine_echeance, fl.date_prochaine_echeance, fc.date_debut, fl.date_debut, fc.date_fin, fl.date_fin, fl.date_debut, fl.reste, fl.terme, fl.transfert, fl.date_envoi';
 
 $sql .= $db->order($sortfield, $sortorder);
 
@@ -246,6 +248,8 @@ if(! empty($search_transfert)) $param .= '&search_transfert='.urlencode($search_
 if(! empty($reloc_customer_ok)) $param .= '&reloc_customer_ok='.urlencode($reloc_customer_ok);
 if(! empty($reloc_leaser_ok)) $param .= '&reloc_leaser_ok='.urlencode($reloc_leaser_ok);
 if(! empty($loyer_leaser_ok)) $param .= '&loyer_leaser_ok='.urlencode($loyer_leaser_ok);
+if(! empty($search_dateEnvoi)) $param .= '&search_dateEnvoi='.urlencode($search_dateEnvoi);
+if(! empty($fk_leaser)) $param .= '&fk_leaser='.urlencode($fk_leaser);
 
 // List of mass actions available
 $arrayofmassactions =  array(
@@ -444,7 +448,6 @@ if(empty($fk_leaser)) {
     print '<input type="text" name="search_ref_leaser" value="'.$search_ref_leaser.'" size="10" />';
     print '</td>';
 
-if(empty($fk_leaser)) {
     // Ref affaire
     print '<td>&nbsp;</td>';
 
@@ -471,8 +474,14 @@ print '</td>';
 print '<td colspan="8">&nbsp;</td>';
 if(empty($fk_leaser)) print '<td>&nbsp;</td>';
 else {
+    // Bon pour transfert ?
     print '<td>';
     print Form::selectarray('search_transfert', $dossier->financementLeaser->TTransfert, $search_transfert, 1, 0, 0, 'style="width: 75px;"');
+    print '</td>';
+
+    // Date envoi
+    print '<td>';
+    print $form->select_date($search_dateEnvoi, 'search_dateEnvoi', 0, 0, 1, '', 1, 0, 1);
     print '</td>';
 }
 
@@ -520,7 +529,8 @@ else {
     print_liste_field_titre('Début', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center;"');   // Date start leaser
     print_liste_field_titre('Terme', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center;"');   // Terme
     print_liste_field_titre('VR', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center;"');   // VR
-    print_liste_field_titre('Transfert', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center;"');   // VR
+    print_liste_field_titre('Transfert', $_SERVER['PHP_SELF'], 'fl.transfert', '', $param, 'style="text-align: center;"');   // Transfert
+    print_liste_field_titre('Date Envoi', $_SERVER['PHP_SELF'], 'fl.date_envoi', '', $param, 'style="text-align: center;"');   // Date envoi
 }
 print_liste_field_titre('Facture<br/>matériel', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center; min-width: 100px;"');   // Date end
 print '<td>';
@@ -675,6 +685,13 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
 
         // Bon pour transfert ?
         print '<td align="center">'.$dossier->financementLeaser->TTransfert[$obj->transfert].'</td>';
+
+        // Date d'envoi
+        print '<td align="center">';
+        $dateEnvoi = strtotime($obj->date_envoi);
+        if($dateEnvoi === false || $dateEnvoi < 0) print '&nbsp;';
+        else print date('d/m/Y', $dateEnvoi);
+        print '</td>';
     }
 
     // Facture matériel
