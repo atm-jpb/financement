@@ -327,6 +327,7 @@ function initCheckForSelect(mode)	/* mode is 0 during init of page or click all,
 
 // ----------------------------------------------------------------------
 
+// Entête
 if(! empty($fk_leaser)) {
     print '<table class="border" width="100%">';
 
@@ -442,12 +443,12 @@ if(empty($fk_leaser)) {
     print '<td>&nbsp;</td>';
 }
 
-if(empty($fk_leaser)) {
-    // Ref financement leaser
-    print '<td>';
-    print '<input type="text" name="search_ref_leaser" value="'.$search_ref_leaser.'" size="10" />';
-    print '</td>';
+// Ref financement leaser
+print '<td>';
+print '<input type="text" name="search_ref_leaser" value="'.$search_ref_leaser.'" size="10" />';
+print '</td>';
 
+if(empty($fk_leaser)) {
     // Ref affaire
     print '<td>&nbsp;</td>';
 
@@ -466,10 +467,12 @@ print '<td>';
 print '<input type="text" name="search_thirdparty" value="'.$search_thirdparty.'" size="20" />';
 print '</td>';
 
-// Leaser
-print '<td>';
-print '<input type="text" name="search_leaser" value="'.$search_leaser.'" size="20" />';
-print '</td>';
+if(empty($fk_leaser)) {
+    // Leaser
+    print '<td>';
+    print '<input type="text" name="search_leaser" value="'.$search_leaser.'" size="20" />';
+    print '</td>';
+}
 
 print '<td colspan="8">&nbsp;</td>';
 if(empty($fk_leaser)) print '<td>&nbsp;</td>';
@@ -596,12 +599,12 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
         print '<td>'.$obj->entity_label.'</td>';
     }
 
-    if(empty($fk_leaser)) {
-        // Ref financement leaser
-        print '<td align="center">';
-        print '<a href="dossier.php?id='.$obj->fk_fin_dossier.'">'.(! empty($obj->refDosLea) ? $obj->refDosLea : '(vide)').'</a>';
-        print '</td>';
+    // Ref financement leaser
+    print '<td align="center">';
+    print '<a href="dossier.php?id='.$obj->fk_fin_dossier.'">'.(! empty($obj->refDosLea) ? $obj->refDosLea : '(vide)').'</a>';
+    print '</td>';
 
+    if(empty($fk_leaser)) {
         // Ref affaire
         print '<td align="center">';
         print '<a href="'.dol_buildpath('financement/affaire.php', 1).'?id='.$obj->fk_fin_affaire.'">'.$obj->ref_affaire.'</a>';
@@ -625,13 +628,15 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     else print '&nbsp;';
     print '</td>';
 
-    // Leaser
-    print '<td>';
-    if(! empty($leaserStatic->id)) {
-        print $form->textwithtooltip($leaserStatic->getNomUrl(1, '', 18), $leaserStatic->name);
+    if(empty($fk_leaser)) {
+        // Leaser
+        print '<td>';
+        if(! empty($leaserStatic->id)) {
+            print $form->textwithtooltip($leaserStatic->getNomUrl(1, '', 18), $leaserStatic->name);
+        }
+        else print '&nbsp;';
+        print '</td>';
     }
-    else print '&nbsp;';
-    print '</td>';
 
     if(empty($fk_leaser)) {
         // Durée
