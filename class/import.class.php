@@ -129,15 +129,16 @@ class TImport extends TObjetStd {
 	
 	function importFile(&$ATMdb, $filePath) {
 		global $TInfosGlobale;
-
-		$fileHandler = fopen($filePath, 'r');
 		
 		// Traitement du fichier contenant toutes les factures non payées, on classe d'abord payées toutes les factures Dolibarr
 		if($this->type_import == 'ecritures_non_lettrees') {
 			$nbfact = filesize($filePath) / 42;
-			if($nbfact < 4000) {
-				$this->classifyPaidAllInvoices($ATMdb);
+			if($nbfact < 4000) { // Sécurité, si le fichier contient moins de 4000 lignes on ne le traite pas, pour éviter de mettre toutes les factures en payées si le fichier est vide
+				$this->addError($ATMdb, 'ErrorFileTooSmall', $nbfact, 'ERROR');
+				return false;
 			}
+
+			$this->classifyPaidAllInvoices($ATMdb);
 		}
 		
 		// Traitement du fichier contenant tous les soldes client, on vide d'abord la table
@@ -145,6 +146,8 @@ class TImport extends TObjetStd {
 			$sql = 'TRUNCATE TABLE '.MAIN_DB_PREFIX.'societe_solde';
 			$ATMdb->Execute($sql);
 		}
+
+		$fileHandler = fopen($filePath, 'r');
 		
 		$TInfosGlobale = array();
 		while($dataline = fgetcsv($fileHandler, 4096, FIN_IMPORT_FIELD_DELIMITER, FIN_IMPORT_FIELD_ENCLOSURE)) {
