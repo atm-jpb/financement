@@ -438,10 +438,11 @@ if(empty($fk_leaser)) {
     print '<td>&nbsp;</td>';
 }
 
-// Ref financement leaser
-print '<td>';
-print '<input type="text" name="search_ref_leaser" value="'.$search_ref_leaser.'" size="10" />';
-print '</td>';
+if(empty($fk_leaser)) {
+    // Ref financement leaser
+    print '<td>';
+    print '<input type="text" name="search_ref_leaser" value="'.$search_ref_leaser.'" size="10" />';
+    print '</td>';
 
 if(empty($fk_leaser)) {
     // Ref affaire
@@ -497,8 +498,8 @@ else {
     print_liste_field_titre('Siren<br/>Client', $_SERVER['PHP_SELF'], 'c.siren', '', $param, 'style="text-align: center; width: 100px;"', $sortfield, $sortorder);   // Nature financement
 }
 print_liste_field_titre('Client', $_SERVER['PHP_SELF'], 'a.fk_soc', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Thirdparty
-print_liste_field_titre('Leaser', $_SERVER['PHP_SELF'], 'fl.fk_soc', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Leaser
 if(empty($fk_leaser)) {
+    print_liste_field_titre('Leaser', $_SERVER['PHP_SELF'], 'fl.fk_soc', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Leaser
     print_liste_field_titre('Durée', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center;"');   // Durée
     print_liste_field_titre('Montant', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center;"');   // Montant
     print_liste_field_titre('Echéance', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center;"');   // Echéance
@@ -585,12 +586,12 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
         print '<td>'.$obj->entity_label.'</td>';
     }
 
-    // Ref financement leaser
-    print '<td align="center">';
-    print '<a href="dossier.php?id='.$obj->fk_fin_dossier.'">'.(! empty($obj->refDosLea) ? $obj->refDosLea : '(vide)').'</a>';
-    print '</td>';
-
     if(empty($fk_leaser)) {
+        // Ref financement leaser
+        print '<td align="center">';
+        print '<a href="dossier.php?id='.$obj->fk_fin_dossier.'">'.(! empty($obj->refDosLea) ? $obj->refDosLea : '(vide)').'</a>';
+        print '</td>';
+
         // Ref affaire
         print '<td align="center">';
         print '<a href="'.dol_buildpath('financement/affaire.php', 1).'?id='.$obj->fk_fin_affaire.'">'.$obj->ref_affaire.'</a>';
