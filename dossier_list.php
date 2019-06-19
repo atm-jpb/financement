@@ -323,6 +323,48 @@ function initCheckForSelect(mode)	/* mode is 0 during init of page or click all,
 
 // ----------------------------------------------------------------------
 
+if(! empty($fk_leaser)) {
+    print '<table class="border" width="100%">';
+
+    // Name
+    print '<tr><td width="25%">'.$langs->trans('ThirdPartyName').'</td>';
+    print '<td colspan="3">'.$societe->name.'</td>';
+    print '</tr>';
+
+    // Customer code
+    if($societe->client) {
+        print '<tr><td>';
+        print $langs->trans('CustomerCode').'</td><td>';
+        print $societe->code_client;
+        if($societe->check_codeclient() <> 0) print ' <font class="error">('.$langs->trans("WrongCustomerCode").')</font>';
+        print '</td>';
+        print '</tr>';
+    }
+
+    // Supplier code
+    if(! empty($conf->fournisseur->enabled) && $societe->fournisseur && ! empty($user->rights->fournisseur->lire)) {
+        print '<tr><td>';
+        print $langs->trans('SupplierCode').'</td><td>';
+        print $societe->code_fournisseur;
+        if($societe->check_codefournisseur() <> 0) print ' <font class="error">('.$langs->trans("WrongSupplierCode").')</font>';
+        print '</td>';
+        print '</tr>';
+    }
+
+    // Status
+    print '<tr>';
+    print '<td>'.$langs->trans("Status").'</td>';
+    print '<td>';
+    if (! empty($conf->use_javascript_ajax) && $user->rights->societe->creer && ! empty($conf->global->MAIN_DIRECT_STATUS_UPDATE)) {
+        print ajax_object_onoff($societe, 'status', 'status', 'InActivity', 'ActivityCeased');
+    }
+    else print $societe->getLibStatut(2);
+    print '</td></tr>';
+
+    print '</table>';
+}
+print '</div>';
+
 print '<form method="GET" action="'.$_SERVER['PHP_SELF'].'" name="formfilter">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
 print '<input type="hidden" id="formfilteraction" name="formfilteraction" value="list" />';
