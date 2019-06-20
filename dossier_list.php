@@ -90,22 +90,11 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
         $dt = TFinDossierTransfertXML::create($fk_leaser, true);
         $filePath = $dt->transfertXML($PDOdb, $arrayofselected);
 
-        // On renseigne une date d'envoi
-        foreach($arrayofselected as $fk_affaire) {
-            $a = new TFin_affaire;
-            $a->load($PDOdb, $fk_affaire, false);
-            $a->loadDossier($PDOdb);
-
-            $dossier = $a->TLien[0]->dossier;
-            $dossier->financementLeaser->date_envoi = dol_now();
-            $dossier->financementLeaser->save($PDOdb);
-        }
-
         header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser.'&envoiXML=ok');
         exit;
     }
     else if($massaction == 'setnottransfer') {
-        $dt = TFinDossierTransfertXML::create($fk_leaser, true);
+        $dt = TFinDossierTransfertXML::create($fk_leaser);
         $dt->resetAllDossiersInXML($PDOdb, $arrayofselected);
 
         header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
@@ -125,6 +114,9 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
             if(! empty($a->TLien[0]->dossier->rowid)) {
                 $d = $a->TLien[0]->dossier;
                 $d->financementLeaser->transfert = $const;
+
+                // On renseigne une date d'envoi quand on passe des dossiers en 'Envoyé'
+                if($massaction == 'setSent') $d->financementLeaser->date_envoi = dol_now();
 
                 $d->save($PDOdb);
             }
