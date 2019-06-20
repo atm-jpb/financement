@@ -36,6 +36,7 @@ $search_thirdparty = GETPOST('search_thirdparty');
 $search_leaser = GETPOST('search_leaser');
 $search_transfert = GETPOST('search_transfert', 'int');
 $search_dateEnvoi = dol_mktime(0, 0, 0, GETPOST('search_dateEnvoimonth'), GETPOST('search_dateEnvoiday'), GETPOST('search_dateEnvoiyear'));
+$search_dateStart = dol_mktime(0, 0, 0, GETPOST('search_dateStartmonth'), GETPOST('search_dateStartday'), GETPOST('search_dateStartyear'));
 if($search_transfert === '') $search_transfert = -1;
 $reloc_customer_ok = GETPOST('reloc_customer_ok');
 $reloc_leaser_ok = GETPOST('reloc_leaser_ok');
@@ -130,6 +131,7 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
 // Remove filters
 if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) {
     unset($search_ref_client, $search_ref_leaser, $search_entity, $search_nature, $search_thirdparty, $search_leaser, $reloc_customer_ok, $reloc_leaser_ok, $loyer_leaser_ok, $search_transfert, $search_dateEnvoi);
+    unset($search_dateStart);
 }
 
 $sql = "SELECT d.rowid as fk_fin_dossier, e.label as entity_label, fc.reference as refDosCli, fl.fk_soc as fk_leaser, fl.reference as refDosLea, a.rowid as fk_fin_affaire, a.reference as ref_affaire, ";
@@ -183,6 +185,7 @@ if(! empty($search_nature) && $search_nature != -1) $sql .= natural_search('a.na
 if(! empty($search_thirdparty)) $sql .= natural_search('c.nom', $search_thirdparty);
 if(! empty($search_leaser)) $sql .= natural_search('l.nom', $search_leaser);
 if(! empty($search_dateEnvoi)) $sql .= " AND fl.date_envoi = '".date('Y-m-d', $search_dateEnvoi)."'";
+if(! empty($search_dateStart)) $sql .= " AND fl.date_debut = '".date('Y-m-d', $search_dateStart)."'";
 if(! empty($search_entity)) {
     $TSearchEntity = array_intersect($TEntityShared, $search_entity);
     $sql .= ' AND d.entity IN ('.implode(',', $TSearchEntity).')';
@@ -241,6 +244,7 @@ if(! empty($reloc_customer_ok)) $param .= '&reloc_customer_ok='.urlencode($reloc
 if(! empty($reloc_leaser_ok)) $param .= '&reloc_leaser_ok='.urlencode($reloc_leaser_ok);
 if(! empty($loyer_leaser_ok)) $param .= '&loyer_leaser_ok='.urlencode($loyer_leaser_ok);
 if(! empty($search_dateEnvoi)) $param .= '&search_dateEnvoi='.urlencode($search_dateEnvoi);
+if(! empty($search_dateStart)) $param .= '&search_dateStart='.urlencode($search_dateStart);
 if(! empty($fk_leaser)) $param .= '&fk_leaser='.urlencode($fk_leaser);
 
 // List of mass actions available
@@ -466,7 +470,15 @@ if(empty($fk_leaser)) {
     print '</td>';
 }
 
-print '<td colspan="8">&nbsp;</td>';
+print '<td colspan="5">&nbsp;</td>';
+if(empty($fk_leaser)) print '<td>&nbsp;</td>';
+else {
+    // Date début
+    print '<td>';
+    print $form->select_date($search_dateStart, 'search_dateStart', 0, 0, 1, '', 1, 0, 1);
+    print '</td>';
+}
+print '<td colspan="2">&nbsp;</td>';
 if(empty($fk_leaser)) print '<td>&nbsp;</td>';
 else {
     // Bon pour transfert ?
@@ -521,11 +533,11 @@ if(empty($fk_leaser)) {
     print_liste_field_titre('Fin', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center;"');   // Date end
 }
 else {
-    print_liste_field_titre('Début', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center;"');   // Date start leaser
-    print_liste_field_titre('Terme', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center;"');   // Terme
-    print_liste_field_titre('VR', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center;"');   // VR
-    print_liste_field_titre('Transfert', $_SERVER['PHP_SELF'], 'fl.transfert', '', $param, 'style="text-align: center;"');   // Transfert
-    print_liste_field_titre('Date Envoi', $_SERVER['PHP_SELF'], 'fl.date_envoi', '', $param, 'style="text-align: center;"');   // Date envoi
+    print_liste_field_titre('Début', $_SERVER['PHP_SELF'], 'fl.date_debut', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Date start leaser
+    print_liste_field_titre('Terme', $_SERVER['PHP_SELF'], 'fl.terme', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Terme
+    print_liste_field_titre('VR', $_SERVER['PHP_SELF'], 'fl.reste', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // VR
+    print_liste_field_titre('Transfert', $_SERVER['PHP_SELF'], 'fl.transfert', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Transfert
+    print_liste_field_titre('Date Envoi', $_SERVER['PHP_SELF'], 'fl.date_envoi', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Date envoi
 }
 print_liste_field_titre('Facture<br/>matériel', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center; min-width: 100px;"');   // Date end
 print '<td>';
