@@ -236,7 +236,7 @@ if(! empty($search_ref_leaser)) $param .= '&search_ref_leaser='.urlencode($searc
 if(! empty($search_nature)) $param .= '&search_nature='.urlencode($search_nature);
 if(! empty($search_thirdparty)) $param .= '&search_thirdparty='.urlencode($search_thirdparty);
 if(! empty($search_leaser)) $param .= '&search_leaser='.urlencode($search_leaser);
-if(! empty($search_transfert)) $param .= '&search_transfert='.urlencode($search_transfert);
+if(isset($search_transfert) && $search_transfert > -1) $param .= '&search_transfert='.urlencode($search_transfert);
 if(! empty($reloc_customer_ok)) $param .= '&reloc_customer_ok='.urlencode($reloc_customer_ok);
 if(! empty($reloc_leaser_ok)) $param .= '&reloc_leaser_ok='.urlencode($reloc_leaser_ok);
 if(! empty($loyer_leaser_ok)) $param .= '&loyer_leaser_ok='.urlencode($loyer_leaser_ok);
@@ -724,7 +724,7 @@ print '</div>';
 
 if(isset($fk_leaser) && ! empty($fk_leaser)) {
     print '<div class="tabsAction">';
-    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?action=exportXML&fk_leaser='.$fk_leaser.$param.'">'.$langs->trans('Export').'</a>';
+    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?action=exportXML'.$param.'">'.$langs->trans('Export').'</a>';
     print '</div>';
 }
 
@@ -779,9 +779,11 @@ function _getExportXML($sql) {
         $affaire = new TFin_affaire;
         $affaire->load($PDOdb, $TRes['fk_fin_affaire'], false);
         $affaire->loadEquipement($PDOdb);
+        $TRes['materiel'] = '';
+        $TRes['serial_number'] = '';
+
         if(! empty($affaire->TAsset[0])) {
             $asset = $affaire->TAsset[0]->asset;
-            $TRes['materiel'] = '';
             $TRes['serial_number'] = $asset->serial_number;
 
             if(! empty($asset->fk_product)) {
@@ -798,7 +800,7 @@ function _getExportXML($sql) {
         //Suppression des colonnes inutiles
         unset($TRes['fk_fin_dossier'], $TRes['fk_fin_affaire'], $TRes['fk_soc'], $TRes['refDosCli'], $TRes['fk_leaser'], $TRes['nature_financement']);
         unset($TRes['prochaine'], $TRes['date_start'], $TRes['date_end'], $TRes['TInvoiceData'], $TRes['ref_affaire'], $TRes['nomLea'], $TRes['transfert']);
-        unset($TRes['duree'], $TRes['Montant'], $TRes['echeance'], $TRes['relocClientOK'], $TRes['relocLeaserOK'],$TRes['intercalaireLeaserOK']);
+        unset($TRes['duree'], $TRes['Montant'], $TRes['echeance'], $TRes['relocClientOK'], $TRes['relocLeaserOK'],$TRes['intercalaireLeaserOK'], $TRes['date_envoi']);
 
         fputcsv($file, $TRes, ';', '"');
     }
