@@ -724,7 +724,7 @@ print '</div>';
 
 if(isset($fk_leaser) && ! empty($fk_leaser)) {
     print '<div class="tabsAction">';
-    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?action=exportXML&fk_leaser='.$fk_leaser.$param.'">'.$langs->trans('Export').'</a>';
+    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?action=exportXML'.$param.'">'.$langs->trans('Export').'</a>';
     print '</div>';
 }
 
