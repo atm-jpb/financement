@@ -236,7 +236,7 @@ if(! empty($search_ref_leaser)) $param .= '&search_ref_leaser='.urlencode($searc
 if(! empty($search_nature)) $param .= '&search_nature='.urlencode($search_nature);
 if(! empty($search_thirdparty)) $param .= '&search_thirdparty='.urlencode($search_thirdparty);
 if(! empty($search_leaser)) $param .= '&search_leaser='.urlencode($search_leaser);
-if(! empty($search_transfert)) $param .= '&search_transfert='.urlencode($search_transfert);
+if(isset($search_transfert) && $search_transfert > -1) $param .= '&search_transfert='.urlencode($search_transfert);
 if(! empty($reloc_customer_ok)) $param .= '&reloc_customer_ok='.urlencode($reloc_customer_ok);
 if(! empty($reloc_leaser_ok)) $param .= '&reloc_leaser_ok='.urlencode($reloc_leaser_ok);
 if(! empty($loyer_leaser_ok)) $param .= '&loyer_leaser_ok='.urlencode($loyer_leaser_ok);
@@ -769,6 +769,7 @@ function _getExportXML($sql) {
         'Duree Leaser',
         'Montant Leaser',
         'Echeance Leaser',
+        'Date Envoi',
         'Materiel',
         'Num. serie',
         'Facture Materiel'
@@ -779,9 +780,11 @@ function _getExportXML($sql) {
         $affaire = new TFin_affaire;
         $affaire->load($PDOdb, $TRes['fk_fin_affaire'], false);
         $affaire->loadEquipement($PDOdb);
+        $TRes['materiel'] = '';
+        $TRes['serial_number'] = '';
+
         if(! empty($affaire->TAsset[0])) {
             $asset = $affaire->TAsset[0]->asset;
-            $TRes['materiel'] = '';
             $TRes['serial_number'] = $asset->serial_number;
 
             if(! empty($asset->fk_product)) {
@@ -794,6 +797,9 @@ function _getExportXML($sql) {
         //On renseigne la facture mat car on l'a avec un eval() dans la liste
         $TRes['fact_materiel'] = _get_facture_mat($TRes['fk_fin_affaire'], false);
         $TRes['terme'] = $fin->TTerme[$TRes['terme']];  // Il faut traduire le terme
+
+        $dateEnvoi = strtotime($TRes['date_envoi']);
+        if($dateEnvoi === false || $dateEnvoi < 0) $TRes['date_envoi'] = '';
 
         //Suppression des colonnes inutiles
         unset($TRes['fk_fin_dossier'], $TRes['fk_fin_affaire'], $TRes['fk_soc'], $TRes['refDosCli'], $TRes['fk_leaser'], $TRes['nature_financement']);
