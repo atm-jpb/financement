@@ -134,6 +134,7 @@ Accord=Accord
 Refus=Refus
 SansSuite=Sans suite
 Error=Erreur
+AccordPrincipe = Accord de principe
 ErrorNoTypeContratSelected=Merci de sélectionner un type de contrat
 ErrorPeriodiciteRequired=Merci de sélectionner une périodicité
 ErrorDureeRequired=Merci de sélectionner une durée

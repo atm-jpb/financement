@@ -40,6 +40,7 @@ class TSimulation extends TObjetStd
             , 'WAIT_LEASER' => $langs->trans('Etude_Leaser')
             , 'WAIT_SELLER' => $langs->trans('Etude_Vendeur')
             , 'WAIT_MODIF' => $langs->trans('Modif')
+            , 'WAIT_AP' => $langs->trans('AccordPrincipe')
             , 'KO' => $langs->trans('Refus')
             , 'SS' => $langs->trans('SansSuite')
         );
@@ -50,6 +51,7 @@ class TSimulation extends TObjetStd
             'WAIT_LEASER' => 'wait_leaser',
             'WAIT_SELLER' => 'wait_seller',
             'WAIT_MODIF' => 'edit',
+            'WAIT_AP' => 'fish',
             'KO' => 'refus',
             'SS' => 'sans_suite'
         );
@@ -60,6 +62,7 @@ class TSimulation extends TObjetStd
             , 'WAIT_LEASER' => $langs->trans('Etude_Leaser_Short')
             , 'WAIT_SELLER' => $langs->trans('Etude_Vendeur_Short')
             , 'WAIT_MODIF' => $langs->trans('Modif')
+            , 'WAIT_AP' => $langs->trans('AccordPrincipe')
             , 'KO' => $langs->trans('Refus')
             , 'SS' => $langs->trans('SansSuite')
         );
