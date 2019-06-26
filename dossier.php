@@ -555,9 +555,10 @@ function _load_factureFournisseur(&$PDOdb,&$dossier_temp){
 	
 	$TFactureFourn = array();
 
-	$sql = "SELECT ff.rowid, ff.date_debut_periode
+	$sql = "SELECT ff.rowid, fext.date_debut_periode
 			FROM ".MAIN_DB_PREFIX."element_element as ee
 				LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as ff ON (ff.rowid = ee.fk_target)
+				LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn_extrafields as fext ON (ff.rowid = fext.fk_object)
 			WHERE ee.sourcetype='dossier'
 				AND ee.targettype='invoice_supplier'
 				AND ee.fk_source=".$dossier_temp->getId();

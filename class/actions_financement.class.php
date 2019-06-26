@@ -118,25 +118,6 @@ class ActionsFinancement
 		
 		if (in_array('invoicesuppliercard',explode(':',$parameters['context']))) {
 			
-			//Affichage des champs date début période et date fin période
-			$sql = "SELECT date_debut_periode, date_fin_periode FROM ".MAIN_DB_PREFIX."facture_fourn WHERE rowid = ".$object->id;
-			
-			if($resql=$db->query($sql)) {
-				
-				$obj = $db->fetch_object($resql);
-				
-				?>
-				<tr>
-					<td>Date début période</td>
-					<td><?php echo date('d/m/Y',strtotime($obj->date_debut_periode)); ?></td>
-				</tr>
-				<tr>
-					<td>Date fin période</td>
-					<td><?php echo date('d/m/Y',strtotime($obj->date_fin_periode)); ?></td>
-				</tr>
-				<?php
-			}
-			
 			// Affichage du dossier de financement relatif à la facture fournisseur
 			$sql = "SELECT sourcetype, fk_source FROM ".MAIN_DB_PREFIX."element_element WHERE fk_target=".$object->id." AND targettype='invoice_supplier'";
 			

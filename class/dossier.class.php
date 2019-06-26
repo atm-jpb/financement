@@ -1537,11 +1537,6 @@ class TFin_dossier extends TObjetStd
             $result = $object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
         }
 
-        $date_debut_periode = $this->getDateDebutPeriode($echeance - 1, 'LEASER');
-        $date_fin_periode = $this->getDateFinPeriode($echeance - 1);
-
-        $db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d', strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d', strtotime($date_fin_periode))."' WHERE rowid = ".$object->id);
-
         $res .= "Création facture fournisseur ($id) : ".$object->ref."<br />";
     }
 
@@ -1639,6 +1634,12 @@ class TFin_dossier extends TObjetStd
             $object->note_public = '';
             $object->origin = 'dossier';
             $object->origin_id = $d->getId();
+
+            // Période de la facture
+            $date_debut_periode = $this->getDateDebutPeriode($echeance - 1);
+            $date_fin_periode = $this->getDateFinPeriode($echeance - 1);
+            $object->array_options['options_date_debut_periode'] = $date_debut_periode;
+            $object->array_options['options_date_fin_periode'] = $date_fin_periode;
 
             // Permet la création d'une facture leaser dans l'entité du dossier
             $curEntity = $conf->entity;
@@ -2630,17 +2631,5 @@ class TFin_financement extends TObjetStd
         }
 
         return $rate;
-    }
-}
-
-class TFin_facture_fournisseur extends TObjetStd
-{
-
-    function __construct() { /* declaration */
-        parent::set_table(MAIN_DB_PREFIX.'facture_fourn');
-        parent::add_champs('date_debut_periode,date_fin_periode', 'type=chaine;');
-
-        parent::start();
-        parent::_init_vars();
     }
 }
