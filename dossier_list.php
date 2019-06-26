@@ -186,8 +186,8 @@ if(! empty($search_ref_leaser)) $sql .= natural_search('fl.reference', $search_r
 if(! empty($search_nature) && $search_nature != -1) $sql .= natural_search('a.nature_financement', $search_nature);
 if(! empty($search_thirdparty)) $sql .= natural_search('c.nom', $search_thirdparty);
 if(! empty($search_leaser)) $sql .= natural_search('l.nom', $search_leaser);
-if(! empty($search_dateEnvoi)) $sql .= " AND fl.date_envoi = '".date('Y-m-d', $search_dateEnvoi)."'";
-if(! empty($search_dateStart)) $sql .= " AND fl.date_debut = '".date('Y-m-d', $search_dateStart)."'";
+if(! empty($search_dateEnvoi)) $sql .= " AND DATE_FORMAT(fl.date_envoi, '%Y-%m-%d') = '".date('Y-m-d', $search_dateEnvoi)."'";
+if(! empty($search_dateStart)) $sql .= " AND DATE_FORMAT(fl.date_debut, '%Y-%m-%d') = '".date('Y-m-d', $search_dateStart)."'";
 if(! empty($search_entity)) {
     $TSearchEntity = array_intersect($TEntityShared, $search_entity);
     $sql .= ' AND d.entity IN ('.implode(',', $TSearchEntity).')';
