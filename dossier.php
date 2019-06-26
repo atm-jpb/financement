@@ -251,50 +251,13 @@
 				break;
 				
 			case 'create_avoir':
-				dol_include_once('/fourn/class/fournisseur.facture.class.php');
-				dol_include_once('/product/class/product.class.php');
-				
-				$idFactureFourn = GETPOST('id_facture_fournisseur');
-				$idDossier = GETPOST('id_dossier');
-				$origine = new FactureFournisseur($db);
-				$origine->fetch($idFactureFourn);
-				$curent = $conf->entity;
-                switchEntity($origine->entity);
-				$fact = new FactureFournisseur($db);
-				$idClone = $fact->createFromClone($idFactureFourn);
-				$fact->fetch($idClone);
-				
-				$fact->type = 2;
-				$fact->fk_facture_source = $origine->id;
-				$fact->facnumber = 'AV'.$origine->ref_supplier;
-				$fact->ref_supplier = 'AV'.$origine->ref_supplier;
-				$fact->entity = $origine->entity;
-				$fact->update($user);
-				foreach($fact->lines as $line) {
-					$line->pu_ht *= -1;
-					$fact->updateline($line->rowid, $line->libelle, $line->pu_ht, $line->tva_tx,0,0,$line->qty,$line->fk_product);
-				}
+                $idDossier = GETPOST('id_dossier');
+                $idFactureFourn = GETPOST('id_facture_fournisseur');
 
-				$fact->validate($user);
-                switchEntity($curent);
-				// Ajout lien dossier
-				$fact->add_object_linked('dossier', $idDossier);
+                $dossier->load($PDOdb, $idDossier);
+                $idAvoir = $dossier->financementLeaser->createAvoirLeaserFromFacture($idFactureFourn);
 
-				// Maj échéance dossier
-				$dossier = new TFin_dossier();
-				$dossier->load($PDOdb, $idDossier);
-				$dossier->financementLeaser->setEcheance(-1, false);
-				
-				$Techeance = explode('/', $fact->ref_supplier);
-				$echeance = array_pop($Techeance);
-
-				//MAJ dates période facture
-				$date_debut_periode = $dossier->getDateDebutPeriode($echeance-1,'LEASER');
-				$date_fin_periode = $dossier->getDateFinPeriode($echeance-1);
-
-				$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$fact->id);
-				
-				$urlback = dol_buildpath('/fourn/facture/card.php?facid='.$fact->id, 1);
+				$urlback = dol_buildpath('/fourn/facture/card.php?facid='.$idAvoir, 1);
 				header("Location: ".$urlback);
 				exit;
 				
@@ -592,9 +555,10 @@ function _load_factureFournisseur(&$PDOdb,&$dossier_temp){
 	
 	$TFactureFourn = array();
 
-	$sql = "SELECT ff.rowid, ff.date_debut_periode
+	$sql = "SELECT ff.rowid, fext.date_debut_periode
 			FROM ".MAIN_DB_PREFIX."element_element as ee
 				LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as ff ON (ff.rowid = ee.fk_target)
+				LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn_extrafields as fext ON (ff.rowid = fext.fk_object)
 			WHERE ee.sourcetype='dossier'
 				AND ee.targettype='invoice_supplier'
 				AND ee.fk_source=".$dossier_temp->getId();

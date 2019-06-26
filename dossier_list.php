@@ -41,6 +41,7 @@ if($search_transfert === '') $search_transfert = -1;
 $reloc_customer_ok = GETPOST('reloc_customer_ok');
 $reloc_leaser_ok = GETPOST('reloc_leaser_ok');
 $loyer_leaser_ok = GETPOST('loyer_leaser_ok');
+$search_fac_materiel = GETPOST('search_fac_materiel');
 
 $toselect = GETPOST('toselect', 'array');
 $arrayofselected = is_array($toselect) ? $toselect : array();
@@ -131,7 +132,7 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
 // Remove filters
 if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) {
     unset($search_ref_client, $search_ref_leaser, $search_entity, $search_nature, $search_thirdparty, $search_leaser, $reloc_customer_ok, $reloc_leaser_ok, $loyer_leaser_ok, $search_transfert, $search_dateEnvoi);
-    unset($search_dateStart);
+    unset($search_dateStart, $search_fac_materiel);
 }
 
 $sql = "SELECT d.rowid as fk_fin_dossier, e.label as entity_label, fc.reference as refDosCli, fl.fk_soc as fk_leaser, fl.reference as refDosLea, a.rowid as fk_fin_affaire, a.reference as ref_affaire, ";
@@ -145,6 +146,7 @@ $sql .= "COALESCE(fl.intercalaireOK, 'OUI') as intercalaireLeaserOK, ";
 $sql .= "fl.duree as 'dureeLeaser', ";
 $sql .= "fl.montant as 'montantLeaser', ";
 $sql .= "fl.echeance as 'echeanceLeaser', ";
+$sql .= "(CASE WHEN fl.date_solde < '1970-01-01' THEN 'En cours' ELSE 'Soldé' END) as 'statut', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END) as 'prochaine', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END) as 'date_start', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END) as 'date_end', ";
@@ -198,11 +200,13 @@ if(! empty($reloc_leaser_ok) && $reloc_leaser_ok != -1) $sql .= " AND fl.relocOK
 if(! empty($loyer_leaser_ok) && $loyer_leaser_ok != -1) $sql .= " AND fl.intercalaireOK = '".$db->escape($loyer_leaser_ok)."'";
 if(isset($search_transfert) && $search_transfert != -1) $sql .= ' AND fl.transfert = '.$search_transfert;
 
+if(! empty($search_fac_materiel)) $sql .= natural_search('f.facnumber', $search_fac_materiel);
+
 $sql .= ' GROUP BY d.rowid, fc.reference, fl.fk_soc, fl.reference, a.rowid, fc.relocOK, fl.relocOK, fl.intercalaireOK, fc.duree, fl.duree, fc.montant, fl.montant, fc.echeance, fl.echeance';
 $sql .= ', fc.date_prochaine_echeance, fl.date_prochaine_echeance, fc.date_debut, fl.date_debut, fc.date_fin, fl.date_fin, fl.date_debut, fl.reste, fl.terme, fl.transfert, fl.date_envoi';
 
 $sql .= $db->order($sortfield, $sortorder);
-
+echo $sql;
 $nbtotalofrecords = 0;
 if(empty($conf->global->MAIN_DISABLE_FULL_SCANLIST)) {
     $result = $db->query($sql);
@@ -246,6 +250,7 @@ if(! empty($loyer_leaser_ok)) $param .= '&loyer_leaser_ok='.urlencode($loyer_lea
 if(! empty($search_dateEnvoi)) $param .= '&search_dateEnvoi='.urlencode($search_dateEnvoi);
 if(! empty($search_dateStart)) $param .= '&search_dateStart='.urlencode($search_dateStart);
 if(! empty($fk_leaser)) $param .= '&fk_leaser='.urlencode($fk_leaser);
+if(! empty($search_fac_materiel)) $param .= '&search_fac_materiel='.urlencode($search_fac_materiel);
 
 // List of mass actions available
 $arrayofmassactions =  array(
@@ -493,7 +498,10 @@ else {
 }
 
 // Facture matériel && boutons filtres
-print '<td align="right" colspan="2">';
+print '<td>';
+print '<input type="text" name="search_fac_materiel" value="'.$search_fac_materiel.'" size="10" />';
+print '</td>';
+print '<td colspan="2">';
 print '<input type="image" class="liste_titre" name="button_search" src="'.img_picto($langs->trans('Search'), 'search', '', false, 1).'" value="'.$langs->trans('Search').'" />';
 print '<input type="image" class="liste_titre" name="button_removefilter" src="'.img_picto($langs->trans('RemoveFilter'), 'searchclear', '', false, 1).'" value="'.$langs->trans('RemoveFilter').'" />';
 print '</td>';
@@ -539,7 +547,8 @@ else {
     print_liste_field_titre('Transfert', $_SERVER['PHP_SELF'], 'fl.transfert', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Transfert
     print_liste_field_titre('Date Envoi', $_SERVER['PHP_SELF'], 'fl.date_envoi', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Date envoi
 }
-print_liste_field_titre('Facture<br/>matériel', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center; min-width: 100px;"');   // Date end
+print_liste_field_titre('Facture<br/>matériel', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center; min-width: 100px;"');
+print_liste_field_titre('Statut', $_SERVER['PHP_SELF'], 'statut', '', $param, 'style="text-align: center;"');
 print '<td>';
 if(! empty($fk_leaser)) {
     print '<input type="checkbox" id="checkallactions" name="checkallactions" class="checkallactions" />';
@@ -718,6 +727,11 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
         print '</td>';
     }
     else print '<td>&nbsp;</td>';
+
+    $style = ($obj->statut == 'En cours') ? 'background-color: green;' : 'background-color: red;';
+    print '<td align="center" style="'.$style.'">';
+    print $obj->statut;
+    print '<td>';
 
     print '<td>';
     if(! empty($fk_leaser)) {

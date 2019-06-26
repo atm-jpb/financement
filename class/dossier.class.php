@@ -1537,11 +1537,6 @@ class TFin_dossier extends TObjetStd
             $result = $object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
         }
 
-        $date_debut_periode = $this->getDateDebutPeriode($echeance - 1, 'LEASER');
-        $date_fin_periode = $this->getDateFinPeriode($echeance - 1);
-
-        $db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d', strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d', strtotime($date_fin_periode))."' WHERE rowid = ".$object->id);
-
         $res .= "Création facture fournisseur ($id) : ".$object->ref."<br />";
     }
 
@@ -1639,6 +1634,12 @@ class TFin_dossier extends TObjetStd
             $object->note_public = '';
             $object->origin = 'dossier';
             $object->origin_id = $d->getId();
+
+            // Période de la facture
+            $date_debut_periode = $this->getDateDebutPeriode($echeance - 1);
+            $date_fin_periode = $this->getDateFinPeriode($echeance - 1);
+            $object->array_options['options_date_debut_periode'] = $date_debut_periode;
+            $object->array_options['options_date_fin_periode'] = $date_fin_periode;
 
             // Permet la création d'une facture leaser dans l'entité du dossier
             $curEntity = $conf->entity;
@@ -2437,7 +2438,7 @@ class TFin_financement extends TObjetStd
                 $date_debut_echeance = $dossier->getDateDebutPeriode($echeance);
 
                 if(strtotime($date_debut_echeance) >= $this->date_solde) {
-                    $this->createAvoirLeaserFromFacture($ATMdb, $facturefourn->id, $dossier->rowid);
+                    $this->createAvoirLeaserFromFacture($facturefourn->id);
                 }
             }
         }
@@ -2461,19 +2462,31 @@ class TFin_financement extends TObjetStd
         return true;
     }
 
-    function createAvoirLeaserFromFacture(&$ATMdb, $idFactureFourn, $idDossier) {
-        global $db, $user;
+    /**
+     * Création d'un avoir fournisseur à partir de la facture d'origine
+     * @param $idFactureFourn Id de la facture d'origine
+     * @return int Id de l'avoir créé
+     */
+    function createAvoirLeaserFromFacture($idFactureFourn) {
+        global $db, $user, $conf;
 
         dol_include_once('/fourn/class/fournisseur.facture.class.php');
         dol_include_once('/product/class/product.class.php');
 
+        // Chargement de la facture d'origine
         $origine = new FactureFournisseur($db);
         $origine->fetch($idFactureFourn);
 
+        // Changement d'entité pour pouvoir créer avec la bonne numérotation la facture avoir
+        $curent = $conf->entity;
+        switchEntity($origine->entity);
+
+        // Création de l'avoir via clone de la facture
         $fact = new FactureFournisseur($db);
         $idClone = $fact->createFromClone($idFactureFourn);
         $fact->fetch($idClone);
 
+        // Modification du clone pour transformation en avoir
         $fact->type = 2;
         $fact->entity = $origine->entity;
         $fact->fk_facture_source = $origine->id;
@@ -2481,26 +2494,22 @@ class TFin_financement extends TObjetStd
         $fact->ref_supplier = 'AV'.$origine->ref_supplier;
         $fact->update($user);
 
+        // Passage des lignes en négatif
         foreach($fact->lines as $line) {
             $line->pu_ht *= -1;
             $fact->updateline($line->rowid, $line->libelle, $line->pu_ht, $line->tva_tx, 0, 0, $line->qty, $line->fk_product);
         }
 
+        // Validation de la facture
         $fact->validate($user);
 
-        $echeance = explode('/', $origine->ref_supplier);
-        $echeance = array_pop($echeance);
+        // Retour à l'entité courante
+        switchEntity($curent);
 
-        //MAJ dates période facture
-        $dossier = new TFin_dossier;
-        $dossier->load($ATMdb, $this->fk_fin_dossier);
-        $date_debut_periode = $dossier->getDateDebutPeriode($echeance - 1, 'LEASER');
-        $date_fin_periode = $dossier->getDateFinPeriode($echeance - 1);
+        // Ajout lien avoir / dossier
+        $fact->add_object_linked('dossier', $this->fk_fin_dossier);
 
-        $db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d', strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d', strtotime($date_fin_periode))."' WHERE rowid = ".$fact->id);
-
-        // Ajout lien dossier
-        $fact->add_object_linked('dossier', $idDossier);
+        return $fact->id;
     }
 
     /**
@@ -2622,17 +2631,5 @@ class TFin_financement extends TObjetStd
         }
 
         return $rate;
-    }
-}
-
-class TFin_facture_fournisseur extends TObjetStd
-{
-
-    function __construct() { /* declaration */
-        parent::set_table(MAIN_DB_PREFIX.'facture_fourn');
-        parent::add_champs('date_debut_periode,date_fin_periode', 'type=chaine;');
-
-        parent::start();
-        parent::_init_vars();
     }
 }
