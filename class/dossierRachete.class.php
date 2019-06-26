@@ -6,7 +6,7 @@
 
 class DossierRachete extends TObjetStd
 {
-    public static $tablename = 'fin_dossiers_rachetes';
+    public static $tablename = 'fin_dossier_rachete';
 
     /**
      * @var TPDOdb

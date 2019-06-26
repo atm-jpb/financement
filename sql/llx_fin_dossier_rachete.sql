@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS llx_fin_dossiers_rachetes
+CREATE TABLE IF NOT EXISTS llx_fin_dossier_rachete
 (
     rowid                            int(11) NOT NULL primary key AUTO_INCREMENT,
     fk_dossier                       int(11) NOT NULL,
