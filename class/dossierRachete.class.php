@@ -9,6 +9,11 @@ class DossierRachete extends TObjetStd
     public $tablename = 'fin_dossiers_rachetes';
 
     /**
+     * @var TPDOdb
+     */
+    protected $PDOdb;
+
+    /**
      * @var int
      * @deprecated Use $id instead
      */
@@ -16,6 +21,7 @@ class DossierRachete extends TObjetStd
     public $id;
     public $fk_dossier;
     public $fk_leaser;
+    public $fk_simulation;
     public $ref_simulation;
     public $num_contrat;
     public $num_contrat_leaser;
@@ -54,7 +60,10 @@ class DossierRachete extends TObjetStd
 
     function __construct() { /* declaration */
         parent::set_table(MAIN_DB_PREFIX.$this->tablename);
-        parent::add_champs('fk_dossier,fk_leaser', array('type' => 'int', 'index' => true));
+
+        // Foreign keys
+        parent::add_champs('fk_dossier,fk_leaser,fk_simulation', array('type' => 'int', 'index' => true));
+
         parent::add_champs('ref_simulation,num_contrat,num_contrat_leaser', array('type' => 'chaine'));
         parent::add_champs('retrait_copie_sup,decompte_copies_sup', array('type' => 'int'));
         parent::add_champs('date_debut_periode_leaser,date_fin_periode_leaser', array('type' => 'date'));
@@ -86,5 +95,22 @@ class DossierRachete extends TObjetStd
         parent::start();
         parent::_init_vars();
 
+        $this->PDOdb = new TPDOdb;
+    }
+
+    public function create() {
+        return $this->save($this->PDOdb);
+    }
+
+    public function fetch($id) {
+        $this->load($this->PDOdb, $id);
+    }
+
+    public function update() {
+        return $this->save($this->PDOdb);
+    }
+
+    public function fetchAllBy($TConditions = array(), $annexe = true) {
+        return $this->LoadAllBy($this->PDOdb, $TConditions, $annexe);
     }
 }
