@@ -6,7 +6,7 @@
 
 class DossierRachete extends TObjetStd
 {
-    public $tablename = 'fin_dossiers_rachetes';
+    public static $tablename = 'fin_dossiers_rachetes';
 
     /**
      * @var TPDOdb
@@ -59,7 +59,7 @@ class DossierRachete extends TObjetStd
     public $choice;
 
     function __construct() { /* declaration */
-        parent::set_table(MAIN_DB_PREFIX.$this->tablename);
+        parent::set_table(MAIN_DB_PREFIX.self::$tablename);
 
         // Foreign keys
         parent::add_champs('fk_dossier,fk_leaser,fk_simulation', array('type' => 'int', 'index' => true));

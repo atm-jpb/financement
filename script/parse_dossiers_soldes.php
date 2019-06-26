@@ -9,7 +9,7 @@ $force_rollback = GETPOST('force_rollback', 'int');
 
 $sql = 'SELECT s.rowid, s.dossiers';
 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation s';
-$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossiers_rachetes dr ON (dr.fk_simulation=s.rowid)';
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.DossierRachete::$tablename.' dr ON (dr.fk_simulation=s.rowid)';
 $sql.= " WHERE s.dossiers IS NOT NULL AND s.dossiers <> ''";
 $sql.= " AND s.dossiers <> 'b:0;'";
 //$sql.= ' AND s.dossiers <> "b:0;"';
