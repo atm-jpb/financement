@@ -109,4 +109,22 @@ class DossierRachete extends TObjetStd
     public function update() {
         return $this->save($this->PDOdb);
     }
+
+    /**
+     * This will replace the TObjetStd set_values with something specific
+     * @param array $Tab
+     * @return void
+     */
+    public function set_values($Tab) {
+        foreach($Tab as $field => $value) {
+            if($field == 'object_leaser') {
+                $this->fk_leaser = $value->id;
+            }
+            else if(preg_match('/(date\_)(debut|fin)(\_periode\_)(client|leaser)(\_m1|\_p1)?/', $field)) {
+                $lo_value = strtotime($value);
+                if($lo_value !== false) $this->$field = $lo_value;
+            }
+            else $this->$field = $value;
+        }
+    }
 }

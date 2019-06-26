@@ -267,19 +267,11 @@ class TSimulation extends TObjetStd
             // Nouvelle méthode d'enregistrement
             if(empty($this->DossierRachete)) {
                 foreach($TDoss as $fk_dossier => $TValues) {
-                    $dossierRachete = new DossierRachete;
-
                     unset($TValues['leaser']);
-                    foreach($TValues as $field => $value) {
-                        if($field == 'object_leaser') {
-                            $dossierRachete->fk_leaser = $value->id;
-                        }
-                        elseif(preg_match('/(date\_)(debut|fin)(\_periode\_client)(\_m1|\_p1)?/', $field)) {
-                            $lo_value = strtotime($value);
-                            $dossierRachete->$field = $lo_value;
-                        }
-                        else $dossierRachete->$field = $value;
-                    }
+
+                    $dossierRachete = new DossierRachete;
+                    $dossierRachete->set_values($TValues);
+
                     $dossierRachete->fk_dossier = $fk_dossier;
                     $dossierRachete->fk_simulation = $this->id;
 

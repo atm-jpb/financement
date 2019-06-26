@@ -28,19 +28,11 @@ while($obj = $db->fetch_object($resql)) {
     if($dossiers === false) continue;
 
     foreach($dossiers as $fk_dossier => $TValue) {
-        $dossierRachete = new DossierRachete;
-
         unset($TValue['leaser']);
-        foreach($TValue as $field => $value) {
-            if($field == 'object_leaser') {
-                $dossierRachete->fk_leaser = $value->id;
-            }
-            elseif(preg_match('/(date\_)(debut|fin)(\_periode\_)(client|leaser)(\_m1|\_p1)?/', $field)) {
-                $lo_value = strtotime($value);
-                if($lo_value !== false) $dossierRachete->$field = $lo_value;
-            }
-            else $dossierRachete->$field = $value;
-        }
+
+        $dossierRachete = new DossierRachete;
+        $dossierRachete->set_values($TValue);
+
         $dossierRachete->fk_dossier = $fk_dossier;
         $dossierRachete->fk_simulation = $obj->rowid;
 
