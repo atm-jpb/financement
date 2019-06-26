@@ -206,7 +206,7 @@ $sql .= ' GROUP BY d.rowid, fc.reference, fl.fk_soc, fl.reference, a.rowid, fc.r
 $sql .= ', fc.date_prochaine_echeance, fl.date_prochaine_echeance, fc.date_debut, fl.date_debut, fc.date_fin, fl.date_fin, fl.date_debut, fl.reste, fl.terme, fl.transfert, fl.date_envoi';
 
 $sql .= $db->order($sortfield, $sortorder);
-echo $sql;
+
 $nbtotalofrecords = 0;
 if(empty($conf->global->MAIN_DISABLE_FULL_SCANLIST)) {
     $result = $db->query($sql);
