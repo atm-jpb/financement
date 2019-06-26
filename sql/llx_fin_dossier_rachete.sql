@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS llx_fin_dossier_rachete
     date_debut_periode_leaser        date             default null,
     date_fin_periode_leaser          date             default null,
     solde_banque_a_periode_identique float   not null default 0,
-    type_contrat                     varchar(255)     default null, -- Champ tout le temps à NULL dans mes tests
+    type_contrat                     varchar(255)     default null,
     duree                            varchar(10)      default null,
     echeance                         int     not null default 0,
     loyer_actualise                  float   not null default 0,

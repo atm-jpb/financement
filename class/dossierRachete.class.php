@@ -109,8 +109,4 @@ class DossierRachete extends TObjetStd
     public function update() {
         return $this->save($this->PDOdb);
     }
-
-    public function fetchAllBy($TConditions = array(), $annexe = true) {
-        return $this->LoadAllBy($this->PDOdb, $TConditions, $annexe);
-    }
 }
