@@ -2230,6 +2230,7 @@ class TFin_financement extends TObjetStd
         $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX."fin_dossier d ON (df.fk_fin_dossier=d.rowid AND df.type='".$db->escape($type)."')";
         $sql .= " WHERE df.reference LIKE '".$db->escape($reference)."'";
         if(! is_null($entity) && is_numeric($entity)) $sql .= ' AND d.entity = '.$entity;
+        if(! empty($entity) && is_array($entity)) $sql .= ' AND d.entity IN ('.implode(',', $entity).')';
 
         $resql = $db->query($sql);
         if(! $resql) {
