@@ -595,6 +595,8 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     if(! empty($fk_leaser)) {
         $affaire->load($PDOdb, $obj->fk_fin_affaire, false);
         $affaire->loadEquipement($PDOdb);
+
+        unset($asset, $p); // This will prevent using same values on multiple lines
         if(! empty($affaire->TAsset[0])) {
             $asset = $affaire->TAsset[0]->asset;
             $p = new Product($db);
