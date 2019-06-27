@@ -145,7 +145,7 @@ $sql .= "(CASE WHEN fl.date_solde < '1970-01-01' THEN 'En cours' ELSE 'Soldé' E
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END) as 'prochaine', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END) as 'date_start', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END) as 'date_end', ";
-$sql .= "GROUP_CONCAT(f.rowid, '-', f.facnumber) as TInvoiceData, fl.date_envoi";
+$sql .= "GROUP_CONCAT(f.rowid, '-', f.facnumber) as TInvoiceData, fl.date_envoi, d.commentaire_conformite";
 $sql .= ' FROM '.MAIN_DB_PREFIX.'fin_dossier d';
 $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (d.rowid=da.fk_fin_dossier)';
 $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire=a.rowid)';
@@ -199,6 +199,7 @@ if(! empty($search_fac_materiel)) $sql .= natural_search('f.facnumber', $search_
 
 $sql .= ' GROUP BY d.rowid, fc.reference, fl.fk_soc, fl.reference, a.rowid, fc.relocOK, fl.relocOK, fl.intercalaireOK, fc.duree, fl.duree, fc.montant, fl.montant, fc.echeance, fl.echeance';
 $sql .= ', fc.date_prochaine_echeance, fl.date_prochaine_echeance, fc.date_debut, fl.date_debut, fc.date_fin, fl.date_fin, fl.date_debut, fl.reste, fl.terme, fl.transfert, fl.date_envoi, fl.date_solde';
+$sql .= ', d.commentaire_conformite';
 
 $sql .= $db->order($sortfield, $sortorder);
 
@@ -611,8 +612,13 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     }
 
     // Ref financement leaser
-    print '<td align="center">';
-    print '<a href="dossier.php?id='.$obj->fk_fin_dossier.'">'.(! empty($obj->refDosLea) ? $obj->refDosLea : '(vide)').'</a>';
+    print '<td align="center" style="white-space: nowrap">';
+    print '<a href="dossier.php?id='.$obj->fk_fin_dossier.'">'.(! empty($obj->refDosLea) ? $obj->refDosLea : '(vide)');
+    if(! empty($fk_leaser) && ! empty($obj->commentaire_conformite)) {
+        print '&nbsp;';
+        print img_picto_common($obj->commentaire_conformite, 'mime/other.png');
+    }
+    print '</a>';
     print '</td>';
 
     if(empty($fk_leaser)) {
