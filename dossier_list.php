@@ -82,6 +82,7 @@ if(GETPOST('envoiXML')) {
 
 // On fait rien si on ne sélectionne pas de dossiers...
 if(! empty($arrayofselected) && ! empty($fk_leaser)) {
+
     if($massaction == 'generateXML') {
         $dt = TFinDossierTransfertXML::create($fk_leaser);
         $filePath = $dt->transfertXML($PDOdb, $arrayofselected);
@@ -124,7 +125,8 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
             }
         }
 
-        header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
+        $param = GETPOST('param');
+        header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser.$param);
         exit;
     }
 }
@@ -378,6 +380,7 @@ print '<input type="hidden" name="sortfield" value="'.$sortfield.'" />';
 print '<input type="hidden" name="sortorder" value="'.$sortorder.'" />';
 print '<input type="hidden" name="page" value="'.$page.'" />';
 if(! empty($fk_leaser)) print '<input type="hidden" name="fk_leaser" value="'.$fk_leaser.'" />';
+print '<input type="hidden" name="param" value="'.$param.'" />';
 
 $title = 'Dossiers';
 if(! empty($nbtotalofrecords)) $title .= ' ('.$nbtotalofrecords.')';
@@ -733,7 +736,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     print $obj->statut;
     print '</td>';
 
-    print '<td>';
+    print '<td style="text-align: center;">';
     if(! empty($fk_leaser)) {
         $selected = 0;
         if(in_array($obj->fk_fin_dossier, $arrayofselected)) $selected=1;
