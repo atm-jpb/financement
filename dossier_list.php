@@ -95,18 +95,12 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
         header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser.'&envoiXML=ok');
         exit;
     }
-    else if($massaction == 'setnottransfer') {
-        $dt = TFinDossierTransfertXML::create($fk_leaser);
-        $dt->resetAllDossiersInXML($PDOdb, $arrayofselected);
-
-        header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
-        exit;
-    }
-    elseif(in_array($massaction, array('setReady', 'setSent', 'setYes'))) {
-        $statusToSet = substr($massaction, 3);  // 'READY', 'SENT' or 'YES'
+    elseif(in_array($massaction, array('setReady', 'setSent', 'setYes', 'setnottransfer'))) {
+        $statusToSet = substr($massaction, 3);  // 'READY', 'SENT', 'YES' or 'nottransfer'
         if($statusToSet == 'Ready') $const = TFin_financement::STATUS_TRANSFER_READY;
         else if($statusToSet == 'Sent') $const = TFin_financement::STATUS_TRANSFER_SENT;
         else if($statusToSet == 'Yes') $const = TFin_financement::STATUS_TRANSFER_YES;
+        else if($statusToSet == 'nottransfer') $const = TFin_financement::STATUS_TRANSFER_NO;
 
         foreach($arrayofselected as $fk_affaire) {
             $a = new TFin_affaire;
