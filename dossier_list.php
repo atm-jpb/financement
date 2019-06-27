@@ -34,10 +34,9 @@ if(! empty($search_entity) && ! is_array($search_entity)) $search_entity = explo
 $search_nature = GETPOST('search_nature');
 $search_thirdparty = GETPOST('search_thirdparty');
 $search_leaser = GETPOST('search_leaser');
-$search_transfert = GETPOST('search_transfert', 'int');
+$search_transfert = GETPOST('search_transfert', 'array');
 $search_dateEnvoi = dol_mktime(0, 0, 0, GETPOST('search_dateEnvoimonth'), GETPOST('search_dateEnvoiday'), GETPOST('search_dateEnvoiyear'));
 $search_dateStart = dol_mktime(0, 0, 0, GETPOST('search_dateStartmonth'), GETPOST('search_dateStartday'), GETPOST('search_dateStartyear'));
-if($search_transfert === '') $search_transfert = -1;
 $reloc_customer_ok = GETPOST('reloc_customer_ok');
 $reloc_leaser_ok = GETPOST('reloc_leaser_ok');
 $loyer_leaser_ok = GETPOST('loyer_leaser_ok');
@@ -200,7 +199,7 @@ else {
 if(! empty($reloc_customer_ok) && $reloc_customer_ok != -1) $sql .= " AND fc.relocOK = '".$db->escape($reloc_customer_ok)."'";
 if(! empty($reloc_leaser_ok) && $reloc_leaser_ok != -1) $sql .= " AND fl.relocOK = '".$db->escape($reloc_leaser_ok)."'";
 if(! empty($loyer_leaser_ok) && $loyer_leaser_ok != -1) $sql .= " AND fl.intercalaireOK = '".$db->escape($loyer_leaser_ok)."'";
-if(isset($search_transfert) && $search_transfert != -1) $sql .= ' AND fl.transfert = '.$search_transfert;
+if(! empty($search_transfert)) $sql .= ' AND fl.transfert IN ('.implode(',', $search_transfert).')';
 
 if(! empty($search_fac_materiel)) $sql .= natural_search('f.facnumber', $search_fac_materiel);
 
@@ -245,7 +244,7 @@ if(! empty($search_ref_leaser)) $param .= '&search_ref_leaser='.urlencode($searc
 if(! empty($search_nature)) $param .= '&search_nature='.urlencode($search_nature);
 if(! empty($search_thirdparty)) $param .= '&search_thirdparty='.urlencode($search_thirdparty);
 if(! empty($search_leaser)) $param .= '&search_leaser='.urlencode($search_leaser);
-if(isset($search_transfert) && $search_transfert > -1) $param .= '&search_transfert='.urlencode($search_transfert);
+if(! empty($search_transfert)) $param .= '&search_transfert='.urlencode(implode(',', $search_transfert));
 if(! empty($reloc_customer_ok)) $param .= '&reloc_customer_ok='.urlencode($reloc_customer_ok);
 if(! empty($reloc_leaser_ok)) $param .= '&reloc_leaser_ok='.urlencode($reloc_leaser_ok);
 if(! empty($loyer_leaser_ok)) $param .= '&loyer_leaser_ok='.urlencode($loyer_leaser_ok);
@@ -491,7 +490,7 @@ if(empty($fk_leaser)) print '<td>&nbsp;</td>';
 else {
     // Bon pour transfert ?
     print '<td>';
-    print Form::selectarray('search_transfert', $dossier->financementLeaser->TTransfert, $search_transfert, 1, 0, 0, 'style="width: 75px;"');
+    print Form::multiselectarray('search_transfert', $dossier->financementLeaser->TTransfert, $search_transfert, 0, 0, '', 0, 90);
     print '</td>';
 
     // Date envoi
