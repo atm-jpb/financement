@@ -203,7 +203,7 @@ if(isset($search_transfert) && $search_transfert != -1) $sql .= ' AND fl.transfe
 if(! empty($search_fac_materiel)) $sql .= natural_search('f.facnumber', $search_fac_materiel);
 
 $sql .= ' GROUP BY d.rowid, fc.reference, fl.fk_soc, fl.reference, a.rowid, fc.relocOK, fl.relocOK, fl.intercalaireOK, fc.duree, fl.duree, fc.montant, fl.montant, fc.echeance, fl.echeance';
-$sql .= ', fc.date_prochaine_echeance, fl.date_prochaine_echeance, fc.date_debut, fl.date_debut, fc.date_fin, fl.date_fin, fl.date_debut, fl.reste, fl.terme, fl.transfert, fl.date_envoi';
+$sql .= ', fc.date_prochaine_echeance, fl.date_prochaine_echeance, fc.date_debut, fl.date_debut, fc.date_fin, fl.date_fin, fl.date_debut, fl.reste, fl.terme, fl.transfert, fl.date_envoi, fl.date_solde';
 
 $sql .= $db->order($sortfield, $sortorder);
 
@@ -408,14 +408,14 @@ if(empty($fk_leaser)) {
     print Form::selectarray('loyer_leaser_ok', $dossier->financementLeaser->TIntercalaireOK, $loyer_leaser_ok, 1, 0, 0, 'style="width: 75px;"');
     print '</td>';
 
-    print '<td colspan="15"></td>';
+    print '<td colspan="14"></td>';
 
     print '</tr>';
 
     print '<tr class="liste_titre">';
 
     // Entity
-    print '<td colspan="18" style="min-width: 150px;">';
+    print '<td colspan="17" style="min-width: 150px;">';
     print '<span>'.$langs->trans('DemandReasonTypeSRC_PARTNER').' : </span>';
     print Form::multiselectarray('search_entity', $TEntity, $search_entity, 0, 0, 'style="min-width: 250px;"');
     print '</td>';
@@ -731,7 +731,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     $style = ($obj->statut == 'En cours') ? 'background-color: green;' : 'background-color: red;';
     print '<td align="center" style="'.$style.'">';
     print $obj->statut;
-    print '<td>';
+    print '</td>';
 
     print '<td>';
     if(! empty($fk_leaser)) {
