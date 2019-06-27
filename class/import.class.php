@@ -307,13 +307,13 @@ class TImport extends TObjetStd {
 		if(empty($data['reference'])) {
 			return false;
 		}
-		
+		$entities = $this->get_entity_groups($data['entity']);
 		$f=new TFin_financement;
-		if($f->loadReference($ATMdb, $data['reference'], 'LEASER', $data['entity'])) { // Recherche du financement leaser par référence
+		if($f->loadReference($ATMdb, $data['reference'], 'LEASER', $entities)) { // Recherche du financement leaser par référence
 			// Le financement leaser a été trouvé avec la référence contrat leaser
-		} else if($f->loadReference($ATMdb, $data['reference'], 'CLIENT', $data['entity'])) { // Recherche du financement leaser par référence contrat client
+		} else if($f->loadReference($ATMdb, $data['reference'], 'CLIENT', $entities)) { // Recherche du financement leaser par référence contrat client
 			// Le financement leaser a été trouvé avec la référence contrat leaser
-		} else if (!empty($data['reference_dossier_interne']) && $f->loadReference($ATMdb, $data['reference_dossier_interne'], 'CLIENT', $data['entity'])) { // Recherche du financement client par référence CPRO
+		} else if (!empty($data['reference_dossier_interne']) && $f->loadReference($ATMdb, $data['reference_dossier_interne'], 'CLIENT', $entities)) { // Recherche du financement client par référence CPRO
 			// Le financement client a été trouvé avec la référence CPRO
 		} else if ($f->loadOrCreateSirenMontant($ATMdb, $data)) { // Recherche du financement leaser par siren et montant
 			// Le financement leaser a été trouvé ou créé par le siren et le montant de l'affaire
@@ -360,6 +360,8 @@ class TImport extends TObjetStd {
 
 			// Cas particulier (colonne 17) permettant d'indiquer si le solde du dossier doit être affiché ou non
 			if(isset($data['display_solde'])) $dossier->display_solde = $data['display_solde'];
+			// On met à jour l'entité du dossier (changement possible lors de fusion d'entités)
+			$dossier->entity = $data['entity'];
 			
 			$dossier->save($ATMdb);
 			$this->nb_update++;
@@ -1789,11 +1791,28 @@ class TImport extends TObjetStd {
 		return $entity;
 	}
 
-	function get_entity_groups() {
-		if($this->artis == 'ouest') {
-			$entities = array(5,7,9); // Artis OUEST est utilisé par 5,7 et 9
+	function get_entity_groups($entity) {
+		if(empty($entity)) {
+			if($this->artis == 'ouest') {
+				$entities = array(5,7,9); // Artis OUEST est utilisé par 5,7 et 9
+			} else {
+				$entities = array(1,2,3,6,10); // Artis AURA est utilisé par 1,2,3,6 et 10
+			}
 		} else {
-			$entities = array(1,2,3,6,10); // Artis AURA est utilisé par 1,2,3,6 et 10
+			$entities = array($entity);
+			// Regroupement spécifiques pour imports fichiers leaser
+			$TGroups = array(
+				array(3,10) // telecom + tdp
+				,array(5,9,11) // ouest + quadra + qsigd
+				,array(13,12,14,15) // sud + capea + bcmp + perret
+			);
+
+			foreach ($TGroups as $grp) {
+				if(in_array($entity, $grp)) {
+					$entities = $grp;
+					break;
+				}
+			}
 		}
 
 		return $entities;

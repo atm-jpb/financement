@@ -19,6 +19,8 @@ $limit = GETPOST('limit', 'int');
 $force_rollback = GETPOST('force_rollback', 'int');
 $debug = array_key_exists('debug', $_GET) || isset($argv[1]) && $argv[1] == 'debug';
 
+$user->fetch(1035); // Admin_financement
+$user->getrights();
 $langs->load('financement@financement');
 
 $sql = 'SELECT s.rowid';

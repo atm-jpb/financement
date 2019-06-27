@@ -14,7 +14,7 @@ class TFin_dossier extends TObjetStd
         parent::add_champs('date_relocation,date_solde,dateperso', 'type=date;');
         parent::add_champs('entity', array('type' => 'int', 'index' => true));
         parent::add_champs('type_regul,month_regul', array('type' => 'int'));
-        parent::add_champs('fk_statut_renta_neg_ano,fk_statut_dossier', array('type' => 'chaine'));
+        parent::add_champs('fk_statut_renta_neg_ano,fk_statut_dossier,commentaire_conformite', array('type' => 'chaine'));
 
         parent::start();
         parent::_init_vars();
@@ -2230,6 +2230,7 @@ class TFin_financement extends TObjetStd
         $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX."fin_dossier d ON (df.fk_fin_dossier=d.rowid AND df.type='".$db->escape($type)."')";
         $sql .= " WHERE df.reference LIKE '".$db->escape($reference)."'";
         if(! is_null($entity) && is_numeric($entity)) $sql .= ' AND d.entity = '.$entity;
+        if(! empty($entity) && is_array($entity)) $sql .= ' AND d.entity IN ('.implode(',', $entity).')';
 
         $resql = $db->query($sql);
         if(! $resql) {

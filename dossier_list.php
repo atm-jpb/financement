@@ -34,10 +34,10 @@ if(! empty($search_entity) && ! is_array($search_entity)) $search_entity = explo
 $search_nature = GETPOST('search_nature');
 $search_thirdparty = GETPOST('search_thirdparty');
 $search_leaser = GETPOST('search_leaser');
-$search_transfert = GETPOST('search_transfert', 'int');
+$search_transfert = GETPOST('search_transfert');
+if(! empty($search_transfert) && ! is_array($search_transfert)) $search_transfert = explode(',', $search_transfert);
 $search_dateEnvoi = dol_mktime(0, 0, 0, GETPOST('search_dateEnvoimonth'), GETPOST('search_dateEnvoiday'), GETPOST('search_dateEnvoiyear'));
 $search_dateStart = dol_mktime(0, 0, 0, GETPOST('search_dateStartmonth'), GETPOST('search_dateStartday'), GETPOST('search_dateStartyear'));
-if($search_transfert === '') $search_transfert = -1;
 $reloc_customer_ok = GETPOST('reloc_customer_ok');
 $reloc_leaser_ok = GETPOST('reloc_leaser_ok');
 $loyer_leaser_ok = GETPOST('loyer_leaser_ok');
@@ -82,6 +82,7 @@ if(GETPOST('envoiXML')) {
 
 // On fait rien si on ne sélectionne pas de dossiers...
 if(! empty($arrayofselected) && ! empty($fk_leaser)) {
+
     if($massaction == 'generateXML') {
         $dt = TFinDossierTransfertXML::create($fk_leaser);
         $filePath = $dt->transfertXML($PDOdb, $arrayofselected);
@@ -95,18 +96,12 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
         header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser.'&envoiXML=ok');
         exit;
     }
-    else if($massaction == 'setnottransfer') {
-        $dt = TFinDossierTransfertXML::create($fk_leaser);
-        $dt->resetAllDossiersInXML($PDOdb, $arrayofselected);
-
-        header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
-        exit;
-    }
-    elseif(in_array($massaction, array('setReady', 'setSent', 'setYes'))) {
-        $statusToSet = substr($massaction, 3);  // 'READY', 'SENT' or 'YES'
+    elseif(in_array($massaction, array('setReady', 'setSent', 'setYes', 'setnottransfer'))) {
+        $statusToSet = substr($massaction, 3);  // 'READY', 'SENT', 'YES' or 'nottransfer'
         if($statusToSet == 'Ready') $const = TFin_financement::STATUS_TRANSFER_READY;
         else if($statusToSet == 'Sent') $const = TFin_financement::STATUS_TRANSFER_SENT;
         else if($statusToSet == 'Yes') $const = TFin_financement::STATUS_TRANSFER_YES;
+        else if($statusToSet == 'nottransfer') $const = TFin_financement::STATUS_TRANSFER_NO;
 
         foreach($arrayofselected as $fk_affaire) {
             $a = new TFin_affaire;
@@ -124,7 +119,8 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
             }
         }
 
-        header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
+        $param = GETPOST('param');
+        header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser.$param);
         exit;
     }
 }
@@ -150,7 +146,7 @@ $sql .= "(CASE WHEN fl.date_solde < '1970-01-01' THEN 'En cours' ELSE 'Soldé' E
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END) as 'prochaine', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END) as 'date_start', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END) as 'date_end', ";
-$sql .= "GROUP_CONCAT(f.rowid, '-', f.facnumber) as TInvoiceData, fl.date_envoi";
+$sql .= "GROUP_CONCAT(f.rowid, '-', f.facnumber) as TInvoiceData, fl.date_envoi, d.commentaire_conformite";
 $sql .= ' FROM '.MAIN_DB_PREFIX.'fin_dossier d';
 $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (d.rowid=da.fk_fin_dossier)';
 $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire=a.rowid)';
@@ -186,8 +182,8 @@ if(! empty($search_ref_leaser)) $sql .= natural_search('fl.reference', $search_r
 if(! empty($search_nature) && $search_nature != -1) $sql .= natural_search('a.nature_financement', $search_nature);
 if(! empty($search_thirdparty)) $sql .= natural_search('c.nom', $search_thirdparty);
 if(! empty($search_leaser)) $sql .= natural_search('l.nom', $search_leaser);
-if(! empty($search_dateEnvoi)) $sql .= " AND fl.date_envoi = '".date('Y-m-d', $search_dateEnvoi)."'";
-if(! empty($search_dateStart)) $sql .= " AND fl.date_debut = '".date('Y-m-d', $search_dateStart)."'";
+if(! empty($search_dateEnvoi)) $sql .= " AND DATE_FORMAT(fl.date_envoi, '%Y-%m-%d') = '".date('Y-m-d', $search_dateEnvoi)."'";
+if(! empty($search_dateStart)) $sql .= " AND DATE_FORMAT(fl.date_debut, '%Y-%m-%d') = '".date('Y-m-d', $search_dateStart)."'";
 if(! empty($search_entity)) {
     $TSearchEntity = array_intersect($TEntityShared, $search_entity);
     $sql .= ' AND d.entity IN ('.implode(',', $TSearchEntity).')';
@@ -198,15 +194,16 @@ else {
 if(! empty($reloc_customer_ok) && $reloc_customer_ok != -1) $sql .= " AND fc.relocOK = '".$db->escape($reloc_customer_ok)."'";
 if(! empty($reloc_leaser_ok) && $reloc_leaser_ok != -1) $sql .= " AND fl.relocOK = '".$db->escape($reloc_leaser_ok)."'";
 if(! empty($loyer_leaser_ok) && $loyer_leaser_ok != -1) $sql .= " AND fl.intercalaireOK = '".$db->escape($loyer_leaser_ok)."'";
-if(isset($search_transfert) && $search_transfert != -1) $sql .= ' AND fl.transfert = '.$search_transfert;
+if(! empty($search_transfert)) $sql .= ' AND fl.transfert IN ('.implode(',', $search_transfert).')';
 
 if(! empty($search_fac_materiel)) $sql .= natural_search('f.facnumber', $search_fac_materiel);
 
 $sql .= ' GROUP BY d.rowid, fc.reference, fl.fk_soc, fl.reference, a.rowid, fc.relocOK, fl.relocOK, fl.intercalaireOK, fc.duree, fl.duree, fc.montant, fl.montant, fc.echeance, fl.echeance';
-$sql .= ', fc.date_prochaine_echeance, fl.date_prochaine_echeance, fc.date_debut, fl.date_debut, fc.date_fin, fl.date_fin, fl.date_debut, fl.reste, fl.terme, fl.transfert, fl.date_envoi';
+$sql .= ', fc.date_prochaine_echeance, fl.date_prochaine_echeance, fc.date_debut, fl.date_debut, fc.date_fin, fl.date_fin, fl.date_debut, fl.reste, fl.terme, fl.transfert, fl.date_envoi, fl.date_solde';
+$sql .= ', d.commentaire_conformite';
 
 $sql .= $db->order($sortfield, $sortorder);
-echo $sql;
+
 $nbtotalofrecords = 0;
 if(empty($conf->global->MAIN_DISABLE_FULL_SCANLIST)) {
     $result = $db->query($sql);
@@ -243,7 +240,7 @@ if(! empty($search_ref_leaser)) $param .= '&search_ref_leaser='.urlencode($searc
 if(! empty($search_nature)) $param .= '&search_nature='.urlencode($search_nature);
 if(! empty($search_thirdparty)) $param .= '&search_thirdparty='.urlencode($search_thirdparty);
 if(! empty($search_leaser)) $param .= '&search_leaser='.urlencode($search_leaser);
-if(isset($search_transfert) && $search_transfert > -1) $param .= '&search_transfert='.urlencode($search_transfert);
+if(! empty($search_transfert)) $param .= '&search_transfert='.urlencode(implode(',', $search_transfert));
 if(! empty($reloc_customer_ok)) $param .= '&reloc_customer_ok='.urlencode($reloc_customer_ok);
 if(! empty($reloc_leaser_ok)) $param .= '&reloc_leaser_ok='.urlencode($reloc_leaser_ok);
 if(! empty($loyer_leaser_ok)) $param .= '&loyer_leaser_ok='.urlencode($loyer_leaser_ok);
@@ -378,6 +375,7 @@ print '<input type="hidden" name="sortfield" value="'.$sortfield.'" />';
 print '<input type="hidden" name="sortorder" value="'.$sortorder.'" />';
 print '<input type="hidden" name="page" value="'.$page.'" />';
 if(! empty($fk_leaser)) print '<input type="hidden" name="fk_leaser" value="'.$fk_leaser.'" />';
+print '<input type="hidden" name="param" value="'.$param.'" />';
 
 $title = 'Dossiers';
 if(! empty($nbtotalofrecords)) $title .= ' ('.$nbtotalofrecords.')';
@@ -408,14 +406,14 @@ if(empty($fk_leaser)) {
     print Form::selectarray('loyer_leaser_ok', $dossier->financementLeaser->TIntercalaireOK, $loyer_leaser_ok, 1, 0, 0, 'style="width: 75px;"');
     print '</td>';
 
-    print '<td colspan="15"></td>';
+    print '<td colspan="14"></td>';
 
     print '</tr>';
 
     print '<tr class="liste_titre">';
 
     // Entity
-    print '<td colspan="18" style="min-width: 150px;">';
+    print '<td colspan="17" style="min-width: 150px;">';
     print '<span>'.$langs->trans('DemandReasonTypeSRC_PARTNER').' : </span>';
     print Form::multiselectarray('search_entity', $TEntity, $search_entity, 0, 0, 'style="min-width: 250px;"');
     print '</td>';
@@ -488,7 +486,7 @@ if(empty($fk_leaser)) print '<td>&nbsp;</td>';
 else {
     // Bon pour transfert ?
     print '<td>';
-    print Form::selectarray('search_transfert', $dossier->financementLeaser->TTransfert, $search_transfert, 1, 0, 0, 'style="width: 75px;"');
+    print Form::multiselectarray('search_transfert', $dossier->financementLeaser->TTransfert, $search_transfert, 0, 0, '', 0, 90);
     print '</td>';
 
     // Date envoi
@@ -593,6 +591,8 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     if(! empty($fk_leaser)) {
         $affaire->load($PDOdb, $obj->fk_fin_affaire, false);
         $affaire->loadEquipement($PDOdb);
+
+        unset($asset, $p); // This will prevent using same values on multiple lines
         if(! empty($affaire->TAsset[0])) {
             $asset = $affaire->TAsset[0]->asset;
             $p = new Product($db);
@@ -613,8 +613,13 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     }
 
     // Ref financement leaser
-    print '<td align="center">';
-    print '<a href="dossier.php?id='.$obj->fk_fin_dossier.'">'.(! empty($obj->refDosLea) ? $obj->refDosLea : '(vide)').'</a>';
+    print '<td align="center" style="white-space: nowrap">';
+    print '<a href="dossier.php?id='.$obj->fk_fin_dossier.'">'.(! empty($obj->refDosLea) ? $obj->refDosLea : '(vide)');
+    if(! empty($fk_leaser) && ! empty($obj->commentaire_conformite)) {
+        print '&nbsp;';
+        print img_picto_common($obj->commentaire_conformite, 'mime/other.png');
+    }
+    print '</a>';
     print '</td>';
 
     if(empty($fk_leaser)) {
@@ -731,9 +736,9 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     $style = ($obj->statut == 'En cours') ? 'background-color: green;' : 'background-color: red;';
     print '<td align="center" style="'.$style.'">';
     print $obj->statut;
-    print '<td>';
+    print '</td>';
 
-    print '<td>';
+    print '<td style="text-align: center;">';
     if(! empty($fk_leaser)) {
         $selected = 0;
         if(in_array($obj->fk_fin_dossier, $arrayofselected)) $selected=1;

@@ -1031,6 +1031,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'somme_sup_noir' => $sommeCopieSupNoir
 				,'somme_sup_coul' => $sommeCopieSupCouleur
 				,'type_regul' => $dossier->type_regul
+				,'commentaire_conformite' => $form->zonetexte('', 'commentaire_conformite', $dossier->commentaire_conformite,100,5,'')
 			)
 			,'financement'=>$TFinancement
 			,'financementLeaser'=>$TFinancementLeaser

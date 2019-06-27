@@ -387,6 +387,10 @@
         <td>Statut dossier</td>
         <td colspan="3">[dossier.fk_statut_dossier; strconv=no]</td>
     </tr>
+    <tr>
+        <td>Commentaire conformite</td>
+        <td colspan="3">[dossier.commentaire_conformite; strconv=no]</td>
+    </tr>
     [onshow;block=end]
 </table>
 
