@@ -35,7 +35,7 @@ $search_nature = GETPOST('search_nature');
 $search_thirdparty = GETPOST('search_thirdparty');
 $search_leaser = GETPOST('search_leaser');
 $search_transfert = GETPOST('search_transfert');
-if(! empty($search_transfert) && ! is_array($search_transfert)) $search_transfert = explode(',', $search_transfert);
+if(isset($search_transfert) && $search_transfert !== '' && ! is_array($search_transfert)) $search_transfert = explode(',', $search_transfert);
 $search_dateEnvoi = dol_mktime(0, 0, 0, GETPOST('search_dateEnvoimonth'), GETPOST('search_dateEnvoiday'), GETPOST('search_dateEnvoiyear'));
 $search_dateStart = dol_mktime(0, 0, 0, GETPOST('search_dateStartmonth'), GETPOST('search_dateStartday'), GETPOST('search_dateStartyear'));
 $reloc_customer_ok = GETPOST('reloc_customer_ok');
