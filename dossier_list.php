@@ -835,6 +835,7 @@ function _getExportXML($sql) {
         unset($TRes['fk_fin_dossier'], $TRes['fk_fin_affaire'], $TRes['fk_soc'], $TRes['refDosCli'], $TRes['fk_leaser'], $TRes['nature_financement'], $TRes['statut']);
         unset($TRes['prochaine'], $TRes['date_start'], $TRes['date_end'], $TRes['TInvoiceData'], $TRes['ref_affaire'], $TRes['nomLea'], $TRes['transfert']);
         unset($TRes['duree'], $TRes['Montant'], $TRes['echeance'], $TRes['relocClientOK'], $TRes['relocLeaserOK'],$TRes['intercalaireLeaserOK'], $TRes['date_envoi']);
+        unset($TRes['commentaire_conformite']);
 
         fputcsv($file, $TRes, ';', '"');
     }
