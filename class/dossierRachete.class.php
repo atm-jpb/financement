@@ -93,7 +93,6 @@ class DossierRachete extends TObjetStd
         parent::add_champs('choice', array('type' => 'chaine', 'length' => 5));
 
         parent::start();
-        parent::_init_vars();
 
         $this->PDOdb = new TPDOdb;
     }

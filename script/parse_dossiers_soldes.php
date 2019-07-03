@@ -1,4 +1,6 @@
 <?php
+set_time_limit(0);
+ini_set('memory_limit', '256M');
 
 require_once('../config.php');
 dol_include_once('/financement/class/dossierRachete.class.php');
@@ -43,4 +45,5 @@ while($obj = $db->fetch_object($resql)) {
 }
 $db->free($resql);
 ?>
-<span>Nb Commit : <?php echo $nb_commit; ?><br />Nb Rollback : <?php echo $nb_rollback; ?>
+<span>Nb Commit : <?php echo $nb_commit; ?></span><br />
+<span>Nb Rollback : <?php echo $nb_rollback; ?></span>
