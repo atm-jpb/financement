@@ -957,6 +957,12 @@ class TSimulation extends TObjetStd
             $mesg .= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n '.$this->reference.'.'."\n\n";
             if(! empty($this->commentaire)) $mesg .= 'Commentaire : '."\n".$this->commentaire."\n\n";
         }
+        else if($this->accord == 'WAIT_AP') {
+            $accord = 'Accord de principe';
+            $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
+            $mesg .= 'Vous trouverez ci-joint un accord de principe concernant la simulation '.$this->reference.'.'."\n\n";
+            $mesg .= "Dans un second temps nous vous enverrons l'accord de financement définitif".$this->reference.'.'."\n\n";
+        }
         else {
             $retourLeaser = '';
             foreach($this->TSimulationSuivi as $suivi) {

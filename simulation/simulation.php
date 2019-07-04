@@ -472,7 +472,7 @@ if(!empty($action)) {
 
 		    $simulation->accord = $newAccord;
 		    $simulation->save($ATMdb, $db);
-		    if($newAccord == 'KO') $simulation->send_mail_vendeur();
+		    if(in_array($newAccord, array('KO', 'WAIT_AP'))) $simulation->send_mail_vendeur();
 		    $simulation->historise_accord($ATMdb);
 
             if($simulation->fk_action_manuelle > 0) {
