@@ -23,7 +23,7 @@ class TSimulation extends TObjetStd
         parent::add_champs('pct_vr,mt_vr', array('type' => 'float'));
         parent::add_champs('fk_fin_dossier,fk_fin_dossier_adjonction', array('type' => 'integer'));
         parent::add_champs('fk_simu_cristal,fk_projet_cristal', array('type' => 'integer'));
-        parent::add_champs('note_public,note_private', array('type' => 'chaine'));
+        parent::add_champs('note_public,note_private', array('type' => 'text'));
         parent::add_champs('fk_action_manuelle', array('type' => 'integer'));
 
         parent::start();
