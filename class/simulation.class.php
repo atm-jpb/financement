@@ -200,6 +200,11 @@ class TSimulation extends TObjetStd
                 $solde_banque = $dossier->getSolde($PDOdb, 'SRBANK', $echeance);
                 $solde_banque_p1 = $dossier->getSolde($PDOdb, 'SRBANK', $echeance + 1);
 
+                // Soldes NR
+                $solde_banque_nr_m1 = $dossier->getSolde($PDOdb, 'SNRBANK', $echeance - 1);
+                $solde_banque_nr = $dossier->getSolde($PDOdb, 'SNRBANK', $echeance);
+                $solde_banque_nr_p1 = $dossier->getSolde($PDOdb, 'SNRBANK', $echeance + 1);
+
                 // ?
                 $soldeperso = round($dossier->getSolde($PDOdb, 'perso'), 2);
                 if(empty($dossier->display_solde)) $soldeperso = 0;
@@ -271,6 +276,10 @@ class TSimulation extends TObjetStd
 
                     $dossierRachete = new DossierRachete;
                     $dossierRachete->set_values($TValues);
+
+                    $dossierRachete->solde_banque_nr_m1 = $solde_banque_nr_m1;
+                    $dossierRachete->solde_banque_nr = $solde_banque_nr;
+                    $dossierRachete->solde_banque_nr_p1 = $solde_banque_nr_p1;
 
                     $dossierRachete->fk_dossier = $fk_dossier;
                     $dossierRachete->fk_simulation = $this->id;

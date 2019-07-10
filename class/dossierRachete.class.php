@@ -1,9 +1,5 @@
 <?php
 
-/*
- * Dossier
- */
-
 class DossierRachete extends TObjetStd
 {
     public static $tablename = 'fin_dossier_rachete';
@@ -48,17 +44,20 @@ class DossierRachete extends TObjetStd
     public $date_fin_periode_client_m1;
     public $solde_vendeur_m1;
     public $solde_banque_m1;
+    public $solde_banque_nr_m1;
     public $date_debut_periode_client;
     public $date_fin_periode_client;
     public $solde_vendeur;
     public $solde_banque;
+    public $solde_banque_nr;
     public $date_debut_periode_client_p1;
     public $date_fin_periode_client_p1;
     public $solde_vendeur_p1;
     public $solde_banque_p1;
+    public $solde_banque_nr_p1;
     public $choice;
 
-    function __construct() { /* declaration */
+    function __construct() {
         parent::set_table(MAIN_DB_PREFIX.self::$tablename);
 
         // Foreign keys
@@ -80,15 +79,15 @@ class DossierRachete extends TObjetStd
 
         // Prev
         parent::add_champs('date_debut_periode_client_m1,date_fin_periode_client_m1', array('type' => 'date'));
-        parent::add_champs('solde_vendeur_m1,solde_banque_m1', array('type' => 'float'));
+        parent::add_champs('solde_vendeur_m1,solde_banque_m1,solde_banque_nr_m1', array('type' => 'float'));
 
         // Curr
         parent::add_champs('date_debut_periode_client,date_fin_periode_client', array('type' => 'date'));
-        parent::add_champs('solde_vendeur,solde_banque', array('type' => 'float'));
+        parent::add_champs('solde_vendeur,solde_banque,solde_banque_nr', array('type' => 'float'));
 
         // Next
         parent::add_champs('date_debut_periode_client_p1,date_fin_periode_client_p1', array('type' => 'date'));
-        parent::add_champs('solde_vendeur_p1,solde_banque_p1', array('type' => 'float'));
+        parent::add_champs('solde_vendeur_p1,solde_banque_p1,solde_banque_nr_p1', array('type' => 'float'));
 
         parent::add_champs('choice', array('type' => 'chaine', 'length' => 5));
 

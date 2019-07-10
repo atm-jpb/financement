@@ -55,17 +55,3 @@ while($obj = $db->fetch_object($resql)) {
 $db->free($resql);
 ?>
 <span>Capri... c'est fini !</span>
-
-<?php
-
-/**
- * @param   array $TData
- * @return  int
- */
-function getCheckedDossier($TData) {
-    foreach($TData as $fk_dossier => $TValue) {
-        if(array_key_exists('checked', $TValue)) return $fk_dossier;
-    }
-
-    return -1;
-}
