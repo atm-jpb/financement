@@ -960,8 +960,8 @@ class TSimulation extends TObjetStd
         else if($this->accord == 'WAIT_AP') {
             $accord = 'Accord de principe';
             $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-            $mesg .= 'Vous trouverez ci-joint un accord de principe concernant la simulation '.$this->reference.'.'."\n\n";
-            $mesg .= "Dans un second temps nous vous enverrons l'accord de financement définitif".$this->reference.'.'."\n\n";
+            $mesg .= 'Vous trouverez ci-joint un accord de principe concernant la simulation '.$this->reference.'.'."\n";
+            $mesg .= "Dans un second temps nous vous enverrons l'accord de financement définitif\n\n";
         }
         else {
             $retourLeaser = '';
