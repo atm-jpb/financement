@@ -51,7 +51,7 @@ class TSimulation extends TObjetStd
             'WAIT_LEASER' => 'wait_leaser',
             'WAIT_SELLER' => 'wait_seller',
             'WAIT_MODIF' => 'edit',
-            'WAIT_AP' => 'fish',
+            'WAIT_AP' => 'wait_ap',
             'KO' => 'refus',
             'SS' => 'sans_suite'
         );

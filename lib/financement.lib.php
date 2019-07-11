@@ -757,6 +757,9 @@ function get_picto($name, $title = '', $color = '', &$style = '') {
         case 'wait_leaser':
             $img .= '<i class="fas fa-piggy-bank" style="'.$iconSize.'"'.$lo_title.'></i>';
             break;
+        case 'wait_ap':
+            $img .= '<i class="fas fa-check-circle" style="color: darkorange; '.$iconSize.'"'.$lo_title.'></i>';
+            break;
         case 'ok':
             $img .= '<i class="fas fa-check-circle" style="color: grey; ' .$iconSize.'"'.$lo_title.'></i>';
             break;
