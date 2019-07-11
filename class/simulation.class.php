@@ -278,7 +278,7 @@ class TSimulation extends TObjetStd
         // Ajout des autres leasers de la liste (sauf le prio)
         foreach($grille as $TData) {
             // Le montant de LOC PURE change uniquement pour C'Pro Ouest
-            if(($this->montant < 1000 && ! in_array($this->entity, array(5, 7)) || $this->montant < 500 && in_array($this->entity, array(5, 7)) && $TData['fk_leaser'] != 18495) continue;     // Spécifique LOC PURE
+            if(($this->montant < 1000 && ! in_array($this->entity, array(5, 7)) || $this->montant < 500 && in_array($this->entity, array(5, 7))) && $TData['fk_leaser'] != 18495) continue;     // Spécifique LOC PURE
 
             $simulationSuivi = new TSimulationSuivi;
             $simulationSuivi->leaser = new Fournisseur($db);
