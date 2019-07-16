@@ -21,7 +21,13 @@ require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 // TODO inclure les class nécessaire pour le scoring
 require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 
-dol_syslog("WEBSERVICE CALL : start calling webservice", LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
+dol_syslog("WEBSERVICE CALL : start calling webservice FRANFINANCE", LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
+
+$authentification['login'] = $_SERVER['PHP_AUTH_USER'];
+$authentification['password'] = $_SERVER['PHP_AUTH_PW'];
+$authentification['dolibarrkey'] = $conf->global->WEBSERVICES_KEY;
+$ResponseDemFin = file_get_contents("php://input");
+
 
 $langs->setDefaultLang('fr_FR');
 $langs->load("main");
@@ -132,8 +138,15 @@ $server->register(
     'WS retour de DiffusionDemande'
 );
 
+$authentication['login'] = $_SERVER['PHP_AUTH_USER'];
+$authentication['password'] = $_SERVER['PHP_AUTH_PW'];
+$authentication['dolibarrkey'] = $conf->global->WEBSERVICES_KEY;
+$ResponseDemFin = file_get_contents("php://input");
+
+DiffusionDemande($authentication, $ResponseDemFin);
 function DiffusionDemande($authentication, $ResponseDemFin)
 {
+
     global $db,$conf,$dolibarr_main_authentication,$langs;
     $dolibarr_main_authentication='dolibarr';
 
@@ -159,6 +172,7 @@ function DiffusionDemande($authentication, $ResponseDemFin)
     if (!empty($authentication['entity'])) $conf->entity=$authentication['entity'];
 
     $fuser=check_authentication($authentication,$error,$result_code,$result_label);
+    if (!empty($error)) dol_syslog("WEBSERVICE error=".print_r($result_code, true), LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
     if (empty($error))
     {
         // traitement du retour de franfinance
@@ -177,6 +191,7 @@ function DiffusionDemande($authentication, $ResponseDemFin)
             $error++;
             $result_code='PERMISSION_DENIED';
             $result_label='L\'utilisateur n\'a pas les permissions suffisantes pour cette requête';
+            dol_syslog("WEBSERVICE error=".$result_code, LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
         }
         /*else if (empty($fuser->array_options['options_fk_leaser_webservice']))
         {
@@ -201,12 +216,14 @@ function DiffusionDemande($authentication, $ResponseDemFin)
                 $error++;
                 $result_code = "MISSING_REQUEST_NUMBER";
                 $result_label = "Numéro de demande non-fourni";
+                dol_syslog("WEBSERVICE error=".$result_code, LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
             }
             elseif (empty($codeDecision) || !in_array($codeDecision,array('ACC', 'ASI', 'RFR', 'RFD', 'ANO')))
             {
                 $error++;
                 $result_code = "MISSING_CODE_DECISION";
                 $result_label = "Code décision invalide";
+                dol_syslog("WEBSERVICE error=".$result_code, LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
             }
 
             if (empty($error))
@@ -224,16 +241,16 @@ function DiffusionDemande($authentication, $ResponseDemFin)
                     {
                         case 'ACC': // ok
                         case 'ASI': // ok
-                            $suivi->doAction($PDOdb, $simulation, 'accepter');
+                            $suivi->doAction($PDOdb, $suivi->simulation, 'accepter');
                             break;
 
                         case 'RFR': // ko
                         case 'RFD': // ko
-                            $suivi->doAction($PDOdb, $simulation, 'refuser');
+                            $suivi->doAction($PDOdb, $suivi->simulation, 'refuser');
                             break;
 
                         case 'ANO': // err
-                            $suivi->doAction($PDOdb, $simulation, 'erreur');
+                            $suivi->doAction($PDOdb, $suivi->simulation, 'erreur');
                             break;
                     }
 
@@ -246,13 +263,18 @@ function DiffusionDemande($authentication, $ResponseDemFin)
                     $error++;
                     $result_code = "REQUEST_NUMBER_NOT_FOUND";
                     $result_label= 'Le numéro de demande fourni n\'a pas été trouvé';
+                    dol_syslog("WEBSERVICE error=".$result_code, LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
                 }
             }
         }
 
     }
+    else dol_syslog("WEBSERVICE FRANFINANCE error connecting user", LOG_ERR, 0, '_EDI_SCORING_Franfinance');
 
+    dol_syslog("WEBSERVICE Create DateTime=".$result_code, LOG_INFO, 0, '_EDI_SCORING_FRANFINANCE');
     $date = new DateTime();
+    dol_syslog("WEBSERVICE Create2 DateTime=".$result_code, LOG_INFO, 0, '_EDI_SCORING_FRANFINANCE');
+
     $objectresp['date'] = $date->format('Y-m-d H:i:s');
     $objectresp['timezone'] = $date->getTimezone()->getName();
     $objectresp['result'] = array('result_code' => $result_code, 'result_label' => $result_label);
