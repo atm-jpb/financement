@@ -1,36 +1,45 @@
 <?php
 set_time_limit(0);
-//ini_set('display_errors', true);
 
 require 'config.php';
-//require DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
-//dol_include_once('/financement/class/import.class.php');
-//dol_include_once('/financement/class/import_error.class.php');
-//dol_include_once('/financement/class/commerciaux.class.php');
-//dol_include_once('/financement/class/affaire.class.php');
-//dol_include_once('/financement/class/dossier.class.php');
-//dol_include_once('/financement/class/grille.class.php');
-//dol_include_once('/financement/class/score.class.php');
-//dol_include_once('/financement/lib/financement.lib.php');
-//dol_include_once('/asset/class/asset.class.php');
-//dol_include_once('/societe/class/societe.class.php');
-//dol_include_once('/compta/facture/class/facture.class.php');
-//dol_include_once('/product/class/product.class.php');
-//dol_include_once('/core/class/html.form.class.php');
-//dol_include_once('/fourn/class/fournisseur.facture.class.php');
-//
-//require_once(DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php');
+dol_include_once('/financement/class/dossierRachete.class.php');
+dol_include_once('/financement/class/simulation.class.php');
 
 $limit = GETPOST('limit', 'int');
 
 $langs->load('financement@financement');
-//$PDOdb = new TPDOdb;
+$PDOdb = new TPDOdb;
 
-$sql = 'SELECT s.rowid, e.label';
+// Il faut récupérer les catégories de leaser pour savoir si on prendre le 'R' ou le 'NR'
+$sql = 'SELECT cf.fk_societe as fk_soc, cf.fk_categorie as fk_cat';
+$sql .= ' FROM llx_categorie_fournisseur cf';
+$sql .= ' LEFT JOIN llx_categorie c ON (c.rowid = cf.fk_categorie)';
+$sql .= ' LEFT JOIN llx_categorie c2 ON (c2.rowid = c.fk_parent)';
+$sql .= " WHERE c2.label = 'Leaser'";
+
+$resql = $db->query($sql);
+if($resql) {
+    while($obj = $db->fetch_object($resql)) $TLeaserCat[$obj->fk_soc] = $obj->fk_cat;
+}
+$db->free($resql);
+unset($resql, $obj);
+
+$sql = 'SELECT s.reference as ref_simul, cli.nom as client_name, e.label as partenaire, dfcli.reference as num_contrat_client, dflea.reference as num_contrat_leaser, slea.nom as leaser_name';
+$sql .= ', dr.date_debut_periode_client_m1, dr.date_fin_periode_client_m1, dr.solde_vendeur_m1, dr.solde_banque_m1, dr.solde_banque_nr_m1';   // Prev
+$sql .= ', dr.date_debut_periode_client, dr.date_fin_periode_client, dr.solde_vendeur, dr.solde_banque, dr.solde_banque_nr';   // Curr
+$sql .= ', dr.date_debut_periode_client_p1, dr.date_fin_periode_client_p1, dr.solde_vendeur_p1, dr.solde_banque_p1, dr.solde_banque_nr_p1';   // Next
+$sql .= ', choice, s.rowid, dflea.fk_soc';
 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation s';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'entity e ON (s.entity = e.rowid)';
+$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.DossierRachete::$tablename.' dr ON (s.rowid = dr.fk_simulation)';
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dr.fk_dossier = dfcli.fk_fin_dossier AND dfcli.type = 'CLIENT')";
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe cli ON (dfcli.fk_soc = cli.rowid)';
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dr.fk_dossier = dflea.fk_fin_dossier AND dflea.type = 'LEASER')";
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe slea ON (s.fk_leaser = slea.rowid)';
 $sql.= ' WHERE s.entity IN ('.getEntity('fin_simulation', true).')';
 $sql.= " AND s.accord = 'OK'";
+$sql.= " AND dr.choice <> 'no'";    // On veut des dossiers soldés
+$sql.= " AND DATE_FORMAT(s.date_simul, '%Y-%m-%d') >= ".date('Y-m-d', strtotime('-5 month'));    // Simul vieilles de moins de 5 mois
 if(! empty($limit)) $sql.= ' LIMIT '.$limit;
 
 $resql = $db->query($sql);
@@ -54,12 +63,77 @@ $THead = array(
     'leaser_accord'
 );
 
+if($conf->entity > 1) $path = DOL_DATA_ROOT.'/'.$conf->entity.'/financement/export/soldes';
+else $path = DOL_DATA_ROOT.'/financement/export/soldes';
+
+if(! file_exists($path)) dol_mkdir($path);
+
 $filename = 'extract_simul_soldes_'.date('Ymd-His').'.csv';
-$f = fopen($filename, 'w');
+$f = fopen($path.'/'.$filename, 'w');
 fputcsv($f, $THead, ';');
 
 while($obj = $db->fetch_object($resql)) {
-    // TODO: Construire le fichier CSV !
+    // ça c'est la partie facile
+    $TData = array(
+        $obj->ref_simul,
+        $obj->client_name,
+        $obj->partenaire,
+        $obj->num_contrat_client,
+        $obj->num_contrat_leaser,
+    );
+
+    $simu = new TSimulation;
+    $simu->load($PDOdb, $obj->rowid, false);
+    $simu->load_suivi_simulation($PDOdb);
+
+    $refus = false;
+    foreach($simu->TSimulationSuivi as $suivi) {
+        if($TLeaserCat[$obj->fk_soc] == $TLeaserCat[$suivi->fk_leaser] && $suivi->statut == 'KO') {
+            $refus = true;
+            break;
+        }
+    }
+
+    if($refus || $TLeaserCat[$simu->fk_leaser] == $TLeaserCat[$obj->fk_soc]) {
+        $solde = 'R';
+    }
+    else {
+        $solde = 'NR';
+    }
+
+    if($obj->choice == 'prev') {
+        $TData[] = $obj->solde_vendeur_m1;
+        if($solde == 'R') $TData[] = $obj->solde_banque_m1;
+        else $TData[] = $obj->solde_banque_nr_m1;
+        $TData[] = $obj->choice;
+        $TData[] = $obj->date_debut_periode_client_m1;
+        $TData[] = $obj->date_fin_periode_client_m1;
+    }
+    elseif($obj->choice == 'curr') {
+        $TData[] = $obj->solde_vendeur;
+        if($solde == 'R') $TData[] = $obj->solde_banque;
+        else $TData[] = $obj->solde_banque_nr;
+        $TData[] = $obj->choice;
+        $TData[] = $obj->date_debut_periode_client;
+        $TData[] = $obj->date_fin_periode_client;
+    }
+    else {  // 'next'
+        $TData[] = $obj->solde_vendeur_p1;
+        if($solde == 'R') $TData[] = $obj->solde_banque_p1;
+        else $TData[] = $obj->solde_banque_nr_p1;
+        $TData[] = $obj->choice;
+        $TData[] = $obj->date_debut_periode_client_p1;
+        $TData[] = $obj->date_fin_periode_client_p1;
+    }
+    $TData[] = $solde;
+    $TData[] = $obj->leaser_name;
+
+    fputcsv($f, $TData, ';');
 }
 
 fclose($f);
+
+// Pour download le fichier
+print '<script language="javascript">';
+print 'document.location.href = "'.dol_buildpath('/document.php?modulepart=financement&entity='.$conf->entity.'&file=export/soldes/'.$filename, 2).'";';
+print '</script>';
