@@ -288,10 +288,12 @@ class TSimulation extends TObjetStd
                 }
             }
             else {
-                foreach($this->DossierRachete as $dossierRachete) {
-                    if($dossierRachete->choice !== $TDoss[$dossierRachete->fk_dossier]['choice']) {
-                        $dossierRachete->choice = $TDoss[$dossierRachete->fk_dossier]['choice'];
-                        $dossierRachete->update();
+                foreach($TDoss as $fk_dossier => $TValues) {
+                    foreach($this->DossierRachete as $dossierRachete) {
+                        if($dossierRachete->fk_dossier === $TValues['choice'] && $dossierRachete->choice !== $TValues['choice']) {
+                            $dossierRachete->choice = $TValues['choice'];
+                            $dossierRachete->update();
+                        }
                     }
                 }
             }
