@@ -269,7 +269,7 @@ function DiffusionDemande($authentication, $ResponseDemFin)
         }
 
     }
-    else dol_syslog("WEBSERVICE FRANFINANCE error connecting user", LOG_ERR, 0, '_EDI_SCORING_Franfinance');
+    else dol_syslog("WEBSERVICE FRANFINANCE error connecting user", LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
 
     dol_syslog("WEBSERVICE Create DateTime=".$result_code, LOG_INFO, 0, '_EDI_SCORING_FRANFINANCE');
     $date = new DateTime();
@@ -279,7 +279,7 @@ function DiffusionDemande($authentication, $ResponseDemFin)
     $objectresp['timezone'] = $date->getTimezone()->getName();
     $objectresp['result'] = array('result_code' => $result_code, 'result_label' => $result_label);
 
-    dol_syslog("3. WEBSERVICE DiffusionDemande return = ".print_r($objectresp,true), LOG_ERR, 0, '_EDI_SCORING_Franfinance');
+    dol_syslog("3. WEBSERVICE DiffusionDemande return = ".print_r($objectresp,true), LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
 
     return $objectresp;
 }
