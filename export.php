@@ -13,18 +13,7 @@ $langs->load('financement@financement');
 $PDOdb = new TPDOdb;
 
 // Il faut récupérer les catégories de leaser pour savoir si on prendre le 'R' ou le 'NR'
-$sql = 'SELECT cf.fk_societe as fk_soc, cf.fk_categorie as fk_cat';
-$sql .= ' FROM llx_categorie_fournisseur cf';
-$sql .= ' LEFT JOIN llx_categorie c ON (c.rowid = cf.fk_categorie)';
-$sql .= ' LEFT JOIN llx_categorie c2 ON (c2.rowid = c.fk_parent)';
-$sql .= " WHERE c2.label = 'Leaser'";
-
-$resql = $db->query($sql);
-if($resql) {
-    while($obj = $db->fetch_object($resql)) $TLeaserCat[$obj->fk_soc] = $obj->fk_cat;
-}
-$db->free($resql);
-unset($resql, $obj);
+$TLeaserCat = getLeaserCategory();
 
 $sql = 'SELECT s.reference as ref_simul, cli.nom as client_name, e.label as partenaire, dfcli.reference as num_contrat_client, dflea.reference as num_contrat_leaser, slea.nom as leaser_name';
 $sql .= ', dr.date_debut_periode_client_m1, dr.date_fin_periode_client_m1, dr.solde_vendeur_m1, dr.solde_banque_m1, dr.solde_banque_nr_m1';   // Prev
@@ -41,7 +30,7 @@ $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe slea ON (s.fk_leaser = slea.rowid)'
 $sql.= ' WHERE s.entity IN ('.getEntity('fin_simulation', true).')';
 $sql.= " AND s.accord = 'OK'";
 $sql.= " AND dr.choice <> 'no'";    // On veut des dossiers soldés
-$sql.= " AND DATE_FORMAT(s.date_simul, '%Y-%m-%d') >= ".date('Y-m-d', strtotime('-5 month'));    // Simul vieilles de moins de 5 mois
+$sql.= " AND DATE_FORMAT(s.date_validite, '%Y-%m-%d') >= '".date('Y-m-d')."'";    // On prend les simuls dont la date de validité n'est pas dépassée
 if(! empty($limit)) $sql.= ' LIMIT '.$limit;
 
 $resql = $db->query($sql);
@@ -139,3 +128,24 @@ fclose($f);
 print '<script language="javascript">';
 print 'document.location.href = "'.dol_buildpath('/document.php?modulepart=financement&entity='.$conf->entity.'&file=export/soldes/'.$filename, 2).'";';
 print '</script>';
+
+/**
+ * @return array
+ */
+function getLeaserCategory() {
+    global $db;
+
+    $TRes = array();
+    $sql = 'SELECT cf.fk_societe as fk_soc, cf.fk_categorie as fk_cat';
+    $sql .= ' FROM llx_categorie_fournisseur cf';
+    $sql .= ' LEFT JOIN llx_categorie c ON (c.rowid = cf.fk_categorie)';
+    $sql .= ' LEFT JOIN llx_categorie c2 ON (c2.rowid = c.fk_parent)';
+    $sql .= " WHERE c2.label = 'Leaser'";
+
+    $resql = $db->query($sql);
+    if($resql) {
+        while($obj = $db->fetch_object($resql)) $TRes[$obj->fk_soc] = $obj->fk_cat;
+    }
+
+    return $TRes;
+}
