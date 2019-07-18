@@ -4,6 +4,8 @@ set_time_limit(0);
 require 'config.php';
 dol_include_once('/financement/class/dossierRachete.class.php');
 dol_include_once('/financement/class/simulation.class.php');
+dol_include_once('/financement/class/grille.class.php');
+dol_include_once('/financement/class/dossier.class.php');
 
 $limit = GETPOST('limit', 'int');
 
