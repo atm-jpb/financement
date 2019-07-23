@@ -1849,9 +1849,8 @@ class TImport extends TObjetStd {
 				'SSC104'
 			),
 			'fass' => array(
-				'SSC004', 'SSC005', 'SSC006', 'SSC025', 'SSC030', 'SSC032', 'SSC054', 'SSC113', 'SSC114', 'SSC115', 'SSC121',
-				'SSC124', 'SSC127', 'SSC134', 'SSC135', 'SSC144', 'SSC195', 'SSC196', 'SSC197', 'SSC198', 'SSC199', 'SSC202',
-				'SSC203', 'SSC204', 'SSC205', 'SSC207', 'SSC208', 'SSC212', 'SSC214', 'SSC218'
+				'SSC025', 'SSC054', 'SSC114', 'SSC115', 'SSC121', 'SSC124',
+				'SSC127','SSC032', 'SSC204', 'SSC195'
 			),
 			'frais_dossier' => array('037003'),
 			'frais_facture' => array('FRAIS DE FACTURATION'),
