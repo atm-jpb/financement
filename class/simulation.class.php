@@ -37,13 +37,13 @@ class TSimulation extends TObjetStd
 
         $this->init();
 
+        $this->setChild('DossierRachete', 'fk_simulation');
+
         if($setChild) {
             $this->setChild('TSimulationSuivi', 'fk_simulation');
-            $this->setChild('DossierRachete', 'fk_simulation');
         }
         else {
             $this->TSimulationSuivi = array();
-            $this->DossierRachete = array();
         }
 
         $this->TStatut = array(
