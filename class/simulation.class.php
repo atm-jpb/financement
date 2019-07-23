@@ -290,7 +290,7 @@ class TSimulation extends TObjetStd
             else {
                 foreach($TDoss as $fk_dossier => $TValues) {
                     foreach($this->DossierRachete as $dossierRachete) {
-                        if($dossierRachete->fk_dossier === $TValues['choice'] && $dossierRachete->choice !== $TValues['choice']) {
+                        if($dossierRachete->fk_dossier === $fk_dossier && $dossierRachete->choice !== $TValues['choice']) {
                             $dossierRachete->choice = $TValues['choice'];
                             $dossierRachete->update();
                         }
