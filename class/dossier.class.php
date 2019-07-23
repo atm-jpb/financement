@@ -2111,6 +2111,9 @@ class TFin_financement extends TObjetStd
             , 'NON' => 'Non'
         );
         $this->intercalaireOK = 'OUI';
+
+        $this->date_application = null; // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
+        $this->date_envoi = null;
     }
 
     /*

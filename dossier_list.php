@@ -35,7 +35,7 @@ $search_nature = GETPOST('search_nature');
 $search_thirdparty = GETPOST('search_thirdparty');
 $search_leaser = GETPOST('search_leaser');
 $search_transfert = GETPOST('search_transfert');
-if(! empty($search_transfert) && ! is_array($search_transfert)) $search_transfert = explode(',', $search_transfert);
+if(isset($search_transfert) && $search_transfert !== '' && ! is_array($search_transfert)) $search_transfert = explode(',', $search_transfert);
 $search_dateEnvoi = dol_mktime(0, 0, 0, GETPOST('search_dateEnvoimonth'), GETPOST('search_dateEnvoiday'), GETPOST('search_dateEnvoiyear'));
 $search_dateStart = dol_mktime(0, 0, 0, GETPOST('search_dateStartmonth'), GETPOST('search_dateStartday'), GETPOST('search_dateStartyear'));
 $reloc_customer_ok = GETPOST('reloc_customer_ok');
@@ -546,7 +546,7 @@ else {
     print_liste_field_titre('Date Envoi', $_SERVER['PHP_SELF'], 'fl.date_envoi', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Date envoi
 }
 print_liste_field_titre('Facture<br/>matériel', $_SERVER['PHP_SELF'], '', '', $param, 'style="text-align: center; min-width: 100px;"');
-print_liste_field_titre('Statut', $_SERVER['PHP_SELF'], 'statut', '', $param, 'style="text-align: center;"');
+if(empty($fk_leaser)) print_liste_field_titre('Statut', $_SERVER['PHP_SELF'], 'statut', '', $param, 'style="text-align: center;"');
 print '<td>';
 if(! empty($fk_leaser)) {
     print '<input type="checkbox" id="checkallactions" name="checkallactions" class="checkallactions" />';
@@ -733,10 +733,13 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     }
     else print '<td>&nbsp;</td>';
 
-    $style = ($obj->statut == 'En cours') ? 'background-color: green;' : 'background-color: red;';
-    print '<td align="center" style="'.$style.'">';
-    print $obj->statut;
-    print '</td>';
+    if(empty($fk_leaser)) {
+        $style = ($obj->statut == 'En cours') ? 'background-color: green;' : 'background-color: red;';
+        print '<td align="center" style="'.$style.'">';
+        print $obj->statut;
+        print '</td>';
+    }
+    else print '&nbsp;';
 
     print '<td style="text-align: center;">';
     if(! empty($fk_leaser)) {
@@ -829,9 +832,10 @@ function _getExportXML($sql) {
         $TRes['terme'] = $fin->TTerme[$TRes['terme']];  // Il faut traduire le terme
 
         //Suppression des colonnes inutiles
-        unset($TRes['fk_fin_dossier'], $TRes['fk_fin_affaire'], $TRes['fk_soc'], $TRes['refDosCli'], $TRes['fk_leaser'], $TRes['nature_financement']);
+        unset($TRes['fk_fin_dossier'], $TRes['fk_fin_affaire'], $TRes['fk_soc'], $TRes['refDosCli'], $TRes['fk_leaser'], $TRes['nature_financement'], $TRes['statut']);
         unset($TRes['prochaine'], $TRes['date_start'], $TRes['date_end'], $TRes['TInvoiceData'], $TRes['ref_affaire'], $TRes['nomLea'], $TRes['transfert']);
         unset($TRes['duree'], $TRes['Montant'], $TRes['echeance'], $TRes['relocClientOK'], $TRes['relocLeaserOK'],$TRes['intercalaireLeaserOK'], $TRes['date_envoi']);
+        unset($TRes['commentaire_conformite']);
 
         fputcsv($file, $TRes, ';', '"');
     }

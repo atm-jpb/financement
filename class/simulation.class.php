@@ -29,7 +29,7 @@ class TSimulation extends TObjetStd
         parent::add_champs('pct_vr,mt_vr', array('type' => 'float'));
         parent::add_champs('fk_fin_dossier,fk_fin_dossier_adjonction', array('type' => 'integer'));
         parent::add_champs('fk_simu_cristal,fk_projet_cristal', array('type' => 'integer'));
-        parent::add_champs('note_public,note_private', array('type' => 'chaine'));
+        parent::add_champs('note_public,note_private', array('type' => 'text'));
         parent::add_champs('fk_action_manuelle', array('type' => 'integer'));
 
         parent::start();
@@ -52,6 +52,7 @@ class TSimulation extends TObjetStd
             , 'WAIT_LEASER' => $langs->trans('Etude_Leaser')
             , 'WAIT_SELLER' => $langs->trans('Etude_Vendeur')
             , 'WAIT_MODIF' => $langs->trans('Modif')
+            , 'WAIT_AP' => $langs->trans('AccordPrincipe')
             , 'KO' => $langs->trans('Refus')
             , 'SS' => $langs->trans('SansSuite')
         );
@@ -62,6 +63,7 @@ class TSimulation extends TObjetStd
             'WAIT_LEASER' => 'wait_leaser',
             'WAIT_SELLER' => 'wait_seller',
             'WAIT_MODIF' => 'edit',
+            'WAIT_AP' => 'wait_ap',
             'KO' => 'refus',
             'SS' => 'sans_suite'
         );
@@ -72,6 +74,7 @@ class TSimulation extends TObjetStd
             , 'WAIT_LEASER' => $langs->trans('Etude_Leaser_Short')
             , 'WAIT_SELLER' => $langs->trans('Etude_Vendeur_Short')
             , 'WAIT_MODIF' => $langs->trans('Modif')
+            , 'WAIT_AP' => $langs->trans('AccordPrincipe')
             , 'KO' => $langs->trans('Refus')
             , 'SS' => $langs->trans('SansSuite')
         );
@@ -325,7 +328,8 @@ class TSimulation extends TObjetStd
 
         // Ajout des autres leasers de la liste (sauf le prio)
         foreach($grille as $TData) {
-            if($this->montant < 1000 && $TData['fk_leaser'] != 18495) continue;     // Spécifique LOC PURE
+            // Le montant de LOC PURE change uniquement pour C'Pro Ouest
+            if(($this->montant < 1000 && ! in_array($this->entity, array(5, 7)) || $this->montant < 500 && in_array($this->entity, array(5, 7))) && $TData['fk_leaser'] != 18495) continue;     // Spécifique LOC PURE
 
             $simulationSuivi = new TSimulationSuivi;
             $simulationSuivi->leaser = new Fournisseur($db);
@@ -1000,6 +1004,12 @@ class TSimulation extends TObjetStd
             $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
             $mesg .= 'Vous trouverez ci-joint l\'accord de financement concernant votre simulation n '.$this->reference.'.'."\n\n";
             if(! empty($this->commentaire)) $mesg .= 'Commentaire : '."\n".$this->commentaire."\n\n";
+        }
+        else if($this->accord == 'WAIT_AP') {
+            $accord = 'Accord de principe';
+            $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
+            $mesg .= 'Vous trouverez ci-joint un accord de principe concernant la simulation '.$this->reference.'.'."\n";
+            $mesg .= "Dans un second temps nous vous enverrons l'accord de financement définitif\n\n";
         }
         else {
             $retourLeaser = '';
