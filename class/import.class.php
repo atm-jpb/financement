@@ -882,11 +882,18 @@ class TImport extends TObjetStd {
 	}
 	
 	//Gère les frais de gestion lié à l'intégrale
-	private function importILFI_gestion(&$data,&$integrale){
+	private function importILFI_gestion(&$data, &$integrale) {
 		
 		// Gestion des frais divers
 		// FASS
-		if($this->checkCodeService($data['ref_service'], 'fass')) {
+		$TFASSLabel = array(
+			'FASS',
+			"Frais d'accès au service Solution",
+			"Forfait d'Accès au Service Solution",
+			'Fass',
+			"Fass - Frais d'accès au service Solution"
+		);
+		if(in_array($data['label_integrale'], $TFASSLabel)) {
 			if(empty($integrale->fass_somme)) { // Gestion FASS sur plusieurs lignes
 				$integrale->fass	= $data['total_ht'];
 				$integrale->fass_somme = true;
