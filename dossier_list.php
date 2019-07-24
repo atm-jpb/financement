@@ -255,8 +255,16 @@ if(! empty($search_transfert)) $param .= '&search_transfert='.urlencode(implode(
 if(! empty($reloc_customer_ok)) $param .= '&reloc_customer_ok='.urlencode($reloc_customer_ok);
 if(! empty($reloc_leaser_ok)) $param .= '&reloc_leaser_ok='.urlencode($reloc_leaser_ok);
 if(! empty($loyer_leaser_ok)) $param .= '&loyer_leaser_ok='.urlencode($loyer_leaser_ok);
-if(! empty($search_dateEnvoi)) $param .= '&search_dateEnvoi='.urlencode($search_dateEnvoi);
-if(! empty($search_dateStart)) $param .= '&search_dateStart='.urlencode($search_dateStart);
+if(! empty($search_dateEnvoi)) {
+    $param .= '&search_dateEnvoiday='.urlencode(GETPOST('search_dateEnvoiday'));
+    $param .= '&search_dateEnvoimonth='.urlencode(GETPOST('search_dateEnvoimonth'));
+    $param .= '&search_dateEnvoiyear='.urlencode(GETPOST('search_dateEnvoiyear'));
+}
+if(! empty($search_dateStart)) {
+    $param .= '&search_dateStartday='.urlencode(GETPOST('search_dateStartday'));
+    $param .= '&search_dateStartmonth='.urlencode(GETPOST('search_dateStartmonth'));
+    $param .= '&search_dateStartyear='.urlencode(GETPOST('search_dateStartyear'));
+}
 if(! empty($fk_leaser)) $param .= '&fk_leaser='.urlencode($fk_leaser);
 if(! empty($search_fac_materiel)) $param .= '&search_fac_materiel='.urlencode($search_fac_materiel);
 
