@@ -98,6 +98,9 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
             case 18: //ESUS
                 return "M000326725";
                 break;
+            case 19: // BUROCOM
+                return "M000492208";
+                break;
             case 20: // LORRAINE REPRO
                 return "M000411398";
                 break;
@@ -197,6 +200,12 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
                 $refPartenaire = "ESUSMA01";
                 $numLot = "IMMA".date('ymd');
                 break;
+            case 19: // BUROCOM
+                $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+                $nomFichier = "CPROMA0".$entity."IMMA".$date;
+                $refPartenaire = "BCOMMA01";
+                $numLot = "IMMA".date('ymd');
+                break;
             case 20: // LORRAINE REPRO
                 $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
                 $nomFichier = "CPROMA0".$entity."IMMA".$date;
@@ -244,7 +253,6 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 		$affaire = $xml->createElement("affaire");
 
 		foreach($Affaire->TLien as $i => $Tdata){
-//		    var_dump($Affaire->TLien[$i]->dossier->financementLeaser->transfert);exit;
 			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert == 1){
 				
 				$affaire->appendChild($xml->createElement("dateSignature",date("Y-m-d",$Affaire->date_affaire)));
