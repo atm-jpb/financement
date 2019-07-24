@@ -69,7 +69,7 @@ function getUsefulData(&$PDOdb, $TLine) {
         ),
         'financementLeaser' => array(
             'reference' => $TLine[$TIndex['ref_leaser']],
-            'montant' => price2num($TLine[$TIndex['montant_finance_leaser']]),
+            'montant' => price2num(str_replace(' ', '', $TLine[$TIndex['montant_finance_leaser']])),
             'fk_soc' => 204904
         )
     );
@@ -90,6 +90,11 @@ function updateDossier(&$PDOdb, $data) {
     if($fin->loadReference($PDOdb, $data['financement']['reference']) > 0) {
         $doss = new TFin_dossier();
         $doss->load($PDOdb, $fin->fk_fin_dossier, false, true);
+
+        if($doss->entity != 18) {
+            echo $data['financement']['reference'].' - Dossier trouvé mais pas dans la bonne entité<br>';
+            return 0;       // Si on est pas sur la bonne entité, on a rien à faire ici !
+        }
 
         $doss->load_affaire($PDOdb);
         $doss->TLien[0]->affaire->nature_financement = 'INTERNE';

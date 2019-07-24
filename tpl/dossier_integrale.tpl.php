@@ -31,6 +31,7 @@
         <td>[dossier.type_regul]</td>
     </tr>
 </table>
+[onshow;block=begin;when [error]=='0']
 <br>
 <table class="border" width="100%">
     <tr class="liste_titre">
@@ -111,6 +112,7 @@
         <td align="center" nowrap="nowrap">[integrale.propal;frm=0 000,00;noerr]</td>
     </tr>
 </table>
+[onshow;block=end]
 [onshow;block=begin;when [error]=='1']
 <br>
 <center>[errormsg]</center>

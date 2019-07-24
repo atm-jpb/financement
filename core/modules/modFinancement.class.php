@@ -132,7 +132,7 @@ class modFinancement extends DolibarrModules
 		// 'categories_x'	  to add a tab in category view (replace 'x' by type of category (0=product, 1=supplier, 2=customer, 3=member)
         $this->tabs = array(
         	'thirdparty:+scores:ScoreList:financement@financement:$user->rights->financement->score->read:/financement/score.php?socid=__ID__'
-        	,'thirdparty:+transfert:Dossiers Transférable:financement@financement:$user->rights->financement->affaire->write:/financement/dossier.php?fk_leaser=__ID__'
+			,'thirdparty:+transfert:Dossiers Transférable:financement@financement:$user->rights->financement->affaire->write:/financement/dossier_list.php?fk_leaser=__ID__'
         	,'thirdparty:+affaire:Financement:financement@financement:$user->rights->financement->affaire->read:/financement/affaire.php?socid=__ID__'
         	,'thirdparty:+simulation:Simulations:financement@financement:$user->rights->financement->allsimul->simul_list || $user->rights->financement->mysimul->simul_list:/financement/simulation/simulation.php?socid=__ID__'
         	,'thirdparty:+penaliteR:penaliteR:financement@financement:$user->rights->financement->admin->write:/financement/admin/penalite.php?type=R&socid=__ID__'
@@ -652,7 +652,7 @@ class modFinancement extends DolibarrModules
 								'titre'=>$langs->trans('Liste des dossiers'),
 								'mainmenu'=>'financement',
 								'leftmenu'=>'dossier_list',
-								'url'=>'/financement/dossier.php',
+								'url'=>'/financement/dossier_list.php',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>415,
 								'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
@@ -1033,6 +1033,9 @@ class modFinancement extends DolibarrModules
 		$extra->addExtraField('percent_prime_volume', '% prime volume', 'double', 25, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		$extra->addExtraField('percent_relocation', '% relocation', 'double', 27, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		$extra->addExtraField('bonus_renta', 'Bonus renta', 'double', 30, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
+
+		$extra->addExtraField('date_debut_periode', 'Date début période', 'date', 10, '', 'facture_fourn', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
+		$extra->addExtraField('date_fin_periode', 'Date fin période', 'date', 20, '', 'facture_fourn', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		
 		return $this->_init($sql, $options);
 	}

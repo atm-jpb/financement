@@ -219,7 +219,7 @@ if(!empty($action)) {
 			$simulation->clone_simu();
 			$simulation->save($ATMdb, $db, false);
 			
-			header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->getId());
+			header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->getId().'&action=edit');
 			exit();
 			
 			break;
@@ -232,7 +232,6 @@ if(!empty($action)) {
 					if(!empty($simulation->TSimulationSuivi[$id_suivi])) {
 						$simulation->TSimulationSuivi[$id_suivi]->numero_accord_leaser = $TVal['num_accord'];
 						$simulation->TSimulationSuivi[$id_suivi]->coeff_leaser = $TVal['coeff_accord'];
-						$simulation->TSimulationSuivi[$id_suivi]->commentaire = $TVal['commentaire'];
 						$simulation->TSimulationSuivi[$id_suivi]->commentaire_interne = $TVal['commentaire_interne'];
 						$simulation->TSimulationSuivi[$id_suivi]->save($ATMdb);
 					}
@@ -473,7 +472,7 @@ if(!empty($action)) {
 
 		    $simulation->accord = $newAccord;
 		    $simulation->save($ATMdb, $db);
-		    if($newAccord == 'KO') $simulation->send_mail_vendeur();
+		    if(in_array($newAccord, array('KO', 'WAIT_AP'))) $simulation->send_mail_vendeur();
 		    $simulation->historise_accord($ATMdb);
 
             if($simulation->fk_action_manuelle > 0) {
@@ -926,6 +925,11 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 	$extrajs = array('/financement/js/financement.js', '/financement/js/dossier.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
 	print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
+	if($action == 'confirm_selectionner') {
+        $form = new Form($db);
+        $fk_suivi = GETPOST('id_suivi', 'int');
+        print $form->formconfirm($_SERVER['PHP_SELF'].'?id='.$simulation->rowid.'&id_suivi='.$fk_suivi, $langs->trans('SelectThisLeaser'), $langs->trans('ConfirmSelectThisLeaser'), 'selectionner', '', '', 2);
+    }
 	
 	$head = simulation_prepare_head($simulation);
 	dol_fiche_head($head, 'card', $langs->trans("Simulation"),0,'simulation');
@@ -1156,6 +1160,16 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 			$simuArray['opt_calage'] = $form->hidden('opt_calage', $simulation->opt_calage);
 		}
 	}
+
+    if(in_array($conf->entity, array(20,21,22,23,24))) { // Pas de calage pour les entité 20 à 24
+        $mode = 'view';
+        $form->Set_typeaff($mode);
+        $simuArray['date_demarrage'] = $form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12);
+        $simuArray['opt_calage_label'] = $form->combo('', 'opt_calage_label', $TOptCalageLabel, $simulation->opt_calage, 0, '', TFinancementTools::user_courant_est_admin_financement() ? '' : 'disabled');
+        $simuArray['opt_calage'] = $form->hidden('opt_calage', $simulation->opt_calage);
+	$mode = 'edit';
+        $form->Set_typeaff($mode);
+    }
 	
 	if(TFinancementTools::user_courant_est_admin_financement()) {
 	    $simuArray['accord'] .= '<br />';

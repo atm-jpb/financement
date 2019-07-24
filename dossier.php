@@ -21,10 +21,13 @@
 	$langs->load('financement@financement');
 	
 	if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
-	
+
+	$confirm = GETPOST('confirm');
+
 	$dossier=new TFin_Dossier;
 	$PDOdb=new TPDOdb;
 	$tbs = new TTemplateTBS;
+	$form = new Form($db);
 	
 	$mesg = '';
 	$error=false;
@@ -195,20 +198,23 @@
                 $fk_leaser = GETPOST('fk_leaser');
 
                 $dt = TFinDossierTransfertXML::create($fk_leaser);
-//                if($fk_leaser == 21382) {
-//                    $dt = new TFinTransfertCMCIC($fk_leaser);
-//                }
-//                else if($fk_leaser == 19483) {
-//                    $dt = new TFinTransfertLixxbail($fk_leaser);
-//                }
 				$filePath = $dt->transfertXML($PDOdb);
 				
 				header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=".$conf->entity."&file=".$filePath,2));
 				
 				break;
-			
+
+            case 'confirm_generateXMLandupload':
+                _liste($PDOdb, $dossier);
+
+                $question = 'Etes-vous certain de vouloir générer puis uploader le fichier XML ?';
+                print $form->formconfirm($_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser, 'Dossiers', $question, 'generateXMLandupload', '', 'no', 1);
+                break;
 			case 'generateXMLandupload':
-				
+				if($confirm != 'yes') {
+				    header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
+				    exit;
+                }
 				dol_include_once('/financement/class/dossier_transfert_xml.class.php');
                 $dtx = TFinDossierTransfertXML::create($fk_leaser, true);
 				$filePath = $dtx->transfertXML($PDOdb);
@@ -220,8 +226,18 @@
 				<?php
 				
 				break;
+            case 'confirm_setnottransfer':
+                _liste($PDOdb, $dossier);
+
+                $question = 'Etes-vous certain de vouloir rendre non transférable les dossiers ?';
+                print $form->formconfirm($_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser, 'Dossiers', $question, 'setnottransfer', '', 'no', 1);
+                break;
 				
 			case 'setnottransfer':
+                if($confirm != 'yes') {
+                    header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser);
+                    exit;
+                }
 				
 				dol_include_once('/financement/class/dossier_transfert_xml.class.php');
 				$dtx = TFinDossierTransfertXML::create($fk_leaser, true);
@@ -235,50 +251,13 @@
 				break;
 				
 			case 'create_avoir':
-				dol_include_once('/fourn/class/fournisseur.facture.class.php');
-				dol_include_once('/product/class/product.class.php');
-				
-				$idFactureFourn = GETPOST('id_facture_fournisseur');
-				$idDossier = GETPOST('id_dossier');
-				$origine = new FactureFournisseur($db);
-				$origine->fetch($idFactureFourn);
-				$curent = $conf->entity;
-                switchEntity($origine->entity);
-				$fact = new FactureFournisseur($db);
-				$idClone = $fact->createFromClone($idFactureFourn);
-				$fact->fetch($idClone);
-				
-				$fact->type = 2;
-				$fact->fk_facture_source = $origine->id;
-				$fact->facnumber = 'AV'.$origine->ref_supplier;
-				$fact->ref_supplier = 'AV'.$origine->ref_supplier;
-				$fact->entity = $origine->entity;
-				$fact->update($user);
-				foreach($fact->lines as $line) {
-					$line->pu_ht *= -1;
-					$fact->updateline($line->rowid, $line->libelle, $line->pu_ht, $line->tva_tx,0,0,$line->qty,$line->fk_product);
-				}
+                $idDossier = GETPOST('id_dossier');
+                $idFactureFourn = GETPOST('id_facture_fournisseur');
 
-				$fact->validate($user);
-                switchEntity($curent);
-				// Ajout lien dossier
-				$fact->add_object_linked('dossier', $idDossier);
+                $dossier->load($PDOdb, $idDossier);
+                $idAvoir = $dossier->financementLeaser->createAvoirLeaserFromFacture($idFactureFourn);
 
-				// Maj échéance dossier
-				$dossier = new TFin_dossier();
-				$dossier->load($PDOdb, $idDossier);
-				$dossier->financementLeaser->setEcheance(-1, false);
-				
-				$Techeance = explode('/', $fact->ref_supplier);
-				$echeance = array_pop($Techeance);
-
-				//MAJ dates période facture
-				$date_debut_periode = $dossier->getDateDebutPeriode($echeance-1,'LEASER');
-				$date_fin_periode = $dossier->getDateFinPeriode($echeance-1);
-
-				$db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d',strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d',strtotime($date_fin_periode))."' WHERE rowid = ".$fact->id);
-				
-				$urlback = dol_buildpath('/fourn/facture/card.php?facid='.$fact->id, 1);
+				$urlback = dol_buildpath('/fourn/facture/card.php?facid='.$idAvoir, 1);
 				header("Location: ".$urlback);
 				exit;
 				
@@ -526,8 +505,8 @@ function _liste(&$PDOdb, &$dossier) {
 		<div class="tabsAction">
 				<a href="?action=exportXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Exporter</a>
 				<a href="?action=generateXML&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Télécharger le XML</a>
-				<a href="?action=generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir générer puis uploader le fichier XML?')" class="butAction">Envoyer le XML</a>
-				<a href="?action=setnottransfer&fk_leaser=<?php echo $fk_leaser; ?>" onclick="confirm('Etes-vous certain de vouloir rendre non transférable les dossiers?')" class="butAction">Rendre les dossiers non transférables</a>
+				<a href="?action=confirm_generateXMLandupload&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Envoyer le XML</a>
+				<a href="?action=confirm_setnottransfer&fk_leaser=<?php echo $fk_leaser; ?>" class="butAction">Rendre les dossiers non transférables</a>
 		</div>
 		<?php
 	}
@@ -576,9 +555,10 @@ function _load_factureFournisseur(&$PDOdb,&$dossier_temp){
 	
 	$TFactureFourn = array();
 
-	$sql = "SELECT ff.rowid, ff.date_debut_periode
+	$sql = "SELECT ff.rowid, fext.date_debut_periode
 			FROM ".MAIN_DB_PREFIX."element_element as ee
 				LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn as ff ON (ff.rowid = ee.fk_target)
+				LEFT JOIN ".MAIN_DB_PREFIX."facture_fourn_extrafields as fext ON (ff.rowid = fext.fk_object)
 			WHERE ee.sourcetype='dossier'
 				AND ee.targettype='invoice_supplier'
 				AND ee.fk_source=".$dossier_temp->getId();
@@ -851,8 +831,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			
 			,'detail_fact' => dol_buildpath('/fourn/facture/list.php?search_ref_supplier='.$financementLeaser->reference,2)
-//            ,'loyer_reference'=>$formRestricted->texte('', 'leaser[loyer_reference]', $financementLeaser->loyer_reference, 10,255,'','','à saisir')
-//            ,'date_application'=>$formRestricted->calendrier('', 'leaser[date_application]', $financementLeaser->date_application, 10,255,'','','à saisir')
+            ,'date_envoi'=>$formRestricted->calendrier('', 'leaser[date_envoi]', $financementLeaser->date_envoi, 10,255)
 
 			
 	);
@@ -1052,6 +1031,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 				,'somme_sup_noir' => $sommeCopieSupNoir
 				,'somme_sup_coul' => $sommeCopieSupCouleur
 				,'type_regul' => $dossier->type_regul
+				,'commentaire_conformite' => $form->zonetexte('', 'commentaire_conformite', $dossier->commentaire_conformite,100,5,'')
 			)
 			,'financement'=>$TFinancement
 			,'financementLeaser'=>$TFinancementLeaser

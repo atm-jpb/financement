@@ -68,10 +68,10 @@ if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','
 
 $sql = "SELECT DISTINCT s.rowid, s.reference, e.label as entity_label, s.fk_soc, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance, s.echeance,";
 $sql .= " s.duree, s.opt_periodicite, s.date_simul, s.date_validite, u.rowid as fk_user, s.accord, s.type_financement, lea.rowid as fk_leaser, s.attente, s.fk_fin_dossier";
-$sql .= " ,SUM(CASE WHEN ss.statut = 'OK' THEN 1 ELSE 0 END) as nb_ok";
-$sql .= " ,SUM(CASE WHEN ss.statut = 'KO' THEN 1 ELSE 0 END) as nb_refus";
-$sql .= " ,SUM(CASE WHEN ss.statut = 'WAIT' THEN 1 ELSE 0 END) as nb_wait";
-$sql .= " ,SUM(CASE WHEN ss.statut = 'ERR' THEN 1 ELSE 0 END) as nb_err";
+$sql .= ", SUM(CASE WHEN ss.statut = 'OK' THEN 1 ELSE 0 END) as nb_ok";
+$sql .= ", SUM(CASE WHEN ss.statut = 'KO' THEN 1 ELSE 0 END) as nb_refus";
+$sql .= ", SUM(CASE WHEN ss.statut = 'WAIT' THEN 1 ELSE 0 END) as nb_wait";
+$sql .= ", SUM(CASE WHEN ss.statut = 'ERR' THEN 1 ELSE 0 END) as nb_err";
 $sql .= ' FROM '.MAIN_DB_PREFIX.'fin_simulation s ';
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."user as u ON (s.fk_user_author = u.rowid)";
 $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe as soc ON (s.fk_soc = soc.rowid)";
@@ -83,7 +83,7 @@ if(! $user->rights->societe->client->voir) {
     $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."societe_commerciaux as sc ON (sc.fk_soc = soc.rowid)";
 }
 
-$sql .= " WHERE ss.date_historization < '1970-00-00 00:00:00'";
+$sql .= " WHERE (ss.date_historization < '1970-00-00 00:00:00' OR ss.date_historization IS NULL)";  // Dans le cas de simulations sans suivi leaser, date_historization vaut NULL
 if(! $user->rights->societe->client->voir) //restriction
 {
     $sql .= " AND sc.fk_user = ".$user->id;
@@ -92,7 +92,7 @@ if($user->rights->societe->client->voir && ! $user->rights->financement->allsimu
     $sql .= " AND s.fk_user_author = ".$user->id;
 }
 if(! empty($searchnumetude)) {
-    $sql .= " AND ss.numero_accord_leaser='".$searchnumetude."'";
+    $sql .= " AND ss.numero_accord_leaser='".$db->escape($searchnumetude)."'";
 }
 
 if(! empty($fk_soc)) {
@@ -173,7 +173,7 @@ if(! empty($search_entity)) {
 else {
     $sql .= ' AND s.entity IN ('.$strEntityShared.')';
 }
-//print $sql;exit;
+
 $sql .= ' GROUP BY s.rowid';
 
 $sql .= $db->order($sortfield, $sortorder);
@@ -466,6 +466,7 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
         else if($statut == 'OK') $suivi_leaser .= get_picto('super_ok');
         else if($statut == 'WAIT_SELLER') $suivi_leaser .= get_picto('wait_seller');
         else if($statut == 'WAIT_LEASER') $suivi_leaser .= get_picto('wait_leaser');
+        else if($statut == 'WAIT_AP') $suivi_leaser .= get_picto('wait_ap');
         else if($nb_ok > 0) $suivi_leaser .= get_picto('ok');
         else if($nb_refus > 0) $suivi_leaser .= get_picto('refus');
         else if($nb_wait > 0) $suivi_leaser .= get_picto('wait');

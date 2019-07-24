@@ -31,10 +31,10 @@ class ActionsFinancement
 	function printSearchForm($parameters, &$object, &$action, $hookmanager) {
 		global $langs, $hookmanager;
 		 
-		 $res = printSearchForm(DOL_URL_ROOT.'/custom/financement/dossier.php', DOL_URL_ROOT.'/custom/financement/dossier.php', img_picto('',dol_buildpath('/financement/img/object_financeico.png', 1), '', true).' '.$langs->trans("Dossiers"), 'searchdossier', 'searchdossier');
+		 $res = printSearchForm(DOL_URL_ROOT.'/custom/financement/dossier_list.php', DOL_URL_ROOT.'/custom/financement/dossier_list.php', img_picto('',dol_buildpath('/financement/img/object_financeico.png', 1), '', true).' '.$langs->trans("Dossiers"), 'searchdossier', 'searchdossier');
 		 $res .= printSearchForm(DOL_URL_ROOT.'/compta/facture/list.php', DOL_URL_ROOT.'/compta/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Clients"), 'products', 'search_ref');
 		 $res .= printSearchForm(DOL_URL_ROOT.'/fourn/facture/list.php', DOL_URL_ROOT.'/fourn/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Leasers"), 'products', 'search_ref');
-		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', img_object('','invoice').' N° étude / Accord Leaser', 'searchnumetude', 'searchnumetude');
+		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation/list.php', DOL_URL_ROOT.'/custom/financement/simulation/list.php', img_object('','invoice').' N° étude / Accord Leaser', 'searchnumetude', 'searchnumetude');
 		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', img_object('','resource').' Matricule', 'search_matricule', 'search_matricule');
 		 $hookmanager->resPrint.= $res;
 		 
@@ -117,25 +117,6 @@ class ActionsFinancement
 		}
 		
 		if (in_array('invoicesuppliercard',explode(':',$parameters['context']))) {
-			
-			//Affichage des champs date début période et date fin période
-			$sql = "SELECT date_debut_periode, date_fin_periode FROM ".MAIN_DB_PREFIX."facture_fourn WHERE rowid = ".$object->id;
-			
-			if($resql=$db->query($sql)) {
-				
-				$obj = $db->fetch_object($resql);
-				
-				?>
-				<tr>
-					<td>Date début période</td>
-					<td><?php echo date('d/m/Y',strtotime($obj->date_debut_periode)); ?></td>
-				</tr>
-				<tr>
-					<td>Date fin période</td>
-					<td><?php echo date('d/m/Y',strtotime($obj->date_fin_periode)); ?></td>
-				</tr>
-				<?php
-			}
 			
 			// Affichage du dossier de financement relatif à la facture fournisseur
 			$sql = "SELECT sourcetype, fk_source FROM ".MAIN_DB_PREFIX."element_element WHERE fk_target=".$object->id." AND targettype='invoice_supplier'";

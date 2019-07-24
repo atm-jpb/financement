@@ -24,7 +24,7 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
         }
     }
 	
-	function generate(&$PDOdb, &$TAffaires,$andUpload=false){
+	function generate(&$PDOdb, &$TAffaires, $andUpload=false){
 		global $conf;
 		
 		$xml = new DOMDocument('1.0','UTF-8');
@@ -97,6 +97,24 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 				break;
             case 18: //ESUS
                 return "M000326725";
+                break;
+            case 19: // BUROCOM
+                return "M000492208";
+                break;
+            case 20: // LORRAINE REPRO
+                return "M000411398";
+                break;
+            case 21: // AG COM
+                return "M000509189";
+                break;
+            case 22: // BPS
+                return "M001375973";
+                break;
+            case 23: // CENA
+                return "M001602559";
+                break;
+            case 24: // INGECOM
+                return "M000041291";
                 break;
 			default:
 				return "M000355961";
@@ -182,7 +200,43 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
                 $refPartenaire = "ESUSMA01";
                 $numLot = "IMMA".date('ymd');
                 break;
-			
+            case 19: // BUROCOM
+                $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+                $nomFichier = "CPROMA0".$entity."IMMA".$date;
+                $refPartenaire = "BCOMMA01";
+                $numLot = "IMMA".date('ymd');
+                break;
+            case 20: // LORRAINE REPRO
+                $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+                $nomFichier = "CPROMA0".$entity."IMMA".$date;
+                $refPartenaire = "LREPMA01";    // OK
+                $numLot = "IMMA".date('ymd');
+                break;
+            case 21: // AG COM
+                $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+                $nomFichier = "CPROMA0".$entity."IMMA".$date;
+                $refPartenaire = "AGCOMA01";    // OK
+                $numLot = "IMMA".date('ymd');
+                break;
+            case 22: // BPS
+                $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+                $nomFichier = "CPROMA0".$entity."IMMA".$date;
+                $refPartenaire = "BPSOMA01";    // OK
+                $numLot = "IMMA".date('ymd');
+                break;
+            case 23: // CENA
+                $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+                $nomFichier = "CPROMA0".$entity."IMMA".$date;
+                $refPartenaire = "CENAMA01";    // OK
+                $numLot = "IMMA".date('ymd');
+                break;
+            case 24: // INGECOM
+                $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+                $nomFichier = "CPROMA0".$entity."IMMA".$date;
+                $refPartenaire = "INGEMA01";    // OK
+                $numLot = "IMMA".date('ymd');
+                break;
+
 			default:
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;

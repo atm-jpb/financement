@@ -461,6 +461,8 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 		+ $facIntegral->cout_unit_coul_mach
 		+ $facIntegral->cout_unit_coul_tech,5)) $avenantOK = false;
 
+    if($dossier->type_regul != 3) $avenantOK = false;
+
 	dol_fiche_end();
 	print '<div class="tabsAction">';
 	if (!empty($user->rights->financement->integrale->create_new_avenant) && $avenantOK) {
