@@ -45,7 +45,7 @@ while($obj = $db->fetch_object($resql)) {
 
         if(! empty($TValue['numero_prochaine_echeance'])) {
             $TProchaineEcheance = explode('/', $TValue['numero_prochaine_echeance']);
-            $next = $TProchaineEcheance[1]; // Ca représente le numéro de prochaine echéance leaser
+            $next = array_shift($TProchaineEcheance); // Ca représente le numéro de prochaine echéance leaser
         }
 
         $dossierRachete = new DossierRachete;
