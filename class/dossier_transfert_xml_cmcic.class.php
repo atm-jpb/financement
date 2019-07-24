@@ -61,6 +61,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 			$affairelist->appendChild($xml->createElement("FLG_ASSVIE", 'N'));
 			$affairelist->appendChild($xml->createElement("FLG_GARANTIE", 'N'));
 			$affairelist->appendChild($xml->createElement("FLG_DERO_ASSMAT", 'N'));
+			$affairelist->appendChild($xml->createElement("FLG_INDEX", 'N'));
 
 			// Schéma financier
 			$data_schema_fin = $this->getSchemaFinData($xml, $dossier);
@@ -333,9 +334,9 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 //            'DTPV' => 'N',    // Facultatif
             'CDTYPPV' => ' ',   // Un espace est un blanc, donc on met un blanc
             'SIRET_LIV' => $client->idprof2,
-            'N_RUE_LIV' => $client->address,
-            'RUE_1_LIV' => 'N',
-            'RUE_2_LIV' => 'N',
+            'N_RUE_LIV' => substr($client->address, 0, 46),
+            'RUE_1_LIV' => '',
+            'RUE_2_LIV' => '',
             'C_POSTAL_LIV' => $client->zip,
             'VILLE_LIV' => $client->town,
             'DATE_LIV' => date('Y-m-d', $facture->date)
@@ -353,7 +354,6 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
         $TData = array(
             'MTHT_MAIN' => 'N',
             'SIRET_MAIN' => 'N',
-            'FLG_INDEX' => 'N'
         );
 
         foreach($TData as $code => $value) {

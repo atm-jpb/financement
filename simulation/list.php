@@ -466,6 +466,7 @@ function getStatutSuivi($idSimulation, $statut, $fk_fin_dossier, $nb_ok, $nb_ref
         else if($statut == 'OK') $suivi_leaser .= get_picto('super_ok');
         else if($statut == 'WAIT_SELLER') $suivi_leaser .= get_picto('wait_seller');
         else if($statut == 'WAIT_LEASER') $suivi_leaser .= get_picto('wait_leaser');
+        else if($statut == 'WAIT_AP') $suivi_leaser .= get_picto('wait_ap');
         else if($nb_ok > 0) $suivi_leaser .= get_picto('ok');
         else if($nb_refus > 0) $suivi_leaser .= get_picto('refus');
         else if($nb_wait > 0) $suivi_leaser .= get_picto('wait');
