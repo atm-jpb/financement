@@ -42,6 +42,7 @@ $reloc_customer_ok = GETPOST('reloc_customer_ok');
 $reloc_leaser_ok = GETPOST('reloc_leaser_ok');
 $loyer_leaser_ok = GETPOST('loyer_leaser_ok');
 $search_fac_materiel = GETPOST('search_fac_materiel');
+$search_dossier = GETPOST('searchdossier');
 
 $toselect = GETPOST('toselect', 'array');
 $arrayofselected = is_array($toselect) ? $toselect : array();
@@ -166,8 +167,8 @@ if(isset($fk_leaser) && ! empty($fk_leaser)) {
     $sql .= " AND l.rowid = ".$fk_leaser." AND a.type_financement = 'MANDATEE'";
 }
 
-if(GETPOST('searchdossier')) {
-    $sql .= " AND (fc.reference LIKE '%".GETPOST('searchdossier')."%' OR fl.reference LIKE '%".GETPOST('searchdossier')."%')";
+if(! empty($search_dossier)) {
+    $sql .= " AND (fc.reference LIKE '%".$db->escape($search_dossier)."%' OR fl.reference LIKE '%".$db->escape($search_dossier)."%')";
 }
 
 if(GETPOST('reloc')) {
@@ -219,6 +220,16 @@ if(! $resql) {
 }
 
 $num = $db->num_rows($resql);
+
+// S'il n'y a qu'un seul dossier après la recherche, on va directement sur la fiche
+if(empty($fk_leaser) && $num === 1) {
+    $obj = $db->fetch_object($resql);
+
+    $url = dol_buildpath('/financement/dossier.php', 1);
+    $url .= '?id='.$obj->fk_fin_dossier;
+    header('Location: '.$url);
+    exit;
+}
 
 llxHeader('', 'Dossiers');
 print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
