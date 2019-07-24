@@ -13,29 +13,25 @@ dol_include_once('/financement/class/grille.class.php');
 // HTTP auth for GET method
 _check_auth();
 
-$TGetpostData = array(
-    'ref_dossier' => 'alpha',
-    'montant_finance' => 'int',
-    'periodicite' => '',
-    'duree' => 'int',
-    'date_start' => '',
-    'loyer_inter' => 'int',
-    'frais_dossier' => 'int',
-    'echeance' => 'int',
-    'vr' => 'int',
-    'terme' => 'int',
-    'assurance' => 'int',
-    'type' => '',
-    'fk_leaser' => 'int',   // Voir si possible d'identifier le leaser comme ça
-    'mode_reglement' => ''
-);
-foreach($TGetpostData as $value => $check) {
-    ${$value} = GETPOST($value, $check);
-}
+$ref_dossier = GETPOST('ref_dossier', 'alpha');
+$montant_finance = GETPOST('montant_finance', 'int');
+$periodicite = GETPOST('periodicite');
+$duree = GETPOST('duree');
+$date_start = GETPOST('date_start');
+$loyer_inter = GETPOST('loyer_inter', 'int');
+$frais_dossier = GETPOST('frais_dossier', 'int');
+$echeance = GETPOST('echeance', 'int');
+$vr = GETPOST('vr', 'int');
+$terme = GETPOST('terme', 'int');
+$assurance = GETPOST('assurance', 'int');
+$mode_reglement = GETPOST('mode_reglement');
+$ref_dossier_leaser = GETPOST('ref_dossier_leaser', 'alpha');
+$montant_finance_leaser = GETPOST('montant_finance_leaser', 'int');
+$entityLabel = GETPOST('source');
 
 if(! empty($loyer_inter)) $loyer_inter = round($loyer_inter, 2);
 if(! empty($montant_finance)) $montant_finance = round($montant_finance, 2);
-if(empty($type)) $type = 'CLIENT';
+//if(empty($type)) $type = 'CLIENT';
 
 _check_dossier($ref_dossier);
 
@@ -56,10 +52,14 @@ if(empty($dossier->rowid)) {
 
 $dossier->load_affaire($PDOdb);
 
-if($type == 'CLIENT') $financement = &$dossier->financement;
+
+if($dossier->nature_financement == 'INTERNE') $financement = &$dossier->financement;
 else {  // LEASER
     $financement = &$dossier->financementLeaser;
+    /*
+     * C'est pas possible de faire ça, on ne passe pas le fk_leaser
     if(in_array($fk_leaser, array(19068, 19483)) && $duree == 22 && $periodicite == 'TRIMESTRE') $duree = 21;   // Spécifique Lixxbail Adossé ou Mandaté
+    */
 
     $date_start = _get_date($date_start);
     $echeance = _get_echeance($PDOdb, $fk_leaser, $dossier->TLien[0]->affaire->contrat, $periodicite, $montant_finance, $duree);
@@ -78,9 +78,22 @@ if(! empty($terme)) $financement->terme = $terme;
 if(! empty($assurance)) $financement->assurance = $assurance;
 if(! empty($mode_reglement)) $financement->reglement = $mode_reglement;
 
+if(! empty($ref_dossier_leaser)) $dossier->financementLeaser->reference = $ref_dossier_leaser;
+if(! empty($montant_finance_leaser)) $dossier->financementLeaser->montant = $montant_finance_leaser;
+
 $res = $dossier->save($PDOdb);
 
-print $res."<br />\n";
+$TRes = array('code' => 200, 'msg' => 'OK');
+if($res === false) $TRes = array('code' => 400, 'msg' => 'KO');
+header('Content-Type: application/json');
+print json_encode(array(
+    'error' => array(
+        'code' => $TRes['code'],
+        'message' => $TRes['msg']
+    )
+));
+http_response_code($TRes['code']);
+exit;
 
 function _check_auth() {
     global $db, $user;
@@ -126,7 +139,8 @@ function _check_dossier($ref_dossier) {
 }
 
 /**
- * @param int $date    timestamp
+ * @param int $date timestamp
+ * @return false|string
  */
 function _get_date($date) {
     if(in_array(date('dm', $date), array('0101', '0104', '0107', '0110'))) return date('Y-m-d', $date);
