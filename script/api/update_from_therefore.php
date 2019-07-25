@@ -27,17 +27,20 @@ $assurance = GETPOST('assurance', 'int');
 $mode_reglement = GETPOST('mode_reglement');
 $ref_dossier_leaser = GETPOST('ref_dossier_leaser', 'alpha');
 $montant_finance_leaser = GETPOST('montant_finance_leaser', 'int');
+$leaser = GETPOST('nom_leaser', 'alpha');
 $entityLabel = GETPOST('source');
 
 if(! empty($loyer_inter)) $loyer_inter = round($loyer_inter, 2);
 if(! empty($montant_finance)) $montant_finance = round($montant_finance, 2);
-//if(empty($type)) $type = 'CLIENT';
 
 _check_dossier($ref_dossier);
 
+$user->fetch('', 'admin_financement');
+$user->getrights();
+
 $PDOdb = new TPDOdb;
 $dossier = new TFin_dossier;
-$dossier->loadReference($PDOdb, $ref_dossier);
+$dossier->loadReference($PDOdb, $ref_dossier, false, $entity);
 if(empty($dossier->rowid)) {
     header('Content-Type: application/json');
     print json_encode(array(
@@ -51,35 +54,35 @@ if(empty($dossier->rowid)) {
 }
 
 $dossier->load_affaire($PDOdb);
+$fk_leaser = _getLeaserByName($leaser);
 
+if(in_array($fk_leaser, array(19068, 19483)) && $duree == 22 && $periodicite == 'TRIMESTRE') $duree = 21;   // Spécifique Lixxbail Adossé ou Mandaté
 
-if($dossier->nature_financement == 'INTERNE') $financement = &$dossier->financement;
-else {  // LEASER
-    $financement = &$dossier->financementLeaser;
-    /*
-     * C'est pas possible de faire ça, on ne passe pas le fk_leaser
-    if(in_array($fk_leaser, array(19068, 19483)) && $duree == 22 && $periodicite == 'TRIMESTRE') $duree = 21;   // Spécifique Lixxbail Adossé ou Mandaté
-    */
+if(! empty($date_start)) $date_start_leaser = _get_date($date_start);
+if(! empty($periodicite) && ! empty($montant_finance) && ! empty($duree)) $echeance_leaser = _get_echeance($PDOdb, $fk_leaser, $dossier->TLien[0]->affaire->contrat, $periodicite, $montant_finance, $duree);
+$vr_leaser = _get_vr($fk_leaser);
 
-    $date_start = _get_date($date_start);
-    $echeance = _get_echeance($PDOdb, $fk_leaser, $dossier->TLien[0]->affaire->contrat, $periodicite, $montant_finance, $duree);
-    $vr = _get_vr($fk_leaser);
+if($dossier->nature_financement == 'INTERNE') { // Côté Client
+    if(! empty($montant_finance)) $dossier->financement->montant = $montant_finance;
+    if(! empty($periodicite)) $dossier->financement->periodicite = $periodicite;
+    if(! empty($duree)) $dossier->financement->duree = $duree;
+    if(! empty($date_start)) $dossier->financement->date_debut = $date_start;
+    if(! empty($loyer_inter)) $dossier->financement->loyer_intercalaire = $loyer_inter;
+    if(! empty($frais_dossier)) $dossier->financement->frais_dossier = $frais_dossier;
+    if(! empty($echeance)) $dossier->financement->echeance = $echeance;
+    if(! empty($vr)) $dossier->financement->reste = $vr;
+    if(! empty($terme)) $dossier->financement->terme = $terme;
+    if(! empty($assurance)) $dossier->financement->assurance = $assurance;
+    if(! empty($mode_reglement)) $dossier->financement->reglement = $mode_reglement;
 }
 
-if(! empty($montant_finance)) $financement->montant = $montant_finance;
-if(! empty($periodicite)) $financement->periodicite = $periodicite;
-if(! empty($duree)) $financement->duree = $duree;
-if(! empty($date_start)) $financement->date_debut = $date_start;
-if(! empty($loyer_inter)) $financement->loyer_intercalaire = $loyer_inter;
-if(! empty($frais_dossier)) $financement->frais_dossier = $frais_dossier;
-if(! empty($echeance)) $financement->echeance = $echeance;
-if(! empty($vr)) $financement->reste = $vr;
-if(! empty($terme)) $financement->terme = $terme;
-if(! empty($assurance)) $financement->assurance = $assurance;
-if(! empty($mode_reglement)) $financement->reglement = $mode_reglement;
-
+// Côté Leaser
+if(! empty($fk_leaser)) $dossier->financementLeaser->fk_soc = $fk_leaser;
 if(! empty($ref_dossier_leaser)) $dossier->financementLeaser->reference = $ref_dossier_leaser;
 if(! empty($montant_finance_leaser)) $dossier->financementLeaser->montant = $montant_finance_leaser;
+if(! empty($date_start_leaser)) $dossier->financementLeaser->date_debut = $date_start_leaser;
+if(! empty($echeance_leaser)) $dossier->financementLeaser->echeance = $echeance_leaser;
+if(! empty($vr_leaser)) $dossier->financementLeaser->reste = $vr_leaser;
 
 $res = $dossier->save($PDOdb);
 
@@ -165,4 +168,51 @@ function _get_vr($fk_leaser) {
         default:
             return 0.15;
     }
+}
+
+/**
+ * @param   string $entityLabel
+ * @return  int
+ */
+function _getEntityByLabel($entityLabel) {
+    global $db;
+
+    $sql = 'SELECT rowid';
+    $sql.= ' FROM '.MAIN_DB_PREFIX.'entity';
+    $sql.= " WHERE label LIKE '".$db->escape($entityLabel)."'";
+
+    $resql = $db->query($sql);
+    if(! $resql) {
+        dol_print_error($db);
+        exit;
+    }
+
+    if($obj = $db->fetch_object($resql)) {
+        return $obj->rowid;
+    }
+
+    return 0;
+}
+
+/**
+ * @param   string $leaserName
+ * @return  int
+ */
+function _getLeaserByName($leaserName) {
+    global $db;
+
+    $sql = 'SELECT rowid';
+    $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
+    $sql.= " WHERE nom LIKE '".$db->escape($leaserName)."'";
+    $sql.= ' AND fournisseur = 1';
+
+    $resql = $db->query($sql);
+    if(! $resql) {
+        dol_print_error($db);
+        exit;
+    }
+
+    if($obj = $db->fetch_object($resql)) return $obj->rowid;
+
+    return 0;
 }
