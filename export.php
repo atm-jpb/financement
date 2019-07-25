@@ -17,7 +17,7 @@ $sql = 'SELECT s.reference as ref_simul, cli.nom as client_name, e.label as part
 $sql .= ', dr.date_debut_periode_client_m1, dr.date_fin_periode_client_m1, dr.solde_vendeur_m1, dr.solde_banque_m1, dr.solde_banque_nr_m1';   // Prev
 $sql .= ', dr.date_debut_periode_client, dr.date_fin_periode_client, dr.solde_vendeur, dr.solde_banque, dr.solde_banque_nr';   // Curr
 $sql .= ', dr.date_debut_periode_client_p1, dr.date_fin_periode_client_p1, dr.solde_vendeur_p1, dr.solde_banque_p1, dr.solde_banque_nr_p1';   // Next
-$sql .= ', choice, s.rowid, dflea.fk_soc';
+$sql .= ', choice, s.rowid, dflea.fk_soc, s.fk_leaser';
 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation s';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'entity e ON (s.entity = e.rowid)';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.DossierRachete::$tablename.' dr ON (s.rowid = dr.fk_simulation)';
@@ -81,7 +81,7 @@ while($obj = $db->fetch_object($resql)) {
         }
     }
 
-    if($refus || $TLeaserCat[$simu->fk_leaser] == $TLeaserCat[$obj->fk_soc]) {
+    if($refus || $TLeaserCat[$obj->fk_leaser] == $TLeaserCat[$obj->fk_soc]) {
         $solde = 'R';
     }
     else {
@@ -133,9 +133,9 @@ function getLeaserCategory() {
 
     $TRes = array();
     $sql = 'SELECT cf.fk_societe as fk_soc, cf.fk_categorie as fk_cat';
-    $sql .= ' FROM llx_categorie_fournisseur cf';
-    $sql .= ' LEFT JOIN llx_categorie c ON (c.rowid = cf.fk_categorie)';
-    $sql .= ' LEFT JOIN llx_categorie c2 ON (c2.rowid = c.fk_parent)';
+    $sql .= ' FROM '.MAIN_DB_PREFIX.'categorie_fournisseur cf';
+    $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie c ON (c.rowid = cf.fk_categorie)';
+    $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie c2 ON (c2.rowid = c.fk_parent)';
     $sql .= " WHERE c2.label = 'Leaser'";
 
     $resql = $db->query($sql);
