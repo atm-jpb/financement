@@ -303,7 +303,7 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 			foreach($Affaire->TAsset as $a => $assetLink){
 				$serial_numbers = $this->_getSerialNumbersBienXML($serial_numbers,$assetLink->asset->serial_number);
 				$TDesignation = $this->_getDesignationBienXML($TDesignation,$assetLink);
-				$AssetId = $assetLink->asset->getId();
+                if(method_exists($assetLink->asset, 'getId')) $AssetId = $assetLink->asset->getId();
 			}
 		}
 		else{
