@@ -253,7 +253,7 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 		$affaire = $xml->createElement("affaire");
 
 		foreach($Affaire->TLien as $i => $Tdata){
-			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert == 1){
+			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert == TFin_financement::STATUS_TRANSFER_YES) {
 				
 				$affaire->appendChild($xml->createElement("dateSignature",date("Y-m-d",$Affaire->date_affaire)));
 				$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[$i]->dossier->financementLeaser->reference));
@@ -271,7 +271,6 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 	function _getElementsXML(&$xml,&$Tdata,$i,&$Affaire){
 		
 		$element = $xml->createElement("element");
-		//$element = $xml->appendChild($element);
 		
 		switch ($Tdata->dossier->financementLeaser->periodicite) {
 			case 'TRIMESTRE':
