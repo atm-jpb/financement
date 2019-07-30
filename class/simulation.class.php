@@ -153,8 +153,8 @@ class TSimulation extends TObjetStd
         if($generatePDF) {
             $this->gen_simulation_pdf($db, $doliDB);
 
-            // Uniquement pour les simuls d'ESUS qui ont des dossiers à solder !
-            if($this->entity == 18 && empty($this->opt_no_case_to_settle)) {
+            // Uniquement pour les simuls d'ESUS et de ABS qui ont des dossiers à solder !
+            if(in_array($this->entity, array(18, 25)) && empty($this->opt_no_case_to_settle)) {
                 $this->gen_simulation_pdf_esus($db, $doliDB);
             }
         }
@@ -1014,7 +1014,7 @@ class TSimulation extends TObjetStd
     }
 
     /**
-     * Fonction spécifique à ESUS pour lui envoyer des PDF tout aussi spécifiques, la classe...
+     * Fonction spécifique à ESUS et ABS pour leur envoyer des PDF tout aussi spécifiques, la classe...
      */
     function send_mail_vendeur_esus($auto = false) {
         global $langs, $conf, $db;
@@ -1051,26 +1051,11 @@ class TSimulation extends TObjetStd
             }
 
             $accord = 'Demande de financement refusée';
+
+            // Message générique
             $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-            $mesg .= 'La demande de financement pour le client '.$this->societe->name.' d\'un montant de '.price($this->montant_total_finance).' € n\'est pas acceptée.'."\n";
-            $mesg .= 'Nous n\'avons que des refus pour le ou les motifs suivants :'."\n";
-            $mesg .= $retourLeaser."\n";
-
-            // Message spécifique CPRO
-            if(in_array($this->entity, array(1, 2, 3))) {
-                $mesg .= 'Nous allons réétudier la demande en interne afin de voir s\'il est possible de trouver une solution favorable au financement du dossier.'."\n";
-                $mesg .= 'Si c\'est le cas, le coeff de la demande sera augmenté en fonction du risque que porte C\'PRO.'."\n\n";
-
-                $mesg .= 'Pour cela merci de nous faire parvenir le dernier bilan du client.'."\n\n";
-            }
-            else if(in_array($this->entity, array(5, 6, 7, 9))) { // Idem OUEST sans la mention réétude
-                $mesg .= '';
-            }
-            else { // Message générique
-                $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-                $mesg .= 'Votre demande de financement via la simulation n '.$this->reference.' n\'a pas été acceptée.'."\n\n";
-                if(! empty($this->commentaire)) $mesg .= 'Commentaire : '."\n".$this->commentaire."\n\n";
-            }
+            $mesg .= 'Votre demande de financement via la simulation n '.$this->reference.' n\'a pas été acceptée.'."\n\n";
+            if(! empty($this->commentaire)) $mesg .= 'Commentaire : '."\n".$this->commentaire."\n\n";
         }
 
         $mesg .= 'Cordialement,'."\n\n";
@@ -1078,7 +1063,8 @@ class TSimulation extends TObjetStd
 
         $subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance, 2, ',', ' ').' Euros - '.$accord;
 
-        $mailto = 'rachat.esus@zeenmail.com';
+        if($this->entity == 18) $mailto = 'rachat.esus@zeenmail.com';   // ESUS
+        elseif($this->entity == 25) $mailto = 'rachatabs.esus@zeenmail.com';    // ABS
 
         $old_entity = $conf->entity;
         switchEntity($this->entity);    // Switch to simulation entity
@@ -1264,7 +1250,7 @@ class TSimulation extends TObjetStd
     }
 
     /**
-     * Fonction spécifique à ESUS qi demande des infos en plus dans un autre PDF...
+     * Fonction spécifique à ESUS et ABS qui demandent des infos en plus dans un autre PDF...
      */
     function gen_simulation_pdf_esus(&$ATMdb, &$doliDB) {
         global $mysoc, $TLeaserCat, $db, $conf;
@@ -1359,7 +1345,10 @@ class TSimulation extends TObjetStd
         $this->hasdossier = count($TDossier) + count($TDossierperso);
 
         // Création du répertoire
-        $fileName = dol_sanitizeFileName($this->getRef()).'-esus.odt';
+        $fileName = dol_sanitizeFileName($this->getRef());
+        if($this->entity == 18) $fileName .= '-esus.odt';
+        elseif($this->entity == 25) $fileName .= '-abs.odt';
+
         $filePath = $this->getFilePath();
         dol_mkdir($filePath);
 
@@ -1465,7 +1454,7 @@ class TSimulation extends TObjetStd
             if($mode == 'save' && ($this->accord == 'OK' || $this->accord == 'KO')) { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
                 $this->send_mail_vendeur(true);
 
-                if($this->accord = 'OK' && $this->entity = 18 && empty($this->opt_no_case_to_settle)) {
+                if($this->accord = 'OK' && in_array($this->entity, array(18, 25)) && empty($this->opt_no_case_to_settle)) {
                     $this->send_mail_vendeur_esus(true);
                 }
             }
