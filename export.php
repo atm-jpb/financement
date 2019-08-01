@@ -4,6 +4,8 @@ set_time_limit(0);
 require 'config.php';
 dol_include_once('/financement/class/dossierRachete.class.php');
 dol_include_once('/financement/class/simulation.class.php');
+dol_include_once('/financement/class/grille.class.php');
+dol_include_once('/financement/class/dossier.class.php');
 
 $limit = GETPOST('limit', 'int');
 
@@ -71,10 +73,12 @@ while($obj = $db->fetch_object($resql)) {
         $obj->num_contrat_leaser,
     );
 
-    $TSimulationSuivi = TSimulation::getSimulationSuivi($obj->rowid);
+    $simu = new TSimulation;
+    $simu->load($PDOdb, $obj->rowid, false);
+    $simu->load_suivi_simulation($PDOdb);
 
     $refus = false;
-    foreach($TSimulationSuivi as $suivi) {
+    foreach($simu->TSimulationSuivi as $suivi) {
         if($TLeaserCat[$obj->fk_soc] == $TLeaserCat[$suivi->fk_leaser] && $suivi->statut == 'KO') {
             $refus = true;
             break;

@@ -2261,34 +2261,6 @@ class TSimulation extends TObjetStd
             return -1;
         }
     }
-
-    /**
-     * Retourne tous les suivi leaser sans avoir à les load
-     * @param   int     $fk_simu
-     * @return  array
-     */
-    public static function getSimulationSuivi($fk_simu) {
-        global $db;
-
-        $TRes = array();
-
-        $sql = 'SELECT rowid, fk_leaser, statut';
-        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation_suivi';
-        $sql.= ' WHERE fk_simulation = '.$fk_simu;
-        $sql.= ' ORDER BY rang ASC';
-
-        $resql = $db->query($sql);
-        if(! $resql) {
-            dol_print_error($db);
-            exit;
-        }
-
-        while($obj = $db->fetch_object($resql)) {
-            $TRes[] = $obj;
-        }
-
-        return $TRes;
-    }
 }
 
 class TSimulationSuivi extends TObjetStd
