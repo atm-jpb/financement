@@ -16,7 +16,7 @@ $fk_simu = GETPOST('fk_simu', 'int');
 $TLeaserCat = getLeaserCategory();
 $PDOdb = new TPDOdb;
 
-$sql = 'SELECT s.rowid, s.dossiers, s.dossiers_rachetes_nr, s.dossiers_rachetes_nr_m1, s.dossiers_rachetes_nr_p1';
+$sql = 'SELECT s.rowid, s.dossiers, s.dossiers_rachetes_nr, s.dossiers_rachetes_nr_m1, s.dossiers_rachetes_nr_p1, s.fk_leaser';
 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation s';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.DossierRachete::$tablename.' dr ON (dr.fk_simulation=s.rowid)';
 $sql.= ' WHERE s.dossiers IS NOT NULL';
@@ -44,12 +44,6 @@ while($obj = $db->fetch_object($resql)) {
 
     foreach($dossiers as $fk_dossier => $TValue) {
         unset($TValue['leaser']);
-        $next = 0;
-
-        if(! empty($TValue['numero_prochaine_echeance'])) {
-            $TProchaineEcheance = explode('/', $TValue['numero_prochaine_echeance']);
-            $next = array_shift($TProchaineEcheance); // Ca représente le numéro de prochaine echéance leaser
-        }
 
         $dossierRachete = new DossierRachete;
         $dossierRachete->set_values($TValue);
@@ -70,9 +64,15 @@ while($obj = $db->fetch_object($resql)) {
         // On recalcule les soldes NR s'ils sont vides
         $doss = new TFin_dossier;
         $doss->load($PDOdb, $fk_dossier, false);
-        if(empty($dossierRachete->solde_banque_nr_m1) && ! empty($next)) $dossierRachete->solde_banque_nr_m1 = $doss->getSolde($PDOdb, 'SNRBANK', ($next-2));
-        if(empty($dossierRachete->solde_banque_nr) && ! empty($next)) $dossierRachete->solde_banque_nr = $doss->getSolde($PDOdb, 'SNRBANK', ($next-1));
-        if(empty($dossierRachete->solde_banque_nr_p1) && ! empty($next)) $dossierRachete->solde_banque_nr_p1 = $doss->getSolde($PDOdb, 'SNRBANK', $next);
+        if(empty($dossierRachete->solde_banque_nr_m1) && ! empty($doss->financementLeaser->numero_prochaine_echeance)) {
+            $dossierRachete->solde_banque_nr_m1 = $doss->getSolde($PDOdb, 'SNRBANK', ($doss->financementLeaser->numero_prochaine_echeance - 3));
+        }
+        if(empty($dossierRachete->solde_banque_nr) && ! empty($doss->financementLeaser->numero_prochaine_echeance)) {
+            $dossierRachete->solde_banque_nr = $doss->getSolde($PDOdb, 'SNRBANK', ($doss->financementLeaser->numero_prochaine_echeance - 2));
+        }
+        if(empty($dossierRachete->solde_banque_nr_p1) && ! empty($doss->financementLeaser->numero_prochaine_echeance)) {
+            $dossierRachete->solde_banque_nr_p1 = $doss->getSolde($PDOdb, 'SNRBANK', ($doss->financementLeaser->numero_prochaine_echeance - 1));
+        }
 
         $dossierRachete->fk_dossier = $fk_dossier;
         $dossierRachete->fk_simulation = $obj->rowid;
@@ -82,12 +82,13 @@ while($obj = $db->fetch_object($resql)) {
         // On détermine le type de solde
         $refus = false;
         foreach($TSimulationSuivi as $suivi) {
-            if($TLeaserCat[$obj->fk_soc] == $TLeaserCat[$suivi->fk_leaser] && $suivi->statut == 'KO') {
+            if($TLeaserCat[$doss->financementLeaser->fk_soc] == $TLeaserCat[$suivi->fk_leaser] && $suivi->statut == 'KO') {
                 $refus = true;
                 break;
             }
         }
-        if($refus || $TLeaserCat[$obj->fk_leaser] == $TLeaserCat[$obj->fk_soc]) {
+
+        if($refus || $TLeaserCat[$obj->fk_leaser] == $TLeaserCat[$doss->financementLeaser->fk_soc]) {
             $solde = 'R';
         }
         else {
