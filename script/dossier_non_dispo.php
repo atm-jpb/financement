@@ -1,6 +1,7 @@
 <?php
 $a = microtime(true);
 set_time_limit(0);
+ini_set('memory_limit', '256M');
 
 require '../config.php';
 dol_include_once('/financement/class/dossier.class.php');
@@ -71,8 +72,10 @@ while($obj = $db->fetch_object($resql)) {
 
 fclose($f);
 $db->free($resql);
+
 $b = microtime(true);
 print 'Execution time: '.($b-$a).' sec';
+
 // Pour download le fichier
 print '<script language="javascript">';
 print 'document.location.href = "'.dol_buildpath('/document.php?modulepart=financement&entity='.$conf->entity.'&file=export/dossier_non_dispo/'.$filename, 2).'";';
