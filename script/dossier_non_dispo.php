@@ -20,6 +20,7 @@ $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dfcli.fk_
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type = 'LEASER')";
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'entity e ON (d.entity = e.rowid)';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe lea ON (dflea.fk_soc = lea.rowid)';
+$sql.= " WHERE dflea.date_solde < '1970-01-01 00:00:00'";
 if(! empty($limit)) $sql.= ' LIMIT '.$limit;
 
 $resql = $db->query($sql);
