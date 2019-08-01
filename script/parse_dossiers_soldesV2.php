@@ -7,8 +7,8 @@ $limit = GETPOST('limit', 'int');
 $force_rollback = GETPOST('force_rollback', 'int');
 $fk_simu = GETPOST('fk_simu', 'int');
 
-$sql = 'SELECT s.rowid, dr.fk_dossier, s.dossiers_rachetes_m1 as prev, s.dossiers_rachetes as curr, s.dossiers_rachetes_p1 as next';
-$sql.= 's.dossiers_rachetes_nr_m1 as prev_nr, s.dossiers_rachetes_nr as curr_nr, s.dossiers_rachetes_nr_p1 as next_nr';
+$sql = 'SELECT s.rowid, dr.fk_dossier, s.dossiers_rachetes_m1 as prev, s.dossiers_rachetes as curr, s.dossiers_rachetes_p1 as next,';
+$sql.= ' s.dossiers_rachetes_nr_m1 as prev_nr, s.dossiers_rachetes_nr as curr_nr, s.dossiers_rachetes_nr_p1 as next_nr';
 $sql.= ' FROM '.MAIN_DB_PREFIX.DossierRachete::$tablename.' dr';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON (dr.fk_simulation=s.rowid)';
 $sql.= ' WHERE dr.choice IS NULL';
