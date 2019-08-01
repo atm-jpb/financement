@@ -5,7 +5,6 @@ ini_set('memory_limit', '256M');
 require_once('../config.php');
 dol_include_once('/financement/class/dossierRachete.class.php');
 dol_include_once('/financement/class/dossier.class.php');
-dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
 dol_include_once('/financement/class/simulation.class.php');
 
@@ -71,7 +70,6 @@ while($obj = $db->fetch_object($resql)) {
         // On recalcule les soldes NR s'ils sont vides
         $doss = new TFin_dossier;
         $doss->load($PDOdb, $fk_dossier, false);
-        $doss->load_affaire($PDOdb);    // Apparemment il faut load les affaires pour que le getSolde fonctionne...
         if(empty($dossierRachete->solde_banque_nr_m1) && ! empty($next)) $dossierRachete->solde_banque_nr_m1 = $doss->getSolde($PDOdb, 'SNRBANK', ($next-2));
         if(empty($dossierRachete->solde_banque_nr) && ! empty($next)) $dossierRachete->solde_banque_nr = $doss->getSolde($PDOdb, 'SNRBANK', ($next-1));
         if(empty($dossierRachete->solde_banque_nr_p1) && ! empty($next)) $dossierRachete->solde_banque_nr_p1 = $doss->getSolde($PDOdb, 'SNRBANK', $next);
