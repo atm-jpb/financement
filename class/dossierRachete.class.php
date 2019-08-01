@@ -56,6 +56,7 @@ class DossierRachete extends TObjetStd
     public $solde_banque_p1;
     public $solde_banque_nr_p1;
     public $choice;
+    public $type_solde;
 
     function __construct() {
         parent::set_table(MAIN_DB_PREFIX.self::$tablename);
@@ -89,7 +90,7 @@ class DossierRachete extends TObjetStd
         parent::add_champs('date_debut_periode_client_p1,date_fin_periode_client_p1', array('type' => 'date'));
         parent::add_champs('solde_vendeur_p1,solde_banque_p1,solde_banque_nr_p1', array('type' => 'float'));
 
-        parent::add_champs('choice', array('type' => 'chaine', 'length' => 5));
+        parent::add_champs('choice,type_solde', array('type' => 'chaine', 'length' => 5));
 
         parent::start();
 

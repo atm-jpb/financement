@@ -7,11 +7,14 @@ dol_include_once('/financement/class/dossierRachete.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
+dol_include_once('/financement/class/simulation.class.php');
 
 $limit = GETPOST('limit', 'int');
 $force_rollback = GETPOST('force_rollback', 'int');
 $fk_simu = GETPOST('fk_simu', 'int');
 
+// Il faut récupérer les catégories de leaser pour savoir si on prendre le 'R' ou le 'NR'
+$TLeaserCat = getLeaserCategory();
 $PDOdb = new TPDOdb;
 
 $sql = 'SELECT s.rowid, s.dossiers, s.dossiers_rachetes_nr, s.dossiers_rachetes_nr_m1, s.dossiers_rachetes_nr_p1';
@@ -76,6 +79,24 @@ while($obj = $db->fetch_object($resql)) {
         $dossierRachete->fk_dossier = $fk_dossier;
         $dossierRachete->fk_simulation = $obj->rowid;
 
+        $TSimulationSuivi = TSimulation::getSimulationSuivi($obj->rowid);
+
+        // On détermine le type de solde
+        $refus = false;
+        foreach($TSimulationSuivi as $suivi) {
+            if($TLeaserCat[$obj->fk_soc] == $TLeaserCat[$suivi->fk_leaser] && $suivi->statut == 'KO') {
+                $refus = true;
+                break;
+            }
+        }
+        if($refus || $TLeaserCat[$obj->fk_leaser] == $TLeaserCat[$obj->fk_soc]) {
+            $solde = 'R';
+        }
+        else {
+            $solde = 'NR';
+        }
+        $dossierRachete->type_solde = $solde;
+
         $res = $dossierRachete->create();
         if($res !== false && $res > 0) $nb_commit++;
         else $nb_rollback++;
@@ -85,3 +106,26 @@ $db->free($resql);
 ?>
 <span>Nb Commit : <?php echo $nb_commit; ?></span><br />
 <span>Nb Rollback : <?php echo $nb_rollback; ?></span>
+
+<?php
+
+/**
+ * @return array
+ */
+function getLeaserCategory() {
+    global $db;
+
+    $TRes = array();
+    $sql = 'SELECT cf.fk_societe as fk_soc, cf.fk_categorie as fk_cat';
+    $sql .= ' FROM '.MAIN_DB_PREFIX.'categorie_fournisseur cf';
+    $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie c ON (c.rowid = cf.fk_categorie)';
+    $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie c2 ON (c2.rowid = c.fk_parent)';
+    $sql .= " WHERE c2.label = 'Leaser'";
+
+    $resql = $db->query($sql);
+    if($resql) {
+        while($obj = $db->fetch_object($resql)) $TRes[$obj->fk_soc] = $obj->fk_cat;
+    }
+
+    return $TRes;
+}
