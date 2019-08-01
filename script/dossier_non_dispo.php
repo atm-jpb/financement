@@ -1,7 +1,5 @@
 <?php
 $a = microtime(true);
-set_time_limit(0);
-ini_set('memory_limit', '256M');
 
 require '../config.php';
 dol_include_once('/financement/class/dossier.class.php');
@@ -13,16 +11,78 @@ $limit = GETPOST('limit', 'int');
 
 $PDOdb = new TPDOdb;
 
-$sql = 'SELECT d.rowid,';
-$sql.= " (CASE d.nature_financement WHEN 'INTERNE' THEN dfcli.reference WHEN 'EXTERNE' THEN dflea.reference END) as ref_contrat,";
-$sql.= ' d.nature_financement, e.label as entity, lea.nom as leaser';
-$sql.= ' FROM '.MAIN_DB_PREFIX.'fin_dossier d';
-$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dfcli.fk_fin_dossier = d.rowid AND dfcli.type = 'CLIENT')";
-$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type = 'LEASER')";
-$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'entity e ON (d.entity = e.rowid)';
-$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe lea ON (dflea.fk_soc = lea.rowid)';
-$sql.= " WHERE dflea.date_solde < '1970-01-01 00:00:00'";
-if(! empty($limit)) $sql.= ' LIMIT '.$limit;
+$sql = "
+select
+       (case d.nature_financement
+            when 'INTERNE' then dfcli.reference
+            when 'EXTERNE' then dflea.reference
+           end) as ref_contrat,
+       e.label  as partenaire,
+       lea.nom  as leaser,
+       (case d.nature_financement
+            when d.display_solde = 0 then 1
+            when d.montant >= (select coalesce(c.value, 50000) from llx_const c where c.name = 'FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE' and c.entity in (0, 1, d.entity) order by c.entity desc limit 1) then 2
+            when d.soldepersodispo = 2 then 3
+            when 'EXTERNE'
+                then
+                case
+                    when dflea.incident_paiement = 'OUI'
+                        then 4
+                    when dflea.taux < (select c2.value from llx_const c2 where name = 'FINANCEMENT_MIN_TAUX_TO_SHOW_SOLDE' and c2.entity in (0, 1, d.entity) order by c2.entity desc limit 1)
+                        then 5
+                    when ((dflea.numero_prochaine_echeance - 1) * (case dflea.periodicite when 'TRIMESTRE' then 3 when 'SEMESTRE' then 6 when 'ANNEE' then 12 else 1 end))
+                        <= (select c3.value from llx_const c3 where name = 'FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH' and c3.entity in (0, 1, d.entity) order by c3.entity desc limit 1)
+                        then 6
+                    end
+            when 'INTERNE'
+                then
+                case
+                    when dfcli.incident_paiement = 'OUI'
+                        then 4
+                    when dfcli.taux < (select c2.value from llx_const c2 where name = 'FINANCEMENT_MIN_TAUX_TO_SHOW_SOLDE' and c2.entity in (0, 1, d.entity) order by c2.entity desc limit 1)
+                        then 5
+                    when ((dfcli.numero_prochaine_echeance-1) * (case dfcli.periodicite when 'TRIMESTRE' then 3 when 'SEMESTRE' then 6 when 'ANNEE' then 12 else 1 end))
+                        <= (select c3.value from llx_const c3 where name = 'FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH' and c3.entity in (0, 1, d.entity) order by c3.entity desc limit 1)
+                        then 6
+                    end
+            when (select count(ee.fk_source)
+                  from llx_element_element ee
+                  left join llx_facture f on (ee.targettype = 'facture' and ee.fk_target = f.rowid and ee.sourcetype = 'dossier')
+                  where ee.fk_source = d.rowid
+                    and f.paye = 0) > (select c4.value from llx_const c4 where name = 'FINANCEMENT_NB_INVOICE_UNPAID' and c4.entity in (0, 1, d.entity) order by c4.entity desc limit 1)
+                then 7
+           end) as ruleNumber
+from ".MAIN_DB_PREFIX."fin_dossier d
+left join ".MAIN_DB_PREFIX."fin_dossier_financement dfcli on (dfcli.fk_fin_dossier = d.rowid and dfcli.type = 'CLIENT')
+left join ".MAIN_DB_PREFIX."fin_dossier_financement dflea on (dflea.fk_fin_dossier = d.rowid and dflea.type = 'LEASER')
+left join ".MAIN_DB_PREFIX."societe lea on (dflea.fk_soc = lea.rowid)
+inner join ".MAIN_DB_PREFIX."entity e on (d.entity = e.rowid)
+where dflea.date_solde < '1970-01-01 00:00:00'
+  and (d.display_solde = 0 -- Règle 1
+    or d.montant >= (select coalesce(c.value, 50000) from llx_const c where c.name = 'FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE' and c.entity in (0, 1, d.entity) order by c.entity desc limit 1) -- Règle 2
+    or d.soldepersodispo = 2 -- Règle 3
+    or (case d.nature_financement
+            when 'EXTERNE' then dflea.incident_paiement = 'OUI'
+            when 'INTERNE' then dfcli.incident_paiement = 'OUI'
+        end) -- Règle 4
+    or (case d.nature_financement
+            when 'EXTERNE' then dflea.taux < (select c2.value from llx_const c2 where name = 'FINANCEMENT_MIN_TAUX_TO_SHOW_SOLDE' and c2.entity in (0, 1, d.entity) order by c2.entity desc limit 1)
+            when 'INTERNE' then dfcli.taux < (select c2.value from llx_const c2 where name = 'FINANCEMENT_MIN_TAUX_TO_SHOW_SOLDE' and c2.entity in (0, 1, d.entity) order by c2.entity desc limit 1)
+        end) -- Règle 5
+    or (case d.nature_financement
+            when 'EXTERNE'
+                then ((dflea.numero_prochaine_echeance-1) * (case dflea.periodicite when 'TRIMESTRE' then 3 when 'SEMESTRE' then 6 when 'ANNEE' then 12 else 1 end))
+                <= (select c3.value from llx_const c3 where name = 'FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH' and c3.entity in (0, 1, d.entity) order by c3.entity desc limit 1)
+            when 'INTERNE'
+                then ((dfcli.numero_prochaine_echeance-1) * (case dfcli.periodicite when 'TRIMESTRE' then 3 when 'SEMESTRE' then 6 when 'ANNEE' then 12 else 1 end))
+                <= (select c3.value from llx_const c3 where name = 'FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH' and c3.entity in (0, 1, d.entity) order by c3.entity desc limit 1)
+        end) -- Règle 6
+    or (select count(ee.fk_source)
+        from llx_element_element ee
+        left join llx_facture f on (ee.targettype = 'facture' and ee.fk_target = f.rowid and ee.sourcetype = 'dossier')
+        where ee.fk_source = d.rowid
+          and f.paye = 0) > (select c4.value from llx_const c4 where name = 'FINANCEMENT_NB_INVOICE_UNPAID' and c4.entity in (0, 1, d.entity) order by c4.entity desc limit 1)) -- Règle 7
+order by ruleNumber desc;";
 
 $resql = $db->query($sql);
 if(! $resql) {
@@ -48,26 +108,14 @@ $res = fputcsv($f, $THead, ';');
 
 $TRes = array();
 while($obj = $db->fetch_object($resql)) {
-    $d = new TFin_dossier;
-    $d->load($PDOdb, $obj->rowid);
-
-    $oldEntity = $conf->entity;
-    switchEntity($d->entity);
-
-    $ruleError = $d->get_display_solde();
-    $TRes[] = $ruleError;
-    switchEntity($oldEntity);
-    if($ruleError === 1) continue;  // Les soldes sont dispo
-
     $TData = array(
         $obj->ref_contrat,
-        $obj->entity,
+        $obj->partenaire,
         $obj->leaser,
-        abs($ruleError)
+        $obj->ruleNumber
     );
 
     fputcsv($f, $TData, ';');
-    unset($d);
 }
 
 fclose($f);
