@@ -15,11 +15,11 @@ select
            end) as ref_contrat,
        e.label  as partenaire,
        lea.nom  as leaser,
-       (case d.nature_financement
+       (case
             when d.display_solde = 0 then 1
             when d.montant >= (select coalesce(c.value, 50000) from ".MAIN_DB_PREFIX."const c where c.name = 'FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE' and c.entity in (0, 1, d.entity) order by c.entity desc limit 1) then 2
             when d.soldepersodispo = 2 then 3
-            when 'EXTERNE'
+            when d.nature_financement = 'EXTERNE'
                 then
                 case
                     when dflea.incident_paiement = 'OUI'
@@ -30,7 +30,7 @@ select
                         <= (select c3.value from ".MAIN_DB_PREFIX."const c3 where name = 'FINANCEMENT_SEUIL_SOLDE_DISPO_MONTH' and c3.entity in (0, 1, d.entity) order by c3.entity desc limit 1)
                         then 6
                     end
-            when 'INTERNE'
+            when d.nature_financement = 'INTERNE'
                 then
                 case
                     when dfcli.incident_paiement = 'OUI'
