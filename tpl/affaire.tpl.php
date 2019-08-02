@@ -99,7 +99,21 @@
 		</div>
 [onshow;block=end]	
 [onshow;block=begin;when [view.mode]!='view']
-
+<p style="margin-top: 30px; font-weight: bold;">Création de la facture matériel</p>
+        <table width="100%" class="border">
+            <tr>
+                <td>Numéro de facture</td>
+                <td>[fac.reference; strconv=no]</td>
+            </tr>
+            <tr>
+                <td>Numéro de série</td>
+                <td>[fac.num_serie; strconv=no]</td>
+            </tr>
+            <tr>
+                <td>Libellé matériel</td>
+                <td>[fac.label; strconv=no]</td>
+            </tr>
+        </table>
 		<p align="center">
 			[onshow; block=p; when [view.userRight]==1]	
 			<input type="submit" value="Enregistrer" name="save" class="button"> 
