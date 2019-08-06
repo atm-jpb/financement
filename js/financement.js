@@ -33,8 +33,12 @@ $(document).ready(function() {
 	} else {
 		$('input[name="date_demarrage"]').attr('disabled', false);
 	}*/
-	
-	$('#date_demarrage').bind('change', function() {
+	let entity = $('#entity_partenaire').val();
+	if(entity === 18 || entity === 25) $('#date_demarrage').bind('change', getCalageForEsusAndAbs);
+	else $('#date_demarrage').bind('change', getCalageForOthers);
+
+	function getCalageForOthers() {
+		console.log('function getCalageForOthers');
 		var date_d = $('#date_demarrage').val();
 		date_d = date_d.split("/");
 		date_d.reverse();
@@ -53,7 +57,51 @@ $(document).ready(function() {
 			$('#opt_calage').val('');
 			$('#opt_calage_label').val('');
 		}
-	});
+	}
+
+	function getCalageForEsusAndAbs() {
+		console.log('function getCalageForEsusAndAbs');
+		let date_livraison = $('#date_demarrage').val();
+
+		date_livraison = date_livraison.split("/");
+		date_livraison.reverse();
+		date_livraison = date_livraison.join("/");
+		var dateL = new Date(date_livraison);
+
+		let nextQuarter = getQuarter(dateL);
+		let diffInDays = (nextQuarter.getMonth() - dateL.getMonth()) * 30 - (dateL.getDate() - 1);
+
+		let calageRule = null;
+		if(diffInDays > 0 && diffInDays <= 45) calageRule = 1;
+		else if(diffInDays > 45 && diffInDays <= 75) calageRule = 2;
+		else if(diffInDays > 75 && diffInDays <= 90) calageRule = 3;
+
+		$('#opt_calage').val(calageRule+'M');
+		$('#opt_calage_label').val(calageRule+'M');
+	}
+
+	function getQuarter(date, id = 'next') {
+		let d = date;
+		let quarter = Math.floor((d.getMonth() / 3));
+		var firstDate = null;
+		let endDate = null;
+
+		switch (id) {
+			case 'prev':
+				firstDate = new Date(d.getFullYear(), quarter * 3 - 3, 1);
+				endDate = new Date(firstDate.getFullYear(), firstDate.getMonth() + 3, 0);
+				break;
+			case 'curr':
+				firstDate = new Date(d.getFullYear(), quarter * 3, 1);
+				endDate = new Date(firstDate.getFullYear(), firstDate.getMonth() + 3, 0);
+				break;
+			case 'next':
+				firstDate = new Date(d.getFullYear(), quarter * 3 + 3, 1);
+				endDate = new Date(firstDate.getFullYear(), firstDate.getMonth() + 3, 0);
+				break;
+		}
+		return firstDate;
+	}
 	
 	$('select[name="opt_calage_label"]').bind('change', function() {
 		$('#opt_calage').val($(this).val());
