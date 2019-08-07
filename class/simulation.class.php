@@ -1328,9 +1328,11 @@ class TSimulation extends TObjetStd
 
             $echeance = $d->_get_num_echeance_from_date($datemax_deb);
             if($refus || $TLeaserCat[$simu->fk_leaser] == $TLeaserCat[$d->financementLeaser->fk_soc]) {
+                $type_solde = 'R';
                 $solde_banque = $d->getSolde($ATMdb, 'SRBANK', $echeance+1);
             }
             else {
+                $type_solde = 'NR';
                 $solde_banque = $d->getSolde($ATMdb, 'SNRBANK', $echeance+1);
             }
 
@@ -1340,6 +1342,7 @@ class TSimulation extends TObjetStd
                 , 'type_contrat' => $d->type_contrat
                 , 'solde_r' => $solde_r
                 , 'solde_banque' => $solde_banque
+                , 'type_solde' => $type_solde
                 , 'datemax_debut' => $datemax_deb
                 , 'datemax_fin' => $datemax_fin
             );
