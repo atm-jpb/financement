@@ -73,12 +73,10 @@ while($obj = $db->fetch_object($resql)) {
         $obj->num_contrat_leaser,
     );
 
-    $simu = new TSimulation;
-    $simu->load($PDOdb, $obj->rowid, false);
-    $simu->load_suivi_simulation($PDOdb);
+    $TSimulationSuivi = TSimulation::getSimulationSuivi($obj->rowid);
 
     $refus = false;
-    foreach($simu->TSimulationSuivi as $suivi) {
+    foreach($TSimulationSuivi as $suivi) {
         if($TLeaserCat[$obj->fk_soc] == $TLeaserCat[$suivi->fk_leaser] && $suivi->statut == 'KO') {
             $refus = true;
             break;
