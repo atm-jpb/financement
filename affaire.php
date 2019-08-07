@@ -52,6 +52,7 @@
 				$affaire->save($ATMdb);
 				$affaire->load($ATMdb, $_REQUEST['id']);
 
+				// Création de la facture matériel
 				$facRef = GETPOST('facRef');
 				$facSerialNumber = GETPOST('facSerialNumber');
 				$facLabel = GETPOST('facLabel');
@@ -61,11 +62,20 @@
 				    $f->socid = $affaire->societe->id;
 
 				    $res = $f->create($user);
+				    var_dump($res);
 				    if($res > 0) {
 				        $f->addline($facSerialNumber, $affaire->somme_dossiers, 1, 0);
 
                         $f->ref = $facRef;
-                        $f->update($user);
+                        $f->statut = 0;
+                        $resUpdate = $f->update($user);
+
+                        if(! empty($affaire->TLien[0])) $f->add_object_linked('dossier', $affaire->TLien[0]->fk_fin_dossier);
+                        $asset = new TAsset;
+                        $asset->serial_number = $facSerialNumber;
+                        $asset->add_link($res, 'facture');
+                        $asset->add_link($affaire->rowid, 'affaire');
+                        $asset->save($ATMdb);
                     }
                 }
 
