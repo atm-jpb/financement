@@ -34,7 +34,7 @@ $(document).ready(function () {
         $('input[name="date_demarrage"]').attr('disabled', false);
     }*/
     let entity = $('#entity_partenaire').val();
-    if (entity === 18 || entity === 25) $('#date_demarrage').bind('change', getCalageForEsusAndAbs);
+    if (entity === '18' || entity === '25') $('#date_demarrage').bind('change', getCalageForEsusAndAbs);
     else $('#date_demarrage').bind('change', getCalageForOthers);
 
     function getCalageForOthers() {
@@ -74,12 +74,13 @@ $(document).ready(function () {
         var dateL = new Date(date_livraison);
 
         let nextQuarter = getQuarter(dateL);
-        let diffInDays = (nextQuarter.getMonth() - dateL.getMonth()) * 30 - (dateL.getDate() - 1);
+        let diffInMS = nextQuarter.getTime() - dateL.getTime();
+        let diffInDays = diffInMS / (86400 * 1000);
 
         let calageRule = null;
         if (diffInDays > 0 && diffInDays <= 45) calageRule = 1;
         else if (diffInDays > 45 && diffInDays <= 75) calageRule = 2;
-        else if (diffInDays > 75 && diffInDays <= 90) calageRule = 3;
+        else if (diffInDays > 75) calageRule = 3;
 
         $('#opt_calage').val(calageRule + 'M');
         $('#opt_calage_label').val(calageRule + 'M');
