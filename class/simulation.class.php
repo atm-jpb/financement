@@ -1024,7 +1024,10 @@ class TSimulation extends TObjetStd
         dol_include_once('/core/class/CMailFile.class.php');
         if(! function_exists('switchEntity')) dol_include_once('/financement/lib/financement.lib.php');
 
-        $PDFName = dol_sanitizeFileName($this->getRef()).'-esus.pdf';
+        $PDFName = dol_sanitizeFileName($this->getRef());
+        if($this->entity == 18) $PDFName .= '-esus.pdf';
+        elseif($this->entity == 25) $PDFName .= '-abs.pdf';
+
         $PDFPath = $this->getFilePath();
 
         $formmail = new FormMail($db);
