@@ -43,14 +43,13 @@ while($obj = $db->fetch_object($resql)) {
     $dossiers_nr_p1 = unserialize($obj->dossiers_rachetes_nr_p1);
     if($dossiers === false) continue;
 
-    $TNext = explode('/', $obj->numero_prochaine_echeance);
-    if(is_array($TNext) && ! empty($TNext)) {
-        $next = array_shift($TNext);
-    }
-
-
     foreach($dossiers as $fk_dossier => $TValue) {
         unset($TValue['leaser']);
+
+        $TNext = explode('/', $TValue['numero_prochaine_echeance']);
+        if(is_array($TNext) && ! empty($TNext)) {
+            $next = array_shift($TNext);
+        }
 
         $dossierRachete = new DossierRachete;
         $dossierRachete->set_values($TValue);
