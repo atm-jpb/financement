@@ -444,7 +444,7 @@ if(!empty($action)) {
 				if(($simulation->accord == 'OK' || $simulation->accord == 'KO') && $simulation->accord != $oldAccord) {
 					$simulation->send_mail_vendeur();
 
-					if($simulation->accord == 'OK' && $simulation->entity == 18 && empty($simulation->opt_no_case_to_settle)) {
+					if($simulation->accord == 'OK' && in_array($simulation->entity, array(18, 25)) && empty($simulation->opt_no_case_to_settle)) {
 					    $simulation->send_mail_vendeur_esus();
                     }
 				}
@@ -489,7 +489,7 @@ if(!empty($action)) {
 				if($simulation->accord == 'OK') {
 					$simulation->send_mail_vendeur();
 
-                    if($simulation->entity == 18 && empty($simulation->opt_no_case_to_settle)) {
+                    if(in_array($simulation->entity, array(18, 25)) && empty($simulation->opt_no_case_to_settle)) {
                         $simulation->send_mail_vendeur_esus();
                     }
 				}
