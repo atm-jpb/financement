@@ -43,6 +43,12 @@ while($obj = $db->fetch_object($resql)) {
     $dossiers_nr_p1 = unserialize($obj->dossiers_rachetes_nr_p1);
     if($dossiers === false) continue;
 
+    $TNext = explode('/', $obj->numero_prochaine_echeance);
+    if(is_array($TNext) && ! empty($TNext)) {
+        $next = array_shift($TNext);
+    }
+
+
     foreach($dossiers as $fk_dossier => $TValue) {
         unset($TValue['leaser']);
 
@@ -62,18 +68,22 @@ while($obj = $db->fetch_object($resql)) {
             $dossierRachete->solde_banque_nr_p1 = $dossiers_nr_p1[$fk_dossier]['montant'];
         }
 
+        if($dossierRachete->choice == 'prev') $offset = -2;
+        elseif($dossierRachete->choice == 'curr') $offset = -1;
+        elseif($dossierRachete->choice == 'next') $offset = 0;
+
         // On recalcule les soldes NR s'ils sont vides
         $doss = new TFin_dossier;
         $doss->load($PDOdb, $fk_dossier, false);
         $doss->load_affaire($PDOdb);    // Apparemment il faut load les affaires pour que le getSolde fonctionne...
-        if(empty($dossierRachete->solde_banque_nr_m1) && ! empty($doss->financementLeaser->numero_prochaine_echeance)) {
-            $dossierRachete->solde_banque_nr_m1 = $doss->getSolde($PDOdb, 'SNRBANK', ($doss->financementLeaser->numero_prochaine_echeance - 3));
+        if(empty($dossierRachete->solde_banque_nr_m1) && ! empty($next)) {
+            $dossierRachete->solde_banque_nr_m1 = $doss->getSolde($PDOdb, 'SNRBANK', ($next - $offset));
         }
-        if(empty($dossierRachete->solde_banque_nr) && ! empty($doss->financementLeaser->numero_prochaine_echeance)) {
-            $dossierRachete->solde_banque_nr = $doss->getSolde($PDOdb, 'SNRBANK', ($doss->financementLeaser->numero_prochaine_echeance - 2));
+        if(empty($dossierRachete->solde_banque_nr) && ! empty($next)) {
+            $dossierRachete->solde_banque_nr = $doss->getSolde($PDOdb, 'SNRBANK', ($next - $offset));
         }
-        if(empty($dossierRachete->solde_banque_nr_p1) && ! empty($doss->financementLeaser->numero_prochaine_echeance)) {
-            $dossierRachete->solde_banque_nr_p1 = $doss->getSolde($PDOdb, 'SNRBANK', ($doss->financementLeaser->numero_prochaine_echeance - 1));
+        if(empty($dossierRachete->solde_banque_nr_p1) && ! empty($next)) {
+            $dossierRachete->solde_banque_nr_p1 = $doss->getSolde($PDOdb, 'SNRBANK', ($next - $offset));
         }
 
         $dossierRachete->fk_dossier = $fk_dossier;
