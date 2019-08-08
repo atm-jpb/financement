@@ -2637,6 +2637,22 @@ class TSimulationSuivi extends TObjetStd
         // Chargement d'un objet TSimulation dans une nouvelle variable pour éviter les problème d'adressage
         $simulation = new TSimulation();
         $simulation->load($PDOdb, $this->fk_simulation);
+
+        $TLeaserMandate = array(
+            19483,  // Lixxbail
+            20113,  // BNP
+            23164,  // Grenke
+            30748,  // Locam
+            216625  // Franfi
+        );
+
+        // Si on est sur de la location mandatée, il faut forcer ces paramètres pour l'envoi en EDI
+        if(in_array($this->fk_leaser, $TLeaserMandate)) {
+            $simulation->opt_periodicite = 'TRIMESTRE';
+            $simulation->terme = 1; // à échoir
+            $simulation->opt_mode_reglement = 'PRE';
+        }
+
         $service = new ServiceFinancement($simulation, $this, $debug);
 
         // La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active)
