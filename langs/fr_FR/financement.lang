@@ -347,3 +347,5 @@ SetNoTransferable = Rendre les dossiers non transférables
 setReady = Passer au statut "Prêt"
 setSent = Passer au statut "Envoyé"
 setYes = Passer au statut "Oui"
+DateDemarrage = Date de démarrage si calage
+DateDemarrageCustom = Date de livraison
