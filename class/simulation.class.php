@@ -2643,7 +2643,8 @@ class TSimulationSuivi extends TObjetStd
             20113,  // BNP
             23164,  // Grenke
             30748,  // Locam
-            216625  // Franfi
+            216625, // Franfi
+            21382   // CM CIC
         );
 
         // Si on est sur de la location mandatée, il faut forcer ces paramètres pour l'envoi en EDI
