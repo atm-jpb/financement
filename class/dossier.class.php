@@ -14,7 +14,7 @@ class TFin_dossier extends TObjetStd
         parent::add_champs('date_relocation,date_solde,dateperso', 'type=date;');
         parent::add_champs('entity', array('type' => 'int', 'index' => true));
         parent::add_champs('type_regul,month_regul', array('type' => 'int'));
-        parent::add_champs('fk_statut_renta_neg_ano,fk_statut_dossier', array('type' => 'chaine'));
+        parent::add_champs('fk_statut_renta_neg_ano,fk_statut_dossier,commentaire_conformite', array('type' => 'chaine'));
 
         parent::start();
         parent::_init_vars();
@@ -61,8 +61,11 @@ class TFin_dossier extends TObjetStd
         }
     }
 
-    function loadReferenceContratDossier(&$db, $reference, $annexe = false) {
-        $db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference_contrat_interne='".$reference."'");
+    function loadReferenceContratDossier(&$db, $reference, $annexe = false, $entity = null) {
+        $checkEntity = '';
+        if(! is_null($entity) && is_numeric($entity)) $checkEntity .= ' AND entity = '.$entity;
+
+        $db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference_contrat_interne='".$reference."'".$checkEntity);
 
         if($db->Get_line()) {
             return $this->load($db, $db->Get_field('rowid'), $annexe);
@@ -1534,11 +1537,6 @@ class TFin_dossier extends TObjetStd
             $result = $object->set_paid($user); // La facture reste en impayée pour le moment, elle passera à payée lors de l'export comptable
         }
 
-        $date_debut_periode = $this->getDateDebutPeriode($echeance - 1, 'LEASER');
-        $date_fin_periode = $this->getDateFinPeriode($echeance - 1);
-
-        $db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d', strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d', strtotime($date_fin_periode))."' WHERE rowid = ".$object->id);
-
         $res .= "Création facture fournisseur ($id) : ".$object->ref."<br />";
     }
 
@@ -1636,6 +1634,12 @@ class TFin_dossier extends TObjetStd
             $object->note_public = '';
             $object->origin = 'dossier';
             $object->origin_id = $d->getId();
+
+            // Période de la facture
+            $date_debut_periode = $this->getDateDebutPeriode($echeance - 1);
+            $date_fin_periode = $this->getDateFinPeriode($echeance - 1);
+            $object->array_options['options_date_debut_periode'] = $date_debut_periode;
+            $object->array_options['options_date_fin_periode'] = $date_fin_periode;
 
             // Permet la création d'une facture leaser dans l'entité du dossier
             $curEntity = $conf->entity;
@@ -1926,7 +1930,8 @@ class TFin_dossier extends TObjetStd
 
     /**
      * Règles spécifique permettant de savoir si le solde du dossier doit être affiché ou non sur les simulations
-     * @return 0 s'il ne faut pas afficher le solde, 1 sinon
+     *
+     * @return int < 0 s'il ne faut pas afficher le solde, 1 sinon
      */
     function get_display_solde() {
         global $conf;
@@ -1970,7 +1975,7 @@ class TFin_dossier extends TObjetStd
             foreach($facture as $key => $fact) {
                 if($fact->paye == 0) {
                     $cpt++;
-                    if($cpt > FINANCEMENT_NB_INVOICE_UNPAID) {
+                    if($cpt > $conf->global->FINANCEMENT_NB_INVOICE_UNPAID) {
                         return -7;
                     }
                 }
@@ -2009,6 +2014,10 @@ class TFin_dossier_affaire extends TObjetStd
 
 class TFin_financement extends TObjetStd
 {
+    const STATUS_TRANSFER_NO    = 0;
+    const STATUS_TRANSFER_YES   = 1;
+    const STATUS_TRANSFER_READY = 2;
+    const STATUS_TRANSFER_SENT  = 3;
 
     function __construct() { /* declaration */
         parent::set_table(MAIN_DB_PREFIX.'fin_dossier_financement');
@@ -2019,7 +2028,7 @@ class TFin_financement extends TObjetStd
         parent::add_champs('fk_soc,fk_fin_dossier', 'type=entier;index;');
         parent::add_champs('okPourFacturation,transfert,reloc,relocOK,intercalaireOK', 'type=chaine;index;');
         parent::add_champs('loyer_reference', 'type=float;');
-        parent::add_champs('date_application', 'type=date;index;');
+        parent::add_champs('date_application,date_envoi', 'type=date;index;');
 
         parent::start();
         parent::_init_vars();
@@ -2078,8 +2087,10 @@ class TFin_financement extends TObjetStd
         );
 
         $this->TTransfert = array(
-            '0' => 'Non'
-            , '1' => 'Oui'
+            self::STATUS_TRANSFER_NO => 'Non',
+            self::STATUS_TRANSFER_YES => 'Oui',
+            self::STATUS_TRANSFER_READY => 'Prêt',
+            self::STATUS_TRANSFER_SENT => 'Envoyé'
         );
 
         $this->date_solde = 0;
@@ -2101,6 +2112,9 @@ class TFin_financement extends TObjetStd
             , 'NON' => 'Non'
         );
         $this->intercalaireOK = 'OUI';
+
+        $this->date_application = null; // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
+        $this->date_envoi = null;
     }
 
     /*
@@ -2212,9 +2226,23 @@ class TFin_financement extends TObjetStd
         }
     }
 
-    function loadReference(&$db, $reference, $type = 'LEASER') {
-        $Tab = TRequeteCore::get_id_from_what_you_want($db, $this->get_table(), array('reference' => $reference, 'type' => $type));
-        if(count($Tab) > 0) return $this->load($db, $Tab[0]);
+    function loadReference(&$PDOdb, $reference, $type = 'LEASER', $entity = null) {
+        global $db;
+
+        $sql = 'SELECT df.rowid';
+        $sql .= ' FROM '.MAIN_DB_PREFIX.'fin_dossier_financement df';
+        $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX."fin_dossier d ON (df.fk_fin_dossier=d.rowid AND df.type='".$db->escape($type)."')";
+        $sql .= " WHERE df.reference LIKE '".$db->escape($reference)."'";
+        if(! is_null($entity) && is_numeric($entity)) $sql .= ' AND d.entity = '.$entity;
+        if(! empty($entity) && is_array($entity)) $sql .= ' AND d.entity IN ('.implode(',', $entity).')';
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        if($obj = $db->fetch_object($resql)) return $this->load($PDOdb, $obj->rowid);
 
         return false;
     }
@@ -2415,7 +2443,7 @@ class TFin_financement extends TObjetStd
                 $date_debut_echeance = $dossier->getDateDebutPeriode($echeance);
 
                 if(strtotime($date_debut_echeance) >= $this->date_solde) {
-                    $this->createAvoirLeaserFromFacture($ATMdb, $facturefourn->id, $dossier->rowid);
+                    $this->createAvoirLeaserFromFacture($facturefourn->id);
                 }
             }
         }
@@ -2439,19 +2467,31 @@ class TFin_financement extends TObjetStd
         return true;
     }
 
-    function createAvoirLeaserFromFacture(&$ATMdb, $idFactureFourn, $idDossier) {
-        global $db, $user;
+    /**
+     * Création d'un avoir fournisseur à partir de la facture d'origine
+     * @param $idFactureFourn Id de la facture d'origine
+     * @return int Id de l'avoir créé
+     */
+    function createAvoirLeaserFromFacture($idFactureFourn) {
+        global $db, $user, $conf;
 
         dol_include_once('/fourn/class/fournisseur.facture.class.php');
         dol_include_once('/product/class/product.class.php');
 
+        // Chargement de la facture d'origine
         $origine = new FactureFournisseur($db);
         $origine->fetch($idFactureFourn);
 
+        // Changement d'entité pour pouvoir créer avec la bonne numérotation la facture avoir
+        $curent = $conf->entity;
+        switchEntity($origine->entity);
+
+        // Création de l'avoir via clone de la facture
         $fact = new FactureFournisseur($db);
         $idClone = $fact->createFromClone($idFactureFourn);
         $fact->fetch($idClone);
 
+        // Modification du clone pour transformation en avoir
         $fact->type = 2;
         $fact->entity = $origine->entity;
         $fact->fk_facture_source = $origine->id;
@@ -2459,26 +2499,22 @@ class TFin_financement extends TObjetStd
         $fact->ref_supplier = 'AV'.$origine->ref_supplier;
         $fact->update($user);
 
+        // Passage des lignes en négatif
         foreach($fact->lines as $line) {
             $line->pu_ht *= -1;
             $fact->updateline($line->rowid, $line->libelle, $line->pu_ht, $line->tva_tx, 0, 0, $line->qty, $line->fk_product);
         }
 
+        // Validation de la facture
         $fact->validate($user);
 
-        $echeance = explode('/', $origine->ref_supplier);
-        $echeance = array_pop($echeance);
+        // Retour à l'entité courante
+        switchEntity($curent);
 
-        //MAJ dates période facture
-        $dossier = new TFin_dossier;
-        $dossier->load($ATMdb, $this->fk_fin_dossier);
-        $date_debut_periode = $dossier->getDateDebutPeriode($echeance - 1, 'LEASER');
-        $date_fin_periode = $dossier->getDateFinPeriode($echeance - 1);
+        // Ajout lien avoir / dossier
+        $fact->add_object_linked('dossier', $this->fk_fin_dossier);
 
-        $db->query("UPDATE ".MAIN_DB_PREFIX."facture_fourn SET date_debut_periode = '".date('Y-m-d', strtotime($date_debut_periode))."' , date_fin_periode = '".date('Y-m-d', strtotime($date_fin_periode))."' WHERE rowid = ".$fact->id);
-
-        // Ajout lien dossier
-        $fact->add_object_linked('dossier', $idDossier);
+        return $fact->id;
     }
 
     /**
@@ -2600,17 +2636,5 @@ class TFin_financement extends TObjetStd
         }
 
         return $rate;
-    }
-}
-
-class TFin_facture_fournisseur extends TObjetStd
-{
-
-    function __construct() { /* declaration */
-        parent::set_table(MAIN_DB_PREFIX.'facture_fourn');
-        parent::add_champs('date_debut_periode,date_fin_periode', 'type=chaine;');
-
-        parent::start();
-        parent::_init_vars();
     }
 }

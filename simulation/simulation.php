@@ -219,7 +219,7 @@ if(!empty($action)) {
 			$simulation->clone_simu();
 			$simulation->save($ATMdb, $db, false);
 			
-			header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->getId());
+			header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->getId().'&action=edit');
 			exit();
 			
 			break;
@@ -232,7 +232,6 @@ if(!empty($action)) {
 					if(!empty($simulation->TSimulationSuivi[$id_suivi])) {
 						$simulation->TSimulationSuivi[$id_suivi]->numero_accord_leaser = $TVal['num_accord'];
 						$simulation->TSimulationSuivi[$id_suivi]->coeff_leaser = $TVal['coeff_accord'];
-						$simulation->TSimulationSuivi[$id_suivi]->commentaire = $TVal['commentaire'];
 						$simulation->TSimulationSuivi[$id_suivi]->commentaire_interne = $TVal['commentaire_interne'];
 						$simulation->TSimulationSuivi[$id_suivi]->save($ATMdb);
 					}
@@ -445,7 +444,7 @@ if(!empty($action)) {
 				if(($simulation->accord == 'OK' || $simulation->accord == 'KO') && $simulation->accord != $oldAccord) {
 					$simulation->send_mail_vendeur();
 
-					if($simulation->accord == 'OK' && $simulation->entity == 18 && empty($simulation->opt_no_case_to_settle)) {
+					if($simulation->accord == 'OK' && in_array($simulation->entity, array(18, 25)) && empty($simulation->opt_no_case_to_settle)) {
 					    $simulation->send_mail_vendeur_esus();
                     }
 				}
@@ -473,7 +472,7 @@ if(!empty($action)) {
 
 		    $simulation->accord = $newAccord;
 		    $simulation->save($ATMdb, $db);
-		    if($newAccord == 'KO') $simulation->send_mail_vendeur();
+		    if(in_array($newAccord, array('KO', 'WAIT_AP'))) $simulation->send_mail_vendeur();
 		    $simulation->historise_accord($ATMdb);
 
             if($simulation->fk_action_manuelle > 0) {
@@ -490,7 +489,7 @@ if(!empty($action)) {
 				if($simulation->accord == 'OK') {
 					$simulation->send_mail_vendeur();
 
-                    if($simulation->entity == 18 && empty($simulation->opt_no_case_to_settle)) {
+                    if(in_array($simulation->entity, array(18, 25)) && empty($simulation->opt_no_case_to_settle)) {
                         $simulation->send_mail_vendeur_esus();
                     }
 				}
@@ -926,6 +925,11 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 	$extrajs = array('/financement/js/financement.js', '/financement/js/dossier.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
 	print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
+	if($action == 'confirm_selectionner') {
+        $form = new Form($db);
+        $fk_suivi = GETPOST('id_suivi', 'int');
+        print $form->formconfirm($_SERVER['PHP_SELF'].'?id='.$simulation->rowid.'&id_suivi='.$fk_suivi, $langs->trans('SelectThisLeaser'), $langs->trans('ConfirmSelectThisLeaser'), 'selectionner', '', '', 2);
+    }
 	
 	$head = simulation_prepare_head($simulation);
 	dol_fiche_head($head, 'card', $langs->trans("Simulation"),0,'simulation');
@@ -1082,6 +1086,7 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 		,'opt_calage'=>$form->hidden('opt_calage', $simulation->opt_calage)
 	    ,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme) .(!empty($simulation->modifs['opt_terme']) ? ' (Ancienne valeur : '.$financement->TTerme[$simulation->modifs['opt_terme']].')' : '')
 		,'date_demarrage'=>$form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12)
+		,'date_demarrage_label'=> in_array($simulation->entity, array(18, 25)) ? $langs->trans('DateDemarrageCustom') : $langs->trans('DateDemarrage')
 	    ,'montant'=>$form->texte('', 'montant', $simulation->montant, 10) .(!empty($simulation->modifs['montant']) ? ' (Ancienne valeur : '.$simulation->modifs['montant'].')' : '')
 
 		,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)

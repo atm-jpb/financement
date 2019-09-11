@@ -13,18 +13,22 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
         parent::__construct($transfert);
     }
 
-    // TODO: Adapt to CMCIC !
     function upload($filename) {
-//        $dirname = $this->fileFullPath . $filename . '.xml';
-//        if(empty($conf->global->FINANCEMENT_MODE_PROD)) {
-//            exec('sh bash/lixxbailxml_test.sh '.$dirname);
-//        } else {
-//            exec('sh bash/lixxbailxml.sh '.$dirname);
-//        }
+	    global $conf;
+
+        $dirname = $this->fileFullPath . $filename . '.xml';
+        if(empty($conf->global->FINANCEMENT_MODE_PROD)) {
+            exec('sh bash/cmcicxml_test.sh '.$dirname);
+        } else {
+            exec('sh bash/cmcicxml.sh '.$dirname);
+        }
     }
 
-	function generate(&$PDOdb, &$TAffaires,$andUpload=false){
+	function generate(&$PDOdb, &$TAffaires, $andUpload=false){
 		global $conf, $db;
+
+		if(empty($conf->global->FINANCEMENT_MODE_PROD)) $name2 = 'UATFRCPROCMCICADLC_'.date('Ymd');
+        else $name2 = 'PRDFRCPROCMCICADLC_'.date('Ymd');
 
 		$xml = new DOMDocument('1.0','UTF-8');
 		$xml->formatOutput = true;
@@ -57,6 +61,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 			$affairelist->appendChild($xml->createElement("FLG_ASSVIE", 'N'));
 			$affairelist->appendChild($xml->createElement("FLG_GARANTIE", 'N'));
 			$affairelist->appendChild($xml->createElement("FLG_DERO_ASSMAT", 'N'));
+			$affairelist->appendChild($xml->createElement("FLG_INDEX", 'N'));
 
 			// Schéma financier
 			$data_schema_fin = $this->getSchemaFinData($xml, $dossier);
@@ -67,7 +72,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 //			$affairelist->appendChild($data_schema_fin);
 
 			// Locataire
-			$data_schema_fin = $this->getLocataireData($xml, $dossier);
+			$data_schema_fin = $this->getLocataireData($xml, $Affaire);
 			$affairelist->appendChild($data_schema_fin);
 
 			// Marche public - Facultatif
@@ -98,8 +103,6 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 
 		$chaine = $xml->saveXML();
 
-		if(BASE_TEST) $name2 = 'UATFRCPROCMCICADLC_'.date('Ymd');
-        else $name2 = 'FRCPROCMCICADLC_'.date('Ymd');
 		dol_mkdir($this->fileFullPath);
 		file_put_contents($this->fileFullPath.$name2.'.xml', $chaine);
 
@@ -141,30 +144,24 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 		return $solde_contrat;
 	}
 
-	function getLocataireData(&$xml, $dossier) {
-        global $db, $mysoc;
+	function getLocataireData(&$xml, $affaire) {
+        global $db, $conf, $mysoc;
 
-		$fin = $dossier->financement;
-        $siret = $soc_name = '';
-        if($fin->fk_soc == 1) {
-            $siret = $mysoc->idprof2;
-            $soc_name = $mysoc->name;
-        }
-        else {
-            $socClient = new Societe($db);
-            $socClient->fetch($fin->fk_soc);
+        // Mandatée, le locataire est CPRO
+        $siret = $mysoc->idprof2;
+        $soc_name = $mysoc->name;
 
-            $siret = $socClient->idprof2;
-            $soc_name = $socClient->name;
-        }
+        dol_include_once('/compta/bank/class/account.class.php');
+        $acc = new Account($db);
+        $acc->fetch($conf->global->FACTURE_RIB_NUMBER);
 
 		$solde_contrat = $xml->createElement('LOCATAIRE');
         $TData = array(
             'SIRET_LOC' => $siret,
             'DENO_LOC' => substr($soc_name, 0, 32),    // 32 Caractères MAX !
-            'BIC_IBAN' => '11111111111_2222222222222222222222222222222222',    // BIC.'_'.IBAN
-            'N_TIT' => 0,
-            'DT_SIGN_CLI' => '0001-01-01'
+            'BIC_IBAN' => $acc->bic . '_' . $acc->iban,    // BIC.'_'.IBAN
+            'N_TIT' => $acc->proprio,
+            'DT_SIGN_CLI' => '2019-01-01'
         );
 
         foreach($TData as $code => $value) {
@@ -222,7 +219,6 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 
 	function getFactureData(&$xml, $affaire) {
         $dossier = $affaire->TLien[0]->dossier;
-		$finLeaser = $dossier->financementLeaser;
         $facture = $affaire->loadFactureMat();
 
 		$elem = $xml->createElement('FACTURE');
@@ -238,25 +234,24 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
         }
 
         // Montants factures
-        $truc = $this->getMontantFactureData($xml, $dossier, $facture);
+        $truc = $this->getMontantFactureData($xml, $facture);
         $elem->appendChild($truc);
 
         // Montants factures
-        $truc = $this->getFacturantData($xml, $dossier);
+        $truc = $this->getFacturantData($xml, $affaire);
         $elem->appendChild($truc);
 
         // Matériel
         foreach($affaire->TAsset as $assetLink) {
-            $truc = $this->getMaterielData($xml, $assetLink, $dossier);
+            $truc = $this->getMaterielData($xml, $assetLink, $dossier, $facture, $affaire);
             $elem->appendChild($truc);
+            break; // On n'envoie que le 1er matériel
         }
 
 		return $elem;
 	}
 
-	function getMontantFactureData(&$xml, $dossier, $facture) {
-		$finLeaser = $dossier->financementLeaser;
-
+	function getMontantFactureData(&$xml, $facture) {
 		$elem = $xml->createElement('MONTANTS_FAC');
         $TData = array(
             'MTESCFOU' => 0,
@@ -273,13 +268,12 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 		return $elem;
 	}
 
-	function getFacturantData(&$xml, $dossier) {
-        global $mysoc;
-		$finLeaser = $dossier->financementLeaser;
+	function getFacturantData(&$xml, $affaire) {
+        $siret = $this->getSiretByAffaireRef($affaire->reference);
 
 		$elem = $xml->createElement('FACTURANT');
         $TData = array(
-            'SIRETFCT' => $mysoc->idprof2,  // Siret mysoc de l'entité (idprof2)
+            'SIRETFCT' => $siret,  // Siret de l'entité identifiée par le préfixe de la référence de l'affaire
             'TAUXTVAFOU' => price2num(20),
             'NOTVAIN' => 'N'    // TVA Mysoc
         );
@@ -291,17 +285,15 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 		return $elem;
 	}
 
-	function getMaterielData(&$xml, $assetLink, $dossier) {
-//        $dossier = $affaire->TLien[0]->dossier;
-
-		$elem = $xml->createElement('MATERIEL');
+	function getMaterielData(&$xml, $assetLink, $dossier, $facture, $affaire) {
+        $elem = $xml->createElement('MATERIEL');
 
         // Détails Matériel
-        $truc = $this->getMaterielDetailsData($xml, $assetLink);
+        $truc = $this->getMaterielDetailsData($xml, $assetLink, $dossier, $facture);
         $elem->appendChild($truc);
 
         // Livraison Matériel
-        $truc = $this->getLivraisonMaterielData($xml, $dossier);
+        $truc = $this->getLivraisonMaterielData($xml, $facture, $affaire);
         $elem->appendChild($truc);
 
         // Maintenance Matérielle
@@ -311,7 +303,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 		return $elem;
 	}
 
-	function getMaterielDetailsData(&$xml, $assetLink) {
+	function getMaterielDetailsData(&$xml, $assetLink, $dossier, $facture) {
         global $db;
         $p = new Product($db);
         $p->fetch($assetLink->asset->fk_product);
@@ -320,11 +312,11 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
         $TData = array(
             'LIBMAT' => substr($p->label, 0, 60),
             'NOSEROBJ' => substr($assetLink->asset->serial_number, 0, 20),
-            'MTHTUNIT' => price2num(0),
+            'MTHTUNIT' => price2num($facture->total_ht),
             'MTFTECG' => 0,
             'REFEXTFOU' => 'N',
 //            'COMM_FIN' => 'N',    // Facultatif
-            'LOYER_HT' => price2num(0)
+            'LOYER_HT' => price2num($dossier->financementLeaser->echeance)
         );
 
         foreach($TData as $code => $value) {
@@ -334,20 +326,20 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 		return $elem;
 	}
 
-	function getLivraisonMaterielData(&$xml, $dossier) {
-		$finLeaser = $dossier->financementLeaser;
-
+	function getLivraisonMaterielData(&$xml, $facture, $affaire) {
 		$elem = $xml->createElement('LIVRAISON_MAT');
+		//pre($affaire,true);exit;
+		$client = $affaire->societe;
         $TData = array(
 //            'DTPV' => 'N',    // Facultatif
             'CDTYPPV' => ' ',   // Un espace est un blanc, donc on met un blanc
-            'SIRET_LIV' => '10000000000001',
-            'N_RUE_LIV' => 'N',
-            'RUE_1_LIV' => 'N',
-            'RUE_2_LIV' => 'N',
-            'C_POSTAL_LIV' => '00001',
-            'VILLE_LIV' => 'N',
-            'DATE_LIV' => '0001-01-01'
+            'SIRET_LIV' => $client->idprof2,
+            'N_RUE_LIV' => '',
+            'RUE_1_LIV' => substr($client->address, 0, 46),
+            'RUE_2_LIV' => '',
+            'C_POSTAL_LIV' => $client->zip,
+            'VILLE_LIV' => $client->town,
+            'DATE_LIV' => date('Y-m-d', $facture->date)
         );
 
         foreach($TData as $code => $value) {
@@ -358,13 +350,10 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 	}
 
 	function getMaintenanceMatData(&$xml, $dossier) {
-		$finLeaser = $dossier->financementLeaser;
-
 		$elem = $xml->createElement('MAINTENANCE_MAT');
         $TData = array(
             'MTHT_MAIN' => 'N',
             'SIRET_MAIN' => 'N',
-            'FLG_INDEX' => 'N'
         );
 
         foreach($TData as $code => $value) {
@@ -373,4 +362,28 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 
 		return $elem;
 	}
+
+	function getSiretByAffaireRef($ref) {
+	    global $mysoc;
+
+	    $TSiret = array(
+	        '001' => '43035549500028',   // GROUPE
+            '002' => '38122838600102',   // C'Pro
+            '003' => '38122838600151',   // ALLIANCE
+            '004' => '38122838600219',   // PIXEL
+            '005' => '41505052500021',   // C'Pro Info
+            '006' => '38122838600268',   // VDI
+            '011' => '38122838600268',   // MCII
+            '012' => '48084469500027',   // C'Pro Télécom
+            '013' => '52137069200035',   // C'Pro Networks
+            '015' => '34981660300022',   // TDP-IP
+            '016' => '31780275900041',   // SADOUX
+        );
+
+	    $TRef = explode('-', $ref);
+	    $prefix = $TRef[0];
+
+	    if(array_key_exists($prefix, $TSiret)) return $TSiret[$prefix];
+	    return $mysoc->idprof2;
+    }
 }
