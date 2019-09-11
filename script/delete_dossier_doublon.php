@@ -9,6 +9,7 @@ dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
 
+$debug = GETPOST('debug', 'int');
 $limit = GETPOST('limit', 'int');
 $commit = GETPOST('commit', 'int');
 
@@ -40,6 +41,11 @@ $PDOdb = new TPDOdb;
 $nb = $db->num_rows($resql);
 
 while($obj = $db->fetch_object($resql)) {
+    if(! empty($debug)) {
+        var_dump($obj);
+        print '<br/>';
+    }
+
     if(! empty($commit)) {  // Petite sécurité
         $dossier = new TFin_dossier;
         $dossier->load($PDOdb, $obj->fk_fin_dossier);
