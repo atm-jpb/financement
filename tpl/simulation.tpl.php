@@ -121,7 +121,7 @@
 			<td width="25%">[simulation.opt_administration; strconv=no]</td>
 		</tr>
 		<tr>
-			<td>Date de démarrage si calage</td>
+			<td>[simulation.date_demarrage_label; strconv=no]</td>
 			<td>[simulation.date_demarrage; strconv=no]</td>
 			<td>Règle de calage</td>
 			<td>[simulation.opt_calage; strconv=no][simulation.opt_calage_label; strconv=no]</td>
