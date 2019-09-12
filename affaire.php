@@ -70,6 +70,7 @@
                         $f->statut = 0;
                         $resUpdate = $f->update($user);
 
+                        $f->add_object_linked('affaire', $affaire->rowid);
                         if(! empty($affaire->TLien[0])) $f->add_object_linked('dossier', $affaire->TLien[0]->fk_fin_dossier);
                         $asset = new TAsset;
                         $asset->serial_number = $facSerialNumber;
@@ -79,7 +80,8 @@
                     }
                 }
 
-				_fiche($ATMdb, $affaire,'view');
+				header('Location: '.$_SERVER['PHP_SELF'].'?id='.$affaire->rowid);
+				exit;
 
 				break;
 
