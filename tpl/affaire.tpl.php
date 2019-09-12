@@ -110,6 +110,10 @@
                 <td>[fac.num_serie; strconv=no]</td>
             </tr>
             <tr>
+                <td>Référence matériel</td>
+                <td>[fac.refMat; strconv=no]</td>
+            </tr>
+            <tr>
                 <td>Libellé matériel</td>
                 <td>[fac.label; strconv=no]</td>
             </tr>

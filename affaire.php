@@ -55,8 +55,9 @@
 				// Création de la facture matériel
 				$facRef = GETPOST('facRef');
 				$facSerialNumber = GETPOST('facSerialNumber');
+                $facRefMat = GETPOST('facRefMat');
 				$facLabel = GETPOST('facLabel');
-				if(! empty($facRef) && ! empty($facSerialNumber) && ! empty($facLabel) && ! empty($affaire->somme_dossiers)) {
+				if(! empty($facRef) && ! empty($facSerialNumber) && ! empty($facRefMat) && ! empty($facLabel) && ! empty($affaire->somme_dossiers)) {
 				    $f = new Facture($db);
 				    $f->date = $affaire->date_affaire;
 				    $f->socid = $affaire->societe->id;
@@ -70,10 +71,17 @@
                         $f->statut = 0;
                         $resUpdate = $f->update($user);
 
+                        $p = new Product($db);
+                        $p->ref = $facRefMat;
+                        $p->libelle = $facLabel;
+                        $p->create($user);
+
+
                         $f->add_object_linked('affaire', $affaire->rowid);
                         if(! empty($affaire->TLien[0])) $f->add_object_linked('dossier', $affaire->TLien[0]->fk_fin_dossier);
                         $asset = new TAsset;
                         $asset->serial_number = $facSerialNumber;
+                        $asset->fk_product = $p->id;
                         $asset->add_link($res, 'facture');
                         $asset->add_link($affaire->rowid, 'affaire');
                         $asset->save($ATMdb);
@@ -485,10 +493,11 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		$entity_field = $TEntityName[$entity].$form->hidden('entity', $entity);
 	}
 
-    $facRef = $facSerialNumber = $facLabel = '';
+    $facRef = $facSerialNumber = $facRefMat = $facLabel = '';
 	if($mode == 'edit') {
 	    $facRef = '<input type="text" name="facRef" />';
 	    $facSerialNumber = '<input type="text" name="facSerialNumber" />';
+        $facRefMat = '<input type="text" name="facRefMat" />';
 	    $facLabel = '<input type="text" name="facLabel" />';
     }
 
@@ -535,6 +544,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
             'fac' => array(
                 'reference' => $facRef,
                 'num_serie' => $facSerialNumber,
+                'refMat' => $facRefMat,
                 'label' => $facLabel
             )
 		)
