@@ -321,6 +321,7 @@ FinCA_Client=CA Client
 FinCA_Leaser=HA Leaser
 FinRecurrent=Récurrence
 NoteLabel=La Mine
+ConformiteLabel = Conformité
 SuiviIntegral = Suivi intégrale
 AccordAuto = Accord Automatique
 FinancementActivateAccordAuto = Activer les accords automatiques
@@ -349,3 +350,8 @@ setSent = Passer au statut "Envoyé"
 setYes = Passer au statut "Oui"
 DateDemarrage = Date de démarrage si calage
 DateDemarrageCustom = Date de livraison
+
+# Conformite
+RequiredFiles = Fichiers obligatoires
+ListOfRequiredFiles = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>Contrat + scan des CGV + mandat SEPA</li><li>Accord de financement</li><li>Facture matériel</li><li>PV de livraison</li><li>RIB</li><li>CNI (recto verso)</li><li>Copie societe.com ou KBIS pour les dossiers >50k€</li><li>Mail de déro la cas échéant</li><li>Pouvoir de signature le cas échéant</li></ul>
+ConformiteStatus = Statut conformité

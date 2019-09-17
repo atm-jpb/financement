@@ -665,6 +665,13 @@ function simulation_prepare_head(TSimulation $object)
         $h++;
     }
 
+    if(! empty($id)) {
+        $head[$h][0] = dol_buildpath('/financement/simulation/conformite.php', 2).'?fk_simu='.$id;
+        $head[$h][1] = $langs->trans('ConformiteLabel');
+        $head[$h][2] = 'conformite';
+        $h++;
+    }
+
     // Show more tabs from modules
     // Entries must be declared in modules descriptor with line
     // $this->tabs = array('entity:+tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to add new tab
