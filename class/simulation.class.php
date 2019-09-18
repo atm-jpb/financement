@@ -165,8 +165,8 @@ class TSimulation extends TObjetStd
         if($generatePDF) {
             $this->gen_simulation_pdf($db, $doliDB);
 
-            // Uniquement pour les simuls d'ESUS qui ont des dossiers à solder !
-            if($this->entity == 18 && empty($this->opt_no_case_to_settle)) {
+            // Uniquement pour les simuls d'ESUS et de ABS qui ont des dossiers à solder !
+            if(in_array($this->entity, array(18, 25)) && empty($this->opt_no_case_to_settle)) {
                 $this->gen_simulation_pdf_esus($db, $doliDB);
             }
         }
@@ -328,7 +328,7 @@ class TSimulation extends TObjetStd
 
         // Ajout des autres leasers de la liste (sauf le prio)
         foreach($grille as $TData) {
-            // Le montant de LOC PURE change uniquement pour C'Pro Ouest
+            // Le montant de LOC PURE change uniquement pour C'Pro Ouest & Copy Concept
             if(($this->montant < 1000 && ! in_array($this->entity, array(5, 7)) || $this->montant < 500 && in_array($this->entity, array(5, 7))) && $TData['fk_leaser'] != 18495) continue;     // Spécifique LOC PURE
 
             $simulationSuivi = new TSimulationSuivi;
@@ -1062,7 +1062,7 @@ class TSimulation extends TObjetStd
     }
 
     /**
-     * Fonction spécifique à ESUS pour lui envoyer des PDF tout aussi spécifiques, la classe...
+     * Fonction spécifique à ESUS et ABS pour leur envoyer des PDF tout aussi spécifiques, la classe...
      */
     function send_mail_vendeur_esus($auto = false) {
         global $langs, $conf, $db;
@@ -1072,7 +1072,10 @@ class TSimulation extends TObjetStd
         dol_include_once('/core/class/CMailFile.class.php');
         if(! function_exists('switchEntity')) dol_include_once('/financement/lib/financement.lib.php');
 
-        $PDFName = dol_sanitizeFileName($this->getRef()).'-esus.pdf';
+        $PDFName = dol_sanitizeFileName($this->getRef());
+        if($this->entity == 18) $PDFName .= '-esus.pdf';
+        elseif($this->entity == 25) $PDFName .= '-abs.pdf';
+
         $PDFPath = $this->getFilePath();
 
         $formmail = new FormMail($db);
@@ -1099,26 +1102,11 @@ class TSimulation extends TObjetStd
             }
 
             $accord = 'Demande de financement refusée';
+
+            // Message générique
             $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-            $mesg .= 'La demande de financement pour le client '.$this->societe->name.' d\'un montant de '.price($this->montant_total_finance).' € n\'est pas acceptée.'."\n";
-            $mesg .= 'Nous n\'avons que des refus pour le ou les motifs suivants :'."\n";
-            $mesg .= $retourLeaser."\n";
-
-            // Message spécifique CPRO
-            if(in_array($this->entity, array(1, 2, 3))) {
-                $mesg .= 'Nous allons réétudier la demande en interne afin de voir s\'il est possible de trouver une solution favorable au financement du dossier.'."\n";
-                $mesg .= 'Si c\'est le cas, le coeff de la demande sera augmenté en fonction du risque que porte C\'PRO.'."\n\n";
-
-                $mesg .= 'Pour cela merci de nous faire parvenir le dernier bilan du client.'."\n\n";
-            }
-            else if(in_array($this->entity, array(5, 6, 7, 9))) { // Idem OUEST sans la mention réétude
-                $mesg .= '';
-            }
-            else { // Message générique
-                $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-                $mesg .= 'Votre demande de financement via la simulation n '.$this->reference.' n\'a pas été acceptée.'."\n\n";
-                if(! empty($this->commentaire)) $mesg .= 'Commentaire : '."\n".$this->commentaire."\n\n";
-            }
+            $mesg .= 'Votre demande de financement via la simulation n '.$this->reference.' n\'a pas été acceptée.'."\n\n";
+            if(! empty($this->commentaire)) $mesg .= 'Commentaire : '."\n".$this->commentaire."\n\n";
         }
 
         $mesg .= 'Cordialement,'."\n\n";
@@ -1126,7 +1114,8 @@ class TSimulation extends TObjetStd
 
         $subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance, 2, ',', ' ').' Euros - '.$accord;
 
-        $mailto = 'rachat.esus@zeenmail.com';
+        if($this->entity == 18) $mailto = 'rachat.esus@zeenmail.com';   // ESUS
+        elseif($this->entity == 25) $mailto = 'rachatabs.esus@zeenmail.com';    // ABS
 
         $old_entity = $conf->entity;
         switchEntity($this->entity);    // Switch to simulation entity
@@ -1320,7 +1309,7 @@ class TSimulation extends TObjetStd
     }
 
     /**
-     * Fonction spécifique à ESUS qi demande des infos en plus dans un autre PDF...
+     * Fonction spécifique à ESUS et ABS qui demandent des infos en plus dans un autre PDF...
      */
     function gen_simulation_pdf_esus(&$ATMdb, &$doliDB) {
         global $mysoc, $TLeaserCat, $db, $conf;
@@ -1403,9 +1392,11 @@ class TSimulation extends TObjetStd
 
             $echeance = $d->_get_num_echeance_from_date($datemax_deb);
             if($refus || $TLeaserCat[$simu->fk_leaser] == $TLeaserCat[$d->financementLeaser->fk_soc]) {
+                $type_solde = 'R';
                 $solde_banque = $d->getSolde($ATMdb, 'SRBANK', $echeance+1);
             }
             else {
+                $type_solde = 'NR';
                 $solde_banque = $d->getSolde($ATMdb, 'SNRBANK', $echeance+1);
             }
 
@@ -1415,6 +1406,7 @@ class TSimulation extends TObjetStd
                 , 'type_contrat' => $d->type_contrat
                 , 'solde_r' => $solde_r
                 , 'solde_banque' => $solde_banque
+                , 'type_solde' => $type_solde
                 , 'datemax_debut' => $datemax_deb
                 , 'datemax_fin' => $datemax_fin
             );
@@ -1423,7 +1415,10 @@ class TSimulation extends TObjetStd
         $this->hasdossier = count($TDossier) + count($TDossierperso);
 
         // Création du répertoire
-        $fileName = dol_sanitizeFileName($this->getRef()).'-esus.odt';
+        $fileName = dol_sanitizeFileName($this->getRef());
+        if($this->entity == 18) $fileName .= '-esus.odt';
+        elseif($this->entity == 25) $fileName .= '-abs.odt';
+
         $filePath = $this->getFilePath();
         dol_mkdir($filePath);
 
@@ -1529,7 +1524,7 @@ class TSimulation extends TObjetStd
             if($mode == 'save' && ($this->accord == 'OK' || $this->accord == 'KO')) { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
                 $this->send_mail_vendeur(true);
 
-                if($this->accord = 'OK' && $this->entity = 18 && empty($this->opt_no_case_to_settle)) {
+                if($this->accord = 'OK' && in_array($this->entity, array(18, 25)) && empty($this->opt_no_case_to_settle)) {
                     $this->send_mail_vendeur_esus(true);
                 }
             }
@@ -2598,7 +2593,7 @@ class TSimulationSuivi extends TObjetStd
         foreach($simulation->TSimulationSuivi as $id_suivi => $suivi) {
             if($found && empty($suivi->statut)) {
                 // [PH] TODO ajouter ici les noms de leaser pour déclancher en automatique l'appel
-                if(in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL', 'BNP', 'CMCIC', 'GRENKE'))) {
+                if(in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL', 'BNP', 'CMCIC', 'GRENKE', 'FRANFINANCE'))) {
                     $suivi->doAction($PDOdb, $this->simulation, 'demander');
                 }
                 break;
@@ -2665,7 +2660,7 @@ class TSimulationSuivi extends TObjetStd
 
         $simulation->send_mail_vendeur();
 
-        if($simulation->entity == 18 && empty($simulation->opt_no_case_to_settle)) {
+        if(in_array($simulation->entity, array(18, 25)) && empty($simulation->opt_no_case_to_settle)) {
             $simulation->send_mail_vendeur_esus();
         }
 
@@ -2714,6 +2709,7 @@ class TSimulationSuivi extends TObjetStd
             case 'CMCIC':
             case 'GRENKE':
             case 'BNP':
+            case 'FRANFINANCE':
                 $res = $this->_createDemandeServiceFinancement($debug);
                 break;
             default:
@@ -2735,6 +2731,23 @@ class TSimulationSuivi extends TObjetStd
         // Chargement d'un objet TSimulation dans une nouvelle variable pour éviter les problème d'adressage
         $simulation = new TSimulation();
         $simulation->load($PDOdb, $this->fk_simulation);
+
+        $TLeaserMandate = array(
+            19483,  // Lixxbail
+            20113,  // BNP
+            23164,  // Grenke
+            30748,  // Locam
+            216625, // Franfi
+            21382   // CM CIC
+        );
+
+        // Si on est sur de la location mandatée, il faut forcer ces paramètres pour l'envoi en EDI
+        if(in_array($this->fk_leaser, $TLeaserMandate)) {
+            $simulation->opt_periodicite = 'TRIMESTRE';
+            $simulation->terme = 1; // à échoir
+            $simulation->opt_mode_reglement = 'PRE';
+        }
+
         $service = new ServiceFinancement($simulation, $this, $debug);
 
         // La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active)

@@ -444,7 +444,7 @@ if(!empty($action)) {
 				if(($simulation->accord == 'OK' || $simulation->accord == 'KO') && $simulation->accord != $oldAccord) {
 					$simulation->send_mail_vendeur();
 
-					if($simulation->accord == 'OK' && $simulation->entity == 18 && empty($simulation->opt_no_case_to_settle)) {
+					if($simulation->accord == 'OK' && in_array($simulation->entity, array(18, 25)) && empty($simulation->opt_no_case_to_settle)) {
 					    $simulation->send_mail_vendeur_esus();
                     }
 				}
@@ -489,7 +489,7 @@ if(!empty($action)) {
 				if($simulation->accord == 'OK') {
 					$simulation->send_mail_vendeur();
 
-                    if($simulation->entity == 18 && empty($simulation->opt_no_case_to_settle)) {
+                    if(in_array($simulation->entity, array(18, 25)) && empty($simulation->opt_no_case_to_settle)) {
                         $simulation->send_mail_vendeur_esus();
                     }
 				}
@@ -1086,6 +1086,7 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 		,'opt_calage'=>$form->hidden('opt_calage', $simulation->opt_calage)
 	    ,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme) .(!empty($simulation->modifs['opt_terme']) ? ' (Ancienne valeur : '.$financement->TTerme[$simulation->modifs['opt_terme']].')' : '')
 		,'date_demarrage'=>$form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12)
+		,'date_demarrage_label'=> in_array($simulation->entity, array(18, 25)) ? $langs->trans('DateDemarrageCustom') : $langs->trans('DateDemarrage')
 	    ,'montant'=>$form->texte('', 'montant', $simulation->montant, 10) .(!empty($simulation->modifs['montant']) ? ' (Ancienne valeur : '.$simulation->modifs['montant'].')' : '')
 
 		,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)

@@ -1930,7 +1930,8 @@ class TFin_dossier extends TObjetStd
 
     /**
      * Règles spécifique permettant de savoir si le solde du dossier doit être affiché ou non sur les simulations
-     * @return 0 s'il ne faut pas afficher le solde, 1 sinon
+     *
+     * @return int < 0 s'il ne faut pas afficher le solde, 1 sinon
      */
     function get_display_solde() {
         global $conf;
@@ -1974,7 +1975,7 @@ class TFin_dossier extends TObjetStd
             foreach($facture as $key => $fact) {
                 if($fact->paye == 0) {
                     $cpt++;
-                    if($cpt > FINANCEMENT_NB_INVOICE_UNPAID) {
+                    if($cpt > $conf->global->FINANCEMENT_NB_INVOICE_UNPAID) {
                         return -7;
                     }
                 }
