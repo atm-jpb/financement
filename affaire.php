@@ -4,7 +4,7 @@
 	require('./class/dossier.class.php');
 	require('./class/grille.class.php');
 	require('./lib/financement.lib.php');
-	
+
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 
@@ -13,143 +13,181 @@
 	dol_include_once('/compta/facture/class/facture.class.php');
 
 	$langs->load('financement@financement');
-	
+
 	if (!$user->rights->financement->affaire->read)	{ accessforbidden(); }
 
-	
+
 	$affaire=new TFin_Affaire;
 	$ATMdb = new TPDOdb;
 	$tbs = new TTemplateTBS;
-	
+
 	$mesg = '';
 	$error=false;
-	
+
 	if(isset($_REQUEST['action'])) {
 		switch($_REQUEST['action']) {
 			case 'add':
 			case 'new':
-				
+
 				$affaire->set_values($_REQUEST);
-	
+
 				//$affaire->save($ATMdb);
 				_fiche($ATMdb, $affaire,'edit');
-				
-				break;	
+
+				break;
 			case 'edit'	:
-			
+
 				$affaire->load($ATMdb, $_REQUEST['id']);
-				
+
 				_fiche($ATMdb, $affaire,'edit');
 				break;
-				
+
 			case 'save':
 				$affaire->load($ATMdb, $_REQUEST['id']);
 				$affaire->set_values($_REQUEST);
 				$affaire->fk_soc = isset($_REQUEST['socid']) ? $_REQUEST['socid'] : $_REQUEST['fk_soc'];
 				//$ATMdb->db->debug=true;
 				//print_r($_REQUEST);
-				
+
 				$affaire->save($ATMdb);
 				$affaire->load($ATMdb, $_REQUEST['id']);
-				_fiche($ATMdb, $affaire,'view');
-				
+
+				// Création de la facture matériel
+				$facRef = GETPOST('facRef');
+				$facSerialNumber = GETPOST('facSerialNumber');
+                $facRefMat = GETPOST('facRefMat');
+				$facLabel = GETPOST('facLabel');
+				if(! empty($facRef) && ! empty($facSerialNumber) && ! empty($facRefMat) && ! empty($facLabel) && ! empty($affaire->somme_dossiers)) {
+				    $f = new Facture($db);
+				    $f->date = $affaire->date_affaire;
+				    $f->socid = $affaire->societe->id;
+
+				    $res = $f->create($user);
+				    var_dump($res);
+				    if($res > 0) {
+				        $f->addline($facSerialNumber, $affaire->somme_dossiers, 1, 0);
+
+                        $f->ref = $facRef;
+                        $f->statut = 0;
+                        $resUpdate = $f->update($user);
+
+                        $p = new Product($db);
+                        $p->ref = $facRefMat;
+                        $p->libelle = $facLabel;
+                        $p->create($user);
+
+
+                        $f->add_object_linked('affaire', $affaire->rowid);
+                        if(! empty($affaire->TLien[0])) $f->add_object_linked('dossier', $affaire->TLien[0]->fk_fin_dossier);
+                        $asset = new TAsset;
+                        $asset->serial_number = $facSerialNumber;
+                        $asset->fk_product = $p->id;
+                        $asset->add_link($res, 'facture');
+                        $asset->add_link($affaire->rowid, 'affaire');
+                        $asset->save($ATMdb);
+                    }
+                }
+
+				header('Location: '.$_SERVER['PHP_SELF'].'?id='.$affaire->rowid);
+				exit;
+
 				break;
-			
-				
+
+
 			case 'delete':
 				$affaire->load($ATMdb, $_REQUEST['id']);
 				//$ATMdb->db->debug=true;
 				$affaire->delete($ATMdb);
-				
+
 				?>
 				<script language="javascript">
-					document.location.href="?delete_ok=1";					
+					document.location.href="?delete_ok=1";
 				</script>
 				<?php
-				
-				
+
+
 				break;
 			case 'add_dossier':
 			//$ATMdb->db->debug=true;
 				$affaire->load($ATMdb, $_REQUEST['id']);
 				$affaire->set_values($_REQUEST);
-			
+
 				if(!$affaire->addDossier($ATMdb, null, $_REQUEST['dossier_to_add'])) {
 					$mesg = '<div class="error">Impossible d\'ajouter ce dossier à l\'affaire. </div>';
 					$error=true;
-					
-				}	
+
+				}
 				else {
 					$mesg = '<div class="ok">Dossier ajouté à l\'affaire</div>';
 				}
 				//exit($mesg);
 				$affaire->save($ATMdb);
-				
+
 				_fiche($ATMdb, $affaire,'edit');
-				
+
 				break;
-				
+
 			case 'delete_dossier':
 				//$ATMdb->db->debug=true;
 				//$affaire->set_values($_REQUEST);
 				$affaire->load($ATMdb, $_REQUEST['id']);
-				
-			
+
+
 				if($affaire->deleteDossier($ATMdb, $_REQUEST['id_dossier'])) {
-					$mesg = '<div class="ok">Dossier retiré de l\'affaire</div>';	
-				}	
-				
+					$mesg = '<div class="ok">Dossier retiré de l\'affaire</div>';
+				}
+
 				$affaire->save($ATMdb);
-				
+
 				_fiche($ATMdb, $affaire,'edit');
-				
+
 				break;
-			
+
 			case 'add_facture_mat':
 			//$ATMdb->db->debug=true;
 				$affaire->load($ATMdb, $_REQUEST['id']);
 				$affaire->set_values($_REQUEST);
-				
+
 				//echo $_REQUEST['facture_mat_to_add'];exit;
-				
+
 				if(!$affaire->addFactureMat($ATMdb,$_REQUEST['facture_mat_to_add'])) {
 					$mesg = '<div class="error">Impossible de lier cette facture matériel à l\'affaire. </div>';
 					$error=true;
-					
-				}	
+
+				}
 				else {
 					$mesg = '<div class="ok">Facture matériel liée à l\'affaire</div>';
 				}
 				//exit($mesg);
 				$affaire->save($ATMdb);
-				
+
 				_fiche($ATMdb, $affaire,'edit');
-				
+
 				break;
-				
+
 			case 'delete_facture_mat':
 				//$ATMdb->db->debug=true;
 				//$affaire->set_values($_REQUEST);
 				/*$affaire->load($ATMdb, $_REQUEST['id']);
-				
-			
+
+
 				if($affaire->deleteDossier($ATMdb, $_REQUEST['id_dossier'])) {
-					$mesg = '<div class="ok">Dossier retiré de l\'affaire</div>';	
-				}	
-				
+					$mesg = '<div class="ok">Dossier retiré de l\'affaire</div>';
+				}
+
 				$affaire->save($ATMdb);*/
-				
+
 				_fiche($ATMdb, $affaire,'edit');
-				
+
 				break;
 		}
-		
+
 	}
 	elseif(isset($_REQUEST['id'])) {
 		$affaire->load($ATMdb, $_REQUEST['id']);
-		
+
 		_fiche($ATMdb, $affaire, 'view');
-		
+
 	}
 	else {
 		/*
@@ -157,18 +195,18 @@
 		 */
 		 _liste($ATMdb, $affaire);
 	}
-	
-	
-	
+
+
+
 	llxFooter();
-	
+
 function _liste(&$ATMdb, &$affaire) {
 	global $langs,$conf, $db;
-	
+
 	llxHeader('','Affaires');
-	
+
 	$errone = GETPOST('errone');
-	
+
 	$r = new TSSRenderControler($affaire);
 	$sql="SELECT a.rowid as 'ID', a.reference, e.label as entity_label, a.montant as 'Montant', a.fk_soc, s.nom
 	, a.nature_financement, a.type_financement, a.contrat, a.date_affaire
@@ -176,7 +214,7 @@ function _liste(&$ATMdb, &$affaire) {
 		LEFT JOIN ".MAIN_DB_PREFIX."entity e ON (a.entity = e.rowid)
 		WHERE a.entity IN(".getEntity('fin_dossier', true).")";
 	//echo $sql; exit;
-	
+
 	if($errone){
 		$sql="SELECT a.rowid as 'ID', a.reference,
                           ROUND(ABS(SUM(df.montant) - SUM(a.montant)), 2) as 'Ecart', e.label as entity_label, a.montant as 'Montant Affaire', SUM(df.montant) as 'Montant Financé', df.fk_fin_dossier, a.fk_soc, s.nom , a.nature_financement, a.type_financement, a.contrat, a.date_affaire 
@@ -191,9 +229,9 @@ function _liste(&$ATMdb, &$affaire) {
 //			  	AND df.montant != a.montant ";
 //	$sql.="		  	AND ABS(df.montant - a.montant) > 0.01";
 	}
-	
+
 	$THide = array('fk_soc', 'ID', 'fk_fin_dossier');
-	
+
 	if(isset($_REQUEST['socid'])) {
 		$sql.= ' AND (a.fk_soc='.$_REQUEST['socid'].' OR  a.fk_soc IN (
 				SELECT ss.rowid FROM '.MAIN_DB_PREFIX.'societe as ss WHERE ss.siren = (
@@ -204,17 +242,17 @@ function _liste(&$ATMdb, &$affaire) {
 		$societe = new Societe($db);
 		$societe->fetch($_REQUEST['socid']);
 		$head = societe_prepare_head($societe);
-		
+
 		$THide[] = 'Société';
-		
+
 		// Affichage résumé client
 		$formDoli = new Form($db);
-		
+
 		$TBS=new TTemplateTBS();
-	
+
 		print $TBS->render('./tpl/client_entete.tpl.php'
 			,array(
-				
+
 			)
 			,array(
 				'client'=>array(
@@ -237,7 +275,7 @@ function _liste(&$ATMdb, &$affaire) {
 			      HAVING ROUND(ABS(SUM(df.montant) - SUM(a.montant)), 2) > 0.01";
  	//echo $sql;
 	$form=new TFormCore($_SERVER['PHP_SELF'], 'formAffaire', 'GET');
-	
+
 	$TEntityName = TFinancementTools::build_array_entities();
 
 	$r->liste($ATMdb, $sql, array(
@@ -290,7 +328,7 @@ function _liste(&$ATMdb, &$affaire) {
 			'entity_label' => '='
 		)
 		,'eval'=>array(
-			
+
 		)
 		,'position'=>array(
 			'text-align'=>array(
@@ -304,29 +342,29 @@ function _liste(&$ATMdb, &$affaire) {
 			)
 		)
 	));
-	
+
 	$form->end();
-	
+
 	if(isset($_REQUEST['socid'])) {
 		?><div class="tabsAction"><a href="?action=new&fk_soc=<?php echo $_REQUEST['socid']; ?>" class="butAction">Créer une affaire</a></div><?php
 	}
-	
+
 	llxFooter();
-}	
-	
+}
+
 function _fiche(&$ATMdb, &$affaire, $mode) {
 	global $db,$user,$conf;
 
     $result = restrictedArea($user, 'financement', $affaire->getID(), 'fin_affaire&societe', 'affaire', 'fk_soc', 'rowid');
-	
+
 	if(empty($affaire->societe) || empty($affaire->societe->id)) {
 		$affaire->societe = new Societe($db);
 		$affaire->societe->fetch($affaire->fk_soc);
 	}
-	
+
 	/*
 	 * Liste des dossiers rattachés à cette affaire
-	 */ 
+	 */
 	$TDossier=array();
 	foreach($affaire->TLien as &$lien) {
 		$dossier = &$lien->dossier;
@@ -350,25 +388,25 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 			,'modif_dossier'=>'<a href="dossier.php?id='.$dossier->getId().'&action=edit">'.img_edit().'</a>'
 		);
 	}
-	
+
 	$TAsset=array();
 	foreach($affaire->TAsset as $link) {
-		
+
 		$row = $link->asset->get_values();
-		
+
 		// Lien produit
 		$row['produit'] = '';
-		
+
 		if(!empty($link->asset->fk_product)) {
 			$product = new Product($db);
 			$product->fetch($link->asset->fk_product);
-			
+
 			$row['produit'] = $product->getNomUrl(true).' '.$product->label;
 		}
-		
+
 		// Lien facture
 		$row['facture'] = '';
-		
+
 		$TIdFacture = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'asset_link',array('fk_asset'=>$link->asset->getId(), 'type_document'=>'facture'),'fk_document');
 		if(!empty($TIdFacture[0])) {
 			$facture = new Facture($db);
@@ -376,10 +414,10 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 
 			$row['facture'] = $facture->getNomUrl(1);
 		}
-		
+
 		$TAsset[]=$row;
 	}
-	
+
 	/*
 	 * Pour autocomplete ajout dossier
 	 */
@@ -387,74 +425,82 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 	if($mode=='edit') {
 		$ATMdb=new TPDOdb;
 		//$Tab = TRequeteCore::get_id_from_what_you_want($ATMdb,'llx_fin_dossier', " solde>0 AND reference!='' " ,'reference');
-		
+
 		$sql = "SELECT DISTINCT(f.reference) as reference 
 		FROM ".MAIN_DB_PREFIX."fin_dossier_financement f INNER JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (f.fk_fin_dossier=d.rowid)
 		WHERE d.solde>0 AND f.reference!=''";
 	//	print $sql;
 		$Tab = TRequeteCore::_get_id_by_sql($ATMdb, $sql,'reference');
-		
+
 		$otherDossier = '["'. implode('","', $Tab). '"]';
-		
+
 		$sql = "SELECT DISTINCT(f.facnumber) as reference 
 				FROM ".MAIN_DB_PREFIX."facture f
 					LEFT JOIN ".MAIN_DB_PREFIX."facturedet as fd ON (fd.fk_facture = f.rowid)
 				WHERE LOCATE('Matricule',fd.description) > 0";
 	//	print $sql;
 		$Tab = TRequeteCore::_get_id_by_sql($ATMdb, $sql,'reference');
-		
+
 		$otherFactureMat = '["'. implode('","', $Tab). '"]';
-		
+
 		$sql = "SELECT rowid, nom 
 				FROM ".MAIN_DB_PREFIX."societe s
 				WHERE entity IN (".getEntity('societe', 1).")";
 	//	print $sql;
 		$Tab = TRequeteCore::_get_id_by_sql($ATMdb, $sql,'nom', 'rowid');
-		
+
 		foreach ($Tab as $key => $value) {
 			$data = '{ value: "'.$key.'", label: "'.htmlspecialchars($value).'"}';
 			$TSoc[] = $data;
 		}
 		$otherSoc = '['. implode(',', $TSoc). ']';
-		
-		$ATMdb->close(); 
+
+		$ATMdb->close();
 	}
-	
+
 	$extrajs = array('/financement/js/dossier.js');
 	llxHeader('','Affaires','','','','',$extrajs);
-	
+
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formAff','POST');
 	$form->Set_typeaff($mode);
 	$doliform = new Form($db);
 	echo $form->hidden('id', $affaire->getId());
 	echo $form->hidden('action', 'save');
 	echo $form->hidden('fk_soc', $affaire->fk_soc);
-	
+
 	$formRestricted=new TFormCore;
 	if($mode=='edit' && ( (!empty($affaire->TLien[0]->dossier->financementLeaser->okPourFacturation) && $affaire->TLien[0]->dossier->financementLeaser->okPourFacturation!='AUTO')
-		 //|| count($affaire->TLien[0]->dossier->TFactureFournisseur)==0 
+		 //|| count($affaire->TLien[0]->dossier->TFactureFournisseur)==0
 		 || $user->rights->financement->admin->write )  ) $mode_aff_fLeaser = 'edit';
 	else $mode_aff_fLeaser='view';
 	//$mode_aff_fLeaser = $mode;
 	$formRestricted->Set_typeaff( $mode_aff_fLeaser );
-	
+
 	//require('./tpl/affaire.tpl.php');
 	$TBS=new TTemplateTBS();
-	
+
 	$e = new DaoMulticompany($db);
 	$e->getEntities();
 	$TEntities = array();
 	foreach($e->entities as $obj_entity) $TEntities[$obj_entity->id] = $obj_entity->label;
-	
+
 	$entity = empty($affaire->entity) ? getEntity('fin_dossier') : $affaire->entity;
-	
+
 	$TEntityName = TFinancementTools::build_array_entities();
 	if(TFinancementTools::user_courant_est_admin_financement() && empty($conf->global->FINANCEMENT_DISABLE_SELECT_ENTITY)){
 		$entity_field = $form->combo('', 'entity', $TEntityName, $entity);
 	} else {
 		$entity_field = $TEntityName[$entity].$form->hidden('entity', $entity);
 	}
-	
+
+    $facRef = $facSerialNumber = $facRefMat = $facLabel = '';
+	if($mode == 'edit') {
+	    $facRef = '<input type="text" name="facRef" />';
+	    $facSerialNumber = '<input type="text" name="facSerialNumber" />';
+        $facRefMat = '<input type="text" name="facRefMat" />';
+	    $facLabel = '<input type="text" name="facLabel" />';
+    }
+
 	print $TBS->render('./tpl/affaire.tpl.php'
 		,array(
 			'dossier'=>$TDossier
@@ -465,15 +511,15 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 				'id'=>$affaire->rowid
 				,'ref'=>$affaire->reference
 				,'entity'=>$entity_field
-				,'reference'=>$formRestricted->texte('', 'reference', $affaire->reference, 100,255,'','','à saisir') 
+				,'reference'=>$formRestricted->texte('', 'reference', $affaire->reference, 100,255,'','','à saisir')
 				,'nature_financement'=>$formRestricted->combo('', 'nature_financement', $affaire->TNatureFinancement , $affaire->nature_financement)
 				,'type_financement'=>$formRestricted->combo('', 'type_financement', $affaire->TTypeFinancement , $affaire->type_financement)
-				,'contrat'=>$formRestricted->combo('', 'contrat', $affaire->TContrat , $affaire->contrat) 
+				,'contrat'=>$formRestricted->combo('', 'contrat', $affaire->TContrat , $affaire->contrat)
 				,'type_materiel'=>$formRestricted->combo('', '', $affaire->TTypeMateriel , $affaire->type_materiel)
 				,'date_affaire'=>$formRestricted->calendrier('', 'date_affaire', $affaire->date_affaire,10)
 				,'montant'=>$formRestricted->texte('', 'montant', $affaire->montant, 20,255,'','','à saisir')
 				,'montant_ok'=>$affaire->somme_dossiers // somme des dossiers rattachés
-				,'solde'=>$affaire->solde // montant à financer - somme des dossiers	
+				,'solde'=>$affaire->solde // montant à financer - somme des dossiers
 				,'date_maj'=>$affaire->get_date('date_maj','d/m/Y à H:i:s')
 				,'date_cre'=>$affaire->get_date('date_cre','d/m/Y')
 				,'societe'=>$affaire->societe->nom
@@ -482,7 +528,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 				,'montant_val'=>$affaire->montant
 				,'force_update'=>$formRestricted->checkbox1('', 'force_update', 1)
 				,'nature_financement_val'=>$affaire->nature_financement
-				
+
 				,'addDossierButton'=>(($affaire->nature_financement!='') ? 1 : 0)
 				,'url_therefore'=>FIN_THEREFORE_AFFAIRE_URL
 			)
@@ -494,14 +540,19 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 				,'userRight'=>((int)$user->rights->financement->affaire->write)
 				,'financement_verouille'=>($affaire->TLien[0]->dossier->financementLeaser->okPourFacturation === 'AUTO' && $user->rights->financement->admin->write) ? 'verrouille' : ''
 				,'creer_affaire' => ($affaire->nature_financement && $affaire->montant && $affaire->type_financement && $affaire->contrat) ? 'ok' : 'ko'
-			)
-			
+			),
+            'fac' => array(
+                'reference' => $facRef,
+                'num_serie' => $facSerialNumber,
+                'refMat' => $facRefMat,
+                'label' => $facLabel
+            )
 		)
 	);
-	
+
 	echo $form->end_form();
 	// End of page
-	
+
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
 	llxFooter();
