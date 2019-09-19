@@ -180,10 +180,13 @@ function _get_echeance($PDOdb, $fk_leaser, $type_contrat, $periodicite, $montant
 }
 
 function _get_vr($fk_leaser) {
-    switch($fk_leaser) {
-        default:
-            return 0.15;
-    }
+    if(in_array($fk_leaser, array(19068, 19483))) return 0.15;    // Lixxbail
+    elseif(in_array($fk_leaser, array(19553, 20113))) return 1; // BNP
+    elseif($fk_leaser == 21382) return 0.15; // CMCIC
+    elseif(in_array($fk_leaser, array(21921, 23164))) return 1; // Grenke
+    elseif(in_array($fk_leaser, array(30749, 30748))) return 15; // Locam
+    elseif($fk_leaser == 18495) return 1; // Loc Pure
+
 }
 
 /**
