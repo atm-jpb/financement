@@ -53,6 +53,19 @@ if(empty($dossier->rowid)) {
     exit;
 }
 
+// La référence Leaser existe déjà, on ne met pas à jour
+if(! empty($dossier->financementLeaser->reference)) {
+    header('Content-Type: application/json');
+    print json_encode(array(
+        'error' => array(
+            'code' => 200,
+            'message' => 'OK'
+        )
+    ));
+    http_response_code(200);
+    exit;
+}
+
 $dossier->load_affaire($PDOdb);
 $fk_leaser = _getLeaserByName($leaser);
 
