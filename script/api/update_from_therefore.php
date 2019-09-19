@@ -54,7 +54,7 @@ if(empty($dossier->rowid)) {
 }
 
 // La référence Leaser existe déjà, on ne met pas à jour
-if(! empty($dossier->financementLeaser->reference)) {
+if(! empty($dossier->financementLeaser->reference) && $dossier->financementLeaser->nature_financement === 'EXTERNE') {
     header('Content-Type: application/json');
     print json_encode(array(
         'error' => array(
