@@ -3,8 +3,8 @@
 if(! defined('NOLOGIN')) define('NOLOGIN', 1);
 
 require '../../config.php';
-dol_include_once('/societe/class/societe.class.php');
-dol_include_once('/user/class/user.class.php');
+require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/affaire.class.php');
@@ -86,14 +86,11 @@ if(! empty($vr_leaser)) $dossier->financementLeaser->reste = $vr_leaser;
 
 $res = $dossier->save($PDOdb);
 
-$TRes = array('code' => 200, 'msg' => 'OK');
-if($res === false) $TRes = array('code' => 400, 'msg' => 'KO');
+$TRes = array('code' => 200, 'message' => 'OK');
+if($res === false) $TRes = array('code' => 400, 'message' => 'KO');
 header('Content-Type: application/json');
 print json_encode(array(
-    'error' => array(
-        'code' => $TRes['code'],
-        'message' => $TRes['msg']
-    )
+    'error' => $TRes
 ));
 http_response_code($TRes['code']);
 exit;
