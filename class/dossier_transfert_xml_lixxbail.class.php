@@ -253,7 +253,7 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 		$affaire = $xml->createElement("affaire");
 
 		foreach($Affaire->TLien as $i => $Tdata){
-			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert == 1){
+			if($Affaire->TLien[$i]->dossier->financementLeaser->transfert == TFin_financement::STATUS_TRANSFER_YES) {
 				
 				$affaire->appendChild($xml->createElement("dateSignature",date("Y-m-d",$Affaire->date_affaire)));
 				$affaire->appendChild($xml->createElement("numDossierDe",$Affaire->TLien[$i]->dossier->financementLeaser->reference));
@@ -271,7 +271,6 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 	function _getElementsXML(&$xml,&$Tdata,$i,&$Affaire){
 		
 		$element = $xml->createElement("element");
-		//$element = $xml->appendChild($element);
 		
 		switch ($Tdata->dossier->financementLeaser->periodicite) {
 			case 'TRIMESTRE':
@@ -304,7 +303,7 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 			foreach($Affaire->TAsset as $a => $assetLink){
 				$serial_numbers = $this->_getSerialNumbersBienXML($serial_numbers,$assetLink->asset->serial_number);
 				$TDesignation = $this->_getDesignationBienXML($TDesignation,$assetLink);
-				$AssetId = $assetLink->asset->getId();
+                if(method_exists($assetLink->asset, 'getId')) $AssetId = $assetLink->asset->getId();
 			}
 		}
 		else{
@@ -474,11 +473,18 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 		$PDOdb = new TPDOdb;
 		
 		//Récupération de la facture client de l'équipement associé à l'affaire
-		$sql = "SELECT al1.fk_document 
-				FROM ".MAIN_DB_PREFIX."asset_link as al1
-					LEFT JOIN ".MAIN_DB_PREFIX."asset_link as al2 ON (al2.fk_asset = al1.fk_asset)
-				WHERE al1.fk_asset = ".$AssetId." AND al1.type_document = 'facture'
-					AND al2.type_document = 'affaire' AND al2.fk_document = ".$Affaire->getId();
+//		$sql = "SELECT al1.fk_document
+//				FROM ".MAIN_DB_PREFIX."asset_link as al1
+//					LEFT JOIN ".MAIN_DB_PREFIX."asset_link as al2 ON (al2.fk_asset = al1.fk_asset)
+//				WHERE al1.fk_asset = ".$AssetId." AND al1.type_document = 'facture'
+//					AND al2.type_document = 'affaire' AND al2.fk_document = ".$Affaire->getId();
+		$sql = 'SELECT al1.fk_document';
+		$sql.= ' FROM '.MAIN_DB_PREFIX.'asset_link as al1';
+		$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'asset_link as al2 ON (al2.fk_asset = al1.fk_asset)';
+		$sql.= " WHERE al1.type_document = 'facture'";
+		if(! empty($AssetId)) $sql.= ' AND al1.fk_asset = '.$AssetId;
+        $sql.= " AND al2.type_document = 'affaire'";
+        $sql.= ' AND al2.fk_document = '.$Affaire->getId();
 
 		$TIdFacture = TRequeteCore::get_keyval_by_sql($PDOdb, $sql, OBJETSTD_MASTERKEY, "fk_document");
 

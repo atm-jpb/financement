@@ -34,6 +34,7 @@ dol_include_once('/financement/class/webservice/webservice.lixxbail.class.php');
 dol_include_once('/financement/class/webservice/webservice.cmcic.class.php');
 dol_include_once('/financement/class/webservice/webservice.grenke.class.php');
 dol_include_once('/financement/class/webservice/webservice.bnp.class.php');
+dol_include_once('/financement/class/webservice/webservice.franfinance.class.php');
 
 
 class ServiceFinancement {
@@ -136,6 +137,10 @@ class ServiceFinancement {
 		else if ($this->leaser->array_options['options_edi_leaser'] == 'BNP')
 		{
 			$ws = new WebServiceBnp($this->simulation, $this->simulationSuivi, $this->debug);
+		}
+		else if ($this->leaser->array_options['options_edi_leaser'] == 'FRANFINANCE')
+		{
+			$ws = new WebServiceFranfinance($this->simulation, $this->simulationSuivi, $this->debug);
 		}
 		
 		if ($ws !== null)
