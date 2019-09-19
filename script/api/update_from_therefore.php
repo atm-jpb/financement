@@ -56,7 +56,7 @@ if(empty($dossier->rowid)) {
 $dossier->load_affaire($PDOdb);
 $fk_leaser = _getLeaserByName($leaser);
 
-if(in_array($fk_leaser, array(19068, 19483)) && $duree == 22 && $periodicite == 'TRIMESTRE') $duree = 21;   // Spécifique Lixxbail Adossé ou Mandaté
+if(in_array($fk_leaser, array(19068, 19483)) && $duree == 22 && $periodicite == 'TRIMESTRE') $duree_leaser = 21;   // Spécifique Lixxbail Adossé ou Mandaté
 
 if(! empty($date_start)) $date_start_leaser = _get_date($date_start);
 if(! empty($periodicite) && ! empty($montant_finance) && ! empty($duree)) $echeance_leaser = _get_echeance($PDOdb, $fk_leaser, $dossier->TLien[0]->affaire->contrat, $periodicite, $montant_finance, $duree);
@@ -80,7 +80,13 @@ if($dossier->nature_financement == 'INTERNE') { // Côté Client
 if(! empty($fk_leaser)) $dossier->financementLeaser->fk_soc = $fk_leaser;
 if(! empty($ref_dossier_leaser)) $dossier->financementLeaser->reference = $ref_dossier_leaser;
 if(! empty($montant_finance_leaser)) $dossier->financementLeaser->montant = $montant_finance_leaser;
-if(! empty($date_start_leaser)) $dossier->financementLeaser->date_debut = $date_start_leaser;
+if(! empty($date_start_leaser)) $dossier->financementLeaser->date_debut = strtotime($date_start_leaser);
+if(! empty($duree_leaser)) {    // Cas du spécifique Lixxbail
+    $dossier->financementLeaser->duree = $duree_leaser;
+}
+else {
+    $dossier->financementLeaser->duree = $duree;
+}
 if(! empty($echeance_leaser)) $dossier->financementLeaser->echeance = $echeance_leaser;
 if(! empty($vr_leaser)) $dossier->financementLeaser->reste = $vr_leaser;
 
