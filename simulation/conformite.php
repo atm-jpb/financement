@@ -1,29 +1,4 @@
 <?php
-/* Copyright (C) 2003-2004 Rodolphe Quiedeville  <rodolphe@quiedeville.org>
- * Copyright (C) 2004-2009 Laurent Destailleur   <eldy@users.sourceforge.net>
- * Copyright (C) 2005      Marc Barilley / Ocebo <marc@ocebo.com>
- * Copyright (C) 2005-2012 Regis Houssin         <regis.houssin@capnetworks.com>
- * Copyright (C) 2013      Cédric Salvador       <csalvador@gpcsolutions.fr>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
-
-/**
- *       \file       htdocs/comm/propal/document.php
- *       \ingroup    propal
- *       \brief      Management page of documents attached to a business proposal
- */
 
 require '../config.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
@@ -34,6 +9,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/simulation.class.php');
+dol_include_once('/financement/class/conformite.class.php');
 
 $langs->load('compta');
 $langs->load('other');
@@ -47,24 +23,24 @@ $fk_simu = GETPOST('fk_simu', 'int');
 $socid='';
 if (! empty($user->societe_id))
 {
-	$action='';
-	$socid = $user->societe_id;
+    $action = '';
+    $socid = $user->societe_id;
 }
 $result = restrictedArea($user, 'financement', $fk_simu, 'fin_simulation&societe', '', 'fk_soc', 'rowid');
 
+$formfile=new FormFile($db);
 $soc = new Societe($db);
 $PDOdb = new TPDOdb;
+$conformite = new Conformite;
+if(! empty($id)) $conformite->fetch($id);
 
 $object = new TSimulation;
 $object->load($PDOdb, $fk_simu, false);
-if ($object->id > 0)
+if ($object->rowid > 0)
 {
-    if(! empty($id)) {
-
-    }
     $soc->fetch($object->fk_soc);
-	$upload_dir = $conf->financement->dir_output.'/'.dol_sanitizeFileName($object->reference).'/conformite';
-	include_once DOL_DOCUMENT_ROOT . '/core/tpl/document_actions_pre_headers.tpl.php';
+    $upload_dir = $conf->financement->dir_output.'/'.dol_sanitizeFileName($object->reference).'/conformite';
+    include_once DOL_DOCUMENT_ROOT.'/core/tpl/document_actions_pre_headers.tpl.php';
 }
 else {
     // Pas de conformite sans id
@@ -75,7 +51,24 @@ else {
 /*
  * Actions
  */
+if($action === 'save') {
+    if(empty($id)) {    // Dans le cas d'une création
+        $conformite->fk_simulation = $fk_simu;
+        $conformite->fk_user = $user->id;
+        $conformite->status = Conformite::STATUS_WAITING_FOR_COMPLIANCE;
+        $res = $conformite->create();
 
+        if($res > 0) {
+            setEventMessage($langs->trans('ConformiteCreated'));
+
+            $url = $_SERVER['PHP_SELF'];
+            $url.= '?id='.$res;
+            $url.= '&fk_simu='.$fk_simu;
+            header('Location: '.$url);
+            exit;
+        }
+    }
+}
 
 
 /*
@@ -89,63 +82,88 @@ $form = new Form($db);
 
 if ($object->id > 0)
 {
-	$upload_dir = $conf->financement->dir_output.'/'.dol_sanitizeFileName($object->reference).'/conformite';
+    $upload_dir = $conf->financement->dir_output.'/'.dol_sanitizeFileName($object->reference).'/conformite';
 
-	$head = simulation_prepare_head($object);
-	dol_fiche_head($head, 'conformite', $langs->trans('Simulation'), 0, 'simulation');
+    $head = simulation_prepare_head($object);
+    dol_fiche_head($head, 'conformite', $langs->trans('Simulation'), 0, 'simulation');
 
-	// Construit liste des fichiers
-	$filearray=dol_dir_list($upload_dir,"files",0,'','(\.meta|_preview\.png)$',$sortfield,(strtolower($sortorder)=='desc'?SORT_DESC:SORT_ASC),1);
-	$totalsize=0;
-	foreach($filearray as $key => $file)
-	{
-		$totalsize+=$file['size'];
-	}
-
-
-	print '<table class="border"width="100%">';
-
-	$linkback='<a href="'.DOL_URL_ROOT.'/comm/propal/list.php'.(! empty($socid)?'?socid='.$socid:'').'">'.$langs->trans("BackToList").'</a>';
-
-	// Ref
-	print '<tr><td width="25%">'.$langs->trans('Ref').'</td><td colspan="3">';
-	print $object->reference.'&nbsp;'.get_picto($object->accord);
-	print '</td></tr>';
-
-	if(! empty($id)) {
-	    print '<tr>';
-	    print '<td>'.$langs->trans('ConformiteStatus').'</td>';
-	    print '</tr>';
+    // Construit liste des fichiers
+    $filearray = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview\.png)$', $sortfield, (strtolower($sortorder) == 'desc' ? SORT_DESC : SORT_ASC), 1);
+    $totalsize = 0;
+    foreach($filearray as $key => $file) {
+        $totalsize += $file['size'];
     }
 
-	// Customer
-	print "<tr><td>".$langs->trans("Company")."</td>";
-	print '<td colspan="3">'.$soc->getNomUrl(1).'</td></tr>';
+    print '<table class="border"width="100%">';
 
-	print '<tr><td>'.$langs->trans("NbOfAttachedFiles").'</td><td colspan="3">'.count($filearray).'</td></tr>';
-	print '<tr><td>'.$langs->trans("TotalSizeOfAttachedFiles").'</td><td colspan="3">'.$totalsize.' '.$langs->trans("bytes").'</td></tr>';
+    // Ref
+    print '<tr><td width="25%">'.$langs->trans('Ref').'</td><td colspan="3">';
+    print $object->reference.'&nbsp;'.get_picto($object->accord);
+    print '</td></tr>';
 
-	print '<tr>';
-	print '<td>'.$langs->trans('RequiredFiles').'</td>';
-	print '<td colspan="3">'.$langs->trans('ListOfRequiredFiles').'</td>';
-	print '</tr>';
+    if(! empty($id)) {
+        print '<tr>';
+        print '<td>'.$langs->trans('ConformiteStatus').'</td>';
+        print '<td>'.$langs->trans(Conformite::$TStatus[$conformite->status]).'</td>';
+        print '</tr>';
+    }
 
-	print '</table>';
+    // Customer
+    print "<tr><td>".$langs->trans("Company")."</td>";
+    print '<td colspan="3">'.$soc->getNomUrl(1).'</td></tr>';
 
-	print '</div>';
+    print '<tr><td>'.$langs->trans("NbOfAttachedFiles").'</td><td colspan="3">'.count($filearray).'</td></tr>';
+    print '<tr><td>'.$langs->trans("TotalSizeOfAttachedFiles").'</td><td colspan="3">'.$totalsize.' '.$langs->trans("bytes").'</td></tr>';
 
-	$modulepart = 'financement';
-	$permission = $user->rights->financement->admin;
-	$param = '&fk_simu=' . $object->id.'&id='.$id;
-	include_once DOL_DOCUMENT_ROOT . '/core/tpl/document_actions_post_headers.tpl.php';
+    print '<tr>';
+    print '<td>'.$langs->trans('RequiredFiles').'</td>';
+    print '<td colspan="3">'.$langs->trans('ListOfRequiredFiles').'</td>';
+    print '</tr>';
+
+    print '</table>';
+
+    print '</div>';
+
+    $param = '?fk_simu='.$object->rowid;
+    if(! empty($id)) $param .= '&id='.$id;
+
+    // Show upload form (document and links)
+    $formfile->form_attach_new_file(
+        $_SERVER["PHP_SELF"].$param.(empty($withproject) ? '' : '&withproject=1'),
+        '',
+        0,
+        0,
+        $user->rights->financement->admin,
+        50,
+        $object,
+        '',
+        1,
+        '',
+        0
+    );
+
+// List of document
+    $formfile->list_of_documents(
+        $filearray,
+        $object,
+        'financement',
+        $param,
+        0,
+        $upload_dir,
+        $user->rights->financement->admin
+    );
 }
 else
 {
-	print $langs->trans("ErrorUnknown");
+    print $langs->trans("ErrorUnknown");
 }
 
 print '<div class="tabsAction">';
-print '';
+
+if(empty($id)) {
+    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&action=save">'.$langs->trans('Save').'</a>';
+}
+
 print '</div>';
 
 llxFooter();

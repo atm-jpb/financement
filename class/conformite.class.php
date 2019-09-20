@@ -3,6 +3,21 @@
 class Conformite extends TObjetStd
 {
     public $tablename = 'fin_conformite';
+
+    const STATUS_WAITING_FOR_COMPLIANCE = 0;
+    const STATUS_COMPLIANT = 1;
+    const STATUS_NOT_COMPLIANT = 2;
+    const STATUS_REFUSAL = 3;
+    const STATUS_FIRST_CHECK = 4;
+
+    public static $TStatus = array(
+        0 => 'ConformiteWaitingForCompliance',
+        1 => 'ConformiteCompliant',
+        2 => 'ConformiteNotCompliant',
+        3 => 'ConformiteRefusal',
+        4 => 'ConformiteFirstCheck',
+    );
+
     /**
      * @var int
      * @deprecated Use $id instead
@@ -12,13 +27,8 @@ class Conformite extends TObjetStd
     public $fk_simulation;
     public $fk_user;
     public $status;
-    public $PDOdb;
 
-    const STATUS_WAITING_FOR_COMPLIANCE = 0;
-    const STATUS_COMPLIANT = 1;
-    const STATUS_NOT_COMPLIANT = 2;
-    const STATUS_REFUSAL = 3;
-    const STATUS_FIRST_CHECK = 4;
+    public $PDOdb;
 
     function __construct() {
         parent::set_table(MAIN_DB_PREFIX.$this->tablename);
@@ -31,5 +41,15 @@ class Conformite extends TObjetStd
         parent::start();
 
         $this->PDOdb = new TPDOdb;
+    }
+
+    function create() {
+        return $this->save($this->PDOdb);
+    }
+
+    function update() { return $this->create(); }
+
+    function fetch($id) {
+        $this->load($this->PDOdb, $id);
     }
 }
