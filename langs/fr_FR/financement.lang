@@ -355,3 +355,6 @@ setSent = Passer au statut "Envoyé"
 setYes = Passer au statut "Oui"
 DateDemarrage = Date de démarrage si calage
 DateDemarrageCustom = Date de livraison
+EquipmentInvoiceCreated = Facture matériel créée
+EquipmentInvoiceCreationError = Erreur lors de la création de la facture : %s
+EquipmentInvoiceRefAlreadyInUse = Une facture avec la référence %s existe déjà

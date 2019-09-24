@@ -57,7 +57,7 @@
 				$facSerialNumber = GETPOST('facSerialNumber');
                 $facRefMat = GETPOST('facRefMat');
 				$facLabel = GETPOST('facLabel');
-				if(! empty($facRef) && ! empty($facSerialNumber) && ! empty($facRefMat) && ! empty($facLabel) && ! empty($affaire->somme_dossiers)) {
+				if(! empty($facRef) && ! empty($facSerialNumber) && ! empty($facRefMat) && ! empty($facLabel) && ! empty($affaire->montant)) {
 				    $f = new Facture($db);
 				    $f->date = $affaire->date_affaire;
 				    $f->socid = $affaire->societe->id;
@@ -65,26 +65,40 @@
 				    $res = $f->create($user);
 				    var_dump($res);
 				    if($res > 0) {
-				        $f->addline($facSerialNumber, $affaire->somme_dossiers, 1, 0);
+				        $f->addline($facSerialNumber, $affaire->montant, 1, 0);
 
                         $f->ref = $facRef;
                         $f->statut = 0;
                         $resUpdate = $f->update($user);
+                        if($resUpdate < 0) {
+                            setEventMessage($langs->trans('EquipmentInvoiceRefAlreadyInUse', $facRef), 'warnings');
+                        }
 
                         $p = new Product($db);
                         $p->ref = $facRefMat;
                         $p->libelle = $facLabel;
-                        $p->create($user);
+                        $res = $p->create($user);
+                        if($res > 0) {
+                            $f->add_object_linked('affaire', $affaire->rowid);
+                            if(! empty($affaire->TLien[0])) $f->add_object_linked('dossier', $affaire->TLien[0]->fk_fin_dossier);
 
+                            $asset = new TAsset;
+                            $asset->serial_number = $facSerialNumber;
+                            $asset->fk_product = $p->id;
 
-                        $f->add_object_linked('affaire', $affaire->rowid);
-                        if(! empty($affaire->TLien[0])) $f->add_object_linked('dossier', $affaire->TLien[0]->fk_fin_dossier);
-                        $asset = new TAsset;
-                        $asset->serial_number = $facSerialNumber;
-                        $asset->fk_product = $p->id;
-                        $asset->add_link($res, 'facture');
-                        $asset->add_link($affaire->rowid, 'affaire');
-                        $asset->save($ATMdb);
+                            $asset->add_link($f->id, 'facture');
+                            $asset->add_link($affaire->rowid, 'affaire');
+                            $asset->save($ATMdb);
+
+                            setEventMessage($langs->trans('EquipmentInvoiceCreated'));
+                        }
+                        else {
+                            setEventMessage($langs->trans($p->error, $facRefMat), 'errors');
+                        }
+
+                    }
+				    else {
+				        setEventMessage($langs->trans('EquipmentInvoiceCreationError', $f->error));
                     }
                 }
 
