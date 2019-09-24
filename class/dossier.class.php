@@ -2054,12 +2054,13 @@ class TFin_financement extends TObjetStd
         );
 
         $this->TCalage = array(
-            '' => ''
-            , '1M' => '1 mois'
-            , '2M' => '2 mois'
-            , '3M' => '3 mois'
-            , '4M' => '4 mois'
-            , '5M' => '5 mois'
+            '' => '',
+            '0M' => '0 mois',
+            '1M' => '1 mois',
+            '2M' => '2 mois',
+            '3M' => '3 mois',
+            '4M' => '4 mois',
+            '5M' => '5 mois'
         );
 
         $this->TReglement = array();
