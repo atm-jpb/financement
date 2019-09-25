@@ -32,7 +32,6 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
 		// TODO: Change filename
 		if(empty($conf->global->FINANCEMENT_MODE_PROD)) $name = 'UATFRCPROCMCICADLC_'.date('Ymd');
         else $name = 'PRDFRCPROCMCICADLC_'.date('Ymd');
-//        $name .= self::fileExtension;
 
         if(! file_exists($this->fileFullPath)) dol_mkdir($this->fileFullPath);
         $f = fopen($this->fileFullPath.'/'.$name.self::fileExtension, 'w');
@@ -83,39 +82,46 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
                 }
             }
 		    $dossier = $affaire->TLien[0]->dossier;
+            $TInvoice = $this->getFactureMat($affaire->rowid);
             $client = new Societe($db);
             $client->fetch($dossier->financement->fk_soc);
 
-		    $TData = array(
-		        $this->getTiersApporteur($conf->entity),
-                $dossier->financement->reference,
-                $dossier->financementLeaser->reference,
-                '???',  // Produit financier
-                $codeMateriel,
-                $dossier->financementLeaser->montant,
-                $dossier->financementLeaser->reste,
-                $dossier->financementLeaser->loyer_intercalaire,
-                $dossier->financementLeaser->duree * $dossier->financementLeaser->getiPeriode(),
-                $dossier->financementLeaser->getiPeriode(),
-                '???',  // Nombre de loyer
-                '???',  // Date signature contrat
-                '???',  // Date livraison
-                $dossier->financementLeaser->date_prochaine_echeance,
-                $descMateriel,
-                '???',  // Type matériel
-                '???',  // Modèle matériel
-                $serialNumber,
-                $client->idprof2,
-                '???',  // IBAN ; On prend lequel ? (societe_rib ou bank_account)
-                '???',  // Nom signataire
-                '???',  // Prénom signataire
-                '???',  // Fonction signataire
-                '???',  // Date de naissance signataire
-                '???',  // N° facture
-                '???',  // Date facture
-            );
+            // Une ligne par facture ?
+            foreach($TInvoice as $fk_invoice) {
+                $invoice = new Facture($db);
+                $invoice->fetch($fk_invoice);
 
-            $res = fputcsv($f, $TData, self::CSV_DELIMITER);
+                $TData = array(
+                    $this->getTiersApporteur($conf->entity),
+                    $dossier->financement->reference,
+                    $dossier->financementLeaser->reference,
+                    '024',  // Produit financier
+                    $codeMateriel,
+                    $dossier->financementLeaser->montant,
+                    $dossier->financementLeaser->reste,
+                    $dossier->financementLeaser->loyer_intercalaire,
+                    $dossier->financementLeaser->duree * $dossier->financementLeaser->getiPeriode(),
+                    $dossier->financementLeaser->getiPeriode(),
+                    $dossier->financementLeaser->duree,  // Nombre de loyer
+                    '',  // Date signature contrat
+                    '',  // Date livraison
+                    $dossier->financementLeaser->date_prochaine_echeance,
+                    $descMateriel,
+                    '',  // Type matériel
+                    '',  // Modèle matériel
+                    $serialNumber,
+                    $client->idprof2,
+                    '',  // IBAN
+                    '',  // Nom signataire
+                    '',  // Prénom signataire
+                    '',  // Fonction signataire
+                    '',  // Date de naissance signataire
+                    $invoice->ref,  // N° facture
+                    $invoice->date,  // Date facture
+                );
+
+                $res = fputcsv($f, $TData, self::CSV_DELIMITER);
+            }
 		}
 
 		fclose($f);
@@ -144,5 +150,30 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
         }
 
         return $code;
+    }
+
+    function getFactureMat($fk_affaire) {
+	    global $db;
+
+	    $TRes = array();
+	    if(empty($fk_affaire)) return $TRes;
+
+	    $sql = 'SELECT fk_target';
+	    $sql.= ' FROM '.MAIN_DB_PREFIX.'element_element';
+	    $sql.= " WHERE sourcetype = 'affaire'";
+        $sql.= ' AND fk_source = '.$fk_affaire;
+	    $sql.= " AND targettype = 'facture'";
+
+	    $resql = $db->query($sql);
+	    if(! $resql) {
+	        dol_print_error($db);
+	        exit;
+        }
+
+	    while($obj = $db->fetch_object($resql)) {
+	        $TRes[] = $obj->fk_target;
+        }
+
+	    return $TRes;
     }
 }
