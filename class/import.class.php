@@ -1799,7 +1799,7 @@ class TImport extends TObjetStd {
         return $entity;
     }
 
-    function get_entity_groups($entity) {
+    function get_entity_groups($entity=0) {
         if(empty($entity)) {
             if($this->artis == 'ouest') {
                 $entities = array(5,7,9); // Artis OUEST est utilisé par 5,7 et 9
