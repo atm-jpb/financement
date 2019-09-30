@@ -84,7 +84,7 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
 		    $dossier = $affaire->TLien[0]->dossier;
             $TInvoice = $this->getFactureMat($affaire->rowid);
             $client = new Societe($db);
-            $client->fetch($dossier->financement->fk_soc);
+            $client->fetch($affaire->fk_soc);
 
             // Une ligne par facture ?
             foreach($TInvoice as $fk_invoice) {
