@@ -105,7 +105,7 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
                     $dossier->financementLeaser->duree,  // Nombre de loyer
                     '',  // Date signature contrat
                     '',  // Date livraison
-                    $dossier->financementLeaser->date_prochaine_echeance,
+                    date('d/m/Y', $dossier->financementLeaser->date_prochaine_echeance),
                     $descMateriel,
                     '',  // Type matériel
                     '',  // Modèle matériel
@@ -117,7 +117,7 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
                     '',  // Fonction signataire
                     '',  // Date de naissance signataire
                     $invoice->ref,  // N° facture
-                    $invoice->date,  // Date facture
+                    date('d/m/Y', $invoice->date),  // Date facture
                 );
 
                 $res = fputcsv($f, $TData, self::CSV_DELIMITER);
