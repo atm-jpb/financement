@@ -9,6 +9,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/simulation.class.php');
+dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/conformite.class.php');
 
 $langs->load('compta');
@@ -69,7 +70,7 @@ if($action === 'save') {
         }
     }
 }
-elseif($action == 'setStatus') {
+elseif($action === 'setStatus' && ! empty($id)) {
     $statusLabel = GETPOST('status', 'alpha');
     switch($statusLabel) {
         case 'notCompliant':
@@ -91,6 +92,20 @@ elseif($action == 'setStatus') {
     if(! is_null($status)) {
         $conformite->status = $status;
         $conformite->update();
+    }
+}
+elseif($action === 'createDossier' && $conformite->status === Conformite::STATUS_COMPLIANT) {
+    $d = new TFin_dossier;
+
+    $d->financementLeaser->fk_soc = $object->fk_leaser;
+    $d->financementLeaser->reference = $object->numero_accord;
+
+    $d->save($PDOdb);
+
+    if($d->rowid > 0) {
+        // This will add link between dossier and simulation
+        $object->fk_fin_dossier = $d->rowid;
+        $object->save($PDOdb);
     }
 }
 
@@ -159,7 +174,7 @@ if ($object->id > 0)
         0,
         $user->rights->financement->admin,
         50,
-        $object,
+        $conformite,
         '',
         1,
         '',
@@ -193,6 +208,9 @@ elseif($conformite->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE) {
     print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliant">'.$langs->trans('ConformiteNotCompliant').'</a>';
 }
 elseif(in_array($conformite->status, array(Conformite::STATUS_COMPLIANT, Conformite::STATUS_NOT_COMPLIANT, Conformite::STATUS_FIRST_CHECK))) {
+    if($conformite->status === Conformite::STATUS_COMPLIANT) {
+        print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=createDossier">'.$langs->trans('ConformiteCreateDossier').'</a>';
+    }
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=wait">'.$langs->trans('ConformiteWaitingForCompliance').'</a>';
 }
 

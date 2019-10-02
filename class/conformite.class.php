@@ -36,7 +36,7 @@ class Conformite extends TObjetStd
         // Foreign keys
         parent::add_champs('fk_simulation,fk_user', array('type' => 'int', 'index' => true));
 
-        parent::add_champs('status', array('type' => 'int'));
+        parent::add_champs('status', array('type' => 'int', 'index' => true));
 
         parent::start();
 
@@ -51,5 +51,9 @@ class Conformite extends TObjetStd
 
     function fetch($id) {
         $this->load($this->PDOdb, $id);
+    }
+
+    function fetchBy($field, $value) {
+        return $this->loadBy($this->PDOdb, $value, $field);
     }
 }
