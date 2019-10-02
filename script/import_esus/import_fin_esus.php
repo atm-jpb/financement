@@ -1,6 +1,7 @@
 <?php
 
 require('../../config.php');
+dol_include_once('/multicompany/class/dao_multicompany.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/dossier_integrale.class.php');
@@ -8,23 +9,86 @@ dol_include_once('/financement/class/grille.class.php');
 
 set_time_limit(0);
 
+$action = GETPOST('action', 'alpha');
+$fk_leaser = GETPOST('fk_leaser', 'int');
+$entity = GETPOST('entity', 'int');
+
+$form = new Form($db);
 $PDOdb = new TPDOdb;
+$dao = new DaoMulticompany($db);
+$dao->getEntities();
+$TEntity = array(0 => '');
+foreach($dao->entities as $mc_entity) $TEntity[$mc_entity->id] = $mc_entity->label;
 
-$TData = array();
-$f = fopen(__DIR__.'/esus_bnp_hexa.csv', 'r');
-while($TLine = fgetcsv($f, 2048, ';', '"')) {
-    $TData[] = getUsefulData($PDOdb, $TLine);
+$THexaLeaser = getHexaLeaser();
+
+llxHeader();
+
+if($action == 'import' && ! empty($fk_leaser) && in_array($fk_leaser, array_keys($THexaLeaser)) && substr($_FILES['fileToImport']['name'], -4) === '.csv' && ! empty($entity)) {
+    $TData = array();
+
+    $f = fopen($_FILES['fileToImport']['tmp_name'], 'r');
+    $i = 0;
+    while($TLine = fgetcsv($f, 2048, ';', '"')) {
+        $i++;
+        if($i > 1) {
+            $TData[] = getUsefulData($PDOdb, $TLine, $fk_leaser);
+        }
+    }
+//    unset($TData[0]);   // Unset header line
+
+    $upd = 0;
+    foreach($TData as $datadoss) {
+        $upd += updateDossier($PDOdb, $datadoss, $entity);
+        $upd += updateDossier($PDOdb, $datadoss, $entity, 'CLIENT');    // On est obligé de faire ça sinon la prochaine échéance n'est pas bonne
+    }
+
+    setEventMessage($upd.' mise à jour effectuées sur '.count($TData).' lignes dans le fichier');
+//    echo '<hr>'.$upd.' mise à jour effectuées sur '.count($TData).' lignes dans le fichier';
 }
-unset($TData[0]);   // Unset header line
-
-$upd = 0;
-foreach($TData as $datadoss) {
-    $upd += updateDossier($PDOdb, $datadoss);
+elseif(! empty($action)) {
+    setEventMessage('AnErrorOccured', 'errors');
 }
 
-echo '<hr>'.$upd.' mise à jour effectuées sur '.count($TData).' lignes dans le fichier';
+?>
+<h3>Import Hexapage</h3>
+<form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="import" />
+    <table>
+        <tr>
+            <td style="width: 130px;"><span>Fichier CSV : </span></td>
+            <td><input type="file" name="fileToImport" /></td>
+        </tr>
+        <tr>
+            <td><span>Leaser Hexapage : </span></td>
+            <td>
+                <?php
+                print Form::selectarray('fk_leaser', $THexaLeaser, $fk_leaser, 1, 0, 0, 'style="width: 400px;"');
+                ?>
+            </td>
+        </tr>
+        <tr>
+            <td><span>Entité : </span></td>
+            <td>
+                <?php
+                print Form::selectarray('entity', $TEntity, $entity, 0, 0, 0, 'style="width: 175px;"');
+                ?>
+            </td>
+        </tr>
+    </table>
+    <br/><br/>
+    <input class="butAction" type="submit" name="submit" value="Importer" />
+    <input class="butAction" type="reset" name="reset" value="Annuler" />
+</form>
+<br/>
+<div id="retours">
+</div>
 
-function getUsefulData(&$PDOdb, $TLine) {
+<?php
+
+llxFooter();
+
+function getUsefulData(&$PDOdb, $TLine, $fk_leaser) {
     $TIndex = array(
         'siren_client' => 0,
         'ref_client' => 1,
@@ -70,7 +134,7 @@ function getUsefulData(&$PDOdb, $TLine) {
         'financementLeaser' => array(
             'reference' => $TLine[$TIndex['ref_leaser']],
             'montant' => price2num(str_replace(' ', '', $TLine[$TIndex['montant_finance_leaser']])),
-            'fk_soc' => 204904
+            'fk_soc' => $fk_leaser
         )
     );
 
@@ -78,21 +142,35 @@ function getUsefulData(&$PDOdb, $TLine) {
 }
 
 // Chargement du dossier, modification pour passer en interne + remplir les données
-function updateDossier(&$PDOdb, $data) {
-    echo '<hr>';
-
+function updateDossier(&$PDOdb, $data, $entity, $type = 'LEASER') {
     if(empty($data['financement']['reference'])) {
-        echo $data['financement']['reference'].' - Référence vide';
+        ?>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $('div#retours').append('<p><?php echo $data['financement']['reference']; ?> - Référence vide</p>');
+            });
+        </script>
+        <?php
+//        print '<script type="text/javascript"> $(document).ready(function() { $("div#retours").append("<p>'.$data['financement']['reference'].' - Référence vide</p>"); }); </script>';
+//        echo $data['financement']['reference'].' - Référence vide';
         return 0;
     }
 
     $fin = new TFin_financement();
-    if($fin->loadReference($PDOdb, $data['financement']['reference']) > 0) {
+    if($fin->loadReference($PDOdb, $data['financement']['reference'], $type) > 0) {
         $doss = new TFin_dossier();
         $doss->load($PDOdb, $fin->fk_fin_dossier, false, true);
 
-        if($doss->entity != 18) {
-            echo $data['financement']['reference'].' - Dossier trouvé mais pas dans la bonne entité<br>';
+        if($doss->entity != $entity) {
+            ?>
+            <script type="text/javascript">
+                $(document).ready(function() {
+                    $('div#retours').append('<p><?php echo $data['financement']['reference']; ?> - Dossier trouvé mais pas dans la bonne entité</p>');
+                });
+            </script>
+            <?php
+//            print '<script type="text/javascript"> $(document).ready(function() { $("div#retours").append("<p>'.$data['financement']['reference'].' - Dossier trouvé mais pas dans la bonne entité<br></p>"); }); </script>';
+//            echo $data['financement']['reference'].' - Dossier trouvé mais pas dans la bonne entité<br>';
             return 0;       // Si on est pas sur la bonne entité, on a rien à faire ici !
         }
 
@@ -138,11 +216,25 @@ function updateDossier(&$PDOdb, $data) {
         $doss->financement->setProchaineEcheanceClient($PDOdb, $doss);
         $doss->financementLeaser->setEcheanceExterne();
 
-        echo $data['financement']['reference'].' - Dossier mis à jour<br>';
+        ?>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $('div#retours').append('<p><?php echo $data['financement']['reference']; ?> - Dossier mis à jour</p>');
+            });
+        </script>
+        <?php
+//        echo $data['financement']['reference'].' - Dossier mis à jour<br>';
         return 1;
     }
     else {
-        echo $data['financement']['reference'].' - Dossier leaser non trouvé<br>';
+        ?>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $('div#retours').append('<p><?php echo $data['financement']['reference']; ?> - Dossier leaser non trouvé</p>');
+            });
+        </script>
+        <?php
+//        echo $data['financement']['reference'].' - Dossier leaser non trouvé<br>';
         return 0;
     }
 }
@@ -165,4 +257,28 @@ function getiPeriode($periodicite = 'TRIMESTRE') {
     else $iPeriode = 1;
 
     return $iPeriode;
+}
+
+function getHexaLeaser() {
+    global $db;
+
+    $TRes = array();
+
+    $sql = 'SELECT rowid, nom';
+    $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
+    $sql.= ' WHERE fournisseur = 1';
+    $sql.= ' AND status = 1';
+    $sql.= " AND nom LIKE 'hexapage%'";
+
+    $resql = $db->query($sql);
+    if(! $resql) {
+        dol_print_error($db);
+        exit;
+    }
+
+    while($obj = $db->fetch_object($resql)) {
+        $TRes[$obj->rowid] = $obj->nom;
+    }
+
+    return $TRes;
 }

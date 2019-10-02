@@ -2151,7 +2151,8 @@ class TSimulation extends TObjetStd
             'EBM' => array(8)
         );
 
-        return $TRes[$entity_code_cristal];
+        if(array_key_exists($entity_code_cristal, $TRes)) return $TRes[$entity_code_cristal];
+        return array();
     }
 
     static function getTypeContratFromCristal($code) {

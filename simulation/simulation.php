@@ -29,13 +29,30 @@ if(!empty($_REQUEST['cancel'])) { // Annulation
 }
 if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive de Wonderbase, direction nouvelle simulation
 	if(!empty($_REQUEST['code_artis'])) { // Client
-		$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe', array('code_client'=>$_REQUEST['code_artis'],'client'=>1));
+	    $socid = 0;
+
+        $sql = 'SELECT rowid';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
+        $sql.= ' WHERE client = 1';
+        $sql.= " AND code_client = '".$db->escape($_REQUEST['code_artis'])."'";
+        $sql.= " AND entity IN (".getEntity('societe', true).")";
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        if($obj = $db->fetch_object($resql)) {
+            $socid = $obj->rowid;
+        }
+
 		// Si le client a une simulation en cours de validité, on va sur la liste de ses simulations
-		$hasValidSimu = _has_valid_simulations($ATMdb, $TId[0]);
+		$hasValidSimu = _has_valid_simulations($ATMdb, $socid);
 		if ($hasValidSimu) {
-		    header('Location: ?socid='.$TId[0]); exit;
+		    header('Location: ?socid='.$socid); exit;
 		} else {
-		    header('Location: ?action=new&fk_soc='.$TId[0]); exit;
+		    header('Location: ?action=new&fk_soc='.$socid); exit;
 		}
 		
 	} else if(!empty($_REQUEST['code_wb'])) { // Prospect
