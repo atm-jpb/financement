@@ -152,7 +152,7 @@ elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($o
         }
     }
 
-    header('Location: '.$_SERVER['PHP_SELF'].'?fk_simu'.$simu->rowid.'&id='.$object->id);
+    header('Location: '.$_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid.'&id='.$object->id);
     exit;
 }
 
