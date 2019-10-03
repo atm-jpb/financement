@@ -6,6 +6,7 @@ require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/propal.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formmail.class.php';
 dol_include_once('/financement/lib/financement.lib.php');
@@ -36,6 +37,7 @@ $dao = new DaoMulticompany($db);
 $dao->getEntities();
 foreach($dao->entities as $mc_entity) $TEntity[$mc_entity->id] = $mc_entity->label;
 
+$form = new Form($db);
 $formfile = new FormFile($db);
 $formMail = new FormMail($db);
 $soc = new Societe($db);
@@ -50,10 +52,13 @@ $simu = new TSimulation;
 $simu->load($PDOdb, $fk_simu, false);
 if ($simu->rowid > 0) {
     $soc->fetch($simu->fk_soc);
+
     $oldEntity = $conf->entity;
     switchEntity($simu->entity);
+
     $upload_dir = $conf->financement->dir_output.'/'.dol_sanitizeFileName($simu->reference).'/conformite';
     include_once DOL_DOCUMENT_ROOT.'/core/tpl/document_actions_pre_headers.tpl.php';
+
     switchEntity($oldEntity);
 }
 else {
@@ -164,7 +169,15 @@ elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($o
 llxHeader('',$langs->trans('Simulation'),'');
 print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 
-$form = new Form($db);
+if($action === 'delete') {
+    // FIXME: ça ne marchera pas à cause du 'restrictedArea' car le droit 'supprimer' ou 'delete' de financement n'existe pas
+    $urlfile = GETPOST('urlfile');
+
+    $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
+    if(! empty($urlfile)) $url .= '&urlfile='.urlencode($urlfile);
+
+    print $form->formconfirm($url, $langs->trans('DeleteFile'), $langs->trans('ConfirmDeleteFile'), 'confirm_deletefile', '', '', 1); // Formconfirm
+}
 
 if ($simu->id > 0) {
     $head = simulation_prepare_head($simu, $object);
