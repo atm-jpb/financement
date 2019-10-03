@@ -157,7 +157,7 @@ function updateDossier(&$PDOdb, $data, $entity, $type = 'LEASER') {
     }
 
     $fin = new TFin_financement();
-    if($fin->loadReference($PDOdb, $data['financement']['reference'], $type) > 0) {
+    if($fin->loadReference($PDOdb, $data['financement']['reference'], $type, $entity) > 0) {
         $doss = new TFin_dossier();
         $doss->load($PDOdb, $fin->fk_fin_dossier, false, true);
 
