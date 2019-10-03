@@ -7,41 +7,54 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/propal.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formmail.class.php';
 dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/conformite.class.php');
+dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
-$langs->load('compta');
+$langs->load('dict');
 $langs->load('other');
+$langs->load('error');
 
 $action = GETPOST('action', 'alpha');
 $confirm = GETPOST('confirm', 'alpha');
 $id = GETPOST('id', 'int');
 $fk_simu = GETPOST('fk_simu', 'int');
+$upload = GETPOST('upload', '', 2);
 
 // Security check
 $socid='';
-if (! empty($user->societe_id))
-{
+if (! empty($user->societe_id)) {
     $action = '';
     $socid = $user->societe_id;
 }
 $result = restrictedArea($user, 'financement', $fk_simu, 'fin_simulation&societe', '', 'fk_soc', 'rowid');
 
-$formfile=new FormFile($db);
+$dao = new DaoMulticompany($db);
+$dao->getEntities();
+foreach($dao->entities as $mc_entity) $TEntity[$mc_entity->id] = $mc_entity->label;
+
+$formfile = new FormFile($db);
+$formMail = new FormMail($db);
 $soc = new Societe($db);
 $PDOdb = new TPDOdb;
-$conformite = new Conformite;
-if(! empty($id)) $conformite->fetch($id);
+$object = new Conformite;
+if(! empty($id)) {
+    $object->fetch($id);
+    if(empty($fk_simu)) $fk_simu = $object->fk_simulation;
+}
 
-$object = new TSimulation;
-$object->load($PDOdb, $fk_simu, false);
-if ($object->rowid > 0)
-{
-    $soc->fetch($object->fk_soc);
-    $upload_dir = $conf->financement->dir_output.'/'.dol_sanitizeFileName($object->reference).'/conformite';
+$simu = new TSimulation;
+$simu->load($PDOdb, $fk_simu, false);
+if ($simu->rowid > 0) {
+    $soc->fetch($simu->fk_soc);
+    $oldEntity = $conf->entity;
+    switchEntity($simu->entity);
+    $upload_dir = $conf->financement->dir_output.'/'.dol_sanitizeFileName($simu->reference).'/conformite';
     include_once DOL_DOCUMENT_ROOT.'/core/tpl/document_actions_pre_headers.tpl.php';
+    switchEntity($oldEntity);
 }
 else {
     // Pas de conformite sans id
@@ -54,10 +67,11 @@ else {
  */
 if($action === 'save') {
     if(empty($id)) {    // Dans le cas d'une création
-        $conformite->fk_simulation = $fk_simu;
-        $conformite->fk_user = $user->id;
-        $conformite->status = Conformite::STATUS_WAITING_FOR_COMPLIANCE;
-        $res = $conformite->create();
+        $object->fk_simulation = $fk_simu;
+        $object->fk_user = $user->id;
+        $object->status = Conformite::STATUS_WAITING_FOR_COMPLIANCE;
+        $object->entity = $simu->entity;
+        $res = $object->create();
 
         if($res > 0) {
             setEventMessage($langs->trans('ConformiteCreated'));
@@ -90,23 +104,56 @@ elseif($action === 'setStatus' && ! empty($id)) {
     }
 
     if(! is_null($status)) {
-        $conformite->status = $status;
-        $conformite->update();
+        $object->status = $status;
+        $object->update();
     }
 }
-elseif($action === 'createDossier' && $conformite->status === Conformite::STATUS_COMPLIANT) {
+elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COMPLIANT) {
+    // TODO: Continue !
     $d = new TFin_dossier;
 
-    $d->financementLeaser->fk_soc = $object->fk_leaser;
-    $d->financementLeaser->reference = $object->numero_accord;
+    $d->financementLeaser->fk_soc = $simu->fk_leaser;
+    $d->financementLeaser->reference = $simu->numero_accord;
 
     $d->save($PDOdb);
 
     if($d->rowid > 0) {
         // This will add link between dossier and simulation
-        $object->fk_fin_dossier = $d->rowid;
-        $object->save($PDOdb);
+        $simu->fk_fin_dossier = $d->rowid;
+        $simu->save($PDOdb);
     }
+}
+elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($object->id) && ! empty($_FILES['userfile'])) {
+    // TODO: Traitement à refactorer/virer avec une version plus récente de Dolibarr
+    if(! empty($upload_dir) && ! file_exists($upload_dir)) dol_mkdir($upload_dir);
+
+    $TData = array_shift($_FILES);
+    $nbFiles = count($TData['name']);
+
+    for($i = 0 ; $i < $nbFiles ; $i++) {
+        $destPath = $upload_dir.'/'.$TData['name'][$i];
+
+        $res = dol_move_uploaded_file($TData['tmp_name'][$i], $destPath, 1, 0, $TData['error'][$i], 0, 'userfile');
+        if(is_numeric($res) && $res > 0) {
+            $formMail->add_attached_files($destPath, $TData['name'][$i], $TData['type'][$i]);
+
+            setEventMessage($langs->trans('FileTransferComplete'));
+        }
+        else {
+            if($res < 0) {    // Unknown error
+                setEventMessage($langs->trans("ErrorFileNotUploaded"), 'errors');
+            }
+            else if(preg_match('/ErrorFileIsInfectedWithAVirus/', $res)) {  // Files infected by a virus
+                setEventMessage($langs->trans("ErrorFileIsInfectedWithAVirus"), 'errors');
+            }
+            else {  // Known error
+                setEventMessage($langs->trans($res), 'errors');
+            }
+        }
+    }
+
+    header('Location: '.$_SERVER['PHP_SELF'].'?fk_simu'.$simu->rowid.'&id='.$object->id);
+    exit;
 }
 
 
@@ -119,11 +166,8 @@ print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/
 
 $form = new Form($db);
 
-if ($object->id > 0)
-{
-    $upload_dir = $conf->financement->dir_output.'/'.dol_sanitizeFileName($object->reference).'/conformite';
-
-    $head = simulation_prepare_head($object, $conformite);
+if ($simu->id > 0) {
+    $head = simulation_prepare_head($simu, $object);
     dol_fiche_head($head, 'conformite', $langs->trans('Simulation'), 0, 'simulation');
 
     // Construit liste des fichiers
@@ -137,13 +181,18 @@ if ($object->id > 0)
 
     // Ref
     print '<tr><td width="25%">'.$langs->trans('Ref').'</td><td colspan="3">';
-    print $object->reference.'&nbsp;'.get_picto($object->accord);
+    print $simu->reference.'&nbsp;'.get_picto($simu->accord);
+    print '</td></tr>';
+
+    // Entity
+    print '<tr><td width="25%">'.$langs->trans('DemandReasonTypeSRC_PARTNER').'</td><td colspan="3">';
+    print $TEntity[$simu->entity];
     print '</td></tr>';
 
     if(! empty($id)) {
         print '<tr>';
         print '<td>'.$langs->trans('ConformiteStatus').'</td>';
-        print '<td>'.$langs->trans(Conformite::$TStatus[$conformite->status]).'</td>';
+        print '<td>'.$langs->trans(Conformite::$TStatus[$object->status]).'</td>';
         print '</tr>';
     }
 
@@ -163,37 +212,33 @@ if ($object->id > 0)
 
     print '</div>';
 
-    $param = '?fk_simu='.$object->rowid;
-    if(! empty($id)) $param .= '&id='.$id;
+    $url = $_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid;
+    if(! empty($id)) $url .= '&id='.$id;
 
-    // Show upload form (document and links)
-    $formfile->form_attach_new_file(
-        $_SERVER["PHP_SELF"].$param.(empty($withproject) ? '' : '&withproject=1'),
-        '',
-        0,
-        0,
-        $user->rights->financement->admin,
-        50,
-        $conformite,
-        '',
-        1,
-        '',
-        0
-    );
+    $perm = (empty($user->rights->financement->admin) || empty($conf->global->MAIN_UPLOAD_DOC));
+    $param = '&fk_simu='.$simu->rowid;
+    ?>
+    <div class="titre"><?php echo $langs->trans('AttachANewFile'); ?></div>
+    <form id="formuserfile" name="formuserfile" action="<?php echo $url; ?>" enctype="multipart/form-data" method="POST">
+        <input type="hidden">
+        <input type="file" class="flat" name="userfile[]" size="50" <?php echo ($perm ? 'disabled="disabled"' : ''); ?> multiple="multiple" />&nbsp;
+        <input type="submit" class="button" name="upload"  value="<?php echo $langs->trans('Upload'); ?>" <?php echo ($perm ? 'disabled="disabled"' : ''); ?> />
+    </form>
+    <br />
+    <?php
 
-// List of document
+    // List of document
     $formfile->list_of_documents(
         $filearray,
         $object,
         'financement',
         $param,
         0,
-        $upload_dir,
+        dol_sanitizeFileName($simu->reference).'/conformite/',
         $user->rights->financement->admin
     );
 }
-else
-{
+else {
     print $langs->trans("ErrorUnknown");
 }
 
@@ -202,14 +247,14 @@ print '<div class="tabsAction">';
 if(empty($id)) {
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&action=save">'.$langs->trans('Save').'</a>';
 }
-elseif($conformite->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE) {
+elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE) {
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=firstCheck">'.$langs->trans('ConformiteFirstCheck').'</a>';
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=compliant">'.$langs->trans('ConformiteCompliant').'</a>';
     print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliant">'.$langs->trans('ConformiteNotCompliant').'</a>';
 }
-elseif(in_array($conformite->status, array(Conformite::STATUS_COMPLIANT, Conformite::STATUS_NOT_COMPLIANT, Conformite::STATUS_FIRST_CHECK))) {
-    if($conformite->status === Conformite::STATUS_COMPLIANT) {
-        print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=createDossier">'.$langs->trans('ConformiteCreateDossier').'</a>';
+elseif(in_array($object->status, array(Conformite::STATUS_COMPLIANT, Conformite::STATUS_NOT_COMPLIANT, Conformite::STATUS_FIRST_CHECK))) {
+    if($object->status === Conformite::STATUS_COMPLIANT) {
+        print '<a class="butAction" href="#" title="Incoming...">'.$langs->trans('ConformiteCreateDossier').'</a>';
     }
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=wait">'.$langs->trans('ConformiteWaitingForCompliance').'</a>';
 }
