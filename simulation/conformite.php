@@ -125,7 +125,7 @@ elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COM
     if($d->rowid > 0) {
         // This will add link between dossier and simulation
         $simu->fk_fin_dossier = $d->rowid;
-        $simu->save($PDOdb);
+        $simu->save($PDOdb, $db);
     }
 }
 elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($object->id) && ! empty($_FILES['userfile'])) {
