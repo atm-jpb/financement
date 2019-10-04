@@ -99,7 +99,7 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
                     $codeMateriel,
                     $dossier->financementLeaser->montant,
                     $dossier->financementLeaser->reste,
-                    $dossier->financementLeaser->loyer_intercalaire,
+                    $dossier->financementLeaser->echeance,
                     $dossier->financementLeaser->duree * $dossier->financementLeaser->getiPeriode(),
                     $dossier->financementLeaser->getiPeriode(),
                     $dossier->financementLeaser->duree,  // Nombre de loyer
