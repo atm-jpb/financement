@@ -141,7 +141,19 @@ elseif($action === 'setStatus' && ! empty($id)) {
     exit;
 }
 elseif($action === 'confirm_createDossier' && $object->status === Conformite::STATUS_COMPLIANT && $confirm === 'yes') {
-    // TODO: Continue !
+    // Création de l'affaire
+    $a = new TFin_affaire;
+    $a->entity = $simu->entity;
+    $a->montant = $simu->montant_accord;
+    $a->nature_financement = 'INTERNE';
+    $a->type_financement = $simu->type_financement;
+    $a->contrat = $simu->fk_type_contrat;
+    $a->date_affaire = time();  // Date du jour
+    $a->fk_soc = $simu->fk_soc;
+
+    $a->save($PDOdb);
+
+    // Création du dossier
     $d = new TFin_dossier;
 
     $d->entity = $simu->entity;
@@ -149,19 +161,24 @@ elseif($action === 'confirm_createDossier' && $object->status === Conformite::ST
 
     $d->financementLeaser->fk_soc = $simu->fk_leaser;
     $d->financementLeaser->reference = $simu->numero_accord;
-    $d->financementLeaser->save($PDOdb);
 
-    $d->financement->fk_soc = $simu->fk_soc;
-    $d->financement->periodicite = $simu->opt_periodicite;
+    $d->financement->montant = $simu->montant_total_finance;
+    $d->financement->echeance = $simu->echeance;
+    $d->financement->terme = $simu->pot_terme;
     $d->financement->duree = $simu->duree;
-    $d->financement->save($PDOdb);
+    $d->financement->reglement = $simu->opt_mode_reglement;
+    $d->financement->reste = $simu->vr;
+    $d->financement->periodicite = $simu->opt_periodicite;
 
     $d->save($PDOdb);
 
     if($d->rowid > 0) {
         // This will add link between dossier and simulation
         $simu->fk_fin_dossier = $d->rowid;
-        $simu->save($PDOdb, $db);
+        $simu->save($PDOdb, $db, false);
+
+        $d->addAffaire($PDOdb, $a->rowid);
+        $d->save($PDOdb);
 
         setEventMessage($langs->trans('ConformiteDossierCreated', $d->rowid));
     }
@@ -250,7 +267,6 @@ elseif($action === 'confirm_deleteFile' && $confirm === 'yes') {
 /*
  * View
  */
-
 llxHeader('',$langs->trans('Simulation'),'');
 print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 
