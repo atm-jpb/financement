@@ -832,8 +832,9 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			
 			,'detail_fact' => dol_buildpath('/fourn/facture/list.php?search_ref_supplier='.$financementLeaser->reference,2)
             ,'date_envoi'=>$formRestricted->calendrier('', 'leaser[date_envoi]', $financementLeaser->date_envoi, 10,255)
+            ,'date_reception_dossier' => $formRestricted->calendrier('', 'leaser[date_reception_dossier]', $financementLeaser->date_reception_dossier, 10,255)
+            ,'date_paiement' => $formRestricted->calendrier('', 'leaser[date_paiement]', $financementLeaser->date_paiement, 10,255)
 
-			
 	);
 	//print $financement->get_date('date_solde','d/m/Y',true);
 	if(isset($financement)) {
