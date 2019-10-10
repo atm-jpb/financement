@@ -56,7 +56,7 @@ if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','
     unset($search_ref, $search_entity, $search_thirdparty, $search_status);
 }
 
-$sql = 'SELECT s.rowid, s.reference, s.rowid, soc.rowid as fk_soc, c.status, s.entity, c.fk_user, c.rowid as fk_conformite, c.commentaire';
+$sql = 'SELECT s.rowid, s.reference, s.rowid, soc.rowid as fk_soc, c.status, s.entity, c.fk_user, c.rowid as fk_conformite, c.commentaire, c.date_cre';
 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_conformite c';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON (c.fk_simulation = s.rowid)';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe soc ON (s.fk_soc = soc.rowid)';
@@ -125,7 +125,7 @@ print '<table class="tagtable liste">';
 print '<tr class="liste_titre">';
 
 // Entity
-print '<td colspan="7" style="min-width: 150px;">';
+print '<td colspan="8" style="min-width: 150px;">';
 print '<span>'.$langs->trans('DemandReasonTypeSRC_PARTNER').' : </span>';
 print Form::multiselectarray('search_entity', $TEntity, $search_entity, 0, 0, 'style="min-width: 250px;"');
 print '</td>';
@@ -134,8 +134,8 @@ print '</tr>';
 print '<tr class="liste_titre">';
 
 // Reference
-print '<td align="center">';
-print '<input type="text" name="search_ref" value="'.$search_ref.'" size="6" />';
+print '<td>';
+print '<input type="text" name="search_ref" value="'.$search_ref.'" size="8" />';
 print '</td>';
 
 // Entity
@@ -149,6 +149,11 @@ print '</td>';
 // Statut
 print '<td>';
 print Form::selectarray('search_status', Conformite::$TStatus, $search_status, 1, 0, 0, 'style="width: 200px;"', 1);
+print '</td>';
+
+// Date création
+print '<td>';
+print '&nbsp;';
 print '</td>';
 
 // User
@@ -166,12 +171,13 @@ print '</tr>';
 
 // Titles
 print '<tr class="liste_titre">';
-print_liste_field_titre('Ref.', $_SERVER['PHP_SELF'], 's.reference', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Ref simulation
-print_liste_field_titre('Partenaire', $_SERVER['PHP_SELF'], 's.entity', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Entity
-print_liste_field_titre('Client', $_SERVER['PHP_SELF'], 's.fk_soc', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Thirdparty
-print_liste_field_titre('Statut', $_SERVER['PHP_SELF'], 'c.status', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Statut simul
-print_liste_field_titre($langs->trans('User'), $_SERVER['PHP_SELF'], 'u.login', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Statut simul
-print_liste_field_titre($langs->trans('ConformiteCommentaire'), $_SERVER['PHP_SELF'], 'c.commentaire', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Statut simul
+print_liste_field_titre('Ref.', $_SERVER['PHP_SELF'], 's.reference', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Ref simulation
+print_liste_field_titre('Partenaire', $_SERVER['PHP_SELF'], 's.entity', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Entity
+print_liste_field_titre('Client', $_SERVER['PHP_SELF'], 's.fk_soc', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Thirdparty
+print_liste_field_titre('Statut', $_SERVER['PHP_SELF'], 'c.status', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
+print_liste_field_titre($langs->trans('DateCreation'), $_SERVER['PHP_SELF'], 'c.date_cre', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
+print_liste_field_titre($langs->trans('User'), $_SERVER['PHP_SELF'], 'u.login', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
+print_liste_field_titre($langs->trans('ConformiteCommentaire'), $_SERVER['PHP_SELF'], 'c.commentaire', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print '<td>&nbsp;</td>';
 print '</tr>';
 
@@ -197,7 +203,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     print '<tr class="'.$class.'">';
 
     // Reference
-    print '<td align="center">';
+    print '<td align="left">';
     print '<a href="card.php?id='.$obj->fk_conformite.'">'.$obj->reference.'</a>';
     print '</td>';
 
@@ -216,6 +222,11 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     print $langs->trans(Conformite::$TStatus[$obj->status]);
     print '</td>';
 
+    // Date création
+    print '<td>';
+    print date('d/m/Y', strtotime($obj->date_cre));
+    print '</td>';
+
     // User
     print '<td>';
     print $u->getLoginUrl(1);
@@ -223,7 +234,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
 
     // Commentaire
     print '<td>';
-    print $form->textwithtooltip(dol_trunc($obj->commentaire, 18), $obj->commentaire);
+    print $form->textwithtooltip(dol_trunc($obj->commentaire, 18), str_replace("\n", "<br/>", $obj->commentaire));
     print '</td>';
 
     print '<td>&nbsp;</td>';
