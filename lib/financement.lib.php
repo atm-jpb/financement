@@ -666,7 +666,7 @@ function simulation_prepare_head(TSimulation $object, Conformite $conformite = n
     }
 
     if(! empty($id)) {
-        $url = dol_buildpath('/financement/simulation/conformite.php', 2).'?fk_simu='.$id;
+        $url = dol_buildpath('/financement/conformite/card.php', 2).'?fk_simu='.$id;
         if(! is_null($conformite) && ! empty($conformite->id)) $url .= '&id='.$conformite->id;
 
         $head[$h][0] = $url;
