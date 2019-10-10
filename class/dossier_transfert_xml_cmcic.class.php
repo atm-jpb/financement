@@ -330,13 +330,17 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 		$elem = $xml->createElement('LIVRAISON_MAT');
 		//pre($affaire,true);exit;
 		$client = $affaire->societe;
+		$add = explode("\n", $client->address);
+		$rue1 = $rue2 = '';
+		if(!empty($add[0])) $rue1 = substr($add[0], 0, 35);
+        if(!empty($add[1])) $rue2 = substr($add[1], 0, 40);
         $TData = array(
 //            'DTPV' => 'N',    // Facultatif
             'CDTYPPV' => ' ',   // Un espace est un blanc, donc on met un blanc
             'SIRET_LIV' => $client->idprof2,
             'N_RUE_LIV' => '',
-            'RUE_1_LIV' => substr($client->address, 0, 46),
-            'RUE_2_LIV' => '',
+            'RUE_1_LIV' => $rue1,
+            'RUE_2_LIV' => $rue2,
             'C_POSTAL_LIV' => $client->zip,
             'VILLE_LIV' => $client->town,
             'DATE_LIV' => date('Y-m-d', $facture->date)

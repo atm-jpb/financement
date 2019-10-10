@@ -43,14 +43,22 @@ class TFin_dossier extends TObjetStd
         $this->type_regul = 3;
     }
 
-    function loadReference(&$db, $reference, $annexe = false) {
-        $db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference='".$reference."'");
+    function loadReference(&$db, $reference, $annexe = false, $entity = null) {
+        $checkEntity = '';
+        if(! is_null($entity) && is_numeric($entity) && ! empty($entity)) $checkEntity .= ' AND entity = '.$entity;
+
+        $db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference='".$reference."'".$checkEntity);
 
         if($db->Get_line()) {
             return $this->load($db, $db->Get_field('rowid'), $annexe);
         }
         else {
-            $db->Execute("SELECT fk_fin_dossier FROM ".$this->get_table()."_financement WHERE reference='".$reference."'");
+            $sql = 'SELECT fk_fin_dossier';
+            $sql.= ' FROM '.$this->get_table().'_financement df';
+            $sql.= ' LEFT JOIN '.$this->get_table().' d ON (df.fk_fin_dossier = d.rowid)';
+            $sql.= " WHERE df.reference = '".$reference."'";
+            $sql.= $checkEntity;
+            $db->Execute($sql);
 
             if($db->Get_line()) {
                 return $this->load($db, $db->Get_field('fk_fin_dossier'), $annexe);

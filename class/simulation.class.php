@@ -2151,7 +2151,8 @@ class TSimulation extends TObjetStd
             'EBM' => array(8)
         );
 
-        return $TRes[$entity_code_cristal];
+        if(array_key_exists($entity_code_cristal, $TRes)) return $TRes[$entity_code_cristal];
+        return array();
     }
 
     static function getTypeContratFromCristal($code) {
@@ -2500,7 +2501,7 @@ class TSimulationSuivi extends TObjetStd
         foreach($simulation->TSimulationSuivi as $id_suivi => $suivi) {
             if($found && empty($suivi->statut)) {
                 // [PH] TODO ajouter ici les noms de leaser pour déclancher en automatique l'appel
-                if(in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL', 'BNP', 'CMCIC', 'GRENKE'))) {
+                if(in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL', 'BNP', 'CMCIC', 'GRENKE', 'FRANFINANCE'))) {
                     $suivi->doAction($PDOdb, $this->simulation, 'demander');
                 }
                 break;
@@ -2616,6 +2617,7 @@ class TSimulationSuivi extends TObjetStd
             case 'CMCIC':
             case 'GRENKE':
             case 'BNP':
+            case 'FRANFINANCE':
                 $res = $this->_createDemandeServiceFinancement($debug);
                 break;
             default:

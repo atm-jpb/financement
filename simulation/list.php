@@ -92,7 +92,8 @@ if($user->rights->societe->client->voir && ! $user->rights->financement->allsimu
     $sql .= " AND s.fk_user_author = ".$user->id;
 }
 if(! empty($searchnumetude)) {
-    $sql .= " AND ss.numero_accord_leaser='".$db->escape($searchnumetude)."'";
+    $sql .= " AND (ss.numero_accord_leaser='".$db->escape($searchnumetude)."'";
+    $sql .= " OR s.reference LIKE '%".$db->escape($searchnumetude)."%')";
 }
 
 if(! empty($fk_soc)) {

@@ -39,6 +39,9 @@ if(! $resql) {
 
 $PDOdb = new TPDOdb;
 $nb = $db->num_rows($resql);
+print '<span>Nb to be deleted : '.$nb.'</span>';
+
+if(empty($commit)) exit;    // Petite sécurité
 
 while($obj = $db->fetch_object($resql)) {
     if(! empty($debug)) {
@@ -46,13 +49,9 @@ while($obj = $db->fetch_object($resql)) {
         print '<br/>';
     }
 
-    if(! empty($commit)) {  // Petite sécurité
-        $dossier = new TFin_dossier;
-        $dossier->load($PDOdb, $obj->fk_fin_dossier);
+    $dossier = new TFin_dossier;
+    $dossier->load($PDOdb, $obj->fk_fin_dossier);
 
-        $dossier->delete($PDOdb, true, false, false);
-    }
+    $dossier->delete($PDOdb, true, false, false);
 }
 $db->free($resql);
-?>
-<span>Nb to be deleted : <?php echo $nb; ?></span>
