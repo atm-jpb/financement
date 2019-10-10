@@ -143,6 +143,7 @@ elseif($action === 'setStatus' && ! empty($id)) {
 elseif($action === 'confirm_createDossier' && $object->status === Conformite::STATUS_COMPLIANT && $confirm === 'yes') {
     // Création de l'affaire
     $a = new TFin_affaire;
+    $a->reference = '00000-00000';
     $a->entity = $simu->entity;
     $a->montant = $simu->montant_accord;
     $a->nature_financement = 'INTERNE';
