@@ -205,6 +205,46 @@ elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($o
     header('Location: '.$_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid.'&id='.$object->id);
     exit;
 }
+elseif($action === 'confirm_deleteFile' && $confirm === 'yes') {
+    // TODO: Traitement à refactorer/virer avec une version plus récente de Dolibarr
+    $urlfile = GETPOST('urlfile', 'alpha');
+
+    if (GETPOST('section')) $file = $upload_dir.'/'.$urlfile;
+    else {
+        $urlfile=basename($urlfile);
+        $file = $upload_dir . "/" . $urlfile;
+    }
+    $linkid = GETPOST('linkid', 'int');
+
+    if ($urlfile) {
+        $dir = dirname($file).'/'; // Chemin du dossier contenant l'image d'origine
+        $dirthumb = $dir.'/thumbs/'; // Chemin du dossier contenant la vignette
+
+        $ret = dol_delete_file($file, 0, 0, 0, $object);
+
+        // Si elle existe, on efface la vignette
+        if (preg_match('/(\.jpg|\.jpeg|\.bmp|\.gif|\.png|\.tiff)$/i',$file,$regs)) {
+            $photo_vignette=basename(preg_replace('/'.$regs[0].'/i','',$file).'_small'.$regs[0]);
+            if (file_exists(dol_osencode($dirthumb.$photo_vignette))) {
+                dol_delete_file($dirthumb.$photo_vignette);
+            }
+
+            $photo_vignette=basename(preg_replace('/'.$regs[0].'/i','',$file).'_mini'.$regs[0]);
+            if (file_exists(dol_osencode($dirthumb.$photo_vignette))) {
+                dol_delete_file($dirthumb.$photo_vignette);
+            }
+        }
+
+        if ($ret) {
+            setEventMessage($langs->trans("FileWasRemoved", $urlfile));
+        } else {
+            setEventMessage($langs->trans("ErrorFailToDeleteFile", $urlfile), 'errors');
+        }
+    }
+
+    header('Location: '.$_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid.'&id='.$object->id);
+    exit;
+}
 
 
 /*
@@ -214,14 +254,13 @@ elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($o
 llxHeader('',$langs->trans('Simulation'),'');
 print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 
-if($action === 'delete') {
-    // FIXME: ça ne marchera pas à cause du 'restrictedArea' car le droit 'supprimer' ou 'delete' de financement n'existe pas
+if($action === 'deleteFile') {
     $urlfile = GETPOST('urlfile');
 
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
     if(! empty($urlfile)) $url .= '&urlfile='.urlencode($urlfile);
 
-    print $form->formconfirm($url, $langs->trans('DeleteFile'), $langs->trans('ConfirmDeleteFile'), 'confirm_deletefile', '', '', 1);
+    print $form->formconfirm($url, $langs->trans('DeleteFile'), $langs->trans('ConfirmDeleteFile'), 'confirm_deleteFile', '', '', 1);
 }
 elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COMPLIANT) {
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
@@ -303,18 +342,48 @@ if ($simu->id > 0) {
         <input type="submit" class="button" name="upload"  value="<?php echo $langs->trans('Upload'); ?>" <?php echo ($perm ? 'disabled="disabled"' : ''); ?> />
     </form>
     <br />
+    <table width="100%" class="liste">
+        <tr class="liste_titre">
+            <td align="left"><?php print $langs->trans('Documents2') ?></td>
+            <td align="right"><?php print $langs->trans('Size') ?></td>
+            <td align="center"><?php print $langs->trans('Date') ?></td>
+            <td>&nbsp;</td>
+        </tr>
     <?php
 
-    // List of document
-    $formfile->list_of_documents(
-        $filearray,
-        $object,
-        'financement',
-        $param,
-        0,
-        dol_sanitizeFileName($simu->reference).'/conformite/',
-        $user->rights->financement->admin
-    );
+    $i = 0;
+
+    foreach($filearray as $k => $file) {
+        if ($file['name'] != '.' && $file['name'] != '..' && ! preg_match('/\.meta$/i',$file['name'])) {
+            $filepath = dol_sanitizeFileName($simu->reference).'/conformite/'.$file['name'];
+            print '<tr class="'.(($i % 2 === 0) ? 'impair' : 'pair').'">';
+
+            print '<td>';
+            print '<a data-ajax="false" href="'.DOL_URL_ROOT.'/document.php?modulepart=financement&entity='.$simu->entity.'&file='.urlencode($filepath).'">';
+            print img_mime($file['name'],$file['name'].' ('.dol_print_size($file['size'],0,0).')').' ';
+            print dol_trunc($file['name'], 0,'middle');
+            print '</a>';
+            print '</td>';
+
+            print '<td align="right">'.dol_print_size($file['size'],1,1).'</td>';
+            print '<td align="center">'.dol_print_date($file['date'],"dayhour","tzuser").'</td>';
+
+            print '<td align="right">';
+            print '<a href="'.($url.'&action=deleteFile&urlfile='.urlencode($filepath)).'" class="deletefilelink" rel="'.$filepath.'">'.img_delete().'</a>';
+            print '</td>';
+
+            print '</tr>';
+
+            $i++;
+        }
+    }
+    if (count($filearray) === 0) {
+        print '<tr '.$bc[false].'><td colspan="4">';
+        print $langs->trans("NoFileFound");
+        print '</td></tr>';
+    }
+
+    print '</table>';
 }
 else {
     print $langs->trans("ErrorUnknown");
