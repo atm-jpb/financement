@@ -11,7 +11,9 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formmail.class.php';
 dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/simulation.class.php');
+dol_include_once('/financement/class/grille.class.php');
 dol_include_once('/financement/class/dossier.class.php');
+dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/conformite.class.php');
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
@@ -87,6 +89,7 @@ if($action === 'save') {
             header('Location: '.$url);
             exit;
         }
+        else setEventMessage($langs->trans('ConformiteCreationError'), 'errors');
     }
 }
 elseif($action === 'setStatus' && ! empty($id)) {
@@ -112,13 +115,28 @@ elseif($action === 'setStatus' && ! empty($id)) {
         $object->status = $status;
         $object->update();
     }
+
+    $url = $_SERVER['PHP_SELF'];
+    $url.= '?fk_simu='.$fk_simu;
+    $url.= '&id='.$id;
+    header('Location: '.$url);
+    exit;
 }
-elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COMPLIANT) {
+elseif($action === 'confirm_createDossier' && $object->status === Conformite::STATUS_COMPLIANT && $confirm === 'yes') {
     // TODO: Continue !
     $d = new TFin_dossier;
 
+    $d->entity = $simu->entity;
+    $d->nature_financement = 'INTERNE'; // Tous les dossiers créés ici sont INTERNES
+
     $d->financementLeaser->fk_soc = $simu->fk_leaser;
     $d->financementLeaser->reference = $simu->numero_accord;
+    $d->financementLeaser->save($PDOdb);
+
+    $d->financement->fk_soc = $simu->fk_soc;
+    $d->financement->periodicite = $simu->opt_periodicite;
+    $d->financement->duree = $simu->duree;
+    $d->financement->save($PDOdb);
 
     $d->save($PDOdb);
 
@@ -126,7 +144,16 @@ elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COM
         // This will add link between dossier and simulation
         $simu->fk_fin_dossier = $d->rowid;
         $simu->save($PDOdb, $db);
+
+        setEventMessage($langs->trans('ConformiteDossierCreated', $d->rowid));
     }
+    else setEventMessage($langs->trans('ConformiteDossierCreationError'), 'errors');
+
+    $url = $_SERVER['PHP_SELF'];
+    $url.= '?fk_simu='.$fk_simu;
+    $url.= '&id='.$res;
+    header('Location: '.$url);
+    exit;
 }
 elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($object->id) && ! empty($_FILES['userfile'])) {
     // TODO: Traitement à refactorer/virer avec une version plus récente de Dolibarr
@@ -176,7 +203,12 @@ if($action === 'delete') {
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
     if(! empty($urlfile)) $url .= '&urlfile='.urlencode($urlfile);
 
-    print $form->formconfirm($url, $langs->trans('DeleteFile'), $langs->trans('ConfirmDeleteFile'), 'confirm_deletefile', '', '', 1); // Formconfirm
+    print $form->formconfirm($url, $langs->trans('DeleteFile'), $langs->trans('ConfirmDeleteFile'), 'confirm_deletefile', '', '', 1);
+}
+elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COMPLIANT) {
+    $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
+
+    print $form->formconfirm($url, $langs->trans('ConformiteCreateDossier'), $langs->trans('ConformiteConfirmCreateDossier'), 'confirm_createDossier', '', '', 1);
 }
 
 if ($simu->id > 0) {
@@ -219,6 +251,11 @@ if ($simu->id > 0) {
     print '<tr>';
     print '<td>'.$langs->trans('RequiredFiles').'</td>';
     print '<td colspan="3">'.$langs->trans('ListOfRequiredFiles').'</td>';
+    print '</tr>';
+
+    print '<tr>';
+    print '<td>'.$langs->trans('ConformiteCommentaire').'</td>';
+    print '<td>'.$object->commentaire.'</td>';
     print '</tr>';
 
     print '</table>';
@@ -266,8 +303,8 @@ elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE) {
     print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliant">'.$langs->trans('ConformiteNotCompliant').'</a>';
 }
 elseif(in_array($object->status, array(Conformite::STATUS_COMPLIANT, Conformite::STATUS_NOT_COMPLIANT, Conformite::STATUS_FIRST_CHECK))) {
-    if($object->status === Conformite::STATUS_COMPLIANT) {
-        print '<a class="butAction" href="#" title="Incoming...">'.$langs->trans('ConformiteCreateDossier').'</a>';
+    if($object->status === Conformite::STATUS_COMPLIANT && empty($simu->fk_fin_dossier)) {
+        print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=createDossier">'.$langs->trans('ConformiteCreateDossier').'</a>';
     }
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=wait">'.$langs->trans('ConformiteWaitingForCompliance').'</a>';
 }

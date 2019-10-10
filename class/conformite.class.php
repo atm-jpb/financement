@@ -28,6 +28,7 @@ class Conformite extends TObjetStd
     public $fk_user;
     public $status;
     public $entity;
+    public $commentaire;
 
     public $PDOdb;
 
@@ -38,6 +39,7 @@ class Conformite extends TObjetStd
         parent::add_champs('fk_simulation,fk_user', array('type' => 'int', 'index' => true));
 
         parent::add_champs('status,entity', array('type' => 'int', 'index' => true));
+        parent::add_champs('commentaire', array('type' => 'text'));
 
         parent::start();
 
