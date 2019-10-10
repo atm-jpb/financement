@@ -91,6 +91,24 @@ if($action === 'save') {
         }
         else setEventMessage($langs->trans('ConformiteCreationError'), 'errors');
     }
+    else {
+        $commentaire = GETPOST('commentaire', 'alpha');
+
+        if(! empty($commentaire)) {
+            $object->commentaire = $commentaire;
+            $res = $object->update();
+
+            if($res > 0) {
+                setEventMessage($langs->trans('ConformiteUpdated'));
+            }
+        }
+
+        $url = $_SERVER['PHP_SELF'];
+        $url.= '?fk_simu='.$fk_simu;
+        $url.= '&id='.$id;
+        header('Location: '.$url);
+        exit;
+    }
 }
 elseif($action === 'setStatus' && ! empty($id)) {
     $statusLabel = GETPOST('status', 'alpha');
@@ -254,8 +272,18 @@ if ($simu->id > 0) {
     print '</tr>';
 
     print '<tr>';
-    print '<td>'.$langs->trans('ConformiteCommentaire').'</td>';
-    print '<td>'.$object->commentaire.'</td>';
+    print '<td>'.$langs->trans('ConformiteCommentaire').'&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'&action=editCommentaire">'.img_edit().'</a></td>';
+    if(empty($action)) print '<td>'.str_replace("\n", "<br/>\n", $object->commentaire).'</td>';
+    elseif($action === 'editCommentaire') {
+        print '<td>';
+        print '<form action="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'" method="POST">';
+        print '<input type="hidden" name="action" value="save" />';
+        print '<div style="display: flex; align-items: center;">';
+        print '<textarea name="commentaire" rows="5" cols="60">'.$object->commentaire.'</textarea>';
+        print '&nbsp;<input class="butAction" type="submit" value="'.$langs->trans('Save').'" />';
+        print '</div></form>';
+        print '</td>';
+    }
     print '</tr>';
 
     print '</table>';
