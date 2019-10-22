@@ -30,8 +30,8 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
 		global $conf, $db;
 
 		// TODO: Change filename
-		if(empty($conf->global->FINANCEMENT_MODE_PROD)) $name = 'UATFRCPROCMCICADLC_'.date('Ymd');
-        else $name = 'PRDFRCPROCMCICADLC_'.date('Ymd');
+		if(empty($conf->global->FINANCEMENT_MODE_PROD)) $name = 'UATFRCPROBNPADLC_'.date('Ymd');
+        else $name = 'PRDFRCPROBNPADLC_'.date('Ymd');
 
         if(! file_exists($this->fileFullPath)) dol_mkdir($this->fileFullPath);
         $f = fopen($this->fileFullPath.'/'.$name.self::fileExtension, 'w');
@@ -97,9 +97,9 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
                     $dossier->financementLeaser->reference,
                     '024',  // Produit financier
                     $codeMateriel,
-                    $dossier->financementLeaser->montant,
+                    str_replace('.', ',', $dossier->financementLeaser->montant),
                     $dossier->financementLeaser->reste,
-                    $dossier->financementLeaser->echeance,
+                    str_replace('.', ',', $dossier->financementLeaser->echeance),
                     $dossier->financementLeaser->duree * $dossier->financementLeaser->getiPeriode(),
                     $dossier->financementLeaser->getiPeriode(),
                     $dossier->financementLeaser->duree,  // Nombre de loyer
