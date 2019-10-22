@@ -59,4 +59,40 @@ class Conformite extends TObjetStd
     function fetchBy($field, $value) {
         return $this->loadBy($this->PDOdb, $value, $field);
     }
+
+    function sendMail() {
+        global $conf, $db;
+
+        $mesg = '';
+        $refSimu = sprintf("%'.06d", $this->fk_simulation);
+
+        if($this->status === self::STATUS_COMPLIANT) {
+            $mesg .= 'Bonjour'."\n\n";
+            $mesg .= 'La conformité de la simulation S'.$refSimu.' est conforme';
+        }
+        else {  // Not compliant
+            $mesg .= 'Bonjour'."\n\n";
+            $mesg .= 'La conformité de la simulation S'.$refSimu.' n\'est pas conforme';
+        }
+
+        $mesg .= ','."\n\n";
+        $mesg .= 'Cordialement,'."\n\n";
+        $mesg .= 'La cellule financement'."\n\n";
+
+        $subject = 'Conformite S'.$refSimu;
+
+        $user = new User($db);
+        $user->fetch($this->fk_user);
+
+        $old_entity = $conf->entity;
+        switchEntity($this->entity);
+
+        $r = new TReponseMail($conf->global->MAIN_MAIL_EMAIL_FROM, $user->email, $subject, $mesg);
+        $res = $r->send(false);
+
+        switchEntity($old_entity);
+
+
+        if($res !== false) setEventMessage('Email envoyé à : '.$user->email);
+    }
 }
