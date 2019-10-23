@@ -77,7 +77,7 @@ if($action === 'save') {
     if(empty($id)) {    // Dans le cas d'une création
         $object->fk_simulation = $fk_simu;
         $object->fk_user = $user->id;
-        $object->status = Conformite::STATUS_WAITING_FOR_COMPLIANCE;
+        $object->status = Conformite::STATUS_DRAFT;
         $object->entity = $simu->entity;
         $res = $object->create();
 
@@ -114,17 +114,26 @@ if($action === 'save') {
 elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     $statusLabel = GETPOST('status', 'alpha');
     switch($statusLabel) {
-        case 'notCompliant':
-            $status = Conformite::STATUS_NOT_COMPLIANT;
+        case 'draft':
+            $status = Conformite::STATUS_DRAFT;
             break;
-        case 'compliant':
-            $status = Conformite::STATUS_COMPLIANT;
+        case 'notCompliantN1':
+            $status = Conformite::STATUS_NOT_COMPLIANT_N1;
             break;
-        case 'firstCheck':
-            $status = Conformite::STATUS_FIRST_CHECK;
+        case 'notCompliantN2':
+            $status = Conformite::STATUS_NOT_COMPLIANT_N2;
             break;
-        case 'wait':
-            $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE;
+        case 'compliantN1':
+            $status = Conformite::STATUS_COMPLIANT_N1;
+            break;
+        case 'compliantN2':
+            $status = Conformite::STATUS_COMPLIANT_N2;
+            break;
+        case 'waitN1':
+            $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1;
+            break;
+        case 'waitN2':
+            $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2;
             break;
         default:
             break;
@@ -134,8 +143,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
         $object->status = $status;
         $res = $object->update();
 
-        if($res > 0 && in_array($object->status, array(Conformite::STATUS_COMPLIANT, Conformite::STATUS_NOT_COMPLIANT))) {
-            // TODO: Send mail to $object->fk_user
+        if($res > 0 && in_array($object->status, array(Conformite::STATUS_COMPLIANT_N2, Conformite::STATUS_NOT_COMPLIANT_N1, conformite::STATUS_NOT_COMPLIANT_N2))) {
             $object->sendMail();
         }
     }
@@ -146,7 +154,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     header('Location: '.$url);
     exit;
 }
-elseif($action === 'confirm_createDossier' && $object->status === Conformite::STATUS_COMPLIANT && $confirm === 'yes') {
+elseif($action === 'confirm_createDossier' && $object->status === Conformite::STATUS_COMPLIANT_N2 && $confirm === 'yes') {
     // Création de l'affaire
     $a = new TFin_affaire;
     $a->reference = '00000-00000';
@@ -285,12 +293,12 @@ if($action === 'deleteFile') {
 
     print $form->formconfirm($url, $langs->trans('DeleteFile'), $langs->trans('ConfirmDeleteFile'), 'confirm_deleteFile', '', '', 1);
 }
-elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COMPLIANT) {
+elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COMPLIANT_N2) {
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
 
     print $form->formconfirm($url, $langs->trans('ConformiteCreateDossier'), $langs->trans('ConformiteConfirmCreateDossier'), 'confirm_createDossier', '', '', 1);
 }
-elseif($action === 'setStatus' && $object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE) {
+elseif($action === 'setStatus') {
     $statusLabel = GETPOST('status', 'alpha');
 
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
@@ -424,19 +432,22 @@ else {
 
 print '<div class="tabsAction">';
 
-if(empty($id)) {
-    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&action=save">'.$langs->trans('Save').'</a>';
+if(in_array($object->status, array(Conformite::STATUS_DRAFT, Conformite::STATUS_NOT_COMPLIANT_N1))) {
+    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=confirm_setStatus&status=waitN1&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN1').'</a>';
 }
-elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE) {
-    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=confirm_setStatus&status=firstCheck&confirm=yes">'.$langs->trans('ConformiteFirstCheck').'</a>';
-    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=compliant">'.$langs->trans('ConformiteCompliant').'</a>';
-    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliant">'.$langs->trans('ConformiteNotCompliant').'</a>';
+elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1) {
+    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=compliantN1">'.$langs->trans('ConformiteCompliantN1').'</a>';
+    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliantN1">'.$langs->trans('ConformiteNotCompliantN1').'</a>';
 }
-elseif(in_array($object->status, array(Conformite::STATUS_COMPLIANT, Conformite::STATUS_NOT_COMPLIANT, Conformite::STATUS_FIRST_CHECK))) {
-    if($object->status === Conformite::STATUS_COMPLIANT && empty($simu->fk_fin_dossier)) {
-        print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=createDossier">'.$langs->trans('ConformiteCreateDossier').'</a>';
-    }
-    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=confirm_setStatus&status=wait&confirm=yes">'.$langs->trans('ConformiteWaitingForCompliance').'</a>';
+elseif(in_array($object->status, array(Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_NOT_COMPLIANT_N2))) {
+    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=confirm_setStatus&status=waitN2&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN2').'</a>';
+}
+elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2) {
+    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=compliantN2">'.$langs->trans('ConformiteCompliantN2').'</a>';
+    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliantN2">'.$langs->trans('ConformiteNotCompliantN2').'</a>';
+}
+elseif($object->status === Conformite::STATUS_COMPLIANT_N2 && empty($simu->fk_fin_dossier)) {
+    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=createDossier">'.$langs->trans('ConformiteCreateDossier').'</a>';
 }
 
 print '</div>';

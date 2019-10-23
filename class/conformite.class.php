@@ -4,18 +4,22 @@ class Conformite extends TObjetStd
 {
     public $tablename = 'fin_conformite';
 
-    const STATUS_WAITING_FOR_COMPLIANCE = 0;
-    const STATUS_COMPLIANT = 1;
-    const STATUS_NOT_COMPLIANT = 2;
-    const STATUS_REFUSAL = 3;
-    const STATUS_FIRST_CHECK = 4;
+    const STATUS_DRAFT = 0;
+    const STATUS_WAITING_FOR_COMPLIANCE_N1 = 1;
+    const STATUS_COMPLIANT_N1 = 2;
+    const STATUS_NOT_COMPLIANT_N1 = 3;
+    const STATUS_WAITING_FOR_COMPLIANCE_N2 = 4;
+    const STATUS_COMPLIANT_N2 = 5;
+    const STATUS_NOT_COMPLIANT_N2 = 6;
 
     public static $TStatus = array(
-        0 => 'ConformiteWaitingForCompliance',
-        1 => 'ConformiteCompliant',
-        2 => 'ConformiteNotCompliant',
-        3 => 'ConformiteRefusal',
-        4 => 'ConformiteFirstCheck',
+        0 => 'ConformiteDraft',
+        1 => 'ConformiteWaitingForComplianceN1',
+        2 => 'ConformiteCompliantN1',
+        3 => 'ConformiteNotCompliantN1',
+        4 => 'ConformiteWaitingForComplianceN2',
+        5 => 'ConformiteCompliantN2',
+        6 => 'ConformiteNotCompliantN2'
     );
 
     /**
@@ -66,11 +70,11 @@ class Conformite extends TObjetStd
         $mesg = '';
         $refSimu = sprintf("%'.06d", $this->fk_simulation);
 
-        if($this->status === self::STATUS_COMPLIANT) {
+        if($this->status === self::STATUS_COMPLIANT_N2) {
             $mesg .= 'Bonjour'."\n\n";
             $mesg .= 'La conformité de la simulation S'.$refSimu.' est conforme';
         }
-        else {  // Not compliant
+        elseif(in_array($this->status, array(self::STATUS_NOT_COMPLIANT_N1, self::STATUS_NOT_COMPLIANT_N2))) {  // Not compliant
             $mesg .= 'Bonjour'."\n\n";
             $mesg .= 'La conformité de la simulation S'.$refSimu.' n\'est pas conforme';
         }
