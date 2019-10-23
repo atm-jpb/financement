@@ -2564,6 +2564,8 @@ class TSimulationSuivi extends TObjetStd
         $simulation->fk_user_suivi = empty($user->id) ? 1035 : $user->id;   // $user->id ou 'admin_financement'
         if(! empty($TTypeFinancement[$TCateg_tiers[0]])) $simulation->type_financement = $TTypeFinancement[$TCateg_tiers[0]];
 
+        if($simulation->fk_action_manuelle > 0) $simulation->fk_action_manuelle = 0;    // Si OK pour un leaser, plus aucune action manuelle n'est nécessaire
+
         $simulation->save($PDOdb, $db);
 
         $simulation->send_mail_vendeur();

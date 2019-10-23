@@ -189,14 +189,24 @@ function repondreDemande($authentication, $TReponse)
 						{
 							
 							$found = false;
-							foreach ($simulation->TSimulationSuivi as &$simulationSuivi)
-							{
-								if ($simulationSuivi->leaser->array_options['options_edi_leaser'] == $fuser->array_options['options_fk_leaser_webservice'])
-								{
-									$found = true;
-									break;
-								}
-							}
+                            foreach($simulation->TSimulationSuivi as $simulationSuivi) {
+                                if($simulationSuivi->statut_demande == 2) {
+                                    $found = true;
+                                    break;
+                                }
+                            }
+
+                            if(! $found) {
+                                foreach ($simulation->TSimulationSuivi as &$simulationSuivi)
+                                {
+                                    if ($simulationSuivi->leaser->array_options['options_edi_leaser'] == 'CMCIC')
+                                        //					if ($simulationSuivi->leaser->array_options['options_edi_leaser'] == $fuser->array_options['options_fk_leaser_webservice'])
+                                    {
+                                        $found = true;
+                                        break;
+                                    }
+                                }
+                            }
 							
 							if ($found)
 							{
