@@ -58,16 +58,13 @@
 					$imp=new TImport();
 					$imp->entity = $conf->entity;
 					$imp->fk_user_author = $user->id;
+					$imp->full_update = GETPOST('full_update');
 					
 					$societe =new Societe($db);
 					$societe->fetch(__get('socid',0,'integer'));
 					if($societe->id<=0)exit('société inconnue');
 					
-					
-					$mappingFile = ($fileType == 'fichier_leaser' ? $fileType.'.'.$societe->code_client.'.mapping' : $fileType.'.mapping');
-					if(!is_file($importFolderMapping.$mappingFile) && $fileType == 'fichier_leaser'){
-						$mappingFile = $fileType.'.default.mapping';
-					}
+					$mappingFile = 'fichier_leaser.default.mapping';
 					$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
 					
 					$imp->init($fileName, $fileType);
@@ -234,6 +231,8 @@ function _fiche(&$ATMdb, &$import, $mode) {
 	$user->fetch($import->fk_user_author);
 	
 	$TBS=new TTemplateTBS();
+
+	$filepath = "./import/done/".(empty($import->artis) ? '' : $import->artis.'/').$import->filename;
 	
 	print $TBS->render('./tpl/import.tpl.php'
 		,array()
@@ -245,13 +244,14 @@ function _fiche(&$ATMdb, &$import, $mode) {
 				,'id'=>$import->getId()
 				,'type_import'=>$form->combo('', 'type_import', /*($mode == 'new') ? $import->TType_import : */array_merge($import->TType_import, $import->TType_import_interne), $import->type_import) 
 				,'date'=>date('d/m/Y à H:i:s', $import->date ? $import->date : time())
-				,'filename'=>'<a href="./import/done/'.$import->filename.'" target="_blank">'.$import->filename.'</a>'
+				,'filename'=>'<a href="'.$filepath.'" target="_blank">'.$import->filename.'</a>'
 				,'ignore_first_line'=>$form->checkbox1('', 'ignore_first_line', 0)
 				,'delimiter'=>$form->texte('', 'delimiter', FIN_IMPORT_FIELD_DELIMITER, 5)
 				,'enclosure'=>$form->texte('', 'enclosure', FIN_IMPORT_FIELD_ENCLOSURE, 5)
 				,'fileToImport'=>$form->fichier('', 'fileToImport', '', 10)
 				,'solde_dossiers_non_presents'=>$form->checkbox1('', 'solde_dossiers_non_presents', 0)
-				
+				,'full_update'=>$form->checkbox1('', 'full_update', 1)
+
 				,'user'=>'<a href="'.DOL_URL_ROOT.'/user/fiche.php?id='.$import->fk_user_author.'">'.img_picto('','object_user.png', '', 0).' '.$user->nom.'</a>'
 				,'nb_lines'=>$import->nb_lines
 				,'nb_errors'=>$import->nb_errors
@@ -267,10 +267,9 @@ function _fiche(&$ATMdb, &$import, $mode) {
 		)
 	);
 	
-	?><div class="tabsAction" style="text-align: left;"><a href="?action=export&id=<?php echo $import->getId(); ?>" class="butAction">Exporter les erreurs</a></div><br><br><?php
+	?><?php
 	
 	echo $form->end_form();
-	echo date('d/m/Y H:i:s', time());
 	
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));

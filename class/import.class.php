@@ -296,111 +296,112 @@ class TImport extends TObjetStd {
     }
 
     function importFichierLeaser(&$ATMdb, $data, &$TInfosGlobale) {
-        /*$ATMdb->debug=true;
-        echo '<hr><pre>'.$this->nb_lines;
-        print_r($data);
-        echo '</pre>';*/
+		if(empty($data['reference'])) {
+			return false;
+		}
+		$entities = $this->get_entity_groups($data['entity']);
+		$f=new TFin_financement;
+		if($f->loadReference($ATMdb, $data['reference'], 'LEASER', $entities)) { // Recherche du financement leaser par référence
+			// Le financement leaser a été trouvé avec la référence contrat leaser
+		} else if($f->loadReference($ATMdb, $data['reference'], 'CLIENT', $entities)) { // Recherche du financement leaser par référence contrat client
+			// Le financement leaser a été trouvé avec la référence contrat leaser
+		} else if (!empty($data['reference_dossier_interne']) && $f->loadReference($ATMdb, $data['reference_dossier_interne'], 'CLIENT', $entities)) { // Recherche du financement client par référence CPRO
+			// Le financement client a été trouvé avec la référence CPRO
+		} else if ($f->loadOrCreateSirenMontant($ATMdb, $data)) { // Recherche du financement leaser par siren et montant
+			// Le financement leaser a été trouvé ou créé par le siren et le montant de l'affaire
+		} else {
+			$this->addError($ATMdb, 'cantFindOrCreateFinancement', $data['reference']);
+			return false;
+		}
+		
+		$dossier = new TFin_dossier();
+		if($dossier->load($ATMdb, $f->fk_fin_dossier,true)) { // Chargement du dossier correspondant
 
-        /*if($data['echeance']==0) {
-            return false;
-        }*/
-        if(empty($data['reference'])) {
-            return false;
-        }
-        $entities = $this->get_entity_groups($data['entity']);
-        $f=new TFin_financement;
-        if($f->loadReference($ATMdb, $data['reference'], 'LEASER', $entities)) { // Recherche du financement leaser par référence
-            // Le financement leaser a été trouvé avec la référence contrat leaser
-        } else if($f->loadReference($ATMdb, $data['reference'], 'CLIENT', $entities)) { // Recherche du financement leaser par référence contrat client
-            // Le financement leaser a été trouvé avec la référence contrat leaser
-        } else if (!empty($data['reference_dossier_interne']) && $f->loadReference($ATMdb, $data['reference_dossier_interne'], 'CLIENT', $entities)) { // Recherche du financement client par référence CPRO
-            // Le financement client a été trouvé avec la référence CPRO
-        } else if ($f->loadOrCreateSirenMontant($ATMdb, $data)) { // Recherche du financement leaser par siren et montant
-            // Le financement leaser a été trouvé ou créé par le siren et le montant de l'affaire
-        } else {
-            $this->addError($ATMdb, 'cantFindOrCreateFinancement', $data['reference']);
-            return false;
-        }
+			/*
+			 * Nouveau fonctionnement import fichier leaser
+			 * - Les imports de fichier concernent toujours des dossiers EXTERNE
+			 * - Dans le cas d'Hexapage qui sont des "faux" internes, on met à jour 3 champs côté client aussi
+			 */
 
-        $dossier = new TFin_dossier();
-        if($dossier->load($ATMdb, $f->fk_fin_dossier,true)) { // Chargement du dossier correspondant
+			// Le dossier vient d'être créé donc on renseigne tous les champs
+			// OU l'option "Mise à jour complète" a été cochée
+			if(empty($dossier->financementLeaser->reference) || !empty($this->full_update)) {
+				// Champs obligatoire : montant, durée, échéance, date début, periodicité => erreur non bloquante
+				$mandatory_fields = array('montant','duree','echeance','date_debut','periodicite');
+				foreach ($data as $key => $value) {
+					$dossier->financementLeaser->{$key} = $value;
 
-            if($dossier->nature_financement == 'EXTERNE') { // Dossier externe => MAJ des informations
-                // Echéance à 0 dans le fichier, on classe le dossier a soldé
-                // 14.10.15 : suite échange avec Damien on fait sauter cette règle
-                /*if($data['echeance'] == 0 && $dossier->financementLeaser->date_solde == 0) {
-                    $dossier->financementLeaser->date_solde = time();
-                    $data['echeance'] = $dossier->financementLeaser->echeance;
-                }*/
+					if(in_array($key, $mandatory_fields) && empty($value)) {
+						$this->addError($ATMdb, 'MandatoryField'.$key, $dossier->financementLeaser->reference);
+					}
+				}
 
-                foreach ($data as $key => $value) {
-                    if($value === '') continue;
-                    $dossier->financementLeaser->{$key} = $value;
-                }
-                $dossier->financementLeaser->fk_soc = $data['idLeaser'];
+				$dossier->financementLeaser->fk_soc = $data['idLeaser']; // Le champs Leaser n'est pas dans le fichier mais sélecitonné lors de l'import
+				$dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode(); // La durée dans le fichier est toujours en mois, on recalcule en fonction de la périodicité
 
-                $dossier->financementLeaser->duree /= $dossier->financementLeaser->getiPeriode();
-                //pre($dossier->financementLeaser,true);echo '<hr>';flush();
-            } else { // Dossier interne => Vérification des informations
-                // On ne vérifie plus les données pour mettre Oui dans Bon pour facturation (fait manuellement)
-                // Mais on permet de mettre à jour l'incident de paiement
-                $dossier->financement->incident_paiement=$data['incident_paiement'];
-            }
+			} else { // Mise à jour que de certaines données du dossier
+				$dossier->financementLeaser->fk_soc = $data['idLeaser'];
+				$dossier->financementLeaser->montant_prestation = $data['montant_prestation'];
+				$dossier->financementLeaser->incident_paiement = $data['incident_paiement'];
+				$dossier->financementLeaser->reloc = $data['reloc'];
+			}
 
-            /*if($dossier->entity != $data['entity']) {
-                $dossier->entity = $data['entity'];
-                $dossier->load_affaire($ATMdb);
-                foreach ($dossier->TLien as $i => $TData) {
-                    $a = &$TData->affaire;
-                    $a->entity = $data['entity'];
-                    if($a->rowid > 0) $a->save($ATMdb);
-                }
+			if($dossier->nature_financement == 'INTERNE') { // INTERNE : cas spécifique Hexapage
+				$dossier->financement->montant_prestation = $data['montant_prestation'];
+				$dossier->financement->incident_paiement = $data['incident_paiement'];
+				$dossier->financement->reloc = $data['reloc'];
+			}
 
-            }*/
+			// Cas particulier (colonne 17) permettant d'indiquer si le solde du dossier doit être affiché ou non
+			if(isset($data['display_solde'])) $dossier->display_solde = $data['display_solde'];
 
-            // Cas particulier (colonne 17) permettant d'indiquer si le solde du dossier doit être affiché ou non
-            if(isset($data['display_solde'])) $dossier->display_solde = $data['display_solde'];
-            // On met à jour l'entité du dossier (changement possible lors de fusion d'entités)
-            $dossier->entity = $data['entity'];
+			// Dans tous les cas, si le dossier est dans le fichier leaser, c'est qu'il est actif, on vide donc les champs de solde
+			$dossier->financementLeaser->date_solde = '';
+			$dossier->financementLeaser->montant_solde = 0;
+			$dossier->financement->date_solde = '';
+			$dossier->financement->montant_solde = 0;
 
-            $dossier->save($ATMdb);
-            $this->nb_update++;
-            TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update',$data);
+			// On met à jour l'entité du dossier (changement possible lors de fusion d'entités)
+			$dossier->entity = $data['entity'];
+			
+			$dossier->save($ATMdb);
+			$this->nb_update++;
+			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update',$data);
 
-            $TInfosGlobale[] = $dossier->financementLeaser->getId();
+			$TInfosGlobale[] = $dossier->financementLeaser->getId();
+			
+			//Ajout traitement
+			//Si colonne biens renseigné alors on créé les equipements si inexistant
+			//Puis ajout de la liaison equipement -> affaire sans passer par la facture matériel
+			if(!empty($data['biens'])){
+				$TRefBiens = explode(';', $data['biens']);
+				
+				foreach($TRefBiens as $refBien){
+					$serial = trim($refBien);
+				
+					$asset=new TAsset;
+					if(!$asset->loadReference($ATMdb, $serial)) { // Non trouvé dans la base, on créé
+						$asset->entity = $dossier->entity;
+						$asset->serial_number = $serial;
+						$asset->fk_soc = $dossier->TLien[0]->affaire->fk_soc;
+						$asset->save($ATMdb);
+					}
+					
+					//Ajout du lien à l'affaire
+					if($dossier->TLien[0]->affaire){
+						$asset->add_link($dossier->TLien[0]->affaire->getId(),'affaire');
+					}
 
-            //Ajout traitement
-            //Si colonne biens renseigné alors on créé les equipements si inexistant
-            //Puis ajout de la liaison equipement -> affaire sans passer par la facture matériel
-            if(!empty($data['biens'])){
-                $TRefBiens = explode(';', $data['biens']);
+					$asset->save($ATMdb);
+				}
+			}
 
-                foreach($TRefBiens as $refBien){
-                    $serial = trim($refBien);
+			return true;
 
-                    $asset=new TAsset;
-                    if(!$asset->loadReference($ATMdb, $serial)) { // Non trouvé dans la base, on créé
-                        $asset->entity = $dossier->entity;
-                        $asset->serial_number = $serial;
-                        $asset->fk_soc = $dossier->TLien[0]->affaire->fk_soc;
-                        $asset->save($ATMdb);
-                    }
-
-                    //Ajout du lien à l'affaire
-                    if($dossier->TLien[0]->affaire){
-                        $asset->add_link($dossier->TLien[0]->affaire->getId(),'affaire');
-                    }
-
-                    $asset->save($ATMdb);
-                }
-            }
-
-            return true;
-
-        }
-
-        return false;
-    }
+		}
+		
+		return false;
+	}
 
     function solde_dossiers_non_presents(&$ATMdb, $idLeaser, &$TInfosGlobale) {
         $sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."fin_dossier_financement f ";
@@ -416,7 +417,7 @@ class TImport extends TObjetStd {
         foreach ($TRes as $idFinancement) {
             if(!in_array($idFinancement, $TInfosGlobale)) {
                 $f->load($ATMdb, $idFinancement);
-                $f->date_solde = strtotime('1998-07-12');
+                $f->date_solde = strtotime('today');
                 $f->save($ATMdb);
             }
         }
