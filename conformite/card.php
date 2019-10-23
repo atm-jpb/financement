@@ -168,6 +168,10 @@ elseif($action === 'confirm_createDossier' && $object->status === Conformite::ST
 
     $a->save($PDOdb);
 
+    // Pour éviter les doublons de référence
+    $a->reference = '(PROV'.$a->rowid.')';
+    $a->save($PDOdb);
+
     // Création du dossier
     $d = new TFin_dossier;
 
