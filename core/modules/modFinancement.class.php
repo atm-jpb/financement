@@ -440,7 +440,34 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'webservice';
 		$this->rights[$r][5] = 'repondre_demande';
+
 		$r++;
+		$this->rights[$r][0] = $this->numero.$r;
+		$this->rights[$r][1] = 'Conformité : Voir';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'conformite';
+		$this->rights[$r][5] = 'read';
+
+		$r++;
+		$this->rights[$r][0] = $this->numero.$r;
+		$this->rights[$r][1] = 'Conformité : Créer';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'conformite';
+		$this->rights[$r][5] = 'create';
+
+		$r++;
+		$this->rights[$r][0] = $this->numero.$r;
+		$this->rights[$r][1] = 'Conformité : Valider';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'conformite';
+		$this->rights[$r][5] = 'validate';
+
+		$r++;
+		$this->rights[$r][0] = $this->numero.$r;
+		$this->rights[$r][1] = 'Conformité : Accepter';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'conformite';
+		$this->rights[$r][5] = 'accept';
 
 		// Main menu entries
 		$this->menus = array();			// List of menus to add
