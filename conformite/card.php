@@ -65,51 +65,49 @@ if ($simu->rowid > 0) {
     switchEntity($oldEntity);
 }
 else {
-    // Pas de conformite sans id
+    // Pas de conformite sans fk_simu
     header('Location: list.php');
     exit;
+}
+
+if(empty($id)) {    // Dans le cas d'une création
+    $object->fk_simulation = $fk_simu;
+    $object->status = Conformite::STATUS_DRAFT;
+    $object->entity = $simu->entity;
+    $res = $object->create();
+
+    if($res > 0) {
+        setEventMessage($langs->trans('ConformiteCreated'));
+
+        $url = $_SERVER['PHP_SELF'];
+        $url.= '?fk_simu='.$fk_simu;
+        $url.= '&id='.$res;
+        header('Location: '.$url);
+        exit;
+    }
+    else setEventMessage($langs->trans('ConformiteCreationError'), 'errors');
 }
 
 /*
  * Actions
  */
 if($action === 'save') {
-    if(empty($id)) {    // Dans le cas d'une création
-        $object->fk_simulation = $fk_simu;
-        $object->fk_user = $user->id;
-        $object->status = Conformite::STATUS_DRAFT;
-        $object->entity = $simu->entity;
-        $res = $object->create();
+    $commentaire = GETPOST('commentaire', 'alpha');
+
+    if(! empty($commentaire)) {
+        $object->commentaire = $commentaire;
+        $res = $object->update();
 
         if($res > 0) {
-            setEventMessage($langs->trans('ConformiteCreated'));
-
-            $url = $_SERVER['PHP_SELF'];
-            $url.= '?fk_simu='.$fk_simu;
-            $url.= '&id='.$res;
-            header('Location: '.$url);
-            exit;
+            setEventMessage($langs->trans('ConformiteUpdated'));
         }
-        else setEventMessage($langs->trans('ConformiteCreationError'), 'errors');
     }
-    else {
-        $commentaire = GETPOST('commentaire', 'alpha');
 
-        if(! empty($commentaire)) {
-            $object->commentaire = $commentaire;
-            $res = $object->update();
-
-            if($res > 0) {
-                setEventMessage($langs->trans('ConformiteUpdated'));
-            }
-        }
-
-        $url = $_SERVER['PHP_SELF'];
-        $url.= '?fk_simu='.$fk_simu;
-        $url.= '&id='.$id;
-        header('Location: '.$url);
-        exit;
-    }
+    $url = $_SERVER['PHP_SELF'];
+    $url.= '?fk_simu='.$fk_simu;
+    $url.= '&id='.$id;
+    header('Location: '.$url);
+    exit;
 }
 elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     $statusLabel = GETPOST('status', 'alpha');
@@ -131,6 +129,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
             break;
         case 'waitN1':
             $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1;
+            $fk_user = $user->id;
             break;
         case 'waitN2':
             $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2;
@@ -140,6 +139,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     }
 
     if(! is_null($status)) {
+        if(! is_null($fk_user) && $object->status === Conformite::STATUS_DRAFT) $object->fk_user = $fk_user;
         $object->status = $status;
         $res = $object->update();
 
