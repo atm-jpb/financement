@@ -137,6 +137,7 @@ Etude_Vendeur=En étude - Elements Vendeur
 Etude_Leaser_Short=Elts Leaser
 Etude_Vendeur_Short=Elts Vendeur
 Accord=Accord
+SendUpdateRequest=Envoyer une demande de modification
 Refus=Refus
 SansSuite=Sans suite
 Error=Erreur
@@ -340,6 +341,7 @@ ManualActionType = Types d'actions manuelles
 CantDoAutoScoring = Impossible de scorer en automatique
 CantGiveAccordAuto = Impossible de donner un accord automatique
 
+UpdateRequestStatus = Statut de la demande de modification
 SelectThisLeaser=Sélectionner ce leaser
 ConfirmSelectThisLeaser=Etes-vous sûr(e) de vouloir sélectionner ce leaser ?
 

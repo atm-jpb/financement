@@ -317,10 +317,55 @@
 					header("Location: ".$urlback);
 					exit;
 				}
-				
+
 				break;
-			
-			break;
+            case 'modifAccord':
+                dol_include_once('/financement/class/simulation.class.php');
+                dol_include_once('/financement/class/service_financement.class.php');
+                $dossier->load($PDOdb, $id);
+
+                $fk_simu = GETPOST('fk_simu', 'int');
+                $simu = new TSimulation;
+                if(! empty($fk_simu)) {
+                    $simu->load($PDOdb, $fk_simu);  // C'est quand même mieux de load par l'id de la simul
+                }
+
+                if(! empty($simu->rowid)) {
+                    // On duplique la ligne de suivi CMCIC
+                    $newSuivi = new TSimulationSuivi;
+                    $TRes = $newSuivi->loadAllBy($PDOdb, array('fk_simulation' => $simu->rowid, 'fk_leaser' => $dossier->financementLeaser->fk_soc));
+                    $suivi = array_shift($TRes);
+
+                    $TFieldToKeep = array(
+                        'entity',
+                        'fk_simulation',
+                        'fk_leaser',
+                        'fk_user_author',
+                        'numero_accord_leaser',
+                        'b2b_nodef',
+                        'b2b_noweb',
+                        'leaseRequestID'
+                    );
+                    foreach($TFieldToKeep as $field) $newSuivi->$field = $suivi->$field;
+                    $newSuivi->statut = 'WAIT';
+                    $newSuivi->statut_demande = 2; // Statut spécifique aux modifs
+
+                    $newSuivi->save($PDOdb);
+                    $newSuivi->loadLeaser();
+                    $simu->montant = $dossier->financementLeaser->montant;
+
+                    $service = new ServiceFinancement($simu, $newSuivi);
+
+                    // La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active)
+                    $res = $service->call();
+                    $newSuivi->date_demande = time();
+                    $newSuivi->save($PDOdb);
+                }
+
+                header('Location: '.$_SERVER['PHP_SELF'].'?id='.$id);
+                exit;
+
+                break;
 		}
 		
 	}
@@ -344,6 +389,7 @@ function _liste(&$PDOdb, &$dossier) {
 	global $conf, $db, $langs;
 	
 	llxHeader('','Dossiers');
+    print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 	
 	//Affichage de l'en-tête société si fk_leaser
 	if(isset($_REQUEST['fk_leaser']) && !empty($_REQUEST['fk_leaser'])){
@@ -419,7 +465,7 @@ function _liste(&$PDOdb, &$dossier) {
 			'nomCli'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
 			,'nomLea'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
 			,'refDosCli'=>'<a href="?id=@ID@">@val@</a>'
-			,'refDosLea'=>'<a href="?id=@ID@">@val@</a>'
+//			,'refDosLea'=>'<a href="?id=@ID@">@val@</a>'
 			,'Affaire'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/affaire.php?id=@ID affaire@">@val@</a>'
 			//,'fact_materiel'=>'<a href="'.DOL_URL_ROOT.'/compta/facture.php?facid=@fk_fact_materiel@">'.img_object('', 'bill').' @val@</a>'
 		)
@@ -477,6 +523,7 @@ function _liste(&$PDOdb, &$dossier) {
 		)
 		,'eval'=>array(
 			'fact_materiel'=>'_get_facture_mat(@ID affaire@);'
+            ,'refDosLea'=>"_print_modif_icon(@ID@);"
 		)
 		,'position'=>array(
 			'text-align'=>array(
@@ -705,7 +752,7 @@ function _get_facture_mat($fk_source,$withlink=true){
 	return $link;
 }
 
-function _fiche(&$PDOdb, &$dossier, $mode) {
+function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 	global $user,$db,$conf, $langs;
 
     $result = restrictedArea($user, 'financement', $dossier->getID(), 'fin_dossier&societe', 'alldossier', 'fk_soc', 'rowid');
@@ -752,6 +799,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	
 	$extrajs = array('/financement/js/dossier.js');
 	llxHeader('','Dossier','','','','',$extrajs);
+    print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 
     $head = dossier_prepare_head($dossier);
     $img_path = dol_buildpath('/financement/img/object_financeico.png', 2);
@@ -783,8 +831,14 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 	$formRestricted->Set_typeaff( $mode_aff_fLeaser );
 
 	$id_simu = _getIDSimuByReferenceDossierLeaser($PDOdb, $financementLeaser->fk_fin_dossier);
-	if(!empty($id_simu)) $link_simu = '<a href="'.dol_buildpath('/financement/simulation/simulation.php?id='.$id_simu, 2).'" >'.$financementLeaser->reference.'</a>';
-    $referenceToShow = (empty($link_simu) || GETPOST('action') == 'edit') ? $formRestricted->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir') : $link_simu;
+	if(!empty($id_simu)) {
+	    $link_simu = '<a href="'.dol_buildpath('/financement/simulation/simulation.php?id='.$id_simu, 2).'" >'.$financementLeaser->reference.'</a>';
+    }
+	if(empty($link_simu) || GETPOST('action') == 'edit') {
+        $referenceToShow = $formRestricted->texte('', 'leaser[reference]', $financementLeaser->reference, 20,255,'','','à saisir');
+    }
+	else $referenceToShow = $link_simu;
+    if(GETPOST('action') != 'edit') $referenceToShow .= '&nbsp;'.$financementLeaser->printModifAccordCMCIC();
     $referenceToShow.= $dossier->printOtherDossierLink();   // On ajoute le lien pour les autres dossiers s'ils existent
 	
 	$TFinancementLeaser=array(
@@ -827,7 +881,7 @@ function _fiche(&$PDOdb, &$dossier, $mode) {
 			,'xml_infos_transfert' => (!empty($affaire) && !empty($affaire->xml_fic_transfert)) ? ' - '.$affaire->xml_fic_transfert. ' - '.$affaire->get_date('xml_date_transfert') : ''
 			
 			//,'reinit'=>'<a href="'.$_SERVER['PHP_SELF'].'?action=regenerate-facture-leaser&id='.$dossier->getId().'">Lancer</a>'
-			
+
 			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			
 			,'detail_fact' => dol_buildpath('/fourn/facture/list.php?search_ref_supplier='.$financementLeaser->reference,2)
@@ -1074,6 +1128,7 @@ function _liste_dossiers_incomplets(&$PDOdb, &$dossier) {
 	global $conf;
 	
 	llxHeader('','Dossiers incomplets');
+    print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 	
 	$r = new TSSRenderControler($dossier);
 	$sql="SELECT d.rowid as 'ID', f.reference, a.rowid as 'ID affaire', a.reference as 'N° affaire', a.contrat, a.fk_soc as 'fk_soc', s.nom, 
@@ -1141,4 +1196,13 @@ function _liste_dossiers_incomplets(&$PDOdb, &$dossier) {
 	$form->end();
 	
 	llxFooter();
+}
+
+function _print_modif_icon($fk_dossier) {
+    $PDOdb = new TPDOdb;
+    $d = new TFin_dossier;
+    $d->load($PDOdb, $fk_dossier);
+    $f = &$d->financementLeaser;
+
+    return '<a href="'.$_SERVER['PHP_SELF'].'?id='.$d->rowid.'">'.$f->reference.'</a>&nbsp;'.$f->printModifAccordCMCIC();
 }
