@@ -305,7 +305,7 @@ elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COM
 elseif($action === 'setStatus') {
     $statusLabel = GETPOST('status', 'alpha');
     if(in_array($statusLabel, array('waitN1', 'waitN2')) && ! empty($user->rights->financement->conformite->validate) ||
-        in_array($statusLabel, array('compliantN1', 'compliantN2', 'notCompliantN1', 'notCompliantN2')) && ! empty($user->rights->financement->accept))
+        in_array($statusLabel, array('compliantN1', 'compliantN2', 'notCompliantN1', 'notCompliantN2')) && ! empty($user->rights->financement->conformite->accept))
     {
         $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
         if(! empty($statusLabel)) $url .= '&status='.$statusLabel;
