@@ -43,14 +43,22 @@ class TFin_dossier extends TObjetStd
         $this->type_regul = 3;
     }
 
-    function loadReference(&$db, $reference, $annexe = false) {
-        $db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference='".$reference."'");
+    function loadReference(&$db, $reference, $annexe = false, $entity = null) {
+        $checkEntity = '';
+        if(! is_null($entity) && is_numeric($entity) && ! empty($entity)) $checkEntity .= ' AND entity = '.$entity;
+
+        $db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference='".$reference."'".$checkEntity);
 
         if($db->Get_line()) {
             return $this->load($db, $db->Get_field('rowid'), $annexe);
         }
         else {
-            $db->Execute("SELECT fk_fin_dossier FROM ".$this->get_table()."_financement WHERE reference='".$reference."'");
+            $sql = 'SELECT fk_fin_dossier';
+            $sql.= ' FROM '.$this->get_table().'_financement df';
+            $sql.= ' LEFT JOIN '.$this->get_table().' d ON (df.fk_fin_dossier = d.rowid)';
+            $sql.= " WHERE df.reference = '".$reference."'";
+            $sql.= $checkEntity;
+            $db->Execute($sql);
 
             if($db->Get_line()) {
                 return $this->load($db, $db->Get_field('fk_fin_dossier'), $annexe);
@@ -2636,5 +2644,46 @@ class TFin_financement extends TObjetStd
         }
 
         return $rate;
+    }
+
+    public function printModifAccordCMCIC() {
+        if($this->type == 'CLIENT' || $this->fk_soc != 21382 || empty($this->reference)) return '';
+        global $db, $langs;
+
+        $sql = 'SELECT s.rowid, s.montant, ss.surfact, ss.surfactplus, ss.statut, ss.statut_demande';
+        $sql .= ' FROM '.MAIN_DB_PREFIX.'fin_simulation_suivi ss';
+        $sql .= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON (ss.fk_simulation=s.rowid)';
+        $sql .= ' WHERE ss.fk_leaser = '.$this->fk_soc;
+        $sql .= " AND ss.numero_accord_leaser = '".$db->escape($this->reference)."'";
+        $sql .= ' ORDER BY s.date_simul DESC';  // On prend la plus récente
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+        $nbRows = $db->num_rows($resql);
+
+        // Si on passe dedans c'est que le leaser c'est CMCIC MANDATEE et que la référence contrat leaser existe dans la base simulation
+        while($obj = $db->fetch_object($resql)) {
+            if($nbRows == 1 && $this->montant != ($obj->montant + $obj->surfact + $obj->surfactplus)) {
+                $isCard = array_key_exists('id', $_GET);
+                $ret = '';
+                if($isCard) $ret .= '<a href="'.$_SERVER['PHP_SELF'].'?id='.$this->fk_fin_dossier.'&action=modifAccord&fk_simu='.$obj->rowid.'" title="'.$langs->trans('SendUpdateRequest').'" >';
+                $ret .= get_picto('webservice');
+                if($isCard) $ret .= '</a>';
+                return $ret;
+            }
+            elseif($nbRows > 1) {
+                if($obj->statut_demande == 1) continue; // On ne veut prendre que le suivi qui a son statut_demande à 2
+//                dol_include_once('/financement/class/simulation.class.php');
+//                $suivi = new TSimulationSuivi;
+
+//                $title = $langs->trans('UpdateRequestStatus').' : '.$suivi->TStatut[$obj->statut];
+                return get_picto($obj->statut/*, $title*/);
+            }
+        }
+
+        return '';
     }
 }

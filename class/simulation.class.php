@@ -2216,7 +2216,8 @@ class TSimulation extends TObjetStd
             'EBM' => array(8)
         );
 
-        return $TRes[$entity_code_cristal];
+        if(array_key_exists($entity_code_cristal, $TRes)) return $TRes[$entity_code_cristal];
+        return array();
     }
 
     static function getTypeContratFromCristal($code) {
@@ -2655,6 +2656,8 @@ class TSimulationSuivi extends TObjetStd
         $simulation->montant_accord = $simulation->montant_total_finance;
         $simulation->fk_user_suivi = empty($user->id) ? 1035 : $user->id;   // $user->id ou 'admin_financement'
         if(! empty($TTypeFinancement[$TCateg_tiers[0]])) $simulation->type_financement = $TTypeFinancement[$TCateg_tiers[0]];
+
+        if($simulation->fk_action_manuelle > 0) $simulation->fk_action_manuelle = 0;    // Si OK pour un leaser, plus aucune action manuelle n'est nécessaire
 
         $simulation->save($PDOdb, $db);
 
