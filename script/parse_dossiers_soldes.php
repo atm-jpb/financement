@@ -17,7 +17,8 @@ $fk_simu = GETPOST('fk_simu', 'int');
 $TLeaserCat = getLeaserCategory();
 $PDOdb = new TPDOdb;
 
-$sql = 'SELECT s.rowid, s.dossiers, s.dossiers_rachetes_nr, s.dossiers_rachetes_nr_m1, s.dossiers_rachetes_nr_p1, s.fk_leaser';
+$sql = 'SELECT s.rowid, s.dossiers, s.dossiers_rachetes_nr, s.dossiers_rachetes_nr_m1, s.dossiers_rachetes_nr_p1, s.fk_leaser,';
+$sql.= ' s.dossiers_rachetes_m1 as prev, s.dossiers_rachetes as curr, s.dossiers_rachetes_p1 as next';
 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation s';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.DossierRachete::$tablename.' dr ON (dr.fk_simulation=s.rowid)';
 $sql.= ' WHERE s.dossiers IS NOT NULL';
@@ -38,6 +39,10 @@ $nb_commit = $nb_rollback = 0;
 
 while($obj = $db->fetch_object($resql)) {
     $dossiers = unserialize($obj->dossiers);
+
+    $dPrev = unserialize($obj->prev);
+    $dCurr = unserialize($obj->curr);
+    $dNext = unserialize($obj->next);
     $dossiers_nr_m1 = unserialize($obj->dossiers_rachetes_nr_m1);
     $dossiers_nr = unserialize($obj->dossiers_rachetes_nr);
     $dossiers_nr_p1 = unserialize($obj->dossiers_rachetes_nr_p1);
@@ -53,6 +58,27 @@ while($obj = $db->fetch_object($resql)) {
 
         $dossierRachete = new DossierRachete;
         $dossierRachete->set_values($TValue);
+
+        // On renseigne le choice
+        if(empty($dossierRachete->choice)) {
+            if($dPrev !== false && is_array($dPrev) && array_key_exists($fk_dossier, $dPrev) && array_key_exists('checked', $dPrev[$fk_dossier])
+                || $dossiers_nr_m1 !== false && is_array($dossiers_nr_m1) && array_key_exists($fk_dossier, $dossiers_nr_m1) && array_key_exists('checked', $dossiers_nr_m1[$fk_dossier])) {
+                $choice = 'prev';
+            }
+            else if($dCurr !== false && is_array($dCurr) && array_key_exists($fk_dossier, $dCurr) && array_key_exists('checked', $dCurr[$fk_dossier])
+                || $dossiers_nr !== false && is_array($dossiers_nr) && array_key_exists($fk_dossier, $dossiers_nr) && array_key_exists('checked', $dossiers_nr[$fk_dossier])) {
+                $choice = 'curr';
+            }
+            else if($dNext !== false && is_array($dNext) && array_key_exists($fk_dossier, $dNext) && array_key_exists('checked', $dNext[$fk_dossier])
+                || $dossiers_nr_p1 !== false && is_array($dossiers_nr_p1) && array_key_exists($fk_dossier, $dossiers_nr_p1) && array_key_exists('checked', $dossiers_nr_p1[$fk_dossier])) {
+                $choice = 'next';
+            }
+            else {
+                $choice = 'no';
+            }
+
+            $dossierRachete->choice = $choice;
+        }
 
         // On récupère les soldes NR s'ils existent
         if($dossiers_nr_m1 !== false && is_array($dossiers_nr_m1) && array_key_exists($fk_dossier, $dossiers_nr_m1) && array_key_exists('montant', $dossiers_nr_m1[$fk_dossier])) {
