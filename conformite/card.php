@@ -144,7 +144,8 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
         $res = $object->update();
 
         if($res > 0 && in_array($object->status, array(Conformite::STATUS_COMPLIANT_N2, Conformite::STATUS_NOT_COMPLIANT_N1, conformite::STATUS_NOT_COMPLIANT_N2))) {
-            $object->sendMail();
+            $resMail = $object->sendMail();
+            if($resMail) setEventMessage('Email envoyé à : '.$user->email);
         }
     }
 

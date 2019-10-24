@@ -64,6 +64,9 @@ class Conformite extends TObjetStd
         return $this->loadBy($this->PDOdb, $value, $field);
     }
 
+    /**
+     * @return bool
+     */
     function sendMail() {
         global $conf, $db;
 
@@ -87,6 +90,7 @@ class Conformite extends TObjetStd
 
         $user = new User($db);
         $user->fetch($this->fk_user);
+        if(! isValidEmail($user->email)) return false;
 
         $old_entity = $conf->entity;
         switchEntity($this->entity);
@@ -96,7 +100,6 @@ class Conformite extends TObjetStd
 
         switchEntity($old_entity);
 
-
-        if($res !== false) setEventMessage('Email envoyé à : '.$user->email);
+        return $res !== false;
     }
 }
