@@ -32,6 +32,7 @@ if(! empty($search_entity) && ! is_array($search_entity)) $search_entity = explo
 $search_thirdparty = GETPOST('search_thirdparty');
 $search_leaser = GETPOST('search_leaser');
 $search_status = GETPOST('search_status');
+$search_user = GETPOST('search_user');
 
 $action = GETPOST('action');
 $sortfield = GETPOST('sortfield');
@@ -54,7 +55,7 @@ foreach($dao->entities as $mc_entity) $TEntity[$mc_entity->id] = $mc_entity->lab
  */
 // Remove filters
 if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) {
-    unset($search_ref, $search_entity, $search_thirdparty, $search_leaser, $search_status);
+    unset($search_ref, $search_entity, $search_thirdparty, $search_leaser, $search_status, $search_user);
 }
 
 $sql = 'SELECT s.rowid, s.reference, soc.rowid as fk_soc, c.status, s.entity, c.fk_user, c.rowid as fk_conformite, c.commentaire, c.date_cre, lea.rowid as fk_leaser';
@@ -62,7 +63,7 @@ $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_conformite c';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON (c.fk_simulation = s.rowid)';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe soc ON (s.fk_soc = soc.rowid)';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe lea ON (s.fk_leaser = lea.rowid)';
-$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'user u ON (c.fk_user = u.rowid)';
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user u ON (c.fk_user = u.rowid)';
 
 $strEntityShared = getEntity('fin_simulation', true);
 $TEntityShared = explode(',', $strEntityShared);
@@ -72,6 +73,7 @@ if(! empty($search_ref)) $sql .= natural_search('s.reference', $search_ref);
 if(! empty($search_thirdparty)) $sql .= natural_search('soc.nom', $search_thirdparty);
 if(! empty($search_leaser)) $sql .= natural_search('lea.nom', $search_leaser);
 if(! empty($search_status) && $search_status != -1) $sql .= natural_search('c.status', $search_status);
+if(! empty($search_user)) $sql .= natural_search('u.login', $search_user);
 if(! empty($search_entity)) {
     $TSearchEntity = array_intersect($TEntityShared, $search_entity);
     if(! empty($TSearchEntity)) $sql .= ' AND s.entity IN ('.implode(',', $TSearchEntity).')';
@@ -110,6 +112,7 @@ if(! empty($search_entity)) $param .= '&search_entity='.urlencode(implode(',', $
 if(! empty($search_thirdparty)) $param .= '&search_thirdparty='.urlencode($search_thirdparty);
 if(! empty($search_leaser)) $param .= '&search_leaser='.urlencode($search_leaser);
 if(! empty($search_status)) $param .= '&search_status='.urlencode($search_status);
+if(! empty($search_user)) $param .= '&search_user='.urlencode($search_user);
 
 print '<form method="GET" action="'.$_SERVER['PHP_SELF'].'" name="formfilter">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
@@ -166,7 +169,9 @@ print '&nbsp;';
 print '</td>';
 
 // User
-print '<td>&nbsp;</td>';
+print '<td>';
+print '<input type="text" name="search_user" value="'.$search_user.'" size="14" />';
+print '</td>';
 
 // Commentaire
 print '<td>&nbsp;</td>';
@@ -208,7 +213,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     }
 
     $u = new User($db);
-    $u->fetch($obj->fk_user);
+    if(! empty($obj->fk_user)) $u->fetch($obj->fk_user);
 
     print '<tr class="'.$class.'">';
 
@@ -244,7 +249,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
 
     // User
     print '<td>';
-    print $u->getLoginUrl(1);
+    if(! empty($u->id)) print $u->getLoginUrl(1);
     print '</td>';
 
     // Commentaire
