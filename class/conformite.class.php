@@ -67,26 +67,32 @@ class Conformite extends TObjetStd
     /**
      * @return bool
      */
-    function sendMail() {
-        global $conf, $db;
+    function sendMail($fk_soc) {
+        if(empty($fk_soc)) return false;
+
+        global $conf, $db, $langs;
 
         $mesg = '';
         $refSimu = sprintf("%'.06d", $this->fk_simulation);
 
         if($this->status === self::STATUS_COMPLIANT_N2) {
-            $mesg .= 'Bonjour'."\n\n";
-            $mesg .= 'La conformité de la simulation S'.$refSimu.' est conforme';
+            $mesg .= 'Bonjour,'."\n\n";
+            $mesg .= 'Le dossier de conformité S'.$refSimu.' est conforme';
         }
         elseif(in_array($this->status, array(self::STATUS_NOT_COMPLIANT_N1, self::STATUS_NOT_COMPLIANT_N2))) {  // Not compliant
-            $mesg .= 'Bonjour'."\n\n";
-            $mesg .= 'La conformité de la simulation S'.$refSimu.' n\'est pas conforme';
+            $mesg .= 'Bonjour,'."\n\n";
+            $mesg .= 'Le dossier de conformité S'.$refSimu.' n\'est pas conforme pour les raisons suivantes :'."\n\n";
+            $mesg .= $this->commentaire;
         }
 
-        $mesg .= ','."\n\n";
-        $mesg .= 'Cordialement,'."\n\n";
+        $mesg .= "\n\n";
+        $mesg .= 'Cordialement,'."\n";
         $mesg .= 'La cellule financement'."\n\n";
 
-        $subject = 'Conformite S'.$refSimu;
+        $client = new Societe($db);
+        $client->fetch($fk_soc);
+
+        $subject = $langs->trans(self::$TStatus[$this->status]).' S'.$refSimu.' '.$client->name;
 
         $user = new User($db);
         $user->fetch($this->fk_user);
