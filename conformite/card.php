@@ -43,18 +43,23 @@ foreach($dao->entities as $mc_entity) $TEntity[$mc_entity->id] = $mc_entity->lab
 $form = new Form($db);
 $formfile = new FormFile($db);
 $formMail = new FormMail($db);
+$u = new User($db);
 $soc = new Societe($db);
+$leaser = new Societe($db);
 $PDOdb = new TPDOdb;
 $object = new Conformite;
 if(! empty($id)) {
     $object->fetch($id);
     if(empty($fk_simu)) $fk_simu = $object->fk_simulation;
+
+    if(! empty($object->fk_user)) $u->fetch($object->fk_user);
 }
 
 $simu = new TSimulation;
 $simu->load($PDOdb, $fk_simu, false);
 if ($simu->rowid > 0) {
     $soc->fetch($simu->fk_soc);
+    $leaser->fetch($simu->fk_leaser);
 
     $oldEntity = $conf->entity;
     switchEntity($simu->entity);
@@ -283,7 +288,6 @@ elseif($action === 'confirm_deleteFile' && $confirm === 'yes') {
     exit;
 }
 
-
 /*
  * View
  */
@@ -329,17 +333,18 @@ if ($simu->id > 0) {
     print '<table class="border"width="100%">';
 
     // Ref
-    print '<tr><td width="25%">'.$langs->trans('Ref').'</td><td colspan="3">';
+    print '<tr><td width="20%">'.$langs->trans('Ref').'</td><td>';
     print $simu->reference.'&nbsp;';
     if($simu->accord === 'OK') print get_picto('super_'.$simu->accord);
     else print get_picto($simu->accord);
     print '</td></tr>';
 
     // Entity
-    print '<tr><td width="25%">'.$langs->trans('DemandReasonTypeSRC_PARTNER').'</td><td colspan="3">';
+    print '<tr><td width="20%">'.$langs->trans('DemandReasonTypeSRC_PARTNER').'</td><td>';
     print $TEntity[$simu->entity];
     print '</td></tr>';
 
+    // Status
     if(! empty($id)) {
         print '<tr>';
         print '<td>'.$langs->trans('ConformiteStatus').'</td>';
@@ -349,16 +354,34 @@ if ($simu->id > 0) {
 
     // Customer
     print "<tr><td>".$langs->trans("Company")."</td>";
-    print '<td colspan="3">'.$soc->getNomUrl(1).'</td></tr>';
+    print '<td>'.$soc->getNomUrl(1).'</td></tr>';
 
-    print '<tr><td>'.$langs->trans("NbOfAttachedFiles").'</td><td colspan="3">'.count($filearray).'</td></tr>';
-    print '<tr><td>'.$langs->trans("TotalSizeOfAttachedFiles").'</td><td colspan="3">'.$totalsize.' '.$langs->trans("bytes").'</td></tr>';
+    // Leaser
+    print '<tr><td>'.$langs->trans('Leaser').'</td>';
+    print '<td>'.$leaser->getNomUrl(1).'</td></tr>';
 
+    // Num accord leaser
+    $shouldILink = ! empty($simu->fk_fin_dossier);
+    print '<tr><td>'.$langs->trans('NumAccord').'</td>';
+    print '<td>';
+    if($shouldILink) print '<a href="'.dol_buildpath('/financement/dossier.php', 1).'?id='.$simu->fk_fin_dossier.'">';
+    print $simu->numero_accord;
+    if($shouldILink) print '</a>';
+    print '</td></tr>';
+
+    // User
+    print '<tr><td>'.$langs->trans('User').'</td>';
+    print '<td>';
+    if(! empty($u->id)) print $u->getLoginUrl(1);
+    print '</td></tr>';
+
+    // Required files
     print '<tr>';
     print '<td>'.$langs->trans('RequiredFiles').'</td>';
-    print '<td colspan="3">'.$langs->trans('ListOfRequiredFiles').'</td>';
+    print '<td>'.$langs->trans('ListOfRequiredFiles').'</td>';
     print '</tr>';
 
+    // Commentaire
     print '<tr>';
     print '<td>'.$langs->trans('ConformiteCommentaire');
     if(! empty($user->rights->financement->conformite->create)) print '&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'&action=editCommentaire">'.img_edit().'</a></td>';
