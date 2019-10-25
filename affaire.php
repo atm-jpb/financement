@@ -69,7 +69,7 @@
 
                         $f->ref = $facRef;
                         $f->statut = 0;
-                        $resUpdate = $f->update($user);
+                        $resUpdate = $f->validate($user);   // ça update aussi la ref donc c'est ok
                         if($resUpdate < 0) {
                             setEventMessage($langs->trans('EquipmentInvoiceRefAlreadyInUse', $facRef), 'warnings');
                         }
