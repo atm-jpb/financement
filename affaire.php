@@ -83,8 +83,7 @@
                         $res = $p->create($user);
                         if($res > 0) {
                             $f->add_object_linked('affaire', $affaire->rowid);
-                            if(! empty($affaire->TLien[0])) $f->add_object_linked('dossier', $affaire->TLien[0]->fk_fin_dossier);
-
+//                            if(! empty($affaire->TLien[0])) $f->add_object_linked('dossier', $affaire->TLien[0]->fk_fin_dossier);
                             $asset = new TAsset;
                             $asset->serial_number = $facSerialNumber;
                             $asset->fk_product = $p->id;
