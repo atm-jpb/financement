@@ -72,27 +72,31 @@ class Conformite extends TObjetStd
 
         global $conf, $db, $langs;
 
-        $mesg = '';
-        $refSimu = sprintf("%'.06d", $this->fk_simulation);
+        $client = new Societe($db);
+        $client->fetch($fk_soc);
 
-        if($this->status === self::STATUS_COMPLIANT_N2) {
-            $mesg .= 'Bonjour,'."\n\n";
-            $mesg .= 'Le dossier de conformité S'.$refSimu.' est conforme';
-        }
-        elseif(in_array($this->status, array(self::STATUS_NOT_COMPLIANT_N1, self::STATUS_NOT_COMPLIANT_N2))) {  // Not compliant
-            $mesg .= 'Bonjour,'."\n\n";
-            $mesg .= 'Le dossier de conformité S'.$refSimu.' n\'est pas conforme pour les raisons suivantes :'."\n\n";
-            $mesg .= $this->commentaire;
+        $refSimu = sprintf("%'.06d", $this->fk_simulation);
+        $subject = $langs->trans(self::$TStatus[$this->status]).' S'.$refSimu.' '.$client->name;
+
+        $mesg = 'Bonjour,'."\n\n";
+        switch($this->status) {
+            case self::STATUS_COMPLIANT_N1:
+                $mesg .= 'Ce dossier est conforme.'."\n";
+                $mesg .= 'Vous pouvez dès aujourd\'hui l\'envoyer par courrier à l\'attention du service financement.';
+                break;
+            case self::STATUS_COMPLIANT_N2:
+                $mesg .= 'Ce dossier est conforme.';
+                break;
+            case self::STATUS_NOT_COMPLIANT_N1:
+            case self::STATUS_NOT_COMPLIANT_N2:
+                $mesg .= 'Ce dossier n\'est pas accepté pour le ou les motifs suivants :'."\n\n";
+                $mesg .= $this->commentaire;
+                break;
         }
 
         $mesg .= "\n\n";
         $mesg .= 'Cordialement,'."\n";
         $mesg .= 'La cellule financement'."\n\n";
-
-        $client = new Societe($db);
-        $client->fetch($fk_soc);
-
-        $subject = $langs->trans(self::$TStatus[$this->status]).' S'.$refSimu.' '.$client->name;
 
         $user = new User($db);
         $user->fetch($this->fk_user);
