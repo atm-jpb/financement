@@ -62,8 +62,11 @@
 				    $f->date = $affaire->date_affaire;
 				    $f->socid = $affaire->societe->id;
 
+				    $old_entity = $conf->entity;
+				    switchEntity($affaire->entity); // Nécessaire car la création prend pour entité la $conf->entity
 				    $res = $f->create($user);
-				    var_dump($res);
+				    switchEntity($old_entity);
+
 				    if($res > 0) {
 				        $f->addline($facSerialNumber, $affaire->montant, 1, 0);
 
