@@ -247,7 +247,7 @@ elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($o
     header('Location: '.$_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid.'&id='.$object->id);
     exit;
 }
-elseif($action === 'confirm_deleteFile' && $confirm === 'yes') {
+elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->rights->financement->conformite->validate)) {
     // TODO: Traitement à refactorer/virer avec une version plus récente de Dolibarr
     $urlfile = GETPOST('urlfile', 'alpha');
 
@@ -441,7 +441,9 @@ if ($simu->id > 0) {
             print '<td align="center">'.dol_print_date($file['date'],"dayhour","tzuser").'</td>';
 
             print '<td align="right">';
-            print '<a href="'.($url.'&action=deleteFile&urlfile='.urlencode($filepath)).'" class="deletefilelink" rel="'.$filepath.'">'.img_delete().'</a>';
+            if(! empty($user->rights->financement->conformite->validate)) {
+                print '<a href="'.($url.'&action=deleteFile&urlfile='.urlencode($filepath)).'" class="deletefilelink" rel="'.$filepath.'">'.img_delete().'</a>';
+            }
             print '</td>';
 
             print '</tr>';
