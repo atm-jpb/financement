@@ -463,6 +463,18 @@
         <td width="20%">Montant restant à débloquer</td>
         <td>[dossier.solde; strconv=no; frm=0 000,00] &euro;</td>
     </tr>
+    <tr>
+        <td>Date de réception dossier papier</td>
+        <td>[dossier.date_reception_papier; strconv=no]</td>
+    </tr>
+    <tr>
+        <td>Date de paiement</td>
+        <td>[dossier.date_paiement; strconv=no]</td>
+    </tr>
+    <tr>
+        <td>Date de facture matériel</td>
+        <td>[dossier.date_facture_materiel; strconv=no]</td>
+    </tr>
 </table>
 
 <p align="center" style="font-size: 9px;">
