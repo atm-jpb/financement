@@ -273,16 +273,10 @@
                             </tr>
 
                             <tr class="pair">
-                                <td>Date de réception dossier papier</td>
-                                <td>[financementLeaser.date_reception_dossier; strconv=no]</td>
+                                <td colspan="2">&nbsp;</td>
                             </tr>
 
                             <tr class="impair">
-                                <td>Date de paiement</td>
-                                <td>[financementLeaser.date_paiement; strconv=no]</td>
-                            </tr>
-
-                            <tr class="pair">
                                 <td colspan="2" align="center"><a href="[financementLeaser.detail_fact]">D&eacute;tail facturation</a></td>
                             </tr>
 

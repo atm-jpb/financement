@@ -2036,7 +2036,7 @@ class TFin_financement extends TObjetStd
         parent::add_champs('fk_soc,fk_fin_dossier', 'type=entier;index;');
         parent::add_champs('okPourFacturation,transfert,reloc,relocOK,intercalaireOK', 'type=chaine;index;');
         parent::add_champs('loyer_reference', 'type=float;');
-        parent::add_champs('date_application,date_envoi,date_reception_dossier,date_paiement', 'type=date;index;');
+        parent::add_champs('date_application,date_envoi', 'type=date;index;');
 
         parent::start();
         parent::_init_vars();
@@ -2121,11 +2121,8 @@ class TFin_financement extends TObjetStd
         );
         $this->intercalaireOK = 'OUI';
 
-        // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
-        $this->date_application = null;
+        $this->date_application = null; // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
         $this->date_envoi = null;
-        $this->date_reception_dossier = null;
-        $this->date_paiement = null;
     }
 
     /*
