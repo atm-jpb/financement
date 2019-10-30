@@ -40,7 +40,7 @@ $sortorder = GETPOST('sortorder');
 $page = GETPOST('page', 'int');
 $limit = GETPOST('limit', 'int');
 if(empty($limit)) $limit = $conf->liste_limit;
-if(empty($sortfield)) $sortfield = 's.rowid';
+if(empty($sortfield)) $sortfield = 'c.date_cre';
 if(empty($sortorder)) $sortorder = 'DESC';
 if(empty($page) || $page == -1) $page = 0;
 $offset = $limit * $page;
