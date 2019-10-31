@@ -963,31 +963,37 @@ class TSimulation extends TObjetStd
             $mesg .= 'Vous trouverez ci-joint un accord de principe concernant la simulation '.$this->reference.'.'."\n";
             $mesg .= "Dans un second temps nous vous enverrons l'accord de financement définitif\n\n";
         }
-        else {
+        else {  // Refus
             $retourLeaser = '';
-            foreach($this->TSimulationSuivi as $suivi) {
-                if(! empty($suivi->commentaire_interne)) {
-                    $retourLeaser .= ' - '.$suivi->commentaire_interne."\n";
-                }
+//            foreach($this->TSimulationSuivi as $suivi) {
+//                if(! empty($suivi->commentaire_interne)) {
+//                    $retourLeaser .= ' - '.$suivi->commentaire_interne."\n";
+//                }
+//            }
+            if(! empty($this->commentaire)) {
+                $retourLeaser .= $this->commentaire;
             }
 
             $accord = 'Demande de financement refusée';
-            $mesg = 'Bonjour '.$this->user->getFullName($langs)."\n\n";
-            $mesg .= 'La demande de financement pour le client '.$this->societe->name.' d\'un montant de '.price($this->montant_total_finance).' € n\'est pas acceptée.'."\n";
-            $mesg .= 'Nous n\'avons des refus pour le ou les motifs suivants :'."\n";
-            $mesg .= $retourLeaser."\n";
-
-            // Message spécifique CPRO
-            if(in_array($this->entity, array(1, 2, 3))) {
-                $mesg .= 'Nous allons réétudier la demande en interne afin de voir s\'il est possible de trouver une solution favorable au financement du dossier.'."\n";
-                $mesg .= 'Si c\'est le cas, le coeff de la demande sera augmenté en fonction du risque que porte C\'PRO.'."\n\n";
-
-                $mesg .= 'Pour cela merci de nous faire parvenir le dernier bilan du client.'."\n\n";
-            }
+            $mesg = 'Bonjour '.$this->user->getFullName($langs).",\n\n";
+            $mesg .= 'Nous avons bien réceptionné votre demande n° '.$this->reference.' du '.date('d/m/Y', $this->date_simul).' :'."\n\n";
+            $mesg .= 'Notre réponse : Refus'."\n\n";
+            $mesg .= 'Raison sociale : '.$this->societe->getFullName($langs)."\n";
+            $mesg .= 'Matériel : '.$this->type_materiel."\n";
+            $mesg .= 'Durée : '.$this->duree.' '.ucfirst(strtolower($this->opt_periodicite)).'s'."\n";
+            $mesg .= 'Loyer trimestriel H.T. : '.price($this->echeance).' €'."\n\n";
+            $mesg .= 'Nous avons étudié votre demande avec minutie. Cependant, nous regrettons de ne pouvoir y donner une suite favorable.'."\n";
+            $mesg .= 'Nous pouvons éventuellement réviser cette décision avec le dernier bilan de l\'entreprise.'."\n\n";
+            $mesg .= 'Motifs : '.$retourLeaser."\n\n";
+            $mesg .= 'Veuillez agréer, nos sincères salutations.'."\n\n";
+            $mesg .= 'Le Service Financement C\'PRO';
         }
 
-        $mesg .= 'Cordialement,'."\n\n";
-        $mesg .= 'La cellule financement'."\n\n";
+        // Le mail de refus a une signature personnalisée
+        if(in_array($this->accord, array('OK', 'WAIT_AP'))) {
+            $mesg .= 'Cordialement,'."\n\n";
+            $mesg .= 'La cellule financement'."\n\n";
+        }
 
         $subject = 'Simulation '.$this->reference.' - '.$this->societe->getFullName($langs).' - '.number_format($this->montant_total_finance, 2, ',', ' ').' Euros - '.$accord;
 
