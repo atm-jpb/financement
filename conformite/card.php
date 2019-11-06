@@ -405,7 +405,7 @@ if ($simu->id > 0) {
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid;
     if(! empty($id)) $url .= '&id='.$id;
 
-    $perm = (empty($user->rights->financement->conformite->create) || empty($user->rights->financement->admin->write) || empty($conf->global->MAIN_UPLOAD_DOC));
+    $perm = (empty($user->rights->financement->conformite->create) && empty($user->rights->financement->admin->write) && empty($conf->global->MAIN_UPLOAD_DOC));
     $param = '&fk_simu='.$simu->rowid;
     ?>
     <div class="titre"><?php echo $langs->trans('AttachANewFile'); ?></div>
