@@ -369,9 +369,11 @@ ListOfRequiredFiles = <ul style="padding-left: 20px; margin-top: 0px; margin-bot
 ConformiteStatus = Statut conformité
 ConformiteDraft = Brouillon
 ConformiteWaitingForComplianceN1 = En attente de conformité N1
-ConformiteCompliantN1 = Conforme N1
+ConformiteWaitingForComplianceN1Button = Demande de conformité N1
+ConformiteCompliantN1 = Conforme N1 - En attente pièces
 ConformiteNotCompliantN1 = Non conforme N1
 ConformiteWaitingForComplianceN2 = En attente de conformité N2
+ConformiteWaitingForComplianceN2Button = Demande de conformité N2
 ConformiteCompliantN2 = Conforme N2
 ConformiteNotCompliantN2 = Non conforme N2
 ConformiteCreated = Conformité créée
