@@ -368,11 +368,12 @@ RequiredFiles = Fichiers obligatoires
 ListOfRequiredFiles = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>Contrat + scan des CGV + mandat SEPA</li><li>Accord de financement</li><li>Facture matériel</li><li>PV de livraison</li><li>RIB</li><li>CNI (recto verso)</li><li>Copie societe.com ou KBIS pour les dossiers >50k€</li><li>Mail de déro la cas échéant</li><li>Pouvoir de signature le cas échéant</li></ul>
 ConformiteStatus = Statut conformité
 ConformiteDraft = Brouillon
-ConformiteWaitingForComplianceN1 = En attente de conformité N1
+ConformiteWaitingForComplianceN1 = En attente de validation N1
 ConformiteWaitingForComplianceN1Button = Demande de conformité N1
-ConformiteCompliantN1 = Conforme N1 - En attente pièces
+ConformiteCompliantN1 = Conforme N1 - En attente pièces N2
+ConformiteCompliantN1Button = Conforme N1
 ConformiteNotCompliantN1 = Non conforme N1
-ConformiteWaitingForComplianceN2 = En attente de conformité N2
+ConformiteWaitingForComplianceN2 = En attente de validation N2
 ConformiteWaitingForComplianceN2Button = Demande de conformité N2
 ConformiteCompliantN2 = Conforme N2
 ConformiteNotCompliantN2 = Non conforme N2

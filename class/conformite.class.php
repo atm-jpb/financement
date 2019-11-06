@@ -76,7 +76,7 @@ class Conformite extends TObjetStd
         $client->fetch($fk_soc);
 
         $refSimu = sprintf("%'.06d", $this->fk_simulation);
-        $subject = $langs->trans(self::$TStatus[$this->status]).' S'.$refSimu.' '.$client->name;
+        $subject = $langs->transnoentities(self::$TStatus[$this->status]).' S'.$refSimu.' '.$client->name;
 
         $mesg = 'Bonjour,'."\n\n";
         switch($this->status) {

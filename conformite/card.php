@@ -189,7 +189,7 @@ elseif($action === 'confirm_createDossier' && !empty($user->rights->financement-
 
     $d->financement->montant = $simu->montant_total_finance;
     $d->financement->echeance = $simu->echeance;
-    $d->financement->terme = $simu->pot_terme;
+    $d->financement->terme = $simu->opt_terme;
     $d->financement->duree = $simu->duree;
     $d->financement->reglement = $simu->opt_mode_reglement;
     $d->financement->reste = $simu->vr;
@@ -469,7 +469,7 @@ if(in_array($object->status, array(Conformite::STATUS_DRAFT, Conformite::STATUS_
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=confirm_setStatus&status=waitN1&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN1Button').'</a>';
 }
 elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1 && ! empty($user->rights->financement->conformite->accept)) {
-    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=compliantN1">'.$langs->trans('ConformiteCompliantN1').'</a>';
+    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=compliantN1">'.$langs->trans('ConformiteCompliantN1Button').'</a>';
     print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliantN1">'.$langs->trans('ConformiteNotCompliantN1').'</a>';
 }
 elseif(in_array($object->status, array(Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_NOT_COMPLIANT_N2)) && ! empty($user->rights->financement->conformite->validate)) {
