@@ -160,7 +160,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     header('Location: '.$url);
     exit;
 }
-elseif($action === 'confirm_createDossier' && $object->status === Conformite::STATUS_COMPLIANT_N2 && $confirm === 'yes') {
+elseif($action === 'confirm_createDossier' && !empty($user->rights->financement->alldossier->write) && $confirm === 'yes') {
     // Création de l'affaire
     $a = new TFin_affaire;
     $a->reference = '00000-00000';
@@ -247,7 +247,7 @@ elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($o
     header('Location: '.$_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid.'&id='.$object->id);
     exit;
 }
-elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->rights->financement->conformite->validate)) {
+elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->rights->financement->conformite->create)) {
     // TODO: Traitement à refactorer/virer avec une version plus récente de Dolibarr
     $urlfile = GETPOST('urlfile', 'alpha');
 
@@ -294,7 +294,7 @@ elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->
 llxHeader('',$langs->trans('Simulation'),'');
 print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 
-if($action === 'deleteFile' && ! empty($user->rights->financement->conformite->validate)) {
+if($action === 'deleteFile' && ! empty($user->rights->financement->conformite->create)) {
     $urlfile = GETPOST('urlfile');
 
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
@@ -302,7 +302,7 @@ if($action === 'deleteFile' && ! empty($user->rights->financement->conformite->v
 
     print $form->formconfirm($url, $langs->trans('DeleteFile'), $langs->trans('ConfirmDeleteFile'), 'confirm_deleteFile', '', '', 1);
 }
-elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COMPLIANT_N1 && ! empty($user->rights->financement->admin->write)) {
+elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COMPLIANT_N1 && ! empty($user->rights->financement->alldossier->write)) {
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
 
     print $form->formconfirm($url, $langs->trans('ConformiteCreateDossier'), $langs->trans('ConformiteConfirmCreateDossier'), 'confirm_createDossier', '', '', 1);
@@ -405,7 +405,7 @@ if ($simu->id > 0) {
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid;
     if(! empty($id)) $url .= '&id='.$id;
 
-    $perm = (empty($user->rights->financement->conformite->create) && empty($user->rights->financement->admin->write) && empty($conf->global->MAIN_UPLOAD_DOC));
+    $perm = (empty($user->rights->financement->conformite->create) && empty($conf->global->MAIN_UPLOAD_DOC));
     $param = '&fk_simu='.$simu->rowid;
     ?>
     <div class="titre"><?php echo $langs->trans('AttachANewFile'); ?></div>
@@ -441,7 +441,7 @@ if ($simu->id > 0) {
             print '<td align="center">'.dol_print_date($file['date'],"dayhour","tzuser").'</td>';
 
             print '<td align="right">';
-            if(! empty($user->rights->financement->conformite->validate)) {
+            if(! empty($user->rights->financement->conformite->create)) {
                 print '<a href="'.($url.'&action=deleteFile&urlfile='.urlencode($filepath)).'" class="deletefilelink" rel="'.$filepath.'">'.img_delete().'</a>';
             }
             print '</td>';
@@ -480,7 +480,7 @@ elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2 && ! emp
     print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliantN2">'.$langs->trans('ConformiteNotCompliantN2').'</a>';
 }
 
-if($object->status === Conformite::STATUS_COMPLIANT_N1 && empty($simu->fk_fin_dossier) && ! empty($user->rights->financement->admin->write)) {
+if($object->status === Conformite::STATUS_COMPLIANT_N1 && empty($simu->fk_fin_dossier) && ! empty($user->rights->financement->alldossier->write)) {
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=createDossier">'.$langs->trans('ConformiteCreateDossier').'</a>';
 }
 
