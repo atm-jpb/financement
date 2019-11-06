@@ -1086,6 +1086,9 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 				,'somme_sup_coul' => $sommeCopieSupCouleur
 				,'type_regul' => $dossier->type_regul
 				,'commentaire_conformite' => $form->zonetexte('', 'commentaire_conformite', $dossier->commentaire_conformite,100,5,'')
+                ,'date_reception_papier' => $formRestricted->calendrier('', 'date_reception_papier', $dossier->date_reception_papier, 10, 255)
+                ,'date_paiement' => $formRestricted->calendrier('', 'date_paiement', $dossier->date_paiement, 10, 255)
+                ,'date_facture_materiel' => $formRestricted->calendrier('', 'date_facture_materiel', $dossier->date_facture_materiel, 10, 255)
 			)
 			,'financement'=>$TFinancement
 			,'financementLeaser'=>$TFinancementLeaser

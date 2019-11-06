@@ -626,7 +626,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
  * @param 	TSimulation	$object		Object simulation shown
  * @return 	array				    Array of tabs
  */
-function simulation_prepare_head(TSimulation $object)
+function simulation_prepare_head(TSimulation $object, Conformite $conformite = null)
 {
     global $db, $langs, $conf, $user;
     $h = 0;
@@ -662,6 +662,16 @@ function simulation_prepare_head(TSimulation $object)
         $cssFlipStyle.= " -ms-filter: 'FlipH';";
 		$head[$h][1].= '&nbsp;'.get_picto('snowplow', '', '', $cssFlipStyle);
         $head[$h][2] = 'note';
+        $h++;
+    }
+
+    if(! empty($user->rights->financement->conformite->read) && ! empty($id)) {
+        $url = dol_buildpath('/financement/conformite/card.php', 1).'?fk_simu='.$id;
+        if(! is_null($conformite) && ! empty($conformite->id)) $url .= '&id='.$conformite->id;
+
+        $head[$h][0] = $url;
+        $head[$h][1] = $langs->trans('ConformiteLabel');
+        $head[$h][2] = 'conformite';
         $h++;
     }
 
