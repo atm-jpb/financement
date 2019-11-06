@@ -302,7 +302,7 @@ if($action === 'deleteFile' && ! empty($user->rights->financement->conformite->v
 
     print $form->formconfirm($url, $langs->trans('DeleteFile'), $langs->trans('ConfirmDeleteFile'), 'confirm_deleteFile', '', '', 1);
 }
-elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COMPLIANT_N1 && ! empty($user->rights->financement->admin)) {
+elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COMPLIANT_N1 && ! empty($user->rights->financement->admin->write)) {
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
 
     print $form->formconfirm($url, $langs->trans('ConformiteCreateDossier'), $langs->trans('ConformiteConfirmCreateDossier'), 'confirm_createDossier', '', '', 1);
@@ -405,7 +405,7 @@ if ($simu->id > 0) {
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid;
     if(! empty($id)) $url .= '&id='.$id;
 
-    $perm = (empty($user->rights->financement->conformite->create) || empty($user->rights->financement->admin) || empty($conf->global->MAIN_UPLOAD_DOC));
+    $perm = (empty($user->rights->financement->conformite->create) || empty($user->rights->financement->admin->write) || empty($conf->global->MAIN_UPLOAD_DOC));
     $param = '&fk_simu='.$simu->rowid;
     ?>
     <div class="titre"><?php echo $langs->trans('AttachANewFile'); ?></div>
@@ -480,7 +480,7 @@ elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2 && ! emp
     print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliantN2">'.$langs->trans('ConformiteNotCompliantN2').'</a>';
 }
 
-if($object->status === Conformite::STATUS_COMPLIANT_N1 && empty($simu->fk_fin_dossier) && ! empty($user->rights->financement->admin)) {
+if($object->status === Conformite::STATUS_COMPLIANT_N1 && empty($simu->fk_fin_dossier) && ! empty($user->rights->financement->admin->write)) {
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=createDossier">'.$langs->trans('ConformiteCreateDossier').'</a>';
 }
 
