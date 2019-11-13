@@ -40,7 +40,7 @@ class WebServiceFranfinance extends WebService
 
         $context  = stream_context_create($options);
         $res = file_get_contents($this->wsdl,null, $context);
-//var_dump($res);exit;
+
         dol_syslog("WEBSERVICE SENDING FRANFINANCE : ".$this->simulation->reference, LOG_ERR, 0, '_EDI_FRANFINANCE');
 
         if ($res)
@@ -52,7 +52,7 @@ class WebServiceFranfinance extends WebService
             if ($resp->code == 201)
             {
                 $this->simulationSuivi->numero_accord_leaser = $resp->numeroDemande;
-                $this->simulationSuivi->b2b_nodef = $resp->numeroDemande;
+                $this->simulationSuivi->commentaire = $resp->message;
                 return true;
             }
             else
