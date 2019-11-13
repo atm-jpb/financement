@@ -134,7 +134,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
             break;
         case 'waitN1':
             if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1;
-            $fk_user = $user->id;
+            $fk_user = $user->id;   // On save le user qui fait la demande
             break;
         case 'waitN2':
             if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2;
@@ -150,7 +150,12 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
 
         if($res > 0 && in_array($object->status, array(Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_COMPLIANT_N2, Conformite::STATUS_NOT_COMPLIANT_N1, conformite::STATUS_NOT_COMPLIANT_N2))) {
             $resMail = $object->sendMail($simu->fk_soc);
-            if($resMail) setEventMessage('Email envoyé à : '.$user->email);
+            if($resMail) {
+                $u = new User($db);
+                $u->fetch($object->fk_user);
+
+                setEventMessage('Email envoyé à : '.$u->email);
+            }
         }
     }
 
