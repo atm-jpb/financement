@@ -93,9 +93,18 @@ while($obj = $db->fetch_object($resql)) {
             $dossierRachete->solde_banque_nr_p1 = $dossiers_nr_p1[$fk_dossier]['montant'];
         }
 
-        if($dossierRachete->choice == 'prev') $offset = -2;
-        elseif($dossierRachete->choice == 'curr') $offset = -1;
-        elseif($dossierRachete->choice == 'next') $offset = 0;
+        if($dossierRachete->choice == 'prev') {
+            $offset = -2;
+            $dossierRachete->solde_banque_m1 = $dossierRachete->solde_banque_a_periode_identique;
+        }
+        elseif($dossierRachete->choice == 'curr') {
+            $offset = -1;
+            $dossierRachete->solde_banque = $dossierRachete->solde_banque_a_periode_identique;
+        }
+        elseif($dossierRachete->choice == 'next') {
+            $offset = 0;
+            $dossierRachete->solde_banque_p1 = $dossierRachete->solde_banque_a_periode_identique;
+        }
 
         // On recalcule les soldes NR s'ils sont vides
         $doss = new TFin_dossier;
