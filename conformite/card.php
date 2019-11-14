@@ -156,6 +156,11 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
 
                 setEventMessage('Email envoyé à : '.$u->email);
             }
+
+            if($object->status === Conformite::STATUS_COMPLIANT_N1) {
+                if(TFin_financement::isFinancementAlreadyExists($simu->numero_accord)) setEventMessage($langs->trans('ConformiteDossierAlreadyExists', $simu->numero_accord), 'warnings');
+                else createDossier($PDOdb, $simu);
+            }
         }
     }
 
@@ -166,53 +171,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     exit;
 }
 elseif($action === 'confirm_createDossier' && !empty($user->rights->financement->alldossier->write) && $confirm === 'yes') {
-    // Création de l'affaire
-    $a = new TFin_affaire;
-    $a->reference = '00000-00000';
-    $a->entity = $simu->entity;
-    $a->montant = $simu->montant_accord;
-    $a->nature_financement = 'INTERNE';
-    $a->type_financement = $simu->type_financement;
-    $a->contrat = $simu->fk_type_contrat;
-    $a->date_affaire = time();  // Date du jour
-    $a->fk_soc = $simu->fk_soc;
-
-    $a->save($PDOdb);
-
-    // Pour éviter les doublons de référence
-    $a->reference = '(PROV'.$a->rowid.')';
-    $a->save($PDOdb);
-
-    // Création du dossier
-    $d = new TFin_dossier;
-
-    $d->entity = $simu->entity;
-    $d->nature_financement = 'INTERNE'; // Tous les dossiers créés ici sont INTERNES
-
-    $d->financementLeaser->fk_soc = $simu->fk_leaser;
-    $d->financementLeaser->reference = $simu->numero_accord;
-
-    $d->financement->montant = $simu->montant_total_finance;
-    $d->financement->echeance = $simu->echeance;
-    $d->financement->terme = $simu->opt_terme;
-    $d->financement->duree = $simu->duree;
-    $d->financement->reglement = $simu->opt_mode_reglement;
-    $d->financement->reste = $simu->vr;
-    $d->financement->periodicite = $simu->opt_periodicite;
-
-    $d->save($PDOdb);
-
-    if($d->rowid > 0) {
-        // This will add link between dossier and simulation
-        $simu->fk_fin_dossier = $d->rowid;
-        $simu->save($PDOdb, $db, false);
-
-        $d->addAffaire($PDOdb, $a->rowid);
-        $d->save($PDOdb);
-
-        setEventMessage($langs->trans('ConformiteDossierCreated', $d->rowid));
-    }
-    else setEventMessage($langs->trans('ConformiteDossierCreationError'), 'errors');
+    createDossier($PDOdb, $simu);
 
     $url = $_SERVER['PHP_SELF'];
     $url.= '?fk_simu='.$fk_simu;
@@ -493,3 +452,55 @@ print '</div>';
 
 llxFooter();
 $db->close();
+
+function createDossier(TPDOdb $PDOdb, TSimulation $s) {
+    global $db, $langs;
+
+    // Création de l'affaire
+    $a = new TFin_affaire;
+    $a->reference = '00000-00000';
+    $a->entity = $s->entity;
+    $a->montant = $s->montant_accord;
+    $a->nature_financement = 'INTERNE';
+    $a->type_financement = $s->type_financement;
+    $a->contrat = $s->fk_type_contrat;
+    $a->date_affaire = time();  // Date du jour
+    $a->fk_soc = $s->fk_soc;
+
+    $a->save($PDOdb);
+
+    // Pour éviter les doublons de référence
+    $a->reference = '(PROV'.$a->rowid.')';
+    $a->save($PDOdb);
+
+    // Création du dossier
+    $d = new TFin_dossier;
+
+    $d->entity = $s->entity;
+    $d->nature_financement = 'INTERNE'; // Tous les dossiers créés ici sont INTERNES
+
+    $d->financementLeaser->fk_soc = $s->fk_leaser;
+    $d->financementLeaser->reference = $s->numero_accord;
+
+    $d->financement->montant = $s->montant_total_finance;
+    $d->financement->echeance = $s->echeance;
+    $d->financement->terme = $s->opt_terme;
+    $d->financement->duree = $s->duree;
+    $d->financement->reglement = $s->opt_mode_reglement;
+    $d->financement->reste = $s->vr;
+    $d->financement->periodicite = $s->opt_periodicite;
+
+    $d->save($PDOdb);
+
+    if($d->rowid > 0) {
+        // This will add link between dossier and simulation
+        $s->fk_fin_dossier = $d->rowid;
+        $s->save($PDOdb, $db, false);
+
+        $d->addAffaire($PDOdb, $a->rowid);
+        $d->save($PDOdb);
+
+        setEventMessage($langs->trans('ConformiteDossierCreated', $d->rowid));
+    }
+    else setEventMessage($langs->trans('ConformiteDossierCreationError'), 'errors');
+}

@@ -2691,4 +2691,23 @@ class TFin_financement extends TObjetStd
 
         return '';
     }
+
+    public static function isFinancementAlreadyExists($refFinLeaser) {
+        global $db;
+
+        $sql = 'SELECT rowid';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_dossier_financement';
+        $sql.= " WHERE type = 'LEASER'";
+        $sql.= " AND reference = '".$db->escape($refFinLeaser)."'";
+
+        $resql = $db->query($sql);
+        if($resql) {
+            if($db->num_rows($resql) > 0) return true;
+            return false;
+        }
+        else {
+            dol_print_error($db);
+            exit;
+        }
+    }
 }
