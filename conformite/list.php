@@ -397,9 +397,10 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     print '</td>';
 
     // Date réception dossier papier
+    $time = strtotime($obj->date_reception_papier); // DateTime with this kind strings '0999-11-30 00:00:00' will provide a negative timestamp
     print '<td>';
-    if(! empty($obj->date_reception_papier)) {
-        print date('d/m/Y', strtotime($obj->date_reception_papier));
+    if(! empty($obj->date_reception_papier) && $time > 0) {
+        print date('d/m/Y', $time);
     }
     else print '&nbsp;';
     print '</td>';
