@@ -387,4 +387,6 @@ ConformiteCommentaire = Commentaire
 ConformiteUpdated = Conformite mise à jour
 ConformiteSetStatus = Changer de statut
 ConformiteConfirmSetStatus = Êtes-vous sûr(e) de vouloir changer le statut de cette conformité ?
+ConformiteDateReception = Date réception dossier papier
+ConformiteUpdateDateReception = Modifier la date de réception du dossier papier
 NumAccord = Numéro accord
