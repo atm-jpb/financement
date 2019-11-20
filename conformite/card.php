@@ -96,10 +96,12 @@ if(empty($id) && ! empty($user->rights->financement->conformite->create)) {    /
 /*
  * Actions
  */
-if($action === 'save' && ! empty($user->rights->financement->conformite->create)) {
+if($action === 'save' && (! empty($user->rights->financement->conformite->create) || ! empty($user->rights->financement->conformite->validate))) {
     $commentaire = GETPOST('commentaire', 'alpha');
+    $commentaire_adv = GETPOST('commentaire_adv', 'alpha');
 
-    $object->commentaire = $commentaire;
+    if(! empty($user->rights->financement->conformite->validate)) $object->commentaire = $commentaire;
+    if(! empty($user->rights->financement->conformite->create)) $object->commentaire_adv = $commentaire_adv;
     $res = $object->update();
 
     if($res > 0) {
@@ -384,11 +386,28 @@ if ($simu->id > 0) {
     print '<td>'.$langs->trans('ListOfRequiredFiles').'</td>';
     print '</tr>';
 
+    // Commentaire ADV
+    print '<tr>';
+    print '<td>'.$langs->trans('ConformiteCommentaireADV');
+    if(! empty($user->rights->financement->conformite->create)) print '&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'&action=editCommentaireADV">'.img_edit().'</a></td>';
+    if(empty($action) || empty($user->rights->financement->conformite->create)) print '<td>'.str_replace("\n", "<br/>\n", $object->commentaire_adv).'</td>';
+    elseif($action === 'editCommentaireADV') {
+        print '<td>';
+        print '<form action="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'" method="POST">';
+        print '<input type="hidden" name="action" value="save" />';
+        print '<div style="display: flex; align-items: center;">';
+        print '<textarea name="commentaire_adv" rows="5" cols="60">'.$object->commentaire_adv.'</textarea>';
+        print '&nbsp;<input class="butAction" type="submit" value="'.$langs->trans('Save').'" />';
+        print '</div></form>';
+        print '</td>';
+    }
+    print '</tr>';
+
     // Commentaire
     print '<tr>';
     print '<td>'.$langs->trans('ConformiteCommentaire');
-    if(! empty($user->rights->financement->conformite->create)) print '&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'&action=editCommentaire">'.img_edit().'</a></td>';
-    if(empty($action) || empty($user->rights->financement->conformite->create)) print '<td>'.str_replace("\n", "<br/>\n", $object->commentaire).'</td>';
+    if(! empty($user->rights->financement->conformite->validate)) print '&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'&action=editCommentaire">'.img_edit().'</a></td>';
+    if(empty($action) || empty($user->rights->financement->conformite->validate)) print '<td>'.str_replace("\n", "<br/>\n", $object->commentaire).'</td>';
     elseif($action === 'editCommentaire') {
         print '<td>';
         print '<form action="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'" method="POST">';
