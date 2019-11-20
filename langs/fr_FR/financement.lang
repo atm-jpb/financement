@@ -75,6 +75,12 @@ FINANCEMENT_GRENKE_PASSWORD=GRENKE paramètre password
 FINANCEMENT_GRENKE_CODE_CESSION=Identifiant partenaire cession
 FINANCEMENT_GRENKE_CODE_MANDATEE=Identifiant partenaire mandatée
 
+FINANCEMENT_WSDL_FRANFINANCE_RECETTE=WSDL de <b>recette</b> de FRANFINANCE
+FINANCEMENT_WSDL_FRANFINANCE_PROD=WSDL de <b>production</b> de FRANFINANCE
+FINANCEMENT_OUR_WSDL_GIVE_TO_FRANFINANCE=URL du WSDL du module financement pour FRANFINANCE
+FINANCEMENT_FRANFINANCE_USERNAME=FRANFINANCE paramètre username
+FINANCEMENT_FRANFINANCE_PASSWORD=FRANFINANCE paramètre password
+
 SimulationSuiviInfoWebDemande=Demande faite (%s - %s)
 
 pending=En attente
@@ -131,6 +137,7 @@ Etude_Vendeur=En étude - Elements Vendeur
 Etude_Leaser_Short=Elts Leaser
 Etude_Vendeur_Short=Elts Vendeur
 Accord=Accord
+SendUpdateRequest=Envoyer une demande de modification
 Refus=Refus
 SansSuite=Sans suite
 Error=Erreur
@@ -321,6 +328,7 @@ FinCA_Client=CA Client
 FinCA_Leaser=HA Leaser
 FinRecurrent=Récurrence
 NoteLabel=La Mine
+ConformiteLabel = Conformité
 SuiviIntegral = Suivi intégrale
 AccordAuto = Accord Automatique
 FinancementActivateAccordAuto = Activer les accords automatiques
@@ -333,6 +341,7 @@ ManualActionType = Types d'actions manuelles
 CantDoAutoScoring = Impossible de scorer en automatique
 CantGiveAccordAuto = Impossible de donner un accord automatique
 
+UpdateRequestStatus = Statut de la demande de modification
 SelectThisLeaser=Sélectionner ce leaser
 ConfirmSelectThisLeaser=Etes-vous sûr(e) de vouloir sélectionner ce leaser ?
 
@@ -347,3 +356,35 @@ SetNoTransferable = Rendre les dossiers non transférables
 setReady = Passer au statut "Prêt"
 setSent = Passer au statut "Envoyé"
 setYes = Passer au statut "Oui"
+DateDemarrage = Date de démarrage si calage
+DateDemarrageCustom = Date de livraison
+EquipmentInvoiceCreated = Facture matériel créée
+EquipmentInvoiceCreationError = Erreur lors de la création de la facture : %s
+EquipmentInvoiceRefAlreadyInUse = Une facture avec la référence %s existe déjà
+
+# Conformite
+ConformiteList = Liste des conformités
+RequiredFiles = Fichiers obligatoires
+ListOfRequiredFiles = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>Contrat + scan des CGV + mandat SEPA</li><li>Accord de financement</li><li>Facture matériel</li><li>PV de livraison</li><li>RIB</li><li>CNI (recto verso)</li><li>Copie societe.com ou KBIS pour les dossiers >50k€</li><li>Mail de déro la cas échéant</li><li>Pouvoir de signature le cas échéant</li></ul>
+ConformiteStatus = Statut conformité
+ConformiteDraft = Brouillon
+ConformiteWaitingForComplianceN1 = En attente de validation N1
+ConformiteWaitingForComplianceN1Button = Demande de conformité N1
+ConformiteCompliantN1 = Conforme N1 - En attente pièces N2
+ConformiteCompliantN1Button = Conforme N1
+ConformiteNotCompliantN1 = Non conforme N1
+ConformiteWaitingForComplianceN2 = En attente de validation N2
+ConformiteWaitingForComplianceN2Button = Demande de conformité N2
+ConformiteCompliantN2 = Conforme N2
+ConformiteNotCompliantN2 = Non conforme N2
+ConformiteCreated = Conformité créée
+ConformiteCreationError = Erreur lors de l'enregistrement de la conformité
+ConformiteCreateDossier = Créer le dossier
+ConformiteConfirmCreateDossier = Êtes-vous sûr(e) de vouloir créer le dossier ?
+ConformiteDossierCreated = Dossier créé : %s
+ConformiteDossierCreationError = Erreur lors de la création du dossier
+ConformiteCommentaire = Commentaire
+ConformiteUpdated = Conformite mise à jour
+ConformiteSetStatus = Changer de statut
+ConformiteConfirmSetStatus = Êtes-vous sûr(e) de vouloir changer le statut de cette conformité ?
+NumAccord = Numéro accord

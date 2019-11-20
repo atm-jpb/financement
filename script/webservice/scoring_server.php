@@ -189,14 +189,12 @@ function repondreDemande($authentication, $TReponse)
 						{
 							
 							$found = false;
-							foreach ($simulation->TSimulationSuivi as &$simulationSuivi)
-							{
-								if ($simulationSuivi->leaser->array_options['options_edi_leaser'] == $fuser->array_options['options_fk_leaser_webservice'])
-								{
-									$found = true;
-									break;
-								}
-							}
+                            foreach($simulation->TSimulationSuivi as $simulationSuivi) {
+                                if($simulationSuivi->leaser->array_options['options_edi_leaser'] == 'LIXXBAIL') {
+                                    $found = true;
+                                    break;
+                                }
+                            }
 							
 							if ($found)
 							{

@@ -191,14 +191,23 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 				$simulation->load($PDOdb, $TId[0]);
 
 				$found = false;
-				foreach ($simulation->TSimulationSuivi as &$simulationSuivi)
-				{
-					if ($simulationSuivi->leaser->array_options['options_edi_leaser'] == 'CMCIC')
-//					if ($simulationSuivi->leaser->array_options['options_edi_leaser'] == $fuser->array_options['options_fk_leaser_webservice'])
-					{
-						$found = true;
-						break;
-					}
+				foreach($simulation->TSimulationSuivi as $simulationSuivi) {
+				    if($simulationSuivi->statut_demande == 2 && $simulationSuivi->leaser->array_options['options_edi_leaser'] == 'CMCIC') {
+				        $found = true;
+				        break;
+                    }
+                }
+
+				if(! $found) {
+                    foreach ($simulation->TSimulationSuivi as &$simulationSuivi)
+                    {
+                        if ($simulationSuivi->leaser->array_options['options_edi_leaser'] == 'CMCIC')
+    //					if ($simulationSuivi->leaser->array_options['options_edi_leaser'] == $fuser->array_options['options_fk_leaser_webservice'])
+                        {
+                            $found = true;
+                            break;
+                        }
+                    }
 				}
 
 				if ($found)
@@ -238,10 +247,10 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 
 						dol_syslog('2.3 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'], LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 						dol_syslog('2.3 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$langs->trans($ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
-						
 
-						if ($statut == 'Status.APPROVED' && $simulation->accord != 'OK') $simulationSuivi->doAction($PDOdb, $simulation, 'accepter');
-						else if ($statut == 'Status.REJECTED' && $simulation->accord != 'OK') $simulationSuivi->doAction($PDOdb, $simulation, 'refuser');
+						// Il faut pouvoir faire ces actions dans le cas d'une modif d'accord
+						if ($statut == 'Status.APPROVED' && ($simulation->accord != 'OK' || $simulationSuivi->statut_demande == 2)) $simulationSuivi->doAction($PDOdb, $simulation, 'accepter');
+						else if ($statut == 'Status.REJECTED' && ($simulation->accord != 'OK' || $simulationSuivi->statut_demande == 2)) $simulationSuivi->doAction($PDOdb, $simulation, 'refuser');
 						else $simulationSuivi->save($PDOdb);
 						
 						if (!empty($ResponseDemFinComplete['REP_AccordPDF_B2B']))

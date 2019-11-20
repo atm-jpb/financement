@@ -68,13 +68,20 @@ while($obj = $db->fetch_object($resql)) {
     switchEntity($simulation->entity);  // To load conf from the right entity
     if(empty($conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN)) continue;    // Can't do auto job
 
+    // Spécifique C'Pro OUEST & COPY CONCEPT, pas de scoring auto si 500 <= montant_financé < 1000
+    if(in_array($simulation->entity, array(5, 7)) && $simulation->montant >= 500 && $simulation->montant < 1000) {
+        $simulation->fk_action_manuelle = 1;    // Can't do scoring auto
+        $simulation->save($PDOdb, $db, false);
+        continue;
+    }
+
     if($debug) print '<pre>Nb suivi : '.count($simulation->TSimulationSuivi).'</pre>'."\n";
 	$TSuivi = array_values($simulation->TSimulationSuivi);
     foreach($TSuivi as $k => $suivi) {
         if($suivi->date_demande < 0) $suivi->date_demande = null;   // DateTime with this string '0999-11-30 00:00:00' will provide a negative timestamp
 
         if(empty($suivi->date_demande)) {
-            if(isEDI($suivi) && ($k == 0 || $TSuivi[$k-1]->date_demande + $conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN*60 <= time() && $TSuivi[$k-1]->statut != 'ERR')) {
+            if(isEDI($suivi) && ($k == 0 || $TSuivi[$k-1]->statut == 'KO' || $TSuivi[$k-1]->date_demande + $conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN*60 <= time() && $TSuivi[$k-1]->statut != 'ERR')) {
                 if($debug) {
                     var_dump('doActionDemander !!');
                     print "\n";

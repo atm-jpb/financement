@@ -16,6 +16,7 @@ dol_include_once('/financement/class/import_error.class.php');
 dol_include_once('/financement/class/grille.class.php');
 dol_include_once('/financement/class/quality.class.php');
 dol_include_once('/financement/class/dossierRachete.class.php');
+dol_include_once('/financement/class/conformite.class.php');
 
 $ATMdb = new TPDOdb;
 $ATMdb->db->debug = true;
@@ -80,4 +81,7 @@ $o = new TFin_QualityTest();
 $o->init_db_by_vars($ATMdb);
 
 $o = new DossierRachete;
+$o->init_db_by_vars($ATMdb);
+
+$o=new Conformite;
 $o->init_db_by_vars($ATMdb);

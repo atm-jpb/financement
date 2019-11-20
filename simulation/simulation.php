@@ -6,6 +6,7 @@ dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/dossier_integrale.class.php');
 dol_include_once('/financement/class/score.class.php');
+dol_include_once('/financement/class/conformite.class.php');
 dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
 require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
@@ -29,13 +30,30 @@ if(!empty($_REQUEST['cancel'])) { // Annulation
 }
 if(!empty($_REQUEST['from']) && $_REQUEST['from']=='wonderbase') { // On arrive de Wonderbase, direction nouvelle simulation
 	if(!empty($_REQUEST['code_artis'])) { // Client
-		$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'societe', array('code_client'=>$_REQUEST['code_artis'],'client'=>1));
+	    $socid = 0;
+
+        $sql = 'SELECT rowid';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
+        $sql.= ' WHERE client = 1';
+        $sql.= " AND code_client = '".$db->escape($_REQUEST['code_artis'])."'";
+        $sql.= " AND entity IN (".getEntity('societe', true).")";
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        if($obj = $db->fetch_object($resql)) {
+            $socid = $obj->rowid;
+        }
+
 		// Si le client a une simulation en cours de validité, on va sur la liste de ses simulations
-		$hasValidSimu = _has_valid_simulations($ATMdb, $TId[0]);
+		$hasValidSimu = _has_valid_simulations($ATMdb, $socid);
 		if ($hasValidSimu) {
-		    header('Location: ?socid='.$TId[0]); exit;
+		    header('Location: ?socid='.$socid); exit;
 		} else {
-		    header('Location: ?action=new&fk_soc='.$TId[0]); exit;
+		    header('Location: ?action=new&fk_soc='.$socid); exit;
 		}
 		
 	} else if(!empty($_REQUEST['code_wb'])) { // Prospect
@@ -444,7 +462,7 @@ if(!empty($action)) {
 				if(($simulation->accord == 'OK' || $simulation->accord == 'KO') && $simulation->accord != $oldAccord) {
 					$simulation->send_mail_vendeur();
 
-					if($simulation->accord == 'OK' && $simulation->entity == 18 && empty($simulation->opt_no_case_to_settle)) {
+					if($simulation->accord == 'OK' && in_array($simulation->entity, array(18, 25)) && empty($simulation->opt_no_case_to_settle)) {
 					    $simulation->send_mail_vendeur_esus();
                     }
 				}
@@ -489,7 +507,7 @@ if(!empty($action)) {
 				if($simulation->accord == 'OK') {
 					$simulation->send_mail_vendeur();
 
-                    if($simulation->entity == 18 && empty($simulation->opt_no_case_to_settle)) {
+                    if(in_array($simulation->entity, array(18, 25)) && empty($simulation->opt_no_case_to_settle)) {
                         $simulation->send_mail_vendeur_esus();
                     }
 				}
@@ -921,6 +939,9 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 	//	$simulation->echeance = __get('echeance', $simulation->echeance, 'float');
 		
 	}
+
+    $conformite = new Conformite;
+    $conformite->fetchBy('fk_simulation', $simulation->rowid);
 	
 	$extrajs = array('/financement/js/financement.js', '/financement/js/dossier.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
@@ -931,7 +952,7 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
         print $form->formconfirm($_SERVER['PHP_SELF'].'?id='.$simulation->rowid.'&id_suivi='.$fk_suivi, $langs->trans('SelectThisLeaser'), $langs->trans('ConfirmSelectThisLeaser'), 'selectionner', '', '', 2);
     }
 	
-	$head = simulation_prepare_head($simulation);
+	$head = simulation_prepare_head($simulation, $conformite);
 	dol_fiche_head($head, 'card', $langs->trans("Simulation"),0,'simulation');
 
 	$affaire = new TFin_affaire;
@@ -1086,6 +1107,7 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 		,'opt_calage'=>$form->hidden('opt_calage', $simulation->opt_calage)
 	    ,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme) .(!empty($simulation->modifs['opt_terme']) ? ' (Ancienne valeur : '.$financement->TTerme[$simulation->modifs['opt_terme']].')' : '')
 		,'date_demarrage'=>$form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12)
+		,'date_demarrage_label'=> in_array($simulation->entity, array(18, 25)) ? $langs->trans('DateDemarrageCustom') : $langs->trans('DateDemarrage')
 	    ,'montant'=>$form->texte('', 'montant', $simulation->montant, 10) .(!empty($simulation->modifs['montant']) ? ' (Ancienne valeur : '.$simulation->modifs['montant'].')' : '')
 
 		,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)
