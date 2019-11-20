@@ -361,6 +361,7 @@ DateDemarrageCustom = Date de livraison
 EquipmentInvoiceCreated = Facture matériel créée
 EquipmentInvoiceCreationError = Erreur lors de la création de la facture : %s
 EquipmentInvoiceRefAlreadyInUse = Une facture avec la référence %s existe déjà
+DossierNonDispo = Dossiers non dispo
 
 # Conformite
 ConformiteList = Liste des conformités
