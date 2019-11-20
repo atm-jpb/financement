@@ -99,13 +99,11 @@ if(empty($id) && ! empty($user->rights->financement->conformite->create)) {    /
 if($action === 'save' && ! empty($user->rights->financement->conformite->create)) {
     $commentaire = GETPOST('commentaire', 'alpha');
 
-    if(! empty($commentaire)) {
-        $object->commentaire = $commentaire;
-        $res = $object->update();
+    $object->commentaire = $commentaire;
+    $res = $object->update();
 
-        if($res > 0) {
-            setEventMessage($langs->trans('ConformiteUpdated'));
-        }
+    if($res > 0) {
+        setEventMessage($langs->trans('ConformiteUpdated'));
     }
 
     $url = $_SERVER['PHP_SELF'];
