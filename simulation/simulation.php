@@ -6,6 +6,7 @@ dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/dossier_integrale.class.php');
 dol_include_once('/financement/class/score.class.php');
+dol_include_once('/financement/class/conformite.class.php');
 dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
 require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
@@ -938,6 +939,9 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 	//	$simulation->echeance = __get('echeance', $simulation->echeance, 'float');
 		
 	}
+
+    $conformite = new Conformite;
+    $conformite->fetchBy('fk_simulation', $simulation->rowid);
 	
 	$extrajs = array('/financement/js/financement.js', '/financement/js/dossier.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
@@ -948,7 +952,7 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
         print $form->formconfirm($_SERVER['PHP_SELF'].'?id='.$simulation->rowid.'&id_suivi='.$fk_suivi, $langs->trans('SelectThisLeaser'), $langs->trans('ConfirmSelectThisLeaser'), 'selectionner', '', '', 2);
     }
 	
-	$head = simulation_prepare_head($simulation);
+	$head = simulation_prepare_head($simulation, $conformite);
 	dol_fiche_head($head, 'card', $langs->trans("Simulation"),0,'simulation');
 
 	$affaire = new TFin_affaire;

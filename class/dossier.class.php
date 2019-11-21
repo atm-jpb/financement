@@ -15,6 +15,7 @@ class TFin_dossier extends TObjetStd
         parent::add_champs('entity', array('type' => 'int', 'index' => true));
         parent::add_champs('type_regul,month_regul', array('type' => 'int'));
         parent::add_champs('fk_statut_renta_neg_ano,fk_statut_dossier,commentaire_conformite', array('type' => 'chaine'));
+        parent::add_champs('date_reception_papier,date_paiement,date_facture_materiel', array('type' => 'date', 'index' => true));
 
         parent::start();
         parent::_init_vars();
@@ -41,6 +42,10 @@ class TFin_dossier extends TObjetStd
         $this->load_statut_dossier();
 
         $this->type_regul = 3;
+
+        $this->date_reception_papier = null;
+        $this->date_paiement = null;
+        $this->date_facture_materiel = null;
     }
 
     function loadReference(&$db, $reference, $annexe = false, $entity = null) {

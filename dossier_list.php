@@ -824,7 +824,8 @@ function _getExportXML($sql) {
         'Echeance Leaser',
         'Materiel',
         'Num. serie',
-        'Facture Materiel'
+        'Facture Materiel',
+        'Date Envoi'
     );
     fputcsv($file, $TLabel, ';', '"');
 
@@ -850,11 +851,15 @@ function _getExportXML($sql) {
         $TRes['fact_materiel'] = _get_facture_mat($TRes['fk_fin_affaire'], false);
         $TRes['terme'] = $fin->TTerme[$TRes['terme']];  // Il faut traduire le terme
 
+        $date_envoi = $TRes['date_envoi'];
+
         //Suppression des colonnes inutiles
         unset($TRes['fk_fin_dossier'], $TRes['fk_fin_affaire'], $TRes['fk_soc'], $TRes['refDosCli'], $TRes['fk_leaser'], $TRes['nature_financement'], $TRes['statut']);
         unset($TRes['prochaine'], $TRes['date_start'], $TRes['date_end'], $TRes['TInvoiceData'], $TRes['ref_affaire'], $TRes['nomLea'], $TRes['transfert']);
         unset($TRes['duree'], $TRes['Montant'], $TRes['echeance'], $TRes['relocClientOK'], $TRes['relocLeaserOK'],$TRes['intercalaireLeaserOK'], $TRes['date_envoi']);
         unset($TRes['commentaire_conformite']);
+
+        $TRes['date_envoi'] = $date_envoi;  // Tout ça pour mettre cette colonne à la fin
 
         fputcsv($file, $TRes, ';', '"');
     }

@@ -62,14 +62,17 @@
 				    $f->date = $affaire->date_affaire;
 				    $f->socid = $affaire->societe->id;
 
+				    $old_entity = $conf->entity;
+				    switchEntity($affaire->entity); // Nécessaire car la création prend pour entité la $conf->entity
 				    $res = $f->create($user);
-				    var_dump($res);
+				    switchEntity($old_entity);
+
 				    if($res > 0) {
 				        $f->addline($facSerialNumber, $affaire->montant, 1, 0);
 
                         $f->ref = $facRef;
                         $f->statut = 0;
-                        $resUpdate = $f->update($user);
+                        $resUpdate = $f->validate($user);   // ça update aussi la ref donc c'est ok
                         if($resUpdate < 0) {
                             setEventMessage($langs->trans('EquipmentInvoiceRefAlreadyInUse', $facRef), 'warnings');
                         }
@@ -80,8 +83,7 @@
                         $res = $p->create($user);
                         if($res > 0) {
                             $f->add_object_linked('affaire', $affaire->rowid);
-                            if(! empty($affaire->TLien[0])) $f->add_object_linked('dossier', $affaire->TLien[0]->fk_fin_dossier);
-
+//                            if(! empty($affaire->TLien[0])) $f->add_object_linked('dossier', $affaire->TLien[0]->fk_fin_dossier);
                             $asset = new TAsset;
                             $asset->serial_number = $facSerialNumber;
                             $asset->fk_product = $p->id;
