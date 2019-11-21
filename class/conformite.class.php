@@ -11,6 +11,7 @@ class Conformite extends TObjetStd
     const STATUS_WAITING_FOR_COMPLIANCE_N2 = 4;
     const STATUS_COMPLIANT_N2 = 5;
     const STATUS_NOT_COMPLIANT_N2 = 6;
+    const STATUS_WITHOUT_FURTHER_ACTION = 7;
 
     public static $TStatus = array(
         0 => 'ConformiteDraft',
@@ -19,7 +20,8 @@ class Conformite extends TObjetStd
         3 => 'ConformiteNotCompliantN1',
         4 => 'ConformiteWaitingForComplianceN2',
         5 => 'ConformiteCompliantN2',
-        6 => 'ConformiteNotCompliantN2'
+        6 => 'ConformiteNotCompliantN2',
+        7 => 'ConformiteWithoutFurtherAction'
     );
 
     /**

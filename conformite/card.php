@@ -139,6 +139,9 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
         case 'waitN2':
             if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2;
             break;
+        case 'withoutFurtherAction':
+            if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_WITHOUT_FURTHER_ACTION;
+            break;
         default:
             break;
     }
@@ -315,7 +318,7 @@ elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COM
 elseif($action === 'setStatus') {
     $statusLabel = GETPOST('status', 'alpha');
     if(in_array($statusLabel, array('waitN1', 'waitN2')) && ! empty($user->rights->financement->conformite->validate) ||
-        in_array($statusLabel, array('compliantN1', 'compliantN2', 'notCompliantN1', 'notCompliantN2')) && ! empty($user->rights->financement->conformite->accept))
+        in_array($statusLabel, array('compliantN1', 'compliantN2', 'notCompliantN1', 'notCompliantN2', 'withoutFurtherAction')) && ! empty($user->rights->financement->conformite->accept))
     {
         $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
         if(! empty($statusLabel)) $url .= '&status='.$statusLabel;
@@ -493,6 +496,7 @@ if(in_array($object->status, array(Conformite::STATUS_DRAFT, Conformite::STATUS_
 elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1 && ! empty($user->rights->financement->conformite->accept)) {
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=compliantN1">'.$langs->trans('ConformiteCompliantN1Button').'</a>';
     print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliantN1">'.$langs->trans('ConformiteNotCompliantN1').'</a>';
+    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
 }
 elseif(in_array($object->status, array(Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_NOT_COMPLIANT_N2)) && ! empty($user->rights->financement->conformite->validate)) {
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=confirm_setStatus&status=waitN2&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN2Button').'</a>';
