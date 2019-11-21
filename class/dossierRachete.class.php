@@ -135,4 +135,27 @@ class DossierRachete extends TObjetStd
             else $this->$field = $value;
         }
     }
+
+    /**
+     * @param   int $fk_dossier
+     * @return  bool
+     */
+    public static function isDossierSelected($fk_dossier) {
+        global $db;
+
+        if(empty($fk_dossier)) return false;
+
+        $sql = 'SELECT count(*)';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.self::$tablename;
+        $sql.= ' WHERE fk_dossier = '.$fk_dossier;
+
+        $resql = $db->query($sql);
+
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        return $db->num_rows($resql) > 0;
+    }
 }

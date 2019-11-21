@@ -411,6 +411,7 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][1] = 'Accès aux PDF simulation';
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'read';
+		//$this->rights[$r][5] = 'read';
 		$r++;
 		
 		$this->rights[$r][0] = 210055;
@@ -612,7 +613,21 @@ class modFinancement extends DolibarrModules
 								  'target'=>'',
 								  'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=export',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+								  'type'=>'left',			                // This is a Left menu entry
+								  'titre'=>$langs->trans('DossierNonDispo'),
+								  'mainmenu'=>'financement',
+								  'leftmenu'=>'dossier_non_dispo',
+								  'url'=>'/financement/script/dossier_non_dispo.php',
+								  'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+								  'position'=>126,
+								  'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								  'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								  'target'=>'_blank',
+								  'user'=>0);
+		$r++;
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>$langs->trans('Admin'),

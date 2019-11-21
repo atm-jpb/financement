@@ -361,6 +361,8 @@ DateDemarrageCustom = Date de livraison
 EquipmentInvoiceCreated = Facture matériel créée
 EquipmentInvoiceCreationError = Erreur lors de la création de la facture : %s
 EquipmentInvoiceRefAlreadyInUse = Une facture avec la référence %s existe déjà
+DossierNonDispo = Dossiers non dispo
+ThisDossierIsSelected = Ce dossier est sélectionné dans une simulation, impossible de le supprimer !
 
 # Conformite
 ConformiteList = Liste des conformités
@@ -383,6 +385,7 @@ ConformiteCreateDossier = Créer le dossier
 ConformiteConfirmCreateDossier = Êtes-vous sûr(e) de vouloir créer le dossier ?
 ConformiteDossierCreated = Dossier créé : %s
 ConformiteDossierCreationError = Erreur lors de la création du dossier
+ConformiteCommentaireADV = Commentaire ADV
 ConformiteCommentaire = Commentaire
 ConformiteUpdated = Conformite mise à jour
 ConformiteSetStatus = Changer de statut

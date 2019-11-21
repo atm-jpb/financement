@@ -2136,6 +2136,7 @@ class TSimulation extends TObjetStd
 
         $this->start();
         $this->TSimulationSuivi = array();
+        $this->DossierRachete = array();
         $this->TSimulationSuiviHistorized = array();
         $this->accord = 'WAIT';
         $this->date_simul = time();
