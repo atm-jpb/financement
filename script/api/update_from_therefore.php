@@ -73,7 +73,7 @@ if(in_array($fk_leaser, array(19068, 19483)) && $duree == 22 && $periodicite == 
 
 if(! empty($date_start)) $date_start_leaser = _get_date($date_start);
 if(! empty($periodicite) && ! empty($montant_finance) && ! empty($duree)) $echeance_leaser = _get_echeance($PDOdb, $fk_leaser, $dossier->TLien[0]->affaire->contrat, $periodicite, $montant_finance, $duree);
-$vr_leaser = _get_vr($fk_leaser);
+$vr_leaser = TFin_financement::getVR($fk_leaser);
 
 if($dossier->nature_financement == 'INTERNE') { // Côté Client
     if(! empty($montant_finance)) $dossier->financement->montant = $montant_finance;
@@ -177,16 +177,6 @@ function _get_echeance($PDOdb, $fk_leaser, $type_contrat, $periodicite, $montant
     if(is_array($TCoef)) $coef = $TCoef[0];
 
     return $montant * $coef/100;
-}
-
-function _get_vr($fk_leaser) {
-    if(in_array($fk_leaser, array(19068, 19483))) return 0.15;    // Lixxbail
-    elseif(in_array($fk_leaser, array(19553, 20113))) return 1; // BNP
-    elseif($fk_leaser == 21382) return 0.15; // CMCIC
-    elseif(in_array($fk_leaser, array(21921, 23164))) return 1; // Grenke
-    elseif(in_array($fk_leaser, array(30749, 30748))) return 15; // Locam
-    elseif($fk_leaser == 18495) return 1; // Loc Pure
-
 }
 
 /**

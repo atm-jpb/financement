@@ -200,7 +200,7 @@ elseif($action === 'confirm_createDossier' && !empty($user->rights->financement-
     $d->financement->terme = $simu->opt_terme;
     $d->financement->duree = $simu->duree;
     $d->financement->reglement = $simu->opt_mode_reglement;
-    $d->financement->reste = $simu->vr;
+    $d->financement->reste = TFin_financement::getVR($simu->fk_leaser);
     $d->financement->periodicite = $simu->opt_periodicite;
 
     $d->save($PDOdb);
