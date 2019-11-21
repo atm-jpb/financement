@@ -16,6 +16,7 @@
 	
 	dol_include_once("/core/lib/company.lib.php");
 	dol_include_once('/asset/class/asset.class.php');
+	dol_include_once('/financement/class/dossierRachete.class.php');
 	dol_include_once('/multicompany/class/dao_multicompany.class.php');
 	
 	$langs->load('financement@financement');
@@ -141,14 +142,20 @@
 			case 'delete':
 				//$PDOdb->db->debug=true;
 				$dossier->load($PDOdb, $id);
-				$dossier->delete($PDOdb);
-				
-				?>
-				<script language="javascript">
-					document.location.href="?delete_ok=1";					
-				</script>
-				<?php
-				unset($dossier);
+				if(DossierRachete::isDossierSelected($dossier->rowid) || true) {
+				    setEventMessage($langs->trans('ThisDossierIsSelected'), 'errors');
+				    header('Location: '.$_SERVER['PHP_SELF'].'?id='.$dossier->rowid);
+				    exit;
+                }
+				else {
+                    $dossier->delete($PDOdb);
+                    ?>
+                    <script language="javascript">
+                        document.location.href = "?delete_ok=1";
+                    </script>
+                    <?php
+                    unset($dossier);
+                }
 				
 				break;
 				
