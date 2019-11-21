@@ -68,7 +68,11 @@
 				    switchEntity($old_entity);
 
 				    if($res > 0) {
-				        $f->addline($facSerialNumber, $affaire->montant, 1, 0);
+                        $f->fetch($f->id);  // Utile car sinon le champ date_lim_reglement est null
+                        if($f->date_lim_reglement < strtotime("2014-01-01")) $taux_tva = 19.6;
+                        else $taux_tva = 20;
+
+                        $f->addline($facSerialNumber, $affaire->montant, 1, $taux_tva);
 
                         $f->ref = $facRef;
                         $f->statut = 0;
@@ -83,7 +87,7 @@
                         $res = $p->create($user);
                         if($res > 0) {
                             $f->add_object_linked('affaire', $affaire->rowid);
-//                            if(! empty($affaire->TLien[0])) $f->add_object_linked('dossier', $affaire->TLien[0]->fk_fin_dossier);
+
                             $asset = new TAsset;
                             $asset->serial_number = $facSerialNumber;
                             $asset->fk_product = $p->id;
