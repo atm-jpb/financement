@@ -407,7 +407,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
 
     print '<td style="text-align: center;">';
     if(! empty($obj->date_reception_papier)) {
-        if(in_array($obj->fk_conformite, $arrayOfSelected)) $selected = 1;
+        $selected = in_array($obj->fk_conformite, $arrayOfSelected);
         print '<input id="cb'.$obj->fk_conformite.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->fk_conformite.'" '.($selected ? 'checked="checked"' : '').'/>';
     }
     else print '&nbsp;';
@@ -420,7 +420,6 @@ print '</form>';
 
 print '<div id="updateDateReceptionDossier" title="'.$langs->trans('ConformiteUpdateDateReception').'" style="display: none;">';
 print '<span>'.$langs->trans('ConformiteDateReception').' :</span>&nbsp;';
-//print $form->select_date(-1, 'date');
 print '<input type="date" id="test" name="test" required="required" />';
 print '</div>';
 
