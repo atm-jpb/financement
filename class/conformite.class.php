@@ -36,6 +36,7 @@ class Conformite extends TObjetStd
     public $entity;
     public $commentaire;
     public $commentaire_adv;
+    public $date_envoi;
 
     public $PDOdb;
 
@@ -47,6 +48,7 @@ class Conformite extends TObjetStd
 
         parent::add_champs('status,entity', array('type' => 'int', 'index' => true));
         parent::add_champs('commentaire,commentaire_adv', array('type' => 'text'));
+        parent::add_champs('date_envoi', array('type' => 'date', 'index' => true));
 
         parent::start();
 

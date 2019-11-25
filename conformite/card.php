@@ -19,6 +19,7 @@ dol_include_once('/financement/class/conformite.class.php');
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
 $langs->load('dict');
+$langs->load('mails');
 $langs->load('other');
 $langs->load('error');
 
@@ -147,7 +148,10 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     }
 
     if(! is_null($status)) {
-        if(! is_null($fk_user) && $object->status === Conformite::STATUS_DRAFT) $object->fk_user = $fk_user;
+        if(! is_null($fk_user) && $object->status === Conformite::STATUS_DRAFT) {
+            $object->fk_user = $fk_user;
+            $object->date_envoi = time();
+        }
         $object->status = $status;
         $res = $object->update();
 
@@ -358,6 +362,13 @@ if ($simu->id > 0) {
         print '<td>'.$langs->trans('ConformiteStatus').'</td>';
         print '<td>'.$langs->trans(Conformite::$TStatus[$object->status]).'</td>';
         print '</tr>';
+
+        if(! empty($object->date_envoi)) {
+            print '<tr>';
+            print '<td>'.$langs->trans('DateSending').'</td>';
+            print '<td>'.date('d/m/Y', $object->date_envoi).'</td>';
+            print '</tr>';
+        }
     }
 
     // Customer

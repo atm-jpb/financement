@@ -18,6 +18,7 @@ dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
 $langs->load('other');
 $langs->load('dict');
+$langs->load('mails');
 $langs->load('financement@financement');
 
 $simulation = new TSimulation(true);
@@ -58,7 +59,7 @@ if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','
     unset($search_ref, $search_entity, $search_thirdparty, $search_leaser, $search_status, $search_user);
 }
 
-$sql = 'SELECT s.rowid, s.reference, soc.rowid as fk_soc, c.status, s.entity, c.fk_user, c.rowid as fk_conformite, c.commentaire, c.date_cre, lea.rowid as fk_leaser';
+$sql = 'SELECT s.rowid, s.reference, soc.rowid as fk_soc, c.status, s.entity, c.fk_user, c.rowid as fk_conformite, c.commentaire, c.date_cre, lea.rowid as fk_leaser, c.date_envoi';
 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_conformite c';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON (c.fk_simulation = s.rowid)';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe soc ON (s.fk_soc = soc.rowid)';
@@ -190,7 +191,7 @@ print_liste_field_titre('Partenaire', $_SERVER['PHP_SELF'], 's.entity', '', $par
 print_liste_field_titre('Client', $_SERVER['PHP_SELF'], 's.fk_soc', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Thirdparty
 print_liste_field_titre('Leaser', $_SERVER['PHP_SELF'], 's.fk_leaser', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Leaser
 print_liste_field_titre('Statut', $_SERVER['PHP_SELF'], 'c.status', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
-print_liste_field_titre($langs->trans('DateCreation'), $_SERVER['PHP_SELF'], 'c.date_cre', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
+print_liste_field_titre($langs->trans('DateSending'), $_SERVER['PHP_SELF'], 'c.date_cre', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('User'), $_SERVER['PHP_SELF'], 'u.login', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('ConformiteCommentaire'), $_SERVER['PHP_SELF'], 'c.commentaire', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print '<td>&nbsp;</td>';
@@ -242,9 +243,11 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     print $langs->trans(Conformite::$TStatus[$obj->status]);
     print '</td>';
 
-    // Date création
+    // Date envoi
+    $date_envoi = strtotime($obj->date_envoi);
     print '<td>';
-    print date('d/m/Y', strtotime($obj->date_cre));
+    if(! empty($date_envoi) && $date_envoi > 0) print date('d/m/Y', $date_envoi);
+    else print '&nbsp;';
     print '</td>';
 
     // User
