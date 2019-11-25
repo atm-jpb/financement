@@ -1304,7 +1304,7 @@ function _fiche_suivi(&$ATMdb, TSimulation &$simulation, $mode){
 	$form->end_form();
 }
 
-function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
+function _liste_dossier(&$ATMdb, TSimulation &$simulation, $mode, $search_by_siren=true) {
 	global $langs,$conf, $db, $bc, $user;
 	
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
@@ -1378,25 +1378,29 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		} else {
 			$fin = &$dossier->financementLeaser;
 		}
-		
-		if($fin->date_solde > 0 && $fin->date_solde < time() && empty($simulation->dossiers_rachetes[$idDoss]['checked'])
-		&& empty($simulation->dossiers_rachetes_p1[$idDoss]['checked'])
-		&& empty($simulation->dossiers_rachetes_m1[$idDoss]['checked'])) continue;
+        $dossierRachete = '';
+        foreach($simulation->DossierRachete as $dr) {
+            if($dr->fk_dossier == $idDoss) {
+                $dossierRachete = $dr;
+                break;
+            }
+        }
+		if($fin->date_solde > 0 && $fin->date_solde < time() && empty($dossierRachete->choice)) continue;
 		if(empty($dossier->financementLeaser->reference)) continue;
 		
 		// On vérifie si le solde du dossier doit être affiché ou non
 		$display_solde = $dossier->get_display_solde();
 		
 		if($dossier->nature_financement == 'INTERNE') {
-			$soldeRM1 = (!empty($simulation->dossiers_rachetes_m1[$idDoss]['montant'])) ? $simulation->dossiers_rachetes_m1[$idDoss]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance - 2),2); //SRCPRO
-			$soldeR = (!empty($simulation->dossiers_rachetes[$idDoss]['montant'])) ? $simulation->dossiers_rachetes[$idDoss]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance - 1),2); //SRCPRO
-			$soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$idDoss]['montant'])) ? $simulation->dossiers_rachetes_p1[$idDoss]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance),2); //SRCPRO
+			$soldeRM1 = (!empty($dossierRachete->solde_vendeur_m1)) ? $dossierRachete->solde_vendeur_m1 : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance - 2),2); //SRCPRO
+			$soldeR = (!empty($dossierRachete->solde_vendeur)) ? $dossierRachete->solde_vendeur : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance - 1),2); //SRCPRO
+			$soldeR1 = (!empty($dossierRachete->solde_vendeur_p1)) ? $dossierRachete->solde_vendeur_p1 : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance),2); //SRCPRO
 			$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 		}
 		else{
-			$soldeRM1 = (!empty($simulation->dossiers_rachetes_m1[$idDoss]['montant'])) ? $simulation->dossiers_rachetes_m1[$idDoss]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financementLeaser->numero_prochaine_echeance - 2),2);
-			$soldeR = (!empty($simulation->dossiers_rachetes[$idDoss]['montant'])) ? $simulation->dossiers_rachetes[$idDoss]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financementLeaser->numero_prochaine_echeance - 1),2);
-			$soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$idDoss]['montant'])) ? $simulation->dossiers_rachetes_p1[$idDoss]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financementLeaser->numero_prochaine_echeance ),2);
+			$soldeRM1 = (!empty($dossierRachete->solde_vendeur_m1)) ? $dossierRachete->solde_vendeur_m1 : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financementLeaser->numero_prochaine_echeance - 2),2);
+			$soldeR = (!empty($dossierRachete->solde_vendeur)) ? $dossierRachete->solde_vendeur : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financementLeaser->numero_prochaine_echeance - 1),2);
+			$soldeR1 = (!empty($dossierRachete->solde_vendeur_p1)) ? $dossierRachete->solde_vendeur_p1 : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financementLeaser->numero_prochaine_echeance ),2);
 			$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 		}
 		
@@ -1422,25 +1426,24 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		if(!$dossier->getSolde($ATMdb2, 'perso')){
 			$soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
 		}
-		
-		$checkedrm1 = (!empty($simulation->dossiers_rachetes_m1[$idDoss]['checked'])) ? true : false;
+
+		$checkedrm1 = ($dossierRachete->choice == 'prev') ? true : false;
 		$checkbox_moreRM1 = 'solde="'.$soldeRM1.'" style="display: none;"';
 		$checkbox_moreRM1.= (in_array($idDoss, $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		
 		// Changement du 13.09.02 : les 4 soldes sont "cochables"
-		$checkedr = (!empty($simulation->dossiers_rachetes[$idDoss]['checked'])) ? true : false;
+		$checkedr = ($dossierRachete->choice == 'curr') ? true : false;
 		$checkbox_moreR = 'solde="'.$soldeR.'" style="display: none;"';
 		$checkbox_moreR.= (in_array($idDoss, $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		
-		$checkedr1 = (!empty($simulation->dossiers_rachetes_p1[$idDoss]['checked'])) ? true : false;
+		$checkedr1 = ($dossierRachete->choice == 'next') ? true : false;
 		$checkbox_moreR1 = 'solde="'.$soldeR1.'" style="display: none;"';
 		$checkbox_moreR1.= (in_array($idDoss, $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
-		
-		$checkedperso = (is_array($simulation->dossiers_rachetes_perso) && in_array($idDoss, $simulation->dossiers_rachetes_perso)) ? true : false;
+
 		$checkbox_moreperso = 'solde="'.$soldeperso.'" style="display: none;"';
 		$checkbox_moreperso.= (in_array($idDoss, $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 		
-		$date_echeance_prochaine = ($simulation->dossiers[$idDoss]['date_prochaine_echeance']) ? $simulation->dossiers[$idDoss]['date_prochaine_echeance'] : $fin->date_prochaine_echeance;
+		$date_echeance_prochaine = ($dossierRachete->date_prochaine_echeance) ? $dossierRachete->date_prochaine_echeance : $fin->date_prochaine_echeance;
 		$date_echeance_prochaine_fin = strtotime('-1day', $dossier->_add_month($fin->getiPeriode(), $date_echeance_prochaine));
 		$date_echeance_en_cours = $dossier->_add_month(-1 * $fin->getiPeriode(), $date_echeance_prochaine);
 		$date_echeance_en_cours_fin = strtotime('-1day', $dossier->_add_month($fin->getiPeriode(), $date_echeance_en_cours));
@@ -1448,7 +1451,7 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 		$date_echeance_precedente_fin = strtotime('-1day', $dossier->_add_month($fin->getiPeriode(), $date_echeance_precedente));
 
 		$TEntityName = TFinancementTools::build_array_entities();
-		$numcontrat_entity_leaser = ($simulation->dossiers[$idDoss]['num_contrat']) ? $simulation->dossiers[$idDoss]['num_contrat'] :$fin->reference;
+		$numcontrat_entity_leaser = ($dossierRachete->num_contrat) ? $dossierRachete->num_contrat :$fin->reference;
 		$numcontrat_entity_leaser = '<a href="'.dol_buildpath('/financement/dossier.php', 1).'?id='.$idDoss.'">'.$numcontrat_entity_leaser.'</a> / '.$TEntityName[$ATMdb->Get_field('entityDossier')];
 		$numcontrat_entity_leaser.= '<br>'.$leaser->getNomUrl(0);
 		$row = array(
@@ -1456,17 +1459,17 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			,'num_affaire' => $ATMdb->Get_field('N° affaire')
 			,'entityDossier' => $ATMdb->Get_field('entityDossier')
 			,'id_dossier' => $dossier->getId()
-			,'num_contrat' => ($simulation->dossiers[$idDoss]['num_contrat']) ? $simulation->dossiers[$idDoss]['num_contrat'] :$fin->reference
-			,'type_contrat' => ($simulation->dossiers[$idDoss]['type_contrat']) ? $affaire->TContrat[$simulation->dossiers[$idDoss]['type_contrat']] : $affaire->TContrat[$ATMdb->Get_field('Type contrat')]
-			,'duree' => ($simulation->dossiers[$idDoss]['duree']) ? $simulation->dossiers[$idDoss]['duree'] :$fin->duree.' '.substr($fin->periodicite,0,1)
-			,'echeance' => ($simulation->dossiers[$idDoss]['echeance']) ? $simulation->dossiers[$idDoss]['echeance'] : $fin->echeance
-			,'loyer_actualise' => ($dossier->nature_financement == 'INTERNE') ? ($simulation->dossiers[$idDoss]['loyer_actualise']) ? $simulation->dossiers[$idDoss]['loyer_actualise'] : $fin->loyer_actualise : ''
-			,'debut' => ($simulation->dossiers[$idDoss]['date_debut']) ? $simulation->dossiers[$idDoss]['date_debut'] :$fin->date_debut
-			,'fin' => ($simulation->dossiers[$idDoss]['date_fin']) ? $simulation->dossiers[$idDoss]['date_fin'] : $fin->date_fin
+			,'num_contrat' => ($dossierRachete->num_contrat) ? $dossierRachete->num_contrat :$fin->reference
+			,'type_contrat' => ($dossierRachete->type_contrat) ? $affaire->TContrat[$dossierRachete->type_contrat] : $affaire->TContrat[$ATMdb->Get_field('Type contrat')]
+			,'duree' => ($dossierRachete->duree) ? $dossierRachete->duree :$fin->duree.' '.substr($fin->periodicite,0,1)
+			,'echeance' => ($dossierRachete->echeance) ? $dossierRachete->echeance : $fin->echeance
+			,'loyer_actualise' => ($dossier->nature_financement == 'INTERNE') ? ($dossierRachete->loyer_actualise) ? $dossierRachete->loyer_actualise : $fin->loyer_actualise : ''
+			,'debut' => ($dossierRachete->date_debut) ? $dossierRachete->date_debut :$fin->date_debut
+			,'fin' => ($dossierRachete->date_fin) ? $dossierRachete->date_fin : $fin->date_fin
 			,'prochaine_echeance' => $date_echeance_prochaine
-			,'avancement' => ($simulation->dossiers[$idDoss]['numero_prochaine_echeance']) ? $simulation->dossiers[$idDoss]['numero_prochaine_echeance'] : $fin->numero_prochaine_echeance.'/'.$fin->duree
-			,'terme' => ($simulation->dossiers[$idDoss]['terme']) ? $simulation->dossiers[$idDoss]['terme'] : $fin->TTerme[$fin->terme]
-			,'reloc' => ($simulation->dossiers[$idDoss]['reloc']) ? $simulation->dossiers[$idDoss]['reloc'] : $fin->reloc
+			,'avancement' => ($dossierRachete->numero_prochaine_echeance) ? $dossierRachete->numero_prochaine_echeance : $fin->numero_prochaine_echeance.'/'.$fin->duree
+			,'terme' => ($dossierRachete->terme) ? $dossierRachete->terme : $fin->TTerme[$fin->terme]
+			,'reloc' => ($dossierRachete->reloc) ? $dossierRachete->reloc : $fin->reloc
 			,'solde_rm1' => $soldeRM1
 			,'date_echeance_precedente' => date('d/m/y', $date_echeance_precedente)
 			,'date_echeance_precedente_fin' => date('d/m/y', $date_echeance_precedente_fin)
@@ -1498,15 +1501,14 @@ function _liste_dossier(&$ATMdb, &$simulation, $mode, $search_by_siren=true) {
 			,'montantr'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes['.$idDoss.'][montant]', $soldeR, $checkbox_moreR) : ''
 			,'montantr1'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes_p1['.$idDoss.'][montant]', $soldeR1, $checkbox_moreR1) : ''
 			,'checkboxperso'=>($mode == 'edit') ? $form->hidden('dossiers_rachetes_perso['.$idDoss.']', $idDoss,$checkbox_moreperso) : ''
-			,'checkedperso'=>$checkedperso
 			,'checkedrm1'=>$checkedrm1
 			,'checkedr'=>$checkedr
 			,'checkedr1'=>$checkedr1
 			
-			,'maintenance' => ($simulation->dossiers[$idDoss]['maintenance']) ? $simulation->dossiers[$idDoss]['maintenance'] : $fin->montant_prestation
-			,'assurance' => ($simulation->dossiers[$idDoss]['assurance']) ? $simulation->dossiers[$idDoss]['assurance'] :$fin->assurance
-			,'assurance_actualise' => ($simulation->dossiers[$idDoss]['assurance_actualise']) ? $simulation->dossiers[$idDoss]['assurance_actualise'] :$fin->assurance_actualise
-			,'montant' => ($simulation->dossiers[$idDoss]['montant']) ? $simulation->dossiers[$idDoss]['montant'] : $fin->montant
+			,'maintenance' => ($dossierRachete->maintenance) ? $dossierRachete->maintenance : $fin->montant_prestation
+			,'assurance' => ($dossierRachete->assurance) ? $dossierRachete->assurance :$fin->assurance
+			,'assurance_actualise' => ($dossierRachete->assurance_actualise) ? $dossierRachete->assurance_actualise :$fin->assurance_actualise
+			,'montant' => ($dossierRachete->montant) ? $dossierRachete->montant : $fin->montant
 			
 			,'class' => $bc[$var]
 			

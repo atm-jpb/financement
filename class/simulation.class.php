@@ -1,10 +1,16 @@
 <?php
+if(! class_exists('DossierRachete')) dol_include_once('/financement/class/dossierRachete.class.php');
 
 class TSimulation extends TObjetStd
 {
 
     /** @var TSimulationSuivi[] $TSimulationSuivi */
     public $TSimulationSuivi;
+
+    /**
+     * @var DossierRachete[]
+     */
+    public $DossierRachete;
 
     function __construct($setChild = false) {
         global $langs;
@@ -31,8 +37,14 @@ class TSimulation extends TObjetStd
 
         $this->init();
 
-        if($setChild) $this->setChild('TSimulationSuivi', 'fk_simulation');
-        else $this->TSimulationSuivi = array();
+        $this->setChild('DossierRachete', 'fk_simulation');
+
+        if($setChild) {
+            $this->setChild('TSimulationSuivi', 'fk_simulation');
+        }
+        else {
+            $this->TSimulationSuivi = array();
+        }
 
         $this->TStatut = array(
             'OK' => $langs->trans('Accord')
@@ -167,6 +179,8 @@ class TSimulation extends TObjetStd
     }
 
     function save_dossiers_rachetes(&$PDOdb, &$doliDB) {
+        if(! class_exists('DossierRachete')) dol_include_once('/financement/class/dossierRachete.class.php');
+
         $TDoss = $this->dossiers;
 
         foreach($this->dossiers_rachetes as $k => $TDossiers) {
@@ -188,6 +202,11 @@ class TSimulation extends TObjetStd
                 $solde_banque_m1 = $dossier->getSolde($PDOdb, 'SRBANK', $echeance - 1);
                 $solde_banque = $dossier->getSolde($PDOdb, 'SRBANK', $echeance);
                 $solde_banque_p1 = $dossier->getSolde($PDOdb, 'SRBANK', $echeance + 1);
+
+                // Soldes NR
+                $solde_banque_nr_m1 = $dossier->getSolde($PDOdb, 'SNRBANK', $echeance - 1);
+                $solde_banque_nr = $dossier->getSolde($PDOdb, 'SNRBANK', $echeance);
+                $solde_banque_nr_p1 = $dossier->getSolde($PDOdb, 'SNRBANK', $echeance + 1);
 
                 // ?
                 $soldeperso = round($dossier->getSolde($PDOdb, 'perso'), 2);
@@ -252,6 +271,35 @@ class TSimulation extends TObjetStd
                 $choice = 'next';
             }
             $TDoss[$k]['choice'] = $choice;
+
+            // Nouvelle méthode d'enregistrement
+            if(empty($this->DossierRachete)) {
+                foreach($TDoss as $fk_dossier => $TValues) {
+                    unset($TValues['leaser']);
+
+                    $dossierRachete = new DossierRachete;
+                    $dossierRachete->set_values($TValues);
+
+                    $dossierRachete->solde_banque_nr_m1 = $solde_banque_nr_m1;
+                    $dossierRachete->solde_banque_nr = $solde_banque_nr;
+                    $dossierRachete->solde_banque_nr_p1 = $solde_banque_nr_p1;
+
+                    $dossierRachete->fk_dossier = $fk_dossier;
+                    $dossierRachete->fk_simulation = $this->id;
+
+                    $dossierRachete->create();
+                }
+            }
+            else {
+                foreach($TDoss as $fk_dossier => $TValues) {
+                    foreach($this->DossierRachete as $dossierRachete) {
+                        if($dossierRachete->fk_dossier === $fk_dossier && $dossierRachete->choice !== $TValues['choice']) {
+                            $dossierRachete->choice = $TValues['choice'];
+                            $dossierRachete->update();
+                        }
+                    }
+                }
+            }
         }
 
         $this->dossiers = $TDoss;
@@ -1174,13 +1222,21 @@ class TSimulation extends TObjetStd
                 $f->reference .= ' / '.$d->financementLeaser->reference;
             }
 
-            $periode_solde = ! empty($this->dossiers[$idDossier]['choice']) ? $this->dossiers[$idDossier]['choice'] : '';
+            $dossierRachete = '';
+            foreach($this->DossierRachete as $dr) {
+                if($dr->fk_dossier == $idDossier) {
+                    $dossierRachete = $dr;
+                    break;
+                }
+            }
+            $periode_solde = ! empty($dossierRachete->choice) ? $dossierRachete->choice : '';
             $periode_solde = strtr($periode_solde, array('prev' => '_m1', 'curr' => '', 'next' => '_p1'));
-            $datemax_deb = $this->dossiers[$idDossier]['date_debut_periode_client'.$periode_solde];
-            $datemax_fin = $this->dossiers[$idDossier]['date_fin_periode_client'.$periode_solde];
-            $solde_r = $this->dossiers[$idDossier]['solde_vendeur'.$periode_solde];
+            $datemax_deb = $dossierRachete->{'date_debut_periode_client'.$periode_solde};
+            $datemax_fin = $dossierRachete->{'date_fin_periode_client'.$periode_solde};
+            $solde_r = $dossierRachete->{'solde_vendeur'.$periode_solde};
 
-            $leaser = $this->dossiers[$idDossier]['object_leaser'];
+            $leaser = new Societe($doliDB);
+            $leaser->fetch($dossierRachete->fk_leaser);
             $TDossier[] = array(
                 'reference' => $f->reference
                 , 'leaser' => $leaser->name
@@ -1316,13 +1372,21 @@ class TSimulation extends TObjetStd
                 $f->reference .= ' / '.$d->financementLeaser->reference;
             }
 
-            $periode_solde = ! empty($this->dossiers[$idDossier]['choice']) ? $this->dossiers[$idDossier]['choice'] : '';
+            $dossierRachete = '';
+            foreach($this->DossierRachete as $dr) {
+                if($dr->fk_dossier == $idDossier) {
+                    $dossierRachete = $dr;
+                    break;
+                }
+            }
+            $periode_solde = ! empty($dossierRachete->choice) ? $dossierRachete->choice : '';
             $periode_solde = strtr($periode_solde, array('prev' => '_m1', 'curr' => '', 'next' => '_p1'));
-            $datemax_deb = $this->dossiers[$idDossier]['date_debut_periode_client'.$periode_solde];
-            $datemax_fin = $this->dossiers[$idDossier]['date_fin_periode_client'.$periode_solde];
-            $solde_r = $this->dossiers[$idDossier]['solde_vendeur'.$periode_solde];
+            $datemax_deb = $dossierRachete->{'date_debut_periode_client'.$periode_solde};
+            $datemax_fin = $dossierRachete->{'date_fin_periode_client'.$periode_solde};
+            $solde_r = $dossierRachete->{'solde_vendeur'.$periode_solde};
 
-            $leaser = $this->dossiers[$idDossier]['object_leaser'];
+            $leaser = new Societe($doliDB);
+            $leaser->fetch($dossierRachete->fk_leaser);
 
             $refus = false;
             foreach($simu->TSimulationSuivi as $suivi) {
@@ -2072,6 +2136,7 @@ class TSimulation extends TObjetStd
 
         $this->start();
         $this->TSimulationSuivi = array();
+        $this->DossierRachete = array();
         $this->TSimulationSuiviHistorized = array();
         $this->accord = 'WAIT';
         $this->date_simul = time();
@@ -2198,6 +2263,34 @@ class TSimulation extends TObjetStd
 
             return -1;
         }
+    }
+
+    /**
+     * Retourne tous les suivi leaser sans avoir à les load
+     * @param   int     $fk_simu
+     * @return  array
+     */
+    public static function getSimulationSuivi($fk_simu) {
+        global $db;
+
+        $TRes = array();
+
+        $sql = 'SELECT rowid, fk_leaser, statut';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation_suivi';
+        $sql.= ' WHERE fk_simulation = '.$fk_simu;
+        $sql.= ' ORDER BY rang ASC';
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        while($obj = $db->fetch_object($resql)) {
+            $TRes[] = $obj;
+        }
+
+        return $TRes;
     }
 }
 
