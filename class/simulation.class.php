@@ -287,7 +287,7 @@ class TSimulation extends TObjetStd
                     $dossierRachete->fk_dossier = $fk_dossier;
                     $dossierRachete->fk_simulation = $this->id;
 
-                    $dossierRachete->create();
+                    $dossierRachete->save($PDOdb);
                 }
             }
             else {
@@ -295,7 +295,7 @@ class TSimulation extends TObjetStd
                     foreach($this->DossierRachete as $dossierRachete) {
                         if($dossierRachete->fk_dossier === $fk_dossier && $dossierRachete->choice !== $TValues['choice']) {
                             $dossierRachete->choice = $TValues['choice'];
-                            $dossierRachete->update();
+                            $dossierRachete->save($PDOdb);
                         }
                     }
                 }
