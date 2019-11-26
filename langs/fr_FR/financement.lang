@@ -391,4 +391,6 @@ ConformiteUpdated = Conformite mise à jour
 ConformiteSetStatus = Changer de statut
 ConformiteConfirmSetStatus = Êtes-vous sûr(e) de vouloir changer le statut de cette conformité ?
 ConformiteWithoutFurtherAction = Sans suite
+
 NumAccord = Numéro accord
+Nature = Nature

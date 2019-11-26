@@ -43,7 +43,9 @@ $reloc_customer_ok = GETPOST('reloc_customer_ok');
 $reloc_leaser_ok = GETPOST('reloc_leaser_ok');
 $loyer_leaser_ok = GETPOST('loyer_leaser_ok');
 $search_fac_materiel = GETPOST('search_fac_materiel');
+$sall = GETPOST('sall');
 $search_dossier = GETPOST('searchdossier');
+if(! empty($sall) && empty($search_dossier)) $search_dossier = $sall;
 
 $toselect = GETPOST('toselect', 'array');
 $arrayofselected = is_array($toselect) ? $toselect : array();
@@ -130,7 +132,7 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
 // Remove filters
 if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) {
     unset($search_ref_client, $search_ref_leaser, $search_entity, $search_nature, $search_thirdparty, $search_leaser, $reloc_customer_ok, $reloc_leaser_ok, $loyer_leaser_ok, $search_transfert, $search_dateEnvoi);
-    unset($search_dateStart, $search_fac_materiel, $search_siren);
+    unset($search_dateStart, $search_fac_materiel, $search_siren, $sall);
 }
 
 $sql = "SELECT d.rowid as fk_fin_dossier, e.label as entity_label, fc.reference as refDosCli, fl.fk_soc as fk_leaser, fl.reference as refDosLea, a.rowid as fk_fin_affaire, a.reference as ref_affaire, ";
@@ -148,7 +150,7 @@ $sql .= "(CASE WHEN fl.date_solde < '1970-01-01' THEN 'En cours' ELSE 'Soldé' E
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END) as 'prochaine', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END) as 'date_start', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END) as 'date_end', ";
-$sql .= "GROUP_CONCAT(f.rowid, '-', f.facnumber) as TInvoiceData, fl.date_envoi, d.commentaire_conformite";
+$sql .= "GROUP_CONCAT(f.rowid, '-', f.ref) as TInvoiceData, fl.date_envoi, d.commentaire_conformite";
 $sql .= ' FROM '.MAIN_DB_PREFIX.'fin_dossier d';
 $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (d.rowid=da.fk_fin_dossier)';
 $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire=a.rowid)';
@@ -199,7 +201,7 @@ if(! empty($reloc_leaser_ok) && $reloc_leaser_ok != -1) $sql .= " AND fl.relocOK
 if(! empty($loyer_leaser_ok) && $loyer_leaser_ok != -1) $sql .= " AND fl.intercalaireOK = '".$db->escape($loyer_leaser_ok)."'";
 if(! empty($search_transfert)) $sql .= ' AND fl.transfert IN ('.implode(',', $search_transfert).')';
 
-if(! empty($search_fac_materiel)) $sql .= natural_search('f.facnumber', $search_fac_materiel);
+if(! empty($search_fac_materiel)) $sql .= natural_search('f.ref', $search_fac_materiel);
 
 $sql .= ' GROUP BY d.rowid, fc.reference, fl.fk_soc, fl.reference, a.rowid, fc.relocOK, fl.relocOK, fl.intercalaireOK, fc.duree, fl.duree, fc.montant, fl.montant, fc.echeance, fl.echeance';
 $sql .= ', fc.date_prochaine_echeance, fl.date_prochaine_echeance, fc.date_debut, fl.date_debut, fc.date_fin, fl.date_fin, fl.date_debut, fl.reste, fl.terme, fl.transfert, fl.date_envoi, fl.date_solde';
@@ -883,7 +885,7 @@ function _getExportXML($sql) {
 function _get_facture_mat($fk_source, $withlink = true) {
     $PDOdb = new TPDOdb;
 
-    $sql = "SELECT f.rowid, f.facnumber
+    $sql = "SELECT f.rowid, f.ref
 			FROM ".MAIN_DB_PREFIX."element_element as ee
 				LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON (ee.fk_target = f.rowid)
 			WHERE ee.fk_target=f.rowid AND ee.sourcetype = 'affaire' AND ee.targettype = 'facture' AND ee.fk_source = ".$fk_source;
@@ -893,10 +895,10 @@ function _get_facture_mat($fk_source, $withlink = true) {
     $link = '';
     while($PDOdb->Get_line()) {
         if($withlink) {
-            $link .= '<a href="'.DOL_URL_ROOT.'/compta/facture.php?facid='.$PDOdb->Get_field('rowid').'">'.img_object('', 'bill').' '.$PDOdb->Get_field('facnumber').'</a><br>';
+            $link .= '<a href="'.DOL_URL_ROOT.'/compta/facture.php?facid='.$PDOdb->Get_field('rowid').'">'.img_object('', 'bill').' '.$PDOdb->Get_field('ref').'</a><br>';
         }
         else {
-            $link .= $PDOdb->Get_field('facnumber')." ";
+            $link .= $PDOdb->Get_field('ref')." ";
         }
     }
 

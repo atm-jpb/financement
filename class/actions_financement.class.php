@@ -1,8 +1,25 @@
 <?php
 
 class ActionsFinancement
-{ 
-     /** Overloading the doActions function : replacing the parent's function with the one below 
+{
+    protected $db;
+    public $dao;
+    public $error;
+    public $errors = array();
+    public $resprints = '';
+
+    /**
+     * Constructor
+     *
+     * @param DoliDB $db
+     */
+    public function __construct($db) {
+        $this->db = $db;
+        $this->error = 0;
+        $this->errors = array();
+    }
+
+    /** Overloading the doActions function : replacing the parent's function with the one below
       *  @param      parameters  meta datas of the hook (context, etc...) 
       *  @param      object             the object you want to process (an invoice if you are in invoice module, a propale in propale's module, etc...) 
       *  @param      action             current action (if set). Generally create or edit or null 
@@ -27,19 +44,47 @@ class ActionsFinancement
 
         return 0;
     }
+
+    /** Overloading the addSearchEntry function : replacing the parent's function with the one below
+     *  @param      parameters  meta datas of the hook (context, etc...)
+     *  @param      object             the object you want to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     *  @param      action             current action (if set). Generally create or edit or null
+     *  @return       void
+     */
+    public function addSearchEntry($parameters, &$object, &$action, $hookmanager) {
+        global $db;
+
+        dol_include_once('/financement/core/modules/modFinancement.class.php');
+        $modFinancement = new modFinancement($db);
+
+        $TRes = array(
+            'searchintofinancementdossier' => array(
+                'position' => $modFinancement->numero,
+                'text' => img_picto('', 'object_financementico@financement').' Dossiers',
+                'url' => dol_buildpath('/financement/dossier_list.php', 1)
+            ),
+            'searchintofinancementsimulation' => array(
+                'position' => $modFinancement->numero,
+                'text' => img_picto('', 'object_financementico@financement').' Simulations',
+                'url' => dol_buildpath('/financement/simulation/list.php', 1)
+            )
+        );
+
+        $this->results = $TRes;
+    }
 	
-	function printSearchForm($parameters, &$object, &$action, $hookmanager) {
-		global $langs, $hookmanager;
-		 
-		 $res = printSearchForm(DOL_URL_ROOT.'/custom/financement/dossier_list.php', DOL_URL_ROOT.'/custom/financement/dossier_list.php', img_picto('',dol_buildpath('/financement/img/object_financeico.png', 1), '', true).' '.$langs->trans("Dossiers"), 'searchdossier', 'searchdossier');
-		 $res .= printSearchForm(DOL_URL_ROOT.'/compta/facture/list.php', DOL_URL_ROOT.'/compta/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Clients"), 'products', 'search_ref');
-		 $res .= printSearchForm(DOL_URL_ROOT.'/fourn/facture/list.php', DOL_URL_ROOT.'/fourn/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Leasers"), 'products', 'search_ref');
-		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation/list.php', DOL_URL_ROOT.'/custom/financement/simulation/list.php', img_object('','invoice').' Simulation', 'searchnumetude', 'searchnumetude');
-		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', img_object('','resource').' Matricule', 'search_matricule', 'search_matricule');
-		 $hookmanager->resPrint.= $res;
-		 
-		 return 0;
-	}
+//	function printSearchForm($parameters, &$object, &$action, $hookmanager) {
+//		global $langs, $hookmanager;
+//
+//		 $res = printSearchForm(DOL_URL_ROOT.'/custom/financement/dossier_list.php', DOL_URL_ROOT.'/custom/financement/dossier_list.php', img_picto('',dol_buildpath('/financement/img/object_financeico.png', 1), '', true).' '.$langs->trans("Dossiers"), 'searchdossier', 'searchdossier');
+//		 $res .= printSearchForm(DOL_URL_ROOT.'/compta/facture/list.php', DOL_URL_ROOT.'/compta/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Clients"), 'products', 'search_ref');
+//		 $res .= printSearchForm(DOL_URL_ROOT.'/fourn/facture/list.php', DOL_URL_ROOT.'/fourn/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Leasers"), 'products', 'search_ref');
+//		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation/list.php', DOL_URL_ROOT.'/custom/financement/simulation/list.php', img_object('','invoice').' Simulation', 'searchnumetude', 'searchnumetude');
+//		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', img_object('','resource').' Matricule', 'search_matricule', 'search_matricule');
+//		 $hookmanager->resPrint.= $res;
+//
+//		 return 0;
+//	}
     
 	function formObjectOptions($parameters, &$object, &$action, $hookmanager) {
 		global $user, $db;

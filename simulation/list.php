@@ -24,7 +24,10 @@ $affaire = new TFin_affaire;
 $PDOdb = new TPDOdb;
 $form = new Form($db);
 
+$sall = GETPOST('sall');
 $search_ref = GETPOST('search_ref');
+if(! empty($sall) && empty($search_ref)) $search_ref = $sall;
+
 $search_entity = GETPOST('search_entity');
 if(! empty($search_entity) && ! is_array($search_entity)) $search_entity = explode(',', $search_entity);
 $search_thirdparty = GETPOST('search_thirdparty');
@@ -63,7 +66,7 @@ foreach($dao->entities as $mc_entity) $TEntity[$mc_entity->id] = $mc_entity->lab
  */
 // Remove filters
 if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) {
-    unset($search_ref, $search_entity, $search_thirdparty, $search_typeContrat, $search_dateSimul, $search_user, $search_statut, $search_leaser);
+    unset($search_ref, $search_entity, $search_thirdparty, $search_typeContrat, $search_dateSimul, $search_user, $search_statut, $search_leaser, $sall);
 }
 
 $sql = "SELECT DISTINCT s.rowid, s.reference, e.label as entity_label, s.fk_soc, s.fk_user_author, s.fk_type_contrat, s.montant_total_finance, s.echeance,";
@@ -217,7 +220,7 @@ print '<input type="hidden" name="sortorder" value="'.$sortorder.'" />';
 print '<input type="hidden" name="page" value="'.$page.'" />';
 
 $title = 'Simulations';
-if(! empty($nbtotalofrecords)) $title .= ' ('.$nbtotalofrecords.')';
+//if(! empty($nbtotalofrecords)) $title .= ' ('.$nbtotalofrecords.')';
 print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, '', $num, $nbtotalofrecords, 'simul32@financement');
 
 //if(! empty($fk_soc)) {
