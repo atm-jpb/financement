@@ -54,6 +54,13 @@ if(! empty($id)) {
 
     if(! empty($object->fk_user)) $u->fetch($object->fk_user);
 }
+else if(! empty($fk_simu)) {
+    $res = $object->fetchBy('fk_simulation', $fk_simu);
+    if($res !== false) {
+        $id = $object->id;
+        if(! empty($object->fk_user)) $u->fetch($object->fk_user);
+    }
+}
 
 $simu = new TSimulation;
 $simu->load($PDOdb, $fk_simu, false);
