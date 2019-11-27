@@ -288,15 +288,14 @@ class TSimulation extends TObjetStd
                     $dossierRachete->fk_simulation = $this->id;
 
                     $dossierRachete->save($PDOdb);
+                    $this->DossierRachete[] = $dossierRachete;  // Une fois le dossierRachete créé, il faut le mettre dans ce tableau
                 }
             }
             else {
-                foreach($TDoss as $fk_dossier => $TValues) {
-                    foreach($this->DossierRachete as $dossierRachete) {
-                        if($dossierRachete->fk_dossier === $fk_dossier && $dossierRachete->choice !== $TValues['choice']) {
-                            $dossierRachete->choice = $TValues['choice'];
-                            $dossierRachete->save($PDOdb);
-                        }
+                foreach($this->DossierRachete as $dossierRachete) {
+                     if($dossierRachete->choice !== $TDoss[$dossierRachete->fk_dossier]['choice']) {
+                        $dossierRachete->choice = $TDoss[$dossierRachete->fk_dossier]['choice'];
+                        $dossierRachete->save($PDOdb);
                     }
                 }
             }
