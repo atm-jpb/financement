@@ -1392,15 +1392,29 @@ function _liste_dossier(&$ATMdb, TSimulation &$simulation, $mode, $search_by_sir
 		$display_solde = $dossier->get_display_solde();
 		
 		if($dossier->nature_financement == 'INTERNE') {
-			$soldeRM1 = (!empty($dossierRachete->solde_vendeur_m1)) ? $dossierRachete->solde_vendeur_m1 : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance - 2),2); //SRCPRO
-			$soldeR = (!empty($dossierRachete->solde_vendeur)) ? $dossierRachete->solde_vendeur : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance - 1),2); //SRCPRO
-			$soldeR1 = (!empty($dossierRachete->solde_vendeur_p1)) ? $dossierRachete->solde_vendeur_p1 : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance),2); //SRCPRO
+		    if($simulation->id > 0) {
+                $soldeRM1 = (! empty($dossierRachete->solde_vendeur_m1)) ? $dossierRachete->solde_vendeur_m1 : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financement->numero_prochaine_echeance - 2), 2); //SRCPRO
+                $soldeR = (! empty($dossierRachete->solde_vendeur)) ? $dossierRachete->solde_vendeur : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financement->numero_prochaine_echeance - 1), 2); //SRCPRO
+                $soldeR1 = (! empty($dossierRachete->solde_vendeur_p1)) ? $dossierRachete->solde_vendeur_p1 : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financement->numero_prochaine_echeance), 2); //SRCPRO
+            }
+		    else {  // Correction du simulateur qui ne gardait pas les dossiers cochés après avoir cliqué sur "Calculer"
+                $soldeRM1 = (!empty($simulation->dossiers_rachetes_m1[$idDoss]['montant'])) ? $simulation->dossiers_rachetes_m1[$idDoss]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance - 2),2); //SRCPRO
+                $soldeR = (!empty($simulation->dossiers_rachetes[$idDoss]['montant'])) ? $simulation->dossiers_rachetes[$idDoss]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance - 1),2); //SRCPRO
+                $soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$idDoss]['montant'])) ? $simulation->dossiers_rachetes_p1[$idDoss]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financement->numero_prochaine_echeance),2);
+            }
 			$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 		}
 		else{
-			$soldeRM1 = (!empty($dossierRachete->solde_vendeur_m1)) ? $dossierRachete->solde_vendeur_m1 : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financementLeaser->numero_prochaine_echeance - 2),2);
-			$soldeR = (!empty($dossierRachete->solde_vendeur)) ? $dossierRachete->solde_vendeur : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financementLeaser->numero_prochaine_echeance - 1),2);
-			$soldeR1 = (!empty($dossierRachete->solde_vendeur_p1)) ? $dossierRachete->solde_vendeur_p1 : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financementLeaser->numero_prochaine_echeance ),2);
+		    if($simulation->id > 0) {
+                $soldeRM1 = (! empty($dossierRachete->solde_vendeur_m1)) ? $dossierRachete->solde_vendeur_m1 : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financementLeaser->numero_prochaine_echeance - 2), 2);
+                $soldeR = (! empty($dossierRachete->solde_vendeur)) ? $dossierRachete->solde_vendeur : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financementLeaser->numero_prochaine_echeance - 1), 2);
+                $soldeR1 = (! empty($dossierRachete->solde_vendeur_p1)) ? $dossierRachete->solde_vendeur_p1 : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financementLeaser->numero_prochaine_echeance), 2);
+            }
+		    else {
+                $soldeRM1 = (!empty($simulation->dossiers_rachetes_m1[$idDoss]['montant'])) ? $simulation->dossiers_rachetes_m1[$idDoss]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financementLeaser->numero_prochaine_echeance - 2),2);
+                $soldeR = (!empty($simulation->dossiers_rachetes[$idDoss]['montant'])) ? $simulation->dossiers_rachetes[$idDoss]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO',$dossier->financementLeaser->numero_prochaine_echeance - 1),2);
+                $soldeR1 = (!empty($simulation->dossiers_rachetes_p1[$idDoss]['montant'])) ? $simulation->dossiers_rachetes_p1[$idDoss]['montant'] : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financementLeaser->numero_prochaine_echeance ),2);
+            }
 			$soldeperso = round($dossier->getSolde($ATMdb2, 'perso'),2);
 		}
 		
@@ -1427,16 +1441,18 @@ function _liste_dossier(&$ATMdb, TSimulation &$simulation, $mode, $search_by_sir
 			$soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
 		}
 
-		$checkedrm1 = ($dossierRachete->choice == 'prev') ? true : false;
+		// Obligé de mettre les 2 tests car les dossiers rachetés ne sont pas encore créés quand on clique sur "Calculer" dans le simulateur
+		$checkedrm1 = ($simulation->id > 0 && $dossierRachete->choice == 'prev' || empty($simulation->id) && ! empty($simulation->dossiers_rachetes_m1[$idDoss]['checked'])) ? true : false;
 		$checkbox_moreRM1 = 'solde="'.$soldeRM1.'" style="display: none;"';
 		$checkbox_moreRM1.= (in_array($idDoss, $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
-		
-		// Changement du 13.09.02 : les 4 soldes sont "cochables"
-		$checkedr = ($dossierRachete->choice == 'curr') ? true : false;
+
+        // Obligé de mettre les 2 tests car les dossiers rachetés ne sont pas encore créés quand on clique sur "Calculer" dans le simulateur
+		$checkedr = ($simulation->id > 0 && $dossierRachete->choice == 'curr' || empty($simulation->id) && ! empty($simulation->dossiers_rachetes[$idDoss]['checked'])) ? true : false;
 		$checkbox_moreR = 'solde="'.$soldeR.'" style="display: none;"';
 		$checkbox_moreR.= (in_array($idDoss, $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
-		
-		$checkedr1 = ($dossierRachete->choice == 'next') ? true : false;
+
+        // Obligé de mettre les 2 tests car les dossiers rachetés ne sont pas encore créés quand on clique sur "Calculer" dans le simulateur
+		$checkedr1 = ($simulation->id > 0 && $dossierRachete->choice == 'next' || empty($simulation->id) && ! empty($simulation->dossiers_rachetes_p1[$idDoss]['checked'])) ? true : false;
 		$checkbox_moreR1 = 'solde="'.$soldeR1.'" style="display: none;"';
 		$checkbox_moreR1.= (in_array($idDoss, $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 
