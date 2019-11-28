@@ -271,32 +271,32 @@ class TSimulation extends TObjetStd
                 $choice = 'next';
             }
             $TDoss[$k]['choice'] = $choice;
+        }
 
-            // Nouvelle méthode d'enregistrement
-            if(empty($this->DossierRachete)) {
-                foreach($TDoss as $fk_dossier => $TValues) {
-                    unset($TValues['leaser']);
+        // Nouvelle méthode d'enregistrement
+        if(empty($this->DossierRachete)) {
+            foreach($TDoss as $fk_dossier => $TValues) {
+                unset($TValues['leaser']);
 
-                    $dossierRachete = new DossierRachete;
-                    $dossierRachete->set_values($TValues);
+                $dossierRachete = new DossierRachete;
+                $dossierRachete->set_values($TValues);
 
-                    $dossierRachete->solde_banque_nr_m1 = $solde_banque_nr_m1;
-                    $dossierRachete->solde_banque_nr = $solde_banque_nr;
-                    $dossierRachete->solde_banque_nr_p1 = $solde_banque_nr_p1;
+                $dossierRachete->solde_banque_nr_m1 = $solde_banque_nr_m1;
+                $dossierRachete->solde_banque_nr = $solde_banque_nr;
+                $dossierRachete->solde_banque_nr_p1 = $solde_banque_nr_p1;
 
-                    $dossierRachete->fk_dossier = $fk_dossier;
-                    $dossierRachete->fk_simulation = $this->id;
+                $dossierRachete->fk_dossier = $fk_dossier;
+                $dossierRachete->fk_simulation = $this->id;
 
-                    $dossierRachete->save($PDOdb);
-                    $this->DossierRachete[] = $dossierRachete;  // Une fois le dossierRachete créé, il faut le mettre dans ce tableau
-                }
+                $dossierRachete->save($PDOdb);
+                $this->DossierRachete[] = $dossierRachete;  // Une fois le dossierRachete créé, il faut le mettre dans ce tableau
             }
-            else {
-                foreach($this->DossierRachete as $dossierRachete) {
-                     if($dossierRachete->choice !== $TDoss[$dossierRachete->fk_dossier]['choice']) {
-                        $dossierRachete->choice = $TDoss[$dossierRachete->fk_dossier]['choice'];
-                        $dossierRachete->save($PDOdb);
-                    }
+        }
+        else {
+            foreach($this->DossierRachete as $dossierRachete) {
+                if($dossierRachete->choice !== $TDoss[$dossierRachete->fk_dossier]['choice']) {
+                    $dossierRachete->choice = $TDoss[$dossierRachete->fk_dossier]['choice'];
+                    $dossierRachete->save($PDOdb);
                 }
             }
         }
