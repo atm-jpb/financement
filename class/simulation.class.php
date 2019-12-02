@@ -381,7 +381,7 @@ class TSimulation extends TObjetStd
             if(empty($this->societe->TDossiers)) {
                 $sql = "SELECT s.rowid
 						FROM ".MAIN_DB_PREFIX."societe as s
-							LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf ON (cf.fk_societe = s.rowid)
+							LEFT JOIN ".MAIN_DB_PREFIX."categorie_fournisseur as cf ON (cf.fk_soc = s.rowid)
 							LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON (cf.fk_categorie = c.rowid)
 						WHERE c.label = 'Encours CPRO'";
 
