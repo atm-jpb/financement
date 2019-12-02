@@ -30,8 +30,10 @@ class TFin_grille_leaser extends TObjetStd {
      */
     function get_grille(&$PDOdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE' , $options=array(), $entity=0)
     {
+        global $conf;
+
     	if(empty($idLeaser)) $idLeaser = FIN_LEASER_DEFAULT;
-		if(empty($entity)) $entity = getEntity();
+		if(empty($entity)) $entity = $conf->entity;
 		
 		$this->fk_soc = $idLeaser;
 
@@ -253,8 +255,10 @@ class TFin_grille_leaser extends TObjetStd {
 	 * Récupération de la liste des durée possible pour un type de contrat et pour un leaser
 	 */
 	function get_duree(&$ATMdb,$idLeaser, $idTypeContrat=0, $periodicite='TRIMESTRE', $entity=0) {
+	    global $conf;
+
 		if(empty($idLeaser)) return -1;
-		if(empty($entity)) $entity = getEntity();
+		if(empty($entity)) $entity = $conf->entity;
 		global $langs;
 
 		$sql = "SELECT";

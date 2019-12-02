@@ -468,7 +468,7 @@ print "</tr>\n";
 $var=true;
 
 // Pénalités simulateur
-$ATMdb->Execute("SELECT rowid, opt_name, opt_value, penalite FROM ".MAIN_DB_PREFIX."fin_grille_penalite WHERE entity IN(".getEntity().") ORDER BY opt_name, opt_value");
+$ATMdb->Execute("SELECT rowid, opt_name, opt_value, penalite FROM ".MAIN_DB_PREFIX."fin_grille_penalite WHERE entity IN(".$conf->entity.") ORDER BY opt_name, opt_value");
 $var=! $var;
 
 while($ATMdb->Get_line()) {

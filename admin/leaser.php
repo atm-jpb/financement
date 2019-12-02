@@ -124,7 +124,7 @@ if($action == 'save') {
 
 foreach ($liste_type_contrat as $typeContrat => $label) {
 	$TFin_grille_suivi = new TFin_grille_suivi;
-	$grille = $TFin_grille_suivi->get_grille($ATMdb,$typeContrat,true,getEntity());
+    $grille = $TFin_grille_suivi->get_grille($ATMdb, $typeContrat, true, $conf->entity);
 	
 	$TGrille[$typeContrat] = $grille;
 }
@@ -190,7 +190,8 @@ foreach ($liste_type_contrat as $typeContrat => $label) {
 	_affOrdreLeaser($ATMdb,$TBS,$TFin_grille_suivi,$mode,$typeContrat);
 }
 
-function _affOrdreLeaser(&$ATMdb,&$TBS,&$TFin_grille_suivi,$mode,$typeContrat){
+function _affOrdreLeaser(&$ATMdb,&$TBS,&$TFin_grille_suivi,$mode,$typeContrat) {
+    global $conf;
 	
 	$form=new TFormCore($_SERVER['PHP_SELF'],'formGrille'.$typeContrat,'POST');
 	$form->Set_typeaff($mode);
@@ -198,7 +199,7 @@ function _affOrdreLeaser(&$ATMdb,&$TBS,&$TFin_grille_suivi,$mode,$typeContrat){
 	echo $form->hidden('action', 'save');
 	echo $form->hidden('typeContrat', $typeContrat );
 	
-	$ATMdb->Execute("SELECT rowid, fk_leaser_solde, montantbase FROM ".MAIN_DB_PREFIX."fin_grille_suivi WHERE fk_type_contrat = '".$typeContrat."' AND entity = ".getEntity()." ORDER BY montantbase ASC");
+	$ATMdb->Execute("SELECT rowid, fk_leaser_solde, montantbase FROM ".MAIN_DB_PREFIX."fin_grille_suivi WHERE fk_type_contrat = '".$typeContrat."' AND entity = ".$conf->entity." ORDER BY montantbase ASC");
 	$ordre = 1;
 	$grille = array();
 	while ($ATMdb->Get_line()) {
