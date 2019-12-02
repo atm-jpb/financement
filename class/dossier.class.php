@@ -477,7 +477,7 @@ class TFin_dossier extends TObjetStd
         $sql .= " AND targettype='facture'";
         $sql .= " AND fk_source=".$this->getId();
         $sql .= ' AND f.entity IN('.getEntity('fin_dossier', true).')';
-        $sql .= " ORDER BY f.facnumber ASC";
+        $sql .= " ORDER BY f.ref ASC";
 
         $ATMdb->Execute($sql);
 
@@ -2508,7 +2508,7 @@ class TFin_financement extends TObjetStd
         $fact->type = 2;
         $fact->entity = $origine->entity;
         $fact->fk_facture_source = $origine->id;
-        $fact->facnumber = 'AV'.$origine->ref_supplier;
+        $fact->ref = 'AV'.$origine->ref_supplier;
         $fact->ref_supplier = 'AV'.$origine->ref_supplier;
         $fact->update($user);
 
