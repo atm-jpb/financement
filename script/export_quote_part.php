@@ -57,7 +57,7 @@ foreach ($TData as $data) {
 	
 	$soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
 
-	$soldepersointegrale = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100));
+	$soldepersointegrale = ($soldepersointegrale * ($conf->global->FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100));
 	
 	$data = array(
 		$dossier->reference

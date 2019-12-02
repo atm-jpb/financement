@@ -179,6 +179,7 @@ class TSimulation extends TObjetStd
     }
 
     function save_dossiers_rachetes(&$PDOdb, &$doliDB) {
+        global $conf;
         if(! class_exists('DossierRachete')) dol_include_once('/financement/class/dossierRachete.class.php');
 
         $TDoss = $this->dossiers;
@@ -211,7 +212,7 @@ class TSimulation extends TObjetStd
                 // ?
                 $soldeperso = round($dossier->getSolde($PDOdb, 'perso'), 2);
                 if(empty($dossier->display_solde)) $soldeperso = 0;
-                if(! $dossier->getSolde($PDOdb, 'perso')) $soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP / 100));
+                if(! $dossier->getSolde($PDOdb, 'perso')) $soldeperso = ($soldepersointegrale * ($conf->global->FINANCEMENT_PERCENT_RETRIB_COPIES_SUP / 100));
 
                 $leaser = new Societe($doliDB);
                 $leaser->fetch($fin_leaser->fk_soc);

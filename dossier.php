@@ -1002,7 +1002,7 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 	
 	$soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
 
-	$soldepersointegrale = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
+	$soldepersointegrale = ($soldepersointegrale * ($conf->global->FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
 
 	//echo $soldepersointegrale;
 	//echo $sommeRealise." ".$sommeNoir." ".$sommeCouleur;

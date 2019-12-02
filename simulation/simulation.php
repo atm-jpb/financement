@@ -1424,7 +1424,7 @@ function _liste_dossier(&$ATMdb, TSimulation &$simulation, $mode, $search_by_sir
 		$soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
 		
 		if(!$dossier->getSolde($ATMdb2, 'perso')){
-			$soldeperso = ($soldepersointegrale * (FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
+			$soldeperso = ($soldepersointegrale * ($conf->global->FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
 		}
 
 		$checkedrm1 = ($dossierRachete->choice == 'prev') ? true : false;
