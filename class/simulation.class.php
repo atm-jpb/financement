@@ -151,31 +151,24 @@ class TSimulation extends TObjetStd
         }
     }
 
-    function save(&$db, &$doliDB, $generatePDF = true) {
-        parent::save($db);
+    function save(&$PDOdb) {
+        global $db;
+
+        parent::save($PDOdb);
 
         $this->reference = $this->getRef();
 
-        $this->save_dossiers_rachetes($db, $doliDB);
+        $this->save_dossiers_rachetes($PDOdb, $db);
 
         if($this->accord == 'OK') {
             $this->date_validite = strtotime('+ 5 months', $this->date_accord);
         }
 
-        if($generatePDF) {
-            $this->gen_simulation_pdf($db, $doliDB);
-
-            // Uniquement pour les simuls d'ESUS et de ABS qui ont des dossiers à solder !
-            if(in_array($this->entity, array(18, 25)) && empty($this->opt_no_case_to_settle)) {
-                $this->gen_simulation_pdf_esus($db, $doliDB);
-            }
-        }
-
-        parent::save($db);
+        parent::save($PDOdb);
 
         //Création du suivi simulation leaser s'il n'existe pas
         //Sinon chargement du suivi
-        $this->load_suivi_simulation($db);
+        $this->load_suivi_simulation($PDOdb);
     }
 
     function save_dossiers_rachetes(&$PDOdb, &$doliDB) {
@@ -304,6 +297,17 @@ class TSimulation extends TObjetStd
         }
 
         $this->dossiers = $TDoss;
+    }
+
+    public function generatePDF(TPDOdb $PDOdb) {
+        global $db;
+
+        $this->gen_simulation_pdf($PDOdb, $db);
+
+        // Uniquement pour les simuls d'ESUS et de ABS qui ont des dossiers à solder !
+        if(in_array($this->entity, array(18, 25)) && empty($this->opt_no_case_to_settle)) {
+            $this->gen_simulation_pdf_esus($PDOdb, $db);
+        }
     }
 
     function setThirparty() {
@@ -1607,7 +1611,7 @@ class TSimulation extends TObjetStd
             if($compteur < 0) $compteur = 0;
 
             $this->attente = $compteur;
-            if(! $nosave) $this->save($ATMdb, $db, false);
+            if(! $nosave) $this->save($ATMdb);
 
             $style = '';
             $min = (int) ($compteur / 60);
@@ -2527,7 +2531,7 @@ class TSimulationSuivi extends TObjetStd
 
         if($simulation->fk_action_manuelle > 0) {
             $simulation->fk_action_manuelle = 0;
-            $simulation->save($PDOdb, $db, false);
+            $simulation->save($PDOdb);
         }
     }
 
@@ -2666,7 +2670,8 @@ class TSimulationSuivi extends TObjetStd
 
         if($simulation->fk_action_manuelle > 0) $simulation->fk_action_manuelle = 0;    // Si OK pour un leaser, plus aucune action manuelle n'est nécessaire
 
-        $simulation->save($PDOdb, $db);
+        $simulation->save($PDOdb);
+        $simulation->generatePDF($PDOdb);
 
         $simulation->send_mail_vendeur();
 
@@ -3008,7 +3013,7 @@ class TSimulationSuivi extends TObjetStd
         }
         else {
             $simu->fk_action_manuelle = 2;  // Can't give accord auto
-            $simu->save($PDOdb, $db, false);
+            $simu->save($PDOdb);
         }
         switchEntity($old_entity);
     }

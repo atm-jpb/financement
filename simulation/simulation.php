@@ -233,9 +233,9 @@ if(!empty($action)) {
 		
 			$simulation->load($ATMdb, $_REQUEST['id']);
 			$simulation->accord = 'SS';
-			$simulation->save($ATMdb, $db, false);
+			$simulation->save($ATMdb);
 			$simulation->clone_simu();
-			$simulation->save($ATMdb, $db, false);
+			$simulation->save($ATMdb);
 			
 			header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->getId().'&action=edit');
 			exit();
@@ -456,7 +456,8 @@ if(!empty($action)) {
 				}*/
 				
 				//$ATMdb->db->debug=true;
-				$simulation->save($ATMdb, $db);
+				$simulation->save($ATMdb);
+				$simulation->generatePDF($ATMdb);
 				//echo $simulation->opt_calage; exit;
 				// Si l'accord vient d'être donné (par un admin)
 				if(($simulation->accord == 'OK' || $simulation->accord == 'KO') && $simulation->accord != $oldAccord) {
@@ -489,13 +490,14 @@ if(!empty($action)) {
 		    if ($newAccord == 'OK') $simulation->montant_accord = $simulation->montant_total_finance;
 
 		    $simulation->accord = $newAccord;
-		    $simulation->save($ATMdb, $db);
+		    $simulation->save($ATMdb);
+		    $simulation->generatePDF($ATMdb);
 		    if(in_array($newAccord, array('KO', 'WAIT_AP'))) $simulation->send_mail_vendeur();
 		    $simulation->historise_accord($ATMdb);
 
             if($simulation->fk_action_manuelle > 0) {
                 $simulation->fk_action_manuelle = 0;
-                $simulation->save($ATMdb, $db, false);
+                $simulation->save($ATMdb);
             }
 
 		    header('Location: '.$_SERVER['PHP_SELF'].'?id='.$simulation->id); exit;
@@ -566,7 +568,8 @@ if(!empty($action)) {
 					if(empty($simulation->montant_accord)) {
 						$simulation->montant_accord = $simulation->montant_total_finance;
 					}
-					$simulation->save($ATMdb, $db);
+					$simulation->save($ATMdb);
+					$simulation->generatePDF($ATMdb);
 				}
 				
 				_fiche($ATMdb, $simulation, 'view');

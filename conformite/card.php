@@ -208,7 +208,7 @@ elseif($action === 'confirm_createDossier' && !empty($user->rights->financement-
     if($d->rowid > 0) {
         // This will add link between dossier and simulation
         $simu->fk_fin_dossier = $d->rowid;
-        $simu->save($PDOdb, $db, false);
+        $simu->save($PDOdb);
 
         $d->addAffaire($PDOdb, $a->rowid);
         $d->save($PDOdb);

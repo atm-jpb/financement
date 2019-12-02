@@ -71,7 +71,7 @@ while($obj = $db->fetch_object($resql)) {
     // Spécifique C'Pro OUEST & COPY CONCEPT, pas de scoring auto si 500 <= montant_financé < 1000
     if(in_array($simulation->entity, array(5, 7)) && $simulation->montant >= 500 && $simulation->montant < 1000) {
         $simulation->fk_action_manuelle = 1;    // Can't do scoring auto
-        $simulation->save($PDOdb, $db, false);
+        $simulation->save($PDOdb);
         continue;
     }
 
@@ -107,7 +107,7 @@ while($obj = $db->fetch_object($resql)) {
 
                 if($TSuivi[$k-1]->date_demande + $conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN*60 <= time()) {
                     $simulation->fk_action_manuelle = 1;    // Can't do scoring auto
-                    $simulation->save($PDOdb, $db, false);
+                    $simulation->save($PDOdb);
                 }
             }
 
