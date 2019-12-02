@@ -99,7 +99,7 @@ class TFin_affaire extends TObjetStd
     }
 
     function loadEquipement(&$db) {
-        $Tab = TRequeteCore::get_id_from_what_you_want($db, MAIN_DB_PREFIX.'asset_link', array('fk_document' => $this->getId(), 'type_document' => 'affaire'));
+        $Tab = TRequeteCore::get_id_from_what_you_want($db, MAIN_DB_PREFIX.'assetatm_link', array('fk_document' => $this->getId(), 'type_document' => 'affaire'));
         $this->TAsset = array();
 
         foreach($Tab as $i => $id) {
