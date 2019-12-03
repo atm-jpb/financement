@@ -404,58 +404,10 @@ if ($simu->id > 0) {
     if(! empty($id)) $url .= '&id='.$id;
 
     $perm = (empty($user->rights->financement->conformite->create) && empty($conf->global->MAIN_UPLOAD_DOC));
-    $param = '&fk_simu='.$simu->rowid;
-    ?>
-    <div class="titre"><?php echo $langs->trans('AttachANewFile'); ?></div>
-    <form id="formuserfile" name="formuserfile" action="<?php echo $url; ?>" enctype="multipart/form-data" method="POST">
-        <input type="file" class="flat" name="userfile[]" size="50" <?php echo ($perm ? 'disabled="disabled"' : ''); ?> multiple="multiple" />&nbsp;
-        <input type="submit" class="button" name="upload"  value="<?php echo $langs->trans('Upload'); ?>" <?php echo ($perm ? 'disabled="disabled"' : ''); ?> />
-    </form>
-    <br />
-    <table width="100%" class="liste">
-        <tr class="liste_titre">
-            <td align="left"><?php print $langs->trans('Documents2') ?></td>
-            <td align="right"><?php print $langs->trans('Size') ?></td>
-            <td align="center"><?php print $langs->trans('Date') ?></td>
-            <td>&nbsp;</td>
-        </tr>
-    <?php
+    $formfile->form_attach_new_file($url, '', 0, 0, $perm, 50, '', '', 1, '', 0);
 
-    $i = 0;
-
-    foreach($filearray as $k => $file) {
-        if ($file['name'] != '.' && $file['name'] != '..' && ! preg_match('/\.meta$/i',$file['name'])) {
-            $filepath = dol_sanitizeFileName($simu->reference).'/conformite/'.$file['name'];
-            print '<tr class="'.(($i % 2 === 0) ? 'impair' : 'pair').'">';
-
-            print '<td>';
-            print '<a data-ajax="false" href="'.DOL_URL_ROOT.'/document.php?modulepart=financement&entity='.$simu->entity.'&file='.urlencode($filepath).'">';
-            print img_mime($file['name'],$file['name'].' ('.dol_print_size($file['size'],0,0).')').' ';
-            print dol_trunc($file['name'], 0,'middle');
-            print '</a>';
-            print '</td>';
-
-            print '<td align="right">'.dol_print_size($file['size'],1,1).'</td>';
-            print '<td align="center">'.dol_print_date($file['date'],"dayhour","tzuser").'</td>';
-
-            print '<td align="right">';
-            if(! empty($user->rights->financement->conformite->create)) {
-                print '<a href="'.($url.'&action=deleteFile&urlfile='.urlencode($filepath)).'" class="deletefilelink" rel="'.$filepath.'">'.img_delete().'</a>';
-            }
-            print '</td>';
-
-            print '</tr>';
-
-            $i++;
-        }
-    }
-    if (count($filearray) === 0) {
-        print '<tr '.$bc[false].'><td colspan="4">';
-        print $langs->trans("NoFileFound");
-        print '</td></tr>';
-    }
-
-    print '</table>';
+    $filepath = dol_sanitizeFileName($simu->reference).'/conformite/';
+    $formfile->list_of_documents($filearray, $object, 'financement', '', 0, $filepath);
 }
 else {
     print $langs->trans("ErrorUnknown");
