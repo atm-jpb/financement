@@ -402,8 +402,7 @@ if(! empty($fk_leaser)) print '<input type="hidden" name="fk_leaser" value="'.$f
 print '<input type="hidden" name="param" value="'.$param.'" />';
 
 $title = 'Dossiers';
-if(! empty($nbtotalofrecords)) $title .= ' ('.$nbtotalofrecords.')';
-print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords);
+print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'title_generic.png', 0, '', '', $limit);
 
 print '<div class="div-table-responsive">';
 
