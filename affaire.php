@@ -8,7 +8,7 @@
 	require_once(DOL_DOCUMENT_ROOT."/core/class/html.formother.class.php");
 	require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
 
-	dol_include_once('/asset/class/asset.class.php');
+	dol_include_once('/assetatm/class/asset.class.php');
 	dol_include_once('/product/class/product.class.php');
 	dol_include_once('/compta/facture/class/facture.class.php');
 
@@ -427,7 +427,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		// Lien facture
 		$row['facture'] = '';
 
-		$TIdFacture = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'asset_link',array('fk_asset'=>$link->asset->getId(), 'type_document'=>'facture'),'fk_document');
+		$TIdFacture = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'assetatm_link',array('fk_asset'=>$link->asset->getId(), 'type_document'=>'facture'),'fk_document');
 		if(!empty($TIdFacture[0])) {
 			$facture = new Facture($db);
 			$facture->fetch($TIdFacture[0]);
@@ -454,7 +454,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 
 		$otherDossier = '["'. implode('","', $Tab). '"]';
 
-		$sql = "SELECT DISTINCT(f.facnumber) as reference 
+		$sql = "SELECT DISTINCT(f.ref) as reference
 				FROM ".MAIN_DB_PREFIX."facture f
 					LEFT JOIN ".MAIN_DB_PREFIX."facturedet as fd ON (fd.fk_facture = f.rowid)
 				WHERE LOCATE('Matricule',fd.description) > 0";
