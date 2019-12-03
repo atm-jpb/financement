@@ -26,7 +26,7 @@ $action = GETPOST('action', 'alpha');
 $confirm = GETPOST('confirm', 'alpha');
 $id = GETPOST('id', 'int');
 $fk_simu = GETPOST('fk_simu', 'int');
-$upload = GETPOST('upload', '', 2);
+$upload = GETPOST('sendit', '', 2);
 
 // Security check
 $socid='';
@@ -65,7 +65,6 @@ if ($simu->rowid > 0) {
     switchEntity($simu->entity);
 
     $upload_dir = $conf->financement->dir_output.'/'.dol_sanitizeFileName($simu->reference).'/conformite';
-    include_once DOL_DOCUMENT_ROOT.'/core/tpl/document_actions_pre_headers.tpl.php';
 
     switchEntity($oldEntity);
 }
@@ -224,33 +223,7 @@ elseif($action === 'confirm_createDossier' && !empty($user->rights->financement-
     exit;
 }
 elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($object->id) && ! empty($_FILES['userfile'])) {
-    // TODO: Traitement à refactorer/virer avec une version plus récente de Dolibarr
-    if(! empty($upload_dir) && ! file_exists($upload_dir)) dol_mkdir($upload_dir);
-
-    $TData = array_shift($_FILES);
-    $nbFiles = count($TData['name']);
-
-    for($i = 0 ; $i < $nbFiles ; $i++) {
-        $destPath = $upload_dir.'/'.$TData['name'][$i];
-
-        $res = dol_move_uploaded_file($TData['tmp_name'][$i], $destPath, 1, 0, $TData['error'][$i], 0, 'userfile');
-        if(is_numeric($res) && $res > 0) {
-            $formMail->add_attached_files($destPath, $TData['name'][$i], $TData['type'][$i]);
-
-            setEventMessage($langs->trans('FileTransferComplete'));
-        }
-        else {
-            if($res < 0) {    // Unknown error
-                setEventMessage($langs->trans("ErrorFileNotUploaded"), 'errors');
-            }
-            else if(preg_match('/ErrorFileIsInfectedWithAVirus/', $res)) {  // Files infected by a virus
-                setEventMessage($langs->trans("ErrorFileIsInfectedWithAVirus"), 'errors');
-            }
-            else {  // Known error
-                setEventMessage($langs->trans($res), 'errors');
-            }
-        }
-    }
+    dol_add_file_process($upload_dir, 0, 1, 'userfile');
 
     header('Location: '.$_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid.'&id='.$object->id);
     exit;
