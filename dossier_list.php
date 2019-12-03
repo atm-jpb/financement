@@ -16,7 +16,7 @@ dol_include_once('/financement/class/dossier_integrale.php');
 dol_include_once('/financement/class/dossier_transfert_xml.class.php');
 dol_include_once('/financement/class/grille.class.php');
 dol_include_once('/financement/lib/financement.lib.php');
-dol_include_once('/asset/class/asset.class.php');
+dol_include_once('/assetatm/class/asset.class.php');
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
 $langs->load('accountancy');
@@ -244,7 +244,8 @@ if(isset($fk_leaser) && ! empty($fk_leaser)) {
     $societe->fetch($fk_leaser);
     $head = societe_prepare_head($societe);
 
-    print dol_get_fiche_head($head, 'transfert', $langs->trans("ThirdParty"), 0, 'company');
+    print dol_get_fiche_head($head, 'transfert', $langs->trans("ThirdParty"), -1, 'company');
+    dol_banner_tab($societe, 'socid', '', 0);
 }
 
 $param = '';
@@ -351,16 +352,12 @@ function initCheckForSelect(mode)	/* mode is 0 during init of page or click all,
 
 // Entête
 if(! empty($fk_leaser)) {
-    print '<table class="border" width="100%">';
-
-    // Name
-    print '<tr><td width="25%">'.$langs->trans('ThirdPartyName').'</td>';
-    print '<td colspan="3">'.$societe->name.'</td>';
-    print '</tr>';
+    print '<div class="underbanner clearboth"></div>';
+    print '<table class="border tableforfield" width="100%">';
 
     // Customer code
     if($societe->client) {
-        print '<tr><td>';
+        print '<tr><td class="titlefield">';
         print $langs->trans('CustomerCode').'</td><td>';
         print $societe->code_client;
         if($societe->check_codeclient() <> 0) print ' <font class="error">('.$langs->trans("WrongCustomerCode").')</font>';
@@ -370,23 +367,13 @@ if(! empty($fk_leaser)) {
 
     // Supplier code
     if(! empty($conf->fournisseur->enabled) && $societe->fournisseur && ! empty($user->rights->fournisseur->lire)) {
-        print '<tr><td>';
+        print '<tr><td class="titlefield">';
         print $langs->trans('SupplierCode').'</td><td>';
         print $societe->code_fournisseur;
         if($societe->check_codefournisseur() <> 0) print ' <font class="error">('.$langs->trans("WrongSupplierCode").')</font>';
         print '</td>';
         print '</tr>';
     }
-
-    // Status
-    print '<tr>';
-    print '<td>'.$langs->trans("Status").'</td>';
-    print '<td>';
-    if (! empty($conf->use_javascript_ajax) && $user->rights->societe->creer && ! empty($conf->global->MAIN_DIRECT_STATUS_UPDATE)) {
-        print ajax_object_onoff($societe, 'status', 'status', 'InActivity', 'ActivityCeased');
-    }
-    else print $societe->getLibStatut(2);
-    print '</td></tr>';
 
     print '</table>';
     print '</div>';
