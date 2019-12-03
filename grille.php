@@ -192,7 +192,7 @@ elseif ($action == 'delete')
 llxHeader();
 
 $head = societe_prepare_head($object);
-dol_fiche_head($head, 'grille', $langs->trans("Financement"), 0, 'financementico@financement');
+dol_fiche_head($head, 'grille', $langs->trans("Financement"), -2, 'financementico@financement');
 
 // Grille de coeff globale + % de pénalité par option
 

@@ -123,7 +123,7 @@ print $TBS->render(dol_buildpath('/financement/tpl/client_entete.tpl.php')
 	)
 	,array(
 		'client'=>array(
-			'dolibarr_societe_head'=>dol_get_fiche_head(societe_prepare_head($societe), 'penalite'.$typePenalite, $langs->trans("ThirdParty"),0,'company')
+			'dolibarr_societe_head'=>dol_get_fiche_head(societe_prepare_head($societe), 'penalite'.$typePenalite, $langs->trans("ThirdParty"),-2,'company')
 			,'showrefnav'=>$formDoli->showrefnav($societe,'socid','',($user->societe_id?0:1),'rowid','nom')
 			,'idprof1'=>$societe->idprof1
 			,'adresse'=>$societe->address
