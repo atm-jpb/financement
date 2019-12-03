@@ -973,7 +973,7 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 	echo $form->hidden('id', $simulation->getId());
 	echo $form->hidden('action', 'save');
 	echo $form->hidden('fk_soc', $simulation->fk_soc);
-	echo $form->hidden('fk_user_author', !empty($simulation->fk_user_author) ? $simulation->fk_user_author : $user->id);
+//	echo $form->hidden('fk_user_author', !empty($simulation->fk_user_author) ? $simulation->fk_user_author : $user->id);
 	echo $form->hidden('entity', $ent);
 	echo $form->hidden('idLeaser', FIN_LEASER_DEFAULT);
 	echo $form->hidden('mode', $mode);
