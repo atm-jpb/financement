@@ -70,7 +70,6 @@ $form = new Form($db);
 
 $dao = new DaoMulticompany($db);
 $dao->getEntities();
-$TEntity = array(0 => '');
 foreach($dao->entities as $mc_entity) $TEntity[$mc_entity->id] = $mc_entity->label;
 
 if(GETPOST('envoiXML')) {
