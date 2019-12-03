@@ -47,7 +47,6 @@ $offset = $limit * $page;
 
 $dao = new DaoMulticompany($db);
 $dao->getEntities();
-$TEntity = array(0 => '');
 foreach($dao->entities as $mc_entity) $TEntity[$mc_entity->id] = $mc_entity->label;
 
 /*
@@ -122,7 +121,6 @@ print '<input type="hidden" name="sortorder" value="'.$sortorder.'" />';
 print '<input type="hidden" name="page" value="'.$page.'" />';
 
 $title = $langs->trans('ConformiteLabel');
-if(! empty($nbtotalofrecords)) $title .= ' ('.$nbtotalofrecords.')';
 print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, '', $num, $nbtotalofrecords, 'simul32@financement');
 
 print '<div class="div-table-responsive">';
