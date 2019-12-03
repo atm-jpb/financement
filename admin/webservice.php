@@ -90,7 +90,7 @@ $head = financement_admin_prepare_head();
 $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
 print_fiche_titre($langs->trans("GlobalOptionsForFinancementSimulation"), $linkback);
 
-dol_fiche_head($head, 'webservice', $langs->trans("Financement"), 0, 'financementico@financement');
+dol_fiche_head($head, 'webservice', $langs->trans("Financement"), -2, 'financementico@financement');
 
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';

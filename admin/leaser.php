@@ -32,12 +32,12 @@ if (!$user->rights->financement->admin->write) accessforbidden();
 
 
 llxHeader('',$langs->trans("FinancementSetup"));
-$head = financement_admin_prepare_head(null);
+$head = financement_admin_prepare_head();
 
 $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
 print_fiche_titre($langs->trans("GlobalOptionsForFinancementSimulation"), $linkback);
 
-dol_fiche_head($head, 'leaser', $langs->trans("Financement"), 0, 'financementico@financement');
+dol_fiche_head($head, 'leaser', $langs->trans("Financement"), -2, 'financementico@financement');
 dol_htmloutput_mesg($mesg);
 
 /**

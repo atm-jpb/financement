@@ -147,7 +147,7 @@ $head = financement_admin_prepare_head();
 $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
 print_fiche_titre($langs->trans("QualityControlRules"), $linkback);
 
-dol_fiche_head($head, 'quality', $langs->trans("Financement"), 0, 'financementico@financement');
+dol_fiche_head($head, 'quality', $langs->trans("Financement"), -2, 'financementico@financement');
 
 $formCore = new TFormCore($_SERVER['PHP_SELF'], 'editQualityControl', 'POST');
 
