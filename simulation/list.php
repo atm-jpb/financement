@@ -219,7 +219,7 @@ print '<input type="hidden" name="sortorder" value="'.$sortorder.'" />';
 print '<input type="hidden" name="page" value="'.$page.'" />';
 
 $title = 'Simulations';
-print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, '', $num, $nbtotalofrecords, 'simul32@financement');
+print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, '', $num, $nbtotalofrecords, 'simul32@financement', 0, '', '', $limit);
 
 //if(! empty($fk_soc)) {
 //    $href = '?action=new&fk_soc='.$fk_soc;
