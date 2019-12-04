@@ -22,6 +22,7 @@ if(! $resql) {
 	exit;
 }
 
+$PDOdb = new TPDOdb;
 $dr = new DossierRachete;
 $nb_commit = $nb_rollback = 0;
 
@@ -52,11 +53,11 @@ while($obj = $db->fetch_object($resql)) {
         $choice = 'no';
     }
 
-    $TDr = $dr->fetchAllBy(array('fk_dossier' => $obj->fk_dossier, 'fk_simulation' => $obj->rowid));
+    $TDr = $dr->LoadAllBy($PDOdb, array('fk_dossier' => $obj->fk_dossier, 'fk_simulation' => $obj->rowid));
     if(! empty($TDr)) $dossierRachete = array_shift($TDr);
 
     $dossierRachete->choice = $choice;
-    $dossierRachete->update();
+    $dossierRachete->save($PDOdb);
 }
 $db->free($resql);
 ?>

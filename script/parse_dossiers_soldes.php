@@ -142,7 +142,7 @@ while($obj = $db->fetch_object($resql)) {
         }
         $dossierRachete->type_solde = $solde;
 
-        $res = $dossierRachete->create();
+        $res = $dossierRachete->save($PDOdb);
         if($res !== false && $res > 0) $nb_commit++;
         else $nb_rollback++;
     }

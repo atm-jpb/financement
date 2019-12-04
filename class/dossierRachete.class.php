@@ -7,7 +7,7 @@ class DossierRachete extends TObjetStd
     /**
      * @var TPDOdb
      */
-    protected $PDOdb;
+//    protected $PDOdb;
 
     /**
      * @var int
@@ -94,7 +94,7 @@ class DossierRachete extends TObjetStd
 
         parent::start();
 
-        $this->PDOdb = new TPDOdb;
+//        $this->PDOdb = new TPDOdb;
     }
 
     public function create() {

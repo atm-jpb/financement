@@ -271,33 +271,32 @@ class TSimulation extends TObjetStd
                 $choice = 'next';
             }
             $TDoss[$k]['choice'] = $choice;
+        }
 
-            // Nouvelle méthode d'enregistrement
-            if(empty($this->DossierRachete)) {
-                foreach($TDoss as $fk_dossier => $TValues) {
-                    unset($TValues['leaser']);
+        // Nouvelle méthode d'enregistrement
+        if(empty($this->DossierRachete)) {
+            foreach($TDoss as $fk_dossier => $TValues) {
+                unset($TValues['leaser']);
 
-                    $dossierRachete = new DossierRachete;
-                    $dossierRachete->set_values($TValues);
+                $dossierRachete = new DossierRachete;
+                $dossierRachete->set_values($TValues);
 
-                    $dossierRachete->solde_banque_nr_m1 = $solde_banque_nr_m1;
-                    $dossierRachete->solde_banque_nr = $solde_banque_nr;
-                    $dossierRachete->solde_banque_nr_p1 = $solde_banque_nr_p1;
+                $dossierRachete->solde_banque_nr_m1 = $solde_banque_nr_m1;
+                $dossierRachete->solde_banque_nr = $solde_banque_nr;
+                $dossierRachete->solde_banque_nr_p1 = $solde_banque_nr_p1;
 
-                    $dossierRachete->fk_dossier = $fk_dossier;
-                    $dossierRachete->fk_simulation = $this->id;
+                $dossierRachete->fk_dossier = $fk_dossier;
+                $dossierRachete->fk_simulation = $this->id;
 
-                    $dossierRachete->create();
-                }
+                $dossierRachete->save($PDOdb);
+                $this->DossierRachete[] = $dossierRachete;  // Une fois le dossierRachete créé, il faut le mettre dans ce tableau
             }
-            else {
-                foreach($TDoss as $fk_dossier => $TValues) {
-                    foreach($this->DossierRachete as $dossierRachete) {
-                        if($dossierRachete->fk_dossier === $fk_dossier && $dossierRachete->choice !== $TValues['choice']) {
-                            $dossierRachete->choice = $TValues['choice'];
-                            $dossierRachete->update();
-                        }
-                    }
+        }
+        else {
+            foreach($this->DossierRachete as $dossierRachete) {
+                if($dossierRachete->choice !== $TDoss[$dossierRachete->fk_dossier]['choice']) {
+                    $dossierRachete->choice = $TDoss[$dossierRachete->fk_dossier]['choice'];
+                    $dossierRachete->save($PDOdb);
                 }
             }
         }
@@ -1179,7 +1178,7 @@ class TSimulation extends TObjetStd
     }
 
     function gen_simulation_pdf(&$ATMdb, &$doliDB) {
-        global $mysoc, $conf;
+        global $mysoc, $conf, $langs;
 
         $old_entity = $conf->entity;
         switchEntity($this->entity);    // $conf and $mysoc may be changed
@@ -1277,6 +1276,9 @@ class TSimulation extends TObjetStd
         else if($simu2->opt_periodicite == 'SEMESTRE') $simu2->coeff_by_periodicite = $simu2->coeff * 2;
         else if($simu2->opt_periodicite == 'ANNEE') $simu2->coeff_by_periodicite = $simu2->coeff * 4;
         else $simu2->coeff_by_periodicite = $simu2->coeff; // TRIMESTRE
+
+        if(in_array($this->entity, array(18, 25))) $simu2->dateLabel = $langs->trans('DateDemarrageCustom');
+        else $simu2->dateLabel = $langs->trans('DateDemarrage');
 
         // Récupération du logo de l'entité correspondant à la simulation
         $logo = DOL_DATA_ROOT.'/'.(($this->entity > 1) ? $this->entity.'/' : '').'mycompany/logos/'.$mysoc->logo;
