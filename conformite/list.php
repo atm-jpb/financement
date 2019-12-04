@@ -62,14 +62,12 @@ if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','
     unset($search_ref, $search_entity, $search_thirdparty, $search_leaser, $search_status, $search_user);
 }
 
-$sql = 'SELECT s.rowid, s.reference, soc.rowid as fk_soc, c.status, s.entity, c.fk_user, c.rowid as fk_conformite, c.commentaire, c.date_cre, lea.rowid as fk_leaser, d.rowid as fk_dossier, ';
-$sql.= 'date_reception_papier';
+$sql = 'SELECT s.rowid, s.reference, soc.rowid as fk_soc, c.status, s.entity, c.fk_user, c.rowid as fk_conformite, c.commentaire, c.date_cre, lea.rowid as fk_leaser, s.fk_fin_dossier as fk_dossier';
 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_conformite c';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON (c.fk_simulation = s.rowid)';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe soc ON (s.fk_soc = soc.rowid)';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe lea ON (s.fk_leaser = lea.rowid)';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user u ON (c.fk_user = u.rowid)';
-$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (s.fk_fin_dossier = d.rowid)';
 
 $strEntityShared = getEntity('fin_simulation', true);
 $TEntityShared = explode(',', $strEntityShared);
@@ -250,7 +248,7 @@ print '<table class="tagtable liste">';
 print '<tr class="liste_titre">';
 
 // Entity
-print '<td colspan="10" style="min-width: 150px;">';
+print '<td colspan="9" style="min-width: 150px;">';
 print '<span>'.$langs->trans('DemandReasonTypeSRC_PARTNER').' : </span>';
 print Form::multiselectarray('search_entity', $TEntity, $search_entity, 0, 0, 'style="min-width: 250px;"');
 print '</td>';
@@ -294,9 +292,6 @@ print '</td>';
 // Commentaire
 print '<td>&nbsp;</td>';
 
-// Date réception dossier papier
-print '<td>&nbsp;</td>';
-
 print '<td>';
 print '<input type="image" class="liste_titre" name="button_search" src="'.img_picto($langs->trans('Search'), 'search', '', false, 1).'" value="'.$langs->trans('Search').'" />';
 print '<input type="image" class="liste_titre" name="button_removefilter" src="'.img_picto($langs->trans('RemoveFilter'), 'searchclear', '', false, 1).'" value="'.$langs->trans('RemoveFilter').'" />';
@@ -314,7 +309,6 @@ print_liste_field_titre('Statut', $_SERVER['PHP_SELF'], 'c.status', '', $param, 
 print_liste_field_titre($langs->trans('DateCreation'), $_SERVER['PHP_SELF'], 'c.date_cre', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('User'), $_SERVER['PHP_SELF'], 'u.login', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('ConformiteCommentaire'), $_SERVER['PHP_SELF'], 'c.commentaire', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
-print_liste_field_titre($langs->trans('ConformiteDateReception'), $_SERVER['PHP_SELF'], 'c.commentaire', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print '<td>';
 print '<input type="checkbox" id="checkallactions" name="checkallactions" class="checkallactions" />';
 print '<script type="text/javascript">
@@ -396,17 +390,8 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     print $form->textwithtooltip(dol_trunc($obj->commentaire, 18), str_replace("\n", "<br/>", $obj->commentaire));
     print '</td>';
 
-    // Date réception dossier papier
-    $time = strtotime($obj->date_reception_papier); // DateTime with this kind strings '0999-11-30 00:00:00' will provide a negative timestamp
-    print '<td>';
-    if(! empty($obj->date_reception_papier) && $time > 0) {
-        print date('d/m/Y', $time);
-    }
-    else print '&nbsp;';
-    print '</td>';
-
     print '<td style="text-align: center;">';
-    if(! empty($obj->date_reception_papier)) {
+    if(! empty($obj->fk_dossier)) {
         $selected = in_array($obj->fk_conformite, $arrayOfSelected);
         print '<input id="cb'.$obj->fk_conformite.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->fk_conformite.'" '.($selected ? 'checked="checked"' : '').'/>';
     }
