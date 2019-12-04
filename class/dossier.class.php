@@ -800,7 +800,7 @@ class TFin_dossier extends TObjetStd
      * Capé LRD Leaser
      */
     function getSolde_SR_LEASER(&$PDOdb, $iPeriode, $duree_restante_leaser, $CRD_Leaser, $LRD_Leaser, $type_penalite = 'R', $nature_financement = 'EXTERNE') {
-        global $conf;
+        global $conf, $db;
 
         $temps_restant = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
 
@@ -809,6 +809,11 @@ class TFin_dossier extends TObjetStd
         if($this->financementLeaser->duree <= $iPeriode) return $this->financementLeaser->reste; // TODO check si ça doit rester
 
         $solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, $type_penalite, $iPeriode) / 100); // Même avec un $this->nature_financement == 'INTERNE' on passe la valeur EXTERNE (l'ancien code renvoyé la même chose)
+        $fk_leaser = $this->financementLeaser->fk_soc;
+        $leaser = new Societe($db);
+        $leaser->fetch($fk_leaser);
+        if(empty($leaser->array_options)) $leaser->fetch_optionals();
+        if(! empty($leaser->array_options['options_non_cape_lrd'])) $this->financementLeaser->cape_lrd = false;
 
         if($solde > $LRD_Leaser && $this->financementLeaser->cape_lrd) return $LRD_Leaser; // Capé LRD sauf si règle spécifique
         //Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
@@ -828,7 +833,7 @@ class TFin_dossier extends TObjetStd
      *  - Uniquement pour INTERNE => capé LRD Client
      */
     function getSolde_SR_CLIENT(&$PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $LRD, $CRD, $CRD_Leaser, $LRD_Leaser, $nature_financement = 'EXTERNE') {
-        global $conf;
+        global $conf, $db;
 
         $solde = 0;
         $capeLRD = true;
@@ -838,6 +843,13 @@ class TFin_dossier extends TObjetStd
             $date_deb_periode = $this->getDateDebutPeriode($iPeriode - 1);
             $p = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
             $TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
+
+            $fk_leaser = $this->financementLeaser->fk_soc;
+            $leaser = new Societe($db);
+            $leaser->fetch($fk_leaser);
+            if(empty($leaser->array_options)) $leaser->fetch_optionals();
+
+            if(! empty($leaser->array_options['options_non_cape_lrd'])) $capeLRD = false;
 
             if($TSoldeRule->base_solde == 'MF') {
                 $solde = $this->financementLeaser->montant;
@@ -856,7 +868,8 @@ class TFin_dossier extends TObjetStd
 
                 // Add Pen Leaser + CPro
                 $solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode) / 100) * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
-                if($solde > $LRD_Leaser) return $LRD_Leaser; // Capé LRD dans tous les cas car solde vendeur
+
+                if($solde > $LRD_Leaser && $capeLRD) return $LRD_Leaser; // Capé LRD dans tous les cas car solde vendeur
                 //Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
                 else if($solde < $this->financementLeaser->reste) {
                     return $this->financementLeaser->reste;
@@ -877,6 +890,13 @@ class TFin_dossier extends TObjetStd
             $p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
             $date_deb_periode = $this->getDateDebutPeriode($iPeriode - 1, 'CLIENT');
             $TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
+
+            $fk_soc = $this->financement->fk_soc;
+            $soc = new Societe($db);
+            $soc->fetch($fk_soc);
+            if(empty($soc->array_options)) $soc->fetch_optionals();
+
+            if(! empty($soc->array_options['options_non_cape_lrd'])) $capeLRD = false;
 
             if($TSoldeRule->base_solde == 'MF') {
                 $solde = $this->financement->montant;
@@ -902,7 +922,7 @@ class TFin_dossier extends TObjetStd
                     $solde = $LRD; // LRD client
                 }
 
-                if($solde > $LRD) return $LRD; // Capé LRD dans tous les cas car solde vendeur
+                if($solde > $LRD && $capeLRD) return $LRD; // Capé LRD dans tous les cas car solde vendeur
                 //Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
                 else if($solde < $this->financement->reste) {
                     $solde = $this->financement->reste;
