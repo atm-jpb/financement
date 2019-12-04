@@ -136,6 +136,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
         case 'waitN1':
             if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1;
             $fk_user = $user->id;   // On save le user qui fait la demande
+            $dateEnvoi = time();
             break;
         case 'waitN2':
             if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2;
@@ -148,10 +149,8 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     }
 
     if(! is_null($status)) {
-        if(! is_null($fk_user) && $object->status === Conformite::STATUS_DRAFT) {
-            $object->fk_user = $fk_user;
-            $object->date_envoi = time();
-        }
+        if(! is_null($fk_user) && $object->status === Conformite::STATUS_DRAFT) $object->fk_user = $fk_user;
+        if(! is_null($dateEnvoi)) $object->date_envoi = $dateEnvoi;
         $object->status = $status;
         $res = $object->update();
 
