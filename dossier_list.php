@@ -32,6 +32,7 @@ $search_ref_leaser = GETPOST('search_ref_leaser');
 $search_entity = GETPOST('search_entity');
 if(! empty($search_entity) && ! is_array($search_entity)) $search_entity = explode(',', $search_entity);
 $search_nature = GETPOST('search_nature');
+$search_siren = GETPOST('search_siren');
 $search_thirdparty = GETPOST('search_thirdparty');
 $search_leaser = GETPOST('search_leaser');
 $search_transfert = GETPOST('search_transfert');
@@ -129,7 +130,7 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
 // Remove filters
 if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) {
     unset($search_ref_client, $search_ref_leaser, $search_entity, $search_nature, $search_thirdparty, $search_leaser, $reloc_customer_ok, $reloc_leaser_ok, $loyer_leaser_ok, $search_transfert, $search_dateEnvoi);
-    unset($search_dateStart, $search_fac_materiel);
+    unset($search_dateStart, $search_fac_materiel, $search_siren);
 }
 
 $sql = "SELECT d.rowid as fk_fin_dossier, e.label as entity_label, fc.reference as refDosCli, fl.fk_soc as fk_leaser, fl.reference as refDosLea, a.rowid as fk_fin_affaire, a.reference as ref_affaire, ";
@@ -181,6 +182,7 @@ $TEntityShared = explode(',', $strEntityShared);
 if(! empty($search_ref_client)) $sql .= natural_search('fc.reference', $search_ref_client);
 if(! empty($search_ref_leaser)) $sql .= natural_search('fl.reference', $search_ref_leaser);
 if(! empty($search_nature) && $search_nature != -1) $sql .= natural_search('a.nature_financement', $search_nature);
+if(! empty($search_siren)) $sql .= natural_search('c.siren', $search_siren);
 if(! empty($search_thirdparty)) $sql .= natural_search('c.nom', $search_thirdparty);
 if(! empty($search_leaser)) $sql .= natural_search('l.nom', $search_leaser);
 if(! empty($search_dateEnvoi)) $sql .= " AND DATE_FORMAT(fl.date_envoi, '%Y-%m-%d') = '".date('Y-m-d', $search_dateEnvoi)."'";
@@ -249,6 +251,7 @@ if(! empty($search_ref_client)) $param .= '&search_ref_client='.urlencode($searc
 if(empty($fk_leaser) && ! empty($search_entity)) $param .= '&search_entity='.urlencode(implode(',', $search_entity));
 if(! empty($search_ref_leaser)) $param .= '&search_ref_leaser='.urlencode($search_ref_leaser);
 if(! empty($search_nature)) $param .= '&search_nature='.urlencode($search_nature);
+if(! empty($search_siren)) $param .= '&search_siren='.urlencode($search_siren);
 if(! empty($search_thirdparty)) $param .= '&search_thirdparty='.urlencode($search_thirdparty);
 if(! empty($search_leaser)) $param .= '&search_leaser='.urlencode($search_leaser);
 if(! empty($search_transfert)) $param .= '&search_transfert='.urlencode(implode(',', $search_transfert));
@@ -477,7 +480,9 @@ if(empty($fk_leaser)) {
 }
 else {
     // Siren Client
-    print '<td style="width: 90px;">&nbsp;</td>';
+    print '<td style="width: 90px;">';
+    print '<input type="text" name="search_siren" value="'.$search_siren.'" size="8" />';
+    print '</td>';
 }
 
 // Thirdparty
@@ -824,7 +829,8 @@ function _getExportXML($sql) {
         'Echeance Leaser',
         'Materiel',
         'Num. serie',
-        'Facture Materiel'
+        'Facture Materiel',
+        'Date Envoi'
     );
     fputcsv($file, $TLabel, ';', '"');
 
@@ -850,11 +856,15 @@ function _getExportXML($sql) {
         $TRes['fact_materiel'] = _get_facture_mat($TRes['fk_fin_affaire'], false);
         $TRes['terme'] = $fin->TTerme[$TRes['terme']];  // Il faut traduire le terme
 
+        $date_envoi = $TRes['date_envoi'];
+
         //Suppression des colonnes inutiles
         unset($TRes['fk_fin_dossier'], $TRes['fk_fin_affaire'], $TRes['fk_soc'], $TRes['refDosCli'], $TRes['fk_leaser'], $TRes['nature_financement'], $TRes['statut']);
         unset($TRes['prochaine'], $TRes['date_start'], $TRes['date_end'], $TRes['TInvoiceData'], $TRes['ref_affaire'], $TRes['nomLea'], $TRes['transfert']);
         unset($TRes['duree'], $TRes['Montant'], $TRes['echeance'], $TRes['relocClientOK'], $TRes['relocLeaserOK'],$TRes['intercalaireLeaserOK'], $TRes['date_envoi']);
         unset($TRes['commentaire_conformite']);
+
+        $TRes['date_envoi'] = $date_envoi;  // Tout ça pour mettre cette colonne à la fin
 
         fputcsv($file, $TRes, ';', '"');
     }

@@ -27,8 +27,8 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 	function generate(&$PDOdb, &$TAffaires, $andUpload=false){
 		global $conf, $db;
 
-		if(empty($conf->global->FINANCEMENT_MODE_PROD)) $name2 = 'UATFRCPROCMCICADLC_'.date('Ymd');
-        else $name2 = 'PRDFRCPROCMCICADLC_'.date('Ymd');
+		if(empty($conf->global->FINANCEMENT_MODE_PROD)) $name2 = 'UATFRCPROCMCICADLC_'.date('Ymd-His');
+        else $name2 = 'PRDFRCPROCMCICADLC_'.date('Ymd-His');
 
 		$xml = new DOMDocument('1.0','UTF-8');
 		$xml->formatOutput = true;

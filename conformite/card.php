@@ -54,6 +54,13 @@ if(! empty($id)) {
 
     if(! empty($object->fk_user)) $u->fetch($object->fk_user);
 }
+else if(! empty($fk_simu)) {
+    $res = $object->fetchBy('fk_simulation', $fk_simu);
+    if($res !== false) {
+        $id = $object->id;
+        if(! empty($object->fk_user)) $u->fetch($object->fk_user);
+    }
+}
 
 $simu = new TSimulation;
 $simu->load($PDOdb, $fk_simu, false);
@@ -96,16 +103,16 @@ if(empty($id) && ! empty($user->rights->financement->conformite->create)) {    /
 /*
  * Actions
  */
-if($action === 'save' && ! empty($user->rights->financement->conformite->create)) {
+if($action === 'save' && (! empty($user->rights->financement->conformite->create) || ! empty($user->rights->financement->conformite->validate))) {
     $commentaire = GETPOST('commentaire', 'alpha');
+    $commentaire_adv = GETPOST('commentaire_adv', 'alpha');
 
-    if(! empty($commentaire)) {
-        $object->commentaire = $commentaire;
-        $res = $object->update();
+    if(! empty($user->rights->financement->conformite->validate)) $object->commentaire = $commentaire;
+    if(! empty($user->rights->financement->conformite->create)) $object->commentaire_adv = $commentaire_adv;
+    $res = $object->update();
 
-        if($res > 0) {
-            setEventMessage($langs->trans('ConformiteUpdated'));
-        }
+    if($res > 0) {
+        setEventMessage($langs->trans('ConformiteUpdated'));
     }
 
     $url = $_SERVER['PHP_SELF'];
@@ -138,6 +145,9 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
             break;
         case 'waitN2':
             if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2;
+            break;
+        case 'withoutFurtherAction':
+            if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_WITHOUT_FURTHER_ACTION;
             break;
         default:
             break;
@@ -274,7 +284,7 @@ elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COM
 elseif($action === 'setStatus') {
     $statusLabel = GETPOST('status', 'alpha');
     if(in_array($statusLabel, array('waitN1', 'waitN2')) && ! empty($user->rights->financement->conformite->validate) ||
-        in_array($statusLabel, array('compliantN1', 'compliantN2', 'notCompliantN1', 'notCompliantN2')) && ! empty($user->rights->financement->conformite->accept))
+        in_array($statusLabel, array('compliantN1', 'compliantN2', 'notCompliantN1', 'notCompliantN2', 'withoutFurtherAction')) && ! empty($user->rights->financement->conformite->accept))
     {
         $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
         if(! empty($statusLabel)) $url .= '&status='.$statusLabel;
@@ -345,11 +355,28 @@ if ($simu->id > 0) {
     print '<td>'.$langs->trans('ListOfRequiredFiles').'</td>';
     print '</tr>';
 
+    // Commentaire ADV
+    print '<tr>';
+    print '<td>'.$langs->trans('ConformiteCommentaireADV');
+    if(! empty($user->rights->financement->conformite->create)) print '&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'&action=editCommentaireADV">'.img_edit().'</a></td>';
+    if(empty($action) || empty($user->rights->financement->conformite->create)) print '<td>'.str_replace("\n", "<br/>\n", $object->commentaire_adv).'</td>';
+    elseif($action === 'editCommentaireADV') {
+        print '<td>';
+        print '<form action="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'" method="POST">';
+        print '<input type="hidden" name="action" value="save" />';
+        print '<div style="display: flex; align-items: center;">';
+        print '<textarea name="commentaire_adv" rows="5" cols="60">'.$object->commentaire_adv.'</textarea>';
+        print '&nbsp;<input class="butAction" type="submit" value="'.$langs->trans('Save').'" />';
+        print '</div></form>';
+        print '</td>';
+    }
+    print '</tr>';
+
     // Commentaire
     print '<tr>';
     print '<td>'.$langs->trans('ConformiteCommentaire');
-    if(! empty($user->rights->financement->conformite->create)) print '&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'&action=editCommentaire">'.img_edit().'</a></td>';
-    if(empty($action) || empty($user->rights->financement->conformite->create)) print '<td>'.str_replace("\n", "<br/>\n", $object->commentaire).'</td>';
+    if(! empty($user->rights->financement->conformite->validate)) print '&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'&action=editCommentaire">'.img_edit().'</a></td>';
+    if(empty($action) || empty($user->rights->financement->conformite->validate)) print '<td>'.str_replace("\n", "<br/>\n", $object->commentaire).'</td>';
     elseif($action === 'editCommentaire') {
         print '<td>';
         print '<form action="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'" method="POST">';
@@ -431,21 +458,29 @@ print '<div class="tabsAction">';
 
 if(in_array($object->status, array(Conformite::STATUS_DRAFT, Conformite::STATUS_NOT_COMPLIANT_N1)) && ! empty($user->rights->financement->conformite->validate)) {
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=confirm_setStatus&status=waitN1&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN1Button').'</a>';
+    if($object->status === Conformite::STATUS_NOT_COMPLIANT_N1) {
+        print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
+    }
 }
 elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1 && ! empty($user->rights->financement->conformite->accept)) {
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=compliantN1">'.$langs->trans('ConformiteCompliantN1Button').'</a>';
     print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliantN1">'.$langs->trans('ConformiteNotCompliantN1').'</a>';
+    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
 }
 elseif(in_array($object->status, array(Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_NOT_COMPLIANT_N2)) && ! empty($user->rights->financement->conformite->validate)) {
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=confirm_setStatus&status=waitN2&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN2Button').'</a>';
+    if($object->status === Conformite::STATUS_COMPLIANT_N1 && empty($simu->fk_fin_dossier) && ! empty($user->rights->financement->alldossier->write)) {
+        print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=createDossier">'.$langs->trans('ConformiteCreateDossier').'</a>';
+    }
+    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
 }
 elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2 && ! empty($user->rights->financement->conformite->accept)) {
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=compliantN2">'.$langs->trans('ConformiteCompliantN2').'</a>';
     print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliantN2">'.$langs->trans('ConformiteNotCompliantN2').'</a>';
+    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
 }
-
-if($object->status === Conformite::STATUS_COMPLIANT_N1 && empty($simu->fk_fin_dossier) && ! empty($user->rights->financement->alldossier->write)) {
-    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=createDossier">'.$langs->trans('ConformiteCreateDossier').'</a>';
+elseif($object->status === Conformite::STATUS_COMPLIANT_N2 && ! empty($user->rights->financement->conformite->accept)) {
+    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
 }
 
 print '</div>';

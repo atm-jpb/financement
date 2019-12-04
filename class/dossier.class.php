@@ -2054,12 +2054,13 @@ class TFin_financement extends TObjetStd
         );
 
         $this->TCalage = array(
-            '' => ''
-            , '1M' => '1 mois'
-            , '2M' => '2 mois'
-            , '3M' => '3 mois'
-            , '4M' => '4 mois'
-            , '5M' => '5 mois'
+            '' => '',
+            '0M' => '0 mois',
+            '1M' => '1 mois',
+            '2M' => '2 mois',
+            '3M' => '3 mois',
+            '4M' => '4 mois',
+            '5M' => '5 mois'
         );
 
         $this->TReglement = array();
@@ -2690,6 +2691,17 @@ class TFin_financement extends TObjetStd
         }
 
         return '';
+    }
+
+    public static function getVR($fk_leaser) {
+        if(in_array($fk_leaser, array(19068, 19483))) return 0.15;    // Lixxbail
+        elseif(in_array($fk_leaser, array(19553, 20113))) return 1; // BNP
+        elseif($fk_leaser == 21382) return 0.15; // CMCIC
+        elseif(in_array($fk_leaser, array(21921, 23164))) return 1; // Grenke
+        elseif(in_array($fk_leaser, array(30749, 30748))) return 15; // Locam
+        elseif($fk_leaser == 18495) return 1; // Loc Pure
+
+        return 0;
     }
 
     public static function isFinancementAlreadyExists($refFinLeaser) {

@@ -839,6 +839,7 @@ class TImport extends TObjetStd {
         //pre($integrale,true);exit("la");
 
         $integrale->facnumber = $facture_loc->ref;
+        $integrale->fk_facture = $facture_loc->id;
 
         //Gère les frais de gestion lié à l'intégrale
         $this->importILFI_gestion($data,$integrale);
