@@ -117,7 +117,7 @@ if(! empty($arrayOfSelected)) {
         <script type="text/javascript">
             $(document).ready(function() {
                 function updateDateReception() {
-                    var strDate = $('#test').val();
+                    var strDate = $('#dateReception').val();
                     var selectedConformite = "<?php echo implode(',', $arrayOfSelected); ?>";
 
                     $.ajax({
@@ -420,7 +420,7 @@ print '</form>';
 
 print '<div id="updateDateReceptionDossier" title="'.$langs->trans('ConformiteUpdateDateReception').'" style="display: none;">';
 print '<span>'.$langs->trans('ConformiteDateReception').' :</span>&nbsp;';
-print '<input type="date" id="test" name="test" required="required" />';
+print '<input type="date" id="dateReception" name="dateReception" required="required"  value="'.date('Y-m-d').'" />';
 print '</div>';
 
 llxFooter();
