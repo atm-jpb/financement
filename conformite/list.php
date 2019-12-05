@@ -33,6 +33,7 @@ if(! empty($search_entity) && ! is_array($search_entity)) $search_entity = explo
 $search_thirdparty = GETPOST('search_thirdparty');
 $search_leaser = GETPOST('search_leaser');
 $search_status = GETPOST('search_status');
+if(! empty($search_status) && ! is_array($search_status)) $search_status = explode(',', $search_status);
 $search_user = GETPOST('search_user');
 
 $action = GETPOST('action');
@@ -77,7 +78,9 @@ $sql.= ' WHERE 1';
 if(! empty($search_ref)) $sql .= natural_search('s.reference', $search_ref);
 if(! empty($search_thirdparty)) $sql .= natural_search('soc.nom', $search_thirdparty);
 if(! empty($search_leaser)) $sql .= natural_search('lea.nom', $search_leaser);
-if(! empty($search_status) && $search_status != -1) $sql .= natural_search('c.status', $search_status);
+if(! empty($search_status)) {
+    $sql .= ' AND c.status IN ('.implode(',', $search_status).')';
+}
 if(! empty($search_user)) $sql .= natural_search('u.login', $search_user);
 if(! empty($search_entity)) {
     $TSearchEntity = array_intersect($TEntityShared, $search_entity);
@@ -257,6 +260,15 @@ print '</td>';
 print '</tr>';
 print '<tr class="liste_titre">';
 
+// Status
+print '<td colspan="9" style="min-width: 150px;">';
+print '<span>'.$langs->trans('Status').' : </span>';
+print Form::multiselectarray('search_status', Conformite::$TStatus, $search_status, 0, 0, 'style="min-width: 250px;"', 1);
+print '</td>';
+
+print '</tr>';
+print '<tr class="liste_titre">';
+
 // Reference
 print '<td>';
 print '<input type="text" name="search_ref" value="'.$search_ref.'" size="8" />';
@@ -276,9 +288,7 @@ print '<input type="text" name="search_leaser" value="'.$search_leaser.'" size="
 print '</td>';
 
 // Statut
-print '<td>';
-print Form::selectarray('search_status', Conformite::$TStatus, $search_status, 1, 0, 0, 'style="width: 200px;"', 1);
-print '</td>';
+print '<td>&nbsp;</td>';
 
 // Date création
 print '<td>';
