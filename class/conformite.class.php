@@ -2,7 +2,7 @@
 
 class Conformite extends TObjetStd
 {
-    public $tablename = 'fin_conformite';
+    public static $tablename = 'fin_conformite';
 
     const STATUS_DRAFT = 0;
     const STATUS_WAITING_FOR_COMPLIANCE_N1 = 1;
@@ -37,6 +37,7 @@ class Conformite extends TObjetStd
     public $commentaire;
     public $commentaire_adv;
     public $date_envoi;
+    public $date_reception_papier;
 
     public $PDOdb;
 
@@ -48,7 +49,7 @@ class Conformite extends TObjetStd
 
         parent::add_champs('status,entity', array('type' => 'int', 'index' => true));
         parent::add_champs('commentaire,commentaire_adv', array('type' => 'text'));
-        parent::add_champs('date_envoi', array('type' => 'date', 'index' => true));
+        parent::add_champs('date_envoi,date_reception_papier', array('type' => 'date', 'index' => true));
 
         parent::start();
 

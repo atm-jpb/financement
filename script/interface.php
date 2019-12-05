@@ -25,7 +25,6 @@ switch($action) {
 function updateDateReception($strDate, $strAllConformite) {
     if(empty($strDate) || empty($strAllConformite)) return false;
 
-    $PDOdb = new TPDOdb;
     $date = strtotime($strDate);
     $TFkConformite = explode(',', $strAllConformite);
 
@@ -33,15 +32,8 @@ function updateDateReception($strDate, $strAllConformite) {
         $c = new Conformite;
         $c->fetch($fk_conformite);
 
-        $s = new TSimulation;
-        $s->load($PDOdb, $c->fk_simulation, false);
-        if(empty($s->fk_fin_dossier)) continue; // On ne peut pas modifier si la simul n'a pas de dossier
-
-        $d = new TFin_dossier;
-        $d->load($PDOdb, $s->fk_fin_dossier, false, false);
-
-        $d->date_reception_papier = $date;
-        $d->save($PDOdb);
+        $c->date_reception_papier = $date;
+        $c->update();
     }
 
     return true;
