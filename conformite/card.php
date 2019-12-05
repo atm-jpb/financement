@@ -49,6 +49,7 @@ $soc = new Societe($db);
 $leaser = new Societe($db);
 $PDOdb = new TPDOdb;
 $object = new Conformite;
+$d = new TFin_dossier;
 if(! empty($id)) {
     $object->fetch($id);
     if(empty($fk_simu)) $fk_simu = $object->fk_simulation;
@@ -68,6 +69,8 @@ $simu->load($PDOdb, $fk_simu, false);
 if ($simu->rowid > 0) {
     $soc->fetch($simu->fk_soc);
     $leaser->fetch($simu->fk_leaser);
+
+    if(! empty($simu->fk_fin_dossier)) $d->load($PDOdb, $simu->fk_fin_dossier, false);
 
     $oldEntity = $conf->entity;
     switchEntity($simu->entity);
@@ -368,7 +371,15 @@ if ($simu->id > 0) {
 
     // Leaser
     print '<tr><td>'.$langs->trans('Leaser').'</td>';
-    print '<td>'.$leaser->getNomUrl(1).'</td></tr>';
+    print '<td>'.$leaser->getNomUrl(1).'</td>';
+
+    // Date d'envoi du dossier
+    print '<td>'.$langs->trans('DossierDateSending').'</td>';
+    print '<td>';
+    if(! empty($d->rowid) && ! empty($d->financementLeaser->date_envoi)) print date('d/m/Y', $d->financementLeaser->date_envoi);
+    else print '&nbsp;';
+    print '</td>';
+    print '</tr>';
 
     // Num accord leaser
     $shouldILink = ! empty($simu->fk_fin_dossier);
@@ -377,7 +388,12 @@ if ($simu->id > 0) {
     if($shouldILink) print '<a href="'.dol_buildpath('/financement/dossier.php', 1).'?id='.$simu->fk_fin_dossier.'">';
     print $simu->numero_accord;
     if($shouldILink) print '</a>';
-    print '</td></tr>';
+    print '</td>';
+
+    // Date de la facture matériel
+    print '<td>'.$langs->trans('FactureMaterielDate').'</td>';
+    print '<td></td>';
+    print '</tr>';
 
     // User
     print '<tr><td>'.$langs->trans('User').'</td>';
