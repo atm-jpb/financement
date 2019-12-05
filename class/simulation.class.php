@@ -839,6 +839,7 @@ class TSimulation extends TObjetStd
             if($typeCalcul == 'cpro') { // Les coefficient sont trimestriel, à adapter en fonction de la périodicité de la simulation
                 $this->echeance = ($this->montant_total_finance) * ($this->coeff / 100);
                 if($this->opt_periodicite == 'ANNEE') $this->echeance *= 4;
+                else if($this->opt_periodicite == 'SEMESTRE') $this->echeance *= 2;
                 else if($this->opt_periodicite == 'MOIS') $this->echeance /= 3;
             }
             else {
@@ -851,6 +852,7 @@ class TSimulation extends TObjetStd
             if($typeCalcul == 'cpro') {
                 $this->montant = $this->echeance / ($this->coeff / 100);
                 if($this->opt_periodicite == 'ANNEE') $this->montant /= 4;
+                if($this->opt_periodicite == 'SEMESTRE') $this->montant /= 2;
                 else if($this->opt_periodicite == 'MOIS') $this->montant *= 3;
             }
             else {
