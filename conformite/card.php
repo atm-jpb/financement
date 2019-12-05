@@ -136,9 +136,11 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
             break;
         case 'compliantN1':
             if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_COMPLIANT_N1;
+            $dateConformeN1 = time();
             break;
         case 'compliantN2':
             if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_COMPLIANT_N2;
+            $dateConformeN2 = time();
             break;
         case 'waitN1':
             if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1;
@@ -147,6 +149,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
             break;
         case 'waitN2':
             if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2;
+            $dateAttenteN2 = time();
             break;
         case 'withoutFurtherAction':
             if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_WITHOUT_FURTHER_ACTION;
@@ -158,6 +161,9 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     if(! is_null($status)) {
         if(! is_null($fk_user) && $object->status === Conformite::STATUS_DRAFT) $object->fk_user = $fk_user;
         if(! is_null($dateEnvoi)) $object->date_envoi = $dateEnvoi;
+        if(! is_null($dateAttenteN2)) $object->date_attenteN2 = $dateAttenteN2;
+        if(! is_null($dateConformeN1)) $object->date_conformeN1 = $dateConformeN1;
+        if(! is_null($dateConformeN2)) $object->date_conformeN2 = $dateConformeN2;
         $object->status = $status;
         $res = $object->update();
 
@@ -310,35 +316,55 @@ if ($simu->id > 0) {
     print '<table class="border"width="100%">';
 
     // Ref
-    print '<tr><td width="20%">'.$langs->trans('Ref').'</td><td>';
+    print '<tr><td width="20%">'.$langs->trans('Ref').'</td><td width="30%">';
     print $simu->reference.'&nbsp;';
     if($simu->accord === 'OK') print get_picto('super_'.$simu->accord);
     else print get_picto($simu->accord);
+    print '</td>';
+
+    // Date envoi
+    print '<td width="15%">'.$langs->trans('DateSending').'</td>';
+    print '<td>';
+    if(! empty($object->date_envoi)) print date('d/m/Y', $object->date_envoi);
+    else print '&nbsp;';
     print '</td></tr>';
 
     // Entity
     print '<tr><td width="20%">'.$langs->trans('DemandReasonTypeSRC_PARTNER').'</td><td>';
     print $TEntity[$simu->entity];
+    print '</td>';
+
+    // Date conforme N1
+    print '<td>'.$langs->trans('ConformiteDateCompliantN1').'</td>';
+    print '<td>';
+    if(! empty($object->date_conformeN1)) print date('d/m/Y', $object->date_conformeN1);
+    else print '&nbsp;';
     print '</td></tr>';
 
     // Status
-    if(! empty($id)) {
-        print '<tr>';
-        print '<td>'.$langs->trans('ConformiteStatus').'</td>';
-        print '<td>'.$langs->trans(Conformite::$TStatus[$object->status]).'</td>';
-        print '</tr>';
+    print '<tr>';
+    print '<td>'.$langs->trans('ConformiteStatus').'</td>';
+    print '<td>'.$langs->trans(Conformite::$TStatus[$object->status]).'</td>';
 
-        if(! empty($object->date_envoi)) {
-            print '<tr>';
-            print '<td>'.$langs->trans('DateSending').'</td>';
-            print '<td>'.date('d/m/Y', $object->date_envoi).'</td>';
-            print '</tr>';
-        }
-    }
+    // Date attente N2
+    print '<td>'.$langs->trans('ConformiteDateWaitingForComplianceN2').'</td>';
+    print '<td>';
+    if(! empty($object->date_attenteN2)) print date('d/m/Y', $object->date_attenteN2);
+    else print '&nbsp;';
+    print '</td>';
+    print '</tr>';
 
     // Customer
     print "<tr><td>".$langs->trans("Company")."</td>";
-    print '<td>'.$soc->getNomUrl(1).'</td></tr>';
+    print '<td>'.$soc->getNomUrl(1).'</td>';
+
+    // Date conforme N2
+    print '<td>'.$langs->trans('ConformiteDateCompliantN2').'</td>';
+    print '<td>';
+    if(! empty($object->date_conformeN2)) print date('d/m/Y', $object->date_conformeN2);
+    else print '&nbsp;';
+    print '</td>';
+    print '</tr>';
 
     // Leaser
     print '<tr><td>'.$langs->trans('Leaser').'</td>';
@@ -357,12 +383,15 @@ if ($simu->id > 0) {
     print '<tr><td>'.$langs->trans('User').'</td>';
     print '<td>';
     if(! empty($u->id)) print $u->getLoginUrl(1);
-    print '</td></tr>';
+    print '</td>';
+    print '<td colspan="2"></td>';
+    print '</tr>';
 
     // Required files
     print '<tr>';
     print '<td>'.$langs->trans('RequiredFiles').'</td>';
     print '<td>'.$langs->trans('ListOfRequiredFiles').'</td>';
+    print '<td colspan="2"></td>';
     print '</tr>';
 
     // Commentaire ADV
@@ -380,6 +409,7 @@ if ($simu->id > 0) {
         print '</div></form>';
         print '</td>';
     }
+    print '<td colspan="2"></td>';
     print '</tr>';
 
     // Commentaire
@@ -397,6 +427,7 @@ if ($simu->id > 0) {
         print '</div></form>';
         print '</td>';
     }
+    print '<td colspan="2"></td>';
     print '</tr>';
 
     print '</table>';
