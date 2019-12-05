@@ -170,7 +170,13 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
                 setEventMessage('Email envoyé à : '.$u->email);
             }
 
-            if($object->status === Conformite::STATUS_COMPLIANT_N1) {
+            // On renseigne ici les entités pour lesquelles on ne veut pas créer les entités en automatique
+            $TEntity = array(
+                7, 9, 11, 5,    // C'Pro Ouest
+                6,              // Copem
+                1, 2, 3         // C'Pro
+            );
+            if($object->status === Conformite::STATUS_COMPLIANT_N1 && ! in_array($object->entity, $TEntity)) {
                 if(TFin_financement::isFinancementAlreadyExists($simu->numero_accord)) setEventMessage($langs->trans('ConformiteDossierAlreadyExists', $simu->numero_accord), 'warnings');
                 else createDossier($PDOdb, $simu);
             }
