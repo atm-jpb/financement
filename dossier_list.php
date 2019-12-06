@@ -644,6 +644,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
         print img_picto_common($obj->commentaire_conformite, 'mime/other.png');
     }
     print '</a>';
+    print ' ('.howManyAffaire($obj->fk_fin_dossier, $obj->fk_leaser).')';
     print '</td>';
 
     if(empty($fk_leaser)) {
@@ -903,4 +904,26 @@ function _get_facture_mat($fk_source, $withlink = true) {
     $PDOdb->close();
 
     return $link;
+}
+
+function howManyAffaire($fk_dossier, $fk_leaser = null) {
+    global $db;
+
+    $sql = 'SELECT da.fk_fin_dossier, count(da.fk_fin_affaire) as nbAff';
+    $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_dossier_affaire da';
+    $sql.= ' WHERE da.fk_fin_dossier = '.$fk_dossier;
+    $sql.= ' GROUP BY da.fk_fin_dossier';
+
+    $resql = $db->query($sql);
+    if(! $resql) {
+        dol_print_error($db);
+        exit;
+    }
+
+    $res = 0;
+    if($obj = $db->fetch_object($resql)) {
+        $res = $obj->nbAff;
+    }
+
+    return $res;
 }
