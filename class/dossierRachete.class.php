@@ -145,7 +145,7 @@ class DossierRachete extends TObjetStd
 
         if(empty($fk_dossier)) return false;
 
-        $sql = 'SELECT count(*)';
+        $sql = 'SELECT rowid';
         $sql.= ' FROM '.MAIN_DB_PREFIX.self::$tablename;
         $sql.= ' WHERE fk_dossier = '.$fk_dossier;
 
