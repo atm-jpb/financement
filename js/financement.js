@@ -50,7 +50,7 @@ $(document).ready(function () {
         var diff_time = date_demarrage.getTime() - today.getTime();
 
         var diff_jours = Math.ceil(diff_time / (1000 * 60 * 60 * 24));
-        if (diff_jours > 30 && diff_jours < 210) {
+        if (diff_jours >= 0 && diff_jours < 210) {
             $('#opt_calage').val(Math.floor(diff_jours / 31) + 'M');
             $('#opt_calage_label').val(Math.floor(diff_jours / 31) + 'M');
         }
