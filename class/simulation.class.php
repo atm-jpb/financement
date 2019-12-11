@@ -288,6 +288,10 @@ class TSimulation extends TObjetStd
                 $dossierRachete->fk_dossier = $fk_dossier;
                 $dossierRachete->fk_simulation = $this->id;
 
+                // On détermine le type de solde
+                $solde = self::getTypeSolde($this->rowid, $fk_dossier, $this->fk_leaser);
+                $dossierRachete->type_solde = $solde;
+
                 $dossierRachete->save($PDOdb);
                 $this->DossierRachete[] = $dossierRachete;  // Une fois le dossierRachete créé, il faut le mettre dans ce tableau
             }
@@ -2295,6 +2299,60 @@ class TSimulation extends TObjetStd
         }
 
         return $TRes;
+    }
+
+    public static function getLeaserCategory() {
+        global $db;
+
+        $TRes = array();
+        $sql = 'SELECT cf.fk_societe as fk_soc, cf.fk_categorie as fk_cat';
+        $sql .= ' FROM '.MAIN_DB_PREFIX.'categorie_fournisseur cf';
+        $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie c ON (c.rowid = cf.fk_categorie)';
+        $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie c2 ON (c2.rowid = c.fk_parent)';
+        $sql .= " WHERE c2.label = 'Leaser'";
+
+        $resql = $db->query($sql);
+        if($resql) {
+            while($obj = $db->fetch_object($resql)) $TRes[$obj->fk_soc] = $obj->fk_cat;
+        }
+
+        return $TRes;
+    }
+
+    /**
+     * @param   int     $fk_simulation      Simulation id to load TSimulationSuivi
+     * @param   int     $fk_dossier         Dossier id
+     * @param   int     $fk_leaser_simu     Simulation Thirdparty id
+     * @return  string  Renvoie le type de solde, R ou NR
+     */
+    public static function getTypeSolde($fk_simulation, $fk_dossier, $fk_leaser_simu) {
+        if(empty($fk_simulation) || empty($fk_dossier) || empty($fk_leaser_simu)) return '';
+
+        $PDOdb = new TPDOdb;
+        $doss = new TFin_dossier;
+        $doss->load($PDOdb, $fk_dossier, false);
+
+        // Il faut récupérer les catégories de leaser pour savoir si on prendre le 'R' ou le 'NR'
+        $TLeaserCat = TSimulation::getLeaserCategory();
+        $TSimulationSuivi = TSimulation::getSimulationSuivi($fk_simulation);
+
+        // On détermine le type de solde
+        $refus = false;
+        foreach($TSimulationSuivi as $suivi) {
+            if($TLeaserCat[$doss->financementLeaser->fk_soc] == $TLeaserCat[$suivi->fk_leaser] && $suivi->statut == 'KO') {
+                $refus = true;
+                break;
+            }
+        }
+
+        if($refus || $TLeaserCat[$fk_leaser_simu] == $TLeaserCat[$doss->financementLeaser->fk_soc]) {
+            $solde = 'R';
+        }
+        else {
+            $solde = 'NR';
+        }
+
+        return $solde;
     }
 }
 
