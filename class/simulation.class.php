@@ -300,8 +300,13 @@ class TSimulation extends TObjetStd
             foreach($this->DossierRachete as $dossierRachete) {
                 if($dossierRachete->choice !== $TDoss[$dossierRachete->fk_dossier]['choice']) {
                     $dossierRachete->choice = $TDoss[$dossierRachete->fk_dossier]['choice'];
-                    $dossierRachete->save($PDOdb);
                 }
+
+                // On détermine le type de solde
+                $solde = self::getTypeSolde($this->rowid, $dossierRachete->fk_dossier, $this->fk_leaser);
+                $dossierRachete->type_solde = $solde;
+
+                $dossierRachete->save($PDOdb);
             }
         }
 

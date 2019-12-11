@@ -33,7 +33,7 @@ if(! $resql) {
 }
 
 $PDOdb = new TPDOdb;
-$nb_commit = $nb_rollback = 0;
+$nbRow = $db->num_rows($resql);
 
 while($obj = $db->fetch_object($resql)) {
     $doss = new TFin_dossier;
@@ -50,4 +50,4 @@ while($obj = $db->fetch_object($resql)) {
 }
 $db->free($resql);
 ?>
-<span>Capri... c'est fini !</span>
+<span>Nb rows : <?php echo $nbRow; ?></span>
