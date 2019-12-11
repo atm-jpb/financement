@@ -1,4 +1,6 @@
 <?php
+set_time_limit(0);
+ini_set('memory_limit', '256M');
 
 /*
  * Ce script doit corriger tous les dossiers rachetés pour renseigner correctement le type de solde
