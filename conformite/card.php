@@ -390,9 +390,12 @@ if ($simu->id > 0) {
     if($shouldILink) print '</a>';
     print '</td>';
 
-    // Date de la facture matériel
-    print '<td>'.$langs->trans('FactureMaterielDate').'</td>';
-    print '<td></td>';
+    // Date de réception du dossier papier
+    print '<td>'.$langs->trans('ConformiteDateReception').'</td>';
+    print '<td>';
+    if(! empty($object->date_reception_papier)) print date('d/m/Y', $object->date_reception_papier);
+    else print '&nbsp;';
+    print '</td>';
     print '</tr>';
 
     // User
@@ -400,7 +403,13 @@ if ($simu->id > 0) {
     print '<td>';
     if(! empty($u->id)) print $u->getLoginUrl(1);
     print '</td>';
-    print '<td colspan="2"></td>';
+
+    // Date de la facture matériel
+    print '<td>'.$langs->trans('FactureMaterielDate').'</td>';
+    print '<td>';
+    if(! empty($d->rowid) && ! empty($d->date_facture_materiel)) print date('d/m/Y', $d->date_facture_materiel);
+    else print '&nbsp;';
+    print '</td>';
     print '</tr>';
 
     // Required files
