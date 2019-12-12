@@ -73,12 +73,16 @@ $(document).ready(function () {
         date_livraison = date_livraison.join('/');
         var dateL = new Date(date_livraison);
 
-        let nextQuarter = getQuarter(dateL);
+        let nextQuarter;
+
+        if(dateL.getDate() === 1 && [1, 4, 7, 10].indexOf(dateL.getMonth()+1) !== -1) nextQuarter = dateL;
+        else nextQuarter = getQuarter(dateL);
         let diffInMS = nextQuarter.getTime() - dateL.getTime();
         let diffInDays = diffInMS / (86400 * 1000);
 
         let calageRule = null;
-        if (diffInDays > 0 && diffInDays <= 45) calageRule = 1;
+        if (diffInDays >= 0 && diffInDays <= 30) calageRule = 0;
+        if (diffInDays > 30 && diffInDays <= 45) calageRule = 1;
         else if (diffInDays > 45 && diffInDays <= 75) calageRule = 2;
         else if (diffInDays > 75) calageRule = 3;
 
