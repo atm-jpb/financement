@@ -33,6 +33,7 @@ if(! empty($search_entity) && ! is_array($search_entity)) $search_entity = explo
 $search_thirdparty = GETPOST('search_thirdparty');
 $search_leaser = GETPOST('search_leaser');
 $search_status = GETPOST('search_status');
+if(! empty($search_status) && ! is_array($search_status)) $search_status = explode(',', $search_status);
 $search_user = GETPOST('search_user');
 
 $action = GETPOST('action');
@@ -63,7 +64,7 @@ if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','
     unset($search_ref, $search_entity, $search_thirdparty, $search_leaser, $search_status, $search_user);
 }
 
-$sql = 'SELECT s.rowid, s.reference, soc.rowid as fk_soc, c.status, s.entity, c.fk_user, c.rowid as fk_conformite, c.commentaire, c.date_cre, lea.rowid as fk_leaser, c.date_envoi, s.fk_fin_dossier as fk_dossier';
+$sql = 'SELECT s.rowid, s.reference, soc.rowid as fk_soc, c.status, s.entity, c.fk_user, c.rowid as fk_conformite, c.commentaire, lea.rowid as fk_leaser, c.date_envoi, s.fk_fin_dossier as fk_dossier, c.date_reception_papier';
 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_conformite c';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON (c.fk_simulation = s.rowid)';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe soc ON (s.fk_soc = soc.rowid)';
@@ -77,7 +78,9 @@ $sql.= ' WHERE 1';
 if(! empty($search_ref)) $sql .= natural_search('s.reference', $search_ref);
 if(! empty($search_thirdparty)) $sql .= natural_search('soc.nom', $search_thirdparty);
 if(! empty($search_leaser)) $sql .= natural_search('lea.nom', $search_leaser);
-if(! empty($search_status) && $search_status != -1) $sql .= natural_search('c.status', $search_status);
+if(! empty($search_status)) {
+    $sql .= ' AND c.status IN ('.implode(',', $search_status).')';
+}
 if(! empty($search_user)) $sql .= natural_search('u.login', $search_user);
 if(! empty($search_entity)) {
     $TSearchEntity = array_intersect($TEntityShared, $search_entity);
@@ -249,9 +252,18 @@ print '<table class="tagtable liste">';
 print '<tr class="liste_titre">';
 
 // Entity
-print '<td colspan="9" style="min-width: 150px;">';
+print '<td colspan="10" style="min-width: 150px;">';
 print '<span>'.$langs->trans('DemandReasonTypeSRC_PARTNER').' : </span>';
 print Form::multiselectarray('search_entity', $TEntity, $search_entity, 0, 0, 'style="min-width: 250px;"');
+print '</td>';
+
+print '</tr>';
+print '<tr class="liste_titre">';
+
+// Status
+print '<td colspan="10" style="min-width: 150px;">';
+print '<span>'.$langs->trans('Status').' : </span>';
+print Form::multiselectarray('search_status', Conformite::$TStatus, $search_status, 0, 0, 'style="min-width: 250px;"', 1);
 print '</td>';
 
 print '</tr>';
@@ -276,9 +288,7 @@ print '<input type="text" name="search_leaser" value="'.$search_leaser.'" size="
 print '</td>';
 
 // Statut
-print '<td>';
-print Form::selectarray('search_status', Conformite::$TStatus, $search_status, 1, 0, 0, 'style="width: 200px;"', 1);
-print '</td>';
+print '<td>&nbsp;</td>';
 
 // Date création
 print '<td>';
@@ -291,6 +301,9 @@ print '<input type="text" name="search_user" value="'.$search_user.'" size="14" 
 print '</td>';
 
 // Commentaire
+print '<td>&nbsp;</td>';
+
+// Date reception dossier papier
 print '<td>&nbsp;</td>';
 
 print '<td>';
@@ -310,7 +323,8 @@ print_liste_field_titre('Statut', $_SERVER['PHP_SELF'], 'c.status', '', $param, 
 print_liste_field_titre($langs->trans('DateSending'), $_SERVER['PHP_SELF'], 'c.date_envoi', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('User'), $_SERVER['PHP_SELF'], 'u.login', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('ConformiteCommentaire'), $_SERVER['PHP_SELF'], 'c.commentaire', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
-print '<td>';
+print_liste_field_titre($langs->trans('ConformiteDateReception'), $_SERVER['PHP_SELF'], 'c.date_reception_papier', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Date reception papier
+print '<td align="center">';
 print '<input type="checkbox" id="checkallactions" name="checkallactions" class="checkallactions" />';
 print '<script type="text/javascript">
             $(document).ready(function() {
@@ -391,6 +405,13 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     // Commentaire
     print '<td>';
     print $form->textwithtooltip(dol_trunc($obj->commentaire, 18), str_replace("\n", "<br/>", $obj->commentaire));
+    print '</td>';
+
+    // Date reception papier
+    $dateReceptionPapier = strtotime($obj->date_reception_papier);
+    print '<td>';
+    if(! empty($dateReceptionPapier) && $dateReceptionPapier > 0) print date('d/m/Y', $dateReceptionPapier);
+    else print '&nbsp;';
     print '</td>';
 
     print '<td style="text-align: center;">';
