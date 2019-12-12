@@ -39,7 +39,6 @@ $sortfield = GETPOST('sortfield');
 $sortorder = GETPOST('sortorder');
 $page = GETPOST('page', 'int');
 $limit = GETPOST('limit', 'int');
-var_dump($limit, $conf->liste_limit);
 if(empty($limit)) $limit = $conf->liste_limit;
 if(empty($sortfield)) $sortfield = 'c.date_cre';
 if(empty($sortorder)) $sortorder = 'DESC';
