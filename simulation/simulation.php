@@ -956,7 +956,7 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
     }
 	
 	$head = simulation_prepare_head($simulation, $conformite);
-	dol_fiche_head($head, 'card', $langs->trans("Simulation"),-2,'simulation');
+	dol_fiche_head($head, 'card', $langs->trans("Simulation"),-2,'simul@financement');
 
 	$affaire = new TFin_affaire;
 	$financement = new TFin_financement;
