@@ -271,33 +271,42 @@ class TSimulation extends TObjetStd
                 $choice = 'next';
             }
             $TDoss[$k]['choice'] = $choice;
+        }
 
-            // Nouvelle méthode d'enregistrement
-            if(empty($this->DossierRachete)) {
-                foreach($TDoss as $fk_dossier => $TValues) {
-                    unset($TValues['leaser']);
+        // Nouvelle méthode d'enregistrement
+        if(empty($this->DossierRachete)) {
+            foreach($TDoss as $fk_dossier => $TValues) {
+                unset($TValues['leaser']);
 
-                    $dossierRachete = new DossierRachete;
-                    $dossierRachete->set_values($TValues);
+                $dossierRachete = new DossierRachete;
+                $dossierRachete->set_values($TValues);
 
-                    $dossierRachete->solde_banque_nr_m1 = $solde_banque_nr_m1;
-                    $dossierRachete->solde_banque_nr = $solde_banque_nr;
-                    $dossierRachete->solde_banque_nr_p1 = $solde_banque_nr_p1;
+                $dossierRachete->solde_banque_nr_m1 = $solde_banque_nr_m1;
+                $dossierRachete->solde_banque_nr = $solde_banque_nr;
+                $dossierRachete->solde_banque_nr_p1 = $solde_banque_nr_p1;
 
-                    $dossierRachete->fk_dossier = $fk_dossier;
-                    $dossierRachete->fk_simulation = $this->id;
+                $dossierRachete->fk_dossier = $fk_dossier;
+                $dossierRachete->fk_simulation = $this->id;
 
-                    $dossierRachete->save($PDOdb);
-                    $this->DossierRachete[] = $dossierRachete;  // Une fois le dossierRachete créé, il faut le mettre dans ce tableau
-                }
+                // On détermine le type de solde
+                $solde = self::getTypeSolde($this->rowid, $fk_dossier, $this->fk_leaser);
+                $dossierRachete->type_solde = $solde;
+
+                $dossierRachete->save($PDOdb);
+                $this->DossierRachete[] = $dossierRachete;  // Une fois le dossierRachete créé, il faut le mettre dans ce tableau
             }
-            else {
-                foreach($this->DossierRachete as $dossierRachete) {
-                     if($dossierRachete->choice !== $TDoss[$dossierRachete->fk_dossier]['choice']) {
-                        $dossierRachete->choice = $TDoss[$dossierRachete->fk_dossier]['choice'];
-                        $dossierRachete->save($PDOdb);
-                    }
+        }
+        else {
+            foreach($this->DossierRachete as $dossierRachete) {
+                if($dossierRachete->choice !== $TDoss[$dossierRachete->fk_dossier]['choice']) {
+                    $dossierRachete->choice = $TDoss[$dossierRachete->fk_dossier]['choice'];
                 }
+
+                // On détermine le type de solde
+                $solde = self::getTypeSolde($this->rowid, $dossierRachete->fk_dossier, $this->fk_leaser);
+                $dossierRachete->type_solde = $solde;
+
+                $dossierRachete->save($PDOdb);
             }
         }
 
@@ -839,6 +848,7 @@ class TSimulation extends TObjetStd
             if($typeCalcul == 'cpro') { // Les coefficient sont trimestriel, à adapter en fonction de la périodicité de la simulation
                 $this->echeance = ($this->montant_total_finance) * ($this->coeff / 100);
                 if($this->opt_periodicite == 'ANNEE') $this->echeance *= 4;
+                else if($this->opt_periodicite == 'SEMESTRE') $this->echeance *= 2;
                 else if($this->opt_periodicite == 'MOIS') $this->echeance /= 3;
             }
             else {
@@ -851,6 +861,7 @@ class TSimulation extends TObjetStd
             if($typeCalcul == 'cpro') {
                 $this->montant = $this->echeance / ($this->coeff / 100);
                 if($this->opt_periodicite == 'ANNEE') $this->montant /= 4;
+                if($this->opt_periodicite == 'SEMESTRE') $this->montant /= 2;
                 else if($this->opt_periodicite == 'MOIS') $this->montant *= 3;
             }
             else {
@@ -1178,7 +1189,7 @@ class TSimulation extends TObjetStd
     }
 
     function gen_simulation_pdf(&$ATMdb, &$doliDB) {
-        global $mysoc, $conf;
+        global $mysoc, $conf, $langs;
 
         $old_entity = $conf->entity;
         switchEntity($this->entity);    // $conf and $mysoc may be changed
@@ -1276,6 +1287,9 @@ class TSimulation extends TObjetStd
         else if($simu2->opt_periodicite == 'SEMESTRE') $simu2->coeff_by_periodicite = $simu2->coeff * 2;
         else if($simu2->opt_periodicite == 'ANNEE') $simu2->coeff_by_periodicite = $simu2->coeff * 4;
         else $simu2->coeff_by_periodicite = $simu2->coeff; // TRIMESTRE
+
+        if(in_array($this->entity, array(18, 25))) $simu2->dateLabel = $langs->trans('DateDemarrageCustom');
+        else $simu2->dateLabel = $langs->trans('DateDemarrage');
 
         // Récupération du logo de l'entité correspondant à la simulation
         $logo = DOL_DATA_ROOT.'/'.(($this->entity > 1) ? $this->entity.'/' : '').'mycompany/logos/'.$mysoc->logo;
@@ -2290,6 +2304,60 @@ class TSimulation extends TObjetStd
         }
 
         return $TRes;
+    }
+
+    public static function getLeaserCategory() {
+        global $db;
+
+        $TRes = array();
+        $sql = 'SELECT cf.fk_societe as fk_soc, cf.fk_categorie as fk_cat';
+        $sql .= ' FROM '.MAIN_DB_PREFIX.'categorie_fournisseur cf';
+        $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie c ON (c.rowid = cf.fk_categorie)';
+        $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie c2 ON (c2.rowid = c.fk_parent)';
+        $sql .= " WHERE c2.label = 'Leaser'";
+
+        $resql = $db->query($sql);
+        if($resql) {
+            while($obj = $db->fetch_object($resql)) $TRes[$obj->fk_soc] = $obj->fk_cat;
+        }
+
+        return $TRes;
+    }
+
+    /**
+     * @param   int     $fk_simulation      Simulation id to load TSimulationSuivi
+     * @param   int     $fk_dossier         Dossier id
+     * @param   int     $fk_leaser_simu     Simulation Thirdparty id
+     * @return  string  Renvoie le type de solde, R ou NR
+     */
+    public static function getTypeSolde($fk_simulation, $fk_dossier, $fk_leaser_simu) {
+        if(empty($fk_simulation) || empty($fk_dossier) || empty($fk_leaser_simu)) return '';
+
+        $PDOdb = new TPDOdb;
+        $doss = new TFin_dossier;
+        $doss->load($PDOdb, $fk_dossier, false);
+
+        // Il faut récupérer les catégories de leaser pour savoir si on prendre le 'R' ou le 'NR'
+        $TLeaserCat = TSimulation::getLeaserCategory();
+        $TSimulationSuivi = TSimulation::getSimulationSuivi($fk_simulation);
+
+        // On détermine le type de solde
+        $refus = false;
+        foreach($TSimulationSuivi as $suivi) {
+            if($TLeaserCat[$doss->financementLeaser->fk_soc] == $TLeaserCat[$suivi->fk_leaser] && $suivi->statut == 'KO') {
+                $refus = true;
+                break;
+            }
+        }
+
+        if($refus || $TLeaserCat[$fk_leaser_simu] == $TLeaserCat[$doss->financementLeaser->fk_soc]) {
+            $solde = 'R';
+        }
+        else {
+            $solde = 'NR';
+        }
+
+        return $solde;
     }
 }
 

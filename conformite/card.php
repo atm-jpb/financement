@@ -19,6 +19,7 @@ dol_include_once('/financement/class/conformite.class.php');
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
 $langs->load('dict');
+$langs->load('mails');
 $langs->load('other');
 $langs->load('error');
 
@@ -48,6 +49,7 @@ $soc = new Societe($db);
 $leaser = new Societe($db);
 $PDOdb = new TPDOdb;
 $object = new Conformite;
+$d = new TFin_dossier;
 if(! empty($id)) {
     $object->fetch($id);
     if(empty($fk_simu)) $fk_simu = $object->fk_simulation;
@@ -67,6 +69,8 @@ $simu->load($PDOdb, $fk_simu, false);
 if ($simu->rowid > 0) {
     $soc->fetch($simu->fk_soc);
     $leaser->fetch($simu->fk_leaser);
+
+    if(! empty($simu->fk_fin_dossier)) $d->load($PDOdb, $simu->fk_fin_dossier, false);
 
     $oldEntity = $conf->entity;
     switchEntity($simu->entity);
@@ -104,11 +108,11 @@ if(empty($id) && ! empty($user->rights->financement->conformite->create)) {    /
  * Actions
  */
 if($action === 'save' && (! empty($user->rights->financement->conformite->create) || ! empty($user->rights->financement->conformite->validate))) {
-    $commentaire = GETPOST('commentaire', 'alpha');
-    $commentaire_adv = GETPOST('commentaire_adv', 'alpha');
+    if(isset($_REQUEST['commentaire'])) $commentaire = GETPOST('commentaire', 'alpha');
+    if(isset($_REQUEST['commentaire_adv'])) $commentaire_adv = GETPOST('commentaire_adv', 'alpha');
 
-    if(! empty($user->rights->financement->conformite->validate)) $object->commentaire = $commentaire;
-    if(! empty($user->rights->financement->conformite->create)) $object->commentaire_adv = $commentaire_adv;
+    if(! is_null($commentaire) && ! empty($user->rights->financement->conformite->validate)) $object->commentaire = $commentaire;
+    if(! is_null($commentaire_adv) && ! empty($user->rights->financement->conformite->create)) $object->commentaire_adv = $commentaire_adv;
     $res = $object->update();
 
     if($res > 0) {
@@ -135,16 +139,20 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
             break;
         case 'compliantN1':
             if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_COMPLIANT_N1;
+            $dateConformeN1 = time();
             break;
         case 'compliantN2':
             if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_COMPLIANT_N2;
+            $dateConformeN2 = time();
             break;
         case 'waitN1':
             if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1;
             $fk_user = $user->id;   // On save le user qui fait la demande
+            $dateEnvoi = time();
             break;
         case 'waitN2':
             if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2;
+            $dateAttenteN2 = time();
             break;
         case 'withoutFurtherAction':
             if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_WITHOUT_FURTHER_ACTION;
@@ -155,6 +163,10 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
 
     if(! is_null($status)) {
         if(! is_null($fk_user) && $object->status === Conformite::STATUS_DRAFT) $object->fk_user = $fk_user;
+        if(! is_null($dateEnvoi)) $object->date_envoi = $dateEnvoi;
+        if(! is_null($dateAttenteN2)) $object->date_attenteN2 = $dateAttenteN2;
+        if(! is_null($dateConformeN1)) $object->date_conformeN1 = $dateConformeN1;
+        if(! is_null($dateConformeN2)) $object->date_conformeN2 = $dateConformeN2;
         $object->status = $status;
         $res = $object->update();
 
@@ -166,6 +178,17 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
 
                 setEventMessage('Email envoyé à : '.$u->email);
             }
+
+            // On renseigne ici les entités pour lesquelles on ne veut pas créer les entités en automatique
+            $TEntity = array(
+                7, 9, 11, 5,    // C'Pro Ouest
+                6,              // Copem
+                1, 2, 3         // C'Pro
+            );
+            if($object->status === Conformite::STATUS_COMPLIANT_N1 && ! in_array($object->entity, $TEntity)) {
+                if(TFin_financement::isFinancementAlreadyExists($simu->numero_accord)) setEventMessage($langs->trans('ConformiteDossierAlreadyExists', $simu->numero_accord), 'warnings');
+                else createDossier($PDOdb, $simu);
+            }
         }
     }
 
@@ -176,53 +199,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     exit;
 }
 elseif($action === 'confirm_createDossier' && !empty($user->rights->financement->alldossier->write) && $confirm === 'yes') {
-    // Création de l'affaire
-    $a = new TFin_affaire;
-    $a->reference = '00000-00000';
-    $a->entity = $simu->entity;
-    $a->montant = $simu->montant_accord;
-    $a->nature_financement = 'INTERNE';
-    $a->type_financement = $simu->type_financement;
-    $a->contrat = $simu->fk_type_contrat;
-    $a->date_affaire = time();  // Date du jour
-    $a->fk_soc = $simu->fk_soc;
-
-    $a->save($PDOdb);
-
-    // Pour éviter les doublons de référence
-    $a->reference = '(PROV'.$a->rowid.')';
-    $a->save($PDOdb);
-
-    // Création du dossier
-    $d = new TFin_dossier;
-
-    $d->entity = $simu->entity;
-    $d->nature_financement = 'INTERNE'; // Tous les dossiers créés ici sont INTERNES
-
-    $d->financementLeaser->fk_soc = $simu->fk_leaser;
-    $d->financementLeaser->reference = $simu->numero_accord;
-
-    $d->financement->montant = $simu->montant_total_finance;
-    $d->financement->echeance = $simu->echeance;
-    $d->financement->terme = $simu->opt_terme;
-    $d->financement->duree = $simu->duree;
-    $d->financement->reglement = $simu->opt_mode_reglement;
-    $d->financement->reste = TFin_financement::getVR($simu->fk_leaser);
-    $d->financement->periodicite = $simu->opt_periodicite;
-
-    $d->save($PDOdb);
-
-    if($d->rowid > 0) {
-        // This will add link between dossier and simulation
-        $simu->fk_fin_dossier = $d->rowid;
-        $simu->save($PDOdb, $db, false);
-
-        $d->addAffaire($PDOdb, $a->rowid);
-        $d->save($PDOdb);
-
-        setEventMessage($langs->trans('ConformiteDossierCreated', $d->rowid));
-    }
-    else setEventMessage($langs->trans('ConformiteDossierCreationError'), 'errors');
+    createDossier($PDOdb, $simu);
 
     $url = $_SERVER['PHP_SELF'];
     $url.= '?fk_simu='.$fk_simu;
@@ -348,32 +325,67 @@ if ($simu->id > 0) {
     print '<table class="border"width="100%">';
 
     // Ref
-    print '<tr><td width="20%">'.$langs->trans('Ref').'</td><td>';
+    print '<tr><td width="20%">'.$langs->trans('Ref').'</td><td width="30%">';
     print $simu->reference.'&nbsp;';
     if($simu->accord === 'OK') print get_picto('super_'.$simu->accord);
     else print get_picto($simu->accord);
+    print '</td>';
+
+    // Date envoi
+    print '<td width="15%">'.$langs->trans('DateSending').'</td>';
+    print '<td>';
+    if(! empty($object->date_envoi)) print date('d/m/Y', $object->date_envoi);
+    else print '&nbsp;';
     print '</td></tr>';
 
     // Entity
     print '<tr><td width="20%">'.$langs->trans('DemandReasonTypeSRC_PARTNER').'</td><td>';
     print $TEntity[$simu->entity];
+    print '</td>';
+
+    // Date conforme N1
+    print '<td>'.$langs->trans('ConformiteDateCompliantN1').'</td>';
+    print '<td>';
+    if(! empty($object->date_conformeN1)) print date('d/m/Y', $object->date_conformeN1);
+    else print '&nbsp;';
     print '</td></tr>';
 
     // Status
-    if(! empty($id)) {
-        print '<tr>';
-        print '<td>'.$langs->trans('ConformiteStatus').'</td>';
-        print '<td>'.$langs->trans(Conformite::$TStatus[$object->status]).'</td>';
-        print '</tr>';
-    }
+    print '<tr>';
+    print '<td>'.$langs->trans('ConformiteStatus').'</td>';
+    print '<td>'.$langs->trans(Conformite::$TStatus[$object->status]).'</td>';
+
+    // Date attente N2
+    print '<td>'.$langs->trans('ConformiteDateWaitingForComplianceN2').'</td>';
+    print '<td>';
+    if(! empty($object->date_attenteN2)) print date('d/m/Y', $object->date_attenteN2);
+    else print '&nbsp;';
+    print '</td>';
+    print '</tr>';
 
     // Customer
     print "<tr><td>".$langs->trans("Company")."</td>";
-    print '<td>'.$soc->getNomUrl(1).'</td></tr>';
+    print '<td>'.$soc->getNomUrl(1).'</td>';
+
+    // Date conforme N2
+    print '<td>'.$langs->trans('ConformiteDateCompliantN2').'</td>';
+    print '<td>';
+    if(! empty($object->date_conformeN2)) print date('d/m/Y', $object->date_conformeN2);
+    else print '&nbsp;';
+    print '</td>';
+    print '</tr>';
 
     // Leaser
     print '<tr><td>'.$langs->trans('Leaser').'</td>';
-    print '<td>'.$leaser->getNomUrl(1).'</td></tr>';
+    print '<td>'.$leaser->getNomUrl(1).'</td>';
+
+    // Date d'envoi du dossier
+    print '<td>'.$langs->trans('DossierDateSending').'</td>';
+    print '<td>';
+    if(! empty($d->rowid) && ! empty($d->financementLeaser->date_envoi)) print date('d/m/Y', $d->financementLeaser->date_envoi);
+    else print '&nbsp;';
+    print '</td>';
+    print '</tr>';
 
     // Num accord leaser
     $shouldILink = ! empty($simu->fk_fin_dossier);
@@ -382,25 +394,42 @@ if ($simu->id > 0) {
     if($shouldILink) print '<a href="'.dol_buildpath('/financement/dossier.php', 1).'?id='.$simu->fk_fin_dossier.'">';
     print $simu->numero_accord;
     if($shouldILink) print '</a>';
-    print '</td></tr>';
+    print '</td>';
+
+    // Date de réception du dossier papier
+    print '<td>'.$langs->trans('ConformiteDateReception').'</td>';
+    print '<td>';
+    if(! empty($object->date_reception_papier)) print date('d/m/Y', $object->date_reception_papier);
+    else print '&nbsp;';
+    print '</td>';
+    print '</tr>';
 
     // User
     print '<tr><td>'.$langs->trans('User').'</td>';
     print '<td>';
     if(! empty($u->id)) print $u->getLoginUrl(1);
-    print '</td></tr>';
+    print '</td>';
+
+    // Date de la facture matériel
+    print '<td>'.$langs->trans('FactureMaterielDate').'</td>';
+    print '<td>';
+    if(! empty($d->rowid) && ! empty($d->date_facture_materiel)) print date('d/m/Y', $d->date_facture_materiel);
+    else print '&nbsp;';
+    print '</td>';
+    print '</tr>';
 
     // Required files
     print '<tr>';
     print '<td>'.$langs->trans('RequiredFiles').'</td>';
     print '<td>'.$langs->trans('ListOfRequiredFiles').'</td>';
+    print '<td colspan="2"></td>';
     print '</tr>';
 
     // Commentaire ADV
     print '<tr>';
     print '<td>'.$langs->trans('ConformiteCommentaireADV');
     if(! empty($user->rights->financement->conformite->create)) print '&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'&action=editCommentaireADV">'.img_edit().'</a></td>';
-    if(empty($action) || empty($user->rights->financement->conformite->create)) print '<td>'.str_replace("\n", "<br/>\n", $object->commentaire_adv).'</td>';
+    if($action !== 'editCommentaireADV' || empty($user->rights->financement->conformite->create)) print '<td>'.str_replace("\n", "<br/>\n", $object->commentaire_adv).'</td>';
     elseif($action === 'editCommentaireADV') {
         print '<td>';
         print '<form action="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'" method="POST">';
@@ -411,13 +440,14 @@ if ($simu->id > 0) {
         print '</div></form>';
         print '</td>';
     }
+    print '<td colspan="2"></td>';
     print '</tr>';
 
     // Commentaire
     print '<tr>';
     print '<td>'.$langs->trans('ConformiteCommentaire');
     if(! empty($user->rights->financement->conformite->validate)) print '&nbsp;<a href="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'&action=editCommentaire">'.img_edit().'</a></td>';
-    if(empty($action) || empty($user->rights->financement->conformite->validate)) print '<td>'.str_replace("\n", "<br/>\n", $object->commentaire).'</td>';
+    if($action !== 'editCommentaire' || empty($user->rights->financement->conformite->validate)) print '<td>'.str_replace("\n", "<br/>\n", $object->commentaire).'</td>';
     elseif($action === 'editCommentaire') {
         print '<td>';
         print '<form action="'.$_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$id.'" method="POST">';
@@ -428,6 +458,7 @@ if ($simu->id > 0) {
         print '</div></form>';
         print '</td>';
     }
+    print '<td colspan="2"></td>';
     print '</tr>';
 
     print '</table>';
@@ -528,3 +559,55 @@ print '</div>';
 
 llxFooter();
 $db->close();
+
+function createDossier(TPDOdb $PDOdb, TSimulation $s) {
+    global $db, $langs;
+
+    // Création de l'affaire
+    $a = new TFin_affaire;
+    $a->reference = '00000-00000';
+    $a->entity = $s->entity;
+    $a->montant = $s->montant_accord;
+    $a->nature_financement = 'INTERNE';
+    $a->type_financement = $s->type_financement;
+    $a->contrat = $s->fk_type_contrat;
+    $a->date_affaire = time();  // Date du jour
+    $a->fk_soc = $s->fk_soc;
+
+    $a->save($PDOdb);
+
+    // Pour éviter les doublons de référence
+    $a->reference = '(PROV'.$a->rowid.')';
+    $a->save($PDOdb);
+
+    // Création du dossier
+    $d = new TFin_dossier;
+
+    $d->entity = $s->entity;
+    $d->nature_financement = 'INTERNE'; // Tous les dossiers créés ici sont INTERNES
+
+    $d->financementLeaser->fk_soc = $s->fk_leaser;
+    $d->financementLeaser->reference = $s->numero_accord;
+
+    $d->financement->montant = $s->montant_total_finance;
+    $d->financement->echeance = $s->echeance;
+    $d->financement->terme = $s->opt_terme;
+    $d->financement->duree = $s->duree;
+    $d->financement->reglement = $s->opt_mode_reglement;
+    $d->financement->reste = $s->vr;
+    $d->financement->periodicite = $s->opt_periodicite;
+
+    $d->save($PDOdb);
+
+    if($d->rowid > 0) {
+        // This will add link between dossier and simulation
+        $s->fk_fin_dossier = $d->rowid;
+        $s->save($PDOdb, $db, false);
+
+        $d->addAffaire($PDOdb, $a->rowid);
+        $d->save($PDOdb);
+
+        setEventMessage($langs->trans('ConformiteDossierCreated', $d->rowid));
+    }
+    else setEventMessage($langs->trans('ConformiteDossierCreationError'), 'errors');
+}

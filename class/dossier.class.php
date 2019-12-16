@@ -2074,12 +2074,13 @@ class TFin_financement extends TObjetStd
         );
 
         $this->TCalage = array(
-            '' => ''
-            , '1M' => '1 mois'
-            , '2M' => '2 mois'
-            , '3M' => '3 mois'
-            , '4M' => '4 mois'
-            , '5M' => '5 mois'
+            '' => '',
+            '0M' => '0 mois',
+            '1M' => '1 mois',
+            '2M' => '2 mois',
+            '3M' => '3 mois',
+            '4M' => '4 mois',
+            '5M' => '5 mois'
         );
 
         $this->TReglement = array();
@@ -2721,5 +2722,24 @@ class TFin_financement extends TObjetStd
         elseif($fk_leaser == 18495) return 1; // Loc Pure
 
         return 0;
+    }
+
+    public static function isFinancementAlreadyExists($refFinLeaser) {
+        global $db;
+
+        $sql = 'SELECT rowid';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_dossier_financement';
+        $sql.= " WHERE type = 'LEASER'";
+        $sql.= " AND reference = '".$db->escape($refFinLeaser)."'";
+
+        $resql = $db->query($sql);
+        if($resql) {
+            if($db->num_rows($resql) > 0) return true;
+            return false;
+        }
+        else {
+            dol_print_error($db);
+            exit;
+        }
     }
 }
