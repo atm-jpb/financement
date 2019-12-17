@@ -286,7 +286,7 @@ class TSimulation extends TObjetStd
                 $dossierRachete->solde_banque_nr_p1 = $solde_banque_nr_p1;
 
                 $dossierRachete->fk_dossier = $fk_dossier;
-                $dossierRachete->fk_simulation = $this->id;
+                $dossierRachete->fk_simulation = $this->rowid;
 
                 // On détermine le type de solde
                 $solde = self::getTypeSolde($this->rowid, $fk_dossier, $this->fk_leaser);

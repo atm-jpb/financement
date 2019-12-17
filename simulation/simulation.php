@@ -1392,7 +1392,7 @@ function _liste_dossier(&$ATMdb, TSimulation &$simulation, $mode, $search_by_sir
 		$display_solde = $dossier->get_display_solde();
 		
 		if($dossier->nature_financement == 'INTERNE') {
-		    if($simulation->id > 0) {
+		    if($simulation->rowid > 0) {
                 $soldeRM1 = (! empty($dossierRachete->solde_vendeur_m1)) ? $dossierRachete->solde_vendeur_m1 : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financement->numero_prochaine_echeance - 2), 2); //SRCPRO
                 $soldeR = (! empty($dossierRachete->solde_vendeur)) ? $dossierRachete->solde_vendeur : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financement->numero_prochaine_echeance - 1), 2); //SRCPRO
                 $soldeR1 = (! empty($dossierRachete->solde_vendeur_p1)) ? $dossierRachete->solde_vendeur_p1 : round($dossier->getSolde($ATMdb2, 'SRCPRO', $dossier->financement->numero_prochaine_echeance), 2); //SRCPRO
