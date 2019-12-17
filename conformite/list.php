@@ -163,7 +163,7 @@ if(! empty($search_ref)) $param .= '&search_ref='.urlencode($search_ref);
 if(! empty($search_entity)) $param .= '&search_entity='.urlencode(implode(',', $search_entity));
 if(! empty($search_thirdparty)) $param .= '&search_thirdparty='.urlencode($search_thirdparty);
 if(! empty($search_leaser)) $param .= '&search_leaser='.urlencode($search_leaser);
-if(! empty($search_status)) $param .= '&search_status='.urlencode($search_status);
+if(! empty($search_status)) $param .= '&search_status='.urlencode(implode(',', $search_status));
 if(! empty($search_user)) $param .= '&search_user='.urlencode($search_user);
 
 $arrayofmassactions = array(
