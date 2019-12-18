@@ -18,11 +18,10 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
 	    global $conf;
 
         $dirname = $this->fileFullPath.$filename;
-        // TODO: Change this !
         if(empty($conf->global->FINANCEMENT_MODE_PROD)) {
-//            exec('sh bash/cmcicxml_test.sh '.$dirname);
+            exec('sh bash/bnpxml_test.sh '.$dirname);
         } else {
-//            exec('sh bash/cmcicxml.sh '.$dirname);
+            exec('sh bash/bnpxml.sh '.$dirname);
         }
     }
 
