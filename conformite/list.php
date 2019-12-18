@@ -64,7 +64,7 @@ if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','
     unset($search_ref, $search_entity, $search_thirdparty, $search_leaser, $search_status, $search_user);
 }
 
-$sql = 'SELECT s.rowid, s.reference, soc.rowid as fk_soc, c.status, s.entity, c.fk_user, c.rowid as fk_conformite, c.commentaire, lea.rowid as fk_leaser, c.date_envoi, s.fk_fin_dossier as fk_dossier, c.date_reception_papier';
+$sql = 'SELECT s.rowid, s.reference, soc.rowid as fk_soc, c.status, s.entity, c.fk_user, c.rowid as fk_conformite, c.commentaire, lea.rowid as fk_leaser, c.date_envoi, s.fk_fin_dossier as fk_dossier, c.date_reception_papier, c.date_attenteN2';
 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_conformite c';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON (c.fk_simulation = s.rowid)';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe soc ON (s.fk_soc = soc.rowid)';
@@ -252,7 +252,7 @@ print '<table class="tagtable liste">';
 print '<tr class="liste_titre">';
 
 // Entity
-print '<td colspan="10" style="min-width: 150px;">';
+print '<td colspan="11" style="min-width: 150px;">';
 print '<span>'.$langs->trans('DemandReasonTypeSRC_PARTNER').' : </span>';
 print Form::multiselectarray('search_entity', $TEntity, $search_entity, 0, 0, 'style="min-width: 250px;"');
 print '</td>';
@@ -261,7 +261,7 @@ print '</tr>';
 print '<tr class="liste_titre">';
 
 // Status
-print '<td colspan="10" style="min-width: 150px;">';
+print '<td colspan="11" style="min-width: 150px;">';
 print '<span>'.$langs->trans('Status').' : </span>';
 print Form::multiselectarray('search_status', Conformite::$TStatus, $search_status, 0, 0, 'style="min-width: 250px;"', 1);
 print '</td>';
@@ -295,6 +295,9 @@ print '<td>';
 print '&nbsp;';
 print '</td>';
 
+// Date attente N2
+print '<td>&nbsp;</td>';
+
 // User
 print '<td>';
 print '<input type="text" name="search_user" value="'.$search_user.'" size="14" />';
@@ -321,6 +324,7 @@ print_liste_field_titre('Client', $_SERVER['PHP_SELF'], 's.fk_soc', '', $param, 
 print_liste_field_titre('Leaser', $_SERVER['PHP_SELF'], 's.fk_leaser', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Leaser
 print_liste_field_titre('Statut', $_SERVER['PHP_SELF'], 'c.status', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('DateSending'), $_SERVER['PHP_SELF'], 'c.date_envoi', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
+print_liste_field_titre($langs->trans('ConformiteDateWaitingForComplianceN2'), $_SERVER['PHP_SELF'], 'c.date_attenteN2', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('User'), $_SERVER['PHP_SELF'], 'u.login', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('ConformiteCommentaire'), $_SERVER['PHP_SELF'], 'c.commentaire', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('ConformiteDateReception'), $_SERVER['PHP_SELF'], 'c.date_reception_papier', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Date reception papier
@@ -394,6 +398,13 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     $date_envoi = strtotime($obj->date_envoi);
     print '<td>';
     if(! empty($date_envoi) && $date_envoi > 0) print date('d/m/Y', $date_envoi);
+    else print '&nbsp;';
+    print '</td>';
+
+    // Date attente N2
+    $dateAttenteN2 = strtotime($obj->date_attenteN2);
+    print '<td>';
+    if(! empty($dateAttenteN2) && $dateAttenteN2 > 0) print date('d/m/Y', $dateAttenteN2);
     else print '&nbsp;';
     print '</td>';
 
