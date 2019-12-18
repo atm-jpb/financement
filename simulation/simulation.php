@@ -1082,6 +1082,12 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 	
 	// Récupération des dossiers en cours pour sélection si adjonction
 	$selectDossierAdjonction = TFin_dossier::getListeDossierClient($ATMdb, $simulation->fk_soc, $simulation->societe->idprof1);
+
+    // Le label doit aussi changer dans le simulateur
+    if(in_array($simulation->entity, array(18, 25)) || empty($simulation->entity) && in_array($conf->entity, array(18, 25))) {
+        $dateLabel = $langs->trans('DateDemarrageCustom');
+    }
+    else $dateLabel = $langs->trans('DateDemarrage');
 	
 	$simuArray = array(
 		'titre_simul'=>load_fiche_titre($langs->trans("CustomerInfo"),'','object_company.png')
@@ -1107,7 +1113,7 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 		,'opt_calage'=>$form->hidden('opt_calage', $simulation->opt_calage)
 	    ,'opt_terme'=>$form->combo('', 'opt_terme', $financement->TTerme, $simulation->opt_terme) .(!empty($simulation->modifs['opt_terme']) ? ' (Ancienne valeur : '.$financement->TTerme[$simulation->modifs['opt_terme']].')' : '')
 		,'date_demarrage'=>$form->calendrier('', 'date_demarrage', $simulation->get_date('date_demarrage'), 12)
-		,'date_demarrage_label'=> in_array($simulation->entity, array(18, 25)) ? $langs->trans('DateDemarrageCustom') : $langs->trans('DateDemarrage')
+		,'date_demarrage_label'=> $dateLabel
 	    ,'montant'=>$form->texte('', 'montant', $simulation->montant, 10) .(!empty($simulation->modifs['montant']) ? ' (Ancienne valeur : '.$simulation->modifs['montant'].')' : '')
 
 		,'montant_rachete'=>$form->texteRO('', 'montant_rachete', $simulation->montant_rachete, 10)
