@@ -450,16 +450,11 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	// - avenant impossible si cout unitaire loyer à 0
 	$avenantOK = true;
 	$facIntegral = array_pop($TIntegrale);
-	// 2019.02.20 : Avenant ok même si cout unitaire loyer à 0
-	//if(empty($facIntegral->cout_unit_noir_loyer) || (empty($facIntegral->cout_unit_coul_loyer) && !empty($facIntegral->vol_coul_engage))) $avenantOK = false;
-	if(round($facIntegral->cout_unit_noir,5) !=
-		round($facIntegral->cout_unit_noir_loyer
-		+ $facIntegral->cout_unit_noir_mach
-		+ $facIntegral->cout_unit_noir_tech,5)) $avenantOK = false;
-	if(round($facIntegral->cout_unit_coul,5) !=
-		round($facIntegral->cout_unit_coul_loyer
-		+ $facIntegral->cout_unit_coul_mach
-		+ $facIntegral->cout_unit_coul_tech,5)) $avenantOK = false;
+	// 2019.12.11 : MKO, revu avec E. Roussard, modification règle de dispo
+	if($facIntegral->cout_unit_noir == 0 || $facIntegral->cout_unit_coul == 0) $avenantOK = false; // Non dispo si cout vendu à 0
+	if($facIntegral->cout_unit_noir_tech == 0 || $facIntegral->cout_unit_coul_tech == 0) $avenantOK = false; // Non dispo si cout tech à 0
+	if($facIntegral->cout_unit_noir_loyer + $facIntegral->cout_unit_noir_mach + $facIntegral->cout_unit_noir_tech == 0) $avenantOK = false; // Non dispo si somme à 0
+	if($facIntegral->cout_unit_coul_loyer + $facIntegral->cout_unit_coul_mach + $facIntegral->cout_unit_coul_tech == 0) $avenantOK = false; // Non dispo si somme à 0
 
     if($dossier->type_regul != 3) $avenantOK = false;
 
