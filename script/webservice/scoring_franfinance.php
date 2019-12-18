@@ -223,7 +223,7 @@ function DiffusionDemande($authentication, $ResponseDemFin)
             if (empty($error))
             {
                 // récupération du suivi à partir du numéro de demande et du fk_leaser
-                $TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $suivi->get_table(), array('b2b_nodef'=>$numdemande));
+                $TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $suivi->get_table(), array('numero_accord_leaser'=>$numdemande));
                 if (!empty($TId[0]))
                 {
                     $suivi->load($PDOdb, $TId[0]);
