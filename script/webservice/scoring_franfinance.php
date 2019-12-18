@@ -23,12 +23,6 @@ require_once DOL_DOCUMENT_ROOT.'/compta/facture/class/facture.class.php';
 
 dol_syslog("WEBSERVICE CALL : start calling webservice FRANFINANCE", LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
 
-$authentification['login'] = $_SERVER['PHP_AUTH_USER'];
-$authentification['password'] = $_SERVER['PHP_AUTH_PW'];
-$authentification['dolibarrkey'] = $conf->global->WEBSERVICES_KEY;
-$ResponseDemFin = file_get_contents("php://input");
-
-
 $langs->setDefaultLang('fr_FR');
 $langs->load("main");
 
