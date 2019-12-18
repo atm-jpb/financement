@@ -334,7 +334,7 @@ if ($simu->id > 0) {
     print '</td>';
 
     // Date envoi
-    print '<td width="15%">'.$langs->trans('DateSending').'</td>';
+    print '<td width="15%">'.$langs->trans('ConformiteDateWaitingForComplianceN1').'</td>';
     print '<td>';
     if(! empty($object->date_envoi)) print date('d/m/Y', $object->date_envoi);
     else print '&nbsp;';
