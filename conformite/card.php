@@ -40,6 +40,12 @@ $result = restrictedArea($user, 'financement', $fk_simu, 'fin_simulation&societe
 $dao = new DaoMulticompany($db);
 $dao->getEntities();
 foreach($dao->entities as $mc_entity) $TEntity[$mc_entity->id] = $mc_entity->label;
+// On renseigne ici les entités pour lesquelles on ne veut pas créer les entités en automatique
+$TEntityCreateDossier = array(
+    7, 9, 11, 5,    // C'Pro Ouest
+    6,              // Copem
+    1, 2, 3         // C'Pro
+);
 
 $form = new Form($db);
 $formfile = new FormFile($db);
@@ -179,13 +185,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
                 setEventMessage('Email envoyé à : '.$u->email);
             }
 
-            // On renseigne ici les entités pour lesquelles on ne veut pas créer les entités en automatique
-            $TEntity = array(
-                7, 9, 11, 5,    // C'Pro Ouest
-                6,              // Copem
-                1, 2, 3         // C'Pro
-            );
-            if($object->status === Conformite::STATUS_COMPLIANT_N1 && ! in_array($object->entity, $TEntity)) {
+            if($object->status === Conformite::STATUS_COMPLIANT_N1 && ! in_array($object->entity, $TEntityCreateDossier)) {
                 if(TFin_financement::isFinancementAlreadyExists($simu->numero_accord)) setEventMessage($langs->trans('ConformiteDossierAlreadyExists', $simu->numero_accord), 'warnings');
                 else createDossier($PDOdb, $simu);
             }
@@ -199,7 +199,9 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     exit;
 }
 elseif($action === 'confirm_createDossier' && !empty($user->rights->financement->alldossier->write) && $confirm === 'yes') {
-    createDossier($PDOdb, $simu);
+    if(! in_array($object->entity, $TEntityCreateDossier)) {
+        createDossier($PDOdb, $simu);
+    }
 
     $url = $_SERVER['PHP_SELF'];
     $url.= '?fk_simu='.$fk_simu;
@@ -541,7 +543,7 @@ elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1 && ! emp
 }
 elseif(in_array($object->status, array(Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_NOT_COMPLIANT_N2)) && ! empty($user->rights->financement->conformite->validate)) {
     print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=confirm_setStatus&status=waitN2&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN2Button').'</a>';
-    if($object->status === Conformite::STATUS_COMPLIANT_N1 && empty($simu->fk_fin_dossier) && ! empty($user->rights->financement->alldossier->write)) {
+    if($object->status === Conformite::STATUS_COMPLIANT_N1 && empty($simu->fk_fin_dossier) && ! empty($user->rights->financement->alldossier->write) && ! in_array($object->entity, $TEntityCreateDossier)) {
         print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=createDossier">'.$langs->trans('ConformiteCreateDossier').'</a>';
     }
     print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
