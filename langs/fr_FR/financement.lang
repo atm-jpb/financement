@@ -362,6 +362,7 @@ EquipmentInvoiceCreated = Facture matériel créée
 EquipmentInvoiceCreationError = Erreur lors de la création de la facture : %s
 EquipmentInvoiceRefAlreadyInUse = Une facture avec la référence %s existe déjà
 DossierNonDispo = Dossiers non dispo
+ExportsBaseSolde = Base des soldes
 ThisDossierIsSelected = Ce dossier est sélectionné dans une simulation, impossible de le supprimer !
 
 # Conformite

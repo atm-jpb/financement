@@ -628,6 +628,20 @@ class modFinancement extends DolibarrModules
 								  'user'=>0);
 		$r++;
 
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=export',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+								  'type'=>'left',			                // This is a Left menu entry
+								  'titre'=>$langs->trans('ExportsBaseSolde'),
+								  'mainmenu'=>'financement',
+								  'leftmenu'=>'dossier_non_dispo',
+								  'url'=>'/financement/export.php',
+								  'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+								  'position'=>127,
+								  'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								  'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								  'target'=>'_blank',
+								  'user'=>0);
+		$r++;
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>$langs->trans('Admin'),
