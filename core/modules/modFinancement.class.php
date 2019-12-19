@@ -469,6 +469,13 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'conformite';
 		$this->rights[$r][5] = 'accept';
 
+		$r++;
+		$this->rights[$r][0] = $this->numero.$r;
+		$this->rights[$r][1] = 'Exporter la base des soldes';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'export';
+		$this->rights[$r][5] = 'base_solde';
+
 		// Main menu entries
 		$this->menus = array();			// List of menus to add
 		$r=0;
@@ -608,7 +615,7 @@ class modFinancement extends DolibarrModules
 								  'url'=>'/financement/export.php',
 								  'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								  'position'=>120,
-								  'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								  'enabled'=>'$conf->financement->enabled && ($user->rights->financement->admin->write || $user->rights->financement->export->base_solde)',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 								  'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 								  'target'=>'',
 								  'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
