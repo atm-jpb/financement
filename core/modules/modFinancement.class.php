@@ -605,12 +605,12 @@ class modFinancement extends DolibarrModules
 								  'titre'=>$langs->trans('Exports'),
 								  'mainmenu'=>'financement',
 								  'leftmenu'=>'export',
-								  'url'=>'/financement/script/dossier_non_dispo.php',
+								  'url'=>'/financement/export.php',
 								  'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-								  'position'=>125,
+								  'position'=>120,
 								  'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 								  'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
-								  'target'=>'_blank',
+								  'target'=>'',
 								  'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 
