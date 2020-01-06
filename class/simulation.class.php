@@ -249,14 +249,17 @@ class TSimulation extends TObjetStd
                 $TDoss[$k]['date_fin_periode_client_m1'] = $this->dossiers_rachetes_m1[$dossier->rowid]['date_fin_echeance'];
                 $TDoss[$k]['solde_vendeur_m1'] = $this->dossiers_rachetes_m1[$dossier->rowid]['montant'];
                 $TDoss[$k]['solde_banque_m1'] = $solde_banque_m1;
+                $TDoss[$k]['solde_banque_nr_m1'] = $solde_banque_nr_m1;
                 $TDoss[$k]['date_debut_periode_client'] = $this->dossiers_rachetes[$dossier->rowid]['date_deb_echeance'];
                 $TDoss[$k]['date_fin_periode_client'] = $this->dossiers_rachetes[$dossier->rowid]['date_fin_echeance'];
                 $TDoss[$k]['solde_vendeur'] = $this->dossiers_rachetes[$dossier->rowid]['montant'];
                 $TDoss[$k]['solde_banque'] = $solde_banque;
+                $TDoss[$k]['solde_banque_nr'] = $solde_banque_nr;
                 $TDoss[$k]['date_debut_periode_client_p1'] = $this->dossiers_rachetes_p1[$dossier->rowid]['date_deb_echeance'];
                 $TDoss[$k]['date_fin_periode_client_p1'] = $this->dossiers_rachetes_p1[$dossier->rowid]['date_fin_echeance'];
                 $TDoss[$k]['solde_vendeur_p1'] = $this->dossiers_rachetes_p1[$dossier->rowid]['montant'];
                 $TDoss[$k]['solde_banque_p1'] = $solde_banque_p1;
+                $TDoss[$k]['solde_banque_nr_p1'] = $solde_banque_nr_p1;
             }
 
             // On va seulement enregistrer le choix de la période de solde
@@ -280,10 +283,6 @@ class TSimulation extends TObjetStd
 
                 $dossierRachete = new DossierRachete;
                 $dossierRachete->set_values($TValues);
-
-                $dossierRachete->solde_banque_nr_m1 = $solde_banque_nr_m1;
-                $dossierRachete->solde_banque_nr = $solde_banque_nr;
-                $dossierRachete->solde_banque_nr_p1 = $solde_banque_nr_p1;
 
                 $dossierRachete->fk_dossier = $fk_dossier;
                 $dossierRachete->fk_simulation = $this->rowid;
