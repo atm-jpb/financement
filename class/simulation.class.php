@@ -2695,7 +2695,7 @@ class TSimulationSuivi extends TObjetStd
 
         if(! empty($this->fk_leaser)) {
             // Récupération des catégories du leaser. fk_categorie : 5 pour "Cession", 3 pour "Adossee", 18 pour Loc Pure, 4 pour Mandatee, 19 pour Financière
-            $sql = 'SELECT fk_categorie FROM '.MAIN_DB_PREFIX.'categorie_fournisseur WHERE fk_categorie IN (3, 4, 5, 18, 19) and fk_societe = '.$this->fk_leaser;
+            $sql = 'SELECT fk_categorie FROM '.MAIN_DB_PREFIX.'categorie_fournisseur WHERE fk_categorie IN (3, 4, 5, 18, 19) and fk_soc = '.$this->fk_leaser;
             $resql = $db->query($sql);
             while($res = $db->fetch_object($resql)) {
                 $TCateg_tiers[] = (int) $res->fk_categorie;
