@@ -2,7 +2,7 @@
 
 class Conformite extends TObjetStd
 {
-    public $tablename = 'fin_conformite';
+    public static $tablename = 'fin_conformite';
 
     const STATUS_DRAFT = 0;
     const STATUS_WAITING_FOR_COMPLIANCE_N1 = 1;
@@ -36,17 +36,25 @@ class Conformite extends TObjetStd
     public $entity;
     public $commentaire;
     public $commentaire_adv;
+    public $date_envoi;
+    public $date_reception_papier;
+    public $date_conformeN1;
+    public $date_attenteN2;
+    public $date_conformeN2;
 
     public $PDOdb;
 
     function __construct() {
-        parent::set_table(MAIN_DB_PREFIX.$this->tablename);
+        parent::set_table(MAIN_DB_PREFIX.self::$tablename);
 
         // Foreign keys
         parent::add_champs('fk_simulation,fk_user', array('type' => 'int', 'index' => true));
 
         parent::add_champs('status,entity', array('type' => 'int', 'index' => true));
         parent::add_champs('commentaire,commentaire_adv', array('type' => 'text'));
+        parent::add_champs('date_envoi,date_reception_papier', array('type' => 'date', 'index' => true));
+        parent::add_champs('date_conformeN1', array('type' => 'date', 'index' => true));
+        parent::add_champs('date_attenteN2,date_conformeN2', array('type' => 'date', 'index' => true));
 
         parent::start();
 

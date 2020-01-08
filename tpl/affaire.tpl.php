@@ -106,6 +106,10 @@
                 <td>[fac.reference; strconv=no]</td>
             </tr>
             <tr>
+                <td>Date de facture</td>
+                <td>[fac.date; strconv=no]</td>
+            </tr>
+            <tr>
                 <td>Numéro de série</td>
                 <td>[fac.num_serie; strconv=no]</td>
             </tr>

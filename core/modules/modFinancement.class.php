@@ -476,6 +476,13 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'conformite';
 		$this->rights[$r][5] = 'accept';
 
+		$r++;
+		$this->rights[$r][0] = $this->numero.$r;
+		$this->rights[$r][1] = 'Exporter la base des soldes';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'export';
+		$this->rights[$r][5] = 'base_solde';
+
 		// Main menu entries
 		$this->menus = array();			// List of menus to add
 		$r=0;
@@ -612,12 +619,12 @@ class modFinancement extends DolibarrModules
 								  'titre'=>$langs->trans('Exports'),
 								  'mainmenu'=>'financement',
 								  'leftmenu'=>'export',
-								  'url'=>'/financement/script/dossier_non_dispo.php',
+								  'url'=>'/financement/export.php',
 								  'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-								  'position'=>125,
-								  'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								  'position'=>120,
+								  'enabled'=>'$conf->financement->enabled && ($user->rights->financement->admin->write || $user->rights->financement->export->base_solde)',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 								  'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
-								  'target'=>'_blank',
+								  'target'=>'',
 								  'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 
@@ -629,6 +636,20 @@ class modFinancement extends DolibarrModules
 								  'url'=>'/financement/script/dossier_non_dispo.php',
 								  'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								  'position'=>126,
+								  'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								  'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								  'target'=>'_blank',
+								  'user'=>0);
+		$r++;
+
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=export',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+								  'type'=>'left',			                // This is a Left menu entry
+								  'titre'=>$langs->trans('ExportsBaseSolde'),
+								  'mainmenu'=>'financement',
+								  'leftmenu'=>'dossier_non_dispo',
+								  'url'=>'/financement/export.php',
+								  'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+								  'position'=>127,
 								  'enabled'=>'$conf->financement->enabled && $user->rights->financement->admin->write',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 								  'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 								  'target'=>'_blank',
@@ -1108,6 +1129,7 @@ class modFinancement extends DolibarrModules
 		$extra->addExtraField('percent_prime_volume', '% prime volume', 'double', 25, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		$extra->addExtraField('percent_relocation', '% relocation', 'double', 27, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		$extra->addExtraField('bonus_renta', 'Bonus renta', 'double', 30, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
+		$extra->addExtraField('non_cape_lrd', 'Soldes non capés LRD', 'boolean', 35, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 
 		$extra->addExtraField('date_debut_periode', 'Date début période', 'date', 10, '', 'facture_fourn', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);
 		$extra->addExtraField('date_fin_periode', 'Date fin période', 'date', 20, '', 'facture_fourn', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1);

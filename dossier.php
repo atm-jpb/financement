@@ -142,7 +142,7 @@
 			case 'delete':
 				//$PDOdb->db->debug=true;
 				$dossier->load($PDOdb, $id);
-				if(DossierRachete::isDossierSelected($dossier->rowid) || true) {
+				if(DossierRachete::isDossierSelected($dossier->rowid)) {
 				    setEventMessage($langs->trans('ThisDossierIsSelected'), 'errors');
 				    header('Location: '.$_SERVER['PHP_SELF'].'?id='.$dossier->rowid);
 				    exit;

@@ -54,12 +54,13 @@
 
 				// Création de la facture matériel
 				$facRef = GETPOST('facRef');
+				$facDate = dol_mktime(0, 0, 0, GETPOST('facDatemonth'), GETPOST('facDateday'), GETPOST('facDateyear'));
 				$facSerialNumber = GETPOST('facSerialNumber');
                 $facRefMat = GETPOST('facRefMat');
 				$facLabel = GETPOST('facLabel');
-				if(! empty($facRef) && ! empty($facSerialNumber) && ! empty($facRefMat) && ! empty($facLabel) && ! empty($affaire->montant)) {
+				if(! empty($facRef) && ! empty($facDate) && ! empty($facSerialNumber) && ! empty($facRefMat) && ! empty($facLabel) && ! empty($affaire->montant)) {
 				    $f = new Facture($db);
-				    $f->date = $affaire->date_affaire;
+				    $f->date = date('Y-m-d', $facDate);
 				    $f->socid = $affaire->societe->id;
 
 				    $old_entity = $conf->entity;
@@ -513,9 +514,10 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		$entity_field = $TEntityName[$entity].$form->hidden('entity', $entity);
 	}
 
-    $facRef = $facSerialNumber = $facRefMat = $facLabel = '';
+    $facRef = $facDate = $facSerialNumber = $facRefMat = $facLabel = '';
 	if($mode == 'edit') {
 	    $facRef = '<input type="text" name="facRef" />';
+	    $facDate = $doliform->select_date('', 'facDate', 0, 0, 0, '', 1, 0, 1);
 	    $facSerialNumber = '<input type="text" name="facSerialNumber" />';
         $facRefMat = '<input type="text" name="facRefMat" />';
 	    $facLabel = '<input type="text" name="facLabel" />';
@@ -563,6 +565,7 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 			),
             'fac' => array(
                 'reference' => $facRef,
+                'date' => $facDate,
                 'num_serie' => $facSerialNumber,
                 'refMat' => $facRefMat,
                 'label' => $facLabel
