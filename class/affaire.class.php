@@ -99,6 +99,8 @@ class TFin_affaire extends TObjetStd
     }
 
     function loadEquipement(&$db) {
+        if(! class_exists('TAssetLink')) dol_include_once('/assetatm/class/asset.class.php');
+
         $Tab = TRequeteCore::get_id_from_what_you_want($db, MAIN_DB_PREFIX.'assetatm_link', array('fk_document' => $this->getId(), 'type_document' => 'affaire'));
         $this->TAsset = array();
 
