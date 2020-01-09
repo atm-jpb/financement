@@ -320,7 +320,7 @@ print_liste_field_titre('Ref.', $_SERVER['PHP_SELF'], 's.reference', '', $param,
 print_liste_field_titre('Partenaire', $_SERVER['PHP_SELF'], 's.entity', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Entity
 print_liste_field_titre('Client', $_SERVER['PHP_SELF'], 's.fk_soc', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Thirdparty
 print_liste_field_titre('Leaser', $_SERVER['PHP_SELF'], 's.fk_leaser', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Leaser
-print_liste_field_titre('Statut', $_SERVER['PHP_SELF'], 'c.status', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
+print_liste_field_titre($langs->trans('Status'), $_SERVER['PHP_SELF'], 'c.status', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('ConformiteDateWaitingForComplianceN1'), $_SERVER['PHP_SELF'], 'c.date_envoi', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('ConformiteDateWaitingForComplianceN2'), $_SERVER['PHP_SELF'], 'c.date_attenteN2', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('User'), $_SERVER['PHP_SELF'], 'u.login', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
