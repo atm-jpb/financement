@@ -1040,7 +1040,10 @@ class TSimulation extends TObjetStd
             $mesg .= 'Durée : '.$this->duree.' '.ucfirst(strtolower($this->opt_periodicite)).'s'."\n";
             $mesg .= 'Loyer trimestriel H.T. : '.price($this->echeance).' €'."\n\n";
             $mesg .= 'Nous avons étudié votre demande avec minutie. Cependant, nous regrettons de ne pouvoir y donner une suite favorable.'."\n";
-            $mesg .= 'Nous pouvons éventuellement réviser cette décision avec le dernier bilan de l\'entreprise.'."\n\n";
+            // On enlève cette phrase pour les entités Esus, ABS, Copem, Omniburo, Lorraine repro, CENA
+            if(! in_array($this->entity, array(18, 25, 6, 26, 20, 23))) {
+                $mesg .= 'Nous pouvons éventuellement réviser cette décision avec le dernier bilan de l\'entreprise.'."\n\n";
+            }
             $mesg .= 'Motifs : '.$retourLeaser."\n\n";
             $mesg .= 'Veuillez agréer, nos sincères salutations.'."\n\n";
             $mesg .= 'Le Service Financement C\'PRO';
