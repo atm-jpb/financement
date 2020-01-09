@@ -424,7 +424,7 @@ if(empty($fk_leaser)) {
     // Entity
     print '<td colspan="17" style="min-width: 150px;">';
     print '<span>'.$langs->trans('DemandReasonTypeSRC_PARTNER').' : </span>';
-    print Form::multiselectarray('search_entity', $TEntity, $search_entity, 0, 0, 'style="min-width: 250px;"');
+    print Form::multiselectarray('search_entity', $TEntity, $search_entity, 0, 0, '', 0, 1500);
     print '</td>';
 
     print '</tr>';

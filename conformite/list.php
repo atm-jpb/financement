@@ -252,7 +252,7 @@ print '<tr class="liste_titre">';
 // Entity
 print '<td colspan="11" style="min-width: 150px;">';
 print '<span>'.$langs->trans('DemandReasonTypeSRC_PARTNER').' : </span>';
-print Form::multiselectarray('search_entity', $TEntity, $search_entity, 0, 0, 'style="min-width: 250px;"');
+print Form::multiselectarray('search_entity', $TEntity, $search_entity, 0, 0, '', 0, 1500);
 print '</td>';
 
 print '</tr>';
@@ -261,7 +261,7 @@ print '<tr class="liste_titre">';
 // Status
 print '<td colspan="11" style="min-width: 150px;">';
 print '<span>'.$langs->trans('Status').' : </span>';
-print Form::multiselectarray('search_status', Conformite::$TStatus, $search_status, 0, 0, 'style="min-width: 250px;"', 1);
+print Form::multiselectarray('search_status', Conformite::$TStatus, $search_status, 0, 0, '', 1, 1235);
 print '</td>';
 
 print '</tr>';
