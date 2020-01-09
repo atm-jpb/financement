@@ -121,7 +121,7 @@ function _liste(&$ATMdb, &$score) {
 	$sql.= " '' as 'Actions'";
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_score as s";
 	$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user as u ON s.fk_user_author = u.rowid';
-	$sql.= " WHERE fk_soc = ".$_REQUEST['socid'];
+	$sql.= " WHERE s.fk_soc = ".$_REQUEST['socid'];
 	
 	// Affichage résumé client
 	$formDoli = new Form($db);
