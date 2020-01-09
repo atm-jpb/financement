@@ -50,9 +50,12 @@ if(empty($sortorder)) $sortorder = 'DESC';
 if(empty($page) || $page == -1) $page = 0;
 $offset = $limit * $page;
 
+$strEntityShared = getEntity('fin_simulation', true);
+$TEntityShared = explode(',', $strEntityShared);
+
 $dao = new DaoMulticompany($db);
 $dao->getEntities();
-foreach($dao->entities as $mc_entity) $TEntity[$mc_entity->id] = $mc_entity->label;
+foreach($dao->entities as $mc_entity) if(in_array($mc_entity->id, $TEntityShared)) $TEntity[$mc_entity->id] = $mc_entity->label;
 
 /*
  * Action
@@ -69,9 +72,6 @@ $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON (c.fk_simulation = s.r
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe soc ON (s.fk_soc = soc.rowid)';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe lea ON (s.fk_leaser = lea.rowid)';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user u ON (c.fk_user = u.rowid)';
-
-$strEntityShared = getEntity('fin_simulation', true);
-$TEntityShared = explode(',', $strEntityShared);
 
 $sql.= ' WHERE 1';
 if(! empty($search_ref)) $sql .= natural_search('s.reference', $search_ref);

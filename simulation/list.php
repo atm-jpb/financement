@@ -56,9 +56,12 @@ if(empty($sortorder)) $sortorder = 'DESC';
 if(empty($page) || $page == -1) $page = 0;
 $offset = $limit * $page;
 
+$strEntityShared = getEntity('fin_simulation', true);
+$TEntityShared = explode(',', $strEntityShared);
+
 $dao = new DaoMulticompany($db);
 $dao->getEntities();
-foreach($dao->entities as $mc_entity) $TEntity[$mc_entity->id] = $mc_entity->label;
+foreach($dao->entities as $mc_entity) if(in_array($mc_entity->id, $TEntityShared)) $TEntity[$mc_entity->id] = $mc_entity->label;
 
 /*
  * Action
@@ -158,9 +161,6 @@ if(! empty($fk_soc)) {
 
     $THide[] = 'Client';
 }
-
-$strEntityShared = getEntity('fin_simulation', true);
-$TEntityShared = explode(',', $strEntityShared);
 
 if(! empty($search_ref)) $sql .= natural_search('s.reference', $search_ref);
 if(! empty($search_thirdparty)) $sql .= natural_search('soc.nom', $search_thirdparty);

@@ -68,9 +68,12 @@ $PDOdb = new TPDOdb;
 $tbs = new TTemplateTBS;
 $form = new Form($db);
 
+$strEntityShared = getEntity('fin_dossier', true);
+$TEntityShared = explode(',', $strEntityShared);
+
 $dao = new DaoMulticompany($db);
 $dao->getEntities();
-foreach($dao->entities as $mc_entity) $TEntity[$mc_entity->id] = $mc_entity->label;
+foreach($dao->entities as $mc_entity) if(in_array($mc_entity->id, $TEntityShared)) $TEntity[$mc_entity->id] = $mc_entity->label;
 
 if(GETPOST('envoiXML')) {
     setEventMessage('La génération et l\'envoi du fichier XML s\'est effectué avec succès');
@@ -176,9 +179,6 @@ if(! empty($search_dossier)) {
 if(GETPOST('reloc')) {
     $sql .= " AND (fc.reloc = 'OUI' OR fl.reloc = 'OUI')";
 }
-
-$strEntityShared = getEntity('fin_dossier', true);
-$TEntityShared = explode(',', $strEntityShared);
 
 if(! empty($search_ref_client)) $sql .= natural_search('fc.reference', $search_ref_client);
 if(! empty($search_ref_leaser)) $sql .= natural_search('fl.reference', $search_ref_leaser);
