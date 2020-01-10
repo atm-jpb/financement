@@ -27,6 +27,7 @@ foreach($TFileName as $filename) {
             $TData[] = getUsefulData($TLine);
         }
     }
+    fclose($f);
 }
 
 $upd = 0;
