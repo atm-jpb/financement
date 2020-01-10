@@ -942,7 +942,6 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 
     $conformite = new Conformite;
     $conformite->fetchBy('fk_simulation', $simulation->rowid);
-    var_dump(getOneEntityGroup(14, 'fin_simulation', [4, 17]));
 	
 	$extrajs = array('/financement/js/financement.js', '/financement/js/dossier.js');
 	llxHeader('',$langs->trans("Simulation"),'','','','',$extrajs);
