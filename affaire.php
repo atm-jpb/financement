@@ -58,10 +58,11 @@
 				$facSerialNumber = GETPOST('facSerialNumber');
                 $facRefMat = GETPOST('facRefMat');
 				$facLabel = GETPOST('facLabel');
-				if(! empty($facRef) && ! empty($facDate) && ! empty($facSerialNumber) && ! empty($facRefMat) && ! empty($facLabel) && ! empty($affaire->montant)) {
+				$facLeaser = GETPOST('facLeaser');
+				if(! empty($facRef) && ! empty($facDate) && ! empty($facSerialNumber) && ! empty($facRefMat) && ! empty($facLabel) && ! empty($affaire->montant) && ! empty($facLeaser)) {
 				    $f = new Facture($db);
 				    $f->date = date('Y-m-d', $facDate);
-				    $f->socid = $affaire->societe->id;
+				    $f->socid = $facLeaser;
 
 				    $old_entity = $conf->entity;
 				    switchEntity($affaire->entity); // Nécessaire car la création prend pour entité la $conf->entity
@@ -69,11 +70,13 @@
 				    switchEntity($old_entity);
 
 				    if($res > 0) {
-                        $f->fetch($f->id);  // Utile car sinon le champ date_lim_reglement est null
-                        if($f->date_lim_reglement < strtotime("2014-01-01")) $taux_tva = 19.6;
-                        else $taux_tva = 20;
+                        $p = new Product($db);
+                        $p->ref = $facRefMat;
+                        $p->libelle = $facLabel;
+                        $res = $p->create($user);
 
-                        $f->addline($facSerialNumber, $affaire->montant, 1, $taux_tva);
+                        $taux_tva = 20;
+                        $f->addline($facSerialNumber, $affaire->montant, 1, $taux_tva, 0, 0, $res);
 
                         $f->ref = $facRef;
                         $f->statut = 0;
@@ -82,10 +85,6 @@
                             setEventMessage($langs->trans('EquipmentInvoiceRefAlreadyInUse', $facRef), 'warnings');
                         }
 
-                        $p = new Product($db);
-                        $p->ref = $facRefMat;
-                        $p->libelle = $facLabel;
-                        $res = $p->create($user);
                         if($res > 0) {
                             $f->add_object_linked('affaire', $affaire->rowid);
 
@@ -514,13 +513,17 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		$entity_field = $TEntityName[$entity].$form->hidden('entity', $entity);
 	}
 
-    $facRef = $facDate = $facSerialNumber = $facRefMat = $facLabel = '';
+    $facRef = $facDate = $facSerialNumber = $facRefMat = $facLabel = $facLeaser = '';
 	if($mode == 'edit') {
 	    $facRef = '<input type="text" name="facRef" />';
 	    $facDate = $doliform->select_date('', 'facDate', 0, 0, 0, '', 1, 0, 1);
 	    $facSerialNumber = '<input type="text" name="facSerialNumber" />';
         $facRefMat = '<input type="text" name="facRefMat" />';
 	    $facLabel = '<input type="text" name="facLabel" />';
+
+        $selected = '';
+        if(! empty($affaire->TLien[0])) $selected = $affaire->TLien[0]->dossier->financementLeaser->fk_soc;
+        $facLeaser = $doliform->select_company($selected, 'facLeaser', 'fournisseur = 1', 1);
     }
 
 	print $TBS->render('./tpl/affaire.tpl.php'
@@ -568,7 +571,8 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
                 'date' => $facDate,
                 'num_serie' => $facSerialNumber,
                 'refMat' => $facRefMat,
-                'label' => $facLabel
+                'label' => $facLabel,
+                'leaser' => $facLeaser
             )
 		)
 	);
