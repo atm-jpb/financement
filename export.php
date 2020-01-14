@@ -15,12 +15,14 @@ $sql = 'SELECT s.reference as ref_simul, cli.nom as client_name, e.label as part
 $sql .= ', dr.date_debut_periode_client_m1, dr.date_fin_periode_client_m1, dr.solde_vendeur_m1, dr.solde_banque_m1, dr.solde_banque_nr_m1';   // Prev
 $sql .= ', dr.date_debut_periode_client, dr.date_fin_periode_client, dr.solde_vendeur, dr.solde_banque, dr.solde_banque_nr';   // Curr
 $sql .= ', dr.date_debut_periode_client_p1, dr.date_fin_periode_client_p1, dr.solde_vendeur_p1, dr.solde_banque_p1, dr.solde_banque_nr_p1';   // Next
-$sql .= ', choice, s.rowid, dflea.fk_soc, s.fk_leaser, dr.fk_dossier';
+$sql .= ', dr.choice, s.rowid, dflea.fk_soc, s.fk_leaser, dr.fk_dossier';
 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation s';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'entity e ON (s.entity = e.rowid)';
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.DossierRachete::$tablename.' dr ON (s.rowid = dr.fk_simulation)';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dr.fk_dossier = dfcli.fk_fin_dossier AND dfcli.type = 'CLIENT')";
-$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe cli ON (dfcli.fk_soc = cli.rowid)';
+$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (dr.fk_dossier = da.fk_fin_dossier)';
+$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)';
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe cli ON (a.fk_soc = cli.rowid)';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dr.fk_dossier = dflea.fk_fin_dossier AND dflea.type = 'LEASER')";
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe slea ON (s.fk_leaser = slea.rowid)';
 $sql.= ' WHERE s.entity IN ('.getEntity('fin_simulation', true).')';
