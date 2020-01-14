@@ -3,7 +3,8 @@ set_time_limit(0);
 ini_set('memory_limit', '256M');
 
 /*
- * Ce script doit corriger tous les dossiers rachetés pour renseigner correctement le solde banque NR
+ * Ce script doit corriger tous les dossiers rachetés pour renseigner correctement les soldes banque NR
+ * Et également recalculer les soldes banque R pour s'assurer qu'ils sont corrects
  */
 
 require_once('../config.php');
@@ -18,11 +19,9 @@ $PDOdb = new TPDOdb;
 $limit = GETPOST('limit', 'int');
 $fk_simu = GETPOST('fk_simu', 'int');
 
-$sql = 'SELECT dr.fk_dossier, dr.rowid, dr.numero_prochaine_echeance';
+$sql = 'SELECT dr.fk_dossier, dr.rowid, dr.numero_prochaine_echeance, dr.type_solde';
 $sql.= ' FROM '.MAIN_DB_PREFIX.DossierRachete::$tablename.' dr';
-$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON (dr.fk_simulation = s.rowid)';
-$sql.= " WHERE dr.type_solde = 'NR'";    // On ne corrige que les soldes NR
-if(! empty($fk_simu)) $sql.= ' AND s.rowid = '.$fk_simu;
+if(! empty($fk_simu)) $sql.= ' WHERE dr.fk_simulation = '.$fk_simu;
 $sql.= ' ORDER BY dr.rowid';
 if(! empty($limit)) $sql.= ' LIMIT '.$limit;
 
@@ -42,17 +41,30 @@ while($obj = $db->fetch_object($resql)) {
     }
 
     $doss = new TFin_dossier;
-    $doss->load($PDOdb, $obj->fk_dossier, false);
+    $res = $doss->load($PDOdb, $obj->fk_dossier, false);
+    if($res === false) continue;    // Si on ne réussit pas à load, ça sert à rien de continuer : le dossier a été delete
+
     $doss->load_affaire($PDOdb);    // Apparemment il faut load les affaires pour que le getSolde fonctionne...
 
     $dossierRachete = new DossierRachete;
     $dossierRachete->load($PDOdb, $obj->rowid);
 
-    $dossierRachete->solde_banque_nr_m1 = $doss->getSolde($PDOdb, 'SNRBANK', ($next - 2));
-    $dossierRachete->solde_banque_nr = $doss->getSolde($PDOdb, 'SNRBANK', ($next - 1));
-    $dossierRachete->solde_banque_nr_p1 = $doss->getSolde($PDOdb, 'SNRBANK', $next);
+    // On met à jour les soldes NR
+    if($obj->type_solde === 'NR') {
+        $dossierRachete->solde_banque_nr_m1 = $doss->getSolde($PDOdb, 'SNRBANK', ($next - 2));
+        $dossierRachete->solde_banque_nr = $doss->getSolde($PDOdb, 'SNRBANK', ($next - 1));
+        $dossierRachete->solde_banque_nr_p1 = $doss->getSolde($PDOdb, 'SNRBANK', $next);
+    }
 
-    $dossierRachete->type_solde = $solde;
+    // On recalcule les soldes R
+    $soldeBanqueR_m1 = $doss->getSolde($PDOdb, 'SRBANK', ($next - 2));
+    $soldeBanqueR = $doss->getSolde($PDOdb, 'SRBANK', ($next - 1));
+    $soldeBanqueR_p1 = $doss->getSolde($PDOdb, 'SRBANK', $next);
+
+    // On met à jour les soldes R s'ils sont différents
+    if(! empty($soldeBanqueR_m1) && $soldeBanqueR_m1 != $dossierRachete->solde_banque_m1) $dossierRachete->solde_banque_m1 = $soldeBanqueR_m1;
+    if(! empty($soldeBanqueR) && $soldeBanqueR != $dossierRachete->solde_banque) $dossierRachete->solde_banque = $soldeBanqueR;
+    if(! empty($soldeBanqueR_p1) && $soldeBanqueR_p1 != $dossierRachete->solde_banque_p1) $dossierRachete->solde_banque_p1 = $soldeBanqueR_p1;
 
     $dossierRachete->save($PDOdb);
 }
