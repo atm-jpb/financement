@@ -5,6 +5,8 @@ define('INC_FROM_CRON_SCRIPT', true);
 require_once __DIR__.'/../../config.php';
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/affaire.class.php');
+dol_include_once('/financement/class/grille.class.php');
+dol_include_once('/asset/class/asset.class.php');
 
 set_time_limit(0);
 ini_set('memory_limit', '256M');
