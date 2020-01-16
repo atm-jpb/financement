@@ -2803,12 +2803,16 @@ class TSimulationSuivi extends TObjetStd
     }
 
     function _createDemandeServiceFinancement($debug = false) {
+        global $conf;
+
         dol_include_once('/financement/class/service_financement.class.php');
         $PDOdb = new TPDOdb;
 
         // Chargement d'un objet TSimulation dans une nouvelle variable pour éviter les problème d'adressage
         $simulation = new TSimulation();
         $simulation->load($PDOdb, $this->fk_simulation);
+        $old_entity = $conf->entity;
+        switchEntity($simulation->entity);
 
         $TLeaserMandate = array(
             19483,  // Lixxbail
@@ -2830,6 +2834,8 @@ class TSimulationSuivi extends TObjetStd
 
         // La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active)
         $res = $service->call();
+
+        switchEntity($old_entity);
 
         if(! $res) {
             $this->statut = 'ERR';
