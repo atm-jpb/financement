@@ -951,7 +951,7 @@ class TFin_dossier extends TObjetStd
      *  - Uniquement pour INTERNE => capé LRD Client
      */
     function getSolde_SNR_CLIENT(&$PDOdb, $iPeriode, $duree_restante_leaser, $duree_restante_client, $CRD, $LRD, $CRD_Leaser, $LRD_Leaser, $nature_financement = 'EXTERNE') {
-        global $conf;
+        global $conf, $db;
 
         $solde = 0;
         $capeLRD = true;
@@ -961,6 +961,13 @@ class TFin_dossier extends TObjetStd
             $date_deb_periode = $this->getDateDebutPeriode($iPeriode - 1);
             $p = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
             $TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
+
+            $fk_leaser = $this->financementLeaser->fk_soc;
+            $leaser = new Societe($db);
+            $leaser->fetch($fk_leaser);
+            if(empty($leaser->array_options)) $leaser->fetch_optionals();
+
+            if(! empty($leaser->array_options['options_non_cape_lrd'])) $capeLRD = false;
 
             if($TSoldeRule->base_solde == 'MF') {
                 $solde = $this->financementLeaser->montant;
@@ -995,6 +1002,13 @@ class TFin_dossier extends TObjetStd
             $date_deb_periode = $this->getDateDebutPeriode($iPeriode - 1, 'CLIENT');
             $p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
             $TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
+
+            $fk_soc = $this->financement->fk_soc;
+            $soc = new Societe($db);
+            $soc->fetch($fk_soc);
+            if(empty($soc->array_options)) $soc->fetch_optionals();
+
+            if(! empty($soc->array_options['options_non_cape_lrd'])) $capeLRD = false;
 
             // SPECIFIQUE LEASER HEXAPAGE => calculer le solde comme un externe avec la pénalité leaser
             if(in_array($this->financementLeaser->fk_soc, array(204904, 204905, 204906))) {
