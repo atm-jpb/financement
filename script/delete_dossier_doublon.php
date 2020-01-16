@@ -8,6 +8,7 @@ require_once '../config.php';
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
+dol_include_once('/financement/class/dossierRachete.class.php');
 
 $debug = GETPOST('debug', 'int');
 $limit = GETPOST('limit', 'int');
@@ -48,9 +49,13 @@ while($obj = $db->fetch_object($resql)) {
         $dossier = new TFin_dossier;
         $dossier->load($PDOdb, $obj->fk_fin_dossier, true, false);
 
-        if($dossier->entity != 20) {
+        // On ne veut supprimer les dossiers uniquement s'ils ne sont pas sur l'entité 20 et s'ils ne sont pas sélectionnés dans une simul
+        if($dossier->entity != 20 && ! DossierRachete::isDossierSelected($dossier->rowid)) {
             $dossier->delete($PDOdb, true, false, false);
         }
     }
 }
 $db->free($resql);
+
+print '<br/><br/>';
+print '<span>OK !</span>';
