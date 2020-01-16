@@ -14,21 +14,14 @@ $limit = GETPOST('limit', 'int');
 $commit = GETPOST('commit', 'int');
 
 // On va chercher toutes les références de dossiers en doublons dans les entités 20, 21, 22 et 24
-$subquery = 'SELECT df.reference';
-$subquery.= ' FROM '.MAIN_DB_PREFIX.'fin_dossier_financement df';
-$subquery.= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (d.rowid = df.fk_fin_dossier)';
-$subquery.= ' WHERE d.entity IN (20,21,22,24)';
-$subquery.= " AND df.type = 'LEASER'";
-$subquery.= " AND df.reference <> ''";
-$subquery.= ' GROUP BY df.reference';
-$subquery.= ' HAVING COUNT(*) > 1';
-
-// On récupère que les 'fk_fin_dossier' des dossiers des entités 21, 22 et 24 pour les delete
-$sql = 'SELECT df.fk_fin_dossier';
+$sql = 'SELECT GROUP_CONCAT(DISTINCT fk_fin_dossier) as TRowid';
 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_dossier_financement df';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (d.rowid = df.fk_fin_dossier)';
-$sql.= ' WHERE d.entity <> 20';
-$sql.= ' AND df.reference IN ('.$subquery.')';
+$sql.= ' WHERE d.entity IN (20,21,22,24)';
+$sql.= " AND df.type = 'LEASER'";
+$sql.= " AND df.reference <> ''";
+$sql.= ' GROUP BY df.reference';
+$sql.= ' HAVING COUNT(*) > 1';
 if(! empty($limit)) $sql.= ' LIMIT '.$limit;
 
 $resql = $db->query($sql);
@@ -49,9 +42,15 @@ while($obj = $db->fetch_object($resql)) {
         print '<br/>';
     }
 
-    $dossier = new TFin_dossier;
-    $dossier->load($PDOdb, $obj->fk_fin_dossier);
+    $TRowid = explode(',', $obj->TRowid);
 
-    $dossier->delete($PDOdb, true, false, false);
+    foreach($TRowid as $fk_fin_dossier) {
+        $dossier = new TFin_dossier;
+        $dossier->load($PDOdb, $obj->fk_fin_dossier, true, false);
+
+        if($dossier->entity != 20) {
+            $dossier->delete($PDOdb, true, false, false);
+        }
+    }
 }
 $db->free($resql);
