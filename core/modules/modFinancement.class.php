@@ -176,7 +176,7 @@ class modFinancement extends DolibarrModules
 			,'SELECT f.rowid as rowid, f.nat_id, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_nature_bien as f WHERE entity IN (0, '.$conf->entity.')'
 			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_statut_dossier as f WHERE entity IN (0, '.$conf->entity.')'
 			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano as f WHERE entity IN (0, '.$conf->entity.')'
-			,'SELECT f.rowid as rowid, f.fk_nature, f.fk_type_contrat, f.periode, f.date_application, f.base_solde, f.percent, f.percent_nr, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_conf_solde as f WHERE entity = '.$conf->entity
+			,'SELECT f.rowid as rowid, f.fk_nature, f.fk_type_contrat, f.periode, f.date_application, f.base_solde, f.percent, f.amount, f.percent_nr, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_conf_solde as f WHERE entity = '.$conf->entity
 			,'SELECT rowid, code, label, entity, active FROM '.MAIN_DB_PREFIX.'c_financement_action_manuelle WHERE entity IN (0, '.$conf->entity.')'
 		)
 		,'tabsqlsort'=>array(
@@ -196,7 +196,7 @@ class modFinancement extends DolibarrModules
 			,'nat_id,label,entity'
 			,'code,label,entity'
 			,'code,label,entity'
-			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,percent_nr'
+			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,amount,percent_nr'
 			,'code,label'
 		)
 		,'tabfieldvalue'=>array(
@@ -206,7 +206,7 @@ class modFinancement extends DolibarrModules
 			,'nat_id,label,entity'
 			,'code,label,entity'
 			,'code,label,entity'
-			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,percent_nr,entity'
+			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,amount,percent_nr,entity'
 			,'code,label'
 		)
 		,'tabfieldinsert'=>array(
@@ -216,7 +216,7 @@ class modFinancement extends DolibarrModules
 			,'nat_id,label,entity'
 			,'code,label,entity'
 			,'code,label,entity'
-			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,percent_nr,entity'
+			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,amount,percent_nr,entity'
 			,'code,label'
 		)
 		,'tabrowid'=>array(

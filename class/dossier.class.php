@@ -856,10 +856,10 @@ class TFin_dossier extends TObjetStd
                 $capeLRD = false;
             }
             else if($TSoldeRule->base_solde == 'CRD') {
-                $solde = $CRD_Leaser * (1 + $TSoldeRule->percent / 100);
+                $solde = $CRD_Leaser * (1 + $TSoldeRule->percent / 100) + $TSoldeRule->amount;
             }
             else if($TSoldeRule->base_solde == 'LRD') {
-                $solde = $LRD_Leaser * (1 + $TSoldeRule->percent / 100);
+                $solde = $LRD_Leaser * (1 + $TSoldeRule->percent / 100) + $TSoldeRule->amount;
             }
             else {
                 if($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
@@ -903,10 +903,10 @@ class TFin_dossier extends TObjetStd
                 $capeLRD = false;
             }
             else if($TSoldeRule->base_solde == 'CRD') {
-                $solde = $CRD * (1 + $TSoldeRule->percent / 100);
+                $solde = $CRD * (1 + $TSoldeRule->percent / 100) + $TSoldeRule->amount;
             }
             else if($TSoldeRule->base_solde == 'LRD') {
-                $solde = $LRD * (1 + $TSoldeRule->percent / 100);
+                $solde = $LRD * (1 + $TSoldeRule->percent / 100) + $TSoldeRule->amount;
             }
             else {
                 if($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
@@ -1892,7 +1892,7 @@ class TFin_dossier extends TObjetStd
     function load_c_conf_solde() {
         global $db;
 
-        $sql = "SELECT periode, base_solde, percent, date_application, percent_nr FROM ".MAIN_DB_PREFIX."c_financement_conf_solde
+        $sql = "SELECT periode, base_solde, percent, amount, date_application, percent_nr FROM ".MAIN_DB_PREFIX."c_financement_conf_solde
 				WHERE entity = ".$this->entity." 
 				AND active = 1 
 				AND fk_type_contrat = '".$this->contrat."'

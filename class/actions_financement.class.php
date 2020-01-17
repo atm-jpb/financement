@@ -264,6 +264,11 @@ class ActionsFinancement
 			    print '<input type="date" class="flat" name="date_application" />';
 			    print '</td>';
             }
+            else if($value == 'amount') {
+                print '<td>';
+                print '<input type="number" class="flat" name="amount" min="0" />';
+                print '</td>';
+            }
 			else
 			{
 				print '<td>';
@@ -307,6 +312,11 @@ class ActionsFinancement
             else if($value == 'date_application') {
                 print '<td>';
                 print '<input type="date" class="flat" name="date_application" value="'.$object->$value.'" />';
+                print '</td>';
+            }
+            else if($value == 'amount') {
+                print '<td>';
+                print '<input type="number" class="flat" name="amount" min="0" value="'.$object->$value.'" />';
                 print '</td>';
             }
 			else
