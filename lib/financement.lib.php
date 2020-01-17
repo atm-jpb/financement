@@ -747,9 +747,11 @@ function switchEntity($target) {
  * @return  array
  */
 function getOneEntityGroup($entity, $element, $TExcludedEntity = array()) {
-    $TGroups = getAllEntityGroups($element, $TExcludedEntity);
+    global $TGroup;    // Si on peut éviter de fetcher à chaque fois tous les sharings de toutes les entités, j'suis preneur
 
-    foreach($TGroups[$element] as $group) {
+    if(empty($TGroup)) $TGroup = getAllEntityGroups($element, $TExcludedEntity);
+
+    foreach($TGroup[$element] as $group) {
         if(in_array($entity, $group)) return $group;
     }
 
