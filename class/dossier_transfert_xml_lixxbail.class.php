@@ -329,7 +329,7 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 		dol_include_once('/product/class/product.class.php');
 		
 		$product = new Product($db);
-		$product->fetch($assetLink->asset->fk_product);
+		if(! empty($assetLink->asset->fk_product)) $product->fetch($assetLink->asset->fk_product);
 		
 		$tailleDesignation1B = strlen($TDesignation[0]);
 		$tailleDesignation1C = strlen($TDesignation[1]);
