@@ -292,7 +292,7 @@ class TFin_dossier extends TObjetStd
     function checkRef(&$db) {
         if(! function_exists('switchEntity')) dol_include_once('/financement/lib/financement.lib.php');
 
-        $TEntityShared = getOneEntityGroup($this->entity, 'fin_simulation', array(4, 17));
+        $TEntityShared = getOneEntityGroup($this->entity, 'fin_dossier', array(4, 17));
         $strEntityShared = implode(',', $TEntityShared);
 
         if($this->nature_financement == 'INTERNE') {
