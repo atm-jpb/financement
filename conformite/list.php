@@ -145,7 +145,9 @@ if(! empty($arrayOfSelected)) {
                             click: function() {
                                 updateDateReception();
                                 $(this).dialog('close');
-                                location.href = location.pathname;
+
+                                // On veut garder les filtres mais pas la massaction
+                                location.href = location.href.replace(/&(confirm)?massaction=(updateDateReception|Confirmer)/gm, '');
                             }
                         },
                         { text: "<?php echo $langs->trans('Cancel'); ?>", click: function() { $(this).dialog('close'); }}
