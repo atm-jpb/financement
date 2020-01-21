@@ -847,6 +847,31 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 	else $referenceToShow = $link_simu;
     if(GETPOST('action') != 'edit') $referenceToShow .= '&nbsp;'.$financementLeaser->printModifAccordCMCIC();
     $referenceToShow.= $dossier->printOtherDossierLink();   // On ajoute le lien pour les autres dossiers s'ils existent
+
+    $numProchaineEcheance = $financementLeaser->numero_prochaine_echeance;
+    if($user->id == 1 && GETPOST('action') != 'edit') {
+        $numProchaineEcheance .= '<i class="fa fa-sync-alt" style="cursor: pointer; float: right; margin-right: 10px;" title="Recalculate num/date next term"></i>';
+        ?>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $('i.fa-sync-alt').on('click', function() {
+                    $.ajax({
+                        url: "<?php echo dol_buildpath('/financement/script/interface.php', 1); ?>",
+                        data: {
+                            action: 'updateNextTerm',
+                            fk_dossier: <?php echo $dossier->rowid; ?>,
+                            type: 'leaser'
+                        },
+                        dataType: 'json',
+                        type: 'POST',
+                        async: false
+                    });
+                    $(this).remove();
+                });
+            });
+        </script>
+<?php
+    }
 	
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()
@@ -865,7 +890,7 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 			,'dossier_termine'=>($financementLeaser->montant_solde > 0) ? 1 : 0
 							
 				
-			,'numero_prochaine_echeance'=>$financementLeaser->numero_prochaine_echeance 
+			,'numero_prochaine_echeance'=>$numProchaineEcheance
 			,'duree'=>$formRestricted->texte('', 'leaser[duree]', $financementLeaser->duree, 5,255,'','','à saisir')
 								
 			,'periodicite'=>$formRestricted->combo('', 'leaser[periodicite]', $financementLeaser->TPeriodicite , $financementLeaser->periodicite)
