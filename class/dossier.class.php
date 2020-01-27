@@ -290,6 +290,11 @@ class TFin_dossier extends TObjetStd
     }
 
     function checkRef(&$db) {
+        if(! function_exists('switchEntity')) dol_include_once('/financement/lib/financement.lib.php');
+
+        $TEntityShared = getOneEntityGroup($this->entity, 'fin_dossier', array(4, 17));
+        $strEntityShared = implode(',', $TEntityShared);
+
         if($this->nature_financement == 'INTERNE') {
 
             $refClient = $this->financement->reference;
@@ -302,7 +307,7 @@ class TFin_dossier extends TObjetStd
                 $sql .= " WHERE df.type='CLIENT'";
                 $sql .= " AND df.reference='".$refClient."'";
                 $sql .= ' AND df.rowid!='.$id_fin;
-                $sql .= ' AND d.entity = '.$this->entity;
+                $sql .= ' AND d.entity IN ('.$strEntityShared.')';
 
                 $db->Execute($sql);
                 $obj = $db->Get_line();
@@ -320,7 +325,7 @@ class TFin_dossier extends TObjetStd
             $sql .= " WHERE df.type='LEASER'";
             $sql .= " AND df.reference='".$refLeaser."'";
             $sql .= ' AND df.rowid!='.$id_finLeaser;
-            $sql .= ' AND d.entity = '.$this->entity;
+            $sql .= ' AND d.entity IN ('.$strEntityShared.')';
 
             $db->Execute($sql);
             $obj = $db->Get_line();

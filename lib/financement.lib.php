@@ -740,6 +740,87 @@ function switchEntity($target) {
     }
 }
 
+/**
+ * @param   int       $entity
+ * @param   string    $element
+ * @param   array     $TExcludedEntity
+ * @return  array
+ */
+function getOneEntityGroup($entity, $element, $TExcludedEntity = array()) {
+    global $TGroup;    // Si on peut éviter de fetcher à chaque fois tous les sharings de toutes les entités, j'suis preneur
+
+    if(empty($TGroup)) $TGroup = getAllEntityGroups($element, $TExcludedEntity);
+
+    foreach($TGroup[$element] as $group) {
+        if(in_array($entity, $group)) return $group;
+    }
+
+    return array();
+}
+
+/**
+ * @param   string  $element
+ * @param   array   $TExcludedEntity
+ * @return  array
+ */
+function getAllEntityGroups($element = null, $TExcludedEntity = array()) {
+    global $db;
+
+    $sql = 'SELECT rowid, options';
+    $sql.= ' FROM '.MAIN_DB_PREFIX.'entity';
+    $sql.= ' WHERE active = 1';
+    if(! empty($TExcludedEntity) && is_array($TExcludedEntity)) $sql.= ' AND rowid NOT IN ('.implode(',', $TExcludedEntity).')';
+
+    $resql = $db->query($sql);
+    if(! $resql) {
+        dol_print_error($db);
+        exit;
+    }
+
+    $TGroup = array();
+    while($obj = $db->fetch_object($resql)) {
+        $objOptions = json_decode($obj->options);
+        $sharings = $objOptions->sharings;
+
+        foreach($sharings as $lo_element => $TEntity) {
+            if(! is_null($element) && $lo_element !== $element) continue;   // We only want to load $element entityGroups
+
+            if(is_null($TGroup[$lo_element])) $TGroup[$lo_element] = array();
+
+            if(! is_null($TEntity)) $lo_TEntity = array_merge($TEntity, array($obj->rowid));
+            else $lo_TEntity = array($obj->rowid);
+
+            if(empty($TGroup[$lo_element])) {
+                $TGroup[$lo_element][] = $lo_TEntity;
+            }
+            else {
+                $alreadyInGroup = false;
+                foreach($TGroup[$lo_element] as &$entityGroup) {
+                    if(in_array($obj->rowid, $entityGroup)) {
+                        $alreadyInGroup = true;
+
+                        if(count($entityGroup) < count($lo_TEntity)) {
+                            foreach($lo_TEntity as $entity) {
+                                if(! in_array($entity, $entityGroup)) $entityGroup[] = $entity;
+                            }
+                        }
+
+                        break;
+                    }
+                }
+                unset($entityGroup);
+
+                if(! $alreadyInGroup) {
+                    $TGroup[$lo_element][] = $lo_TEntity;
+                }
+            }
+        }
+
+    }
+
+    return $TGroup;
+}
+
 function get_picto($name, $title = '', $color = '', &$style = '') {
     $img = '';
     $lo_title = '';
