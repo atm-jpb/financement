@@ -47,15 +47,16 @@ while($obj = $db->fetch_object($resql)) {
 
     foreach($TRowid as $fk_fin_dossier) {
         $dossier = new TFin_dossier;
-        $dossier->load($PDOdb, $obj->fk_fin_dossier, true, false);
+        $dossier->load($PDOdb, $fk_fin_dossier, true, false);
 
         // On ne veut supprimer les dossiers uniquement s'ils ne sont pas sur l'entité 20 et s'ils ne sont pas sélectionnés dans une simul
         if($dossier->entity != 20 && ! DossierRachete::isDossierSelected($dossier->rowid)) {
             $dossier->delete($PDOdb, true, false, false);
+            print '<br/><span>Deleted !</span>';
         }
     }
 }
 $db->free($resql);
 
 print '<br/><br/>';
-print '<span>OK !</span>';
+print '<span>End</span>';
