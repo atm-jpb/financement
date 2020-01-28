@@ -5,6 +5,7 @@ if(! defined('NOLOGIN')) define('NOLOGIN', 1);
 require '../../config.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
+dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/affaire.class.php');
@@ -30,9 +31,6 @@ $montant_finance_leaser = GETPOST('montant_finance_leaser', 'int');
 $leaser = GETPOST('nom_leaser', 'alpha');
 $entityLabel = GETPOST('source');
 
-if(! empty($loyer_inter)) $loyer_inter = round($loyer_inter, 2);
-if(! empty($montant_finance)) $montant_finance = round($montant_finance, 2);
-
 _check_dossier($ref_dossier);
 
 $user->fetch('', 'admin_financement');
@@ -54,7 +52,7 @@ if(empty($dossier->rowid)) {
 }
 
 // La référence Leaser existe déjà, on ne met pas à jour
-if(! empty($dossier->financementLeaser->reference) || $dossier->financementLeaser->nature_financement === 'EXTERNE') {
+/*if(! empty($dossier->financementLeaser->reference) || $dossier->financementLeaser->nature_financement === 'EXTERNE') {
     header('Content-Type: application/json');
     print json_encode(array(
         'error' => array(
@@ -64,10 +62,19 @@ if(! empty($dossier->financementLeaser->reference) || $dossier->financementLease
     ));
     http_response_code(200);
     exit;
-}
+}*/
 
 $dossier->load_affaire($PDOdb);
 $fk_leaser = _getLeaserByName($leaser);
+
+if(! empty($loyer_inter)) $loyer_inter = round($loyer_inter, 2);
+else if(! empty($echeance)) {
+    $iPeriode = _getiPeriode($periodicite);
+    $res = getPeriod(12, $date_start, 500);
+    var_dump($res);
+}
+exit('Nice try');
+if(! empty($montant_finance)) $montant_finance = round($montant_finance, 2);
 
 if(in_array($fk_leaser, array(19068, 19483)) && $duree == 22 && $periodicite == 'TRIMESTRE') $duree_leaser = 21;   // Spécifique Lixxbail Adossé ou Mandaté
 
@@ -224,4 +231,13 @@ function _getLeaserByName($leaserName) {
     if($obj = $db->fetch_object($resql)) return $obj->rowid;
 
     return 0;
+}
+
+function _getiPeriode($periodicite) {
+    if($periodicite == 'TRIMESTRE') $iPeriode = 3;
+    else if($periodicite == 'SEMESTRE') $iPeriode = 6;
+    else if($periodicite == 'ANNEE') $iPeriode = 12;
+    else $iPeriode = 1;
+
+    return $iPeriode;
 }

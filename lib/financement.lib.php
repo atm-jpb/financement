@@ -896,3 +896,24 @@ function get_picto($name, $title = '', $color = '', &$style = '') {
 
     return $img;
 }
+
+function getPeriod($iPeriode, $timestamp, $echeance) {
+    $date = new DateTime(date('Y-m-d', $timestamp));
+
+    if($iPeriode !== 12) {
+        $numPeriod = floor((date('m', $timestamp) - 1) / $iPeriode);
+
+        $firstDayOfCurrPeriod = new DateTime(date('Y', $timestamp).'-'.($numPeriod * $iPeriode + 1).'-01');
+        $firstDayOfNextPeriod = new DateTime(date('Y', $timestamp).'-'.(($numPeriod + 1) * $iPeriode + 1).'-01');
+    }
+    else {
+        $firstDayOfCurrPeriod = new DateTime(date('Y', $timestamp).'-01-01');
+        $firstDayOfNextPeriod = new DateTime((date('Y', $timestamp)+1).'-01-01');
+    }
+
+    $delta = $date->diff($firstDayOfCurrPeriod)->days;
+    $nbDaysInPeriod = $firstDayOfNextPeriod->diff($firstDayOfCurrPeriod)->days;
+
+    var_dump($firstDayOfCurrPeriod, $delta, $firstDayOfNextPeriod);
+    return round($delta / $nbDaysInPeriod * $echeance, 2);
+}
