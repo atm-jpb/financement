@@ -1,7 +1,7 @@
-search_key=facnumber
+search_key=ref
 
 [mapping]
-1=facnumber
+1=ref
 2=code_client
 3=code_lettrage
 4=date_facture

@@ -1,9 +1,9 @@
-search_key=facnumber
+search_key=ref
 search_key_fac_annulee=facture_annulee
 search_key_client=code_client
 
 [mapping]
-1=facnumber
+1=ref
 2=date
 3=code_client
 4=montant_ht
