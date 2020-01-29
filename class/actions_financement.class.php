@@ -54,17 +54,14 @@ class ActionsFinancement
     public function addSearchEntry($parameters, &$object, &$action, $hookmanager) {
         global $db;
 
-        dol_include_once('/financement/core/modules/modFinancement.class.php');
-        $modFinancement = new modFinancement($db);
-
         $TRes = array(
             'searchintofinancementdossier' => array(
-                'position' => $modFinancement->numero,
+                'position' => 12,
                 'text' => img_picto('', 'object_financementico@financement').' Dossiers',
                 'url' => dol_buildpath('/financement/dossier_list.php', 1)
             ),
             'searchintofinancementsimulation' => array(
-                'position' => $modFinancement->numero,
+                'position' => 13,
                 'text' => img_picto('', 'object_financementico@financement').' Simulations',
                 'url' => dol_buildpath('/financement/simulation/list.php', 1)
             )
