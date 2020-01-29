@@ -626,7 +626,7 @@ class TImport extends TObjetStd {
             }
 
             // On repasse en brouillon pour supprimer les ligne
-            $facture_mat->set_draft($user);
+            $facture_mat->setDraft($user);
 
             // On supprime les lignes (pour ne pas créer de ligne en double)
             // Sur les facture matériel, 1 ligne = 1 facture mais une même facture peut apparaître plusieurs fois => plusieurs dossiers de financement
@@ -654,7 +654,7 @@ class TImport extends TObjetStd {
 
         // Actions spécifiques
         // On repasse en brouillon pour ajouter la ligne
-        $facture_mat->set_draft($user);
+        $facture_mat->setDraft($user);
 
         //On choisis le taux de tva en fonction de la date limite de règlement : 19.6% avant 2014, 20% après 2014
         if($data['date_lim_reglement'] < strtotime("2014-01-01"))
@@ -718,7 +718,7 @@ class TImport extends TObjetStd {
             $facture_loc->fetch($facid);
 
             // On repasse en brouillon pour ajouter la ligne
-            $facture_loc->set_draft($user);
+            $facture_loc->setDraft($user);
 
             /*
              * Création du service
