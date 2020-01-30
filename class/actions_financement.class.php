@@ -198,18 +198,20 @@ class ActionsFinancement
 				
 				$sql = 'SELECT fk_source FROM '.MAIN_DB_PREFIX.'element_element WHERE sourcetype="dossier" AND targettype="facture" AND fk_target='.$object->linkedObjects['facture'][0]->id.' LIMIT 1';
 				$resql = $db->query($sql);
-				$res = $db->fetch_object($resql);
-				
-				if($res->fk_source > 0) {
-					print '<tr>';
-					print '<td>';
-					print 'Suivi intégrale';
-					print '</td>';
-					print '<td>';
-					print '<a href="'.dol_buildpath('/financement/dossier_integrale.php?id='.$res->fk_source, 1).'">Voir le suivi intégrale associé</a>';
-					print '</td>';
-					print '</tr>';
-				}
+				if($resql) {
+                    $res = $db->fetch_object($resql);
+
+                    if ($res->fk_source > 0) {
+                        print '<tr>';
+                        print '<td>';
+                        print 'Suivi intégrale';
+                        print '</td>';
+                        print '<td>';
+                        print '<a href="'.dol_buildpath('/financement/dossier_integrale.php?id='.$res->fk_source, 1).'">Voir le suivi intégrale associé</a>';
+                        print '</td>';
+                        print '</tr>';
+                    }
+                }
 				
 				// Détail du nouveau coût unitaire (uniquement si le user a les droits)
 				if(!empty($user->rights->financement->integrale->detail_couts)) {
