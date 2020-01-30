@@ -586,7 +586,7 @@ function _load_facture(&$PDOdb,&$dossier_temp) {
 				AND ee.fk_source=".$dossier_temp->getId()."
 				AND f.type = 0 
 				AND (f.ref_client != '' OR f.ref_client IS NOT NULL)
-			ORDER BY f.facnumber ASC";
+			ORDER BY f.ref ASC";
 
 	$PDOdb->Execute($sql);
 
@@ -737,7 +737,7 @@ function _get_facture_mat($fk_source,$withlink=true){
 	
 	$PDOdb = new TPDOdb;
 	
-	$sql = "SELECT f.rowid, f.facnumber
+	$sql = "SELECT f.rowid, f.ref
 			FROM ".MAIN_DB_PREFIX."element_element as ee
 				LEFT JOIN ".MAIN_DB_PREFIX."facture as f ON (ee.fk_target = f.rowid)
 			WHERE ee.fk_target=f.rowid AND ee.sourcetype = 'affaire' AND ee.targettype = 'facture' AND ee.fk_source = ".$fk_source."";

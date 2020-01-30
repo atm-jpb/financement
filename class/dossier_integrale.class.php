@@ -43,7 +43,7 @@ class TIntegrale extends TObjetStd
         $sql .= " FROM llx_facture f";
         $sql .= " LEFT JOIN llx_element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
         $sql .= " LEFT JOIN llx_fin_dossier d ON (d.rowid = ee.fk_source AND ee.sourcetype = 'dossier')";
-        $sql .= " WHERE f.facnumber = ".$this->facnumber;
+        $sql .= " WHERE f.ref = ".$this->facnumber;
 
         $PDOdb->Execute($sql);
         $PDOdb->Get_line();
