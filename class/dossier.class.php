@@ -849,7 +849,7 @@ class TFin_dossier extends TObjetStd
             $p = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
             $TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
 
-            if(! empty($TSoldeRule->cape_lrd)) $capeLRD = true;
+            if(empty($TSoldeRule->cape_lrd)) $capeLRD = false;
 
             if($TSoldeRule->base_solde == 'MF') {
                 $solde = $this->financementLeaser->montant;
@@ -891,7 +891,7 @@ class TFin_dossier extends TObjetStd
             $date_deb_periode = $this->getDateDebutPeriode($iPeriode - 1, 'CLIENT');
             $TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
 
-            if(! empty($TSoldeRule->cape_lrd)) $capeLRD = true;
+            if(empty($TSoldeRule->cape_lrd)) $capeLRD = false;
 
             if($TSoldeRule->base_solde == 'MF') {
                 $solde = $this->financement->montant;
