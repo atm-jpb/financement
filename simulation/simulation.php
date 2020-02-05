@@ -840,8 +840,6 @@ function _liste(&$ATMdb, &$simulation) {
 
 		?><div class="tabsAction"><a href="<?php echo $href; ?>" class="butAction">Nouvelle simulation</a></div><?php
 	}
-	
-	llxFooter();
 }
 
 function print_attente($compteur){
@@ -1278,7 +1276,6 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 	
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
-	llxFooter();
 }
 
 function _fiche_suivi(&$ATMdb, TSimulation &$simulation, $mode){
