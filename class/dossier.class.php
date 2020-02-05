@@ -856,10 +856,10 @@ class TFin_dossier extends TObjetStd
                 $capeLRD = false;
             }
             else if($TSoldeRule->base_solde == 'CRD') {
-                $solde = $CRD_Leaser * (1 + $TSoldeRule->percent / 100);
+                $solde = $CRD_Leaser * (1 + $TSoldeRule->percent / 100) + $TSoldeRule->amount;
             }
             else if($TSoldeRule->base_solde == 'LRD') {
-                $solde = $LRD_Leaser * (1 + $TSoldeRule->percent / 100);
+                $solde = $LRD_Leaser * (1 + $TSoldeRule->percent / 100) + $TSoldeRule->amount;
             }
             else {
                 if($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
@@ -898,10 +898,10 @@ class TFin_dossier extends TObjetStd
                 $capeLRD = false;
             }
             else if($TSoldeRule->base_solde == 'CRD') {
-                $solde = $CRD * (1 + $TSoldeRule->percent / 100);
+                $solde = $CRD * (1 + $TSoldeRule->percent / 100) + $TSoldeRule->amount;
             }
             else if($TSoldeRule->base_solde == 'LRD') {
-                $solde = $LRD * (1 + $TSoldeRule->percent / 100);
+                $solde = $LRD * (1 + $TSoldeRule->percent / 100) + $TSoldeRule->amount;
             }
             else {
                 if($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
