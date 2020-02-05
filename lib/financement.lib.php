@@ -181,8 +181,7 @@ class TFinancementTools {
  ********************************************************************************************************************/
 function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = false, $TRule = array()) {
 	global $conf;
-	
-	$dossier=new TFin_Dossier;
+
 	$TDossiersError = array(
 		'all'=>array(),
 		'err1'=>array(),
@@ -238,6 +237,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			
 			// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
 			if(!empty($visaauto)) {
+                $dossier=new TFin_Dossier;
 				$dossier->load($PDOdb, $rowid,false,true);
 
 				// On ramène l'échéance leaser sur la même périodicité que le dossier client
@@ -292,6 +292,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			
 			// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
 			if(!empty($visaauto)) {
+                $dossier=new TFin_Dossier;
 				$dossier->load($PDOdb, $rowid, false, true);
 				$dossier->load_facture($PDOdb,true);
 				
@@ -386,6 +387,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			
 			// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
 			if(!empty($visaauto)) {
+                $dossier=new TFin_Dossier;
 				$dossier->load($PDOdb, $rowid, false, true);
 				$dossier->load_facture($PDOdb,true);
 				
