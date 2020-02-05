@@ -1099,7 +1099,7 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 		,'entity'=>$entity_field
 		,'ref'=>$simulation->reference
 		,'cristal_project'=>$simulation->fk_projet_cristal
-		,'doc'=>($simulation->getId() > 0) ? $formfile->getDocumentsLink('financement', $filename, $filedir, 1) : ''
+		,'doc'=>($simulation->getId() > 0) ? $formfile->getDocumentsLink('financement', $filename, $filedir) : ''
 		,'fk_soc'=>$simulation->fk_soc
 
 	    ,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat).(!empty($simulation->modifs['fk_type_contrat']) ? ' (Ancienne valeur : '.$affaire->TContrat[$simulation->modifs['fk_type_contrat']].')' : '')
