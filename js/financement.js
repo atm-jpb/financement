@@ -136,7 +136,7 @@ $(document).ready(function () {
     }
 
     $('input[name="opt_adjonction"]').bind('click', function () {
-        if ($(this).attr('checked') == 'checked') {
+        if ($(this).prop('checked')) {
             $('select[name="fk_fin_dossier_adjonction"]').show();
         } else {
             $('select[name="fk_fin_dossier_adjonction"]').hide();
