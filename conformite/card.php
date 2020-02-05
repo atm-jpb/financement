@@ -384,7 +384,7 @@ if ($simu->id > 0) {
     // Date de la facture matériel
     print '<td>'.$langs->trans('FactureMaterielDate').'</td>';
     print '<td>';
-    if(! empty($d->rowid) && ! empty($d->financementLeaser->date_envoi) && $d->financementLeaser->date_envoi > 0) print date('d/m/Y', $d->financementLeaser->date_envoi);
+    if(! empty($d->rowid) && ! empty($d->date_facture_materiel) && $d->date_facture_materiel > 0) print date('d/m/Y', $d->date_facture_materiel);
     else print '&nbsp;';
     print '</td>';
     print '</tr>';
