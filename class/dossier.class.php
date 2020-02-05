@@ -1877,7 +1877,7 @@ class TFin_dossier extends TObjetStd
     function load_c_conf_solde() {
         global $db;
 
-        $sql = "SELECT periode, base_solde, percent, date_application, percent_nr, cape_lrd FROM ".MAIN_DB_PREFIX."c_financement_conf_solde
+        $sql = "SELECT periode, base_solde, percent, amount, date_application, percent_nr, cape_lrd FROM ".MAIN_DB_PREFIX."c_financement_conf_solde
 				WHERE entity = ".$this->entity." 
 				AND active = 1 
 				AND fk_type_contrat = '".$this->contrat."'

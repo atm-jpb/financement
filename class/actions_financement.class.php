@@ -280,6 +280,11 @@ class ActionsFinancement
                 print '</select>';
                 print '</td>';
             }
+            else if($value == 'amount') {
+                print '<td>';
+                print '<input type="number" class="flat" name="amount" min="0" />';
+                print '</td>';
+            }
 			else
 			{
 				print '<td>';
@@ -339,6 +344,11 @@ class ActionsFinancement
                     print '>'.$v.'</options>';
                 }
                 print '</select>';
+                print '</td>';
+            }
+            else if($value == 'amount') {
+                print '<td>';
+                print '<input type="number" class="flat" name="amount" min="0" value="'.$object->$value.'" />';
                 print '</td>';
             }
 			else
