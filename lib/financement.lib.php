@@ -898,29 +898,25 @@ function get_picto($name, $title = '', $color = '', &$style = '') {
 }
 
 function getProrataTemporisRent($periodicite, $timestamp, $echeance) {
-    $date = new DateTime(date('Y-m-d', $timestamp));
-    $iPeriode = $iPeriode = _getiPeriode($periodicite);
-
+    $iPeriode = _getiPeriode($periodicite); // $iPeriode ∈ {1, 3, 6, 12}
+    $numPeriod = floor((date('m', $timestamp) - 1) / $iPeriode);
     $year = date('Y', $timestamp);
 
-    if($iPeriode !== 12) {
-        $numPeriod = floor((date('m', $timestamp) - 1) / $iPeriode);
+    // On retrouve le 1er jour de la période en cours
+    $currMonth = $numPeriod * $iPeriode + 1;        // $currMonth ∈ [1, 12]
+    $firstDayOfCurrPeriod = new DateTime($year.'-'.sprintf('%02d', $currMonth).'-01');
 
-        $firstDayOfCurrPeriod = new DateTime($year.'-'.($numPeriod * $iPeriode + 1).'-01'); // ($numPeriod * $iPeriode + 1) ∈ [1, 12]
-        $nextMonth = ($numPeriod+1) * $iPeriode + 1;    // $nextMonth ∈ [2, 13]
-        if($nextMonth > 12) {
-            $year++;
-            $nextMonth -= 12;
-        }
-        $firstDayOfNextPeriod = new DateTime($year.'-'.$nextMonth.'-01');
+    // On retrouve le 1er jour de la prochaine période
+    $nextMonth = ($numPeriod + 1) * $iPeriode + 1;  // $nextMonth ∈ [2, 13]
+    if($nextMonth > 12) {
+        $year++;
+        $nextMonth -= 12;
     }
-    else {
-        $firstDayOfCurrPeriod = new DateTime($year.'-01-01');
-        $firstDayOfNextPeriod = new DateTime(($year+1).'-01-01');
-    }
-var_dump($firstDayOfCurrPeriod, $firstDayOfNextPeriod);
-    $delta = $date->diff($firstDayOfCurrPeriod)->days;
-    $nbDaysInPeriod = $firstDayOfNextPeriod->diff($firstDayOfCurrPeriod)->days;
+    $firstDayOfNextPeriod = new DateTime($year.'-'.sprintf('%02d', $nextMonth).'-01');
 
-    return round($delta / $nbDaysInPeriod * $echeance, 2);
+    $date = new DateTime(date('Y-m-d', $timestamp));
+    $delta = $date->diff($firstDayOfCurrPeriod)->days;  // Nombre de jours écoulés depuis le début de la période
+    $nbDaysInPeriod = $firstDayOfNextPeriod->diff($firstDayOfCurrPeriod)->days; // Nombre de jours dans la période en cours
+
+    return round($delta / $nbDaysInPeriod * $echeance, 2);  // Prorata temporis de l'echéance qui donne le loyer intercalaire
 }
