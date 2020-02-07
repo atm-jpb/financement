@@ -897,23 +897,30 @@ function get_picto($name, $title = '', $color = '', &$style = '') {
     return $img;
 }
 
-function getPeriod($iPeriode, $timestamp, $echeance) {
+function getProrataTemporisRent($periodicite, $timestamp, $echeance) {
     $date = new DateTime(date('Y-m-d', $timestamp));
+    $iPeriode = $iPeriode = _getiPeriode($periodicite);
+
+    $year = date('Y', $timestamp);
 
     if($iPeriode !== 12) {
         $numPeriod = floor((date('m', $timestamp) - 1) / $iPeriode);
 
-        $firstDayOfCurrPeriod = new DateTime(date('Y', $timestamp).'-'.($numPeriod * $iPeriode + 1).'-01');
-        $firstDayOfNextPeriod = new DateTime(date('Y', $timestamp).'-'.(($numPeriod + 1) * $iPeriode + 1).'-01');
+        $firstDayOfCurrPeriod = new DateTime($year.'-'.($numPeriod * $iPeriode + 1).'-01'); // ($numPeriod * $iPeriode + 1) ∈ [1, 12]
+        $nextMonth = ($numPeriod+1) * $iPeriode + 1;    // $nextMonth ∈ [2, 13]
+        if($nextMonth > 12) {
+            $year++;
+            $nextMonth -= 12;
+        }
+        $firstDayOfNextPeriod = new DateTime($year.'-'.$nextMonth.'-01');
     }
     else {
-        $firstDayOfCurrPeriod = new DateTime(date('Y', $timestamp).'-01-01');
-        $firstDayOfNextPeriod = new DateTime((date('Y', $timestamp)+1).'-01-01');
+        $firstDayOfCurrPeriod = new DateTime($year.'-01-01');
+        $firstDayOfNextPeriod = new DateTime(($year+1).'-01-01');
     }
-
+var_dump($firstDayOfCurrPeriod, $firstDayOfNextPeriod);
     $delta = $date->diff($firstDayOfCurrPeriod)->days;
     $nbDaysInPeriod = $firstDayOfNextPeriod->diff($firstDayOfCurrPeriod)->days;
 
-    var_dump($firstDayOfCurrPeriod, $delta, $firstDayOfNextPeriod);
     return round($delta / $nbDaysInPeriod * $echeance, 2);
 }

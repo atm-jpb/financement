@@ -69,9 +69,8 @@ $fk_leaser = _getLeaserByName($leaser);
 
 if(! empty($loyer_inter)) $loyer_inter = round($loyer_inter, 2);
 else if(! empty($echeance)) {
-    $iPeriode = _getiPeriode($periodicite);
-    $res = getPeriod(12, $date_start, 500);
-    var_dump($res);
+    $loyer_inter = getProrataTemporisRent($periodicite, $date_start, $echeance);
+    var_dump($loyer_inter);
 }
 exit('Nice try');
 if(! empty($montant_finance)) $montant_finance = round($montant_finance, 2);
