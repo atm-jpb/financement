@@ -1333,7 +1333,7 @@ class TSimulation extends TObjetStd
      * Fonction spécifique à ESUS et ABS qui demandent des infos en plus dans un autre PDF...
      */
     function gen_simulation_pdf_esus(&$ATMdb, &$doliDB) {
-        global $mysoc, $TLeaserCat, $db, $conf;
+        global $mysoc, $TLeaserCat, $db, $conf, $langs;
 
         $old_entity = $conf->entity;
         switchEntity($this->entity);    // $conf and $mysoc may be changed
@@ -1466,6 +1466,9 @@ class TSimulation extends TObjetStd
         else if($simu2->opt_periodicite == 'SEMESTRE') $simu2->coeff_by_periodicite = $simu2->coeff * 2;
         else if($simu2->opt_periodicite == 'ANNEE') $simu2->coeff_by_periodicite = $simu2->coeff * 4;
         else $simu2->coeff_by_periodicite = $simu2->coeff; // TRIMESTRE
+
+        if(in_array($this->entity, array(18, 25))) $simu2->dateLabel = $langs->trans('DateDemarrageCustom');
+        else $simu2->dateLabel = $langs->trans('DateDemarrage');
 
         // Récupération du logo de l'entité correspondant à la simulation
         $logo = DOL_DATA_ROOT.'/'.(($this->entity > 1) ? $this->entity.'/' : '').'mycompany/logos/'.$mysoc->logo;

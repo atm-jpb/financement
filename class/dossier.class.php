@@ -849,22 +849,17 @@ class TFin_dossier extends TObjetStd
             $p = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
             $TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
 
-            $fk_leaser = $this->financementLeaser->fk_soc;
-            $leaser = new Societe($db);
-            $leaser->fetch($fk_leaser);
-            if(empty($leaser->array_options)) $leaser->fetch_optionals();
-
-            if(! empty($leaser->array_options['options_non_cape_lrd'])) $capeLRD = false;
+            if(empty($TSoldeRule->cape_lrd)) $capeLRD = false;
 
             if($TSoldeRule->base_solde == 'MF') {
                 $solde = $this->financementLeaser->montant;
                 $capeLRD = false;
             }
             else if($TSoldeRule->base_solde == 'CRD') {
-                $solde = $CRD_Leaser * (1 + $TSoldeRule->percent / 100);
+                $solde = $CRD_Leaser * (1 + $TSoldeRule->percent / 100) + $TSoldeRule->amount;
             }
             else if($TSoldeRule->base_solde == 'LRD') {
-                $solde = $LRD_Leaser * (1 + $TSoldeRule->percent / 100);
+                $solde = $LRD_Leaser * (1 + $TSoldeRule->percent / 100) + $TSoldeRule->amount;
             }
             else {
                 if($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
@@ -896,22 +891,17 @@ class TFin_dossier extends TObjetStd
             $date_deb_periode = $this->getDateDebutPeriode($iPeriode - 1, 'CLIENT');
             $TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
 
-            $fk_soc = $this->financement->fk_soc;
-            $soc = new Societe($db);
-            $soc->fetch($fk_soc);
-            if(empty($soc->array_options)) $soc->fetch_optionals();
-
-            if(! empty($soc->array_options['options_non_cape_lrd'])) $capeLRD = false;
+            if(empty($TSoldeRule->cape_lrd)) $capeLRD = false;
 
             if($TSoldeRule->base_solde == 'MF') {
                 $solde = $this->financement->montant;
                 $capeLRD = false;
             }
             else if($TSoldeRule->base_solde == 'CRD') {
-                $solde = $CRD * (1 + $TSoldeRule->percent / 100);
+                $solde = $CRD * (1 + $TSoldeRule->percent / 100) + $TSoldeRule->amount;
             }
             else if($TSoldeRule->base_solde == 'LRD') {
-                $solde = $LRD * (1 + $TSoldeRule->percent / 100);
+                $solde = $LRD * (1 + $TSoldeRule->percent / 100) + $TSoldeRule->amount;
             }
             else {
                 if($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
@@ -967,12 +957,7 @@ class TFin_dossier extends TObjetStd
             $p = ($this->financementLeaser->duree - $duree_restante_leaser) * $this->financementLeaser->getiPeriode();
             $TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
 
-            $fk_leaser = $this->financementLeaser->fk_soc;
-            $leaser = new Societe($db);
-            $leaser->fetch($fk_leaser);
-            if(empty($leaser->array_options)) $leaser->fetch_optionals();
-
-            if(! empty($leaser->array_options['options_non_cape_lrd'])) $capeLRD = false;
+            if(! empty($TSoldeRule->cape_lrd)) $capeLRD = true;
 
             if($TSoldeRule->base_solde == 'MF') {
                 $solde = $this->financementLeaser->montant;
@@ -1008,12 +993,7 @@ class TFin_dossier extends TObjetStd
             $p = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
             $TSoldeRule = $this->getRuleSolde($p, $date_deb_periode);
 
-            $fk_soc = $this->financement->fk_soc;
-            $soc = new Societe($db);
-            $soc->fetch($fk_soc);
-            if(empty($soc->array_options)) $soc->fetch_optionals();
-
-            if(! empty($soc->array_options['options_non_cape_lrd'])) $capeLRD = false;
+            if(! empty($TSoldeRule->cape_lrd)) $capeLRD = true;
 
             // SPECIFIQUE LEASER HEXAPAGE => calculer le solde comme un externe avec la pénalité leaser
             if(in_array($this->financementLeaser->fk_soc, array(204904, 204905, 204906))) {
@@ -1897,7 +1877,7 @@ class TFin_dossier extends TObjetStd
     function load_c_conf_solde() {
         global $db;
 
-        $sql = "SELECT periode, base_solde, percent, date_application, percent_nr FROM ".MAIN_DB_PREFIX."c_financement_conf_solde
+        $sql = "SELECT periode, base_solde, percent, amount, date_application, percent_nr, cape_lrd FROM ".MAIN_DB_PREFIX."c_financement_conf_solde
 				WHERE entity = ".$this->entity." 
 				AND active = 1 
 				AND fk_type_contrat = '".$this->contrat."'
