@@ -13,7 +13,7 @@ $action = GETPOST('action');
 $PDOdb=new TPDOdb();
 
 // Récupération des factures / contrat de LeaseBoard
-$sql = "SELECT f.rowid as id_facture, f.facnumber, d.rowid as id_dossier, dfcli.reference";
+$sql = "SELECT f.rowid as id_facture, f.ref, d.rowid as id_dossier, dfcli.reference";
 $sql.= " FROM ".MAIN_DB_PREFIX."facture f";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."element_element ee ON (ee.fk_target = f.rowid AND ee.targettype = 'facture')";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON (ee.fk_source = d.rowid AND ee.sourcetype = 'dossier')";
@@ -21,30 +21,30 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dfcli ON (dfcli.fk_
 $sql.= " WHERE (f.fk_user_author IS NULL OR f.fk_user_author = 1)";
 $sql.= " AND f.datef BETWEEN '2016-01-01' AND '2018-06-31'";
 //$sql.= " AND f.facnumber LIKE '12011814%'";
-$sql.= " ORDER BY f.facnumber";
+$sql.= " ORDER BY f.ref";
 //echo $sql;
 $TData = $PDOdb->ExecuteAsArray($sql);
 
 $TAll = $ToDel = $ToLink = $ToCheck = $ToRenum = array();
 foreach ($TData as $data) {
 	// Facture brouillon, on supprime
-	if(strpos($data->facnumber, '(PROV') !== false) {
-		$ToDel[] = $data->facnumber;
+	if(strpos($data->ref, '(PROV') !== false) {
+		$ToDel[] = $data->ref;
 	}
 	// Facture avec un tiret dans le numéro
-	else if(strpos($data->facnumber, '-') !== false) {
-		$ToRenum[] = $data->facnumber;
+	else if(strpos($data->ref, '-') !== false) {
+		$ToRenum[] = $data->ref;
 	}
 	// Facture sans lien, on vérifiera si on peut lier grâce au fichier
 	else if(empty($data->reference)) {
-		$ToLink[] = $data->facnumber;
+		$ToLink[] = $data->ref;
 	}
 	// Factures avec lien, on vérifiera avec le fichier si le lien est bon
 	else {
-		$ToCheck[$data->facnumber] = $data->reference;
+		$ToCheck[$data->ref] = $data->reference;
 	}
 	
-	$TAll[$data->facnumber] = $data->reference;
+	$TAll[$data->ref] = $data->reference;
 }
 echo 'Analyse des factures LeaseBoard';
 echo '<hr>A) Factures brouillon à supprimer : ' . count($ToDel);

@@ -68,7 +68,7 @@ foreach($Tab as $row) {
 	$sql.= "LEFT JOIN llx_societe s ON s.rowid = f.fk_soc " ;
 	$sql.= "LEFT JOIN llx_societe_commerciaux sc ON sc.fk_soc = s.rowid ";
 	$sql.= "LEFT JOIN llx_user u ON u.rowid = sc.fk_user ";
-	$sql.= "WHERE f.facnumber = '".$integral->facnumber."' ";
+	$sql.= "WHERE f.ref = '".$integral->facnumber."' ";
 	$sql.= "AND sc.type_activite_cpro IN ('Copieur','Traceur','Solution') ";
 	$sql.= "ORDER BY activite, u.login";
 	

@@ -747,10 +747,10 @@ function _get_facture_mat($fk_source,$withlink=true){
 	$link = '';
 	while($PDOdb->Get_line()){
 		if($withlink){
-			$link .= '<a href="'.DOL_URL_ROOT.'/compta/facture.php?facid='.$PDOdb->Get_field('rowid').'">'.img_object('', 'bill').' '.$PDOdb->Get_field('facnumber').'</a><br>';
+			$link .= '<a href="'.DOL_URL_ROOT.'/compta/facture/card.php?id='.$PDOdb->Get_field('rowid').'">'.img_object('', 'bill').' '.$PDOdb->Get_field('ref').'</a><br>';
 		}
 		else{
-			$link .= $PDOdb->Get_field('facnumber')." ";
+			$link .= $PDOdb->Get_field('ref')." ";
 		}
 	}
 	
