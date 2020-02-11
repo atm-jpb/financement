@@ -71,12 +71,15 @@
 
 				    if($res > 0) {
                         $p = new Product($db);
-                        $p->ref = $facRefMat;
-                        $p->libelle = $facLabel;
-                        $res = $p->create($user);
+                        $res = $p->fetch('', $facRefMat);
+                        if($res == 0) {
+                            $p->ref = $facRefMat;
+                            $p->label = $facLabel;
+                            $res = $p->create($user);
+                        }
 
                         $taux_tva = 20;
-                        $f->addline($facSerialNumber, $affaire->montant, 1, $taux_tva, 0, 0, $res);
+                        $f->addline($facSerialNumber, $affaire->montant, 1, $taux_tva, 0, 0, $p->id);
 
                         $f->ref = $facRef;
                         $f->statut = 0;
