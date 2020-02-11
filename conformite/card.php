@@ -114,8 +114,8 @@ if(empty($id) && ! empty($user->rights->financement->conformite->create)) {    /
  * Actions
  */
 if($action === 'save' && (! empty($user->rights->financement->conformite->create) || ! empty($user->rights->financement->conformite->validate))) {
-    if(isset($_REQUEST['commentaire'])) $commentaire = GETPOST('commentaire', 'alpha');
-    if(isset($_REQUEST['commentaire_adv'])) $commentaire_adv = GETPOST('commentaire_adv', 'alpha');
+    if(isset($_REQUEST['commentaire'])) $commentaire = GETPOST('commentaire');
+    if(isset($_REQUEST['commentaire_adv'])) $commentaire_adv = GETPOST('commentaire_adv');
 
     if(! is_null($commentaire) && ! empty($user->rights->financement->conformite->validate)) $object->commentaire = $commentaire;
     if(! is_null($commentaire_adv) && ! empty($user->rights->financement->conformite->create)) $object->commentaire_adv = $commentaire_adv;
