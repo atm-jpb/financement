@@ -183,7 +183,7 @@ class modFinancement extends DolibarrModules
 			,'SELECT f.rowid as rowid, f.nat_id, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_nature_bien as f WHERE entity IN (0, '.$conf->entity.')'
 			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_statut_dossier as f WHERE entity IN (0, '.$conf->entity.')'
 			,'SELECT f.rowid as rowid, f.code, f.label, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_statut_renta_neg_ano as f WHERE entity IN (0, '.$conf->entity.')'
-			,'SELECT f.rowid as rowid, f.fk_nature, f.fk_type_contrat, f.periode, f.date_application, f.base_solde, f.percent, f.percent_nr, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_conf_solde as f WHERE entity = '.$conf->entity
+			,'SELECT f.rowid as rowid, f.fk_nature, f.fk_type_contrat, f.periode, f.date_application, f.base_solde, f.percent, f.amount, f.percent_nr, f.cape_lrd, f.entity, f.active FROM '.MAIN_DB_PREFIX.'c_financement_conf_solde as f WHERE entity = '.$conf->entity
 			,'SELECT rowid, code, label, entity, active FROM '.MAIN_DB_PREFIX.'c_financement_action_manuelle WHERE entity IN (0, '.$conf->entity.')'
 		)
 		,'tabsqlsort'=>array(
@@ -203,7 +203,7 @@ class modFinancement extends DolibarrModules
 			,'nat_id,label,entity'
 			,'code,label,entity'
 			,'code,label,entity'
-			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,percent_nr'
+			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,amount,percent_nr,cape_lrd'
 			,'code,label'
 		)
 		,'tabfieldvalue'=>array(
@@ -213,7 +213,7 @@ class modFinancement extends DolibarrModules
 			,'nat_id,label,entity'
 			,'code,label,entity'
 			,'code,label,entity'
-			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,percent_nr,entity'
+			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,amount,percent_nr,cape_lrd,entity'
 			,'code,label'
 		)
 		,'tabfieldinsert'=>array(
@@ -223,7 +223,7 @@ class modFinancement extends DolibarrModules
 			,'nat_id,label,entity'
 			,'code,label,entity'
 			,'code,label,entity'
-			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,percent_nr,entity'
+			,'fk_nature,fk_type_contrat,periode,date_application,base_solde,percent,amount,percent_nr,cape_lrd,entity'
 			,'code,label'
 		)
 		,'tabrowid'=>array(
@@ -623,7 +623,7 @@ class modFinancement extends DolibarrModules
 								  'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								  'position'=>120,
 								  'enabled'=>'$conf->financement->enabled && ($user->rights->financement->admin->write || $user->rights->financement->export->base_solde)',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-								  'perms'=>'$user->rights->financement->admin->write',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								  'perms'=>'$user->rights->financement->admin->write || $user->rights->financement->export->base_solde',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 								  'target'=>'',
 								  'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;

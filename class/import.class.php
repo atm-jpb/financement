@@ -1802,6 +1802,8 @@ class TImport extends TObjetStd {
     }
 
     function get_entity_groups($entity=0) {
+        if(! function_exists('getOneEntityGroup')) dol_include_once('/financement/lib/financement.lib.php');
+
         if(empty($entity)) {
             if($this->artis == 'ouest') {
                 $entities = array(5,7,9); // Artis OUEST est utilisé par 5,7 et 9
@@ -1809,20 +1811,7 @@ class TImport extends TObjetStd {
                 $entities = array(1,2,3,6,10); // Artis AURA est utilisé par 1,2,3,6 et 10
             }
         } else {
-            $entities = array($entity);
-            // Regroupement spécifiques pour imports fichiers leaser
-            $TGroups = array(
-                array(3,10) // telecom + tdp
-                ,array(5,9,11) // ouest + quadra + qsigd
-                ,array(13,12,14,15) // sud + capea + bcmp + perret
-            );
-
-            foreach ($TGroups as $grp) {
-                if(in_array($entity, $grp)) {
-                    $entities = $grp;
-                    break;
-                }
-            }
+            $entities = getOneEntityGroup($entity, 'fin_dossier', array(4, 17));
         }
 
         return $entities;

@@ -1045,7 +1045,10 @@ class TSimulation extends TObjetStd
             $mesg .= 'Durée : '.$this->duree.' '.ucfirst(strtolower($this->opt_periodicite)).'s'."\n";
             $mesg .= 'Loyer trimestriel H.T. : '.price($this->echeance).' €'."\n\n";
             $mesg .= 'Nous avons étudié votre demande avec minutie. Cependant, nous regrettons de ne pouvoir y donner une suite favorable.'."\n";
-            $mesg .= 'Nous pouvons éventuellement réviser cette décision avec le dernier bilan de l\'entreprise.'."\n\n";
+            // On enlève cette phrase pour les entités Esus, ABS, Copem, Omniburo, Lorraine repro, CENA
+            if(! in_array($this->entity, array(18, 25, 6, 26, 20, 23))) {
+                $mesg .= 'Nous pouvons éventuellement réviser cette décision avec le dernier bilan de l\'entreprise.'."\n\n";
+            }
             $mesg .= 'Motifs : '.$retourLeaser."\n\n";
             $mesg .= 'Veuillez agréer, nos sincères salutations.'."\n\n";
             $mesg .= 'Le Service Financement C\'PRO';
@@ -1335,7 +1338,7 @@ class TSimulation extends TObjetStd
      * Fonction spécifique à ESUS et ABS qui demandent des infos en plus dans un autre PDF...
      */
     function gen_simulation_pdf_esus(&$ATMdb, &$doliDB) {
-        global $mysoc, $TLeaserCat, $db, $conf;
+        global $mysoc, $TLeaserCat, $db, $conf, $langs;
 
         $old_entity = $conf->entity;
         switchEntity($this->entity);    // $conf and $mysoc may be changed
@@ -1468,6 +1471,9 @@ class TSimulation extends TObjetStd
         else if($simu2->opt_periodicite == 'SEMESTRE') $simu2->coeff_by_periodicite = $simu2->coeff * 2;
         else if($simu2->opt_periodicite == 'ANNEE') $simu2->coeff_by_periodicite = $simu2->coeff * 4;
         else $simu2->coeff_by_periodicite = $simu2->coeff; // TRIMESTRE
+
+        if(in_array($this->entity, array(18, 25))) $simu2->dateLabel = $langs->trans('DateDemarrageCustom');
+        else $simu2->dateLabel = $langs->trans('DateDemarrage');
 
         // Récupération du logo de l'entité correspondant à la simulation
         $logo = DOL_DATA_ROOT.'/'.(($this->entity > 1) ? $this->entity.'/' : '').'mycompany/logos/'.$mysoc->logo;
@@ -2662,22 +2668,6 @@ class TSimulationSuivi extends TObjetStd
     function doActionRefuser(&$PDOdb, &$simulation) {
         $this->statut = 'KO';
         $this->save($PDOdb);
-
-        // Lance l'appel EDI du prochain leaser sur la liste
-        // On parcours le tableau de suivi, une fois trouvé le suivi pour lequel on vient d'avoir un refus, on lance la demande de celui d'après
-        // Sera activé lorsqu'un 2e leaser sera en EDI
-
-        $found = false;
-        foreach($simulation->TSimulationSuivi as $id_suivi => $suivi) {
-            if($found && empty($suivi->statut)) {
-                // [PH] TODO ajouter ici les noms de leaser pour déclancher en automatique l'appel
-                if(in_array($suivi->leaser->array_options['options_edi_leaser'], array('LIXXBAIL', 'BNP', 'CMCIC', 'GRENKE', 'FRANFINANCE'))) {
-                    $suivi->doAction($PDOdb, $this->simulation, 'demander');
-                }
-                break;
-            }
-            if($id_suivi == $this->getId()) $found = true;
-        }
     }
 
     //Effectue l'action de passer au statut erreur la demande de financement leaser
@@ -2806,12 +2796,16 @@ class TSimulationSuivi extends TObjetStd
     }
 
     function _createDemandeServiceFinancement($debug = false) {
+        global $conf;
+
         dol_include_once('/financement/class/service_financement.class.php');
         $PDOdb = new TPDOdb;
 
         // Chargement d'un objet TSimulation dans une nouvelle variable pour éviter les problème d'adressage
         $simulation = new TSimulation();
         $simulation->load($PDOdb, $this->fk_simulation);
+        $old_entity = $conf->entity;
+        switchEntity($simulation->entity);
 
         $TLeaserMandate = array(
             19483,  // Lixxbail
@@ -2833,6 +2827,8 @@ class TSimulationSuivi extends TObjetStd
 
         // La méthode se charge de tester si la conf du module autorise l'appel au webservice (renverra true sinon active)
         $res = $service->call();
+
+        switchEntity($old_entity);
 
         if(! $res) {
             $this->statut = 'ERR';

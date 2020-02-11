@@ -15,6 +15,16 @@ switch($action) {
 
         print json_encode(updateDateReception($strDate, $strAllConformite));
         break;
+    case 'updateNextTerm':
+        $commit = GETPOST('commit');
+
+        if(! empty($commit)) {
+            $fk_dossier = GETPOST('fk_dossier');
+            $type = GETPOST('type');
+
+            print json_encode(updateNextTerm($fk_dossier, $type));
+        }
+        break;
 }
 
 /**
@@ -37,4 +47,27 @@ function updateDateReception($strDate, $strAllConformite) {
     }
 
     return true;
+}
+
+/**
+ * @param   int       $fk_dossier
+ * @param   string    $type
+ * @return  bool
+ */
+function updateNextTerm($fk_dossier, $type = 'leaser') {
+    global $user;
+
+    if(empty($fk_dossier) || empty($type) || $type != 'leaser' && $type != 'client' || $user->id != 1) return false;
+
+    $PDOdb = new TPDOdb;
+    $d = new TFin_dossier;
+    $d->load($PDOdb, $fk_dossier, false);
+
+    $f = new TFin_financement;
+    if($type == 'leaser') $f = &$d->financementLeaser;
+    else if($type == 'client') $f = &$d->financement;
+
+    $f->setEcheanceExterne($f->date_debut);
+
+    return $f->save($PDOdb);
 }

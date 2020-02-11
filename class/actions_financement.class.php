@@ -279,7 +279,7 @@ class ActionsFinancement
 
 	// Affichage valeur spéciale dans dictionnaire
 	function createDictionaryFieldlist($parameters, &$object, &$action, $hookmanager) {
-		global $db,$form;
+		global $db,$form, $langs;
 		
 		define('INC_FROM_DOLIBARR', true);
 		dol_include_once('/financement/config.php');
@@ -308,6 +308,27 @@ class ActionsFinancement
 			    print '<input type="date" class="flat" name="date_application" />';
 			    print '</td>';
             }
+            else if($value == 'cape_lrd') {
+                $TCapeLRD = array(
+                    0 => $langs->trans('No'),
+                    1 => $langs->trans('Yes')
+                );
+
+                print '<td>';
+                print '<select name="cape_lrd" class="flat">';
+                foreach($TCapeLRD as $k => $v) {
+                    print '<option value="'.$k.'"';
+                    if($k == 0) print ' selected="selected"';
+                    print '>'.$v.'</options>';
+                }
+                print '</select>';
+                print '</td>';
+            }
+            else if($value == 'amount') {
+                print '<td>';
+                print '<input type="number" class="flat" name="amount" min="0" />';
+                print '</td>';
+            }
 			else
 			{
 				print '<td>';
@@ -324,7 +345,7 @@ class ActionsFinancement
 	}
 	
 	function editDictionaryFieldlist($parameters, &$object, &$action, $hookmanager) {
-		global $db,$form;
+		global $db,$form, $langs;
 		
 		define('INC_FROM_DOLIBARR', true);
 		dol_include_once('/financement/config.php');
@@ -353,6 +374,27 @@ class ActionsFinancement
                 print '<input type="date" class="flat" name="date_application" value="'.$object->$value.'" />';
                 print '</td>';
             }
+            else if($value == 'cape_lrd') {
+                $TCapeLRD = array(
+                    0 => $langs->trans('No'),
+                    1 => $langs->trans('Yes')
+                );
+
+                print '<td>';
+                print '<select name="cape_lrd" class="flat">';
+                foreach($TCapeLRD as $k => $v) {
+                    print '<option value="'.$k.'"';
+                    if($object->$value == $k) print ' selected="selected"';
+                    print '>'.$v.'</options>';
+                }
+                print '</select>';
+                print '</td>';
+            }
+            else if($value == 'amount') {
+                print '<td>';
+                print '<input type="number" class="flat" name="amount" min="0" value="'.$object->$value.'" />';
+                print '</td>';
+            }
 			else
 			{
 				print '<td>';
@@ -369,7 +411,7 @@ class ActionsFinancement
 	}
 	
 	function viewDictionaryFieldlist($parameters, &$object, &$action, $hookmanager) {
-		global $db,$form;
+		global $db,$form, $langs;
 		
 		define('INC_FROM_DOLIBARR', true);
 		dol_include_once('/financement/config.php');
@@ -398,6 +440,14 @@ class ActionsFinancement
 
                 if(is_null($object->$value)) print '';
                 else print date('d/m/Y', strtotime($object->$value));
+
+                print '</td>';
+            }
+            else if($value == 'cape_lrd') {
+                print '<td>';
+
+                if(! empty($object->$value)) print $langs->trans('Yes');
+                else print $langs->trans('No');
 
                 print '</td>';
             }

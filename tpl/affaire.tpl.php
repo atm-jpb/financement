@@ -121,6 +121,10 @@
                 <td>Libellé matériel</td>
                 <td>[fac.label; strconv=no]</td>
             </tr>
+            <tr>
+                <td>Leaser</td>
+                <td>[fac.leaser; strconv=no]</td>
+            </tr>
         </table>
 		<p align="center">
 			[onshow; block=p; when [view.userRight]==1]	

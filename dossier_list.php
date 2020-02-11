@@ -378,7 +378,7 @@ if(! empty($fk_leaser)) {
     print '</div>';
 }
 
-print '<form method="GET" action="'.$_SERVER['PHP_SELF'].'" name="formfilter">';
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'" name="formfilter">';
 print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
 print '<input type="hidden" id="formfilteraction" name="formfilteraction" value="list" />';
 print '<input type="hidden" name="sortfield" value="'.$sortfield.'" />';

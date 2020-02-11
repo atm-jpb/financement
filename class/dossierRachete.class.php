@@ -148,6 +148,7 @@ class DossierRachete extends TObjetStd
         $sql = 'SELECT rowid';
         $sql.= ' FROM '.MAIN_DB_PREFIX.self::$tablename;
         $sql.= ' WHERE fk_dossier = '.$fk_dossier;
+        $sql.= " AND choice <> 'no'";
 
         $resql = $db->query($sql);
 

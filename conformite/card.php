@@ -113,8 +113,8 @@ if(empty($id) && ! empty($user->rights->financement->conformite->create)) {    /
  * Actions
  */
 if($action === 'save' && (! empty($user->rights->financement->conformite->create) || ! empty($user->rights->financement->conformite->validate))) {
-    if(isset($_REQUEST['commentaire'])) $commentaire = GETPOST('commentaire', 'alpha');
-    if(isset($_REQUEST['commentaire_adv'])) $commentaire_adv = GETPOST('commentaire_adv', 'alpha');
+    if(isset($_REQUEST['commentaire'])) $commentaire = GETPOST('commentaire');
+    if(isset($_REQUEST['commentaire_adv'])) $commentaire_adv = GETPOST('commentaire_adv');
 
     if(! is_null($commentaire) && ! empty($user->rights->financement->conformite->validate)) $object->commentaire = $commentaire;
     if(! is_null($commentaire_adv) && ! empty($user->rights->financement->conformite->create)) $object->commentaire_adv = $commentaire_adv;
@@ -291,7 +291,7 @@ if ($simu->id > 0) {
     dol_fiche_head($head, 'conformite', $langs->trans('Simulation'), 0, 'simulation');
 
     // Construit liste des fichiers
-    $filearray = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview\.png)$', $sortfield, (strtolower($sortorder) == 'desc' ? SORT_DESC : SORT_ASC), 1);
+    $filearray = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview\.png)$', 'date', SORT_DESC, 1);
     $totalsize = 0;
     foreach($filearray as $key => $file) {
         $totalsize += $file['size'];
@@ -309,7 +309,7 @@ if ($simu->id > 0) {
     // Date envoi
     print '<td width="15%">'.$langs->trans('ConformiteDateWaitingForComplianceN1').'</td>';
     print '<td>';
-    if(! empty($object->date_envoi)) print date('d/m/Y', $object->date_envoi);
+    if(! empty($object->date_envoi) && $object->date_envoi > 0) print date('d/m/Y', $object->date_envoi);
     else print '&nbsp;';
     print '</td></tr>';
 
@@ -321,7 +321,7 @@ if ($simu->id > 0) {
     // Date conforme N1
     print '<td>'.$langs->trans('ConformiteDateCompliantN1').'</td>';
     print '<td>';
-    if(! empty($object->date_conformeN1)) print date('d/m/Y', $object->date_conformeN1);
+    if(! empty($object->date_conformeN1) && $object->date_conformeN1 > 0) print date('d/m/Y', $object->date_conformeN1);
     else print '&nbsp;';
     print '</td></tr>';
 
@@ -333,7 +333,7 @@ if ($simu->id > 0) {
     // Date attente N2
     print '<td>'.$langs->trans('ConformiteDateWaitingForComplianceN2').'</td>';
     print '<td>';
-    if(! empty($object->date_attenteN2)) print date('d/m/Y', $object->date_attenteN2);
+    if(! empty($object->date_attenteN2) && $object->date_attenteN2 > 0) print date('d/m/Y', $object->date_attenteN2);
     else print '&nbsp;';
     print '</td>';
     print '</tr>';
@@ -345,7 +345,7 @@ if ($simu->id > 0) {
     // Date conforme N2
     print '<td>'.$langs->trans('ConformiteDateCompliantN2').'</td>';
     print '<td>';
-    if(! empty($object->date_conformeN2)) print date('d/m/Y', $object->date_conformeN2);
+    if(! empty($object->date_conformeN2) && $object->date_conformeN2 > 0) print date('d/m/Y', $object->date_conformeN2);
     else print '&nbsp;';
     print '</td>';
     print '</tr>';
@@ -354,10 +354,10 @@ if ($simu->id > 0) {
     print '<tr><td>'.$langs->trans('Leaser').'</td>';
     print '<td>'.$leaser->getNomUrl(1).'</td>';
 
-    // Date d'envoi du dossier
-    print '<td>'.$langs->trans('DossierDateSending').'</td>';
+    // Date de la facture matériel
+    print '<td>'.$langs->trans('FactureMaterielDate').'</td>';
     print '<td>';
-    if(! empty($d->rowid) && ! empty($d->financementLeaser->date_envoi)) print date('d/m/Y', $d->financementLeaser->date_envoi);
+    if(! empty($d->rowid) && ! empty($d->date_facture_materiel) && $d->date_facture_materiel > 0) print date('d/m/Y', $d->date_facture_materiel);
     else print '&nbsp;';
     print '</td>';
     print '</tr>';
@@ -374,7 +374,7 @@ if ($simu->id > 0) {
     // Date de réception du dossier papier
     print '<td>'.$langs->trans('ConformiteDateReception').'</td>';
     print '<td>';
-    if(! empty($object->date_reception_papier)) print date('d/m/Y', $object->date_reception_papier);
+    if(! empty($object->date_reception_papier) && $object->date_reception_papier > 0) print date('d/m/Y', $object->date_reception_papier);
     else print '&nbsp;';
     print '</td>';
     print '</tr>';
@@ -385,10 +385,10 @@ if ($simu->id > 0) {
     if(! empty($u->id)) print $u->getLoginUrl(1);
     print '</td>';
 
-    // Date de la facture matériel
-    print '<td>'.$langs->trans('FactureMaterielDate').'</td>';
+    // Date d'envoi du dossier
+    print '<td>'.$langs->trans('DossierDateSending').'</td>';
     print '<td>';
-    if(! empty($d->rowid) && ! empty($d->date_facture_materiel)) print date('d/m/Y', $d->date_facture_materiel);
+    if(! empty($d->rowid) && ! empty($d->financementLeaser->date_envoi) && $d->financementLeaser->date_envoi > 0) print date('d/m/Y', $d->financementLeaser->date_envoi);
     else print '&nbsp;';
     print '</td>';
     print '</tr>';

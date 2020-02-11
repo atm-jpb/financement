@@ -31,6 +31,7 @@ $search_ref = GETPOST('search_ref');
 $search_entity = GETPOST('search_entity');
 if(! empty($search_entity) && ! is_array($search_entity)) $search_entity = explode(',', $search_entity);
 $search_thirdparty = GETPOST('search_thirdparty');
+$search_thirdparty_siren = GETPOST('search_thirdparty_siren');
 $search_leaser = GETPOST('search_leaser');
 $search_status = GETPOST('search_status');
 if(! empty($search_status) && ! is_array($search_status)) $search_status = explode(',', $search_status);
@@ -63,7 +64,7 @@ foreach($dao->entities as $mc_entity) if(in_array($mc_entity->id, $TEntityShared
 
 // Remove filters
 if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) {
-    unset($search_ref, $search_entity, $search_thirdparty, $search_leaser, $search_status, $search_user);
+    unset($search_ref, $search_entity, $search_thirdparty, $search_thirdparty_siren, $search_leaser, $search_status, $search_user);
 }
 
 $sql = 'SELECT s.rowid, s.reference, soc.rowid as fk_soc, c.status, s.entity, c.fk_user, c.rowid as fk_conformite, c.commentaire, lea.rowid as fk_leaser, c.date_envoi, s.fk_fin_dossier as fk_dossier, c.date_reception_papier, c.date_attenteN2';
@@ -76,6 +77,7 @@ $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'user u ON (c.fk_user = u.rowid)';
 $sql.= ' WHERE 1';
 if(! empty($search_ref)) $sql .= natural_search('s.reference', $search_ref);
 if(! empty($search_thirdparty)) $sql .= natural_search('soc.nom', $search_thirdparty);
+if(! empty($search_thirdparty_siren)) $sql .= natural_search('soc.siren', $search_thirdparty_siren);
 if(! empty($search_leaser)) $sql .= natural_search('lea.nom', $search_leaser);
 if(! empty($search_status)) {
     $sql .= ' AND c.status IN ('.implode(',', $search_status).')';
@@ -144,7 +146,9 @@ if(! empty($arrayOfSelected)) {
                             click: function() {
                                 updateDateReception();
                                 $(this).dialog('close');
-                                location.href = location.pathname;
+
+                                // On veut garder les filtres mais pas la massaction
+                                location.href = location.href.replace(/&(confirm)?massaction=(updateDateReception|Confirmer)/gm, '');
                             }
                         },
                         { text: "<?php echo $langs->trans('Cancel'); ?>", click: function() { $(this).dialog('close'); }}
@@ -161,6 +165,7 @@ if($limit > 0 && $limit != $conf->liste_limit) $param .= '&limit='.$limit;
 if(! empty($search_ref)) $param .= '&search_ref='.urlencode($search_ref);
 if(! empty($search_entity)) $param .= '&search_entity='.urlencode(implode(',', $search_entity));
 if(! empty($search_thirdparty)) $param .= '&search_thirdparty='.urlencode($search_thirdparty);
+if(! empty($search_thirdparty_siren)) $param .= '&search_thirdparty_siren='.urlencode($search_thirdparty_siren);
 if(! empty($search_leaser)) $param .= '&search_leaser='.urlencode($search_leaser);
 if(! empty($search_status)) $param .= '&search_status='.urlencode(implode(',', $search_status));
 if(! empty($search_user)) $param .= '&search_user='.urlencode($search_user);
@@ -250,7 +255,7 @@ print '<table class="tagtable liste">';
 print '<tr class="liste_titre">';
 
 // Entity
-print '<td colspan="11" style="min-width: 150px;">';
+print '<td colspan="12" style="min-width: 150px;">';
 print '<span>'.$langs->trans('DemandReasonTypeSRC_PARTNER').' : </span>';
 print Form::multiselectarray('search_entity', $TEntity, $search_entity, 0, 0, '', 0, 1500);
 print '</td>';
@@ -259,7 +264,7 @@ print '</tr>';
 print '<tr class="liste_titre">';
 
 // Status
-print '<td colspan="11" style="min-width: 150px;">';
+print '<td colspan="12" style="min-width: 150px;">';
 print '<span>'.$langs->trans('Status').' : </span>';
 print Form::multiselectarray('search_status', Conformite::$TStatus, $search_status, 0, 0, '', 1, 1235);
 print '</td>';
@@ -278,6 +283,11 @@ print '<td></td>';
 // Thirdparty
 print '<td>';
 print '<input type="text" name="search_thirdparty" value="'.$search_thirdparty.'" size="20" />';
+print '</td>';
+
+// Thirdparty siren
+print '<td>';
+print '<input type="text" name="search_thirdparty_siren" value="'.$search_thirdparty_siren.'" size="10" />';
 print '</td>';
 
 // Leaser
@@ -319,6 +329,7 @@ print '<tr class="liste_titre">';
 print_liste_field_titre('Ref.', $_SERVER['PHP_SELF'], 's.reference', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Ref simulation
 print_liste_field_titre('Partenaire', $_SERVER['PHP_SELF'], 's.entity', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Entity
 print_liste_field_titre('Client', $_SERVER['PHP_SELF'], 's.fk_soc', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Thirdparty
+print_liste_field_titre($langs->trans('SirenClient'), $_SERVER['PHP_SELF'], 's.siren', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Thirdparty
 print_liste_field_titre('Leaser', $_SERVER['PHP_SELF'], 's.fk_leaser', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Leaser
 print_liste_field_titre($langs->trans('Status'), $_SERVER['PHP_SELF'], 'c.status', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
 print_liste_field_titre($langs->trans('ConformiteDateWaitingForComplianceN1'), $_SERVER['PHP_SELF'], 'c.date_envoi', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
@@ -381,6 +392,9 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     print '<td>';
     print $form->textwithtooltip($soc->getNomUrl(1, '', 18), $soc->name);
     print '</td>';
+
+    // Thirdparty siren
+    print '<td>'.$soc->idprof1.'</td>';
 
     // Leaser
     print '<td>';
