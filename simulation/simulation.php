@@ -1046,7 +1046,7 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 	$TEntities = array();
 	foreach($e->entities as $obj_entity) $TEntities[$obj_entity->id] = $obj_entity->label;
 	
-	$entity = empty($simulation->entity) ? getEntity('fin_dossier') : $simulation->entity;
+	$entity = empty($simulation->entity) ? getEntity('fin_dossier', false) : $simulation->entity;
 	
 	$TEntityName = TFinancementTools::build_array_entities();
 	if(TFinancementTools::user_courant_est_admin_financement() && empty($conf->global->FINANCEMENT_DISABLE_SELECT_ENTITY)){

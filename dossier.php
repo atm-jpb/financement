@@ -1050,7 +1050,7 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 	$TEntities = array();
 	foreach($e->entities as $obj_entity) $TEntities[$obj_entity->id] = $obj_entity->label;
 	
-	$entity = empty($dossier->entity) ? getEntity('fin_dossier') : $dossier->entity;
+	$entity = empty($dossier->entity) ? getEntity('fin_dossier', false) : $dossier->entity;
 	
 	$TEntityName = TFinancementTools::build_array_entities();
 	if(TFinancementTools::user_courant_est_admin_financement() && empty($conf->global->FINANCEMENT_DISABLE_SELECT_ENTITY)){

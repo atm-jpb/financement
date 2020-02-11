@@ -60,8 +60,9 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 	}
 
 	function _getNumFournisseur(){
-		
-		switch (getEntity()) {
+		global $conf;
+
+		switch ($conf->entity) {
 			case 1: //CPRO Impression
 				return "M000355961";
 				break;
@@ -123,9 +124,10 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 	}
 
 	function getEnTeteByEntity(){
+	    global $conf;
 		
 		$date = date('ymd');
-		$entity = getEntity();
+		$entity = $conf->entity;
 		
 		switch ($entity) {
 			case 1: //CPRO Impression

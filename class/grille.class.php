@@ -169,7 +169,8 @@ class TFin_grille_leaser extends TObjetStd {
 		return true;
 	}
 	function setCoef(&$ATMdb, $idCoeff ,$idLeaser, $idTypeContrat, $periode, $montant, $coeff, $coeff_interne=0) {
-		
+		global $conf;
+
 		$periode=(int)$periode;
 		$montant=(int)$montant;
 		
@@ -209,7 +210,7 @@ class TFin_grille_leaser extends TObjetStd {
 			$grilleLigne->periode=(int)$periode;
 			$grilleLigne->fk_soc = $idLeaser;
 			$grilleLigne->fk_type_contrat = $idTypeContrat;
-			$grilleLigne->entity = getEntity();
+			$grilleLigne->entity = $conf->entity;
 			$grilleLigne->type = $this->type;
 			
 			$grilleLigne->save($ATMdb);
@@ -300,9 +301,10 @@ class TFin_grille_leaser extends TObjetStd {
 	}
 
 	function get_coeff(&$ATMdb, $idLeaser, $idTypeContrat, $periodicite='TRIMESTRE', $montant, $duree, $iPeriode =0 ,$options=array(), $entity=0) {
+	    global $langs, $conf;
 		
     	if(empty($idLeaser) || empty($idTypeContrat)) return -1;
-		if(empty($entity)) $entity = getEntity();
+		if(empty($entity)) $entity = $conf->entity;
 		
 		//if($periodicite == 'MOIS') $duree /= 3 * $this->getiPeriode($periodicite);
 		
@@ -311,8 +313,7 @@ class TFin_grille_leaser extends TObjetStd {
 		$duree = floor($duree);
 		$iPeriode *= $this->getiPeriode($periodicite) / 3;
 		$iPeriode = floor($iPeriode);
-		
-    	global $langs;
+
         $sql = "SELECT";
 		$sql.= " t.montant, t.coeff, t.coeff_interne";
 		
@@ -348,8 +349,9 @@ class TFin_grille_leaser extends TObjetStd {
 	}
 
 	private function _calculate_coeff(&$ATMdb, $coeff, $options, $entity=0) {
+	    global $conf;
 		
-		if(empty($entity)) $entity = getEntity();
+		if(empty($entity)) $entity = $conf->entity;
 		
 		$penaliteTotale = 0;
 		if(!empty($options)) {
@@ -365,8 +367,9 @@ class TFin_grille_leaser extends TObjetStd {
 	}
 	
 	private function _get_penalite(&$ATMdb, $name, $value, $entity=0) {
+	    global $conf;
 		
-		if(empty($entity)) $entity = getEntity();
+		if(empty($entity)) $entity = $conf->entity;
 		
 		$sql = "SELECT penalite FROM ".MAIN_DB_PREFIX."fin_grille_penalite";
 		$sql.= " WHERE opt_name = '".$name."'";
@@ -515,7 +518,9 @@ class TFin_grille_suivi extends TObjetStd {
 	}
 	
 	function save(&$ATMdb) {
-		$this->entity = getEntity();
+        global $conf;
+
+		$this->entity = $conf->entity;
 		parent::save($ATMdb);
 	}
 	
