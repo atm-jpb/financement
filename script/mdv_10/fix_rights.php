@@ -2,7 +2,7 @@
 /*
  * Script permettant de basculer les données de llx_fin_dossier.date_reception_papier vers llx_fin_conformite.date_reception_papier
  */
-require_once '../config.php';
+require_once '../../config.php';
 require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
 
 $commit = GETPOST('commit', 'int');
