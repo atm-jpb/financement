@@ -907,6 +907,7 @@ function getProrataTemporisRent($periodicite, $timestamp, $echeance) {
     // On retrouve le 1er jour de la période en cours
     $currMonth = $numPeriod * $iPeriode + 1;        // $currMonth ∈ [1, 12]
     $firstDayOfCurrPeriod = new DateTime($year.'-'.sprintf('%02d', $currMonth).'-01');
+    if($firstDayOfCurrPeriod->format('Y-m-d') === date('Y-m-d', $timestamp)) return 0;  // Si la date de début du contrat correpond à la date de début de période : Pas d'intercalaire !
 
     // On retrouve le 1er jour de la prochaine période
     $nextMonth = ($numPeriod + 1) * $iPeriode + 1;  // $nextMonth ∈ [2, 13]
