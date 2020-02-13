@@ -443,7 +443,7 @@ if ($simu->id > 0) {
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid;
     if(! empty($id)) $url .= '&id='.$id;
 
-    $perm = (empty($user->rights->financement->conformite->create) && empty($conf->global->MAIN_UPLOAD_DOC));
+    $perm = ! empty($user->rights->financement->conformite->create);
     $formfile->form_attach_new_file($url, '', 0, 0, $perm, 50, '', '', 1, '', 0);
 
     $filepath = dol_sanitizeFileName($simu->reference).'/conformite/';
