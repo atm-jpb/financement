@@ -988,7 +988,10 @@ class TSimulation extends TObjetStd
     }
 
     function getFilePath() {
-        $PDFPath = DOL_DATA_ROOT.'/financement/'.dol_sanitizeFileName($this->getRef());
+        $entityPath = '/';
+        if($this->entity > 1) $entityPath .= $this->entity.'/';
+
+        $PDFPath = DOL_DATA_ROOT.$entityPath.'financement/'.dol_sanitizeFileName($this->getRef());
 
         return $PDFPath;
     }
