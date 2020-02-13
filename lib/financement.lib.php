@@ -920,5 +920,5 @@ function getProrataTemporisRent($periodicite, $timestamp, $echeance) {
     $delta = $date->diff($firstDayOfCurrPeriod)->days;  // Nombre de jours écoulés depuis le début de la période
     $nbDaysInPeriod = $firstDayOfNextPeriod->diff($firstDayOfCurrPeriod)->days; // Nombre de jours dans la période en cours
 
-    return round($delta / $nbDaysInPeriod * $echeance, 2);  // Prorata temporis de l'echéance qui donne le loyer intercalaire
+    return round(($nbDaysInPeriod-$delta) / $nbDaysInPeriod * $echeance, 2);  // Prorata temporis de l'echéance qui donne le loyer intercalaire
 }
