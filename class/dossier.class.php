@@ -1013,7 +1013,7 @@ class TFin_dossier extends TObjetStd
                 if($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
 
                 if(! empty($this->type_financement_affaire['ADOSSEE']) || ! empty($this->type_financement_affaire['MANDATEE'])) {
-                    $solde = $CRD * (1 + (FINANCEMENT_PERCENT_AUG_CRD / 100));
+                    $solde = $CRD * (1 + ($conf->global->FINANCEMENT_PERCENT_AUG_CRD / 100));
                 }
                 else if(! empty($this->type_financement_affaire['PURE'])) {
                     $solde = $LRD;
@@ -1060,7 +1060,7 @@ class TFin_dossier extends TObjetStd
         $temps_restant = ($this->financement->duree - $duree_restante_client) * $this->financement->getiPeriode();
 
         if($temps_restant <= $seuil_solde) $solde = $this->financement->montant;
-        else if($this->TLien[0]->affaire->type_financement == 'MANDATEE' || $this->TLien[0]->affaire->type_financement == 'ADOSSEE') $solde = $this->financement->capital_restant * (1 + (FINANCEMENT_PERCENT_AUG_CRD / 100));
+        else if($this->TLien[0]->affaire->type_financement == 'MANDATEE' || $this->TLien[0]->affaire->type_financement == 'ADOSSEE') $solde = $this->financement->capital_restant * (1 + ($conf->global->FINANCEMENT_PERCENT_AUG_CRD / 100));
         else if($this->TLien[0]->affaire->type_financement == 'PURE') $solde = $LRD;
 
         if($nature_financement == 'EXTERNE') return ($solde > $LRD_leaser && $solde != $this->financementLeaser->montant) ? $LRD_leaser : $solde;
@@ -1256,7 +1256,7 @@ class TFin_dossier extends TObjetStd
                     $solde = $this->financement->montant;
                 }
                 else if($this->TLien[0]->affaire->type_financement == 'MANDATEE' || $this->TLien[0]->affaire->type_financement == 'ADOSSEE') {
-                    $solde = $this->financement->capital_restant * (1 + (FINANCEMENT_PERCENT_AUG_CRD / 100));
+                    $solde = $this->financement->capital_restant * (1 + ($conf->global->FINANCEMENT_PERCENT_AUG_CRD / 100));
                 }
                 else if($this->TLien[0]->affaire->type_financement == 'PURE') {
                     $solde = $LRD;
