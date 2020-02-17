@@ -312,7 +312,7 @@ class TSimulation extends TObjetStd
         $this->gen_simulation_pdf($PDOdb, $db);
 
         // Uniquement pour les simuls d'ESUS et de ABS qui ont des dossiers à solder !
-        if(in_array($this->entity, array(18, 25)) && empty($this->opt_no_case_to_settle)) {
+        if(in_array($this->entity, array(18, 25, 28)) && empty($this->opt_no_case_to_settle)) {
             $this->gen_simulation_pdf_esus($PDOdb, $db);
         }
     }
@@ -1101,6 +1101,7 @@ class TSimulation extends TObjetStd
         $PDFName = dol_sanitizeFileName($this->getRef());
         if($this->entity == 18) $PDFName .= '-esus.pdf';
         elseif($this->entity == 25) $PDFName .= '-abs.pdf';
+        else if($this->entity == 28) $PDFName .= '-smep.pdf';
 
         $PDFPath = $this->getFilePath();
 
@@ -1142,6 +1143,7 @@ class TSimulation extends TObjetStd
 
         if($this->entity == 18) $mailto = 'rachat.esus@zeenmail.com';   // ESUS
         elseif($this->entity == 25) $mailto = 'rachatabs.esus@zeenmail.com';    // ABS
+        else if($this->entity == 28) $mailto = 'rachatsmep.esus@zeenmail.com';    // SMEP
 
         $old_entity = $conf->entity;
         switchEntity($this->entity);    // Switch to simulation entity
@@ -1447,6 +1449,7 @@ class TSimulation extends TObjetStd
         $fileName = dol_sanitizeFileName($this->getRef());
         if($this->entity == 18) $fileName .= '-esus.odt';
         elseif($this->entity == 25) $fileName .= '-abs.odt';
+        else if($this->entity == 28) $fileName .= '-smep.odt';
 
         $filePath = $this->getFilePath();
         dol_mkdir($filePath);
@@ -1556,7 +1559,7 @@ class TSimulation extends TObjetStd
             if($mode == 'save' && ($this->accord == 'OK' || $this->accord == 'KO')) { // Si le vendeur enregistre sa simulation est OK automatique, envoi mail
                 $this->send_mail_vendeur(true);
 
-                if($this->accord = 'OK' && in_array($this->entity, array(18, 25)) && empty($this->opt_no_case_to_settle)) {
+                if($this->accord = 'OK' && in_array($this->entity, array(18, 25, 28)) && empty($this->opt_no_case_to_settle)) {
                     $this->send_mail_vendeur_esus(true);
                 }
             }
@@ -2734,7 +2737,7 @@ class TSimulationSuivi extends TObjetStd
 
         $simulation->send_mail_vendeur();
 
-        if(in_array($simulation->entity, array(18, 25)) && empty($simulation->opt_no_case_to_settle)) {
+        if(in_array($simulation->entity, array(18, 25, 28)) && empty($simulation->opt_no_case_to_settle)) {
             $simulation->send_mail_vendeur_esus();
         }
 
