@@ -37,20 +37,19 @@ foreach($TRes as $fk_usergroup => $TEntity) {
         $db->free($resql);
     }
     else {
-        foreach($TEntity as $entity) {
-            if($entity == 1) continue;  // Les droits pour l'entité 1 sont déjà gérés par défaut
-            $db->begin();
+        $db->begin();
 
-            $sql.= 'INSERT INTO '.MAIN_DB_PREFIX.'usergroup_rights(entity, fk_usergroup, fk_id)';
-            $sql.= ' SELECT '.$entity.', fk_usergroup, fk_id';
-            $sql.= ' FROM '.MAIN_DB_PREFIX.'usergroup_rights';
-            $sql.= ' WHERE fk_usergroup = '.$fk_usergroup;
+        $sql.= 'INSERT IGNORE INTO '.MAIN_DB_PREFIX.'usergroup_rights(entity, fk_usergroup, fk_id)';
+        $sql.= ' SELECT e.rowid, ur.fk_usergroup, ur.fk_id';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'usergroup_rights ur';
+        $sql.= ' JOIN '.MAIN_DB_PREFIX.'entity e';
+        $sql.= ' WHERE fk_usergroup = '.$fk_usergroup;
+        $sql.= ' AND e.rowid IN ('.implode(',', $TEntity).')';
 
-            $resql = $db->query($sql);
-            if(! $resql) $db->rollback();
-            else $db->commit();
+        $resql = $db->query($sql);
+        if(! $resql) $db->rollback();
+        else $db->commit();
 
-            $db->free($resql);
-        }
+        $db->free($resql);
     }
 }
