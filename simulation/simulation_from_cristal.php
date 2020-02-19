@@ -80,7 +80,7 @@ else {
 }
 
 if(empty($fk_soc)) {
-    header('Location: '.dol_buildpath('/comm/list.php', 2));
+    header('Location: '.dol_buildpath('/societe/list.php', 2).'?type=c');
     exit;
 }
 
