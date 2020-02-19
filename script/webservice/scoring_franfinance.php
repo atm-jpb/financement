@@ -153,6 +153,7 @@ function DiffusionDemande($authentication, $ResponseDemFin)
 
     dol_syslog("1. WEBSERVICE DiffusionDemande called", LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
     dol_syslog("2. WEBSERVICE ResponseDemFin=".print_r($ResponseDemFin, true), LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
+    dol_syslog("2. WEBSERVICE ResponseDemFin=".print_r($authentication, true), LOG_ERR, 0, '_EDI_SCORING_FRANFINANCE');
 
     dol_include_once('/financement/class/simulation.class.php');
     dol_include_once('/financement/class/score.class.php');

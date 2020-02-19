@@ -104,7 +104,7 @@ if(! empty($searchnumetude)) {
     $sql .= " OR s.reference LIKE '%".$db->escape($searchnumetude)."%')";
 }
 
-$sql.= natural_search(array_keys($fieldstosearchall), $sall);
+if(!empty($sall)) $sql.= natural_search(array_keys($fieldstosearchall), $sall);
 
 if(! empty($fk_soc)) {
     $societe = new Societe($db);
