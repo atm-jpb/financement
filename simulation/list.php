@@ -26,7 +26,10 @@ $form = new Form($db);
 
 $sall = GETPOST('sall');
 $search_ref = GETPOST('search_ref');
-if(! empty($sall) && empty($search_ref)) $search_ref = $sall;
+$fieldstosearchall = array(
+	's.reference' => 'Reference'
+	,'ss.numero_accord_leaser' => 'NumAccord'
+);
 
 $search_entity = GETPOST('search_entity');
 if(! empty($search_entity) && ! is_array($search_entity)) $search_entity = explode(',', $search_entity);
@@ -101,6 +104,8 @@ if(! empty($searchnumetude)) {
     $sql .= " OR s.reference LIKE '%".$db->escape($searchnumetude)."%')";
 }
 
+$sql.= natural_search(array_keys($fieldstosearchall), $sall);
+
 if(! empty($fk_soc)) {
     $societe = new Societe($db);
     $societe->fetch($fk_soc);
@@ -115,14 +120,14 @@ if(! empty($fk_soc)) {
     if(! empty($societe->idprof1) && $search_by_siren) {
         $sql .= " OR s.fk_soc IN
 						(
-							SELECT s.rowid 
+							SELECT s.rowid
 							FROM ".MAIN_DB_PREFIX."societe as s
 								LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
 							WHERE
 							(
 								s.siren = '".$societe->idprof1."'
 								AND s.siren != ''
-							) 
+							)
 							OR
 							(
 								se.other_siren LIKE '%".$societe->idprof1."%'
