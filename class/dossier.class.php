@@ -1878,8 +1878,8 @@ class TFin_dossier extends TObjetStd
         global $db;
 
         $sql = "SELECT periode, base_solde, percent, amount, date_application, percent_nr, cape_lrd FROM ".MAIN_DB_PREFIX."c_financement_conf_solde
-				WHERE entity = ".$this->entity." 
-				AND active = 1 
+				WHERE entity = ".$this->entity."
+				AND active = 1
 				AND fk_type_contrat = '".$this->contrat."'
 				AND fk_nature = '".$this->nature_financement."'
 				ORDER BY periode, date_application ASC";
@@ -1932,14 +1932,14 @@ class TFin_dossier extends TObjetStd
 
         $sql .= " OR a.fk_soc IN
 					(
-						SELECT s.rowid 
+						SELECT s.rowid
 						FROM ".MAIN_DB_PREFIX."societe as s
 							LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields as se ON (se.fk_object = s.rowid)
 						WHERE
 						(
 							s.siren = '".$siren."'
 							AND s.siren != ''
-						) 
+						)
 						OR
 						(
 							se.other_siren LIKE '%".$siren."%'
@@ -2513,7 +2513,6 @@ class TFin_financement extends TObjetStd
         $fact->type = 2;
         $fact->entity = $origine->entity;
         $fact->fk_facture_source = $origine->id;
-        $fact->ref = 'AV'.$origine->ref_supplier;
         $fact->ref_supplier = 'AV'.$origine->ref_supplier;
         $fact->update($user);
 
