@@ -570,8 +570,6 @@ function _liste(&$PDOdb, &$dossier) {
 	if($action === 'exportXML'){
 		_getExportXML($sql);
 	}
-	
-	llxFooter();
 }
 
 function _load_facture(&$PDOdb,&$dossier_temp) {
@@ -1139,9 +1137,6 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 	// End of page
 	global $mesg, $error;
 	dol_htmloutput_mesg($mesg, '', ($error ? 'error' : 'ok'));
-	
-	llxFooter();
-	
 }
 
 
@@ -1228,8 +1223,6 @@ function _liste_dossiers_incomplets(&$PDOdb, &$dossier) {
 		)
 	));
 	$form->end();
-	
-	llxFooter();
 }
 
 function _print_modif_icon($fk_dossier) {
