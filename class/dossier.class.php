@@ -2506,7 +2506,7 @@ class TFin_financement extends TObjetStd
 
         // Création de l'avoir via clone de la facture
         $fact = new FactureFournisseur($db);
-        $idClone = $fact->createFromClone($idFactureFourn);
+        $idClone = $fact->createFromClone($user, $idFactureFourn);
         $fact->fetch($idClone);
 
         // Modification du clone pour transformation en avoir
