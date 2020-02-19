@@ -320,7 +320,7 @@ class WebServiceGrenke extends WebService
 
 class MySoapGrenke extends SoapClient
 {
-	function __doRequest($request, $location, $saction, $version)
+	function __doRequest($request, $location, $saction, $version, $one_way = 0)
 	{
 //		$request = preg_replace('/<\/?SOAP-ENV:Body.*>/', '', $request);
 //		$request = preg_replace('/<\/?SOAP-ENV:Envelope.*>/', '', $request);

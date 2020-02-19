@@ -255,7 +255,7 @@ class MySoapCmCic extends SoapClient
 {
 	public $ServiceFinancement;
 	
-	function __doRequest($request, $location, $saction, $version)
+	function __doRequest($request, $location, $saction, $version, $one_way = 0)
 	{
 		global $conf;
 		
