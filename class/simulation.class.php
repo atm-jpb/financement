@@ -989,11 +989,9 @@ class TSimulation extends TObjetStd
 
     function getFilePath() {
         $entityPath = '/';
-        if($this->entity > 1) $entityPath .= $this->entity.'/';
+        if($this->entity > 1 && ! file_exists(DOL_DATA_ROOT.'/financement/'.dol_sanitizeFileName($this->getRef()))) $entityPath .= $this->entity.'/';
 
-        $PDFPath = DOL_DATA_ROOT.$entityPath.'financement/'.dol_sanitizeFileName($this->getRef());
-
-        return $PDFPath;
+        return DOL_DATA_ROOT.$entityPath.'financement/'.dol_sanitizeFileName($this->getRef());
     }
 
     function send_mail_vendeur($auto = false, $mailto = '') {
