@@ -6,6 +6,7 @@
 chdir(__DIR__);
 
 define('INC_FROM_CRON_SCRIPT',true);
+define('NOCSRFCHECK', true);
 
 // This is to make Dolibarr working with Plesk
 set_include_path($_SERVER['DOCUMENT_ROOT'].'/htdocs');
