@@ -72,7 +72,7 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
 			,'refdos' => '<a href="dossier.php?id='.$id_dossier.'">'.$data->refdoscli .'<br>'. $data->refdoslea.'</a>'
 			,'fk_affaire' => $data->fk_affaire
 			,'affaire'=> $data->refaffaire
-			,'noms' => '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$data->fk_client.'">'.$data->nomcli.'</a><br><a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$data->fk_leaser.'">'.$data->nomlea.'</a>'
+			,'noms' => '<a href="'.DOL_URL_ROOT.'/societe/card.php?socid='.$data->fk_client.'">'.$data->nomcli.'</a><br><a href="'.DOL_URL_ROOT.'/societe/card.php?socid='.$data->fk_leaser.'">'.$data->nomlea.'</a>'
 			,'status_1' => (in_array($id_dossier, $TDossiersError['err1']) ? "Oui" : "Non")
 			,'status_2' => (in_array($id_dossier, $TDossiersError['err2']) ? "Oui" : "Non")
 			,'status_3' => (in_array($id_dossier, $TDossiersError['err3']) ? "Oui" : "Non")
