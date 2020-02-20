@@ -464,6 +464,13 @@ class modFinancement extends DolibarrModules
 
 		$r++;
 		$this->rights[$r][0] = $this->numero.$r;
+		$this->rights[$r][1] = 'Conformité : Supprimer les PDF';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'conformite';
+		$this->rights[$r][5] = 'delete';
+
+		$r++;
+		$this->rights[$r][0] = $this->numero.$r;
 		$this->rights[$r][1] = 'Conformité : Valider';
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'conformite';
