@@ -314,7 +314,7 @@
 					$dossier->financement->setProchaineEcheanceClient($PDOdb, $dossier);
 					$dossier->save($PDOdb);
 					
-					$urlback = dol_buildpath('/compta/facture.php?facid='.$fact->id, 1);
+					$urlback = dol_buildpath('/compta/facture/card.php?facid='.$fact->id, 1);
 					header("Location: ".$urlback);
 					exit;
 				}
@@ -474,7 +474,6 @@ function _liste(&$PDOdb, &$dossier) {
 			,'refDosCli'=>'<a href="?id=@ID@">@val@</a>'
 //			,'refDosLea'=>'<a href="?id=@ID@">@val@</a>'
 			,'Affaire'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/affaire.php?id=@ID affaire@">@val@</a>'
-			//,'fact_materiel'=>'<a href="'.DOL_URL_ROOT.'/compta/facture.php?facid=@fk_fact_materiel@">'.img_object('', 'bill').' @val@</a>'
 		)
 		,'translate'=>array(
 			'nature_financement'=>$aff->TNatureFinancement
