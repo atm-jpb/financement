@@ -1,6 +1,7 @@
 <?php
 
 if(! defined('NOLOGIN')) define('NOLOGIN', 1);
+if(! defined('NOCSRFCHECK')) define('NOCSRFCHECK', true);
 
 require '../../config.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
