@@ -214,8 +214,7 @@ elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($o
     header('Location: '.$_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid.'&id='.$object->id);
     exit;
 }
-elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->rights->financement->conformite->create)) {
-    // TODO: Traitement à refactorer/virer avec une version plus récente de Dolibarr
+elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->rights->financement->conformite->delete)) {
     $urlfile = GETPOST('urlfile', 'alpha');
 
     if (GETPOST('section')) $file = $upload_dir.'/'.$urlfile;
@@ -261,7 +260,7 @@ elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->
 llxHeader('',$langs->trans('Simulation'),'');
 print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">';
 
-if($action === 'deleteFile' && ! empty($user->rights->financement->conformite->create)) {
+if($action === 'delete' && ! empty($user->rights->financement->conformite->delete)) {
     $urlfile = GETPOST('urlfile');
 
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
