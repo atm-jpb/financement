@@ -663,7 +663,7 @@ class TSimulation extends TObjetStd
 
                 $ligne['rowid'] = $simulationSuivi->getId();
                 $ligne['class'] = ($k % 2) ? 'impair' : 'pair';
-                $ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('', 'object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
+                $ligne['leaser'] = '<a href="'.DOL_URL_ROOT.'/societe/card.php?socid='.$simulationSuivi->fk_leaser.'">'.img_picto('', 'object_company.png', '', 0).' '.$simulationSuivi->leaser->nom.'</a>';
                 $ligne['object'] = $simulationSuivi;
                 $ligne['show_renta_percent'] = $formDolibarr->textwithpicto(price($simulationSuivi->renta_percent), implode('<br />', $simulationSuivi->calcul_detail), 1, 'help', '', 0, 3);
                 $ligne['demande'] = ($simulationSuivi->statut_demande == 1) ? '<img src="'.dol_buildpath('/financement/img/check_valid.png', 1).'" />' : '';
