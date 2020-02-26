@@ -1298,7 +1298,7 @@ class TSimulation extends TObjetStd
         else if($simu2->opt_periodicite == 'ANNEE') $simu2->coeff_by_periodicite = $simu2->coeff * 4;
         else $simu2->coeff_by_periodicite = $simu2->coeff; // TRIMESTRE
 
-        if(in_array($this->entity, array(18, 25))) $simu2->dateLabel = $langs->trans('DateDemarrageCustom');
+        if(in_array($this->entity, array(18, 25, 28))) $simu2->dateLabel = $langs->trans('DateDemarrageCustom');
         else $simu2->dateLabel = $langs->trans('DateDemarrage');
 
         // Récupération du logo de l'entité correspondant à la simulation
@@ -1476,7 +1476,7 @@ class TSimulation extends TObjetStd
         else if($simu2->opt_periodicite == 'ANNEE') $simu2->coeff_by_periodicite = $simu2->coeff * 4;
         else $simu2->coeff_by_periodicite = $simu2->coeff; // TRIMESTRE
 
-        if(in_array($this->entity, array(18, 25))) $simu2->dateLabel = $langs->trans('DateDemarrageCustom');
+        if(in_array($this->entity, array(18, 25, 28))) $simu2->dateLabel = $langs->trans('DateDemarrageCustom');
         else $simu2->dateLabel = $langs->trans('DateDemarrage');
 
         // Récupération du logo de l'entité correspondant à la simulation
