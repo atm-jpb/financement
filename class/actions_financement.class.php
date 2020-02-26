@@ -187,7 +187,6 @@ class ActionsFinancement
 		}
 
 		if (in_array('propalcard',explode(':',$parameters['context']))) {
-			
 			$object->fetchObjectLinked();
 			
 			if(!empty($object->linkedObjects['facture'])) {
@@ -195,9 +194,12 @@ class ActionsFinancement
 				define('INC_FROM_DOLIBARR', true);
 				dol_include_once('/financement/config.php');
 				dol_include_once('/financement/class/dossier_integrale.class.php');
-				
-				$sql = 'SELECT fk_source FROM '.MAIN_DB_PREFIX.'element_element WHERE sourcetype="dossier" AND targettype="facture" AND fk_target='.$object->linkedObjects['facture'][0]->id.' LIMIT 1';
+
+				$fac = array_shift($object->linkedObjects['facture']);
+
+				$sql = 'SELECT fk_source FROM '.MAIN_DB_PREFIX.'element_element WHERE sourcetype="dossier" AND targettype="facture" AND fk_target='.$fac->id.' LIMIT 1';
 				$resql = $db->query($sql);
+
 				if($resql) {
                     $res = $db->fetch_object($resql);
 
@@ -215,12 +217,11 @@ class ActionsFinancement
 				
 				// Détail du nouveau coût unitaire (uniquement si le user a les droits)
 				if(!empty($user->rights->financement->integrale->detail_couts)) {
-					
 					$PDOdb = new TPDOdb;
 					$integrale = new TIntegrale;
-					$integrale->loadBy($PDOdb, $object->linkedObjects['facture'][0]->ref, 'facnumber');
+					$integrale->loadBy($PDOdb, $fac->ref, 'facnumber');
+
 					if($integrale->rowid > 0) {
-						
 						$line_engagement_noir = TIntegrale::get_line_from_propal($object, 'E_NOIR');
 						$line_engagement_coul = TIntegrale::get_line_from_propal($object, 'E_COUL');
 						
@@ -267,13 +268,9 @@ class ActionsFinancement
 						print '</td>'.'<td>';
 						print $TDataCalculCouleur['nouveau_cout_unitaire_loyer'];
 						print '</td>'.'</tr>';
-						
 					}
-
 				}
-				
 			}
-			
 		}
 	}
 
