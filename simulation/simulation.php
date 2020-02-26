@@ -1320,7 +1320,7 @@ function _liste_dossier(&$ATMdb, TSimulation &$simulation, $mode, $search_by_sir
 	$sql.= " FROM ".MAIN_DB_PREFIX."fin_affaire a ";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_affaire da ON da.fk_fin_affaire = a.rowid";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier d ON d.rowid = da.fk_fin_dossier";
-    $sql.= ' INNER JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dflea ON (df.fk_fin_dossier = d.rowid AND dflea.type = 'LEASER')";
+    $sql.= ' INNER JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type = 'LEASER')";
 	$sql.= " LEFT JOIN ".MAIN_DB_PREFIX.'entity e ON (e.rowid = d.entity) ';
 	$sql.= ' WHERE a.entity IN('.getEntity('fin_dossier', true).')';
     $sql.= " AND dflea.reference <> '' AND dflea.reference IS NOT NULL";
