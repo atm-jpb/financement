@@ -1360,7 +1360,7 @@ class TFin_dossier extends TObjetStd
             if(is_object($fact)) { // Financement Client avec une seule facture
                 $data['facture_total_ht'] = $fact->total_ht;
                 $data['facture_multiple'] = '0';
-                $data['facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/card.php?facid=';
+                $data['facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture/card.php?facid=' : DOL_URL_ROOT.'/fourn/facture/card.php?facid=';
                 $data['facture_link'] .= $fact->id;
                 $data['facture_bg'] = ($fact->paye == 1) ? '#00FF00' : '#FF0000';
                 // Côté client, affichage en bleu si facture créée manuellement
@@ -1371,7 +1371,7 @@ class TFin_dossier extends TObjetStd
                     $data['facture_total_ht'] += $facture_client->total_ht;
                     $data['facture_multiple'] = '1';
                     $bg_color = ($facture_client->paye == 1) ? '#00FF00' : '#FF0000';
-                    $data['facture_link'] .= ($type_echeancier == 'CLIENT') ? '<a style="display:block;margin:0;background-color:'.$bg_color.'" href="'.DOL_URL_ROOT.'/compta/facture.php?facid=' : '<a href="'.DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
+                    $data['facture_link'] .= ($type_echeancier == 'CLIENT') ? '<a style="display:block;margin:0;background-color:'.$bg_color.'" href="'.DOL_URL_ROOT.'/compta/facture/card.php?facid=' : '<a href="'.DOL_URL_ROOT.'/fourn/facture/fiche.php?facid=';
                     $data['facture_link'] .= $facture_client->id.'">'.number_format($facture_client->total_ht, 2, ',', '').' €</a>';
                     $data['facture_bg'] = ($bg_color === '#FF0000') ? '#CC9933' : '#00FF00';
                 }
@@ -1464,7 +1464,7 @@ class TFin_dossier extends TObjetStd
 
             if(is_object($fact)) {
                 $autre['loyer_intercalaire_facture_total_ht'] = $fact->total_ht;
-                $autre['loyer_intercalaire_facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture.php?facid=' : DOL_URL_ROOT.'/fourn/facture/card.php?facid=';
+                $autre['loyer_intercalaire_facture_link'] = ($type_echeancier == 'CLIENT') ? DOL_URL_ROOT.'/compta/facture/card.php?facid=' : DOL_URL_ROOT.'/fourn/facture/card.php?facid=';
                 $autre['loyer_intercalaire_facture_link'] .= $fact->id;
                 $autre['loyer_intercalaire_facture_bg'] = ($fact->paye == 1) ? '#00FF00' : '#FF0000';
                 $autre['loyer_intercalaire_facture_bg'] = (! empty($fact->user_author) && $fact->user_author != 1 && $type_echeancier == 'CLIENT') ? '#00CCFF' : $data['loyer_intercalaire_facture_bg'];
