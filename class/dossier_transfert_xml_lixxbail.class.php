@@ -377,8 +377,8 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 
 		//Récupération de la facture client de l'équipement associé à l'affaire
 		$sql = "SELECT al1.fk_document 
-				FROM ".MAIN_DB_PREFIX."asset_link as al1
-					LEFT JOIN ".MAIN_DB_PREFIX."asset_link as al2 ON (al2.fk_asset = al1.fk_asset)
+				FROM ".MAIN_DB_PREFIX."assetatm_link as al1
+					LEFT JOIN ".MAIN_DB_PREFIX."assetatm_link as al2 ON (al2.fk_asset = al1.fk_asset)
 				WHERE al1.fk_asset = ".$assetLink->asset->getId()." AND al1.type_document = 'facture'
 					AND al2.type_document = 'affaire' AND al2.fk_document = ".$Affaire->getId();
 
@@ -470,19 +470,13 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 		global $db;
 		
 		$palier = $xml->createElement("palier");
-		//$palier = $xml->appendChild($palier);
 		
 		$PDOdb = new TPDOdb;
 		
-		//Récupération de la facture client de l'équipement associé à l'affaire
-//		$sql = "SELECT al1.fk_document
-//				FROM ".MAIN_DB_PREFIX."asset_link as al1
-//					LEFT JOIN ".MAIN_DB_PREFIX."asset_link as al2 ON (al2.fk_asset = al1.fk_asset)
-//				WHERE al1.fk_asset = ".$AssetId." AND al1.type_document = 'facture'
-//					AND al2.type_document = 'affaire' AND al2.fk_document = ".$Affaire->getId();
+		// Récupération de la facture client de l'équipement associé à l'affaire
 		$sql = 'SELECT al1.fk_document';
-		$sql.= ' FROM '.MAIN_DB_PREFIX.'asset_link as al1';
-		$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'asset_link as al2 ON (al2.fk_asset = al1.fk_asset)';
+		$sql.= ' FROM '.MAIN_DB_PREFIX.'assetatm_link as al1';
+		$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'assetatm_link as al2 ON (al2.fk_asset = al1.fk_asset)';
 		$sql.= " WHERE al1.type_document = 'facture'";
 		if(! empty($AssetId)) $sql.= ' AND al1.fk_asset = '.$AssetId;
         $sql.= " AND al2.type_document = 'affaire'";
