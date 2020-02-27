@@ -1,5 +1,6 @@
 <?php
 
+ini_set('max_execution_time', 0);
 require_once('../config.php');
 
 $limit = GETPOST('limit', 'int');
