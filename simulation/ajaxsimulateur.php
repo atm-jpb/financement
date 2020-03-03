@@ -71,11 +71,13 @@ function get_duree(&$ATMdb) {
 	$outjson = GETPOST('outjson', 'int');
 
 	$grille = new TFin_grille_leaser();
-	$form = new TFormCore();
 	$idTypeContrat = GETPOST('fk_type_contrat');
 	$opt_periodicite = GETPOST('opt_periodicite');
 
-	$htmlresult = $form->combo('','duree', $grille->get_duree($ATMdb, FIN_LEASER_DEFAULT, $idTypeContrat, $opt_periodicite, GETPOST('entity')), '');
+    $TDuree = $grille->get_duree($ATMdb, FIN_LEASER_DEFAULT, $idTypeContrat, $opt_periodicite, GETPOST('entity'));
+    if(! is_array($TDuree)) $TDuree = array($TDuree);
+
+    $htmlresult = Form::selectarray('duree', $TDuree);
 	
 	$db->close();
 	
