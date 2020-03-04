@@ -351,7 +351,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     print '</td>';
 
     // Entity
-    print '<td>';
+    print '<td style="white-space: nowrap;">';
     print $obj->entity_label;
     print '</td>';
 
@@ -407,7 +407,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     print '</td>';
 
     // Statut Leaser
-    print '<td><div align="center">';
+    print '<td style="white-space: nowrap;"><div align="center">';
     print getStatutSuivi($obj->rowid, $obj->accord, $obj->fk_fin_dossier, $obj->nb_ok, $obj->nb_refus, $obj->nb_wait, $obj->nb_err);
     print '</div></td>';
 
