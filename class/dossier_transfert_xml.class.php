@@ -4,6 +4,10 @@ if(! class_exists('Societe')) dol_include_once('/societe/class/societe.class.php
 dol_include_once('/financement/class/dossier.class.php');
 
 abstract class TFinDossierTransfertXML extends TObjetStd {
+    const fileExtension = '.xml';
+    public $transfert;
+    public $filePath;
+    public $fileFullPath;
 
 	function __construct($transfert = false) {
 		global $conf;
@@ -39,7 +43,7 @@ abstract class TFinDossierTransfertXML extends TObjetStd {
 			$this->upload($filename);
 		}
 
-		return $this->filePath . $filename . '.xml';
+		return $this->filePath . $filename . static::fileExtension;
     }
 
     /**
@@ -105,6 +109,7 @@ abstract class TFinDossierTransfertXML extends TObjetStd {
     static function create($fk_leaser, $transfert = false) {
         if(! class_exists('TFinTransfertCMCIC')) dol_include_once('/financement/class/dossier_transfert_xml_cmcic.class.php');
         if(! class_exists('TFinTransfertLixxbail')) dol_include_once('/financement/class/dossier_transfert_xml_lixxbail.class.php');
+        if(! class_exists('TFinTransfertBNP')) dol_include_once('/financement/class/dossier_transfert_xml_bnp.class.php');
 
         switch($fk_leaser) {
             case TFinTransfertLixxbail::fk_leaser:
@@ -112,6 +117,9 @@ abstract class TFinDossierTransfertXML extends TObjetStd {
                 break;
             case TFinTransfertCMCIC::fk_leaser:
                 $obj = new TFinTransfertCMCIC($transfert);
+                break;
+            case TFinTransfertBNP::fk_leaser:
+                $obj = new TFinTransfertBNP($transfert);
                 break;
         }
 
