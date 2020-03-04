@@ -122,6 +122,12 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
 
                 $res = fputcsv($f, $TData, self::CSV_DELIMITER);
             }
+
+            if($andUpload) {
+                $affaire->xml_date_transfert = time();
+                $affaire->xml_fic_transfert = substr($name, 0, -4); // On enlève l'extension du nom du fichier
+                $affaire->save($PDOdb);
+            }
 		}
 
 		fclose($f);
