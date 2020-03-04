@@ -16,7 +16,7 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
     function upload($filename) {
 	    global $conf;
 
-        $dirname = $this->fileFullPath . $filename . '.xml';
+        $dirname = $this->fileFullPath.$filename.static::fileExtension;
         if(empty($conf->global->FINANCEMENT_MODE_PROD)) {
             exec('sh bash/lixxbailxml_test.sh '.$dirname);
         } else {
