@@ -104,7 +104,7 @@ $fk_soc = $_REQUEST['fk_soc'];
 
 if(!empty($_REQUEST['mode_search']) && $_REQUEST['mode_search'] == 'search_matricule' && !empty($_REQUEST['search_matricule'])) {
 	// Recherche du client associé au matricule pour ensuite créer une nouvelle simulation
-	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'asset', array('serial_number' => $_REQUEST['search_matricule']), 'fk_soc');
+	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'assetatm', array('serial_number' => $_REQUEST['search_matricule']), 'fk_soc');
 	
 	if(empty($TId)) { // Matricule non trouvé
 		setEventMessage('Matricule '.$_REQUEST['search_matricule'].' non trouvé', 'warnings');
