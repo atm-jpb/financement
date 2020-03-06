@@ -19,13 +19,6 @@ class ActionsFinancement
         $this->errors = array();
     }
 
-    /** Overloading the doActions function : replacing the parent's function with the one below
-     *
-     * @param parameters  meta datas of the hook (context, etc...)
-     * @param object             the object you want to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param action             current action (if set). Generally create or edit or null
-     * @return       void
-     */
     function doActions($parameters, &$object, &$action, $hookmanager) {
         global $user;
 
@@ -44,16 +37,7 @@ class ActionsFinancement
         return 0;
     }
 
-    /** Overloading the addSearchEntry function : replacing the parent's function with the one below
-     *
-     * @param parameters  meta datas of the hook (context, etc...)
-     * @param object             the object you want to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param action             current action (if set). Generally create or edit or null
-     * @return       void
-     */
     public function addSearchEntry($parameters, &$object, &$action, $hookmanager) {
-        global $db;
-
         $TRes = array(
             'searchintofinancementdossier' => array(
                 'position' => 12,
@@ -87,39 +71,31 @@ class ActionsFinancement
         global $user, $db;
 
         if(in_array('thirdpartycard', explode(':', $parameters['context'])) && $action !== 'create') {
-
+            /** @var Societe $object */
             $listsalesrepresentatives = $object->getSalesRepresentatives($user);
 
             foreach($listsalesrepresentatives as $commercial) {
                 $sql = "SELECT type_activite_cpro FROM ".MAIN_DB_PREFIX."societe_commerciaux WHERE fk_soc=".$object->id." AND fk_user=".$commercial['id'];
                 if($resql = $db->query($sql)) {
                     $obj = $db->fetch_object($resql);
-                    if($obj->type_activite_cpro != '') {
 
+                    if($obj->type_activite_cpro != '') {
                         ?>
                         <script type="text/javascript">
-                            /*alert("<?php echo $obj->type_activite_cpro ?>");*/
                             $(document).ready(function () {
-
                                 $('a').each(function () {
                                     if ($(this).html() == "<?php echo $commercial['firstname'].' '.$commercial['lastname'] ?>") {
                                         $(this).append(" [<?php echo $obj->type_activite_cpro ?>]");
                                     }
                                 });
-
                             });
-
-
                         </script>
                         <?php
                     }
                 }
             }
         }
-
-        if(in_array('salesrepresentativescard', explode(':', $parameters['context']))) {
-
-
+        else if(in_array('salesrepresentativescard', explode(':', $parameters['context']))) {
             $id = isset($object->rowid) ? $object->rowid : $object->id;
 
             $sql = "SELECT type_activite_cpro FROM ".MAIN_DB_PREFIX."societe_commerciaux WHERE fk_soc=".$parameters['socid']." AND fk_user=".$id." AND rowid = ".$object->id_link;
@@ -132,12 +108,11 @@ class ActionsFinancement
                 }
             }
         }
-
-        // Affichage du dossier de financement relatif à la facture de location ou de l'affaire relative à la facture de matériel
-        if(in_array('invoicecard', explode(':', $parameters['context']))) {
+        else if(in_array('invoicecard', explode(':', $parameters['context']))) { // Affichage du dossier de financement relatif à la facture de location ou de l'affaire relative à la facture de matériel
             $sql = "SELECT sourcetype, fk_source FROM ".MAIN_DB_PREFIX."element_element WHERE fk_target=".$object->id." AND targettype='facture'";
             if($resql = $db->query($sql)) {
                 $obj = $db->fetch_object($resql);
+
                 if($obj->sourcetype == 'affaire') {
                     $link = '<a href="'.dol_buildpath('/financement/affaire.php?id='.$obj->fk_source, 1).'">Voir l\'affaire</a>';
                     echo '<tr><td >Facture de matériel</td><td'.$parameters['colspan'].'>'.$link.'</td></tr>';
@@ -148,14 +123,10 @@ class ActionsFinancement
                 }
             }
         }
-
-        if(in_array('invoicesuppliercard', explode(':', $parameters['context']))) {
-
+        else if(in_array('invoicesuppliercard', explode(':', $parameters['context']))) {
             // Affichage du dossier de financement relatif à la facture fournisseur
             $sql = "SELECT sourcetype, fk_source FROM ".MAIN_DB_PREFIX."element_element WHERE fk_target=".$object->id." AND targettype='invoice_supplier'";
-
             if($resql = $db->query($sql)) {
-
                 $obj = $db->fetch_object($resql);
 
                 if($obj->sourcetype == 'dossier') {
@@ -176,12 +147,11 @@ class ActionsFinancement
                 }
             }
         }
-
-        if(in_array('propalcard', explode(':', $parameters['context']))) {
+        else if(in_array('propalcard', explode(':', $parameters['context']))) {
+            /** @var Propal $object */
             $object->fetchObjectLinked();
 
             if(! empty($object->linkedObjects['facture'])) {
-
                 define('INC_FROM_DOLIBARR', true);
                 dol_include_once('/financement/config.php');
                 dol_include_once('/financement/class/dossier_integrale.class.php');
@@ -189,8 +159,8 @@ class ActionsFinancement
                 $fac = array_shift($object->linkedObjects['facture']);
 
                 $sql = 'SELECT fk_source FROM '.MAIN_DB_PREFIX.'element_element WHERE sourcetype="dossier" AND targettype="facture" AND fk_target='.$fac->id.' LIMIT 1';
-                $resql = $db->query($sql);
 
+                $resql = $db->query($sql);
                 if($resql) {
                     $res = $db->fetch_object($resql);
 
@@ -217,7 +187,6 @@ class ActionsFinancement
                         $line_engagement_coul = TIntegrale::get_line_from_propal($object, 'E_COUL');
 
                         $TDataCalculNoir = $integrale->calcul_detail_cout($line_engagement_noir->qty, $line_engagement_noir->subprice);
-
                         $TDataCalculCouleur = $integrale->calcul_detail_cout($line_engagement_coul->qty, $line_engagement_coul->subprice, 'coul');
 
                         print '<tr>'.'<td>';
@@ -267,7 +236,7 @@ class ActionsFinancement
 
     // Affichage valeur spéciale dans dictionnaire
     function createDictionaryFieldlist($parameters, &$object, &$action, $hookmanager) {
-        global $db, $form, $langs;
+        global $form, $langs;
 
         define('INC_FROM_DOLIBARR', true);
         dol_include_once('/financement/config.php');
@@ -331,7 +300,7 @@ class ActionsFinancement
     }
 
     function editDictionaryFieldlist($parameters, &$object, &$action, $hookmanager) {
-        global $db, $form, $langs;
+        global $form, $langs;
 
         define('INC_FROM_DOLIBARR', true);
         dol_include_once('/financement/config.php');
@@ -395,7 +364,7 @@ class ActionsFinancement
     }
 
     function viewDictionaryFieldlist($parameters, &$object, &$action, $hookmanager) {
-        global $db, $form, $langs;
+        global $langs;
 
         define('INC_FROM_DOLIBARR', true);
         dol_include_once('/financement/config.php');
