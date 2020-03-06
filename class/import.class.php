@@ -2070,25 +2070,7 @@ class TImportHistorique extends TObjetStd {
     static function addHistory(&$db,$type_import,$filename,$type_object,$fk_object,$action='', $data=array() , $mode_save = 'file') {
         global $conf, $user;
 
-        if($mode_save == 'file') {
-            if($type_object == 'Service') return false;
-            $dir = dol_buildpath('/financement/').'log/'.$type_object.'/';
-            @mkdir( $dir, 0777, true );
-            $f1 = fopen($dir.$fk_object.'.log','a');
-            fputs($f1,
-                date('Y-m-d H:i:s')."\t"
-                .$user->id."\t"
-                .$conf->entity."\t"
-                .$type_import."\t"
-                .$filename."\t"
-                .$action."\t"
-                .serialize($data)."\t"
-                ."\n"
-            );
-
-        }
-        else {
-
+        if($mode_save != 'file') {
             $h = new TImportHistorique;
 
             $h->fk_user_author = $user->id;
@@ -2106,12 +2088,6 @@ class TImportHistorique extends TObjetStd {
             if(!$h->loadBy($db,$h->hash, 'hash')){
                 $h->save($db);
             }
-
         }
-
-
     }
-
-
 }
-?>

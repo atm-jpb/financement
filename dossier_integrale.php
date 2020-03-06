@@ -404,17 +404,6 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 			unset($TIntegrale[$date_periode]);
 		}
 	}
-	//pre($TIntegrale,true);
-	//array_pop($TIntegrale); //TODO c'est moche mais sa marche
-	
-	if(isset($_REQUEST['TRACE'])){
-		foreach($TIntegrale as &$integrale) {
-			foreach($integrale->TIds as $id_integral) {
-				$integrale->facnumber.='<br /> log int. <a href="'.dol_buildpath('/financement/log/TIntegrale/'.$id_integral.'.log',1).'" target="_blank">'.$id_integral.'</a>';	
-			}
-			
-		}
-	}
 	
 	// MKO 2016.12.20 : pas d'affichage intégrale si type de régul non trimestriel
 	$error = 0;
@@ -422,8 +411,7 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	if(!empty($dossier->type_regul)) {
 		$TIntegrale = regularisation($dossier,$TIntegrale);
 	}
-	
-	//pre($TIntegrale,true);
+
 	// 2017.03.21 MKO : si type regul trimestriel, on affiche le tableau intégral, sinon non
 	if($dossier->type_regul != 3) {
 		$error = 1;
