@@ -308,7 +308,7 @@ function _liste(&$ATMdb, &$affaire) {
 			,'global'=>'1000'
 		)
 		,'link'=>array(
-			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
+			'nom'=>'<a href="'.DOL_URL_ROOT.'/societe/card.php?socid=@fk_soc@">'.img_picto('','object_company.png', '', 0).' @val@</a>'
 			,'reference'=>'<a href="?id=@ID@">@val@</a>'
 		)
 		,'translate'=>array(
