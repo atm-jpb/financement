@@ -48,6 +48,11 @@ class ActionsFinancement
                 'position' => 13,
                 'text' => img_picto('', 'object_financementico@financement').' Simulations',
                 'url' => dol_buildpath('/financement/simulation/list.php', 1)
+            ),
+            'searchintofinancementmatricule' => array(
+                'position' => 14,
+                'text' => img_object('','resource').' Matricules',
+                'url' => dol_buildpath('/financement/simulation/simulation.php', 1).'?mode_search=search_matricule'
             )
         );
 

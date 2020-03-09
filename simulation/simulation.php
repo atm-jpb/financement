@@ -102,17 +102,17 @@ if(!empty($_REQUEST['from']) && $_REQUEST['from']=='search' && !empty($_REQUEST[
 
 $fk_soc = $_REQUEST['fk_soc'];
 
-if(!empty($_REQUEST['mode_search']) && $_REQUEST['mode_search'] == 'search_matricule' && !empty($_REQUEST['search_matricule'])) {
+if(!empty($_REQUEST['mode_search']) && $_REQUEST['mode_search'] == 'search_matricule' && !empty($_REQUEST['sall'])) {
 	// Recherche du client associé au matricule pour ensuite créer une nouvelle simulation
-	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'assetatm', array('serial_number' => $_REQUEST['search_matricule']), 'fk_soc');
+	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'assetatm', array('serial_number' => $_REQUEST['sall']), 'fk_soc');
 	
 	if(empty($TId)) { // Matricule non trouvé
-		setEventMessage('Matricule '.$_REQUEST['search_matricule'].' non trouvé', 'warnings');
+		setEventMessage('Matricule '.$_REQUEST['sall'].' non trouvé', 'warnings');
 		header(header('Location: '.dol_buildpath('index.php',1))); exit;
 	}
 	
 	if(count($TId) > 1) { // Plusieurs matricules trouvés
-		setEventMessage('Plusieurs matricules trouvés pour la recherche '.$_REQUEST['search_matricule'].'. Merci de chercher par client', 'warnings');
+		setEventMessage('Plusieurs matricules trouvés pour la recherche '.$_REQUEST['sall'].'. Merci de chercher par client', 'warnings');
 		header(header('Location: '.dol_buildpath('index.php',1))); exit;
 	}
 	
