@@ -148,7 +148,7 @@ $sql .= "COALESCE(fl.intercalaireOK, 'OUI') as intercalaireLeaserOK, ";
 $sql .= "fl.duree as 'dureeLeaser', ";
 $sql .= "fl.montant as 'montantLeaser', ";
 $sql .= "fl.echeance as 'echeanceLeaser', ";
-$sql .= "(CASE WHEN fl.date_solde < '1970-01-01' THEN 'En cours' ELSE 'Soldé' END) as 'statut', ";
+$sql .= "(CASE WHEN fl.date_solde < '1970-01-01' OR fl.date_solde IS NULL THEN 'En cours' ELSE 'Soldé' END) as 'statut', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END) as 'prochaine', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END) as 'date_start', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END) as 'date_end', ";
