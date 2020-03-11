@@ -19,6 +19,8 @@ $simulation=new TSimulation(true);
 $ATMdb = new TPDOdb;
 $tbs = new TTemplateTBS;
 
+$serialNumber = GETPOST('sall');
+
 $mesg = '';
 $error=false;
 $action = GETPOST('action');
@@ -102,17 +104,17 @@ if(!empty($_REQUEST['from']) && $_REQUEST['from']=='search' && !empty($_REQUEST[
 
 $fk_soc = $_REQUEST['fk_soc'];
 
-if(!empty($_REQUEST['mode_search']) && $_REQUEST['mode_search'] == 'search_matricule' && !empty($_REQUEST['sall'])) {
+if(!empty($_REQUEST['mode_search']) && $_REQUEST['mode_search'] == 'search_matricule' && ! empty($serialNumber)) {
 	// Recherche du client associé au matricule pour ensuite créer une nouvelle simulation
-	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'assetatm', array('serial_number' => $_REQUEST['sall']), 'fk_soc');
+	$TId = TRequeteCore::get_id_from_what_you_want($ATMdb, MAIN_DB_PREFIX.'assetatm', array('serial_number' => $serialNumber), 'fk_soc');
 	
 	if(empty($TId)) { // Matricule non trouvé
-		setEventMessage('Matricule '.$_REQUEST['sall'].' non trouvé', 'warnings');
+		setEventMessage('Matricule '.$serialNumber.' non trouvé', 'warnings');
 		header(header('Location: '.dol_buildpath('index.php',1))); exit;
 	}
 	
 	if(count($TId) > 1) { // Plusieurs matricules trouvés
-		setEventMessage('Plusieurs matricules trouvés pour la recherche '.$_REQUEST['sall'].'. Merci de chercher par client', 'warnings');
+		setEventMessage('Plusieurs matricules trouvés pour la recherche '.$serialNumber.'. Merci de chercher par client', 'warnings');
 		header(header('Location: '.dol_buildpath('index.php',1))); exit;
 	}
 	
@@ -1311,8 +1313,7 @@ function _fiche_suivi(&$ATMdb, TSimulation &$simulation, $mode){
 }
 
 function _liste_dossier(&$ATMdb, TSimulation &$simulation, $mode, $search_by_siren=true) {
-	global $langs,$conf, $db, $bc, $user;
-	
+	global $langs,$conf, $db, $bc, $user, $serialNumber;
 	$r = new TListviewTBS('dossier_list', './tpl/simulation.dossier.tpl.php');
 
 	$sql = "SELECT a.rowid as 'IDAff', a.reference as 'N° affaire', e.rowid as 'entityDossier', a.contrat as 'Type contrat'";
@@ -1358,6 +1359,8 @@ function _liste_dossier(&$ATMdb, TSimulation &$simulation, $mode, $search_by_sir
 	$TDossierUsed = array();
 	
 	while ($ATMdb->Get_line()) {
+        $searchedBySerialNumber = false;
+
 		$idDoss = $ATMdb->Get_field('IDDoss');
 		$affaire = new TFin_affaire;
 		$dossier=new TFin_Dossier;
@@ -1373,6 +1376,7 @@ function _liste_dossier(&$ATMdb, TSimulation &$simulation, $mode, $search_by_sir
 			
 			foreach($dossier->TLien[0]->affaire->TAsset as $linkAsset) {
 				$serial = $linkAsset->asset->serial_number;
+				if(! empty($serialNumber) && $serialNumber == $serial) $searchedBySerialNumber = true; // Champ définis dynamiquement signifiant qu'on a cherché ce matricule via la recherche
 				$TSerial[] = $serial;
 				if(count($TSerial) >= 3) {
 					$TSerial[] = '...';
@@ -1478,6 +1482,10 @@ function _liste_dossier(&$ATMdb, TSimulation &$simulation, $mode, $search_by_sir
 		$numcontrat_entity_leaser = ($dossierRachete->num_contrat) ? $dossierRachete->num_contrat :$fin->reference;
 		$numcontrat_entity_leaser = '<a href="'.dol_buildpath('/financement/dossier.php', 1).'?id='.$idDoss.'">'.$numcontrat_entity_leaser.'</a> / '.$TEntityName[$ATMdb->Get_field('entityDossier')];
 		$numcontrat_entity_leaser.= '<br>'.$leaser->getNomUrl(0);
+
+        $rowClass = '';
+		if($searchedBySerialNumber) $rowClass .= 'class="highlight"';
+
 		$row = array(
 			'id_affaire' => $ATMdb->Get_field('IDAff')
 			,'num_affaire' => $ATMdb->Get_field('N° affaire')
@@ -1534,7 +1542,7 @@ function _liste_dossier(&$ATMdb, TSimulation &$simulation, $mode, $search_by_sir
 			,'assurance_actualise' => ($dossierRachete->assurance_actualise) ? $dossierRachete->assurance_actualise :$fin->assurance_actualise
 			,'montant' => ($dossierRachete->montant) ? $dossierRachete->montant : $fin->montant
 			
-			,'class' => $bc[$var]
+			,'class' => $rowClass
 			
 			,'numcontrat_entity_leaser'=>$numcontrat_entity_leaser
 			
