@@ -32,7 +32,7 @@ $TabManuel = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX.'fin_
 $Tab = array_merge($TabOui, $TabAuto, $TabManuel);*/
 
 $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'fin_dossier_financement';
-$sql.= " WHERE date_solde < '1970-00-00 00:00:00'";
+$sql.= " WHERE (date_solde < '1970-00-00 00:00:00' OR date_solde IS NULL)";
 $sql.= " AND okPourFacturation IN ('OUI', 'AUTO', 'MANUEL')";
 $Tab = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 
