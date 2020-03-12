@@ -1,7 +1,7 @@
 <?php
 
 require '../config.php';
-//dol_include_once('/financement/class/affaire.class.php');
+dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 //dol_include_once('/financement/class/dossier_integrale.class.php');
 dol_include_once('/financement/class/grille.class.php');
@@ -111,14 +111,14 @@ function getUsefulData($TLine) {
     );
 
     $periodicite = $TPeriodicite[$TLine[$TIndex['periodicite']]];
-    $fk_leaser = _getLeaserByName($TLine[$TIndex['date_debut']]);
+    $fk_leaser = _getLeaserByName($TLine[$TIndex['leaserName']]);
 
     return array(
         'ref_contrat' => $reference,
         'entity' => $TLine[$TIndex['entity']],
         'financementLeaser' => array(
             'reference' => $referenceLeaser,
-            'date_debut' => date('Y-m-d', $date_debut),
+            'date_debut' => $date_debut,
             'montant' => $montant,
             'duree' => $TLine[$TIndex['duree']],
             'terme' => $TLine[$TIndex['terme']],
@@ -143,7 +143,7 @@ function updateDossier(TPDOdb &$PDOdb, $TData) {
     $d = new TFin_dossier;
     $res = $d->loadReference($PDOdb, $TData['ref_contrat'], false, $TData['entity']);
 
-    if($res === false) return false;
+    if($res === false || empty($TData['financementLeaser']['fk_soc'])) return false;
 
     /**
      * @var TFin_financement $f
@@ -152,7 +152,7 @@ function updateDossier(TPDOdb &$PDOdb, $TData) {
 
     foreach($TData['financementLeaser'] as $k => $v) $f->$k = $v;
 
-    return true;//$f->save($PDOdb);
+    return /*true;*/$f->save($PDOdb);
 }
 
 /**
@@ -161,6 +161,7 @@ function updateDossier(TPDOdb &$PDOdb, $TData) {
  */
 function _getLeaserByName($leaserName) {
     global $db;
+    if($leaserName == 'BPCE LEASE') $leaserName = 'BPCE LEASE (GCEBAIL)';
 
     $sql = 'SELECT rowid';
     $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
