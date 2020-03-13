@@ -109,10 +109,12 @@ function display_liste(&$PDOdb, &$TDossiersError, $TRule) {
         $checked = '';
         if(! empty($TRule['rule'.$ruleNumber]) && $TRule['rule'.$ruleNumber] == true) $checked = 'checked="checked" ';
 
-        print '<label for="TRule[rule'.$ruleNumber.']">Règle '.$ruleNumber.' </label>';
-        print '<input type="checkbox" name="TRule[rule'.$ruleNumber.']" id="TRule[rule'.$ruleNumber.']" title="'.$ruleTitle.'" '.$checked.'/>';
+        print '<input type="checkbox" name="TRule[rule'.$ruleNumber.']" id="TRule[rule'.$ruleNumber.']" title="'.$ruleTitle.'" '.$checked.'/>&nbsp;';
+        print '<label for="TRule[rule'.$ruleNumber.']">Règle '.$ruleNumber.' : '.$ruleTitle.'</label>';
+        print '<br/>';
     }
-	
+
+    print '<br/>';
 	echo $form->btsubmit('Lancer', 'run');
 	if(!empty($TDossiersError['all'])) {
 		echo $form->btsubmit('Exporter ('.count($TDossiersError['all']).' dossiers)', 'export');
