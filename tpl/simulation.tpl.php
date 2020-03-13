@@ -103,7 +103,7 @@
 			<td>[simulation.opt_mode_reglement; strconv=no]</td>
 			[onshow;block=begin;when [simulation.cristal_project]!=0]
 			<td>Référence Cristal</td>
-			<td>[simulation.cristal_project; strconv=no]</td>
+			<td>[simulation.cristal_link; strconv=no]</td>
 			[onshow;block=end]
 			[onshow;block=begin;when [simulation.cristal_project]==0]
 			<td>&nbsp;</td>

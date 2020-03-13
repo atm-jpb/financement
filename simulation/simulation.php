@@ -1091,6 +1091,14 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
         $dateLabel = $langs->trans('DateDemarrageCustom');
     }
     else $dateLabel = $langs->trans('DateDemarrage');
+
+    $cristalLink = '';
+    if(! empty($simulation->fk_simu_cristal)) {
+        $cristalLink .= '<a href="http://cpro.cristal/simulation/'.$simulation->fk_simu_cristal.'/calcul">'.$simulation->fk_projet_cristal.'</a>';
+    }
+    else if (! empty($simulation->fk_projet_cristal)) {
+        $cristalLink .= '<a href="http://cpro.cristal/projet/'.$simulation->fk_projet_cristal.'">'.$simulation->fk_projet_cristal.'</a>';
+    }
 	
 	$simuArray = array(
 		'titre_simul'=>load_fiche_titre($langs->trans("CustomerInfo"),'','object_company.png')
@@ -1100,7 +1108,8 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 		,'id'=>$simulation->rowid
 		,'entity'=>$entity_field
 		,'ref'=>$simulation->reference
-		,'cristal_project'=>$simulation->fk_projet_cristal
+		,'cristal_project' => $simulation->fk_projet_cristal
+		,'cristal_link' => $cristalLink
 		,'doc'=>($simulation->getId() > 0) ? $formfile->getDocumentsLink('financement', $filename, $filedir) : ''
 		,'fk_soc'=>$simulation->fk_soc
 
