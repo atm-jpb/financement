@@ -1253,7 +1253,7 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 				,'pictoMail'=>img_picto('','stcomm0.png', '', 0)
 			)
 			
-			,'user'=>$user
+			,'user'=>$simulation->user
 			
 		),
 		array(),

@@ -3,7 +3,7 @@
 	
 <td valign="top">
 	<div id="simulateur" style="width: 100%;">
-	<div style="float:right;"><a href="mailto:financement@cpro.fr?subject=Demande d'infos : [user.firstname] [user.lastname] - [client.siren] - [client.nom]">[view.pictoMail;strconv=no] Demande d'infos</a></div>
+	<div style="float:right;"><a href="mailto:[user.email]?subject=Demande d'infos : [client.siren] - [client.nom]">[view.pictoMail;strconv=no] Demande d'infos</a></div>
 		[simulation.titre_simul; strconv=no]
 	<br />
 	
