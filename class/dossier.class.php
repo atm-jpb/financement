@@ -2017,6 +2017,52 @@ class TFin_dossier extends TObjetStd
         // Si aucune règle ci-dessus ne s'applique, on peut donc afficher le solde
         return 1;
     }
+
+    public static function getContractFromThirdpartyInfo(TPDOdb $PDOdb, $customerCode, $idprof2, $entity = 1, $ongoing = 1) {
+        global $db;
+
+        $TRes = array();
+
+        $sql = 'SELECT DISTINCT d.rowid';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_dossier d';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX."fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid)";
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe s ON (a.fk_soc = s.rowid)';
+        $sql.= ' WHERE d.entity = '.$db->escape($entity);
+        if(! empty($customerCode)) $sql .= " AND s.code_client = '".$db->escape($customerCode)."'";
+        if(! empty($idprof2)) $sql .= " AND s.siret = '".$db->escape($idprof2)."'";
+        if(! empty($ongoing)) {
+            $sql .= " AND (df.date_solde is null OR df.date_solde < '1970-01-01')"; // Date de solde non définie
+            $sql .= ' AND (df.montant_solde is null OR df.montant_solde = 0.00)';   // Montant du solde non défini
+        }
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        while($obj = $db->fetch_object($resql)) {
+            $d = new self();
+            $d->load($PDOdb, $obj->rowid, false);
+            $d->load_affaire($PDOdb);
+
+            $d->TLien[0]->affaire->loadEquipement($PDOdb);
+
+            unset($d->table, $d->TChamps, $d->TConstraint, $d->TList);
+            unset($d->TLien[0]->table, $d->TLien[0]->TChamps, $d->TLien[0]->TConstraint, $d->TLien[0]->TList);
+            unset($d->TLien[0]->dossier);
+            unset($d->TLien[0]->affaire->table, $d->TLien[0]->affaire->TChamps, $d->TLien[0]->affaire->TConstraint, $d->TLien[0]->affaire->TList, $d->TLien[0]->affaire->societe->fields, $d->TLien[0]->affaire->societe->db);
+            unset($d->TLien[0]->affaire->table, $d->TLien[0]->affaire->TChamps, $d->TLien[0]->affaire->TConstraint, $d->TLien[0]->affaire->TList);
+            unset($d->financement->table, $d->financement->TChamps, $d->financement->TConstraint, $d->financement->TList);
+            unset($d->financementLeaser->table, $d->financementLeaser->TChamps, $d->financementLeaser->TConstraint, $d->financementLeaser->TList);
+            $TRes[] = $d;
+            break;
+        }
+
+        return $TRes;
+    }
 }
 
 /*
