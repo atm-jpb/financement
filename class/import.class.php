@@ -313,7 +313,7 @@ class TImport extends TObjetStd {
 			$this->addError($ATMdb, 'cantFindOrCreateFinancement', $data['reference']);
 			return false;
 		}
-		
+
 		$dossier = new TFin_dossier();
 		if($dossier->load($ATMdb, $f->fk_fin_dossier,true)) { // Chargement du dossier correspondant
 
@@ -363,22 +363,22 @@ class TImport extends TObjetStd {
 
 			// On met à jour l'entité du dossier (changement possible lors de fusion d'entités)
 			$dossier->entity = $data['entity'];
-			
+
 			$dossier->save($ATMdb);
 			$this->nb_update++;
 			TImportHistorique::addHistory($ATMdb, $this->type_import, $this->filename, get_class($dossier), $dossier->getId(),'update',$data);
 
 			$TInfosGlobale[] = $dossier->financementLeaser->getId();
-			
+
 			//Ajout traitement
 			//Si colonne biens renseigné alors on créé les equipements si inexistant
 			//Puis ajout de la liaison equipement -> affaire sans passer par la facture matériel
 			if(!empty($data['biens'])){
 				$TRefBiens = explode(';', $data['biens']);
-				
+
 				foreach($TRefBiens as $refBien){
 					$serial = trim($refBien);
-				
+
 					$asset=new TAsset;
 					if(!$asset->loadReference($ATMdb, $serial)) { // Non trouvé dans la base, on créé
 						$asset->entity = $dossier->entity;
@@ -386,7 +386,7 @@ class TImport extends TObjetStd {
 						$asset->fk_soc = $dossier->TLien[0]->affaire->fk_soc;
 						$asset->save($ATMdb);
 					}
-					
+
 					//Ajout du lien à l'affaire
 					if($dossier->TLien[0]->affaire){
 						$asset->add_link($dossier->TLien[0]->affaire->getId(),'affaire');
@@ -399,7 +399,7 @@ class TImport extends TObjetStd {
 			return true;
 
 		}
-		
+
 		return false;
 	}
 
@@ -894,7 +894,8 @@ class TImport extends TObjetStd {
             "Frais d'accès au service Solution",
             "Forfait d'Accès au Service Solution",
             'Fass',
-            "Fass - Frais d'accès au service Solution"
+            "Fass - Frais d'accès au service Solution",
+			"Forfait d'Acccès au Service Solution"
         );
         if(in_array($data['label_integrale'], $TFASSLabel)) {
             if(empty($integrale->fass_somme)) { // Gestion FASS sur plusieurs lignes
@@ -1998,7 +1999,7 @@ class TImport extends TObjetStd {
         //$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe_commerciaux WHERE fk_soc = ".$TCommercialCpro->fk_soc." AND fk_user != ".$TCommercialCpro->fk_user." AND type_activite_cpro = '".$TCommercialCpro->type_activite_cpro."'";
         // On supprime tous les commerciaux de l'entité sur laquelle on est (par défaut la 1)
         $sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe_commerciaux sc
-				LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = sc.fk_soc) 
+				LEFT JOIN ".MAIN_DB_PREFIX."societe s ON (s.rowid = sc.fk_soc)
 				WHERE sc.fk_soc = ".$TCommercialCpro->fk_soc." AND sc.fk_user != ".$TCommercialCpro->fk_user." AND sc.type_activite_cpro = '".$TCommercialCpro->type_activite_cpro."'
 				AND s.entity = ".$conf->entity;
         //echo $sql.'<br>';
