@@ -55,7 +55,7 @@ class financement extends DolibarrApi
      * @url     GET /contract
      * @throws  RestException
      */
-    function getContract($id = null, $customerCode = null, $idprof2 = null, $entity = 1, $ongoing = 1) {
+    public function getContract($id = null, $customerCode = null, $idprof2 = null, $entity = 1, $ongoing = 1) {
         if(is_null($id) && is_null($customerCode) && is_null($idprof2)) throw new RestException(400, 'No filter found');
 
         $TDossier = array();
@@ -88,5 +88,32 @@ class financement extends DolibarrApi
         }
 
         return $TDossier;
+    }
+
+    /**
+     * Get payments for one contract
+     *
+     * Get a list of contracts
+     *
+     * @param   int     $id         Id of contract
+     * @param   string  $reference  Customer code related to contract
+     * @return  array
+     *
+     * @url     GET /payments
+     * @throws  RestException
+     */
+    public function getPayments($id, $reference) {
+        if(is_null($id) && is_null($reference)) throw new RestException(400, 'No filter found');
+
+        if(! is_null($id)) {
+            $res = $this->dossier->load($this->PDOdb, $id, false);
+            if($res === false) throw new RestException(404, 'Contract not found');
+
+            // TODO: Continue
+//            $this->dossier->getSolde()
+        }
+        else {
+
+        }
     }
 }
