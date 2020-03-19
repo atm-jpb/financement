@@ -48,15 +48,21 @@ class financement extends DolibarrApi
      * @param   int     $id             Id of contract
      * @param   string  $customerCode   Customer code related to contract
      * @param   string  $idprof2        Professional Id 2 of customer (SIRET)
-     * @param   int     $entity         Entity of contract to search
+     * @param   string  $entity         Entities of contract to search (comma separated)
      * @param   int     $ongoing        1 to only get ongoing contract, 0 otherwise
      * @return  array
      *
      * @url     GET /contract
      * @throws  RestException
      */
-    public function getContract($id = null, $customerCode = null, $idprof2 = null, $entity = 1, $ongoing = 1) {
+    public function getContract($id = null, $customerCode = null, $idprof2 = null, $entity = '1', $ongoing = 1) {
         if(is_null($id) && is_null($customerCode) && is_null($idprof2)) throw new RestException(400, 'No filter found');
+
+        // Ici on vérifie uniquement que le 1er et le dernier caractère sont bien numériques pour continuer
+        // FIXME: Si les entités ne sont pas 'comma separated' ça ne va pas throw d'exception mais la requête SQL plus bas va planter
+        if(is_null($id) && (! is_numeric(substr($entity, 0, 1)) || ! is_numeric(substr($entity, -1, 1)))) {
+            throw new RestException(400, 'Wrong value for entity filter');
+        }
 
         $TDossier = array();
         if(! is_null($id)) {
@@ -64,14 +70,6 @@ class financement extends DolibarrApi
             if($res === false) throw new RestException(404, 'Contract not found');
             $this->dossier->load_affaire($this->PDOdb);
             $this->dossier->TLien[0]->affaire->loadEquipement($this->PDOdb);
-
-            unset($this->dossier->table, $this->dossier->TChamps, $this->dossier->TConstraint, $this->dossier->TList);
-            unset($this->dossier->TLien[0]->table, $this->dossier->TLien[0]->TChamps, $this->dossier->TLien[0]->TConstraint, $this->dossier->TLien[0]->TList);
-            unset($this->dossier->TLien[0]->dossier);
-            unset($this->dossier->TLien[0]->affaire->table, $this->dossier->TLien[0]->affaire->TChamps, $this->dossier->TLien[0]->affaire->TConstraint, $this->dossier->TLien[0]->affaire->TList, $this->dossier->TLien[0]->affaire->societe->fields, $this->dossier->TLien[0]->affaire->societe->db);
-            unset($this->dossier->TLien[0]->affaire->table, $this->dossier->TLien[0]->affaire->TChamps, $this->dossier->TLien[0]->affaire->TConstraint, $this->dossier->TLien[0]->affaire->TList);
-            unset($this->dossier->financement->table, $this->dossier->financement->TChamps, $this->dossier->financement->TConstraint, $this->dossier->financement->TList);
-            unset($this->dossier->financementLeaser->table, $this->dossier->financementLeaser->TChamps, $this->dossier->financementLeaser->TConstraint, $this->dossier->financementLeaser->TList);
 
             $TDossier[] = $this->dossier;
         }
@@ -86,6 +84,8 @@ class financement extends DolibarrApi
 
             $TDossier = TFin_dossier::getContractFromThirdpartyInfo($this->PDOdb, null, $idprof2, $entity, $ongoing);
         }
+
+        foreach($TDossier as &$dossier) $this->_cleanObjectDatas($dossier);
 
         return $TDossier;
     }
@@ -115,5 +115,31 @@ class financement extends DolibarrApi
         else {
 
         }
+    }
+
+    function _cleanObjectDatas($object) {
+        parent::_cleanObjectDatas($object);
+
+        $object->affaire = $object->TLien[0]->affaire;
+        $object->nature_financement = $object->affaire->nature_financement;
+        $object->type_contrat = $object->affaire->contrat;
+        $object->type_financement = $object->affaire->type_financement;
+        $object->TAsset = $object->affaire->TAsset;
+
+        $object->TEquipement = array();
+        foreach($object->TAsset as $assetLink) {
+            unset($assetLink->asset->table, $assetLink->asset->TChamps, $assetLink->asset->TConstraint, $assetLink->asset->TList, $assetLink->asset->assetType);
+            $object->TEquipement[] = $assetLink->asset;
+        }
+        unset($object->TAsset);
+
+        unset($object->table, $object->TChamps, $object->TConstraint, $object->TList);
+        unset($object->affaire->table, $object->affaire->TChamps, $object->affaire->TConstraint, $object->affaire->TList, $object->affaire->TAsset);
+        unset($object->affaire->societe);
+        unset($object->financement->table, $object->financement->TChamps, $object->financement->TConstraint, $object->financement->TList);
+        unset($object->financementLeaser->table, $object->financementLeaser->TChamps, $object->financementLeaser->TConstraint, $object->financementLeaser->TList);
+        unset($object->TLien);
+
+        return $object;
     }
 }

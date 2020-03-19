@@ -2018,7 +2018,7 @@ class TFin_dossier extends TObjetStd
         return 1;
     }
 
-    public static function getContractFromThirdpartyInfo(TPDOdb $PDOdb, $customerCode, $idprof2, $entity = 1, $ongoing = 1) {
+    public static function getContractFromThirdpartyInfo(TPDOdb $PDOdb, $customerCode, $idprof2, $entity, $ongoing) {
         global $db;
 
         $TRes = array();
@@ -2029,7 +2029,7 @@ class TFin_dossier extends TObjetStd
         $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)';
         $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)';
         $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe s ON (a.fk_soc = s.rowid)';
-        $sql.= ' WHERE d.entity = '.$db->escape($entity);
+        $sql.= ' WHERE d.entity IN ('.$db->escape($entity).')';
         if(! empty($customerCode)) $sql .= " AND s.code_client = '".$db->escape($customerCode)."'";
         if(! empty($idprof2)) $sql .= " AND s.siret = '".$db->escape($idprof2)."'";
         if(! empty($ongoing)) {
@@ -2050,13 +2050,6 @@ class TFin_dossier extends TObjetStd
 
             $d->TLien[0]->affaire->loadEquipement($PDOdb);
 
-            unset($d->table, $d->TChamps, $d->TConstraint, $d->TList);
-            unset($d->TLien[0]->table, $d->TLien[0]->TChamps, $d->TLien[0]->TConstraint, $d->TLien[0]->TList);
-            unset($d->TLien[0]->dossier);
-            unset($d->TLien[0]->affaire->table, $d->TLien[0]->affaire->TChamps, $d->TLien[0]->affaire->TConstraint, $d->TLien[0]->affaire->TList, $d->TLien[0]->affaire->societe->fields, $d->TLien[0]->affaire->societe->db);
-            unset($d->TLien[0]->affaire->table, $d->TLien[0]->affaire->TChamps, $d->TLien[0]->affaire->TConstraint, $d->TLien[0]->affaire->TList);
-            unset($d->financement->table, $d->financement->TChamps, $d->financement->TConstraint, $d->financement->TList);
-            unset($d->financementLeaser->table, $d->financementLeaser->TChamps, $d->financementLeaser->TConstraint, $d->financementLeaser->TList);
             $TRes[] = $d;
             break;
         }
