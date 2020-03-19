@@ -58,11 +58,8 @@ class financement extends DolibarrApi
     public function getContract($id = null, $customerCode = null, $idprof2 = null, $entity = '1', $ongoing = 1) {
         if(is_null($id) && is_null($customerCode) && is_null($idprof2)) throw new RestException(400, 'No filter found');
 
-        // Ici on vérifie uniquement que le 1er et le dernier caractère sont bien numériques pour continuer
-        // FIXME: Si les entités ne sont pas 'comma separated' ça ne va pas throw d'exception mais la requête SQL plus bas va planter
-        if(is_null($id) && (! is_numeric(substr($entity, 0, 1)) || ! is_numeric(substr($entity, -1, 1)))) {
-            throw new RestException(400, 'Wrong value for entity filter');
-        }
+        $TEntity = explode(',', $entity);
+        foreach($TEntity as $e) if(! is_numeric($e)) throw new RestException(400, 'Wrong value for entity filter');
 
         $TDossier = array();
         if(! is_null($id)) {
