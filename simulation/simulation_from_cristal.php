@@ -29,8 +29,6 @@ $periodicite = _get_periodicite(GETPOST('periodicite'));
 $TEntity = TSimulation::getEntityFromCristalCode(GETPOST('code_cristal'));
 if(empty($TEntity)) $TEntity[] = $conf->entity;
 
-if(empty($fk_projet)) exit('empty fk_projet!');
-
 // HTTP auth for GET method
 if($method == 'GET') _check_auth();
 
