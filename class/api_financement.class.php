@@ -92,26 +92,33 @@ class financement extends DolibarrApi
      *
      * Get a list of contracts
      *
-     * @param   int     $id         Id of contract
-     * @param   string  $reference  Customer code related to contract
+     * @param int    $id        Id of contract
+     * @param string $reference Customer code related to contract
+     * @param int    $entity    Entity of contract to calculate payments
      * @return  array
      *
+     * @throws RestException
      * @url     GET /payments
-     * @throws  RestException
      */
-    public function getPayments($id, $reference) {
+    public function getPayments($id = null, $reference = null, $entity = 1) {
         if(is_null($id) && is_null($reference)) throw new RestException(400, 'No filter found');
 
         if(! is_null($id)) {
             $res = $this->dossier->load($this->PDOdb, $id, false);
             if($res === false) throw new RestException(404, 'Contract not found');
-
-            // TODO: Continue
-//            $this->dossier->getSolde()
         }
         else {
-
+            $res = $this->dossier->loadReference($this->PDOdb, $reference, false, $entity);
+            if($res === false) throw new RestException(404, 'Contract not found');
         }
+        $this->dossier->load_affaire($this->PDOdb);
+
+        $TRes = array();
+        for($i = 1 ; $i <= $this->dossier->financement->duree ; $i++) {
+            $TRes[] = $this->dossier->getSolde($this->PDOdb, 'SRCPRO', $i);
+        }
+
+        return $TRes;
     }
 
     function _cleanObjectDatas($object) {
