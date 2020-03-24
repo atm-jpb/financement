@@ -99,7 +99,7 @@ class financement extends DolibarrApi
      * Get a list of payments for one contract
      *
      * @param int    $id        Id of contract
-     * @param string $reference Customer code related to contract
+     * @param string $reference Reference of contract
      * @param int    $entity    Entity of contract to calculate payments
      * @return  array
      *
