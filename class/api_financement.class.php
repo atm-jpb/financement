@@ -9,6 +9,12 @@ dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
 
+/**
+ * API class for financement
+ *
+ * @access protected
+ * @class  DolibarrApiAccess {@requires user,external}
+ */
 class financement extends DolibarrApi
 {
     /**
@@ -90,7 +96,7 @@ class financement extends DolibarrApi
     /**
      * Get payments for one contract
      *
-     * Get a list of contracts
+     * Get a list of payments for one contract
      *
      * @param int    $id        Id of contract
      * @param string $reference Customer code related to contract
