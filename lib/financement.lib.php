@@ -923,3 +923,24 @@ function getProrataTemporisRent($periodicite, $timestamp, $echeance) {
 
     return round(($nbDaysInPeriod-$delta) / $nbDaysInPeriod * $echeance, 2);  // Prorata temporis de l'echéance qui donne le loyer intercalaire
 }
+
+function isSimilarInvoiceRefExists($ref, $entity) {
+    global $db;
+
+    $sql = 'SELECT count(*) as nb';
+    $sql.= ' FROM '.MAIN_DB_PREFIX.'facture';
+    $sql.= " WHERE ref = '".$db->escape($ref)."'";
+    $sql.= ' AND entity = '.$db->escape($entity);
+
+    $resql = $db->query($sql);
+    if(! $resql) {
+        dol_print_error($db);
+        exit;
+    }
+
+    if($obj = $db->fetch_object($resql)) {
+        return $obj->nb > 0;
+    }
+
+    return true;
+}

@@ -64,50 +64,55 @@
 				    $f->date = date('Y-m-d', $facDate);
 				    $f->socid = $facLeaser;
 
-				    $old_entity = $conf->entity;
-				    switchEntity($affaire->entity); // Nécessaire car la création prend pour entité la $conf->entity
-				    $res = $f->create($user);
-				    switchEntity($old_entity);
-
-				    if($res > 0) {
-                        $p = new Product($db);
-                        $res = $p->fetch('', $facRefMat);
-                        if($res == 0) {
-                            $p->ref = $facRefMat;
-                            $p->label = $facLabel;
-                            $res = $p->create($user);
-                        }
-
-                        $taux_tva = 20;
-                        $f->addline($facSerialNumber, $affaire->montant, 1, $taux_tva, 0, 0, $p->id);
-
-                        $f->ref = $facRef;
-                        $f->statut = 0;
-                        $resUpdate = $f->validate($user);   // ça update aussi la ref donc c'est ok
-                        if($resUpdate < 0) {
-                            setEventMessage($langs->trans('EquipmentInvoiceRefAlreadyInUse', $facRef), 'warnings');
-                        }
+				    // Vérification de la référence facture
+                    if(isSimilarInvoiceRefExists($facRef, $affaire->entity)) {
+                        setEventMessage($langs->trans('EquipmentInvoiceRefAlreadyInUse', $facRef), 'errors');
+                    }
+                    else {
+                        $old_entity = $conf->entity;
+                        switchEntity($affaire->entity); // Nécessaire car la création prend pour entité la $conf->entity
+                        $res = $f->create($user);
+                        switchEntity($old_entity);
 
                         if($res > 0) {
-                            $f->add_object_linked('affaire', $affaire->rowid);
+                            $p = new Product($db);
+                            $res = $p->fetch('', $facRefMat);
+                            if($res == 0) {
+                                $p->ref = $facRefMat;
+                                $p->label = $facLabel;
+                                $res = $p->create($user);
+                            }
 
-                            $asset = new TAsset;
-                            $asset->serial_number = $facSerialNumber;
-                            $asset->fk_product = $p->id;
+                            $taux_tva = 20;
+                            $f->addline($facSerialNumber, $affaire->montant, 1, $taux_tva, 0, 0, $p->id);
 
-                            $asset->add_link($f->id, 'facture');
-                            $asset->add_link($affaire->rowid, 'affaire');
-                            $asset->save($ATMdb);
+                            $f->ref = $facRef;
+                            $f->statut = 0;
+                            $resUpdate = $f->validate($user);   // ça update aussi la ref donc c'est ok
+                            if($resUpdate < 0) {
+                                setEventMessage($langs->trans('EquipmentInvoiceRefAlreadyInUse', $facRef), 'warnings');
+                            }
 
-                            setEventMessage($langs->trans('EquipmentInvoiceCreated'));
+                            if($res > 0) {
+                                $f->add_object_linked('affaire', $affaire->rowid);
+
+                                $asset = new TAsset;
+                                $asset->serial_number = $facSerialNumber;
+                                $asset->fk_product = $p->id;
+
+                                $asset->add_link($f->id, 'facture');
+                                $asset->add_link($affaire->rowid, 'affaire');
+                                $asset->save($ATMdb);
+
+                                setEventMessage($langs->trans('EquipmentInvoiceCreated'));
+                            }
+                            else {
+                                setEventMessage($langs->trans($p->error, $facRefMat), 'errors');
+                            }
                         }
                         else {
-                            setEventMessage($langs->trans($p->error, $facRefMat), 'errors');
+                            setEventMessage($langs->trans('EquipmentInvoiceCreationError', $f->error), 'errors');
                         }
-
-                    }
-				    else {
-				        setEventMessage($langs->trans('EquipmentInvoiceCreationError', $f->error));
                     }
                 }
 
