@@ -866,6 +866,13 @@ class TFin_dossier extends TObjetStd
 
                 if($this->financementLeaser->duree < $iPeriode) return $this->financementLeaser->reste; // TODO check si ça doit rester
 
+				$fk_leaser = $this->financementLeaser->fk_soc;
+				$leaser = new Societe($db);
+				$leaser->fetch($fk_leaser);
+				if(empty($leaser->array_options)) $leaser->fetch_optionals();
+
+				if(! empty($leaser->array_options['options_non_cape_lrd'])) $capeLRD = false;
+
                 // Add Pen Leaser + CPro
                 $solde = $CRD_Leaser * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode) / 100) * (1 + $this->getPenalite($PDOdb, 'R', $iPeriode, $date_deb_periode, true) / 100);
 
@@ -905,6 +912,13 @@ class TFin_dossier extends TObjetStd
             }
             else {
                 if($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+
+				$fk_soc = $this->financement->fk_soc;
+				$soc = new Societe($db);
+				$soc->fetch($fk_soc);
+				if(empty($soc->array_options)) $soc->fetch_optionals();
+
+				if(! empty($soc->array_options['options_non_cape_lrd'])) $capeLRD = false;
 
                 if(! empty($this->type_financement_affaire['ADOSSEE']) || ! empty($this->type_financement_affaire['MANDATEE'])) {
                     $solde = $CRD * (1 + $conf->global->FINANCEMENT_PERCENT_AUG_CRD / 100);
@@ -972,6 +986,13 @@ class TFin_dossier extends TObjetStd
             else {
                 if($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financementLeaser->montant;
 
+				$fk_leaser = $this->financementLeaser->fk_soc;
+				$leaser = new Societe($db);
+				$leaser->fetch($fk_leaser);
+				if(empty($leaser->array_options)) $leaser->fetch_optionals();
+
+				if(! empty($leaser->array_options['options_non_cape_lrd'])) $capeLRD = false;
+
                 //Ticket 4622 : si solde calculé inférieur à la VR, alors solde = VR !!!! uniquement pour ABG
                 if($LRD_Leaser < $this->financement->reste) {
                     return $this->financementLeaser->reste;
@@ -1011,6 +1032,13 @@ class TFin_dossier extends TObjetStd
             }
             else {
                 if($p <= $conf->global->FINANCEMENT_SEUIL_SOLDE_CPRO_FINANCEMENT_LEASER_MONTH) return $this->financement->montant;
+
+				$fk_soc = $this->financement->fk_soc;
+				$soc = new Societe($db);
+				$soc->fetch($fk_soc);
+				if(empty($soc->array_options)) $soc->fetch_optionals();
+
+				if(! empty($soc->array_options['options_non_cape_lrd'])) $capeLRD = false;
 
                 if(! empty($this->type_financement_affaire['ADOSSEE']) || ! empty($this->type_financement_affaire['MANDATEE'])) {
                     $solde = $CRD * (1 + ($conf->global->FINANCEMENT_PERCENT_AUG_CRD / 100));
