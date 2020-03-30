@@ -63,40 +63,40 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
 		global $conf;
 
 		switch ($conf->entity) {
-			case 1: //CPRO Impression
+			case 1: // CPRO Impression
 				return "M000355961";
 				break;
-			case 2: //CPRO Informatique
+			case 2: // CPRO Informatique
 				return "M000317069";
 				break;
-			case 3: //CPRO Télécom
+			case 3: // CPRO Télécom
 				return "M001155746";
 				break;
-			case 4: //Bougogne Copie
+			case 4: // Bougogne Copie
 				return "M000355961";
 				break;
-			case 5: //ABG
+			case 5: // ABG
 				return "M000290985";
 				break;
-            case 6: //COPEM
+            case 6: // COPEM
                 return "M000448171";
                 break;
-			case 7: //Copy Concept
+			case 7: // Copy Concept
 				return "M000252940";
 				break;
-			case 9: //Quadra
+			case 9: // Quadra
 				return "M000355473";
 				break;
-			case 12: //CAPEA
+			case 12: // CAPEA
 				return "M000317338";
 				break;
-			case 13: //BCMP
+			case 13: // BCMP
 				return "M000393212";
 				break;
-			case 14: //Perret
+			case 14: // Perret
 				return "M000342697";
 				break;
-            case 18: //ESUS
+            case 18: // ESUS
                 return "M000326725";
                 break;
             case 19: // BUROCOM
@@ -116,6 +116,9 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
                 break;
             case 24: // INGECOM
                 return "M000041291";
+                break;
+            case 29: // Alkia
+                return 'M000346678';
                 break;
 			default:
 				return "M000355961";
