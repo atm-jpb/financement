@@ -34,7 +34,7 @@ if($method == 'GET') _check_auth();
 
 $PDOdb = new TPDOdb;
 $simu = new TSimulation;
-$simu->loadBy($PDOdb, $fk_projet, 'fk_projet_cristal');   // Vu avec Benjamin : 1 demande de fi par projet Cristal
+if(! empty($fk_projet)) $simu->loadBy($PDOdb, $fk_projet, 'fk_projet_cristal');   // Vu avec Benjamin : 1 demande de fi par projet Cristal
 
 if($method == 'GET') {
     _get_info($simu);
