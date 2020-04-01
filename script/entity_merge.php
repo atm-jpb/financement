@@ -149,7 +149,11 @@ function delete_record_with_entity(&$PDOdb, $table, $entitySource) {
 
 // Update all records in a table with an entity
 function update_record_with_entity(&$PDOdb, $table, $entitySource, $entityTarget) {
-	$sql = "UPDATE $table SET entity = $entityTarget WHERE entity = $entitySource;";
+    $sql = '';
+    if(in_array($table, array(MAIN_DB_PREFIX.'facture', MAIN_DB_PREFIX.'facture_fourn'))) {
+        $sql .= 'UPDATE '.$table." SET ref = concat(entity, '-', ref) WHERE entity = ".$entitySource.';';
+    }
+	$sql .= "UPDATE $table SET entity = $entityTarget WHERE entity = $entitySource;";
 	//$PDOdb->Execute($sql);
 	return $sql;
 }
