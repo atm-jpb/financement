@@ -2306,7 +2306,7 @@ class TFin_financement extends TObjetStd
             $form->load_cache_types_paiements();
 
             foreach($form->cache_types_paiements as $row) {
-                if($row['code'] != '') {
+                if($row['code'] != '' && $row['active'] == 1) {
                     $this->TReglement[$row['code']] = $row['label'];
                 }
             }
