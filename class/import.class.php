@@ -809,10 +809,11 @@ class TImport extends TObjetStd {
 
         if(empty($TInfosGlobale['integrale'][$facture_loc->ref])) {
             $facture_loc->fetchObjectLinked('','dossier');
-            if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
+            if(!empty($facture_loc->linkedObjectsIds['dossier'])) {
+                $idDoss = array_pop($facture_loc->linkedObjectsIds['dossier']);
                 //pre($facture_loc, true);
                 $dossier = new TFin_dossier;
-                $dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0],false);
+                $dossier->load($ATMdb, $idDoss, false);
                 $dossier->load_affaire($ATMdb);
 
                 // 2014.12.05 : on ne charge les données intégrale que si affaire de type intégral
@@ -823,7 +824,7 @@ class TImport extends TObjetStd {
                 }
                 else{
                     $TInfosGlobale['integrale'][$facture_loc->ref] = new TIntegrale();
-                    $TInfosGlobale['integrale'][$facture_loc->ref]->loadBy($ATMdb, $facture_loc->ref, $this->mapping['search_key']);
+                    $TInfosGlobale['integrale'][$facture_loc->ref]->loadBy($ATMdb, $facture_loc->ref, 'facnumber');
                     //$TInfosGlobale['integrale'][$data[$this->mapping['search_key']]]->truc="llll".$data[$this->mapping['search_key']];
                 }
 
