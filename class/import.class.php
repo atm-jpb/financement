@@ -752,9 +752,10 @@ class TImport extends TObjetStd {
 
             // 2014.10.30 : Evolution pour stocker assurance, maintenance et loyer actualisé
             $facture_loc->fetchObjectLinked('','dossier');
-            if(!empty($facture_loc->linkedObjectsIds['dossier'][0])) {
+			if(!empty($facture_loc->linkedObjectsIds['dossier'])) {
+				$idDoss = array_pop($facture_loc->linkedObjectsIds['dossier']);
                 $dossier = new TFin_dossier;
-                $dossier->load($ATMdb, $facture_loc->linkedObjectsIds['dossier'][0], false);
+                $dossier->load($ATMdb, $idDoss, false);
                 $dossier->load_affaire($ATMdb);
 
                 if(!empty($dossier->TLien[0]->affaire) && ($dossier->TLien[0]->affaire->contrat == 'FORFAITGLOBAL' || $dossier->TLien[0]->affaire->contrat == 'INTEGRAL')) {
@@ -1055,9 +1056,10 @@ class TImport extends TObjetStd {
             $res = $facture->set_unpaid($user);
             // On met le dossier associé en "Incident de paiement"
             $facture->fetchObjectLinked(0,'dossier',$facid,'facture');
-            if(!empty($facture->linkedObjectsIds['dossier'][0])) {
+			if(!empty($facture->linkedObjectsIds['dossier'])) {
+				$idDoss = array_pop($facture_loc->linkedObjectsIds['dossier']);
                 $doss = new TFin_dossier();
-                $doss->load($ATMdb, $facture->linkedObjectsIds['dossier'][0],false,false);
+                $doss->load($ATMdb, $idDoss,false,false);
                 $doss->load_financement($ATMdb);
                 $doss->financement->incident_paiement = 'OUI';
                 $doss->save($ATMdb);

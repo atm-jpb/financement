@@ -1667,8 +1667,9 @@ class TFin_dossier extends TObjetStd
 
             $object->fetchObjectLinked();
             $TIdAvoir = $object->getListIdAvoirFromInvoice();
+			$idDoss = (!empty($object->linkedObjectsIds['dossier'])) ? array_pop($object->linkedObjectsIds['dossier']) : 0;
 
-            if($this->rowid == $object->linkedObjectsIds['dossier'][0] && empty($TIdAvoir)) {
+            if($this->rowid == $idDoss && empty($TIdAvoir)) {
 
                 $createFacture = false;
                 $object->origin = 'dossier';
@@ -1740,8 +1741,9 @@ class TFin_dossier extends TObjetStd
 
             $object->fetchObjectLinked();
             $TIdAvoir = $object->getListIdAvoirFromInvoice();
+			$idDoss = (!empty($object->linkedObjectsIds['dossier'])) ? array_pop($object->linkedObjectsIds['dossier']) : 0;
 
-            if($this->rowid == $object->linkedObjectsIds['dossier'][0] && empty($TIdAvoir)) {
+            if($this->rowid == $idDoss && empty($TIdAvoir)) {
 
                 $createFacture = false;
                 $object->origin = 'dossier';
