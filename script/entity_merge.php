@@ -220,7 +220,7 @@ function updateDocuments($action, $entitySource, $entityTarget) {
 
         $TDir = dol_dir_list($sourcePath, 'directories');
         foreach($TDir as $TData) {
-            $cmd = 'cp -r '.$TData['fullname'].' '.$targetPath;
+            $cmd = 'cp -r '.$TData['fullname'].' '.$targetPath.';rm -r '.$TData['fullname'];
 //            exec($cmd);
         }
     }
