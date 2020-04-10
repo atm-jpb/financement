@@ -913,7 +913,7 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 
 			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			
-			,'detail_fact' => dol_buildpath('/fourn/facture/list.php?search_refsupplier='.$financementLeaser->reference,2)
+			,'detail_fact' => dol_buildpath('/fourn/facture/list.php?search_refsupplier='.$financementLeaser->reference,1)
             ,'date_envoi'=>$formRestricted->calendrier('', 'leaser[date_envoi]', $financementLeaser->date_envoi, 10,255)
 
 			
