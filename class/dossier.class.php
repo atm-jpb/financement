@@ -1,5 +1,8 @@
 <?php
 
+dol_include_once('/financement/vendor/autoload.php');
+
+use MathPHP\Finance as Finance;
 /*
  * Dossier
  */
@@ -2396,7 +2399,9 @@ class TFin_financement extends TObjetStd
     }
 
     function calculTaux() {
-        $this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100, 4);
+        $taux = Finance::rate($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme);
+        $this->taux = round($taux * (12 / $this->getiPeriode()) * 100, 4);
+//        $this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100, 4);
     }
 
     function load(&$ATMdb, $id, $annexe = false) {
