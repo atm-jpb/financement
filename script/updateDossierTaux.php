@@ -7,6 +7,7 @@ dol_include_once('/financement/class/grille.class.php');
 
 $PDOdb = new TPDOdb;
 $limit = GETPOST('limit', 'int');
+$debug = GETPOST('debug', 'int');
 $commit = GETPOST('commit', 'int');
 $fk_dossier = GETPOST('fk_dossier', 'int');
 
@@ -29,10 +30,11 @@ if(! $resql) {
 $nbLine = $db->num_rows($resql);
 print '<span>Nb Lines : '.$nbLine.'</span>';
 
-//if(empty($commit)) exit;
-
 while($obj = $db->fetch_object($resql)) {
-    var_dump($obj->fk_fin_dossier);
+    if(! empty($debug)) {
+        print '<pre>';
+        var_dump($obj->fk_fin_dossier);
+    }
 
     $d = new TFin_dossier;
     $d->load($PDOdb, $obj->fk_fin_dossier, false);
@@ -45,12 +47,12 @@ while($obj = $db->fetch_object($resql)) {
         $f = &$d->$finKey;
 
         $f->calculTaux();
-        var_dump($f->type, $f->taux);
+        if(! empty($debug)) var_dump($f->type, $f->taux);
     }
-//    $d->save($PDOdb);
-//    break;
+    if(! empty($commit)) $d->save($PDOdb);
 }
 $db->free($resql);
+if(!empty($debug)) print '</pre>';
 
 ?>
 <br/>
