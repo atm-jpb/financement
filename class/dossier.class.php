@@ -50,7 +50,10 @@ class TFin_dossier extends TObjetStd
 
     function loadReference(&$db, $reference, $annexe = false, $entity = null) {
         $checkEntity = '';
-        if(! is_null($entity) && is_numeric($entity) && ! empty($entity)) $checkEntity .= ' AND entity = '.$entity;
+        if(! is_null($entity) && ! empty($entity)) {
+            if(is_numeric($entity)) $checkEntity .= ' AND entity = '.$entity;
+            else if(is_array($entity)) $checkEntity .= ' AND entity IN ('.implode(',', $entity).')';
+        }
 
         $db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference='".$reference."'".$checkEntity);
 

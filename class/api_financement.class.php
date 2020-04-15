@@ -52,17 +52,18 @@ class financement extends DolibarrApi
      * Get a list of contracts
      *
      * @param   int     $id             Id of contract
+     * @param   string  $reference      Reference of contract
      * @param   string  $customerCode   Customer code related to contract
      * @param   string  $idprof2        Professional Id 2 of customer (SIRET)
      * @param   string  $entity         Entities of contract to search (comma separated)
      * @param   int     $ongoing        1 to only get ongoing contract, 0 otherwise
-     * @return  array
+     * @return  array|TFin_dossier
      *
      * @url     GET /contract
      * @throws  RestException
      */
-    public function getContract($id = null, $customerCode = null, $idprof2 = null, $entity = '1', $ongoing = 1) {
-        if(is_null($id) && is_null($customerCode) && is_null($idprof2)) throw new RestException(400, 'No filter found');
+    public function getContract($id = null, $reference = null, $customerCode = null, $idprof2 = null, $entity = '1', $ongoing = 1) {
+        if(is_null($id) && is_null($reference) && is_null($customerCode) && is_null($idprof2)) throw new RestException(400, 'No filter found');
 
         $TEntity = explode(',', $entity);
         foreach($TEntity as $e) if(! is_numeric($e)) throw new RestException(400, 'Wrong value for entity filter');
@@ -74,7 +75,13 @@ class financement extends DolibarrApi
             $this->dossier->load_affaire($this->PDOdb);
             $this->dossier->TLien[0]->affaire->loadEquipement($this->PDOdb);
 
-            $TDossier[] = $this->dossier;
+            return $this->_cleanObjectDatas($this->dossier);
+        }
+        else if(! is_null($reference)) {
+            $res = $this->dossier->loadReference($this->PDOdb, $reference, false, $TEntity);
+            if($res === false) throw new RestException(404, 'Contract not found');
+
+            return $this->_cleanObjectDatas($this->dossier);
         }
         else if(! is_null($customerCode)) {
             $TDossier = TFin_dossier::getContractFromThirdpartyInfo($this->PDOdb, $customerCode, null, $entity, $ongoing);
