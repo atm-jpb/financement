@@ -3,6 +3,7 @@
 ini_set('max_execution_time', 0);
 require_once '../config.php';
 dol_include_once('/financement/class/dossier.class.php');
+dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
 
 $PDOdb = new TPDOdb;
