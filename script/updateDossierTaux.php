@@ -47,7 +47,7 @@ while($obj = $db->fetch_object($resql)) {
         /** @var TFin_financement $f */
         $f = &$d->$finKey;
 
-        $f->calculTaux();
+        $res = $f->calculTaux();
         if(! empty($debug)) var_dump($f->type, $f->taux);
     }
     if(! empty($commit)) $d->save($PDOdb);
