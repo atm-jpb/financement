@@ -23,7 +23,7 @@ $targetDir = DOL_DATA_ROOT.'/17/ecm/Rapports/';
 dol_mkdir($targetDir, '', '0777');
 
 foreach($sqlFiles as $requete) {
-	echo '<hr>REQUETE '.$requete['name'];
+	echo '<hr>REQUETE '.$requete['name'].$eol;
     $a = microtime(true);
 
 	$sql = file_get_contents($requete['fullname']);
@@ -44,11 +44,13 @@ foreach($sqlFiles as $requete) {
 	$resql = $db->query($sql);
 	$b = microtime(true);
 	if($resql) {
-		echo '<hr>'.$sql;
-		echo '<hr> > '.$fileName;
+		echo '<hr>'.$sql.$eol;
+		echo '<hr> > '.$fileName.$eol;
 	} else {
-		echo '<hr>'.$sql;
-		echo '<hr>Erreur SQL : '.$db->error();
+		echo '<hr>'.$sql.$eol;
+		echo '<hr>Erreur SQL : '.$db->error().$eol;
 	}
-	echo $eol.'Execution time : '.($b-$a).' s';
+	echo $eol.'Execution time : '.($b-$a).' s'.$eol;
+
+	$db->free($resql);
 }
