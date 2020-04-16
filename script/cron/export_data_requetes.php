@@ -5,9 +5,14 @@
  */
 
 define('INC_FROM_CRON_SCRIPT', true);
-$path=dirname(__FILE__).'/';
-require_once($path.'../../config.php');
+$sapi_type = php_sapi_name();
+$path = dirname(__FILE__).'/';
+require_once $path.'../../config.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+
+// Test if apache or batch mode
+if (substr($sapi_type, 0, 3) == 'apa') $eol = '<br />';
+else $eol = PHP_EOL;
 
 // Récupération des fichiers SQL du répertoire export
 $sqlFileDir = dol_buildpath('/financement/sql/export');
@@ -19,6 +24,8 @@ dol_mkdir($targetDir, '', '0777');
 
 foreach($sqlFiles as $requete) {
 	echo '<hr>REQUETE '.$requete['name'];
+    $a = microtime(true);
+
 	$sql = file_get_contents($requete['fullname']);
 	$fileName = str_replace( '.sql', '', $requete['name']);
 	$fileName.= '_'.date('Ymd').'.csv';
@@ -28,13 +35,14 @@ foreach($sqlFiles as $requete) {
 
 	// Ajout de la partie écriture fichier dans la requête SQL
 	$sqlOutfile = "INTO OUTFILE '".$targetDir.$fileName."'
-  					FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"'
+  					FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"'
   					LINES TERMINATED BY '\n'
   					FROM";
 	$tmp = explode('from', $sql, 2);
 	$sql = $tmp[0].$sqlOutfile.$tmp[1];
 
 	$resql = $db->query($sql);
+	$b = microtime(true);
 	if($resql) {
 		echo '<hr>'.$sql;
 		echo '<hr> > '.$fileName;
@@ -42,4 +50,5 @@ foreach($sqlFiles as $requete) {
 		echo '<hr>'.$sql;
 		echo '<hr>Erreur SQL : '.$db->error();
 	}
+	echo $eol.'Execution time : '.($b-$a).' s';
 }
