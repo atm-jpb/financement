@@ -85,4 +85,3 @@ left join llx_c_financement_statut_dossier as dsd on (d.fk_statut_dossier = dsd.
 left join llx_c_financement_statut_renta_neg_ano as drn on (d.fk_statut_renta_neg_ano = drn.rowid)
 where l.rowid not in (204904, 204905, 204906)
 group by df.rowid
-order by a.reference
