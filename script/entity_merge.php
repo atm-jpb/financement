@@ -3,7 +3,8 @@
 ini_set('display_errors', true);
 
 // Include Dolibarr environment
-require_once("../config.php");
+require_once '../config.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 
 // R&eacute;cup&eacute;ration des paramètres
 $entitySource = GETPOST('entity_source');
@@ -45,10 +46,17 @@ $TabAction = GETPOST('TTable', 'array');
 $TReq = array();
 if(!empty($TabAction)) {
 	foreach ($TabAction as $table => $action) {
-		if($action == 'delete') {
+        if($table == 'documents') {
+		    updateDocuments($action, $entitySource, $entityTarget);
+        }
+        else if($table == 'confMulticompany') {
+            updateMulticompanyConf($action, $entitySource, $entityTarget);
+        }
+		else if($action == 'delete') {
 			$TReq[] = delete_record_with_entity($PDOdb, $table, $entitySource);
-		} else if ($action == 'move') {
-			$TReq[] = update_record_with_entity($PDOdb, $table, $entitySource, $entityTarget);
+		}
+		else if ($action == 'move') {
+            $TReq[] = update_record_with_entity($PDOdb, $table, $entitySource, $entityTarget);
 		}
 	}
 }
@@ -58,7 +66,7 @@ if(!empty($TabAction)) {
  */
 llxHeader();
 
-dol_fiche_head();
+dol_fiche_head(array(), '0', '', -2);
 
 ?>
 Tous les &eacute;l&eacute;ments de l'entit&eacute; <strong><?php echo $entitySource . ' - ' .$e1->label ?></strong>
@@ -76,6 +84,29 @@ if(!empty($TReq)) {
 	echo '<hr>';
 }
 ?>
+<table class="liste">
+    <tr class="liste_titre">
+        <th>Elements</th>
+        <th>Actions</th>
+    </tr>
+    <tr>
+        <td>Documents</td>
+        <td>
+            <label>Move <input type="radio" name="TTable[documents]" value="move" /></label>
+            <label>Delete <input type="radio" name="TTable[documents]" value="delete" /></label>
+            <label>None <input type="radio" name="TTable[documents]" value="none" checked="checked" /></label>
+        </td>
+    </tr>
+    <tr>
+        <td>Conf MULTICOMPANY_USER_GROUP_ENTITY</td>
+        <td>
+            <label>Move <input type="radio" name="TTable[confMulticompany]" value="move" /></label>
+            <label>Delete <input type="radio" name="TTable[confMulticompany]" value="delete" /></label>
+            <label>None <input type="radio" name="TTable[confMulticompany]" value="none" checked="checked" /></label>
+        </td>
+    </tr>
+</table>
+<br/><br/>
 
 <table class="liste">
 	<tr class="liste_titre">
@@ -149,7 +180,48 @@ function delete_record_with_entity(&$PDOdb, $table, $entitySource) {
 
 // Update all records in a table with an entity
 function update_record_with_entity(&$PDOdb, $table, $entitySource, $entityTarget) {
-	$sql = "UPDATE $table SET entity = $entityTarget WHERE entity = $entitySource;";
+    $sql = '';
+    $TUpdateRef = array(
+        MAIN_DB_PREFIX.'facture',
+        MAIN_DB_PREFIX.'facture_fourn',
+        MAIN_DB_PREFIX.'product'
+    );
+    if(in_array($table, $TUpdateRef)) {
+        $sql .= 'UPDATE '.$table." SET ref = concat(entity, '-', ref) WHERE entity = ".$entitySource.';<br/>';
+    }
+	$sql .= "UPDATE $table SET entity = $entityTarget WHERE entity = $entitySource;";
 	//$PDOdb->Execute($sql);
 	return $sql;
+}
+
+function updateMulticompanyConf($action, $entitySource, $entityTarget) {
+    global $conf;
+
+    $Tab = unserialize($conf->global->MULTICOMPANY_USER_GROUP_ENTITY);
+
+    foreach($Tab as $k => $TData) {
+        if($TData['entity_id'] == $entitySource) {
+            if($action == 'move') $TData['entity_id'] = $entityTarget;
+            else if($action == 'delete') unset($Tab[$k]);
+        }
+    }
+
+//    $conf->global->MULTICOMPANY_USER_GROUP_ENTITY = serialize($Tab);
+}
+
+function updateDocuments($action, $entitySource, $entityTarget) {
+    if($action == 'delete') {
+//        if($entitySource != 1) dol_delete_dir_recursive(DOL_DATA_ROOT.'/'.$entitySource.'/');
+    }
+    else if($action == 'move') {
+        $sourcePath = $targetPath = DOL_DATA_ROOT.'/';
+        if($entitySource != 1) $sourcePath .= $entitySource.'/';
+        if($entityTarget != 1) $targetPath .= $entityTarget.'/';
+
+        $TDir = dol_dir_list($sourcePath, 'directories');
+        foreach($TDir as $TData) {
+            $cmd = 'cp -r '.$TData['fullname'].' '.$targetPath.';rm -r '.$TData['fullname'];
+//            exec($cmd);
+        }
+    }
 }
