@@ -28,7 +28,7 @@ foreach($sqlFiles as $requete) {
 
 	$sql = file_get_contents($requete['fullname']);
 	$fileName = str_replace( '.sql', '', $requete['name']);
-	$fileName.= '_'.date('Ymd').'.csv';
+	$fileName.= '.csv';
 
 	// Suppression du fichier si déjà existant
 	if(dol_is_file($targetDir.$fileName)) dol_delete_file($targetDir.$fileName);
