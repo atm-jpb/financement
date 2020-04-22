@@ -1,13 +1,13 @@
 <?php
 
 class TFinancementTools {
-	
+
 	static function user_courant_est_admin_financement() {
-		
+
 		global $db, $user;
-		
+
 		dol_include_once('/user/class/usergroup.class.php');
-		
+
 		// On vérifie si l'utilisateur fait partie du groupe admin financement
 		$g = new UserGroup($db);
 		$g->fetch('', 'GSL_DOLIBARR_FINANCEMENT_ADMIN');
@@ -16,31 +16,31 @@ class TFinancementTools {
 			// On ne peut pas utiliser la fonction listgroupforuser parce qu'elle cherche les groupes dans lesquels se trouve l'utilisateur, mais uniquement les groupes qui sont dans l'entité courante
 			$resql = $db->query('SELECT rowid FROM '.MAIN_DB_PREFIX.'usergroup_user WHERE fk_user = '.$user->id.' AND fk_usergroup = '.$g->id);
 			$res = $db->fetch_object($resql);
-			
+
 			if($res->rowid > 0) return true;
 			else return false;
-			
+
 		}
-		
-		return false;		
+
+		return false;
 	}
-	
+
 	static function build_array_entities() {
-		
+
 		global $mc;
-		
+
 		$mc->dao->getEntities();
-		
+
 		$TEntities = array();
 		foreach($mc->dao->entities as $ent) {
 			$TEntities[$ent->id] = $ent->label;
 		}
-		
+
 		return $TEntities;
 	}
-	
+
 	static function add_css() {
-		
+
 		?>
 			<style type="text/css">
 				td[field="montant_total_finance"] {white-space:nowrap;}
@@ -50,7 +50,7 @@ class TFinancementTools {
 				td[field="login"] {text-align:center;}
 				td[field="accord"] {text-align:center;}
 				td[field="type_financement"] {text-align:center;}
-				
+
 				td[field="refDosCli"] {text-align:center;}
 				td[field="entity_id"] {text-align:center;}
 				td[field="refDosLea"] {text-align:center;}
@@ -66,7 +66,7 @@ class TFinancementTools {
 				td[field="attente"] {text-align:right;}
 				td[field="suivi"] {text-align:center;}
 				td[field="loupe"] {text-align:center;}
-				
+
 				td[id="num_contrat"] {text-align:center;}
 				td[id="entity_dossier"] {text-align:center;}
 				td[id="leaser"] {text-align:center;}
@@ -86,24 +86,24 @@ class TFinancementTools {
 				td[id="solde_nr1"] {text-align:center;}
 				td[id="solde_perso"] {text-align:center;}
 				td[id="numcontrat_entity_leaser"] {text-align:center;}
-				
+
 				tr.liste_titre input{width:60%}
-				
+
 			</style>
 		<?php
-		
+
 	}
-	
-	
+
+
 	static function getCategorieId()
 	{
 		global $db,$conf;
-		
+
 		$TRes = array();
-		
+
 		$sql = 'SELECT cat_id, label FROM '.MAIN_DB_PREFIX.'c_financement_categorie_bien WHERE active = 1 AND entity IN (0, '.$conf->entity.') ORDER BY label, cat_id';
 		$resql = $db->query($sql);
-		
+
 		if ($resql)
 		{
 			//$TRes[] = '';
@@ -112,19 +112,19 @@ class TFinancementTools {
 				$TRes[$row->cat_id] = $row->label;
 			}
 		}
-		
+
 		return $TRes;
 	}
-	
+
 	static function getNatureId()
 	{
 		global $db,$conf;
-		
+
 		$TRes = array();
-		
+
 		$sql = 'SELECT nat_id, label FROM '.MAIN_DB_PREFIX.'c_financement_nature_bien WHERE active = 1 AND entity IN (0, '.$conf->entity.') ORDER BY label, nat_id';
 		$resql = $db->query($sql);
-		
+
 		if ($resql)
 		{
 			//$TRes[] = '';
@@ -133,37 +133,37 @@ class TFinancementTools {
 				$TRes[$row->nat_id] = $row->label;
 			}
 		}
-		
+
 		return $TRes;
 	}
-	
+
 	static function getCategorieLabel($fk_categorie)
 	{
 		global $db;
-		
+
 		$sql = 'SELECT label FROM '.MAIN_DB_PREFIX.'c_financement_categorie_bien WHERE cat_id = '.(int) $fk_categorie;
 		$resql = $db->query($sql);
-		
+
 		if ($resql && ($row = $db->fetch_object($resql)))
 		{
 			return $row->label;
 		}
-		
+
 		return '';
 	}
 
 	static function getNatureLabel($fk_nature)
 	{
 		global $db;
-		
+
 		$sql = 'SELECT label FROM '.MAIN_DB_PREFIX.'c_financement_nature_bien WHERE nat_id = '.(int) $fk_nature;
 		$resql = $db->query($sql);
-		
+
 		if ($resql && ($row = $db->fetch_object($resql)))
 		{
 			return $row->label;
 		}
-		
+
 		return '';
 	}
 }
@@ -191,7 +191,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		'err5'=>array(),
 		'err6'=>array()
 	);
-	
+
 	$sqlfields = 'a.reference as refaffaire, a.rowid as fk_affaire, a.fk_soc as fk_client,d.fk_statut_renta_neg_ano,d.fk_statut_dossier,';
 	$sqlfields.= 'dfcli.reference as refdoscli, dfcli.duree, dfcli.periodicite, dfcli.montant, dfcli.echeance, dfcli.date_debut, dfcli.date_fin, dfcli.date_prochaine_echeance, ';
 	$sqlfields.= 'd.renta_previsionnelle, d.renta_attendue, d.renta_reelle, d.marge_previsionnelle, d.marge_attendue, d.marge_reelle, ';
@@ -214,8 +214,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	$sqlwhere.= " AND dflea.echeance > 0 ";
 	if(!empty($id_dossier)) $sqlwhere.= " AND d.rowid = ".$id_dossier;
 	//$sqlwhere.= " LIMIT 1 ";
-	
-	
+
 	/***********************************************************************************************************************************************************
 	 * 1 - Récupération de tous les dossiers dont "Visa renta négative" est à non, ce qui signifie que la règle 1 est à contrôler
 	 ***********************************************************************************************************************************************************/
@@ -227,14 +226,14 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= " WHERE d.visa_renta = 0";
 		$sql.= " AND d.renta_anomalie = 0";
 		$sql.= $sqlwhere;
-		
+
 		$PDOdb->Execute($sql);
 		$TRes = $PDOdb->Get_All();
-		
+
 		foreach($TRes as $res) {
 			$rowid = $res->rowid;
 			$renta_neg = false;
-			
+
 			// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
 			if(!empty($visaauto)) {
                 $dossier=new TFin_Dossier;
@@ -254,7 +253,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 					$dossier->save($PDOdb);
 				}
 			}
-			
+
 			if($renta_neg || empty($visaauto)) {
 				if(!in_array($rowid, $TDossiersError['all'])) {
 					$TDossiersError['all'][] = $rowid;
@@ -266,7 +265,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	}
 	//pre($TDossiersError,true);
 	//exit;
-	
+
 	/***********************************************************************************************************************************************************
 	 * 2 - Récupération de tous les dossiers dont "Visa renta facture < loyer leaser" est à non
 	 * ce qui signifie que la règle 2 est à contrôler
@@ -282,20 +281,20 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= " WHERE (fext.visa_renta_loyer_leaser = 0 OR fext.visa_renta_loyer_leaser IS NULL)";
 		$sql.= " AND d.renta_anomalie = 0";
 		$sql.= $sqlwhere;
-		
+
 		$PDOdb->Execute($sql);
 		$TRes = $PDOdb->Get_All();
-		
+
 		foreach($TRes as $res) {
 			$rowid = $res->rowid;
 			$renta_neg = false;
-			
+
 			// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
 			if(!empty($visaauto)) {
                 $dossier=new TFin_Dossier;
 				$dossier->load($PDOdb, $rowid, false, true);
 				$dossier->load_facture($PDOdb,true);
-				
+
 				// On fait la somme des échéances des dossiers leaser associés à cette référence dossier (prise en compte des adjonctions)
 				$sql = "SELECT SUM(dflea.echeance) as total_echeances";
 				$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier d";
@@ -307,15 +306,15 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 				$sql.= " AND dfcli.reference NOT LIKE '%old%'";
 				$TRes = $PDOdb->ExecuteAsArray($sql);
 				$total_echeances = $TRes[0]->total_echeances;
-				
+
 				// On ramène l'échéance leaser sur la même périodicité que le dossier client
 				$equi_periodicite = $dossier->financementLeaser->getiPeriode() / $dossier->financement->getiPeriode();
 				$echeanceLeaser = ($total_echeances / $equi_periodicite);
-				
+
 				// Attention on vérifie les factures et regroupements de factures
-				$montant_facture = 0;
 				foreach($dossier->TFacture as $p => $d) {
 					// Récupération du montant facturé au client pour comparer aux loyers. Si plusieurs factures, on fait la somme
+					$montant_facture = 0;
 					if(is_array($d)) {
 						foreach ($d as $i => $f) {
 							$montant_facture += $f->total_ht;
@@ -323,13 +322,13 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 					} else {
 						$montant_facture = $d->total_ht;
 					}
-					
+
 					// Si on est sur la facture intercalaire, on compare avec le loyer intercalaire prévu
 					$intercalaireOK = false;
 					if($p == -1 && $montant_facture >= round($dossier->financement->loyer_intercalaire,2)) {
 						$intercalaireOK = true;
 					}
-					
+
 					// Comparaison au loyer leaser
 					// Si règle 2 vérifiée, on prend le dossier, sinon, on coche la case visa pour ne pas le récupérer la prochaine fois
 					if($montant_facture < $echeanceLeaser && !$intercalaireOK && $dossier->fk_statut_renta_neg_ano != '17') {
@@ -351,7 +350,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 					//echo 'Dossier '.$dossier->financement->reference.', '.$montant_facture.' < '.$total_echeances.'<br>';
 				}
 			}
-		
+
 			if($renta_neg || empty($visaauto)) {
 				if(!in_array($rowid, $TDossiersError['all'])) {
 					$TDossiersError['all'][] = $rowid;
@@ -377,20 +376,20 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= " WHERE (fext.visa_renta_loyer_client = 0 OR fext.visa_renta_loyer_client IS NULL)";
 		$sql.= " AND d.renta_anomalie = 0";
 		$sql.= $sqlwhere;
-		
+
 		$PDOdb->Execute($sql);
 		$TRes = $PDOdb->Get_All();
-		
+
 		foreach($TRes as $res) {
 			$rowid = $res->rowid;
 			$renta_neg = false;
-			
+
 			// On ne vérifie la règle que si demandé, sinon le visa fait foi pour savoir si le dossier est à vérifier ou non
 			if(!empty($visaauto)) {
                 $dossier=new TFin_Dossier;
 				$dossier->load($PDOdb, $rowid, false, true);
 				$dossier->load_facture($PDOdb,true);
-				
+
 				// On fait la somme des échéances des dossiers client associés à cette référence dossier (prise en compte des adjonctions)
 				$sql = "SELECT SUM(dfcli.echeance) as total_echeances, COUNT(dfcli.reference) as nb_dossiers";
 				$sql.= " FROM ".MAIN_DB_PREFIX."fin_dossier_financement dfcli";
@@ -401,15 +400,15 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 				$sql.= " AND dfcli.reference NOT LIKE '%old%'";
 				$TRes = $PDOdb->ExecuteAsArray($sql);
 				$total_echeances = $TRes[0]->total_echeances;
-				
+
 				// Attention on vérifie les factures et regroupements de factures
-				$montant_facture = 0;
 				$date_application_reference = strtotime($res->date_application);
 				foreach($dossier->TFacture as $p => $d) {
 					// Récupération du montant facturé au client pour comparer aux loyers. Si plusieurs factures, on fait la somme
                     $date_debut = $dossier->getDateDebutPeriode($p, 'client');
                     $tms_deb = strtotime($date_debut);
 
+					$montant_facture = 0;
 					if(is_array($d)) {
 						foreach ($d as $i => $f) {
 							$montant_facture += $f->total_ht;
@@ -417,7 +416,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 					} else {
 						$montant_facture = $d->total_ht;
 					}
-					
+
 					// Si on est sur la facture intercalaire, on compare avec le loyer intercalaire prévu
 					$intercalaireOK = false;
 					if($p == -1 && $montant_facture >= round($dossier->financement->loyer_intercalaire,2)) {
@@ -448,7 +447,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 					}
 				}
 			}
-		
+
 			if($renta_neg || empty($visaauto)) {
 				if(!in_array($rowid, $TDossiersError['all'])) {
 					$TDossiersError['all'][] = $rowid;
@@ -458,7 +457,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			}
 		}
 	}
-	
+
 	/***********************************************************************************************************************************************************
 	 * 4 - Récupération de tous les dossiers dont au moins une facture client est impayée et en retard
 	 * ce qui signifie que la règle 4 est à contrôler
@@ -476,16 +475,16 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= " AND SUBSTR(f.ref_client, -4) >= 2015";
 		$sql.= " AND d.renta_anomalie = 0";
 		$sql.= $sqlwhere;
-		
+
 		$PDOdb->Execute($sql);
 		$TRes = $PDOdb->Get_All();
-		
+
 		foreach($TRes as $res) {
 			$rowid = $res->rowid;
 			$renta_neg = false;
-			
+
 			// TODO : voir si besoin d'un visa sur la règle concernant les factures impayées, sachant qu'elle passent en payées en automatique via import quotidien
-		
+
 			if($renta_neg || empty($visaauto)) {
 				if(!in_array($rowid, $TDossiersError['all'])) {
 					$TDossiersError['all'][] = $rowid;
@@ -495,7 +494,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			}
 		}
 	}
-	
+
 	/***********************************************************************************************************************************************************
 	 * 5 - Récupération de tous les dossiers pour lesquels il manque une facture
 	 * ce qui signifie que la règle 5 est à contrôler
@@ -521,34 +520,34 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		//echo $sql;
 		$PDOdb->Execute($sql);
 		$TRes = $PDOdb->Get_All();
-		
+
 		$TPeriodeType = array(
 			'MOIS' => 1
 			,'TRIMESTRE' => 3
 			,'SEMESTRE' => 6
 			,'ANNEE' => 12
 		);
-		
+
 		foreach($TRes as $res) {
 			$rowid = $res->rowid;
 			$renta_neg = false;
-			
+
 			// Calcul du nombre de période écoulées entre le début du dossier et le 01/01/2016,
 			// date de début d'intégration des factures dans LeaseBoard
 			$nb_periode_sans_fact = 0;
-			
+
 			$nbmonth = $TPeriodeType[$res->periodicite];
-			
+
 			$d1 = new DateTime($res->date_debut);
 			$d2 = new DateTime('2016-01-01');
 			$diff = $d1->diff($d2);
 
 			$nb_periode_sans_fact = $diff->y * 12 / $nbmonth + ceil($diff->m / $nbmonth) + ceil($diff->d / 31);
 			if($diff->invert == 1) $nb_periode_sans_fact = 0;
-			
+
 			// Intercalaire ?
 			$intercalaire = ($res->loyer_intercalaire > 0) ? 1 : 0;
-			
+
 			// Si intercalaire et dossier démarrant avant le 01/01/2016
 			/*$datedeb = strtotime($res->date_debut);
 			$datelimit = strtotime('2016-01-01');
@@ -557,12 +556,12 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 				$datedeb = strtotime('+ '.$nbmonth.' month', $datedeb);
 				$nb_periode_sans_fact++;
 			}*/
-			
+
 			// Si échu, décalage
 			$echu = ($res->terme == 0) ? 1 : 0;
 			// Si l'échéance n'est pas calée sur le civil, la facture étant faite en fin de mois, on enleve 1 si pas d'intercalaire
 			$decal = (date('d',strtotime($res->date_debut)) == '01' || $intercalaire) ? 0 : 1;
-			
+
 			/*echo 'ECH FACT : '.$res->nb_echeances_facturees;
 			echo ' + PERIODE NON FACT : '.$nb_periode_sans_fact;
 			echo ' = <b>'. ($res->nb_echeances_facturees + $nb_periode_sans_fact) . '</b><br>-----<br>';
@@ -574,9 +573,9 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			if(($res->nb_echeances_facturees + $nb_periode_sans_fact) < ($res->numero_prochaine_echeance - 1 + $intercalaire - $echu - $decal)) {
 				$renta_neg = true;
 			}
-			
+
 			// TODO : voir si besoin d'un visa sur la règle concernant les factures manquantes, sachant qu'elles sont créées en automatique via import quotidien
-		
+
 			if($renta_neg) {
 				if(!in_array($rowid, $TDossiersError['all'])) {
 					$TDossiersError['all'][] = $rowid;
@@ -586,7 +585,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			}
 		}
 	}
-	
+
 	/***********************************************************************************************************************************************************
 	 * 6 - Récupération de tous les dossiers dont la case anomalie est cochée
 	 ***********************************************************************************************************************************************************/
@@ -597,14 +596,14 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= $sqljoin;
 		$sql.= " WHERE d.renta_anomalie = 1";
 		$sql.= $sqlwhere;
-		
+
 		$PDOdb->Execute($sql);
 		$TRes = $PDOdb->Get_All();
-		
+
 		foreach($TRes as $res) {
 			$rowid = $res->rowid;
 			$renta_neg = true;
-			
+
 			if($renta_neg) {
 				if(!in_array($rowid, $TDossiersError['all'])) {
 					$TDossiersError['all'][] = $rowid;
@@ -614,10 +613,10 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 			}
 		}
 	}
-	
+
 	//pre($TDossiersError,true);
 	//exit;
-	
+
 	return $TDossiersError;
 }
 
