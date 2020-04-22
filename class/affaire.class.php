@@ -371,6 +371,34 @@ class TFin_affaire extends TObjetStd
 
         return -1;
     }
+
+
+
+    /**
+     * @param   $source     integer
+     * @param   $target     integer
+     * @param   $TEntity    array
+     * @return              bool
+     */
+    public static function replaceThirdparty($source, $target, $TEntity = array()) {
+        if(empty($source) || empty($target)) return false;
+
+        global $db, $conf;
+        if(empty($TEntity)) $TEntity[] = $conf->entity;
+
+        $sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_affaire';
+        $sql.= ' SET fk_soc = '.intval($target);
+        $sql.= ' WHERE fk_soc = '.intval($source);
+        $sql.= ' AND entity IN ('.implode(',', $TEntity).')';
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        return true;
+    }
 }
 
 class TFin_affaire_commercial extends TObjetStd

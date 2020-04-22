@@ -418,4 +418,15 @@ class ActionsFinancement
         $hookmanager->resPrint = '1';
         return 1;
     }
+
+    function replaceThirdparty($parameters, &$object, &$action, $hookmanager) {
+        dol_include_once('/financement/class/simulation.class.php');
+        dol_include_once('/financement/class/affaire.class.php');
+
+        $fk_soc_source = $parameters['soc_origin'];
+        $fk_soc_target = $parameters['soc_dest'];
+
+        TSimulation::replaceThirdparty($fk_soc_source, $fk_soc_target);
+        TFin_affaire::replaceThirdparty($fk_soc_source, $fk_soc_target);
+    }
 }
