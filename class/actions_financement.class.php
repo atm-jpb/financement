@@ -420,13 +420,29 @@ class ActionsFinancement
     }
 
     function replaceThirdparty($parameters, &$object, &$action, $hookmanager) {
+        global $db;
+
+        dol_include_once('/financement/lib/financement.lib.php');
         dol_include_once('/financement/class/simulation.class.php');
         dol_include_once('/financement/class/affaire.class.php');
 
         $fk_soc_source = $parameters['soc_origin'];
         $fk_soc_target = $parameters['soc_dest'];
 
+        $socSource = new Societe($db);
+        $socSource->fetch($fk_soc_source);
+        $socTarget = new Societe($db);
+        $socTarget->fetch($fk_soc_target);
+
+        // TODO: Check if standard replacement is possible
+        $TEntityGroup = getOneEntityGroup($socTarget->entity, 'fin_simulation', array(4, 17));
+        // Si les 2 sociétés ne sont pas dans la même groupe, on évite de merge
+        if(! in_array($socSource->entity, $TEntityGroup)) return -1;
+
+
         TSimulation::replaceThirdparty($fk_soc_source, $fk_soc_target);
         TFin_affaire::replaceThirdparty($fk_soc_source, $fk_soc_target);
+
+        return 0;
     }
 }
