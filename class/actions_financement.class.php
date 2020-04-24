@@ -420,7 +420,7 @@ class ActionsFinancement
     }
 
     function replaceThirdparty($parameters, &$object, &$action, $hookmanager) {
-        global $db;
+        global $db, $langs;
 
         dol_include_once('/financement/lib/financement.lib.php');
         dol_include_once('/financement/class/simulation.class.php');
@@ -434,11 +434,19 @@ class ActionsFinancement
         $socTarget = new Societe($db);
         $socTarget->fetch($fk_soc_target);
 
-        // TODO: Check if standard replacement is possible
         $TEntityGroup = getOneEntityGroup($socTarget->entity, 'fin_simulation', array(4, 17));
         // Si les 2 sociétés ne sont pas dans la même groupe, on évite de merge
-        if(! in_array($socSource->entity, $TEntityGroup)) return -1;
+        if(! in_array($socSource->entity, $TEntityGroup)) {
+            $this->errors[] = $langs->load('FinancementReplaceThirdpartyError');
+            return -1;
+        }
 
+        if(! empty($socSource->code_client)) {
+            if(empty($socTarget->array_options['options_other_customer_code'])) $socTarget->array_options['options_other_customer_code'] = $socSource->code_client;
+            else $socTarget->array_options['options_other_customer_code'] .= ';'.$socSource->code_client;
+
+            $socTarget->updateExtraField('other_customer_code');
+        }
 
         TSimulation::replaceThirdparty($fk_soc_source, $fk_soc_target, $TEntityGroup);
         TFin_affaire::replaceThirdparty($fk_soc_source, $fk_soc_target, $TEntityGroup);

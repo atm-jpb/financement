@@ -404,3 +404,5 @@ DossierDateSending = Date d'envoi du dossier
 FactureMaterielDate = Date de la facture matériel
 Nature = Nature
 SirenClient = Siren Client
+
+FinancementReplaceThirdpartyError = Erreur lors de la fusion : Les Tiers n'appartiennent pas au même groupement d'entité
