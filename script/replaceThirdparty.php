@@ -1,9 +1,11 @@
 <?php
 
 require '../config.php';
+require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+
 $entity = GETPOST('entity', 'int');
 
-$sql = "SELECT siren, group_concat(concat(rowid, '-', code_client)) as data";
+$sql = "SELECT siren, group_concat(rowid) as data";
 $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
 $sql.= ' WHERE entity = '.$db->escape($entity);
 $sql.= ' AND LENGTH(siren) = 9';
@@ -19,18 +21,22 @@ if(! $resql) {
 
 while($obj = $db->fetch_object($resql)) {
     $TData = explode(',', $obj->data);
-    $max = 0;   // Réprésente le rowid de la société à garder
+    $max = max($TData);   // Réprésente le rowid de la société à garder
 
-    foreach($TData as $k => &$v) {
-        $v = explode('-', $v);
-        if($v[0] > $max) $max = $v[0];
-    }
     $s = new Societe($db);
     $s->fetch($max);
 
+    foreach($TData as $k => $v) {
+        if($v == $max) break;
+    }
+    unset($TData[$k], $k, $v);
+
     $TCustomerCode = array();
-    foreach($TData as $data) {
-        if($data[0] != $max) $TCustomerCode[] = $data[1];
+    foreach($TData as $fkSoc) {
+        $soc = new Societe($db);
+        $soc->fetch($fkSoc);
+
+        $TCustomerCode[] = $soc->code_client;
     }
 
     if(empty($s->array_options['options_other_customer_code'])) $s->array_options['options_other_customer_code'] = implode(';', $TCustomerCode);
