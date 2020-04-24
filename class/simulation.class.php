@@ -1,4 +1,8 @@
 <?php
+if(! class_exists('TObjetStd')) {
+    define('INC_FROM_DOLIBARR', true);
+    require_once dirname(__FILE__).'/../config.php';
+}
 if(! class_exists('DossierRachete')) dol_include_once('/financement/class/dossierRachete.class.php');
 
 class TSimulation extends TObjetStd
