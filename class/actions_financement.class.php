@@ -440,8 +440,8 @@ class ActionsFinancement
         if(! in_array($socSource->entity, $TEntityGroup)) return -1;
 
 
-        TSimulation::replaceThirdparty($fk_soc_source, $fk_soc_target);
-        TFin_affaire::replaceThirdparty($fk_soc_source, $fk_soc_target);
+        TSimulation::replaceThirdparty($fk_soc_source, $fk_soc_target, $TEntityGroup);
+        TFin_affaire::replaceThirdparty($fk_soc_source, $fk_soc_target, $TEntityGroup);
 
         return 0;
     }
