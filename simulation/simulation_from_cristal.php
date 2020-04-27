@@ -41,37 +41,32 @@ if($method == 'GET') {
 }
 
 if(empty($simu->rowid)) {
-    if(empty($code_artis)) {
-        $siret = GETPOST('siret');
-        if(empty($siret)) exit('empty siret!');
+	$siret = GETPOST('siret');
+	if(empty($siret)) exit('empty siret!');
 
-        $fk_soc = _get_socid('', $TEntity, $siret);
+	$fk_soc = _get_socid('', $TEntity, $siret);
 
-        // Créer la fiche client s'il n'existe pas
-        if(empty($fk_soc)) {
-            $soc = new Societe($db);
-            $soc->name = GETPOST('nom');
-            $soc->address = GETPOST('address');
-            $soc->zip = GETPOST('cp');
-            $soc->town = GETPOST('ville');
-			$soc->country_id = 1;
-			$soc->idprof1 = substr($siret,0,9);
-            $soc->idprof2 = $siret;
-            $soc->entity = $conf->entity;
-			$soc->commercial_id = $user->id;
-			$soc->client = 2;
+	// Créer la fiche client s'il n'existe pas
+	if(empty($fk_soc)) {
+		$soc = new Societe($db);
+		$soc->name = GETPOST('nom');
+		$soc->address = GETPOST('adresse');
+		$soc->zip = GETPOST('cp');
+		$soc->town = GETPOST('ville');
+		$soc->country_id = 1;
+		$soc->idprof1 = substr($siret,0,9);
+		$soc->idprof2 = $siret;
+		$soc->idprof3 = GETPOST('naf');
+		$soc->entity = $conf->entity;
+		$soc->commercial_id = $user->id;
+		$soc->client = 2;
 
-            $fk_soc = $soc->create($user);
-            if($fk_soc <= 0) {
-                dol_print_error($db);
-                exit;
-            }
-        }
-    }
-    else {
-        // On récupère l'identifiant du Tiers avec son code_client
-        $fk_soc = _get_socid($code_artis, $TEntity);
-    }
+		$fk_soc = $soc->create($user);
+		if($fk_soc <= 0) {
+			dol_print_error($db);
+			exit;
+		}
+	}
 }
 else {
     $fk_soc = $simu->fk_soc;
