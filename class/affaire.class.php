@@ -399,6 +399,25 @@ class TFin_affaire extends TObjetStd
 
         return true;
     }
+
+    public static function isExistingObject($id = null, $fkSoc = null) {
+        global $db;
+
+        $sql = 'SELECT count(*) as nb';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_affaire';
+        if(! is_null($fkSoc)) $sql.= ' WHERE fk_soc = '.$db->escape($fkSoc);
+        else if(! is_null($id)) $sql .= ' WHERE rowid = '.$db->escape($id);
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        if($obj = $db->fetch_object($resql)) return $obj->nb > 0;
+
+        return true;
+    }
 }
 
 class TFin_affaire_commercial extends TObjetStd

@@ -406,3 +406,4 @@ Nature = Nature
 SirenClient = Siren Client
 
 FinancementReplaceThirdpartyError = Erreur lors de la fusion : Les Tiers n'appartiennent pas au même groupement d'entité
+CantDeleteThirdparty = Le Tiers ne peut pas être supprimé

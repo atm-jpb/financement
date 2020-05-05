@@ -942,6 +942,25 @@ class TSimulation extends TObjetStd
         return $TResult;
     }
 
+    public static function isExistingObject($id = null, $fkSoc = null) {
+        global $db;
+
+        $sql = 'SELECT count(*) as nb';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
+        if(! is_null($fkSoc)) $sql.= ' WHERE fk_soc = '.$db->escape($fkSoc);
+        else if(! is_null($id)) $sql .= ' WHERE rowid = '.$db->escape($id);
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        if($obj = $db->fetch_object($resql)) return $obj->nb > 0;
+
+        return true;
+    }
+
     function get_list_dossier_used($except_current = false) {
         $TDossier = array();
 
