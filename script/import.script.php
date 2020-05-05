@@ -80,6 +80,7 @@ dol_include_once("/societe/class/societe.class.php");
 dol_include_once("/compta/facture/class/facture.class.php");
 dol_include_once("/product/class/product.class.php");
 dol_include_once("/core/class/html.form.class.php");
+dol_include_once("/categories/class/categorie.class.php");
 
 switchEntity(17); // Bascule sur l'entité TEAM ADMIN pour avoir la vue globale de l'import
 
@@ -105,7 +106,7 @@ $imp->getFiles($importFolder);
 foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fichier
 	$mappingFile = $fileType.'.mapping';
 	$imp->getMapping($importFolderMapping.$mappingFile); // Récupération du mapping
-	
+
 	$filePrefix = 'fin_'.$fileType;
 	$filesToImport = $imp->getListOfFiles($importFolder, $filePrefix); // Récupération des fichiers à importer (dossier todo)
 	print date('Y-m-d H:i:s').' : Récupération fichiers "'.$filePrefix.'", '.count($filesToImport).' fichier(s) trouvé(s)'.$eol;
@@ -115,13 +116,13 @@ foreach ($listOfFileType as $fileType => $libelle) { // Pour chaque type de fich
 		$imp->start();
 		$imp->init($fileName, $fileType);
 		$imp->save($ATMdb); // Création de l'import
-		
+
 		$imp->importFile($ATMdb, $importFolder.$fileName);
-		
+
 		$imp->save($ATMdb); // Mise à jour pour nombre de lignes et nombre d'erreurs
-		
+
 		print date('Y-m-d H:i:s').' : Fichier "'.$fileName.'" traité, '.$imp->nb_lines.' ligne(s)'.$eol;
-		
+
 		rename($importFolder.$fileName, $importFolderOK.$fileName);
 	}
 }
