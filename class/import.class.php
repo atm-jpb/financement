@@ -1791,15 +1791,14 @@ class TImport extends TObjetStd {
     function get_data_entity(&$data) {
         $entity = 1;
         if($this->artis == 'ouest') { // Artis OUEST
-            if($data['organisation'] == 'ABG') $entity = 5;
-            elseif($data['organisation'] == 'CC') $entity = 7;
-            elseif($data['organisation'] == 'QUADRA') $entity = 9;
+            $entity = 5;
         } else { // Artis AURA
             if($data['organisation'] == '005') $entity = 2;
             elseif($data['organisation'] == '010') $entity = 6;
             elseif($data['organisation'] == '012') $entity = 3;
             elseif($data['organisation'] == '015') $entity = 10;
             elseif($data['organisation'] == '016') $entity = 10;
+			elseif($data['organisation'] == '014') $entity = 8;
         }
 
         return $entity;
