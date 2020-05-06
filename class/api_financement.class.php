@@ -142,6 +142,7 @@ class financement extends DolibarrApi
         $object->type_contrat = $object->affaire->contrat;
         $object->type_financement = $object->affaire->type_financement;
         $object->TAsset = $object->affaire->TAsset;
+        $object->affaire->code_client = $object->affaire->societe->code_client;
 
         $object->TEquipement = array();
         foreach($object->TAsset as $assetLink) {
