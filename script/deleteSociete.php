@@ -89,7 +89,7 @@ function process($TData) {
     $sql = 'SELECT rowid';
     $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
     $sql.= " WHERE code_client = '".$db->escape($TData['customerCode'])."'";
-    $sql.= " AND siren = '".$db->escape($TData['siren'])."'";
+//    $sql.= " AND siren = '".$db->escape($TData['siren'])."'";
     $sql.= " AND siret = '".$db->escape($TData['siret'])."'";
     $sql.= " AND nom LIKE '".$db->escape($TData['name'])."'";
 
