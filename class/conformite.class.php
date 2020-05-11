@@ -123,4 +123,6 @@ class Conformite extends TObjetStd
 
         return $res !== false;
     }
+
+    public static function add($a, $b) { return $a + $b; }
 }

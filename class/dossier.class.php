@@ -1,5 +1,8 @@
 <?php
 
+dol_include_once('/financement/vendor/autoload.php');
+
+use MathPHP\Finance as Finance;
 /*
  * Dossier
  */
@@ -2467,8 +2470,16 @@ class TFin_financement extends TObjetStd
         $this->date_prochaine_echeance = strtotime('+'.($this->getiPeriode() * ($this->duree_passe)).' month', $this->date_debut + $this->calage);
     }
 
+    /**
+     * @return boolean
+     */
     function calculTaux() {
-        $this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100, 4);
+        $taux = Finance::rate($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme);
+        if(is_nan($taux)) return false; // For some reasons we can't calculate rate, so we can't update this field
+
+        $this->taux = round($taux * (12 / $this->getiPeriode()) * 100, 4);
+//        $this->taux = round($this->taux($this->duree, $this->echeance, -$this->montant, $this->reste, $this->terme) * (12 / $this->getiPeriode()) * 100, 4);
+        return true;
     }
 
     function load(&$ATMdb, $id, $annexe = false) {

@@ -7,3 +7,4 @@ config.php
 /nbproject
 .buildpath
 vendor/
+tests/.phpunit.result.cache
