@@ -490,6 +490,13 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'conformite';
 		$this->rights[$r][5] = 'delete';
 
+		$r++;
+		$this->rights[$r][0] = $this->numero.$r;
+		$this->rights[$r][1] = 'Solder des dossiers';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'alldossier';
+		$this->rights[$r][5] = 'solde';
+
 
 		// Main menu entries
 		$this->menus = array();			// List of menus to add
@@ -620,6 +627,19 @@ class modFinancement extends DolibarrModules
 								'perms'=>'$user->rights->financement->import->read',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
+		$r++;
+		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=import',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+								  'type'=>'left',			                // This is a Left menu entry
+								  'titre'=>$langs->trans('DossierSolde'),
+								  'mainmenu'=>'financement',
+								  'leftmenu'=>'dossierSolde',
+								  'url'=>'/financement/script/update_dossier_solde.php',
+								  'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+								  'position'=>130,
+								  'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->solde',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+								  'perms'=>'$user->rights->financement->alldossier->solde',			                // Use 'perms'=>'$user->rights->financement->level1->level2' if you want your menu with a permission rules
+								  'target'=>'',
+								  'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
 
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode

@@ -404,3 +404,5 @@ DossierDateSending = Date d'envoi du dossier
 FactureMaterielDate = Date de la facture matériel
 Nature = Nature
 SirenClient = Siren Client
+
+DossierSolde = Solder des dossiers
