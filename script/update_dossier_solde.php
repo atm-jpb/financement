@@ -16,7 +16,7 @@ $PDOdb = new TPDOdb;
 
 llxHeader();
 
-if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv') {
+if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv' && ! empty($user->rights->financement->alldossier->solde)) {
     $TData = array();
 
     $f = fopen($_FILES['fileToImport']['tmp_name'], 'r');
@@ -39,7 +39,7 @@ if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv'
     </script>
     <?php
 }
-elseif(! empty($action)) {
+elseif(! empty($action) || empty($user->rights->financement->alldossier->solde)) {
     setEventMessage('AnErrorOccured', 'errors');
 }
 
