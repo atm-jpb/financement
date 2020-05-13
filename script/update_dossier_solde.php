@@ -10,6 +10,7 @@ dol_include_once('/financement/class/grille.class.php');
 set_time_limit(0);
 
 $action = GETPOST('action', 'alpha');
+$delimiter = GETPOST('delimiter');
 
 $PDOdb = new TPDOdb;
 
@@ -20,7 +21,7 @@ if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv'
 
     $f = fopen($_FILES['fileToImport']['tmp_name'], 'r');
     $i = 0;
-    while($TLine = fgetcsv($f, 2048, ';', '"')) {
+    while($TLine = fgetcsv($f, 2048, $delimiter, '"')) {
         $i++;
         if($i > 1) {
             $TData[] = getUsefulData($TLine);
@@ -51,6 +52,15 @@ elseif(! empty($action)) {
             <td style="width: 130px;"><span>Fichier CSV : </span></td>
             <td><input type="file" name="fileToImport" /></td>
         </tr>
+        <tr>
+            <td><span>Délimiteur : </span></td>
+            <td>
+                <select name="delimiter">
+                    <option value="," selected="selected">Virgule : ","</option>
+                    <option value=";">Point-virgule : ";"</option>
+                </select>
+            </td>
+        </tr>
     </table>
     <br/><br/>
     <input class="butAction" type="submit" name="submit" value="Importer" />
@@ -72,16 +82,22 @@ function getUsefulData($TLine) {
     );
 
     $reference = trim($TLine[$TIndex['ref_contrat']]);
-    $montant = str_replace(array(',', ' '), array('.', ''), $TLine[$TIndex['montant']]);
+
+    $montant = $TLine[$TIndex['montant']];
+    if(! is_null($montant)) $montant = str_replace(array(',', ' '), array('.', ''), $TLine[$TIndex['montant']]);
 
     // Format date
-    $TDateDebut = explode('/', $TLine[$TIndex['date']]);
-    $date_debut = mktime(null, null, null, $TDateDebut[1], $TDateDebut[0], $TDateDebut[2]);
+    $date_debut = $TLine[$TIndex['date']];
+    if(! is_null($date_debut)) {
+        $TDateDebut = explode('/', $TLine[$TIndex['date']]);
+        $date_debut = mktime(null, null, null, $TDateDebut[1], $TDateDebut[0], $TDateDebut[2]);
+        $date_debut = date('Y-m-d', $date_debut);
+    }
 
     return array(
         'ref_contrat' => $reference,
         'montant' => $montant,
-        'date' => date('Y-m-d', $date_debut)
+        'date' => $date_debut
     );
 }
 
@@ -101,8 +117,10 @@ function updateDossierSolde(TPDOdb &$PDOdb, $TData) {
     $stmt = $PDOdb->db->prepare($sql);
 
     foreach($TData as $data) {
+        if(is_null($data['montant']) || is_null($data['date'])) continue;
+
         $stmt->bindParam(':date', $data['date']);
-        $stmt->bindParam(':montant', $data['montant'], PDO::PARAM_INT);
+        $stmt->bindParam(':montant', $data['montant']);
         $stmt->bindParam(':reference', $data['ref_contrat']);
 
         $res = $stmt->execute();
