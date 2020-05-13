@@ -1147,7 +1147,6 @@ class modFinancement extends DolibarrModules
 		$extra->addExtraField('fk_leaser_webservice', 'Identifiant du leaser associé pour les réponses de demande de financement', 'int', '1', '', 'user', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		$extra->addExtraField('cmcic_apporteur_id', 'Apporteur ID', 'varchar', 10, 255, 'entity');
 		
-		
 		$extra->addExtraField('percent_duree_vie', '% durée de vie', 'double', 15, '24,8', 'entity', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		$extra->addExtraField('percent_moyenne_intercalaire', '% moyenne intercalaire', 'double', 20, '24,8', 'entity', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		
@@ -1158,6 +1157,7 @@ class modFinancement extends DolibarrModules
 		$extra->addExtraField('percent_relocation', '% relocation', 'double', 27, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		$extra->addExtraField('bonus_renta', 'Bonus renta', 'double', 30, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		$extra->addExtraField('non_cape_lrd', 'Soldes non capés LRD', 'boolean', 35, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
+		$extra->addExtraField('other_customer_code', 'Autres codes clients', 'varchar', 45, 255, 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 
 		$extra->addExtraField('date_debut_periode', 'Date début période', 'date', 10, '', 'facture_fourn', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		$extra->addExtraField('date_fin_periode', 'Date fin période', 'date', 20, '', 'facture_fourn', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);

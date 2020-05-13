@@ -82,21 +82,16 @@ class InterfaceFinancementtrigger
      *
      * 	@return		string	Version of trigger file
      */
-    public function getVersion()
-    {
+    public function getVersion() {
         global $langs;
         $langs->load("admin");
 
-        if ($this->version == 'development') {
-            return $langs->trans("Development");
-        } elseif ($this->version == 'experimental')
+        if($this->version == 'development') return $langs->trans("Development");
+        else if($this->version == 'experimental') return $langs->trans("Experimental");
+        else if($this->version == 'dolibarr') return DOL_VERSION;
+        else if($this->version) return $this->version;
 
-                return $langs->trans("Experimental");
-        elseif ($this->version == 'dolibarr') return DOL_VERSION;
-        elseif ($this->version) return $this->version;
-        else {
-            return $langs->trans("Unknown");
-        }
+        return $langs->trans("Unknown");
     }
 
     /**
@@ -155,13 +150,18 @@ class InterfaceFinancementtrigger
 				
 			}
         }
-		
-		if ($action == 'COMPANY_CREATE' || $action == 'COMPANY_MODIFY') {
+		else if ($action == 'COMPANY_CREATE' || $action == 'COMPANY_MODIFY') {
 			if(empty($object->zip) || !is_numeric($object->zip)) {
 				setEventMessage('Code postal invalide');
 				return -1;
 			}
 		}
+		else if($action == 'COMPANY_DELETE') {
+		    if(TSimulation::isExistingObject(null, $object->id) || TFin_affaire::isExistingObject(null, $object->id)) {
+                setEventMessage('CantDeleteThirdparty', 'errors');
+                return -1;
+            }
+        }
 
         return 0;
     }

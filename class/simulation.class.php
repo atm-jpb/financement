@@ -1,4 +1,8 @@
 <?php
+if(! class_exists('TObjetStd')) {
+    define('INC_FROM_DOLIBARR', true);
+    require_once dirname(__FILE__).'/../config.php';
+}
 if(! class_exists('DossierRachete')) dol_include_once('/financement/class/dossierRachete.class.php');
 
 class TSimulation extends TObjetStd
@@ -936,6 +940,25 @@ class TSimulation extends TObjetStd
         }
 
         return $TResult;
+    }
+
+    public static function isExistingObject($id = null, $fkSoc = null) {
+        global $db;
+
+        $sql = 'SELECT count(*) as nb';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
+        if(! is_null($fkSoc)) $sql.= ' WHERE fk_soc = '.$db->escape($fkSoc);
+        else if(! is_null($id)) $sql .= ' WHERE rowid = '.$db->escape($id);
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        if($obj = $db->fetch_object($resql)) return $obj->nb > 0;
+
+        return true;
     }
 
     function get_list_dossier_used($except_current = false) {
@@ -2369,6 +2392,32 @@ class TSimulation extends TObjetStd
         }
 
         return $solde;
+    }
+
+    /**
+     * @param   $source     integer
+     * @param   $target     integer
+     * @param   $TEntity    array
+     * @return              bool
+     */
+    public static function replaceThirdparty($source, $target, $TEntity = array()) {
+        if(empty($source) || empty($target)) return false;
+
+        global $db, $conf;
+        if(empty($TEntity)) $TEntity[] = $conf->entity;
+
+        $sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_simulation';
+        $sql.= ' SET fk_soc = '.intval($target);
+        $sql.= ' WHERE fk_soc = '.intval($source);
+        $sql.= ' AND entity IN ('.implode(',', $TEntity).')';
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        return true;
     }
 }
 
