@@ -65,8 +65,8 @@ class financement extends DolibarrApi
     public function getContract($id = null, $reference = null, $customerCode = null, $idprof2 = null, $entity = '1', $ongoing = 1) {
         if(is_null($id) && is_null($reference) && is_null($customerCode) && is_null($idprof2)) throw new RestException(400, 'No filter found');
 
-        $TEntity = explode(',', $entity);
-        foreach($TEntity as $e) if(! is_numeric($e)) throw new RestException(400, 'Wrong value for entity filter');
+        $TEntity = $this->getEntityFromCristal($entity);
+        if(empty($TEntity)) throw new RestException(400, 'Wrong value for entity filter');
 
         $TDossier = array();
         if(! is_null($id)) {
@@ -107,13 +107,13 @@ class financement extends DolibarrApi
      *
      * @param int    $id        Id of contract
      * @param string $reference Reference of contract
-     * @param int    $entity    Entity of contract to calculate payments
+     * @param string $entity    Entity of contract to calculate payments
      * @return  array
      *
      * @throws RestException
      * @url     GET /payments
      */
-    public function getPayments($id = null, $reference = null, $entity = 1) {
+    public function getPayments($id = null, $reference = null, $entity = null) {
         if(is_null($id) && is_null($reference)) throw new RestException(400, 'No filter found');
 
         if(! is_null($id)) {
@@ -121,7 +121,10 @@ class financement extends DolibarrApi
             if($res === false) throw new RestException(404, 'Contract not found');
         }
         else {
-            $res = $this->dossier->loadReference($this->PDOdb, $reference, false, $entity);
+            $TEntity = $this->getEntityFromCristal($entity);
+            if(empty($TEntity)) throw new RestException(400, 'Wrong value for entity filter');
+
+            $res = $this->dossier->loadReference($this->PDOdb, $reference, false, $TEntity);
             if($res === false) throw new RestException(404, 'Contract not found');
         }
         $this->dossier->load_affaire($this->PDOdb);
@@ -159,5 +162,22 @@ class financement extends DolibarrApi
         unset($object->TLien);
 
         return $object;
+    }
+
+    private function getEntityFromCristal($entityCristal) {
+        $sql = 'SELECT fk_object';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'entity_extrafields';
+        $sql.= " WHERE entity_cristal LIKE '".$this->db->escape($entityCristal)."'";
+
+        $resql = $this->db->query($sql);
+        if(! $resql) {
+            dol_print_error($this->db);
+            return false;
+        }
+
+        $TRes = array();
+        while($obj = $this->db->fetch_object($resql)) $TRes[] = $obj->fk_object;
+
+        return $TRes;
     }
 }
