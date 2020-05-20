@@ -6,5 +6,5 @@ config.php
 *.log
 /nbproject
 .buildpath
-vendor/
+includes/
 tests/.phpunit.result.cache

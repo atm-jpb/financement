@@ -8,6 +8,7 @@
         "symfony/css-selector": "^4.4"
     },
     "config": {
-        "bin-dir": "vendor/bin"
+        "vendor-dir": "includes",
+        "bin-dir": "includes/bin"
     }
 }
