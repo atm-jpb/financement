@@ -1,6 +1,6 @@
 {
     "require": {
-        "symfony/browser-kit": "^4.4",
+        "symfony/browser-kit": "4.4.7",
         "markrogoyski/math-php": "0.*"
     },
     "require-dev": {
