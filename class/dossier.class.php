@@ -1,6 +1,6 @@
 <?php
 
-dol_include_once('/financement/vendor/autoload.php');
+dol_include_once('/financement/includes/autoload.php');
 
 use MathPHP\Finance as Finance;
 /*
