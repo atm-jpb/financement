@@ -352,7 +352,7 @@ class WebServiceBnp extends WebService
 				if($this->simulation->opt_periodicite == 'MOIS') {
 					$codeBareme = '00011680';
 				}
-			} else if($this->simulation->entity == 3) { // telecom
+			} else if(in_array($this->simulation->entity, array(3, 30))) { // telecom et veodis
 				$codeBareme = '00011684';
 			} else {
 				$codeBareme = (!$this->production) ? '00004048' : '00011657';
@@ -361,7 +361,7 @@ class WebServiceBnp extends WebService
 				}
 			}
 		} else {
-			if($this->simulation->entity == 3) { // telecom
+			if(in_array($this->simulation->entity, array(3, 30))) { // telecom et veodis
 				$codeBareme = '00013540';
 			} else {
 				$codeBareme = (!$this->production) ? '00004050' : '00006710';
