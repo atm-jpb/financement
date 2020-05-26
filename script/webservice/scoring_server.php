@@ -173,11 +173,11 @@ function repondreDemande($authentication, $TReponse)
 				dol_include_once('/financement/class/dossier_integrale.class.php');
 				dol_include_once('/financement/class/affaire.class.php');
 				dol_include_once('/financement/class/grille.class.php');
-	
+
 				$PDOdb = new TPDOdb;
 				$simulation = new TSimulation;
 				$reference_simulation = $TReponse['partenaire']['ref_ext'];
-				
+
 				$TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $simulation->get_table(), array('reference'=>$reference_simulation));
 				if (!empty($TId[0]))
 				{
@@ -188,7 +188,7 @@ function repondreDemande($authentication, $TReponse)
 						$siren = str_pad($siren, 9, '0', STR_PAD_LEFT);
 						if (strcmp($simulation->societe->idprof1, $siren) === 0)
 						{
-							
+
 							$found = false;
                             foreach($simulation->TSimulationSuivi as $simulationSuivi) {
                                 if($simulationSuivi->leaser->array_options['options_edi_leaser'] == 'LIXXBAIL') {
@@ -196,29 +196,32 @@ function repondreDemande($authentication, $TReponse)
                                     break;
                                 }
                             }
-							
+
 							if ($found)
 							{
 								$statut = $TReponse['financement']['statut'];
 								$commentaire = $TReponse['financement']['commentaire_statut'];
 								$numero_accord = $TReponse['financement']['num_dossier'];
 								$coeff = $TReponse['financement']['coeff_dossier'];
-								
+
 								$action = _getAction($fuser, $statut); // return accepter || refuser || attente
-								if ($action != 'attente' && $simulation->accord != 'OK')
+								// On ne lance le doAction suite retour leaser que si le leaser envoie accepté ou refusé
+								// Et que le suivi leaser n'est pas déjà sélectionné
+								if ($action != 'attente' && empty($simulationSuivi->date_selection))
 								{
 									$simulationSuivi->doAction($PDOdb, $simulation, $action);
 								}
-								
+
+								if(!empty($simulationSuivi->commentaire)) $commentaire = $simulationSuivi->commentaire . "n" . $commentaire;
 								$Tab = array('commentaire'=>$commentaire, 'numero_accord_leaser'=>$numero_accord, 'coeff_leaser'=>$coeff);
 								$simulationSuivi->set_values($Tab);
 								$simulationSuivi->save($PDOdb);
-								
+
 								$extra_label = '';
 								if ($action == 'accepter') $extra_label = ' Demande enregistrée comme étant "Acceptée"';
 								elseif ($action == 'refuser') $extra_label = ' Demande enregistrée comme étant "Refusée"';
 								elseif ($action == 'attente') $extra_label = ' Demande enregistrée comme étant en "Attente"';
-								
+
 								$objectresp = array('result'=>array('result_code'=>'OK', 'result_label'=>'Statut mis à jour.'.$extra_label));
 							}
 							else
@@ -244,7 +247,7 @@ function repondreDemande($authentication, $TReponse)
 					$error++;
 					$errorcode='NUM_DOSSIER_EMPTY'; $errorlabel='Aucune référence communiquée';
 				}
-				
+
 			}
 			else
 			{
@@ -267,7 +270,7 @@ function repondreDemande($authentication, $TReponse)
 	$date = new DateTime();
 	$objectresp['date'] = $date->format('Y-m-d H:i:s');
 	$objectresp['timezone'] = $date->getTimezone()->getName();
-	
+
 	dol_syslog("WEBSERVICE RES TAB : ".print_r($objectresp,true), LOG_ERR, 0, '_EDI_SCORING_LIXXBAIL');
 
 	return $objectresp;
@@ -276,21 +279,21 @@ function repondreDemande($authentication, $TReponse)
 function _getAction(&$fuser, $statut)
 {
 	$action = 'attente';
-	
+
 	// TODO à faire évoluer si l'utilisateur du webservice change et n'est plus uniquement CAL&F (Lixxbail)
 	switch (strtolower($statut)) {
 		case 'etude':
 			$action = 'attente';
 			break;
-			
+
 		case 'accepte':
 			$action = 'accepter';
 			break;
-			
+
 		case 'refuse':
 			$action = 'refuser';
 			break;
-			
+
 		case 'errtech':
 		case 'errcomm':
 		case 'errbareme':
@@ -301,7 +304,7 @@ function _getAction(&$fuser, $statut)
 			$action = 'erreur';
 			break;
 	}
-	
+
 	return $action;
 }
 
@@ -325,10 +328,10 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 	$dolibarr_main_authentication='dolibarr';
 
 	$langs->load('financement@financement');
-	
+
 	dol_syslog("1. WEBSERVICE ReturnRespDemFinRequest called", LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 	dol_syslog("2. WEBSERVICE ResponseDemFinShort=".print_r($ResponseDemFinShort, true), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
-	
+
 	dol_include_once('/financement/class/simulation.class.php');
 	dol_include_once('/financement/class/score.class.php');
 	dol_include_once('/financement/class/dossier.class.php');
@@ -337,20 +340,20 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 	dol_include_once('/financement/class/grille.class.php');
 
 	$error = 0;
-	
+
 	if (!empty($authentication['entity'])) $conf->entity=$authentication['entity'];
-	
+
 	$fuser=check_authentication($authentication,$error,$result_code,$result_label);
 	if (empty($error))
 	{
 		if (empty($fuser->rights)) $fuser->getrights();
 		if (empty($fuser->array_options)) $fuser->fetch_optionals();
-		
+
 		$objectresp = array();
 
 		$PDOdb = new TPDOdb;
 		$simulation = new TSimulation;
-		
+
 		if (empty($fuser->rights->financement->webservice->repondre_demande))
 		{
 			$error++;
@@ -364,12 +367,12 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 			$result_label='Configuration du compte utilisateur manquante. Le compte n\'est pas associé à un leaser';
 		}
 
-		
+
 		if (empty($error))
 		{
 			$ref_simulation = $ResponseDemFinShort['Rep_Statut_B2B']['B2B_INF_EXT'];
 			//$ref_simulation = $ResponseDemFinComplete['REP_Demande']['B2B_REF_EXT'];
-					
+
 			$TId = TRequeteCore::get_id_from_what_you_want($PDOdb, $simulation->get_table(), array('reference'=>$ref_simulation));
 			if (!empty($TId[0]))
 			{
@@ -388,29 +391,29 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 
 				if ($found)
 				{
-					
+
 					if ($ResponseDemFinShort['Rep_Statut_B2B']['B2B_CDRET'] != 0)
 					{
 						$error++;
 						$result_code='B2B_CDRET';
 						$result_label='Prise en compte du code d\'erreur';
-						
+
 						if (!empty($simulationSuivi->commentaire)) $simulationSuivi->commentaire.= "\n";
 						$simulationSuivi->commentaire.= '['.$ResponseDemFinShort['Rep_Statut_B2B']['B2B_CDRET'].'] '.$langs->trans($ResponseDemFinShort['Rep_Statut_B2B']['B2B_MSGRET']);
-						
+
 						$simulationSuivi->doAction($PDOdb, $simulation, 'erreur');
 					}
-					
-					
+
+
 					if (empty($error))
 					{
 						$statut = $ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'];
 						dol_syslog('2.1 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$statut, LOG_ERR, 0, '_EDI_SCORING_CMCIC');
-						
+
 						// TODO à corriger car le calcul est faux
 						$coeff = $ResponseDemFinComplete['Infos_Financieres']['B2B_MT_LOYER'] * 100 / $ResponseDemFinComplete['Infos_Financieres']['B2B_MT_DEMANDE'];
 						dol_syslog('2.2 $coeff='.$coeff, LOG_ERR, 0, '_EDI_SCORING_CMCIC');
-						
+
 						if (!empty($simulationSuivi->commentaire)) $simulationSuivi->commentaire.= "\n";
 						$simulationSuivi->commentaire.= $langs->trans($ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']);
 						if(!empty($ResponseDemFinComplete['Infos_Statut']['B2B_INFOS_STATUT'])) {
@@ -418,15 +421,15 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 						}
 						$simulationSuivi->coeff_leaser = $coeff;
 						$simulationSuivi->numero_accord_leaser = $ResponseDemFinComplete['REP_Demande']['B2B_NODEF'];
-						
+
 						dol_syslog('2.3 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT'], LOG_ERR, 0, '_EDI_SCORING_CMCIC');
 						dol_syslog('2.3 $ResponseDemFinComplete[Decision_Demande][B2B_CD_STATUT]='.$langs->trans($ResponseDemFinComplete['Decision_Demande']['B2B_CD_STATUT']), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
-						
+
 
 						if ($statut == 'Status.APPROVED') $simulationSuivi->doAction($PDOdb, $simulation, 'accepter');
 						else if ($statut == 'Status.REJECTED') $simulationSuivi->doAction($PDOdb, $simulation, 'refuser');
 						else $simulationSuivi->save($PDOdb);
-						
+
 						if (!empty($ResponseDemFinComplete['REP_AccordPDF_B2B']))
 						{
 							$dir = $simulation->getFilePath();
@@ -445,8 +448,8 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 						$result_code = 'SUCCESS';
 						$result_label = '"suivi leaser" mis à jour';
 					}
-					
-	
+
+
 				}
 				else
 				{
@@ -463,14 +466,14 @@ function ReturnRespDemFinRequest($authentication, $ResponseDemFinShort, $Respons
 			}
 		}
 	}
-	
+
 	$date = new DateTime();
 	$objectresp['date'] = $date->format('Y-m-d H:i:s');
 	$objectresp['timezone'] = $date->getTimezone()->getName();
 	$objectresp['result'] = array('result_code' => $result_code, 'result_label' => $result_label);
-	
+
 	dol_syslog("3. WEBSERVICE ReturnRespDemFinRequest return = ".print_r($objectresp,true), LOG_ERR, 0, '_EDI_SCORING_CMCIC');
-	
+
 	return $objectresp;
 }
 // FIN TODO
