@@ -87,7 +87,7 @@ class financement extends DolibarrApi
             return $this->_cleanObjectDatas($this->dossier);
         }
         else if(! is_null($customerCode)) {
-            $TDossier = TFin_dossier::getContractFromThirdpartyInfo($this->PDOdb, $customerCode, null, $entity, $ongoing);
+            $TDossier = TFin_dossier::getContractFromThirdpartyInfo($this->PDOdb, $customerCode, null, implode(',', $TEntity), $ongoing);
         }
         else {  // Id prof. 2
             $socstatic = new Societe($this->db);
@@ -95,7 +95,7 @@ class financement extends DolibarrApi
             $socstatic->country_code = 'FR';
             if($socstatic->id_prof_check(2, $socstatic) < 0) throw new RestException(400, 'Incorrect value for idprof2 parameter');
 
-            $TDossier = TFin_dossier::getContractFromThirdpartyInfo($this->PDOdb, null, $idprof2, $entity, $ongoing);
+            $TDossier = TFin_dossier::getContractFromThirdpartyInfo($this->PDOdb, null, $idprof2, implode(',', $TEntity), $ongoing);
         }
 
         foreach($TDossier as &$dossier) $this->_cleanObjectDatas($dossier);
@@ -174,7 +174,6 @@ class financement extends DolibarrApi
 
         $resql = $this->db->query($sql);
         if(! $resql) {
-            dol_print_error($this->db);
             return false;
         }
 
