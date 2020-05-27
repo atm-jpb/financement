@@ -1,6 +1,8 @@
 <?php
 
-dol_include_once('/financement/includes/autoload.php');
+require_once DOL_DOCUMENT_ROOT.'/includes/markrogoyski/math-php/src/Finance.php';
+require_once DOL_DOCUMENT_ROOT.'/includes/markrogoyski/math-php/src/NumericalAnalysis/RootFinding/NewtonsMethod.php';
+require_once DOL_DOCUMENT_ROOT.'/includes/markrogoyski/math-php/src/NumericalAnalysis/RootFinding/Validation.php';
 
 use MathPHP\Finance as Finance;
 /*
