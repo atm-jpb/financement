@@ -55,18 +55,20 @@ class financement extends DolibarrApi
      * @param   string  $reference      Reference of contract
      * @param   string  $customerCode   Customer code related to contract
      * @param   string  $idprof2        Professional Id 2 of customer (SIRET)
-     * @param   string  $entity         Entities of contract to search (comma separated)
+     * @param   string  $entity         Entity of contract to search
      * @param   int     $ongoing        1 to only get ongoing contract, 0 otherwise
      * @return  array|TFin_dossier
      *
      * @url     GET /contract
      * @throws  RestException
      */
-    public function getContract($id = null, $reference = null, $customerCode = null, $idprof2 = null, $entity = '1', $ongoing = 1) {
+    public function getContract($id = null, $reference = null, $customerCode = null, $idprof2 = null, $entity = null, $ongoing = 1) {
         if(is_null($id) && is_null($reference) && is_null($customerCode) && is_null($idprof2)) throw new RestException(400, 'No filter found');
 
-        $TEntity = $this->getEntityFromCristal($entity);
-        if(empty($TEntity)) throw new RestException(400, 'Wrong value for entity filter');
+        if(! is_null($entity)) {
+            $TEntity = $this->getEntityFromCristal($entity);
+            if(empty($TEntity)) throw new RestException(400, 'Wrong value for entity filter');
+        }
 
         $TDossier = array();
         if(! is_null($id)) {
@@ -80,6 +82,7 @@ class financement extends DolibarrApi
         else if(! is_null($reference)) {
             $res = $this->dossier->loadReference($this->PDOdb, $reference, false, $TEntity);
             if($res === false) throw new RestException(404, 'Contract not found');
+            $this->dossier->load_affaire($this->PDOdb);
 
             return $this->_cleanObjectDatas($this->dossier);
         }
