@@ -67,6 +67,26 @@ if(empty($simu->rowid)) {
 			exit;
 		}
 	}
+	else {
+        $soc = new Societe($db);
+        $soc->fetch($fk_soc);
+
+        if(! empty($code_artis)) {
+            if(! empty($soc->code_client)) {
+                // On met le code client existant des les autres
+                if(is_null($soc->array_options['options_other_customer_code'])) $soc->array_options['options_other_customer_code'] = '';
+
+                $TOtherCustomerCode = explode(';', $soc->array_options['options_other_customer_code']);
+                $TOtherCustomerCode[] = $soc->code_client;
+
+                $soc->array_options['options_other_customer_code'] = implode(';', $TOtherCustomerCode);
+                $soc->updateExtraField('other_customer_code');
+            }
+
+            $soc->code_client = $code_artis;
+            $soc->update($soc->id);
+        }
+    }
 }
 else {
     $fk_soc = $simu->fk_soc;
