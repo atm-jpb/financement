@@ -77,6 +77,7 @@ class financement extends DolibarrApi
             $this->dossier->load_affaire($this->PDOdb);
             $this->dossier->TLien[0]->affaire->loadEquipement($this->PDOdb);
 
+            self::formatData($this->dossier);
             return $this->_cleanObjectDatas($this->dossier);
         }
         else if(! is_null($reference)) {
@@ -84,6 +85,7 @@ class financement extends DolibarrApi
             if($res === false) throw new RestException(404, 'Contract not found');
             $this->dossier->load_affaire($this->PDOdb);
 
+            self::formatData($this->dossier);
             return $this->_cleanObjectDatas($this->dossier);
         }
         else if(! is_null($customerCode)) {
@@ -98,7 +100,10 @@ class financement extends DolibarrApi
             $TDossier = TFin_dossier::getContractFromThirdpartyInfo($this->PDOdb, null, $idprof2, implode(',', $TEntity), $ongoing);
         }
 
-        foreach($TDossier as &$dossier) $this->_cleanObjectDatas($dossier);
+        foreach($TDossier as $dossier) {
+            self::formatData($dossier);
+            $this->_cleanObjectDatas($dossier);
+        }
 
         return $TDossier;
     }
@@ -152,19 +157,51 @@ class financement extends DolibarrApi
 
         $object->TEquipement = array();
         foreach($object->TAsset as $assetLink) {
-            unset($assetLink->asset->table, $assetLink->asset->TChamps, $assetLink->asset->TConstraint, $assetLink->asset->TList, $assetLink->asset->assetType);
+            self::cleanData($assetLink->asset);
+            unset($assetLink->asset->assetType);
+
             $object->TEquipement[] = $assetLink->asset;
         }
-        unset($object->TAsset);
+        unset($object->TAsset, $object->TLien, $object->affaire->TAsset, $object->affaire->TLien);
 
-        unset($object->table, $object->TChamps, $object->TConstraint, $object->TList);
-        unset($object->affaire->table, $object->affaire->TChamps, $object->affaire->TConstraint, $object->affaire->TList, $object->affaire->TAsset);
+        self::cleanData($object);
+        self::cleanData($object->affaire);
+        self::cleanData($object->financementLeaser);
+
+        if($object->nature_financement == 'INTERNE') self::cleanData($object->financement);
+        else unset($object->financement);   // Dans le cas d'un dossier Externe, le financement client n'est pas utile
+
         unset($object->affaire->societe);
-        unset($object->financement->table, $object->financement->TChamps, $object->financement->TConstraint, $object->financement->TList);
-        unset($object->financementLeaser->table, $object->financementLeaser->TChamps, $object->financementLeaser->TConstraint, $object->financementLeaser->TList);
-        unset($object->TLien);
 
         return $object;
+    }
+
+    private static function cleanData(&$object) {
+        unset($object->TNoSaveVars, $object->withChild, $object->to_delete, $object->debug, $object->TChildObjetStd, $object->unsetChildDeleted, $object->errors);
+        unset($object->date_0, $object->champs_indexe);
+        unset($object->table, $object->TChamps, $object->TConstraint, $object->TList);
+    }
+
+    private static function formatData(TFin_dossier &$object) {
+        self::format($object);
+        self::format($object->TLien[0]->affaire);
+        self::format($object->financementLeaser);
+        if($object->nature_financement == 'INTERNE') self::format($object->financement);
+    }
+
+    private static function format($object) {
+        // To format these fields too
+        $object->TChamps['date_cre'] = array('type' => 'date');
+        $object->TChamps['date_maj'] = array('type' => 'date');
+
+        foreach($object->TChamps as $k => $v) {
+            $type = array_shift($v);
+
+            if($type == 'date') {
+                if($object->$k <= 0) $object->$k = null;
+                else $object->$k = date('Y-m-d', $object->$k);
+            }
+        }
     }
 
     private function getEntityFromCristal($entityCristal) {
