@@ -4,6 +4,8 @@ use Luracast\Restler\RestException;
 
 define('INC_FROM_CRON_SCRIPT', true);
 require_once __DIR__.'/../config.php';
+require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+require_once DOL_DOCUMENT_ROOT.'/societe/class/api_thirdparties.class.php';
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/affaire.class.php');
@@ -15,7 +17,7 @@ dol_include_once('/financement/class/grille.class.php');
  * @access protected
  * @class  DolibarrApiAccess {@requires user,external}
  */
-class financement extends DolibarrApi
+class Financement extends DolibarrApi
 {
     /**
      * @var TPDOdb $PDOdb {@type TPDOdb}
@@ -154,6 +156,14 @@ class financement extends DolibarrApi
         $object->type_financement = $object->affaire->type_financement;
         $object->TAsset = $object->affaire->TAsset;
         $object->affaire->code_client = $object->affaire->societe->code_client;
+        $object->client = $object->affaire->societe;
+
+        $object->leaser = new Societe($this->db);
+        $object->leaser->fetch($object->financementLeaser->fk_soc);
+
+        $apiThirdparties = new Thirdparties;
+        $apiThirdparties->_cleanObjectDatas($object->client);
+        $apiThirdparties->_cleanObjectDatas($object->leaser);
 
         $object->TEquipement = array();
         foreach($object->TAsset as $assetLink) {
@@ -162,7 +172,7 @@ class financement extends DolibarrApi
 
             $object->TEquipement[] = $assetLink->asset;
         }
-        unset($object->TAsset, $object->TLien, $object->affaire->TAsset, $object->affaire->TLien);
+        unset($object->TAsset, $object->TLien, $object->affaire->TAsset, $object->affaire->TLien, $object->affaire->societe);
 
         self::cleanData($object);
         self::cleanData($object->affaire);
@@ -170,8 +180,6 @@ class financement extends DolibarrApi
 
         if($object->nature_financement == 'INTERNE') self::cleanData($object->financement);
         else unset($object->financement);   // Dans le cas d'un dossier Externe, le financement client n'est pas utile
-
-        unset($object->affaire->societe);
 
         return $object;
     }
