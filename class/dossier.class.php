@@ -1106,11 +1106,13 @@ class TFin_dossier extends TObjetStd
     /*****************************************************************************************/
     function getSolde(&$PDOdb, $type = 'SRBANK', $iPeriode = 0) {
         $duree_restante_leaser = ($iPeriode == 0) ? $this->financementLeaser->duree_restante : $this->financementLeaser->duree - $iPeriode;
+		if($duree_restante_leaser < 0) $duree_restante_leaser = 0;
 
         $CRD_Leaser = $this->financementLeaser->valeur_actuelle($duree_restante_leaser);
         $LRD_Leaser = $this->financementLeaser->echeance * $duree_restante_leaser + $this->financementLeaser->reste;
 
         $duree_restante_client = ($iPeriode == 0) ? $this->financement->duree_restante : $this->financement->duree - $iPeriode;
+		if($duree_restante_client < 0) $duree_restante_client = 0;
 
         $CRD = $this->financement->valeur_actuelle($duree_restante_client);
         if($duree_restante_client == 0) $CRD = 0;
