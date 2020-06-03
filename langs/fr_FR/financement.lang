@@ -366,6 +366,7 @@ ExportsBaseSolde = Base des soldes
 ThisDossierIsSelected = Ce dossier est sélectionné dans une simulation, impossible de le supprimer !
 
 # Conformite
+Conformite = Conformité
 ConformiteList = Liste des conformités
 RequiredFiles = Fichiers obligatoires
 ListOfRequiredFiles = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>Contrat + scan des CGV + mandat SEPA</li><li>Accord de financement</li><li>Facture matériel</li><li>PV de livraison</li><li>RIB</li><li>CNI (recto verso)</li><li>Copie societe.com ou KBIS pour les dossiers >50k€</li><li>Mail de déro la cas échéant</li><li>Pouvoir de signature le cas échéant</li></ul>
@@ -409,3 +410,6 @@ FinancementReplaceThirdpartyError = Erreur lors de la fusion : Les Tiers n'appar
 CantDeleteThirdparty = Le Tiers ne peut pas être supprimé
 CSVScriptFileOutput = %s lignes :<br/>%s traitées<br/>%s erreurs
 DossierSolde = Solder des dossiers
+
+Delays_FINANCEMENT_DELAY_DRAFT_SIMULATION = Simulation en étude
+Delays_FINANCEMENT_DELAY_CONFORMITE = Conformité en attente

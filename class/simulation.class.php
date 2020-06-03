@@ -2419,6 +2419,40 @@ class TSimulation extends TObjetStd
 
         return true;
     }
+
+    public static function load_board() {
+        global $db, $conf, $langs;
+
+        $nbWait = $nbDelayed = 0;
+
+        $sql = 'SELECT rowid, date_cre';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
+        $sql.= " WHERE accord LIKE 'WAIT%'";
+        $sql.= ' AND entity IN ('.getEntity('fin_simulation').')';
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            return -1;
+        }
+
+        while($obj = $db->fetch_object($resql)) {
+            $nbWait++;
+            if(time() >= ($obj->date_cre + $conf->global->FINANCEMENT_DELAY_DRAFT_SIMULATION * 86400)) $nbDelayed++;
+        }
+        $db->free($resql);
+
+        $r = new WorkboardResponse;
+        $r->warning_delay = $conf->global->FINANCEMENT_DELAY_DRAFT_SIMULATION;
+        $r->label = $langs->trans('Delays_FINANCEMENT_DELAY_DRAFT_SIMULATION');
+        $r->url = dol_buildpath('/financement/simulation/list.php', 1).'?search_statut=WAIT';
+        $r->img = img_picto('', 'object_simul@financement');
+
+        $r->nbtodo = $nbWait;
+        $r->nbtodolate = $nbDelayed;
+
+        return $r;
+    }
 }
 
 class TSimulationSuivi extends TObjetStd

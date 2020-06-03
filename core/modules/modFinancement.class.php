@@ -86,6 +86,8 @@ class modFinancement extends DolibarrModules
 		//                        );
 		$this->module_parts = array(
 			'hooks' => array(
+				'index',
+				'delay',
 				'thirdpartycard',
 				'salesrepresentativescard',
 				'invoicecard',

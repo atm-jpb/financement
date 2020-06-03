@@ -7,6 +7,7 @@ class ActionsFinancement
     public $error;
     public $errors = array();
     public $resprints = '';
+    public $results = array();
 
     /**
      * Constructor
@@ -451,6 +452,41 @@ class ActionsFinancement
         TSimulation::replaceThirdparty($fk_soc_source, $fk_soc_target, $TEntityGroup);
         TFin_affaire::replaceThirdparty($fk_soc_source, $fk_soc_target, $TEntityGroup);
 
+        return 0;
+    }
+
+    function addOpenElementsDashboardLine($parameters, &$object, &$action, $hookmanager) {
+        global $dashboardlines;
+        $dashboardlines = array();
+
+        dol_include_once('/financement/class/simulation.class.php');
+        dol_include_once('/financement/class/conformite.class.php');
+
+        $TRes = array();
+        $TRes[] = TSimulation::load_board();
+        $TRes[] = Conformite::load_board(Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1);
+        $TRes[] = Conformite::load_board(Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2);
+
+        $this->results = $TRes;
+        return 0;
+    }
+
+    function addDelay($parameters, &$object, &$action, $hookmanager) {
+        // On ajoute ici les conf qui permettent de gérer les délais de retard
+        $TRes = array(
+            'financement' => array(
+                array(
+                    'code' => 'FINANCEMENT_DELAY_DRAFT_SIMULATION',
+                    'img' => 'simul@financement'
+                ),
+                array(
+                    'code' => 'FINANCEMENT_DELAY_CONFORMITE',
+                    'img' => 'simul@financement'
+                )
+            )
+        );
+
+        $this->results = $TRes;
         return 0;
     }
 }
