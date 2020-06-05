@@ -489,4 +489,70 @@ class ActionsFinancement
         $this->results = $TRes;
         return 0;
     }
+
+    function addStatisticLine($parameters, &$object, &$action, $hookmanager) {
+        global $langs;
+
+        dol_include_once('/financement/class/dossier.class.php');
+
+        $out = '';
+
+        // Nombre de financements actif
+        $nb = TFin_dossier::howMany();
+        $text = $langs->trans('DossierActifs');
+
+        $out.= '<a href="'.dol_buildpath('/financement/dossier_list.php', 1).'" class="boxstatsindicator thumbstat nobold nounderline">';
+        $out.= '<div class="boxstats">';
+        $out.= '<span class="boxstatstext" title="'.dol_escape_htmltag($text).'">'.$text.'</span><br>';
+        $out.= '<span class="boxstatsindicator">'.img_object('', 'simul@financement').' '.$nb.'</span>';
+        $out.= '</div>';
+        $out.= '</a>';
+
+        // Nombre de financements internes actif
+        $nb = TFin_dossier::howMany(null, 'INTERNE');
+        $text = $langs->trans('DossierInternesActifs');
+
+        $out.= '<a href="'.dol_buildpath('/financement/dossier_list.php', 1).'?search_nature=INTERNE" class="boxstatsindicator thumbstat nobold nounderline">';
+        $out.= '<div class="boxstats">';
+        $out.= '<span class="boxstatstext" title="'.dol_escape_htmltag($text).'">'.$text.'</span><br>';
+        $out.= '<span class="boxstatsindicator">'.img_object('', 'simul@financement').' '.$nb.'</span>';
+        $out.= '</div>';
+        $out.= '</a>';
+
+        // Nombre de financements internes actif intégral
+        $nb = TFin_dossier::howMany('INTEGRAL', 'INTERNE');
+        $text = $langs->trans('DossierInternesIntegralActifs');
+
+        $out.= '<a href="'.dol_buildpath('/financement/dossier_list.php', 1).'?search_nature=INTERNE" class="boxstatsindicator thumbstat nobold nounderline">';
+        $out.= '<div class="boxstats">';
+        $out.= '<span class="boxstatstext" title="'.dol_escape_htmltag($text).'">'.$text.'</span><br>';
+        $out.= '<span class="boxstatsindicator">'.img_object('', 'simul@financement').' '.$nb.'</span>';
+        $out.= '</div>';
+        $out.= '</a>';
+
+        // TODO: Nombre de financements internes actif Forfait global
+        $nb = TFin_dossier::howMany('FORFAITGLOBAL', 'INTERNE');
+        $text = $langs->trans('DossierInternesForfaitGlobalActifs');
+
+        $out.= '<a href="'.dol_buildpath('/financement/dossier_list.php', 1).'?search_nature=INTERNE" class="boxstatsindicator thumbstat nobold nounderline">';
+        $out.= '<div class="boxstats">';
+        $out.= '<span class="boxstatstext" title="'.dol_escape_htmltag($text).'">'.$text.'</span><br>';
+        $out.= '<span class="boxstatsindicator">'.img_object('', 'simul@financement').' '.$nb.'</span>';
+        $out.= '</div>';
+        $out.= '</a>';
+
+        // TODO: Nombre de financements internes actif Loc simple
+        $nb = TFin_dossier::howMany('LOCSIMPLE', 'INTERNE');
+        $text = $langs->trans('DossierInternesLocSimpleActifs');
+
+        $out.= '<a href="'.dol_buildpath('/financement/dossier_list.php', 1).'?search_nature=INTERNE" class="boxstatsindicator thumbstat nobold nounderline">';
+        $out.= '<div class="boxstats">';
+        $out.= '<span class="boxstatstext" title="'.dol_escape_htmltag($text).'">'.$text.'</span><br>';
+        $out.= '<span class="boxstatsindicator">'.img_object('', 'simul@financement').' '.$nb.'</span>';
+        $out.= '</div>';
+        $out.= '</a>';
+
+        $this->resprints = $out;
+        return 0;
+    }
 }

@@ -1,5 +1,10 @@
 <?php
 
+if(! class_exists('TObjetStd')) {
+    define('INC_FROM_DOLIBARR', true);
+    require_once dirname(__FILE__).'/../config.php';
+}
+
 require_once DOL_DOCUMENT_ROOT.'/includes/markrogoyski/math-php/src/Finance.php';
 require_once DOL_DOCUMENT_ROOT.'/includes/markrogoyski/math-php/src/NumericalAnalysis/RootFinding/NewtonsMethod.php';
 require_once DOL_DOCUMENT_ROOT.'/includes/markrogoyski/math-php/src/NumericalAnalysis/RootFinding/Validation.php';
@@ -2095,6 +2100,32 @@ class TFin_dossier extends TObjetStd
         }
 
         return $TRes;
+    }
+
+    public static function howMany($typeContrat = null, $natureFinancement = null, $ongoing = true) {
+        global $db;
+
+        $sql = 'SELECT count(*) as nb';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_dossier d';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid)';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)';
+        $sql.= ' WHERE d.entity IN ('.getEntity('fin_dossier').')';
+        if(! is_null($natureFinancement)) $sql.= " AND d.nature_financement = '".$db->escape($natureFinancement)."'";
+        if(! is_null($typeContrat)) $sql.= " AND a.contrat = '".$db->escape($typeContrat)."'";
+        if($ongoing) {
+            $sql .= " AND (df.date_solde is null OR df.date_solde < '1970-01-01')"; // Date de solde non définie
+            $sql .= ' AND (df.montant_solde is null OR df.montant_solde = 0.00)';   // Montant du solde non défini
+        }
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            return -1;
+        }
+
+        if($obj = $db->fetch_object($resql)) return $obj->nb;
+        return 0;
     }
 }
 
