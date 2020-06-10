@@ -430,6 +430,7 @@ class WebServiceBnp extends WebService
 		{
 			if (!empty($suiviDemande->numeroDemandeDefinitif)) { // Tant que l'on a pas de numéro définitif de demande on ne fait rien
 				$this->simulationSuivi->statut = $TCodeStatut[$suiviDemande->etat->codeStatutDemande];
+                if (!empty($this->simulationSuivi->commentaire)) $this->simulationSuivi->commentaire.= "\n";
 				$this->simulationSuivi->commentaire = $suiviDemande->etat->libelleStatutDemande;
 				$this->simulationSuivi->numero_accord_leaser = $suiviDemande->numeroDemandeDefinitif;
 
