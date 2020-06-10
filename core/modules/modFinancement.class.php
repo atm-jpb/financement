@@ -497,6 +497,13 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'alldossier';
 		$this->rights[$r][5] = 'solde';
 
+		$r++;
+		$this->rights[$r][0] = $this->numero.$r;
+		$this->rights[$r][1] = 'Dossiers : Modifier la référence et l\'échéance leaser';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'alldossier';
+		$this->rights[$r][5] = 'editReferenceAndTermLeaser';
+
 
 		// Main menu entries
 		$this->menus = array();			// List of menus to add
