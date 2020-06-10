@@ -81,6 +81,7 @@ class WebServiceGrenke extends WebService
 			{
 				// besoin de sauvegarder 'leaseRequestID' dans notre objet '$this->simulationSuivi'
 				$this->simulationSuivi->leaseRequestID = $response->addLeaseRequestWithLoginResult->leaseRequestId;
+                if (!empty($this->simulationSuivi->commentaire)) $this->simulationSuivi->commentaire.= "\n";
 				$this->simulationSuivi->commentaire = $langs->trans($response->addLeaseRequestWithLoginResult->status);
 
 				return true;
@@ -88,6 +89,7 @@ class WebServiceGrenke extends WebService
 			// MAJ du statut
 			else if (!empty($response->getLeaseRequestStatusWithLoginResult->leaseRequestId))
 			{
+                if (!empty($this->simulationSuivi->commentaire)) $this->simulationSuivi->commentaire.= "\n";
 				$this->simulationSuivi->commentaire = $langs->trans($response->getLeaseRequestStatusWithLoginResult->status);
 				$PDOdb = new TPDOdb;
 
@@ -288,6 +290,7 @@ class WebServiceGrenke extends WebService
 			}
 			else
 			{
+                if (!empty($this->simulationSuivi->commentaire)) $this->simulationSuivi->commentaire.= "\n";
 				$this->simulationSuivi->commentaire.= "\nErreur sur la récupération de la référence et du PDF";
 			}
 
