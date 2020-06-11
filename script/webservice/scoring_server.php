@@ -212,7 +212,7 @@ function repondreDemande($authentication, $TReponse)
 									$simulationSuivi->doAction($PDOdb, $simulation, $action);
 								}
 
-								if(!empty($simulationSuivi->commentaire)) $commentaire = $simulationSuivi->commentaire . "n" . $commentaire;
+								if(!empty($simulationSuivi->commentaire)) $commentaire = $simulationSuivi->commentaire . "\n" . $commentaire;
 								$Tab = array('commentaire'=>$commentaire, 'numero_accord_leaser'=>$numero_accord, 'coeff_leaser'=>$coeff);
 								$simulationSuivi->set_values($Tab);
 								$simulationSuivi->save($PDOdb);

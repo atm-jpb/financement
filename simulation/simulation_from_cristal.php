@@ -42,12 +42,22 @@ if($method == 'GET') {
 
 if(empty($simu->rowid)) {
 	$siret = GETPOST('siret');
-	if(empty($siret)) exit('empty siret!');
 
-	$fk_soc = _get_socid('', $TEntity, $siret);
+	if(empty($siret) && empty($code_artis)) {
+		echo 'Votre fiche doit comporter un code client ou un SIRET pour pouvoir être consultée / créée dans LeaseBoard';
+		exit;
+	}
 
-	// Créer la fiche client s'il n'existe pas
-	if(empty($fk_soc)) {
+	if(!empty($siret)) $fk_soc = _get_socid('', $TEntity, $siret); // Recherche par SIRET => priorité
+	if(empty($fk_soc) && ! empty($code_artis)) $fk_soc = _get_socid($code_artis, $TEntity); // Non trouvé par SIRET ou pas de SIRET transmis => recherche par code artis
+
+	if(empty($siret) && empty($fk_soc)) {
+		echo 'Votre fiche ne comporte pas de SIRET et le code client transmis est inconnu dans LeaseBoard : '.$code_artis;
+		exit;
+	}
+
+	// Créer la fiche client s'il n'existe pas et que le siret est transmis
+	if(empty($fk_soc) && !empty($siret)) {
 		$soc = new Societe($db);
 		$soc->name = GETPOST('nom');
 		$soc->address = GETPOST('adresse');
@@ -60,6 +70,7 @@ if(empty($simu->rowid)) {
 		$soc->entity = $conf->entity;
 		$soc->commercial_id = $user->id;
 		$soc->client = 2;
+		$soc->code_client = $code_artis;
 
 		$fk_soc = $soc->create($user);
 		if($fk_soc <= 0) {
