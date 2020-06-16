@@ -530,7 +530,7 @@ class ActionsFinancement
         $out.= '</div>';
         $out.= '</a>';
 
-        // TODO: Nombre de financements internes actif Forfait global
+        // Nombre de financements internes actif Forfait global
         $nb = TFin_dossier::howMany('FORFAITGLOBAL', 'INTERNE');
         $text = $langs->trans('DossierInternesForfaitGlobalActifs');
 
@@ -541,7 +541,7 @@ class ActionsFinancement
         $out.= '</div>';
         $out.= '</a>';
 
-        // TODO: Nombre de financements internes actif Loc simple
+        // Nombre de financements internes actif Loc simple
         $nb = TFin_dossier::howMany('LOCSIMPLE', 'INTERNE');
         $text = $langs->trans('DossierInternesLocSimpleActifs');
 
