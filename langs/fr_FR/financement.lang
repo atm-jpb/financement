@@ -309,6 +309,19 @@ BoxSimulationsAcceptanceRateTitle = Financement - Taux d'acceptation des simulat
 BoxSimulationsAcceptanceRateFirstColumn = 12 derniers mois
 BoxSimulationsAcceptanceRateSecondColumn = mois en cours
 BoxSimulationAcceptanceRate = Taux d'acceptation
+SimulationAcceptanceRateDetails = Nb OK : %s<br/>Nb KO : %s
+
+# Box Simulation Auto Agreement Rate
+BoxSimulationsAutoAgreementRateTitle = Financement - Taux d'accords auto des simulations
+BoxSimulationsAutoAgreementRateFirstColumn = 3 derniers mois
+BoxSimulationsAutoAgreementRate = Taux d'accords auto
+BoxSimulationsAutoAgreementRateDetails = Nb accords auto : %s<br/>Nb accords : %s
+
+# Box Conformite processing time
+BoxConformiteProcessingTimeTitle = Financement - Délais de traitement des conformités sur les 3 derniers mois
+BoxConformiteProcessingTimeFirstColumn = Conforme N2 -> date d'envoi
+BoxConformiteProcessingTime = Délais moyen de traitement
+BoxConformiteProcessingTimeDetails = Nb conformite : %s<br/>Délais moyen (en h) : %s
 
 #Contrôle qualité
 QualityControl=Contrôle qualité
@@ -419,8 +432,10 @@ DossierSolde = Solder des dossiers
 
 Delays_FINANCEMENT_DELAY_DRAFT_SIMULATION = Simulation en étude
 Delays_FINANCEMENT_DELAY_CONFORMITE = Conformité en attente
-DossierActifs = Dossiers actifs
-DossierInternesActifs = Dossiers internes actifs
-DossierInternesIntegralActifs = Dossiers internes actifs Intégral
-DossierInternesForfaitGlobalActifs = Dossiers internes actifs Forfait global
-DossierInternesLocSimpleActifs = Dossiers internes actifs Loc simple
+
+# Statistics
+DossierActifs = Actifs
+DossierInternesActifs = Internes
+DossierInternesIntegralActifs = Intégral
+DossierInternesForfaitGlobalActifs = Forfait global
+DossierInternesLocSimpleActifs = Loc simple
