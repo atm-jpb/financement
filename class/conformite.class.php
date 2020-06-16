@@ -151,7 +151,7 @@ class Conformite extends TObjetStd
         $r = new WorkboardResponse;
         $r->warning_delay = $conf->global->FINANCEMENT_DELAY_CONFORMITE;
         $r->label = $langs->trans('Conformite').' '.$langs->trans(self::$TStatus[$fk_status]);
-        $r->url = dol_buildpath('/financement/conformite/list.php', 1).'?search_statut='.$fk_status;
+        $r->url = dol_buildpath('/financement/conformite/list.php', 1).'?search_status='.$fk_status;
         $r->img = img_picto('', 'object_simul@financement');
 
         $r->nbtodo = $nbWait;
