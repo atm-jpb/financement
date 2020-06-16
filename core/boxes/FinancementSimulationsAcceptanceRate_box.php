@@ -89,7 +89,7 @@ class FinancementSimulationsAcceptanceRate_box extends ModeleBoxes
 
         $sql = 'SELECT accord, count(*) as nb';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
-        $sql.= " WHERE accord = 'OK'";
+        $sql.= " WHERE accord IN ('OK', 'KO')";
         $sql.= '';  // Accord donné en moins de {Conf EDI} minutes
         $lastTwelveMonth = " AND date_cre >= '".(date('Y')-1).date('-m')."-01'";    // 12 derniers mois
         $lastMonth = ' AND extract(month from date_cre) = '.date('n'); // Mois en cours
