@@ -125,4 +125,38 @@ class Conformite extends TObjetStd
     }
 
     public static function add($a, $b) { return $a + $b; }
+
+    public static function load_board($fk_status) {
+        global $db, $conf, $langs;
+
+        $nbWait = $nbDelayed = 0;
+
+        $sql = 'SELECT rowid, date_cre';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.self::$tablename;
+        $sql.= ' WHERE status = '.$db->escape($fk_status);
+        $sql.= ' AND entity IN ('.getEntity('fin_simulation').')';
+
+        $resql = $db->query($sql);
+        if(! $resql || ! array_key_exists($fk_status, Conformite::$TStatus)) {
+            dol_print_error($db);
+            return -1;
+        }
+
+        while($obj = $db->fetch_object($resql)) {
+            $nbWait++;
+            if(time() >= ($obj->date_cre + $conf->global->FINANCEMENT_DELAY_CONFORMITE * 86400)) $nbDelayed++;
+        }
+        $db->free($resql);
+
+        $r = new WorkboardResponse;
+        $r->warning_delay = $conf->global->FINANCEMENT_DELAY_CONFORMITE;
+        $r->label = $langs->trans('Conformite').' '.$langs->trans(self::$TStatus[$fk_status]);
+        $r->url = dol_buildpath('/financement/conformite/list.php', 1).'?search_status='.$fk_status;
+        $r->img = img_picto('', 'object_simul@financement');
+
+        $r->nbtodo = $nbWait;
+        $r->nbtodolate = $nbDelayed;
+
+        return $r;
+    }
 }

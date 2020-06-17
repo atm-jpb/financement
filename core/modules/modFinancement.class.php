@@ -86,6 +86,8 @@ class modFinancement extends DolibarrModules
 		//                        );
 		$this->module_parts = array(
 			'hooks' => array(
+				'index',
+				'delay',
 				'thirdpartycard',
 				'salesrepresentativescard',
 				'invoicecard',
@@ -1101,7 +1103,12 @@ class modFinancement extends DolibarrModules
 								'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;*/
 
-		$this->boxes=array(array('file'=>'financement_indicateurs_box.php@financement','note'=>'','enabledbydefaulton'=>'Home'));
+		$this->boxes=array(
+			array('file' => 'financement_indicateurs_box.php@financement', 'note' => '', 'enabledbydefaulton' => 'Home'),
+			array('file' => 'FinancementSimulationsAcceptanceRate_box.php@financement', 'note' => '', 'enabledbydefaulton' => 'Home'),
+			array('file' => 'FinancementSimulationsAutoAgreementRate_box.php@financement', 'note' => '', 'enabledbydefaulton' => 'Home'),
+			array('file' => 'FinancementConformiteProcessingTime_box.php@financement', 'note' => '', 'enabledbydefaulton' => 'Home')
+		);
 
 		// Exports
 		$r=1;

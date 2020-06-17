@@ -157,6 +157,9 @@ class InterfaceFinancementtrigger
 			}
 		}
 		else if($action == 'COMPANY_DELETE') {
+		    if(! class_exists('TSimulation')) dol_include_once('/financement/class/simulation.class.php');
+            if(! class_exists('TFin_affaire')) dol_include_once('/financement/class/affaire.class.php');
+
 		    if(TSimulation::isExistingObject(null, $object->id) || TFin_affaire::isExistingObject(null, $object->id)) {
                 setEventMessage('CantDeleteThirdparty', 'errors');
                 return -1;

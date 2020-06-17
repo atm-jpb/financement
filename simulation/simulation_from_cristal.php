@@ -49,7 +49,7 @@ if(empty($simu->rowid)) {
 	}
 
 	if(!empty($siret)) $fk_soc = _get_socid('', $TEntity, $siret); // Recherche par SIRET => priorité
-	if(empty($fk_soc)) $fk_soc = _get_socid($code_artis, $TEntity); // Non trouvé par SIRET ou pas de SIRET transmis => recherche par code artis
+	if(empty($fk_soc) && ! empty($code_artis)) $fk_soc = _get_socid($code_artis, $TEntity); // Non trouvé par SIRET ou pas de SIRET transmis => recherche par code artis
 
 	if(empty($siret) && empty($fk_soc)) {
 		echo 'Votre fiche ne comporte pas de SIRET et le code client transmis est inconnu dans LeaseBoard : '.$code_artis;

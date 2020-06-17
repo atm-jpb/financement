@@ -304,6 +304,25 @@ BoxIndicatorsExternalFilesRelocation=Dossiers externes en relocation
 BoxIndicatorsExternalFilesIntercalaire=Dossiers externes avec loyer intercalaire
 BoxIndicatorsQualityControl=Contrôles qualité
 
+#Box Simulation Acceptance Rate
+BoxSimulationsAcceptanceRateTitle = Financement - Taux d'acceptation des simulations
+BoxSimulationsAcceptanceRateFirstColumn = 12 derniers mois
+BoxSimulationsAcceptanceRateSecondColumn = mois en cours
+BoxSimulationAcceptanceRate = Taux d'acceptation
+SimulationAcceptanceRateDetails = Nb OK : %s<br/>Nb KO : %s
+
+# Box Simulation Auto Agreement Rate
+BoxSimulationsAutoAgreementRateTitle = Financement - Taux d'accords auto des simulations
+BoxSimulationsAutoAgreementRateFirstColumn = 3 derniers mois
+BoxSimulationsAutoAgreementRate = Taux d'accords auto
+BoxSimulationsAutoAgreementRateDetails = Nb accords auto : %s<br/>Nb accords : %s
+
+# Box Conformite processing time
+BoxConformiteProcessingTimeTitle = Financement - Délais de traitement des conformités sur les 3 derniers mois
+BoxConformiteProcessingTimeFirstColumn = Conforme N2 -> date d'envoi
+BoxConformiteProcessingTime = Délais moyen de traitement
+BoxConformiteProcessingTimeDetails = Nb conformite : %s<br/>Délais moyen (en h) : %s
+
 #Contrôle qualité
 QualityControl=Contrôle qualité
 QualityControlRules=Règles du contrôle qualité
@@ -366,6 +385,7 @@ ExportsBaseSolde = Base des soldes
 ThisDossierIsSelected = Ce dossier est sélectionné dans une simulation, impossible de le supprimer !
 
 # Conformite
+Conformite = Conformité
 ConformiteList = Liste des conformités
 RequiredFiles = Fichiers obligatoires
 ListOfRequiredFiles = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>Contrat + scan des CGV + mandat SEPA</li><li>Accord de financement</li><li>Facture matériel</li><li>PV de livraison</li><li>RIB</li><li>CNI (recto verso)</li><li>Copie societe.com ou KBIS pour les dossiers >50k€</li><li>Mail de déro la cas échéant</li><li>Pouvoir de signature le cas échéant</li></ul>
@@ -409,3 +429,13 @@ FinancementReplaceThirdpartyError = Erreur lors de la fusion : Les Tiers n'appar
 CantDeleteThirdparty = Le Tiers ne peut pas être supprimé
 CSVScriptFileOutput = %s lignes :<br/>%s traitées<br/>%s erreurs
 DossierSolde = Solder des dossiers
+
+Delays_FINANCEMENT_DELAY_DRAFT_SIMULATION = Simulation en étude
+Delays_FINANCEMENT_DELAY_CONFORMITE = Conformité en attente
+
+# Statistics
+DossierActifs = Actifs
+DossierInternesActifs = Internes
+DossierInternesIntegralActifs = Intégral
+DossierInternesForfaitGlobalActifs = Forfait global
+DossierInternesLocSimpleActifs = Loc simple
