@@ -379,7 +379,7 @@ class WebServiceBnp extends WebService
 		$num_accord_leaser = $this->simulationSuivi->numero_accord_leaser;
 
 		$entity = new DaoMulticompany($db);
-		$entity->fetch($this->simulationSuivi->entity);
+		$entity->fetch($this->simulation->entity);
 
 		$TData = array();
 
