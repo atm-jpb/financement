@@ -135,7 +135,7 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData) {
         /** @var TFin_financement $f */
         $f = $d->financementLeaser;
         $d->financementLeaser->duree = $f->duree_restante;
-        $d->financementLeaser->echeance = Finance::pmt($f->taux / (12 / $f->getiPeriode())/100, $f->duree_restante, $f->montant, $f->reste, true);
+        $d->financementLeaser->echeance = abs(Finance::pmt($f->taux / (12 / $f->getiPeriode())/100, $f->duree_restante, $f->montant, $f->reste, true));
         $d->financementLeaser->date_debut = strtotime('2020-07-01');
         unset($f);
 
