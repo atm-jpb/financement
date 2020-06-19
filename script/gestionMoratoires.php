@@ -92,7 +92,7 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData) {
 
     foreach($TData as $data) {
         $d = new TFin_dossier;
-        $d->loadReference($PDOdb, $data['reference'], $data['entity']);
+        $d->loadReference($PDOdb, $data['reference'], false, $data['entity']);
         if(empty($d->rowid)) continue;  // Failed to load
         $d->load_affaire($PDOdb);
 
