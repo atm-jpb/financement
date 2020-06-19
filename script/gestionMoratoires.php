@@ -23,7 +23,7 @@ if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv'
     while($TLine = fgetcsv($f, 2048, ';', '"')) {
         $i++;
         if($i > 1) {
-            $Tmp = getUsefulData($TLine);
+            $TData[] = getUsefulData($TLine);
         }
     }
 
@@ -66,13 +66,16 @@ llxFooter();
 
 function getUsefulData($TLine) {
     $TIndex = array(
-        'reference' => 0
+        'reference' => 0,
+        'entity' => 1
     );
 
     $reference = trim($TLine[$TIndex['reference']]);
+    $entity = trim($TLine[$TIndex['entity']]);
 
     return array(
-        'reference' => $reference
+        'reference' => $reference,
+        'entity' => $entity
     );
 }
 
@@ -89,7 +92,8 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData) {
 
     foreach($TData as $data) {
         $d = new TFin_dossier;
-        $d->loadReference($PDOdb, $data['reference']);
+        $d->loadReference($PDOdb, $data['reference'], $data['entity']);
+        if(empty($d->rowid)) continue;  // Failed to load
         $d->load_affaire($PDOdb);
 
         // On duplique le contrat
