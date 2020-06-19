@@ -103,12 +103,14 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData) {
 
         // On unset les id pour en créer des nouveaux
         unset($newDossier->id, $newDossier->rowid);
-        unset($newDossier->financement->id, $newDossier->financement->rowid);
-        unset($newDossier->financementLeaser->id, $newDossier->financementLeaser->rowid);
+        unset($newDossier->financement->id, $newDossier->financement->rowid, $newDossier->financement->reference);
+        unset($newDossier->financementLeaser->id, $newDossier->financementLeaser->rowid, $newDossier->financementLeaser->reference);
+
+        $newDossier->save($PDOdb);  // Saving to get Id
 
         // Update references
-        $newDossier->financement->reference .= '-COVID';
-        $newDossier->financementLeaser->reference .= '-COVID';
+        $newDossier->financement->reference = $d->financement->reference.'-COVID';
+        $newDossier->financementLeaser->reference = $d->financementLeaser->reference.'-COVID';
 
         // On solde le dossier
         $newDossier->financement->montant_solde = $newDossier->financement->reste;
