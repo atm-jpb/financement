@@ -88,7 +88,7 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData) {
     global $db;
 
     $nbUpdated = 0;
-//    $TData = array(array('reference' => '218420-K0/8'));
+//    $TData = array(array('reference' => '285114-H0', 'entity' => 3));
 
     foreach($TData as $data) {
         $d = new TFin_dossier;
@@ -130,13 +130,45 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData) {
         if(! $resql) {
             dol_print_error($db);
         }
+        $db->free($resql);
+
+        // On déplace les factures fournisseurs vers le nouveau dossier
+        $sql = 'UPDATE '.MAIN_DB_PREFIX.'element_element';
+        $sql.= ' SET fk_source = '.$newDossier->rowid;
+        $sql.= " WHERE sourcetype = 'dossier'";
+        $sql.= ' AND fk_source = '.$d->rowid;
+        $sql.= " AND targettype = 'invoice_supplier'";
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+        }
+        $db->free($resql);
 
         // On recalcule l'échéance avec la nouvelle durée
         /** @var TFin_financement $f */
         $f = $d->financementLeaser;
+        $beginning = ($f->terme == 1);
+        $dureeRestante = ($f->duree_restante == 0) ? 1 : $f->duree_restante;    // Si le dossier se termine sur l'échéance non payée, il reste donc une période à payer
+
+        $e = $d->echeancier($PDOdb, 'LEASER', 1, true, false);
+
+        // Permet de retrouver le bon numéro de période pour recalculer le CRD
+        $periods = null;
+        foreach($e['ligne'] as $iPeriode => $lineData) {
+            if($lineData['date'] == '01/01/2020') {
+                $periods = $iPeriode + 1;
+            }
+        }
+
+        $montant = Finance::pv($f->taux / (12 / $f->getiPeriode())/100, $f->duree-$periods, -$f->echeance, $f->reste, $beginning);   // On recalcule le CRD du 31/03/2020
+        $echeance = Finance::pmt($f->taux / (12 / $f->getiPeriode())/100, $dureeRestante, -$montant, $f->reste, $beginning);    // Calcul de la nouvelle échéance avec le nouveau montant financé
+
         $d->financementLeaser->duree = $f->duree_restante;
-        $d->financementLeaser->echeance = abs(Finance::pmt($f->taux / (12 / $f->getiPeriode())/100, $f->duree_restante, $f->montant, $f->reste, true));
+        $d->financementLeaser->montant = $montant;
+        $d->financementLeaser->echeance = $echeance;
         $d->financementLeaser->date_debut = strtotime('2020-07-01');
+        $d->financementLeaser->setEcheanceExterne($d->financementLeaser->date_debut);
         unset($f);
 
         /** @var TFin_financement $f */
