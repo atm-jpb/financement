@@ -8,3 +8,4 @@ config.php
 .buildpath
 includes/
 tests/.phpunit.result.cache
+script/crea-fac-leaser.html
