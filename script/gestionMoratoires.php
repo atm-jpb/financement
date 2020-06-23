@@ -16,7 +16,7 @@ $PDOdb = new TPDOdb;
 llxHeader();
 
 if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv' && ! empty($user->rights->financement->alldossier->solde)) {
-    $TData = array();
+    $TData = $TError = array();
 
     $f = fopen($_FILES['fileToImport']['tmp_name'], 'r');
     $i = 0;
@@ -27,13 +27,19 @@ if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv'
         }
     }
 
-    $upd = updateDossierSolde($PDOdb, $TData);
+    $upd = updateDossierSolde($PDOdb, $TData, $TError);
 
     setEventMessage($upd.' mise à jour effectuées sur '.count($TData).' lignes dans le fichier');
     ?>
     <script type="text/javascript">
         $(document).ready(function() {
             $('div#retours').append('<p>Fichier "<?php echo $_FILES['fileToImport']['name']; ?>" : <?php echo $upd.'/'.count($TData); ?></p>');
+            <?php
+                if(! empty($TError)) {
+                    print "$('div#retours').append('<p>Dossiers non modifiés :</p>');";
+                    foreach($TError as $data) print "$('div#retours').append('<p>Ref : ".$data['reference']." ; Entité : ".$data['entity']."</p>');";
+                }
+            ?>
         });
     </script>
     <?php
@@ -84,7 +90,7 @@ function getUsefulData($TLine) {
  * @param   array  $TData
  * @return  int
  */
-function updateDossierSolde(TPDOdb $PDOdb, $TData) {
+function updateDossierSolde(TPDOdb $PDOdb, $TData, &$TError) {
     global $db;
 
     $nbUpdated = 0;
@@ -93,7 +99,10 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData) {
     foreach($TData as $data) {
         $d = new TFin_dossier;
         $d->loadReference($PDOdb, $data['reference'], false, $data['entity']);
-        if(empty($d->rowid)) continue;  // Failed to load
+        if(empty($d->rowid)) {  // Failed to load
+            $TError[] = $data;
+            continue;
+        }
         $d->load_affaire($PDOdb);
 
         // On duplique le contrat
@@ -177,6 +186,7 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData) {
         $d->financement->reste += $f->echeance;
 
         $d->save($PDOdb);
+        $nbUpdated++;
     }
 
     return $nbUpdated;
