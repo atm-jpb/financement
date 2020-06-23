@@ -831,8 +831,8 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 	
 	if($mode=='edit' && ( $financementLeaser->okPourFacturation!='AUTO' || count($dossier->TFactureFournisseur)==0 || $user->rights->financement->admin->write )  ) $mode_aff_fLeaser = 'edit';
 	else $mode_aff_fLeaser='view';
-	
-	$formRestricted->Set_typeaff( $mode_aff_fLeaser );
+
+	if($mode == 'view' || empty($user->rights->financement->alldossier->editReferenceAndTermLeaser)) $formRestricted->Set_typeaff( $mode_aff_fLeaser );
 
 	$id_simu = _getIDSimuByReferenceDossierLeaser($PDOdb, $financementLeaser->fk_fin_dossier);
 	if(!empty($id_simu)) {
@@ -869,6 +869,9 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
         </script>
 <?php
     }
+    $echeance = $formRestricted->texte('', 'leaser[echeance]', $financementLeaser->echeance, 10,255,'','','à saisir');
+
+    if(! empty($user->rights->financement->alldossier->editReferenceAndTermLeaser)) $formRestricted->Set_typeaff( $mode_aff_fLeaser );
 	
 	$TFinancementLeaser=array(
 			'id'=>$financementLeaser->getId()
@@ -879,7 +882,7 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 			,'assurance'=>$formRestricted->texte('', 'leaser[assurance]', $financementLeaser->assurance, 10,255,'','','à saisir')
 			,'loyer_intercalaire'=>$formRestricted->texte('', 'leaser[loyer_intercalaire]', $financementLeaser->loyer_intercalaire, 10,255,'','','à saisir')
 			,'intercalaireOK'=>$formRestricted->combo('', 'leaser[intercalaireOK]', $financementLeaser->TIntercalaireOK, $financementLeaser->intercalaireOK)
-			,'echeance'=>$formRestricted->texte('', 'leaser[echeance]', $financementLeaser->echeance, 10,255,'','','à saisir')
+			,'echeance'=>$echeance
 			,'reste'=>$formRestricted->texte('', 'leaser[reste]', $financementLeaser->reste, 10,255,'','','à saisir')
 			,'montant_prestation'=>$formRestricted->texte('', 'leaser[montant_prestation]', $financementLeaser->montant_prestation, 10,255,'','','à saisir')
 			,'frais_dossier'=>$formRestricted->texte('', 'leaser[frais_dossier]', $financementLeaser->frais_dossier, 10,255,'','','à saisir')
