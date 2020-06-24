@@ -98,7 +98,6 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData, &$TError) {
 //    $TData = array(array('reference' => '285114-H0', 'entity' => 3));
 
     foreach($TData as $data) {
-        $d = new TFin_dossier;
 
         // On load les dossiers
         $sql = 'SELECT d.rowid';
@@ -111,6 +110,7 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData, &$TError) {
         if(! $resql) dol_print_error($db);
         else {
             while($obj = $db->fetch_object($resql)) {
+                $d = new TFin_dossier;
                 $d->load($PDOdb, $obj->rowid, false);
                 if(empty($d->rowid)) {  // Failed to load
                     $TError[] = $data;
@@ -148,11 +148,11 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData, &$TError) {
                 $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_dossier_affaire';
                 $sql.= ' WHERE fk_fin_affaire = '.$d->TLien[0]->fk_fin_affaire;
 
-                $resql = $db->query($sql);
-                if(! $resql) {
+                $resql2 = $db->query($sql);
+                if(! $resql2) {
                     dol_print_error($db);
                 }
-                $db->free($resql);
+                $db->free($resql2);
 
                 // On déplace les factures fournisseurs vers le nouveau dossier
                 $sql = 'UPDATE '.MAIN_DB_PREFIX.'element_element';
@@ -161,11 +161,11 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData, &$TError) {
                 $sql.= ' AND fk_source = '.$d->rowid;
                 $sql.= " AND targettype = 'invoice_supplier'";
 
-                $resql = $db->query($sql);
-                if(! $resql) {
+                $resql3 = $db->query($sql);
+                if(! $resql3) {
                     dol_print_error($db);
                 }
-                $db->free($resql);
+                $db->free($resql3);
 
                 // On recalcule l'échéance avec la nouvelle durée
                 /** @var TFin_financement $f */
