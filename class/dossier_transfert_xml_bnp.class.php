@@ -109,7 +109,7 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
                     $dossier->financement->reference,
                     $dossier->financementLeaser->reference,
                     '024',  // Produit financier
-					$codeFamille,
+					$codeMateriel,
                     str_replace('.', ',', $dossier->financementLeaser->montant),
                     $dossier->financementLeaser->reste,
                     str_replace('.', ',', $dossier->financementLeaser->echeance),
@@ -120,8 +120,8 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
                     '',  // Date livraison
                     date('d/m/Y', $dossier->financementLeaser->date_prochaine_echeance),
                     $descMateriel,
-					$codeMateriel,  // Type matériel
-					$codeMarque,  // Modèle matériel
+					'',  // Type matériel
+					'',  // Modèle matériel
                     $serialNumber,
                     $client->idprof2,
                     '',  // IBAN
