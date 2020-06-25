@@ -323,6 +323,13 @@ BoxConformiteProcessingTimeFirstColumn = Conforme N2 -> date d'envoi
 BoxConformiteProcessingTime = Délais moyen de traitement
 BoxConformiteProcessingTimeDetails = Nb conformite : %s<br/>Délais moyen (en h) : %s
 
+#Box Simulation Opening Stats
+BoxSimulationsOpeningStatsTitle = Financement - Evolution du nombre de simulation
+BoxSimulationsOpeningStatsFirstColumn = 12 derniers mois
+BoxSimulationsOpeningStatsSecondColumn = mois en cours
+BoxSimulationsOpeningStats = Entité
+BoxSimulationsOpeningStatsDetails = Nb OK : %s<br/>Nb KO : %s
+
 #Contrôle qualité
 QualityControl=Contrôle qualité
 QualityControlRules=Règles du contrôle qualité
