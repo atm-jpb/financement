@@ -116,6 +116,7 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData, &$TError) {
                     $TError[] = $data;
                     continue;
                 }
+                if(! empty($d->financementLeaser->montant_solde) && $d->financementLeaser->date_solde > strtotime('1970-01-01')) continue;  // On ignore les dossiers déjà soldés
                 $d->load_affaire($PDOdb);
 
                 // On duplique le contrat
@@ -183,7 +184,6 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData, &$TError) {
                     }
                 }
 
-//                $montant = Finance::pv($f->taux / (12 / $f->getiPeriode())/100, $f->duree-$periods, -$f->echeance, $f->reste, $beginning);   // On recalcule le CRD du 31/03/2020
                 $montant = $f->valeur_actuelle($f->duree-$periods); // On recalcule le CRD du 31/03/2020
                 $echeance = Finance::pmt($f->taux / (12 / $f->getiPeriode())/100, $dureeRestante, -$montant, $f->reste, $beginning);    // Calcul de la nouvelle échéance avec le nouveau montant financé
 
