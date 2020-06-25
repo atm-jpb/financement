@@ -119,6 +119,29 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData, &$TError) {
                 if(! empty($d->financementLeaser->montant_solde) && $d->financementLeaser->date_solde > strtotime('1970-01-01')) continue;  // On ignore les dossiers déjà soldés
                 $d->load_affaire($PDOdb);
 
+                // On recalcule l'échéance avec la nouvelle durée
+                /** @var TFin_financement $f */
+                $f = $d->financementLeaser;
+                $beginning = ($f->terme == 1);
+                $dureeRestante = ($f->duree_restante == 0) ? 1 : $f->duree_restante;    // Si le dossier se termine sur l'échéance non payée, il reste donc une période à payer
+
+                $e = $d->echeancier($PDOdb, 'LEASER', 1, true, false);
+
+                // Permet de retrouver le bon numéro de période pour recalculer le CRD
+                $periods = null;
+                foreach($e['ligne'] as $iPeriode => $lineData) {
+                    if($lineData['date'] == '01/01/2020') {
+                        $periods = $iPeriode + 1;
+                    }
+                }
+
+                $montant = $f->valeur_actuelle($f->duree-$periods); // On recalcule le CRD du 31/03/2020
+                if(is_nan($montant)) {
+                    $TError[] = array('reference' => $d->financementLeaser->reference, 'entity' => $data['entity']);
+                    continue;
+                }
+                $echeance = Finance::pmt($f->taux / (12 / $f->getiPeriode())/100, $dureeRestante, -$montant, $f->reste, $beginning);    // Calcul de la nouvelle échéance avec le nouveau montant financé
+
                 // On duplique le contrat
                 $newDossier = new TFin_dossier;
                 $newDossier->load($PDOdb, $d->rowid, false);
@@ -167,25 +190,6 @@ function updateDossierSolde(TPDOdb $PDOdb, $TData, &$TError) {
                     dol_print_error($db);
                 }
                 $db->free($resql3);
-
-                // On recalcule l'échéance avec la nouvelle durée
-                /** @var TFin_financement $f */
-                $f = $d->financementLeaser;
-                $beginning = ($f->terme == 1);
-                $dureeRestante = ($f->duree_restante == 0) ? 1 : $f->duree_restante;    // Si le dossier se termine sur l'échéance non payée, il reste donc une période à payer
-
-                $e = $d->echeancier($PDOdb, 'LEASER', 1, true, false);
-
-                // Permet de retrouver le bon numéro de période pour recalculer le CRD
-                $periods = null;
-                foreach($e['ligne'] as $iPeriode => $lineData) {
-                    if($lineData['date'] == '01/01/2020') {
-                        $periods = $iPeriode + 1;
-                    }
-                }
-
-                $montant = $f->valeur_actuelle($f->duree-$periods); // On recalcule le CRD du 31/03/2020
-                $echeance = Finance::pmt($f->taux / (12 / $f->getiPeriode())/100, $dureeRestante, -$montant, $f->reste, $beginning);    // Calcul de la nouvelle échéance avec le nouveau montant financé
 
                 $d->financementLeaser->duree = $f->duree_restante;
                 $d->financementLeaser->montant = $montant;
