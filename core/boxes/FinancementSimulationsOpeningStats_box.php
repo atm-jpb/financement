@@ -86,66 +86,65 @@ class FinancementSimulationsOpeningStats_box extends ModeleBoxes
 
 		$r = 0;
 
-        $currentMonth = date('n');
-        $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationsOpeningStats'));
-        // TODO: Voir pour ajouter l'année au dessus du mois pour plus de lisibilité
-        $j = 0;
-        for($i = intval($currentMonth) ; $i <= $currentMonth+12 ; $i++) {
-            $j++;
-            $month = $i % 12;
-            if($month === 0) $month = 12;
-
-            $this->info_box_contents[$r][$j] = array(
-                'td' => 'align="left"',
-                'text' => $langs->trans('MonthShort'.date('m', mktime(0, 0, 0, $month)))
-            );
-        }
-        unset($j);
+        // Header
+        $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => '');
+        $this->info_box_contents[$r+1][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationsOpeningStats'));
 
         $TRes = array();
+        $date = strtotime('-1 year');
+        for($i = 1 ; $i <= 13 ; $i++) { // 13 Pour prendre aussi le mois en cours
+            foreach($TEntity as $entity => $label) $TRes[$entity][date('Ym', $date)] = 0;
 
+            $this->info_box_contents[$r][$i] = array('td' => 'align="left"', 'text' => date('Y', $date));
+            $this->info_box_contents[$r+1][$i] = array('td' => 'align="left"', 'text' => $langs->trans('MonthShort'.date('m', $date)));
+
+            $date = strtotime('+1 month', $date);
+        }
+        $r++;
+
+        // Data lines
         $sql = 'SELECT entity, extract(year from date_cre) as anneeCreation, extract(month from date_cre) as moisCreation, count(*) as nb';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
-        $sql.= ' WHERE date_cre >= '.date('Y-m', strtotime('-1 year')).'-01'; // On prend toutes les simuls des 12 derniers mois
+        $sql.= " WHERE date_cre >= '".date('Y-m', strtotime('-1 year'))."-01'"; // On prend toutes les simuls des 12 derniers mois
         $sql.= ' AND entity <> 0';
         $sql.= ' GROUP BY entity, anneeCreation, moisCreation';
+        $sql.= ' ORDER BY entity, anneeCreation, moisCreation';
 
         $resql = $db->query($sql);
         if(! $resql) {
         	return;
         }
 
-        while($obj = $db->fetch_object($resql)) $TRes[$obj->entity][$obj->moisCreation] = $obj->nb;
+        while($obj = $db->fetch_object($resql)) {
+            $moisCreation = sprintf("%02d", $obj->moisCreation);
+            $TRes[$obj->entity][$obj->anneeCreation.$moisCreation] = $obj->nb;
+        }
         $db->free($resql);
 
-        // TODO: Debug avec la prise en compte de l'année
         foreach($TEntity as $entity => $label) {
-            if(! array_key_exists($entity, $TRes)) continue;    // Aucune simulation pour cette entité
+            if(array_sum($TRes[$entity]) == 0) continue;    // Aucune simulation pour cette entité
 
             $r++;
             $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $label);
 
+            $i = 1;
             foreach($TRes[$entity] as $k => $TEntityData) {
-                $textToShow = 0;
-                if(array_key_exists($i, $TEntityData)) {
-                    $textToShow = $TRes[$entity][$i];
-                }
-
-                $this->info_box_contents[$r][$i] = array(
-                    'td' => 'align="center"',
-                    'text' => '<span>'.$textToShow.'</span>'
-                );
+                $this->info_box_contents[$r][$i] = array('td' => 'align="center"', 'text' => '<span>'.$TEntityData.'</span>');
+                $i++;
             }
         }
 
         // Totaux
         $r++;
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('Total'));
-        for($i = 1; $i <= 12; $i++) {
+
+        $date = strtotime('-1 year');
+        for($i = 1; $i <= 13; $i++) { // 13 Pour prendre aussi le mois en cours
             $sum = 0;
-            foreach($TEntity as $entity => $label) $sum += $TRes[$entity][$i];
+            foreach($TEntity as $entity => $label) $sum += $TRes[$entity][date('Ym', $date)];
 
             $this->info_box_contents[$r][$i] = array('td' => 'align="center"', 'text' => $sum);
+            $date = strtotime('+1 month', $date);
         }
     }
 
