@@ -456,16 +456,18 @@ class ActionsFinancement
     }
 
     function addOpenElementsDashboardLine($parameters, &$object, &$action, $hookmanager) {
-        global $dashboardlines;
+        global $dashboardlines, $user;
         $dashboardlines = array();
 
         dol_include_once('/financement/class/simulation.class.php');
         dol_include_once('/financement/class/conformite.class.php');
 
         $TRes = array();
-        $TRes[] = TSimulation::load_board();
-        $TRes[] = Conformite::load_board(Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1);
-        $TRes[] = Conformite::load_board(Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2);
+        if(! empty($user->rights->financement->admin->write)) {
+            $TRes[] = TSimulation::load_board();
+            $TRes[] = Conformite::load_board(Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1);
+            $TRes[] = Conformite::load_board(Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2);
+        }
 
         $this->results = $TRes;
         return 0;
@@ -491,7 +493,7 @@ class ActionsFinancement
     }
 
     function addStatisticLine($parameters, &$object, &$action, $hookmanager) {
-        global $langs;
+        global $langs, $user;
 
         dol_include_once('/financement/class/dossier.class.php');
 
@@ -551,6 +553,8 @@ class ActionsFinancement
         $out.= '<span class="boxstatsindicator">'.img_object('', 'simul@financement').' '.$nb.'</span>';
         $out.= '</div>';
         $out.= '</a>';
+
+        if(empty($user->rights->financement->admin->write)) $out = '';
 
         $this->resprints = $out;
         return 0;
