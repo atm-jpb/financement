@@ -355,12 +355,6 @@ class TImport extends TObjetStd {
 			// Cas particulier (colonne 17) permettant d'indiquer si le solde du dossier doit être affiché ou non
 			if(isset($data['display_solde'])) $dossier->display_solde = $data['display_solde'];
 
-			// Dans tous les cas, si le dossier est dans le fichier leaser, c'est qu'il est actif, on vide donc les champs de solde
-			$dossier->financementLeaser->date_solde = '';
-			$dossier->financementLeaser->montant_solde = 0;
-			$dossier->financement->date_solde = '';
-			$dossier->financement->montant_solde = 0;
-
 			// On met à jour l'entité du dossier (changement possible lors de fusion d'entités)
 			$dossier->entity = $data['entity'];
 
