@@ -307,7 +307,7 @@ class TImport extends TObjetStd {
 			// Le financement leaser a été trouvé avec la référence contrat leaser
 		} else if (!empty($data['reference_dossier_interne']) && $f->loadReference($ATMdb, $data['reference_dossier_interne'], 'CLIENT', $entities)) { // Recherche du financement client par référence CPRO
 			// Le financement client a été trouvé avec la référence CPRO
-		} else if ($f->loadOrCreateSirenMontant($ATMdb, $data)) { // Recherche du financement leaser par siren et montant
+		} else if ($f->loadOrCreateSirenMontant($ATMdb, $data, $entities)) { // Recherche du financement leaser par siren et montant
 			// Le financement leaser a été trouvé ou créé par le siren et le montant de l'affaire
 		} else {
 			$this->addError($ATMdb, 'cantFindOrCreateFinancement', $data['reference']);
