@@ -74,7 +74,7 @@ class ActionsFinancement
 //	}
 
     function formObjectOptions($parameters, &$object, &$action, $hookmanager) {
-        global $user, $db;
+        global $user, $db, $langs;
 
         if(in_array('thirdpartycard', explode(':', $parameters['context'])) && $action !== 'create') {
             /** @var Societe $object */
@@ -173,10 +173,10 @@ class ActionsFinancement
                     if($res->fk_source > 0) {
                         print '<tr>';
                         print '<td>';
-                        print 'Suivi intégrale';
+                        print $langs->trans('SuiviIntegral');
                         print '</td>';
                         print '<td>';
-                        print '<a href="'.dol_buildpath('/financement/dossier_integrale.php?id='.$res->fk_source, 1).'">Voir le suivi intégrale associé</a>';
+                        print '<a href="'.dol_buildpath('/financement/dossier_integrale.php?id='.$res->fk_source, 1).'">'.$langs->trans('SuiviIntegralLink').'</a>';
                         print '</td>';
                         print '</tr>';
                     }

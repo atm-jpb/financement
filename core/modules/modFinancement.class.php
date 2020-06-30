@@ -148,10 +148,10 @@ class modFinancement extends DolibarrModules
         	,'thirdparty:+penaliteNR:penaliteNR:financement@financement:$user->rights->financement->admin->write:/financement/admin/penalite.php?type=NR&socid=__ID__'
 			,'thirdparty:+grille:GrilleLeaser:financement@financement:$user->rights->financement->admin->write:/financement/grille.php?socid=__ID__'
 		);
- 		
+
 
         // Dictionnaries
-        if (! isset($conf->financement->enabled)) 
+        if (! isset($conf->financement->enabled))
         {
         	$conf->financement=new stdClass();
         	$conf->financement->enabled=0;
@@ -298,7 +298,7 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'mydossier';
 		$this->rights[$r][5] = 'delete';
 		$r++;
-		
+
 		$this->rights[$r][0] = 210011;
 		$this->rights[$r][1] = 'Consulter tous les dossiers de financement';
 		$this->rights[$r][3] = 0;
@@ -318,12 +318,12 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][5] = 'delete';
 		$r++;
 		$this->rights[$r][0] = 210014;
-		$this->rights[$r][1] = 'Consulter les dossiers intégrale';
+		$this->rights[$r][1] = 'Consulter les dossiers intégral';
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'integrale';
 		$this->rights[$r][5] = 'read';
 		$r++;
-		
+
 		$this->rights[$r][0] = 210021;
 		$this->rights[$r][1] = 'Accéder au calculateur';
 		$this->rights[$r][3] = 0;
@@ -336,7 +336,7 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'allsimul';
 		$this->rights[$r][5] = 'simul';
 		$r++;
-		
+
 		$this->rights[$r][0] = 210031;
 		$this->rights[$r][1] = 'Accéder à mes simulations';
 		$this->rights[$r][3] = 0;
@@ -361,7 +361,7 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'allsimul';
 		$this->rights[$r][5] = 'suivi_leaser';
 		$r++;
-		
+
 		$this->rights[$r][0] = 210041;
 		$this->rights[$r][1] = 'Consulter les scores client';
 		$this->rights[$r][3] = 0;
@@ -380,7 +380,7 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'score';
 		$this->rights[$r][5] = 'delete';
 		$r++;
-		
+
 		$this->rights[$r][0] = 210051;
 		$this->rights[$r][1] = 'Consulter les imports';
 		$this->rights[$r][3] = 0;
@@ -400,7 +400,7 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][4] = 'affaire';
 		$this->rights[$r][5] = 'write';
 		$r++;
-		
+
 		$this->rights[$r][0] = 210054;
 		$this->rights[$r][1] = 'Voir les affaires et dossiers de financement';
 		$this->rights[$r][3] = 0;
@@ -408,37 +408,37 @@ class modFinancement extends DolibarrModules
 		$this->rights[$r][5] = 'read';
 		$r++;
 
-		
+
 		$this->rights[$r][0] = 210999;
 		$this->rights[$r][1] = 'Administration du module';
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'admin';
 		$this->rights[$r][5] = 'write';
 		$r++;
-		
+
 		$this->rights[$r][0] = 210500;
 		$this->rights[$r][1] = 'Accès aux PDF simulation';
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'read';
 		//$this->rights[$r][5] = 'read';
 		$r++;
-		
+
 		$this->rights[$r][0] = 210055;
-		$this->rights[$r][1] = 'Suivi intégrale : Voir le détail des coûts unitaires';
+		$this->rights[$r][1] = 'Suivi intégral : Voir le détail des coûts unitaires';
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'integrale';
 		$this->rights[$r][5] = 'detail_couts';
 		$r++;
-		
+
 		$this->rights[$r][0] = 210056;
-		$this->rights[$r][1] = 'Suivi intégrale : Pouvoir visualiser les avenants dont la date de fin de validité est dépassée';
+		$this->rights[$r][1] = 'Suivi intégral : Pouvoir visualiser les avenants dont la date de fin de validité est dépassée';
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'integrale';
 		$this->rights[$r][5] = 'see_past_propal';
 		$r++;
-		
+
 		$this->rights[$r][0] = 210057;
-		$this->rights[$r][1] = 'Suivi intégrale : Pouvoir créer un avenant';
+		$this->rights[$r][1] = 'Suivi intégral : Pouvoir créer un avenant';
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'integrale';
 		$this->rights[$r][5] = 'create_new_avenant';
@@ -597,7 +597,7 @@ class modFinancement extends DolibarrModules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>$langs->trans('Imports'),
@@ -706,11 +706,11 @@ class modFinancement extends DolibarrModules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		/*
 		 * Gestion des affaires
 		 */
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>$langs->trans('Affaires'),
@@ -752,7 +752,7 @@ class modFinancement extends DolibarrModules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>$langs->trans('Affaires en erreur'),
@@ -766,7 +766,7 @@ class modFinancement extends DolibarrModules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		/*$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>$langs->trans('Nouveau dossier'),
@@ -793,7 +793,7 @@ class modFinancement extends DolibarrModules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>$langs->trans('Dossiers renta négative'),
@@ -807,7 +807,7 @@ class modFinancement extends DolibarrModules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>'Dossiers incomplet',
@@ -821,10 +821,10 @@ class modFinancement extends DolibarrModules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
-								'titre'=>'Dossiers intégrale',
+								'titre'=>'Dossiers intégral',
 								'mainmenu'=>'financement',
 								'leftmenu'=>'dossier_list',
 								'url'=>'/financement/dossier_integrale.php',
@@ -835,7 +835,7 @@ class modFinancement extends DolibarrModules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>'Dossiers rachetés',
@@ -849,7 +849,7 @@ class modFinancement extends DolibarrModules
 								'target'=>'',
 								'user'=>0);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=affaire',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>'Dossiers en relocation',
@@ -948,7 +948,7 @@ class modFinancement extends DolibarrModules
 						'target'=> '',
 						'user'=> 2	// 0=Menu for internal users, 1=external users, 2=both
         );
-		
+
 		$r++;
         $this->menu[$r]=array(
 			            'fk_menu'=>'fk_mainmenu=report,fk_leftmenu=pilotage',			// Put 0 if this is a top menu
@@ -981,9 +981,9 @@ class modFinancement extends DolibarrModules
 						'target'=> '',
 						'user'=> 2	// 0=Menu for internal users, 1=external users, 2=both
         );
-		
+
 		$r++;
-		
+
 		$this->menu[$r]=array(
 			'fk_menu'=>'fk_mainmenu=financement',			                // Put 0 if this is a top menu
 			'type'=>'left',			                // This is a Top menu entry
@@ -999,7 +999,7 @@ class modFinancement extends DolibarrModules
 			'user'=>2
 		);
 		$r++;
-		
+
 		$this->menu[$r]=array(
 			'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=financmement_report_left',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 			'type'=>'left',			                // This is a Left menu entry
@@ -1015,7 +1015,7 @@ class modFinancement extends DolibarrModules
 			'user'=>2
 		);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(
 			'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=financmement_report_left',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 			'type'=>'left',			                // This is a Left menu entry
@@ -1031,7 +1031,7 @@ class modFinancement extends DolibarrModules
 			'user'=>2
 		);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(
 			'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=financmement_report_left',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 			'type'=>'left',			                // This is a Left menu entry
@@ -1047,7 +1047,7 @@ class modFinancement extends DolibarrModules
 			'user'=>2
 		);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(
 			'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=financmement_report_left',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 			'type'=>'left',			                // This is a Left menu entry
@@ -1063,7 +1063,7 @@ class modFinancement extends DolibarrModules
 			'user'=>2
 		);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(
 			'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=financmement_report_left',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 			'type'=>'left',			                // This is a Left menu entry
@@ -1079,7 +1079,7 @@ class modFinancement extends DolibarrModules
 			'user'=>2
 		);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		$this->menu[$r]=array(
 			'fk_menu'=>'fk_mainmenu=financement,fk_leftmenu=financmement_report_left',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 			'type'=>'left',			                // This is a Left menu entry
@@ -1095,7 +1095,7 @@ class modFinancement extends DolibarrModules
 			'user'=>2
 		);				                // 0=Menu for internal users, 1=external users, 2=both
 		$r++;
-		
+
 		/*$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=financement',		    // Use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 								'type'=>'left',			                // This is a Left menu entry
 								'titre'=>'Lists',
@@ -1146,7 +1146,7 @@ class modFinancement extends DolibarrModules
 	function init($options='')
 	{
 		global $db;
-		
+
 		$sql = array();
 
 		$result=$this->load_tables();
@@ -1156,15 +1156,15 @@ class modFinancement extends DolibarrModules
 		define('INC_FROM_DOLIBARR',true);
 		dol_include_once('/financement/config.php');
 		dol_include_once('/financement/script/create-maj-base.php');
-		
+
 		dol_include_once('/core/class/extrafields.class.php');
 		$extra = new ExtraFields($db);
 		$extra->addExtraField('fk_leaser_webservice', 'Identifiant du leaser associé pour les réponses de demande de financement', 'int', '1', '', 'user', 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		$extra->addExtraField('cmcic_apporteur_id', 'Apporteur ID', 'varchar', 10, 255, 'entity');
-		
+
 		$extra->addExtraField('percent_duree_vie', '% durée de vie', 'double', 15, '24,8', 'entity', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		$extra->addExtraField('percent_moyenne_intercalaire', '% moyenne intercalaire', 'double', 20, '24,8', 'entity', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
-		
+
 		$extra->addExtraField('percent_surfactplus', '% surfact+', 'double', 10, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		$extra->addExtraField('percent_commission', '% commission', 'double', 15, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		$extra->addExtraField('percent_intercalaire', '% intercalaire', 'double', 20, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
@@ -1176,7 +1176,7 @@ class modFinancement extends DolibarrModules
 
 		$extra->addExtraField('date_debut_periode', 'Date début période', 'date', 10, '', 'facture_fourn', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		$extra->addExtraField('date_fin_periode', 'Date fin période', 'date', 20, '', 'facture_fourn', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
-		
+
 		return $this->_init($sql, $options);
 	}
 
