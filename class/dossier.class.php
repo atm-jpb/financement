@@ -2096,7 +2096,6 @@ class TFin_dossier extends TObjetStd
             $d->TLien[0]->affaire->loadEquipement($PDOdb);
 
             $TRes[] = $d;
-            break;
         }
 
         return $TRes;
