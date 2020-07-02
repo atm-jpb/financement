@@ -8,7 +8,17 @@ dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 
 $entity = GETPOST('entity', 'int');
+$workWithEntityGroups = GETPOST('workWithEntityGroups', 'int');
 $siren = GETPOST('siren');
+
+if(empty($entity)) exit('Empty entity !');
+
+if(! empty($workWithEntityGroups)) {
+    $TEntity = getOneEntityGroup($entity, 'thirdparty', array(4, 17));
+
+    print 'Entity : '.$entity.'<br/>';
+    print 'Thirdparty entity group : '.implode(',', $TEntity);
+}
 
 $sql = "SELECT siren, group_concat(rowid) as data";
 $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
@@ -16,6 +26,7 @@ $sql.= ' WHERE entity = '.$db->escape($entity);
 $sql.= ' AND LENGTH(siren) = 9';
 $sql.= " AND siren <> '000000000'";
 if(! empty($siren)) $sql.= " AND siren = '".$db->escape($siren)."'";
+if(! empty($workWithEntityGroups) && ! empty($TEntity)) $sql.= ' AND entity IN ('.implode(',', $TEntity).')';
 $sql.= ' GROUP BY siren';
 $sql.= ' HAVING count(*) > 1';
 
@@ -165,7 +176,7 @@ function mergeThirdparty(Societe $object, Societe $soc_origin) {
         $TEntityGroup = getOneEntityGroup($object->entity, 'fin_simulation', array(4, 17));
         // Si les 2 sociétés ne sont pas dans la même groupe, on évite de merge
         if(! in_array($soc_origin->entity, $TEntityGroup)) {
-            $this->errors[] = $langs->load('FinancementReplaceThirdpartyError');
+            $object->errors[] = $langs->load('FinancementReplaceThirdpartyError');
             return -1;
         }
 
