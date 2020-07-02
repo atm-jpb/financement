@@ -96,7 +96,7 @@ function updateDossierSolde($TData) {
         // Societe customer code
         $sql = 'SELECT rowid';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
-        $sql.= ' WHERE entity = 5'; // Uniquement pour C'Pro Ouest
+        $sql.= ' WHERE entity IN (5, 16)'; // Uniquement pour C'Pro Ouest (Info)
         $sql.= " AND siren = '".$db->escape($v['siren'])."'";
 
         $resql = $db->query($sql);
