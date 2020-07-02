@@ -90,6 +90,10 @@ class TSimulation extends TObjetStd
 
         $this->TMarqueMateriel = self::getMarqueMateriel();
         $this->logo = '';
+
+        // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
+        $this->date_accord = null;
+        $this->date_demarrage = null;
     }
 
     public static function getMarqueMateriel() {
@@ -2479,9 +2483,6 @@ class TSimulationSuivi extends TObjetStd
         parent::start();
         parent::_init_vars();
 
-        //Reset des dates car par défaut = time() à l'instanciation de la classe
-        $this->date_demande = $this->date_accord = $this->date_selection = $this->date_historization = '';
-
         $this->TStatut = array(
             'OK' => $langs->trans('Accord')
             , 'WAIT' => $langs->trans('Etude')
@@ -2492,6 +2493,12 @@ class TSimulationSuivi extends TObjetStd
         );
 
         $this->simulation = new TSimulation;
+
+        // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
+        $this->date_demande = null;
+        $this->date_accord = null;
+        $this->date_selection = null;
+        $this->date_historization = null;
     }
 
     /**

@@ -45,6 +45,10 @@ class TFin_affaire extends TObjetStd
         );
 
         $this->somme_dossiers = 0;
+
+        // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
+        $this->date_affaire = null;
+        $this->xml_date_transfert = null;
     }
 
     function load_c_type_contrat() {

@@ -53,6 +53,10 @@ class TFin_dossier extends TObjetStd
 
         $this->type_regul = 3;
 
+        // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
+        $this->date_relocation = null;
+        $this->date_solde = null;
+        $this->dateperso = null;
         $this->date_reception_papier = null;
         $this->date_paiement = null;
         $this->date_facture_materiel = null;
@@ -2255,7 +2259,12 @@ class TFin_financement extends TObjetStd
         );
         $this->intercalaireOK = 'OUI';
 
-        $this->date_application = null; // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
+        // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
+        $this->date_debut = null;
+        $this->date_fin = null;
+        $this->date_prochaine_echeance = null;
+        $this->date_solde = null;
+        $this->date_application = null;
         $this->date_envoi = null;
     }
 
