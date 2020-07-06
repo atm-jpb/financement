@@ -93,12 +93,9 @@
 				break;
 				
 			case 'save':
-				//$PDOdb->db->debug=true;
-				
 				$dossier->load($PDOdb, $id);
 				$dossier->set_values($_REQUEST);
 				$dossier->set_date('dateperso', $_REQUEST['dateperso']);
-				//pre($dossier);exit;
 				
 				if(isset($dossier->financement))$dossier->financement->set_values($_REQUEST);
 
@@ -115,18 +112,13 @@
 						
 					_fiche($PDOdb,$dossier,'edit');	
 				}
-				else {
-					
-					$dossier->save($PDOdb);
-					//print 'nature_financement:'.$dossier->nature_financement;exit;
-					_fiche($PDOdb,$dossier,'view');
-						
-					
-				}
-				
-				
+                else {
+                    $dossier->save($PDOdb);
+                    header('Location: '.$_SERVER['PHP_SELF'].'?id='.$dossier->rowid);
+                    exit;
+                }
+
 				break;
-			
 			case 'regenerate-facture-leaser':
 				//$PDOdb->db->debug=true;
 				
