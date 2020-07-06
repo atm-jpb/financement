@@ -140,8 +140,25 @@ class Financement extends DolibarrApi
         $this->dossier->load_affaire($this->PDOdb);
 
         $TRes = array();
+        if($this->dossier->nature_financement == 'EXTERNE') return $TRes;
+
+        $e = $this->dossier->echeancier($PDOdb, 'CLIENT', 1, true, false);
+        $iPeriodeClient = $this->dossier->financement->getiPeriode();
+
         for($i = 1 ; $i <= $this->dossier->financement->duree ; $i++) {
-            $TRes[] = $this->dossier->getSolde($this->PDOdb, 'SRCPRO', $i);
+            $solde = $this->dossier->getSolde($this->PDOdb, 'SRCPRO', $i);
+            $TDateStart = explode('/', $e['ligne'][$i-1]['date']);
+            $date_start = mktime(null, null, null, $TDateStart[1], $TDateStart[0], $TDateStart[2]);
+            $date_end = strtotime('+'.$iPeriodeClient.' month -1 day', $date_start);
+
+            $TRes[] = array(
+                'period' => $i,
+                'payment' => $solde,
+                'date_start' => date('Y-m-d', $date_start),
+                'date_end' => date('Y-m-d', $date_end)
+            );
+
+            unset($date_start, $date_end, $TDateStart, $solde);
         }
 
         return $TRes;
