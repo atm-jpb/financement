@@ -119,8 +119,8 @@ function _liste(&$PDOdb, &$dossier) {
 			,'global'=>'1000'
 		)
 		,'link'=>array(
-			'nomCli'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
-			,'nomLea'=>'<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
+			'nomCli'=>'<a href="'.DOL_URL_ROOT.'/societe/card.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
+			,'nomLea'=>'<a href="'.DOL_URL_ROOT.'/societe/card.php?socid=@fk_soc@">'.img_object('', 'company').' @val@</a>'
 			,'refDosCli'=>'<a href="?id=@ID@">@val@</a>'
 			,'refDosLea'=>'<a href="?id=@ID@">@val@</a>'
 			,'Affaire'=>'<a href="'.DOL_URL_ROOT.'/custom/financement/affaire.php?id=@ID affaire@">@val@</a>'
