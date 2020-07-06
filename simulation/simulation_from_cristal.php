@@ -202,6 +202,7 @@ function _get_info(&$simu) {
 
         $simu->code_artis_leaser = $leaser->code_client;
 		$simu->opt_periodicite = _get_periodicite($simu->opt_periodicite, true);
+		$simu->coeff = $simu->coeff/3 * $simu->opt_periodicite; // On formate le coeff en fonction de la périodicité
 
         unset($simu->TChamps);
         unset($simu->TConstraint);
