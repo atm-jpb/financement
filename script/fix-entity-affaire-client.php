@@ -1,11 +1,11 @@
 <?php
 
-require('../config.php');
+require '../config.php';
 dol_include_once('/financement/lib/financement.lib.php');
 
 @set_time_limit(0);					// No timeout for this script
 
-$PDOdb=new TPDOdb();
+$PDOdb = new TPDOdb;
 
 // Récupération des affaires commençant par EXT dont l'entité n'est pas la même que celle du client
 $sql = "SELECT a.rowid, a.entity, a.reference, s.rowid as socid, s.entity as entity_soc, s.siren, s.nom, s.address, s.zip, s.town, s.siren, s.siret, s.fk_pays";
@@ -24,8 +24,8 @@ if($resql) {
 		if(in_array($obj->entity, array(5,16)) && in_array($obj->entity_soc, array(5,16))) continue;
 		if(in_array($obj->entity, array(20,23)) && in_array($obj->entity_soc, array(20,23))) continue;
 		$i++;
-		//var_dump($obj);
-		//continue;
+
+		$TEntityGroup = getOneEntityGroup($obj->entity, 'thirdparty', array(4, 17));
 
 		echo '<hr>AFFAIRE '.$obj->reference.' ('.$obj->rowid.') : ';
 		if(strlen($obj->siren) != 9) {
@@ -33,7 +33,7 @@ if($resql) {
 			continue;
 		}
 
-		$sql2 = "SELECT s.rowid FROM ".MAIN_DB_PREFIX."societe s WHERE s.entity = ".$obj->entity." AND s.siren = '".$obj->siren."'";
+		$sql2 = "SELECT s.rowid FROM ".MAIN_DB_PREFIX."societe s WHERE s.entity IN (".implode(',', $TEntityGroup).") AND s.siren = '".$obj->siren."'";
 		$resql2 = $db->query($sql2);
 		if($db->num_rows($resql2) == 0) {
 			echo 'SIREN NON TROUVÉ ('.$sql2.') => ';
