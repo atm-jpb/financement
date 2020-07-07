@@ -43,8 +43,8 @@ if($method == 'GET') {
 if(empty($simu->rowid)) {
 	$siret = GETPOST('siret');
 
-	if(empty($siret) && empty($code_artis)) {
-		echo 'Votre fiche doit comporter un code client ou un SIRET pour pouvoir être consultée / créée dans LeaseBoard';
+	if((empty($siret) || strlen($siret) != 14) && empty($code_artis)) {
+		echo 'Votre fiche doit comporter un code client ou un SIRET sur 14 caractères pour pouvoir être consultée / créée dans LeaseBoard';
 		exit;
 	}
 
