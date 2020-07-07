@@ -371,6 +371,9 @@ CantGiveAccordAuto = Impossible de donner un accord automatique
 
 UpdateRequestStatus = Statut de la demande de modification
 SelectThisLeaser=Sélectionner ce leaser
+ActionSuiviScoringLeaser=Scorer chez ce leaser
+ActionSuiviScoringOK=Demande acceptée
+ActionSuiviScoringKO=Demande refusée
 ConfirmSelectThisLeaser=Etes-vous sûr(e) de vouloir sélectionner ce leaser ?
 
 SimuCheckSoldesAfterClone=Merci de vérifier les soldes des dossiers

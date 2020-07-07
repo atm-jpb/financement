@@ -2611,7 +2611,7 @@ class TSimulationSuivi extends TObjetStd
             //Demander
             if($this->statut_demande != 1) {
                 if(! $just_save && ! empty($simulation->societe->idprof2)) {
-                    $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Demande transmise au leaser">'.get_picto('phone').'</a>&nbsp;';
+                    $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="'.$langs->trans('ActionSuiviScoringLeaser').'">'.get_picto('phone').'</a>&nbsp;';
                 }
             }
             else {
@@ -2623,7 +2623,7 @@ class TSimulationSuivi extends TObjetStd
                     }
                     else {
                         //Reset
-                        $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler">'.get_picto('wait').'</a>&nbsp;';
+                        $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="'.$langs->trans('Cancel').'">'.get_picto('wait').'</a>&nbsp;';
 
                         $url = '?id='.$simulation->getId().'&id_suivi='.$this->getId();
                         if($iHaveToConfirm) $url .= '&action=confirm_selectionner';
@@ -2631,6 +2631,16 @@ class TSimulationSuivi extends TObjetStd
                         $actions .= '<a href="'.$url.'" title="'.$langs->trans('SelectThisLeaser').'">'.get_picto('super_ok').'</a>&nbsp;';
                     }
                 }
+                else if($this->statut === 'ERR') {
+					if($just_save) {
+						//Enregistrer
+						$actions .= get_picto('save').'&nbsp;';
+					}
+					else {
+						// Try again after error
+						$actions .= '<a href="?id=' . $simulation->getId() . '&id_suivi=' . $this->getId() . '&action=demander' . $ancre . '" title="'.$langs->trans('ActionSuiviScoringLeaser').'">' . get_picto('phone') . '</a>&nbsp;';
+					}
+				}
                 else {
                     if($this->statut !== 'KO') {
                         if($just_save) {
@@ -2639,15 +2649,15 @@ class TSimulationSuivi extends TObjetStd
                         }
                         else {
                             //Accepter
-                            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Demande acceptée">'.get_picto('ok').'</a>&nbsp;';
+                            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="'.$langs->trans('ActionSuiviScoringOK').'">'.get_picto('ok').'</a>&nbsp;';
                             //Refuser
-                            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser'.$ancre.'" title="Demande refusée">'.get_picto('refus').'</a>&nbsp;';
+                            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser'.$ancre.'" title="'.$langs->trans('ActionSuiviScoringKO').'">'.get_picto('refus').'</a>&nbsp;';
                         }
                     }
                     else if($simulation->accord != "KO") {
                         if(! $just_save) {
                             //Reset
-                            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler">'.get_picto('wait').'</a>&nbsp;';
+                            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="'.$langs->trans('Cancel').'">'.get_picto('wait').'</a>&nbsp;';
                         }
                     }
                 }
@@ -2656,12 +2666,12 @@ class TSimulationSuivi extends TObjetStd
         else if($simulation->accord == "OK" && ! empty($this->date_selection)) {
             if(! $just_save) {
                 //Reset
-                $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Annuler">'.get_picto('ok').'</a>&nbsp;';
+                $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="'.$langs->trans('Cancel').'">'.get_picto('ok').'</a>&nbsp;';
             }
         }
 
         if(! $just_save && ! empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && ! empty($this->leaser->array_options['options_edi_leaser'])) {
-            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.get_picto('webservice').'</a>&nbsp;';
+            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="'.$langs->trans('Cancel').'">'.get_picto('webservice').'</a>&nbsp;';
         }
 
         return $actions;
@@ -2705,9 +2715,9 @@ class TSimulationSuivi extends TObjetStd
         // Leaser ACECOM = demande BNP mandaté et BNP cession + Lixxbail mandaté et Lixxbail cession
         if($this->fk_leaser == 18305) {
             // 20113 = BNP Mandatée // 3382 = BNP Cession (Location simple) // 19483 = Lixxbail Mandatée // 6065 = Lixxbail Cession (Location simple)
-            $sql = "SELECT rowid 
-					FROM ".MAIN_DB_PREFIX."fin_simulation_suivi 
-					WHERE (fk_leaser = 3382 
+            $sql = "SELECT rowid
+					FROM ".MAIN_DB_PREFIX."fin_simulation_suivi
+					WHERE (fk_leaser = 3382
 						OR fk_leaser = 6065)
 						AND fk_simulation = ".$this->fk_simulation;
             $TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
