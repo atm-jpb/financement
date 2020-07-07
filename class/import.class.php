@@ -431,7 +431,23 @@ class TImport extends TObjetStd {
         }
 
         foreach ($data as $key => $value) {
-            if(($key == 'idprof2' || $key == 'idprof3') && empty($value)) continue; // On ne met pas à jour le SIREN / SIRET s'il est vide dans le fichier
+            if($key == 'idprof2' || $key == 'idprof3') {
+                if(empty($value)) continue; // On ne met pas à jour le SIREN / SIRET s'il est vide dans le fichier
+
+                $socStatic = new Societe($db);
+                if($key == 'idprof2') {
+                    $socStatic->idprof1 = $value;
+                    $idprof = 1;
+                }
+                else {
+                    $socStatic->idprof2 = $value;
+                    $idprof = 2;
+                }
+                $socStatic->country_code = 'FR';
+
+                $res = $socStatic->id_prof_check($idprof, $socStatic);
+                if($res < 0) $value = '';   // On enregistre le SIREN / SIRET vide s'ils ne sont pas corrects
+            }
             $societe->{$key} = $value;
         }
 
