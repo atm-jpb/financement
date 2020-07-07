@@ -266,10 +266,14 @@ function _get_socid($code_artis, &$TEntity = array(), $siret = '') {
     if(empty($TEntity)) $TEntity[] = $conf->entity;
     $str_entities = implode(',', $TEntity);
 
-    $sql = 'SELECT rowid';
-    $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
-    $sql.= ' WHERE entity IN ('.$db->escape($str_entities).')';
-    if(! empty($code_artis)) $sql.= " AND code_client='".$db->escape($code_artis)."'";
+    $sql = 'SELECT s.rowid';
+    $sql.= ' FROM '.MAIN_DB_PREFIX.'societe s';
+    $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe_extrafields se ON (se.fk_object = s.rowid)';
+    $sql.= ' WHERE s.entity IN ('.$db->escape($str_entities).')';
+    if(! empty($code_artis)) {
+        $sql.= " AND (s.code_client='".$db->escape($code_artis)."'";
+        $sql.= " OR locate('".$db->escape($code_artis)."', other_customer_code) <> 0)";
+    }
     if(! empty($siret)) $sql.= " AND siret='".$db->escape($siret)."'";
 
     $resql = $db->query($sql);
