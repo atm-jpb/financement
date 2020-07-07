@@ -3161,7 +3161,7 @@ class TSimulationSuivi extends TObjetStd
 
         if($isAccordAutoAllowed) {
             $message = 'Un accord auto, un ! (Switched to entity '.$conf->entity.' ; fk_simu='.$simu->rowid.', fk_suivi='.$this->rowid.')';
-            dol_syslog($message, LOG_CRIT, 0, '_accord_auto');
+            dol_syslog($message, LOG_INFO, 0, '_accord_auto');
             $this->doActionSelectionner($PDOdb, $simu);
         }
         else {
@@ -3218,7 +3218,7 @@ class TSimulationSuivi extends TObjetStd
         if(! empty($conf->global->FINANCEMENT_MAX_DIFF_RENTA)) {
             $logMessage .= 'isDiffBelowMaxDiffPercentage = '.$isDiffBelowMaxDiffPercentage."\n";
         }
-        dol_syslog($logMessage, LOG_CRIT, 0, '_accord_auto_constraint');
+        dol_syslog($logMessage, LOG_INFO, 0, '_accord_auto_constraint');
 
         return $isActive                                        // Active
             && $isLessThanMaxAmount                             // Montant max
