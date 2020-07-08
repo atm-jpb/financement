@@ -181,16 +181,7 @@ function mergeThirdparty(Societe $object, Societe $soc_origin) {
         }
 
         if(! empty($soc_origin->code_client)) {
-            if(empty($object->array_options['options_other_customer_code'])) $object->array_options['options_other_customer_code'] = $soc_origin->code_client;
-            else {
-                $TExistingCustomerCode = explode(';', $object->array_options['options_other_customer_code']);
-                $TExistingCustomerCode[] = $soc_origin->code_client;
-                $TExistingCustomerCode = array_unique($TExistingCustomerCode);
-
-                $object->array_options['options_other_customer_code'] .= implode(';', $TExistingCustomerCode);
-            }
-
-            $res = $object->updateExtraField('other_customer_code');
+            updateSocieteOtherCustomerCode($object->id, array($soc_origin->code_client));
         }
 
         TSimulation::replaceThirdparty($soc_origin->id, $object->id, $TEntityGroup);

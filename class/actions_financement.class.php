@@ -430,16 +430,7 @@ class ActionsFinancement
         }
 
         if(! empty($socSource->code_client)) {
-            if(empty($socTarget->array_options['options_other_customer_code'])) $socTarget->array_options['options_other_customer_code'] = $socSource->code_client;
-            else {
-                $TExistingCustomerCode = explode(';', $socTarget->array_options['options_other_customer_code']);
-                $TExistingCustomerCode[] = $socSource->code_client;
-                $TExistingCustomerCode = array_unique($TExistingCustomerCode);
-
-                $socTarget->array_options['options_other_customer_code'] .= implode(';', $TExistingCustomerCode);
-            }
-
-            $socTarget->updateExtraField('other_customer_code');
+            updateSocieteOtherCustomerCode($socTarget->id, array($socSource->code_client));
         }
 
         TSimulation::replaceThirdparty($fk_soc_source, $fk_soc_target, $TEntityGroup);

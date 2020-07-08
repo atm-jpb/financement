@@ -943,3 +943,26 @@ function isSimilarInvoiceRefExists($ref, $entity) {
 
     return true;
 }
+
+/**
+ * @param   int     $fk_soc
+ * @param   array   $TCustomerCodeToAdd
+ * @return  boolean
+ */
+function updateSocieteOtherCustomerCode($fk_soc, $TCustomerCodeToAdd) {
+    global $db;
+    if(! class_exists('Societe')) require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+
+    $soc = new Societe($db);
+    $res = $soc->fetch($fk_soc);
+    if($res <= 0) return false;
+
+    $TExistingCustomerCode = array();
+    if(! empty($soc->array_options['other_customer_code'])) $TExistingCustomerCode = explode(';', $soc->array_options['other_customer_code']);
+
+    $TExistingCustomerCode = array_unique(array_merge($TCustomerCodeToAdd, $TExistingCustomerCode));
+    $soc->array_options['other_customer_code'] = implode(';', $TExistingCustomerCode);
+
+    $res = $soc->insertExtraFields();// Le updateExtrafield n'insert pas si besoin
+    return $res > 0;
+}

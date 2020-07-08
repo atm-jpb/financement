@@ -82,16 +82,10 @@ if(empty($simu->rowid)) {
         $soc = new Societe($db);
         $soc->fetch($fk_soc);
 
-        if(! empty($code_artis)) {
+        if(! empty($code_artis) && $code_artis != $soc->code_client) {
             if(! empty($soc->code_client)) {
                 // On met le code client existant des les autres
-                if(is_null($soc->array_options['options_other_customer_code'])) $soc->array_options['options_other_customer_code'] = '';
-
-                $TOtherCustomerCode = explode(';', $soc->array_options['options_other_customer_code']);
-                $TOtherCustomerCode[] = $soc->code_client;
-
-                $soc->array_options['options_other_customer_code'] = implode(';', $TOtherCustomerCode);
-                $soc->updateExtraField('other_customer_code');
+                updateSocieteOtherCustomerCode($soc->id, array($soc->code_client));
             }
 
             $soc->code_client = $code_artis;

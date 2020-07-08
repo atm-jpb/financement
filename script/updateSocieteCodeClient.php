@@ -128,13 +128,7 @@ function updateDossierSolde($TData) {
 
                 if(! empty($v['code_client'])) {
                     $TCustomerCode = array_unique($v['code_client']);
-                    if(empty($soc->array_options['options_other_customer_code'])) $soc->array_options['options_other_customer_code'] = implode(';', $TCustomerCode);
-                    else {
-                        $TExistingCustomerCode = explode(';', $soc->array_options['options_other_customer_code']);
-                        $TExistingCustomerCode = array_unique(array_merge($TExistingCustomerCode, $TCustomerCode));
-                        $soc->array_options['options_other_customer_code'] = implode(';', $TExistingCustomerCode);
-                    }
-                    $soc->insertExtraFields('other_customer_code');
+                    updateSocieteOtherCustomerCode($soc->id, $TCustomerCode);
                 }
             }
         }
