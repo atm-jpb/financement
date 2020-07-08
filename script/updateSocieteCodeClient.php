@@ -70,15 +70,18 @@ llxFooter();
 function getUsefulData($TLine) {
     $TIndex = array(
         'siren' => 0,
-        'code_client' => 2
+        'code_client' => 2,
+        'entity' => 3
     );
 
     $siren = trim($TLine[$TIndex['siren']]);
     $code_client = trim($TLine[$TIndex['code_client']]);
+    $entity = trim($TLine[$TIndex['entity']]);
 
     return array(
         'siren' => $siren,
-        'code_client' => array($code_client)
+        'code_client' => array($code_client),
+        'entity' => $entity
     );
 }
 
@@ -96,7 +99,7 @@ function updateDossierSolde($TData) {
         // Societe customer code
         $sql = 'SELECT rowid';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
-        $sql.= ' WHERE entity IN (5, 16)'; // Uniquement pour C'Pro Ouest (Info)
+        $sql.= ' WHERE entity = '.$db->escape($v['entity']);
         $sql.= " AND siren = '".$db->escape($v['siren'])."'";
 
         $resql = $db->query($sql);
