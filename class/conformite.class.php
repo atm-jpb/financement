@@ -131,7 +131,7 @@ class Conformite extends TObjetStd
 
         $nbWait = $nbDelayed = 0;
 
-        $sql = 'SELECT rowid, date_cre';
+        $sql = "SELECT rowid, date_format(date_cre, '%Y-%m-%d') as date_cre";
         $sql.= ' FROM '.MAIN_DB_PREFIX.self::$tablename;
         $sql.= ' WHERE status = '.$db->escape($fk_status);
         $sql.= ' AND entity IN ('.getEntity('fin_simulation').')';
@@ -144,7 +144,9 @@ class Conformite extends TObjetStd
 
         while($obj = $db->fetch_object($resql)) {
             $nbWait++;
-            if(time() >= ($obj->date_cre + $conf->global->FINANCEMENT_DELAY_CONFORMITE * 86400)) $nbDelayed++;
+
+            $dateCre = strtotime($obj->date_cre);
+            if(time() >= ($dateCre + $conf->global->FINANCEMENT_DELAY_CONFORMITE * 86400)) $nbDelayed++;
         }
         $db->free($resql);
 

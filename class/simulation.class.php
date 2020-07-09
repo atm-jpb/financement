@@ -2429,7 +2429,7 @@ class TSimulation extends TObjetStd
 
         $nbWait = $nbDelayed = 0;
 
-        $sql = 'SELECT rowid, date_cre';
+        $sql = "SELECT rowid, date_format(date_cre, '%Y-%m-%d') as date_cre";
         $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
         $sql.= " WHERE accord LIKE 'WAIT%'";
         $sql.= ' AND entity IN ('.getEntity('fin_simulation').')';
@@ -2442,7 +2442,9 @@ class TSimulation extends TObjetStd
 
         while($obj = $db->fetch_object($resql)) {
             $nbWait++;
-            if(time() >= ($obj->date_cre + $conf->global->FINANCEMENT_DELAY_DRAFT_SIMULATION * 86400)) $nbDelayed++;
+
+            $dateCre = strtotime($obj->date_cre);
+            if(time() >= ($dateCre + $conf->global->FINANCEMENT_DELAY_DRAFT_SIMULATION * 86400)) $nbDelayed++;
         }
         $db->free($resql);
 
