@@ -1,4 +1,5 @@
 <?php
+$a = microtime(true);
 
 require '../config.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
@@ -45,6 +46,7 @@ if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv'
 elseif(! empty($action) || empty($user->rights->financement->alldossier->solde)) {
     setEventMessage('AnErrorOccured', 'errors');
 }
+$b = microtime(true);
 
 ?>
 <h3>Solder des dossiers</h3>
@@ -61,6 +63,7 @@ elseif(! empty($action) || empty($user->rights->financement->alldossier->solde))
     <input class="butActionDelete" type="reset" name="reset" value="Annuler" />
 </form>
 <br/>
+<p>Execution time : <?php echo ($b-$a); ?> sec</p>
 <div id="retours">
 </div>
 
