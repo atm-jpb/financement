@@ -103,7 +103,7 @@ function updateDossierSolde($TData) {
         // Societe customer code
         $sql = 'SELECT rowid';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
-        $sql.= ' WHERE entity ='.$db->escape($v['entity']);
+        $sql.= ' WHERE entity IN ('.$db->escape($v['entity']).')';
         $sql.= " AND siren = '".$db->escape($v['siren'])."'";
 
         $resql = $db->query($sql);
