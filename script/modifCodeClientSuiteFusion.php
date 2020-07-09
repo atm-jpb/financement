@@ -3,6 +3,7 @@
 require '../config.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
+dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/dossier_integrale.class.php');
