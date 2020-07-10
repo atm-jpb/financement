@@ -1,5 +1,7 @@
 select 'rowid',
        'nom',
+       'code_client',
+       'autres_codes_clients',
        'reference',
        'date_debut',
        'ref',
@@ -33,6 +35,8 @@ union all
 select
     fi.rowid,
     s.nom,
+    s.code_client,
+    se.other_customer_code,
     df.reference,
     df.date_debut,
     f.ref,
@@ -64,6 +68,7 @@ select
     ent.label
 from llx_facture f
 left join llx_societe s on s.rowid = f.fk_soc
+left join llx_societe_extrafields se on (se.fk_object = s.rowid)
 left join llx_societe_commerciaux sc on sc.fk_soc = s.rowid and sc.type_activite_cpro in ('Copieur', 'Traceur', 'Solution')
 left join llx_user u on u.rowid = sc.fk_user
 left join llx_element_element ee on (ee.fk_target = f.rowid and ee.targettype = 'facture')
