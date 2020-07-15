@@ -70,11 +70,13 @@ function getUsefulData($TLine) {
     );
 
     $siren = trim($TLine[$TIndex['siren']]);
+    $siret = trim($TLine[$TIndex['siret']]);
     $code_client = trim($TLine[$TIndex['code_client']]);
     $entity = trim($TLine[$TIndex['entity']]);
 
     return array(
         'siren' => $siren,
+        'siret' => $siret,
         'code_client' => array($code_client),
         'entity' => $entity
     );
@@ -113,10 +115,7 @@ function updateDossierSolde($TData) {
                     $db->commit();
                     $nbUpdated++;
                 }
-                else {
-                    $db->rollback();
-                    $nbUpdated++;
-                }
+                else $db->rollback();
             }
         }
 
