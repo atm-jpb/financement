@@ -11,8 +11,14 @@ require_once $path.'../../config.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 
 // Test if apache or batch mode
-if (substr($sapi_type, 0, 3) == 'apa') $eol = '<br />';
-else $eol = PHP_EOL;
+if (substr($sapi_type, 0, 3) == 'apa') {
+    $eol = '<br />';
+    $file = GETPOST('file');
+}
+else {
+    $eol = PHP_EOL;
+    $file = isset($argv[1]) ? $argv[1] : null;
+}
 
 // Récupération des fichiers SQL du répertoire export
 $sqlFileDir = dol_buildpath('/financement/sql/export');
@@ -23,6 +29,8 @@ $targetDir = DOL_DATA_ROOT.'/17/ecm/Rapports/';
 dol_mkdir($targetDir, '', '0777');
 
 foreach($sqlFiles as $requete) {
+    if(! empty($file) && substr($requete['name'], 0, -4) !== $file) continue;
+
 	echo '<hr>REQUETE '.$requete['name'].$eol;
     $a = microtime(true);
 
