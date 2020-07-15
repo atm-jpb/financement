@@ -94,11 +94,11 @@ function updateDossierSolde($TData) {
         // Societe customer code
         $sql = 'SELECT s.rowid';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'societe s';
-        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe_extrafields se ON (se.fk_object = s.rowid)';
+        $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe_extrafields se ON (se.fk_object = s.rowid)';
         $sql.= ' WHERE s.entity = '.$db->escape($v['entity']);
         $sql.= " AND (s.siren = '' OR s.siren is null)";
 
-        $str = "(s.code_client = '???' OR (locate(';???', se.other_customer_code) > 0 OR locate('???;', se.other_customer_code)) OR locate(';', se.other_customer_code) = 0 AND locate('???', se.other_customer_code) > 0)";
+        $str = "(s.code_client = '???' OR se.other_customer_code is not null AND ((locate(';???', se.other_customer_code) > 0 OR locate('???;', se.other_customer_code)) OR locate(';', se.other_customer_code) = 0 AND locate('???', se.other_customer_code) > 0))";
         foreach($v['code_client'] as $k => $cc) $v['code_client'][$k] = str_replace('???', $cc, $str);
 
         $sql.= ' AND ('.implode(' OR ', $v['code_client']).')';
