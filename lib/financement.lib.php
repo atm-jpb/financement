@@ -205,8 +205,8 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	$sqljoin.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (da.fk_fin_affaire = a.rowid) ";
 	$sqljoin.= " LEFT JOIN ".MAIN_DB_PREFIX."societe scli ON (scli.rowid = a.fk_soc)";
 	$sqlwhere = " AND d.nature_financement = 'INTERNE'";
-	$sqlwhere.= " AND d.montant_solde = 0";
-	$sqlwhere.= " AND d.date_solde < '1970-00-00 00:00:00' ";
+	$sqlwhere.= " AND dfcli.montant_solde = 0";
+	$sqlwhere.= " AND dfcli.date_solde < '1970-00-00 00:00:00' ";
 	//$sqlwhere.= " AND d.entity IN (".getEntity('fin_dossier', true).")";
 	$sqlwhere.= " AND d.entity = ".$conf->entity." ";
 	$sqlwhere.= " AND d.reference NOT LIKE '%old%' ";
