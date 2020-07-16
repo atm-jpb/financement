@@ -49,15 +49,16 @@ while($obj = $db->fetch_object($resql)) {
         $soc = new Societe($db);
         $soc->fetch($fkSoc);
 
-        mergeThirdparty($s, $soc);
+        mergeThirdparty($s, $soc, $TEntity);
     }
 }
 
 /**
  * @param Societe $object       Thirdparty to keep
  * @param Societe $soc_origin   Thirdparty to remove
+ * @param array   $TEntityGroup Entity group
  */
-function mergeThirdparty(Societe $object, Societe $soc_origin) {
+function mergeThirdparty(Societe $object, Societe $soc_origin, $TEntityGroup = array()) {
     global $db, $user, $hookmanager, $langs;
 
     $error = 0;
@@ -173,7 +174,7 @@ function mergeThirdparty(Societe $object, Societe $soc_origin) {
     if (! $error)
     {
         // Traitement du hook de financement
-        $TEntityGroup = getOneEntityGroup($object->entity, 'fin_simulation', array(4, 17));
+        if(empty($TEntityGroup)) $TEntityGroup = getOneEntityGroup($object->entity, 'thirdparty', array(4, 17));
         // Si les 2 sociétés ne sont pas dans la même groupe, on évite de merge
         if(! in_array($soc_origin->entity, $TEntityGroup)) {
             $object->errors[] = $langs->load('FinancementReplaceThirdpartyError');
