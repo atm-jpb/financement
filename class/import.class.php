@@ -1792,7 +1792,7 @@ class TImport extends TObjetStd {
             elseif($data['organisation'] == '012') $entity = 3;
             elseif($data['organisation'] == '015') $entity = 10;
             elseif($data['organisation'] == '016') $entity = 10;
-			elseif($data['organisation'] == '014') $entity = 8;
+			elseif($data['organisation'] == '014') $entity = 6;
         }
 
         return $entity;
