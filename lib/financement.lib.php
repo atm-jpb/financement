@@ -206,7 +206,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	$sqljoin.= " LEFT JOIN ".MAIN_DB_PREFIX."societe scli ON (scli.rowid = a.fk_soc)";
 	$sqlwhere = " AND d.nature_financement = 'INTERNE'";
 	$sqlwhere.= " AND dfcli.montant_solde = 0";
-	$sqlwhere.= " AND dfcli.date_solde < '1970-00-00 00:00:00' ";
+	$sqlwhere.= " AND (dfcli.date_solde < '1970-00-00 00:00:00' OR dfcli.date_solde IS NULL)";
 	//$sqlwhere.= " AND d.entity IN (".getEntity('fin_dossier', true).")";
 	$sqlwhere.= " AND d.entity = ".$conf->entity." ";
 	$sqlwhere.= " AND d.reference NOT LIKE '%old%' ";
@@ -282,6 +282,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= $sqljoin;
 		$sql.= " WHERE (fext.visa_renta_loyer_leaser = 0 OR fext.visa_renta_loyer_leaser IS NULL)";
 		$sql.= " AND d.renta_anomalie = 0";
+		$sql.= " AND YEAR(f.datef) >= 2020";
 		$sql.= $sqlwhere;
 
 		$PDOdb->Execute($sql);
@@ -304,7 +305,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 				$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type='LEASER')";
 				$sql.= " WHERE dfcli.reference LIKE '".$dossier->financement->reference."%'";
 				$sql.= " AND dfcli.montant_solde = 0";
-				$sql.= " AND dfcli.date_solde < '1970-00-00 00:00:00'";
+				$sql.= " AND (dfcli.date_solde < '1970-00-00 00:00:00' OR dfcli.date_solde IS NULL)";
 				$sql.= " AND dfcli.reference NOT LIKE '%old%'";
 				$TRes = $PDOdb->ExecuteAsArray($sql);
 				$total_echeances = $TRes[0]->total_echeances;
@@ -377,6 +378,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= $sqljoin;
 		$sql.= " WHERE (fext.visa_renta_loyer_client = 0 OR fext.visa_renta_loyer_client IS NULL)";
 		$sql.= " AND d.renta_anomalie = 0";
+		$sql.= " AND YEAR(f.datef) >= 2020";
 		$sql.= $sqlwhere;
 
 		$PDOdb->Execute($sql);
