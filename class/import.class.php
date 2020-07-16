@@ -1911,9 +1911,19 @@ class TImport extends TObjetStd {
 
         $entities = in_array($entity, $this->get_entity_groups()) ? $this->get_entity_groups() : array($entity);
 
-        $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'societe';
-        $sql.= ' WHERE '.$key.' LIKE \''.addslashes($val).'\'';
-        if(!empty($entities)) $sql.= ' AND entity IN ('.implode(',', $entities).')';
+        $sql = 'SELECT s.rowid';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'societe s';
+        if($key == 'code_client') $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe_extrafields se ON (se.fk_object = s.rowid)';
+        $sql.= ' WHERE ';
+        if($key == 'code_client') $sql.= '(';
+        $sql.= 's.'.$key." LIKE '".addslashes($val)."'";
+        if($key == 'code_client') {
+            $sql.= " OR se.other_customer_code is not null ";
+            $sql.= " AND (locate(';".addslashes($val)."', se.other_customer_code) > 0";   // ";..."
+            $sql.= " OR locate('".addslashes($val).";', se.other_customer_code) > 0";   // "...;"
+            $sql.= " OR locate(';', se.other_customer_code) = 0 AND locate('".addslashes($val)."', se.other_customer_code) > 0))";
+        }
+        if(!empty($entities)) $sql.= ' AND s.entity IN ('.implode(',', $entities).')';
 
         $TRes = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 
