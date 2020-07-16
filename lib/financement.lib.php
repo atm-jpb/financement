@@ -25,7 +25,7 @@ class TFinancementTools {
 		return false;
 	}
 
-	static function build_array_entities() {
+	static function build_array_entities($entityShared=array()) {
 
 		global $mc;
 
@@ -33,6 +33,8 @@ class TFinancementTools {
 
 		$TEntities = array();
 		foreach($mc->dao->entities as $ent) {
+			if($ent->visible == '0') continue; // On ne prend pas les entités non visibles
+			if(!empty($entityShared) && !in_array($ent->id, $entityShared)) continue; // On ne prend pas les entités non passées en paramètre
 			$TEntities[$ent->id] = $ent->label;
 		}
 
