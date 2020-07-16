@@ -71,9 +71,7 @@ $form = new Form($db);
 $strEntityShared = getEntity('fin_dossier', true);
 $TEntityShared = explode(',', $strEntityShared);
 
-$dao = new DaoMulticompany($db);
-$dao->getEntities();
-foreach($dao->entities as $mc_entity) if(in_array($mc_entity->id, $TEntityShared)) $TEntity[$mc_entity->id] = $mc_entity->label;
+$TEntity = TFinancementTools::build_array_entities($TEntityShared);
 
 if(GETPOST('envoiXML')) {
     setEventMessage('La génération et l\'envoi du fichier XML s\'est effectué avec succès');
