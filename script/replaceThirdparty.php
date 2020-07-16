@@ -22,11 +22,11 @@ if(! empty($workWithEntityGroups)) {
 
 $sql = "SELECT siren, group_concat(rowid) as data";
 $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
-$sql.= ' WHERE entity = '.$db->escape($entity);
-$sql.= ' AND LENGTH(siren) = 9';
+$sql.= ' WHERE LENGTH(siren) = 9';
 $sql.= " AND siren <> '000000000'";
 if(! empty($siren)) $sql.= " AND siren = '".$db->escape($siren)."'";
 if(! empty($workWithEntityGroups) && ! empty($TEntity)) $sql.= ' AND entity IN ('.implode(',', $TEntity).')';
+else $sql.= ' AND entity = '.$db->escape($entity);
 $sql.= ' GROUP BY siren';
 $sql.= ' HAVING count(*) > 1';
 
