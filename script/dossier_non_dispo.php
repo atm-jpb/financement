@@ -43,7 +43,7 @@ left join ".MAIN_DB_PREFIX."fin_dossier_financement dfcli on (dfcli.fk_fin_dossi
 left join ".MAIN_DB_PREFIX."fin_dossier_financement dflea on (dflea.fk_fin_dossier = d.rowid and dflea.type = 'LEASER')
 left join ".MAIN_DB_PREFIX."societe lea on (dflea.fk_soc = lea.rowid)
 inner join ".MAIN_DB_PREFIX."entity e on (d.entity = e.rowid)
-where dflea.date_solde < '1970-01-01 00:00:00'
+where (dflea.date_solde < '1970-01-01 00:00:00' or dflea.date_solde is null)
   and (d.display_solde = 0 -- Règle 1
     or d.montant >= (select coalesce(c.value, 50000) from ".MAIN_DB_PREFIX."const c where c.name = 'FINANCEMENT_MAX_AMOUNT_TO_SHOW_SOLDE' and c.entity in (0, 1, d.entity) order by c.entity desc limit 1) -- Règle 2
     or d.soldepersodispo = 2 -- Règle 3
