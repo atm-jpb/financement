@@ -51,36 +51,36 @@ class TSimulation extends TObjetStd
         }
 
         $this->TStatut = array(
-            'OK' => $langs->trans('Accord')
-            , 'WAIT' => $langs->trans('Etude')
-            , 'WAIT_LEASER' => $langs->trans('Etude_Leaser')
-            , 'WAIT_SELLER' => $langs->trans('Etude_Vendeur')
-            , 'WAIT_MODIF' => $langs->trans('Modif')
-            , 'WAIT_AP' => $langs->trans('AccordPrincipe')
-            , 'KO' => $langs->trans('Refus')
-            , 'SS' => $langs->trans('SansSuite')
+            'WAIT' => $langs->trans('Etude'),
+            'WAIT_LEASER' => $langs->trans('Etude_Leaser'),
+            'WAIT_SELLER' => $langs->trans('Etude_Vendeur'),
+            'WAIT_MODIF' => $langs->trans('Modif'),
+            'WAIT_AP' => $langs->trans('AccordPrincipe'),
+            'OK' => $langs->trans('Accord'),
+            'KO' => $langs->trans('Refus'),
+            'SS' => $langs->trans('SansSuite')
         );
 
         $this->TStatutIcons = array(
-            'OK' => 'super_ok',
             'WAIT' => 'wait',
             'WAIT_LEASER' => 'wait_leaser',
             'WAIT_SELLER' => 'wait_seller',
             'WAIT_MODIF' => 'edit',
             'WAIT_AP' => 'wait_ap',
+            'OK' => 'super_ok',
             'KO' => 'refus',
             'SS' => 'sans_suite'
         );
 
         $this->TStatutShort = array(
-            'OK' => $langs->trans('Accord')
-            , 'WAIT' => $langs->trans('Etude')
-            , 'WAIT_LEASER' => $langs->trans('Etude_Leaser_Short')
-            , 'WAIT_SELLER' => $langs->trans('Etude_Vendeur_Short')
-            , 'WAIT_MODIF' => $langs->trans('Modif')
-            , 'WAIT_AP' => $langs->trans('AccordPrincipe')
-            , 'KO' => $langs->trans('Refus')
-            , 'SS' => $langs->trans('SansSuite')
+            'WAIT' => $langs->trans('Etude'),
+            'WAIT_LEASER' => $langs->trans('Etude_Leaser_Short'),
+            'WAIT_SELLER' => $langs->trans('Etude_Vendeur_Short'),
+            'WAIT_MODIF' => $langs->trans('Modif'),
+            'WAIT_AP' => $langs->trans('AccordPrincipe'),
+            'OK' => $langs->trans('Accord'),
+            'KO' => $langs->trans('Refus'),
+            'SS' => $langs->trans('SansSuite')
         );
 
         $this->TTerme = array(
@@ -2189,7 +2189,7 @@ class TSimulation extends TObjetStd
         $this->TSimulationSuivi = array();
         $this->DossierRachete = array();
         $this->TSimulationSuiviHistorized = array();
-        $this->accord = 'WAIT';
+        $this->accord = 'DRAFT';
         $this->date_simul = time();
 
         // On vide les préconisations
