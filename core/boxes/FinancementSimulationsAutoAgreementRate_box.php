@@ -110,13 +110,14 @@ class FinancementSimulationsAutoAgreementRate_box extends ModeleBoxes
         $db->free($resql);
 
         $autoAgreementRate = round($TRes['auto'] / $TRes['all'] * 100, 2);
+        $icon = '';
+        if($autoAgreementRate >= 80) $icon = '&nbsp;'.img_picto('', 'statut4'); // Vert
 
         $r++;
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationsAutoAgreementRate'));
         $this->info_box_contents[$r][1] = array(
         	'td' => 'align="left"',
-            'text' => $form->textwithpicto($autoAgreementRate.'%', $langs->trans('BoxSimulationsAutoAgreementRateDetails', $TRes['auto'], $TRes['all'])),
-            'url' => dol_buildpath('/financement/simulation/list.php', 1)
+            'text' => $form->textwithpicto($autoAgreementRate.'%', $langs->trans('BoxSimulationsAutoAgreementRateDetails', $TRes['auto'], $TRes['all'])).$icon
         );
     }
 
