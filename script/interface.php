@@ -25,6 +25,11 @@ switch($action) {
             print json_encode(updateNextTerm($fk_dossier, $type));
         }
         break;
+    case 'toggleDematCheckbox':
+        $fk_dossier = GETPOST('fk_dossier');
+
+        print json_encode(toggleDematCheckbox($fk_dossier));
+        break;
 }
 
 /**
@@ -70,4 +75,18 @@ function updateNextTerm($fk_dossier, $type = 'leaser') {
     $f->setEcheanceExterne($f->date_debut);
 
     return $f->save($PDOdb);
+}
+
+function toggleDematCheckbox($fk_dossier) {
+    if(empty($fk_dossier)) return false;
+    global $db;
+
+    $sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_dossier';
+    $sql.= ' SET demat = NOT demat';
+    $sql.= ' WHERE rowid = '.$fk_dossier;
+
+    $resql = $db->query($sql);
+    if(! $resql) return false;
+
+    return true;
 }

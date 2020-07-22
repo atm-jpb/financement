@@ -273,7 +273,8 @@
                             </tr>
 
                             <tr class="pair">
-                                <td colspan="2">&nbsp;</td>
+                                <td>Contrat démat</td>
+                                <td>[financementLeaser.demat; strconv=no]</td>
                             </tr>
 
                             <tr class="impair">

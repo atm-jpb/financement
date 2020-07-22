@@ -401,6 +401,7 @@ Conformite = Conformité
 ConformiteList = Liste des conformités
 RequiredFiles = Fichiers obligatoires
 ListOfRequiredFiles = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>Contrat + scan des CGV + mandat SEPA</li><li>Accord de financement</li><li>Facture matériel</li><li>PV de livraison</li><li>RIB</li><li>CNI (recto verso)</li><li>Copie societe.com ou KBIS pour les dossiers >50k€</li><li>Mail de déro la cas échéant</li><li>Pouvoir de signature le cas échéant</li></ul>
+DossierDemat = Contrat démat
 ConformiteStatus = Statut conformité
 ConformiteDraft = Brouillon
 ConformiteWaitingForComplianceN1 = En attente de validation N1
