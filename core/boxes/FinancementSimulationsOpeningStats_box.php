@@ -102,7 +102,6 @@ class FinancementSimulationsOpeningStats_box extends ModeleBoxes
         }
         $nextMonth = date('n');
         $currentMonthLastDay = date('d', strtotime('+1 month -1 day', strtotime(date('Y-m-01'))));
-//        var_dump($currentMonthLastDay);exit;
 
         for($i = $currentMonthLastDay ; $i >= 1 ; $i--) {
             foreach($TEntity as $entity => $label) $TRes[$entity]['current'][date('W', strtotime(date('Y-m-'.$i)))] = 0;
@@ -121,7 +120,6 @@ class FinancementSimulationsOpeningStats_box extends ModeleBoxes
         while($obj1 = $db->fetch_object($resql1)) {
             $TRes[$obj1->entity]['current'][date('W', strtotime(date('Y-m-'.$obj1->jourCreation)))] += $obj1->nb;
         }
-        var_dump($TRes[1]['current'], array_sum($TRes[1]['current']));
 
         // Données des 12 derniers mois
         $sql = 'SELECT entity, extract(year from date_cre) as anneeCreation, extract(month from date_cre) as moisCreation, count(*) as nb';
