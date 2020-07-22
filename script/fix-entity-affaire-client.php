@@ -5,15 +5,17 @@ dol_include_once('/financement/lib/financement.lib.php');
 
 @set_time_limit(0);					// No timeout for this script
 
-$PDOdb = new TPDOdb;
+$fk_affaire = GETPOST('fk_affaire', 'int');
+$limit = GETPOST('limit', 'int');
 
 // Récupération des affaires commençant par EXT dont l'entité n'est pas la même que celle du client
-$sql = "SELECT a.rowid, a.entity, a.reference, s.rowid as socid, s.entity as entity_soc, s.siren, s.nom, s.address, s.zip, s.town, s.siren, s.siret, s.fk_pays";
-$sql.= " FROM ".MAIN_DB_PREFIX."fin_affaire a";
-$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe s ON s.rowid = a.fk_soc";
+$sql = 'SELECT a.rowid, a.entity, a.reference, s.rowid as socid, s.entity as entity_soc, s.siren, s.nom, s.address, s.zip, s.town, s.siren, s.siret, s.fk_pays';
+$sql.= ' FROM '.MAIN_DB_PREFIX.'fin_affaire a';
+$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe s ON s.rowid = a.fk_soc';
 $sql.= " WHERE a.reference LIKE 'EXT%'";
-$sql.= " AND a.entity != s.entity";
-//$sql.= " LIMIT 1000";
+$sql.= ' AND a.entity != s.entity';
+if(! empty($fk_affaire)) $sql.= ' AND a.rowid = '.$db->escape($fk_affaire);
+if(! empty($limit)) $sql.= ' LIMIT '.$db->escape($limit);
 
 $resql = $db->query($sql);
 
