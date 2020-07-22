@@ -314,8 +314,10 @@ SimulationAcceptanceRateDetails = Nb OK : %s<br/>Nb KO : %s
 # Box Simulation Auto Agreement Rate
 BoxSimulationsAutoAgreementRateTitle = Financement - Taux d'accords auto des simulations
 BoxSimulationsAutoAgreementRateFirstColumn = 3 derniers mois
-BoxSimulationsAutoAgreementRate = Taux d'accords auto
-BoxSimulationsAutoAgreementRateDetails = Nb accords auto : %s<br/>Nb accords : %s
+BoxSimulationsAutoAgreementRate = Taux d'accords -30min
+BoxSimulationsAutoAgreementTwoHoursRate = Taux d'accords -2h
+BoxSimulationsAutoAgreementRateDetails = Nb accords -30min : %s<br/>Nb accords : %s
+BoxSimulationsAutoAgreementRateTwoHoursDetails = Nb accords -2h : %s<br/>Nb accords : %s
 
 # Box Conformite processing time
 BoxConformiteProcessingTimeTitle = Financement - Délais de traitement des conformités sur les 3 derniers mois

@@ -91,8 +91,10 @@ class FinancementSimulationsAutoAgreementRate_box extends ModeleBoxes
         $sql.= " WHERE accord = 'OK'";
         $sql.= " AND date_cre >= '".date('Y-m', strtotime('-3 month'))."-01'";    // 3 derniers mois
         $autoAgreement = ' AND unix_timestamp(date_accord) <= (unix_timestamp(date_cre) + 30*60)';  // Accords donnés en moins de 30 minutes
+        $autoAgreementTwoHours = ' AND unix_timestamp(date_accord) <= (unix_timestamp(date_cre) + 2*60*60)';  // Accords donnés en moins de 2 heures
         $groupBy = ' GROUP BY accord';
 
+        // Auto agreement
         $resql = $db->query($sql.$autoAgreement.$groupBy);
         if(! $resql) {
             return;
@@ -101,6 +103,16 @@ class FinancementSimulationsAutoAgreementRate_box extends ModeleBoxes
         while($obj = $db->fetch_object($resql)) $TRes['auto'] = $obj->nb;
         $db->free($resql);
 
+        // Less than 2 hours
+        $resql = $db->query($sql.$autoAgreementTwoHours.$groupBy);
+        if(! $resql) {
+            return;
+        }
+
+        while($obj = $db->fetch_object($resql)) $TRes['twoHours'] = $obj->nb;
+        $db->free($resql);
+
+        // All
         $resql = $db->query($sql.$groupBy);
         if(! $resql) {
             return;
@@ -110,14 +122,27 @@ class FinancementSimulationsAutoAgreementRate_box extends ModeleBoxes
         $db->free($resql);
 
         $autoAgreementRate = round($TRes['auto'] / $TRes['all'] * 100, 2);
-        $icon = '';
-        if($autoAgreementRate >= 80) $icon = '&nbsp;'.img_picto('', 'statut4'); // Vert
+        $icon = '&nbsp;';
+        if($autoAgreementRate >= 80) $icon .= img_picto('', 'statut4'); // Vert
+        else $icon .= img_picto('', 'statut8'); // Rouge
+
+        $autoAgreementTwoHoursRate = round($TRes['twoHours'] / $TRes['all'] * 100, 2);
+        $iconTwoHours = '&nbsp;';
+        if($autoAgreementTwoHoursRate >= 80) $iconTwoHours .= img_picto('', 'statut4'); // Vert
+        else $iconTwoHours .= img_picto('', 'statut8'); // Rouge
 
         $r++;
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationsAutoAgreementRate'));
         $this->info_box_contents[$r][1] = array(
-        	'td' => 'align="left"',
+            'td' => 'align="left"',
             'text' => $form->textwithpicto($autoAgreementRate.'%', $langs->trans('BoxSimulationsAutoAgreementRateDetails', $TRes['auto'], $TRes['all'])).$icon
+        );
+
+        $r++;
+        $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationsAutoAgreementTwoHoursRate'));
+        $this->info_box_contents[$r][1] = array(
+            'td' => 'align="left"',
+            'text' => $form->textwithpicto($autoAgreementTwoHoursRate.'%', $langs->trans('BoxSimulationsAutoAgreementRateTwoHoursDetails', $TRes['twoHours'], $TRes['all'])).$iconTwoHours
         );
     }
 
