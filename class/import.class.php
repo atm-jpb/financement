@@ -432,8 +432,6 @@ class TImport extends TObjetStd {
 
         foreach ($data as $key => $value) {
             if($key == 'idprof2' || $key == 'idprof3') {
-                if(empty($value)) continue; // On ne met pas à jour le SIREN / SIRET s'il est vide dans le fichier
-
                 if($key == 'idprof2') {
                     $socStatic = new Societe($db);
                     $socStatic->idprof2 = $value;
@@ -442,6 +440,8 @@ class TImport extends TObjetStd {
                     $res = $socStatic->id_prof_check(2, $socStatic);
                     if($res < 0) $value = '';   // On enregistre le SIRET vide s'il n'est pas corrects
                 }
+
+                if(empty($value)) continue; // On ne met pas à jour le SIREN / SIRET s'il est vide dans le fichier
             }
             $societe->{$key} = $value;
         }
