@@ -51,36 +51,36 @@ class TSimulation extends TObjetStd
         }
 
         $this->TStatut = array(
-            'OK' => $langs->trans('Accord')
-            , 'WAIT' => $langs->trans('Etude')
-            , 'WAIT_LEASER' => $langs->trans('Etude_Leaser')
-            , 'WAIT_SELLER' => $langs->trans('Etude_Vendeur')
-            , 'WAIT_MODIF' => $langs->trans('Modif')
-            , 'WAIT_AP' => $langs->trans('AccordPrincipe')
-            , 'KO' => $langs->trans('Refus')
-            , 'SS' => $langs->trans('SansSuite')
+            'WAIT' => $langs->trans('Etude'),
+            'WAIT_LEASER' => $langs->trans('Etude_Leaser'),
+            'WAIT_SELLER' => $langs->trans('Etude_Vendeur'),
+            'WAIT_MODIF' => $langs->trans('Modif'),
+            'WAIT_AP' => $langs->trans('AccordPrincipe'),
+            'OK' => $langs->trans('Accord'),
+            'KO' => $langs->trans('Refus'),
+            'SS' => $langs->trans('SansSuite')
         );
 
         $this->TStatutIcons = array(
-            'OK' => 'super_ok',
             'WAIT' => 'wait',
             'WAIT_LEASER' => 'wait_leaser',
             'WAIT_SELLER' => 'wait_seller',
             'WAIT_MODIF' => 'edit',
             'WAIT_AP' => 'wait_ap',
+            'OK' => 'super_ok',
             'KO' => 'refus',
             'SS' => 'sans_suite'
         );
 
         $this->TStatutShort = array(
-            'OK' => $langs->trans('Accord')
-            , 'WAIT' => $langs->trans('Etude')
-            , 'WAIT_LEASER' => $langs->trans('Etude_Leaser_Short')
-            , 'WAIT_SELLER' => $langs->trans('Etude_Vendeur_Short')
-            , 'WAIT_MODIF' => $langs->trans('Modif')
-            , 'WAIT_AP' => $langs->trans('AccordPrincipe')
-            , 'KO' => $langs->trans('Refus')
-            , 'SS' => $langs->trans('SansSuite')
+            'WAIT' => $langs->trans('Etude'),
+            'WAIT_LEASER' => $langs->trans('Etude_Leaser_Short'),
+            'WAIT_SELLER' => $langs->trans('Etude_Vendeur_Short'),
+            'WAIT_MODIF' => $langs->trans('Modif'),
+            'WAIT_AP' => $langs->trans('AccordPrincipe'),
+            'OK' => $langs->trans('Accord'),
+            'KO' => $langs->trans('Refus'),
+            'SS' => $langs->trans('SansSuite')
         );
 
         $this->TTerme = array(
@@ -90,6 +90,10 @@ class TSimulation extends TObjetStd
 
         $this->TMarqueMateriel = self::getMarqueMateriel();
         $this->logo = '';
+
+        // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
+        $this->date_accord = null;
+        $this->date_demarrage = null;
     }
 
     public static function getMarqueMateriel() {
@@ -345,7 +349,7 @@ class TSimulation extends TObjetStd
         // Ajout des autres leasers de la liste (sauf le prio)
         foreach($grille as $TData) {
             // Le montant de LOC PURE change uniquement pour C'Pro Ouest & Copy Concept
-            if(($this->montant < 1000 && ! in_array($this->entity, array(5, 7)) || $this->montant < 500 && in_array($this->entity, array(5, 7))) && $TData['fk_leaser'] != 18495) continue;     // Spécifique LOC PURE
+            if(($this->montant < 1000 && ! in_array($this->entity, array(5, 7, 16)) || $this->montant < 500 && in_array($this->entity, array(5, 7, 16))) && $TData['fk_leaser'] != 18495) continue;     // Spécifique LOC PURE
 
             $simulationSuivi = new TSimulationSuivi;
             $simulationSuivi->leaser = new Fournisseur($db);
@@ -2185,7 +2189,7 @@ class TSimulation extends TObjetStd
         $this->TSimulationSuivi = array();
         $this->DossierRachete = array();
         $this->TSimulationSuiviHistorized = array();
-        $this->accord = 'WAIT';
+        $this->accord = 'DRAFT';
         $this->date_simul = time();
 
         // On vide les préconisations
@@ -2425,7 +2429,7 @@ class TSimulation extends TObjetStd
 
         $nbWait = $nbDelayed = 0;
 
-        $sql = 'SELECT rowid, date_cre';
+        $sql = "SELECT rowid, date_format(date_cre, '%Y-%m-%d') as date_cre";
         $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
         $sql.= " WHERE accord LIKE 'WAIT%'";
         $sql.= ' AND entity IN ('.getEntity('fin_simulation').')';
@@ -2438,7 +2442,9 @@ class TSimulation extends TObjetStd
 
         while($obj = $db->fetch_object($resql)) {
             $nbWait++;
-            if(time() >= ($obj->date_cre + $conf->global->FINANCEMENT_DELAY_DRAFT_SIMULATION * 86400)) $nbDelayed++;
+
+            $dateCre = strtotime($obj->date_cre);
+            if(time() >= ($dateCre + $conf->global->FINANCEMENT_DELAY_DRAFT_SIMULATION * 86400)) $nbDelayed++;
         }
         $db->free($resql);
 
@@ -2479,9 +2485,6 @@ class TSimulationSuivi extends TObjetStd
         parent::start();
         parent::_init_vars();
 
-        //Reset des dates car par défaut = time() à l'instanciation de la classe
-        $this->date_demande = $this->date_accord = $this->date_selection = $this->date_historization = '';
-
         $this->TStatut = array(
             'OK' => $langs->trans('Accord')
             , 'WAIT' => $langs->trans('Etude')
@@ -2492,6 +2495,12 @@ class TSimulationSuivi extends TObjetStd
         );
 
         $this->simulation = new TSimulation;
+
+        // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
+        $this->date_demande = null;
+        $this->date_accord = null;
+        $this->date_selection = null;
+        $this->date_historization = null;
     }
 
     /**
@@ -2604,7 +2613,7 @@ class TSimulationSuivi extends TObjetStd
             //Demander
             if($this->statut_demande != 1) {
                 if(! $just_save && ! empty($simulation->societe->idprof2)) {
-                    $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Demande transmise au leaser">'.get_picto('phone').'</a>&nbsp;';
+                    $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="'.$langs->trans('ActionSuiviScoringLeaser').'">'.get_picto('phone').'</a>&nbsp;';
                 }
             }
             else {
@@ -2616,7 +2625,7 @@ class TSimulationSuivi extends TObjetStd
                     }
                     else {
                         //Reset
-                        $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler">'.get_picto('wait').'</a>&nbsp;';
+                        $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="'.$langs->trans('Cancel').'">'.get_picto('wait').'</a>&nbsp;';
 
                         $url = '?id='.$simulation->getId().'&id_suivi='.$this->getId();
                         if($iHaveToConfirm) $url .= '&action=confirm_selectionner';
@@ -2624,6 +2633,16 @@ class TSimulationSuivi extends TObjetStd
                         $actions .= '<a href="'.$url.'" title="'.$langs->trans('SelectThisLeaser').'">'.get_picto('super_ok').'</a>&nbsp;';
                     }
                 }
+                else if($this->statut === 'ERR') {
+					if($just_save) {
+						//Enregistrer
+						$actions .= get_picto('save').'&nbsp;';
+					}
+					else {
+						// Try again after error
+						$actions .= '<a href="?id=' . $simulation->getId() . '&id_suivi=' . $this->getId() . '&action=demander' . $ancre . '" title="'.$langs->trans('ActionSuiviScoringLeaser').'">' . get_picto('phone') . '</a>&nbsp;';
+					}
+				}
                 else {
                     if($this->statut !== 'KO') {
                         if($just_save) {
@@ -2632,15 +2651,15 @@ class TSimulationSuivi extends TObjetStd
                         }
                         else {
                             //Accepter
-                            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Demande acceptée">'.get_picto('ok').'</a>&nbsp;';
+                            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="'.$langs->trans('ActionSuiviScoringOK').'">'.get_picto('ok').'</a>&nbsp;';
                             //Refuser
-                            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser'.$ancre.'" title="Demande refusée">'.get_picto('refus').'</a>&nbsp;';
+                            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=refuser'.$ancre.'" title="'.$langs->trans('ActionSuiviScoringKO').'">'.get_picto('refus').'</a>&nbsp;';
                         }
                     }
                     else if($simulation->accord != "KO") {
                         if(! $just_save) {
                             //Reset
-                            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="Annuler">'.get_picto('wait').'</a>&nbsp;';
+                            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=demander'.$ancre.'" title="'.$langs->trans('Cancel').'">'.get_picto('wait').'</a>&nbsp;';
                         }
                     }
                 }
@@ -2649,12 +2668,12 @@ class TSimulationSuivi extends TObjetStd
         else if($simulation->accord == "OK" && ! empty($this->date_selection)) {
             if(! $just_save) {
                 //Reset
-                $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="Annuler">'.get_picto('ok').'</a>&nbsp;';
+                $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=accepter'.$ancre.'" title="'.$langs->trans('Cancel').'">'.get_picto('ok').'</a>&nbsp;';
             }
         }
 
         if(! $just_save && ! empty($conf->global->FINANCEMENT_SHOW_RECETTE_BUTTON) && ! empty($this->leaser->array_options['options_edi_leaser'])) {
-            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="Annuler">'.get_picto('webservice').'</a>&nbsp;';
+            $actions .= '<a href="?id='.$simulation->getId().'&id_suivi='.$this->getId().'&action=trywebservice'.$ancre.'" title="'.$langs->trans('Cancel').'">'.get_picto('webservice').'</a>&nbsp;';
         }
 
         return $actions;
@@ -2698,9 +2717,9 @@ class TSimulationSuivi extends TObjetStd
         // Leaser ACECOM = demande BNP mandaté et BNP cession + Lixxbail mandaté et Lixxbail cession
         if($this->fk_leaser == 18305) {
             // 20113 = BNP Mandatée // 3382 = BNP Cession (Location simple) // 19483 = Lixxbail Mandatée // 6065 = Lixxbail Cession (Location simple)
-            $sql = "SELECT rowid 
-					FROM ".MAIN_DB_PREFIX."fin_simulation_suivi 
-					WHERE (fk_leaser = 3382 
+            $sql = "SELECT rowid
+					FROM ".MAIN_DB_PREFIX."fin_simulation_suivi
+					WHERE (fk_leaser = 3382
 						OR fk_leaser = 6065)
 						AND fk_simulation = ".$this->fk_simulation;
             $TIds = TRequeteCore::_get_id_by_sql($PDOdb, $sql);
@@ -3154,7 +3173,7 @@ class TSimulationSuivi extends TObjetStd
 
         if($isAccordAutoAllowed) {
             $message = 'Un accord auto, un ! (Switched to entity '.$conf->entity.' ; fk_simu='.$simu->rowid.', fk_suivi='.$this->rowid.')';
-            dol_syslog($message, LOG_CRIT, 0, '_accord_auto');
+            dol_syslog($message, LOG_INFO, 0, '_accord_auto');
             $this->doActionSelectionner($PDOdb, $simu);
         }
         else {
@@ -3211,7 +3230,7 @@ class TSimulationSuivi extends TObjetStd
         if(! empty($conf->global->FINANCEMENT_MAX_DIFF_RENTA)) {
             $logMessage .= 'isDiffBelowMaxDiffPercentage = '.$isDiffBelowMaxDiffPercentage."\n";
         }
-        dol_syslog($logMessage, LOG_CRIT, 0, '_accord_auto_constraint');
+        dol_syslog($logMessage, LOG_INFO, 0, '_accord_auto_constraint');
 
         return $isActive                                        // Active
             && $isLessThanMaxAmount                             // Montant max

@@ -8,14 +8,26 @@ dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 
 $entity = GETPOST('entity', 'int');
+$workWithEntityGroups = GETPOST('workWithEntityGroups', 'int');
 $siren = GETPOST('siren');
+
+if(empty($entity)) exit('Empty entity !');
+
+if(! empty($workWithEntityGroups)) {
+    $TEntity = getOneEntityGroup($entity, 'thirdparty', array(4, 17));
+
+    print 'Entity : '.$entity.'<br/>';
+    print 'Thirdparty entity group : '.implode(',', $TEntity);
+}
 
 $sql = "SELECT siren, group_concat(rowid) as data";
 $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
-$sql.= ' WHERE entity = '.$db->escape($entity);
-$sql.= ' AND LENGTH(siren) = 9';
+$sql.= ' WHERE fournisseur = 0';    // On évite de prendre les Leaser !
+$sql.= ' LENGTH(siren) = 9';
 $sql.= " AND siren <> '000000000'";
 if(! empty($siren)) $sql.= " AND siren = '".$db->escape($siren)."'";
+if(! empty($workWithEntityGroups) && ! empty($TEntity)) $sql.= ' AND entity IN ('.implode(',', $TEntity).')';
+else $sql.= ' AND entity = '.$db->escape($entity);
 $sql.= ' GROUP BY siren';
 $sql.= ' HAVING count(*) > 1';
 
@@ -38,15 +50,16 @@ while($obj = $db->fetch_object($resql)) {
         $soc = new Societe($db);
         $soc->fetch($fkSoc);
 
-        mergeThirdparty($s, $soc);
+        mergeThirdparty($s, $soc, $TEntity);
     }
 }
 
 /**
  * @param Societe $object       Thirdparty to keep
  * @param Societe $soc_origin   Thirdparty to remove
+ * @param array   $TEntityGroup Entity group
  */
-function mergeThirdparty(Societe $object, Societe $soc_origin) {
+function mergeThirdparty(Societe $object, Societe $soc_origin, $TEntityGroup = array()) {
     global $db, $user, $hookmanager, $langs;
 
     $error = 0;
@@ -162,18 +175,15 @@ function mergeThirdparty(Societe $object, Societe $soc_origin) {
     if (! $error)
     {
         // Traitement du hook de financement
-        $TEntityGroup = getOneEntityGroup($object->entity, 'fin_simulation', array(4, 17));
+        if(empty($TEntityGroup)) $TEntityGroup = getOneEntityGroup($object->entity, 'thirdparty', array(4, 17));
         // Si les 2 sociétés ne sont pas dans la même groupe, on évite de merge
         if(! in_array($soc_origin->entity, $TEntityGroup)) {
-            $this->errors[] = $langs->load('FinancementReplaceThirdpartyError');
+            $object->errors[] = $langs->load('FinancementReplaceThirdpartyError');
             return -1;
         }
 
         if(! empty($soc_origin->code_client)) {
-            if(empty($object->array_options['options_other_customer_code'])) $object->array_options['options_other_customer_code'] = $soc_origin->code_client;
-            else $object->array_options['options_other_customer_code'] .= ';'.$soc_origin->code_client;
-
-            $res = $object->updateExtraField('other_customer_code');
+            updateSocieteOtherCustomerCode($object->id, array($soc_origin->code_client));
         }
 
         TSimulation::replaceThirdparty($soc_origin->id, $object->id, $TEntityGroup);

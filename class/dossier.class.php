@@ -53,6 +53,10 @@ class TFin_dossier extends TObjetStd
 
         $this->type_regul = 3;
 
+        // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
+        $this->date_relocation = null;
+        $this->date_solde = null;
+        $this->dateperso = null;
         $this->date_reception_papier = null;
         $this->date_paiement = null;
         $this->date_facture_materiel = null;
@@ -2096,7 +2100,6 @@ class TFin_dossier extends TObjetStd
             $d->TLien[0]->affaire->loadEquipement($PDOdb);
 
             $TRes[] = $d;
-            break;
         }
 
         return $TRes;
@@ -2256,7 +2259,12 @@ class TFin_financement extends TObjetStd
         );
         $this->intercalaireOK = 'OUI';
 
-        $this->date_application = null; // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
+        // Obligé d'init à null vu que la fonction parent::_init_vars() met des valeurs dedans
+        $this->date_debut = null;
+        $this->date_fin = null;
+        $this->date_prochaine_echeance = null;
+        $this->date_solde = null;
+        $this->date_application = null;
         $this->date_envoi = null;
     }
 
@@ -2375,7 +2383,7 @@ class TFin_financement extends TObjetStd
         return false;
     }
 
-    function loadOrCreateSirenMontant(&$db, $data) {
+    function loadOrCreateSirenMontant(&$db, $data, $entity) {
         global $conf;
 
         $sql = "SELECT a.rowid, a.nature_financement, a.montant, df.rowid as idDossierLeaser, df.reference as refDossierLeaser ";
@@ -2393,6 +2401,8 @@ class TFin_financement extends TObjetStd
         $sql .= "AND (df.reference = '' OR df.reference IS NULL) ";
         $sql .= "AND a.montant >= ".($data['montant'] - 0.01)." ";
         $sql .= "AND a.montant <= ".($data['montant'] + 0.01)." ";
+        if(! is_null($entity) && is_numeric($entity)) $sql .= ' AND d.entity = '.$entity;
+        if(! empty($entity) && is_array($entity)) $sql .= ' AND d.entity IN ('.implode(',', $entity).')';
 
         $db->Execute($sql); // Recherche d'un dossier leaser en cours sans référence et dont le montant de l'affaire correspond
         $TRes = $db->Get_All();
@@ -2405,24 +2415,23 @@ class TFin_financement extends TObjetStd
                 $sql .= "WHERE (s.siret = '".$data['siren']."' OR s.siren = '".substr($data['siren'], 0, 9)."' OR se.other_siren LIKE '%".substr($data['siren'], 0, 9)."%') ";
             }
             else $sql .= "WHERE (s.siren = '".$data['siren']."' OR se.other_siren LIKE '%".$data['siren']."%') ";
-            $sql .= "AND a.solde >= ".($data['montant'] - 0.01)." ";
-            $sql .= "AND a.solde <= ".($data['montant'] + 0.01)." ";
+            if(! is_null($entity) && is_numeric($entity)) $sql .= ' AND s.entity = '.$entity;
+            if(! empty($entity) && is_array($entity)) $sql .= ' AND s.entity IN ('.implode(',', $entity).')';
 
             $TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
-
             if(! empty($TIdClient[0])) {
                 $d = new TFin_dossier;
                 $d->entity = $data['entity'];
                 $d->financementLeaser = $this;
                 $d->save($db);
+
                 $idClient = $TIdClient[0];
                 $a = new TFin_affaire();
                 $a->entity = $data['entity'];
-                $a->reference = 'EXT-'.date('ymd').'-'.$data['reference'];
+                $a->reference = 'EXT-'.date('ymd').'-'.$idClient;
                 $a->montant = $data['montant'];
                 $a->fk_soc = $idClient;
                 $a->nature_financement = 'EXTERNE';
-                $a->type_financement = 'FINANCIERE';
                 if($data['montant_prestation'] > 0
                     && ! empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE)
                     && ! empty($a->TContrat[$conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE])) {
@@ -2432,43 +2441,6 @@ class TFin_financement extends TObjetStd
                 $a->save($db);
 
                 return true;
-            }
-            else if(count($TRes) == 0) { // Création d'une affaire pour création dossier fin externe
-                $sql = "SELECT s.rowid ";
-                $sql .= "FROM ".MAIN_DB_PREFIX."societe s ";
-                $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."societe_extrafields se ON (se.fk_object = s.rowid) ";
-                if(strlen($data['siren']) == 14) {
-                    $sql .= "WHERE (s.siret = '".$data['siren']."' OR s.siren = '".substr($data['siren'], 0, 9)."' OR se.other_siren LIKE '%".substr($data['siren'], 0, 9)."%') ";
-                }
-                else $sql .= "WHERE (s.siren = '".$data['siren']."' OR se.other_siren LIKE '%".$data['siren']."%') ";
-
-                $TIdClient = TRequeteCore::_get_id_by_sql($db, $sql);
-                if(! empty($TIdClient[0])) {
-                    $d = new TFin_dossier;
-                    $d->entity = $data['entity'];
-                    $d->financementLeaser = $this;
-                    $d->save($db);
-
-                    $idClient = $TIdClient[0];
-                    $a = new TFin_affaire();
-                    $a->entity = $data['entity'];
-                    $a->reference = 'EXT-'.date('ymd').'-'.$idClient;
-                    $a->montant = $data['montant'];
-                    $a->fk_soc = $idClient;
-                    $a->nature_financement = 'EXTERNE';
-                    if($data['montant_prestation'] > 0
-                        && ! empty($conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE)
-                        && ! empty($a->TContrat[$conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE])) {
-                        $a->contrat = $conf->global->FINANCEMENT_IMPORT_LEASER_CONTRAT_TYPE;
-                    }
-                    $a->addDossier($db, $d->getId());
-                    $a->save($db);
-
-                    return true;
-                }
-                else {
-                    return false;
-                }
             }
             else {
                 return false;

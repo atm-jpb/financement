@@ -140,8 +140,27 @@ class Financement extends DolibarrApi
         $this->dossier->load_affaire($this->PDOdb);
 
         $TRes = array();
+        if($this->dossier->nature_financement == 'EXTERNE') return $TRes;
+
+        $e = $this->dossier->echeancier($PDOdb, 'CLIENT', 1, true, false);
+        $iPeriodeClient = $this->dossier->financement->getiPeriode();
+        $displaySolde = $this->dossier->get_display_solde();
+
         for($i = 1 ; $i <= $this->dossier->financement->duree ; $i++) {
-            $TRes[] = $this->dossier->getSolde($this->PDOdb, 'SRCPRO', $i);
+            $solde = $this->dossier->getSolde($this->PDOdb, 'SRCPRO', $i);
+            $TDateStart = explode('/', $e['ligne'][$i-1]['date']);
+            $date_start = mktime(null, null, null, $TDateStart[1], $TDateStart[0], $TDateStart[2]);
+            $date_end = strtotime('+'.$iPeriodeClient.' month -1 day', $date_start);
+
+            $TRes[] = array(
+                'period' => $i,
+                'payment' => $solde,
+                'date_start' => date('Y-m-d', $date_start),
+                'date_end' => date('Y-m-d', $date_end),
+                'display' => ($displaySolde === 1)
+            );
+
+            unset($date_start, $date_end, $TDateStart, $solde);
         }
 
         return $TRes;
@@ -161,6 +180,11 @@ class Financement extends DolibarrApi
         $object->leaser = new Societe($this->db);
         $object->leaser->fetch($object->financementLeaser->fk_soc);
 
+        $object->client->date_creation = date('Y-m-d', $object->client->date_creation);
+        $object->client->date_modification = date('Y-m-d', $object->client->date_modification);
+        $object->leaser->date_creation = date('Y-m-d', $object->leaser->date_creation);
+        $object->leaser->date_modification = date('Y-m-d', $object->leaser->date_modification);
+
         $apiThirdparties = new Thirdparties;
         $apiThirdparties->_cleanObjectDatas($object->client);
         $apiThirdparties->_cleanObjectDatas($object->leaser);
@@ -178,7 +202,12 @@ class Financement extends DolibarrApi
         self::cleanData($object->affaire);
         self::cleanData($object->financementLeaser);
 
-        if($object->nature_financement == 'INTERNE') self::cleanData($object->financement);
+        $object->financementLeaser->opt_periodicite = $object->financementLeaser->getiPeriode();
+
+        if($object->nature_financement == 'INTERNE') {
+            self::cleanData($object->financement);
+            $object->financement->opt_periodicite = $object->financement->getiPeriode();
+        }
         else unset($object->financement);   // Dans le cas d'un dossier Externe, le financement client n'est pas utile
 
         return $object;
@@ -193,6 +222,7 @@ class Financement extends DolibarrApi
     private static function formatData(TFin_dossier &$object) {
         self::format($object);
         self::format($object->TLien[0]->affaire);
+        foreach($object->TLien[0]->affaire->TAsset as $assetLink) self::format($assetLink->asset);
         self::format($object->financementLeaser);
         if($object->nature_financement == 'INTERNE') self::format($object->financement);
     }
@@ -202,12 +232,23 @@ class Financement extends DolibarrApi
         $object->TChamps['date_cre'] = array('type' => 'date');
         $object->TChamps['date_maj'] = array('type' => 'date');
 
+        $TBoolean = array(
+            'incident_paiement',
+            'okPourFacturation',
+            'reloc',
+            'relocOK',
+            'intercalaireOK'
+        );
+
         foreach($object->TChamps as $k => $v) {
             $type = array_shift($v);
 
             if($type == 'date') {
                 if($object->$k <= 0) $object->$k = null;
                 else $object->$k = date('Y-m-d', $object->$k);
+            }
+            else if(in_array($k, $TBoolean)) {
+                $object->$k = ($object->$k == 'OUI');
             }
         }
     }

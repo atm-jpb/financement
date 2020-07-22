@@ -89,7 +89,7 @@ class FinancementSimulationsAcceptanceRate_box extends ModeleBoxes
 
         $sql = 'SELECT accord, count(*) as nb';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
-        $sql.= " WHERE accord = 'OK'";
+        $sql.= " WHERE accord IN ('OK', 'KO')";
         $sql.= '';  // Accord donné en moins de {Conf EDI} minutes
         $lastTwelveMonth = " AND date_cre >= '".(date('Y')-1).date('-m')."-01'";    // 12 derniers mois
         $lastMonth = ' AND extract(month from date_cre) = '.date('n'); // Mois en cours
@@ -114,21 +114,19 @@ class FinancementSimulationsAcceptanceRate_box extends ModeleBoxes
         $lastTwelveMonthAcceptanceRate = round($TRes['lastTwelve']['OK'] / ($TRes['lastTwelve']['OK']+$TRes['lastTwelve']['KO']) * 100, 2);
         $lastMonthAcceptanceRate = round($TRes['last']['OK'] / ($TRes['last']['OK']+$TRes['last']['KO']) * 100, 2);
 
-        if($lastMonthAcceptanceRate >= $lastTwelveMonthAcceptanceRate) $style = '';
-        else $style = '';
+        if($lastMonthAcceptanceRate >= $lastTwelveMonthAcceptanceRate) $icon = img_picto('', 'statut4');    // Vert
+        else $icon = img_picto('', 'statut8');  // Rouge
 
         $r++;
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationAcceptanceRate'));
         $this->info_box_contents[$r][1] = array(
         	'td' => 'align="left"',
-            'text' => $form->textwithpicto($lastTwelveMonthAcceptanceRate.'%', $langs->trans('SimulationAcceptanceRateDetails', $TRes['lastTwelve']['OK'], $TRes['lastTwelve']['KO'])),
-            'url' => dol_buildpath('/financement/simulation/list.php', 1)
+            'text' => $form->textwithpicto($lastTwelveMonthAcceptanceRate.'%', $langs->trans('SimulationAcceptanceRateDetails', $TRes['lastTwelve']['OK'], $TRes['lastTwelve']['KO']))
         );
 
         $this->info_box_contents[$r][2] = array(
         	'td' => 'align="left"',
-            'text' => $form->textwithpicto($lastMonthAcceptanceRate.'%', $langs->trans('SimulationAcceptanceRateDetails', $TRes['last']['OK'], $TRes['last']['KO'])),
-            'url' => dol_buildpath('/financement/simulation/list.php', 1)
+            'text' => $form->textwithpicto($lastMonthAcceptanceRate.'%', $langs->trans('SimulationAcceptanceRateDetails', $TRes['last']['OK'], $TRes['last']['KO'])).'&nbsp;'.$icon
         );
     }
 

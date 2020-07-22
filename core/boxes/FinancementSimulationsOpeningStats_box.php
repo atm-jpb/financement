@@ -91,7 +91,7 @@ class FinancementSimulationsOpeningStats_box extends ModeleBoxes
         $this->info_box_contents[$r+1][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationsOpeningStats'));
 
         $TRes = array();
-        $date = strtotime('-1 year');
+        $date = strtotime('first day of -1 year');
         for($i = 1 ; $i <= 13 ; $i++) { // 13 Pour prendre aussi le mois en cours
             foreach($TEntity as $entity => $label) $TRes[$entity]['all'][date('Ym', $date)] = 0;
 
@@ -159,7 +159,7 @@ class FinancementSimulationsOpeningStats_box extends ModeleBoxes
         $r++;
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('Total'));
 
-        $date = strtotime('-1 year');
+        $date = strtotime('first day of -1 year');
         for($i = 1; $i <= 13; $i++) { // 13 Pour prendre aussi le mois en cours
             $sum = 0;
             foreach($TEntity as $entity => $label) $sum += $TRes[$entity][date('Ym', $date)];

@@ -307,7 +307,7 @@ class TImport extends TObjetStd {
 			// Le financement leaser a été trouvé avec la référence contrat leaser
 		} else if (!empty($data['reference_dossier_interne']) && $f->loadReference($ATMdb, $data['reference_dossier_interne'], 'CLIENT', $entities)) { // Recherche du financement client par référence CPRO
 			// Le financement client a été trouvé avec la référence CPRO
-		} else if ($f->loadOrCreateSirenMontant($ATMdb, $data)) { // Recherche du financement leaser par siren et montant
+		} else if ($f->loadOrCreateSirenMontant($ATMdb, $data, $entities)) { // Recherche du financement leaser par siren et montant
 			// Le financement leaser a été trouvé ou créé par le siren et le montant de l'affaire
 		} else {
 			$this->addError($ATMdb, 'cantFindOrCreateFinancement', $data['reference']);
@@ -354,12 +354,6 @@ class TImport extends TObjetStd {
 
 			// Cas particulier (colonne 17) permettant d'indiquer si le solde du dossier doit être affiché ou non
 			if(isset($data['display_solde'])) $dossier->display_solde = $data['display_solde'];
-
-			// Dans tous les cas, si le dossier est dans le fichier leaser, c'est qu'il est actif, on vide donc les champs de solde
-			$dossier->financementLeaser->date_solde = '';
-			$dossier->financementLeaser->montant_solde = 0;
-			$dossier->financement->date_solde = '';
-			$dossier->financement->montant_solde = 0;
 
 			// On met à jour l'entité du dossier (changement possible lors de fusion d'entités)
 			$dossier->entity = $data['entity'];
@@ -1798,7 +1792,7 @@ class TImport extends TObjetStd {
             elseif($data['organisation'] == '012') $entity = 3;
             elseif($data['organisation'] == '015') $entity = 10;
             elseif($data['organisation'] == '016') $entity = 10;
-			elseif($data['organisation'] == '014') $entity = 8;
+			elseif($data['organisation'] == '014') $entity = 6;
         }
 
         return $entity;
@@ -1917,9 +1911,19 @@ class TImport extends TObjetStd {
 
         $entities = in_array($entity, $this->get_entity_groups()) ? $this->get_entity_groups() : array($entity);
 
-        $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'societe';
-        $sql.= ' WHERE '.$key.' LIKE \''.addslashes($val).'\'';
-        if(!empty($entities)) $sql.= ' AND entity IN ('.implode(',', $entities).')';
+        $sql = 'SELECT s.rowid';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'societe s';
+        if($key == 'code_client') $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe_extrafields se ON (se.fk_object = s.rowid)';
+        $sql.= ' WHERE ';
+        if($key == 'code_client') $sql.= '(';
+        $sql.= 's.'.$key." LIKE '".addslashes($val)."'";
+        if($key == 'code_client') {
+            $sql.= " OR se.other_customer_code is not null ";
+            $sql.= " AND (locate(';".addslashes($val)."', se.other_customer_code) > 0";   // ";..."
+            $sql.= " OR locate('".addslashes($val).";', se.other_customer_code) > 0";   // "...;"
+            $sql.= " OR locate(';', se.other_customer_code) = 0 AND locate('".addslashes($val)."', se.other_customer_code) > 0))";
+        }
+        if(!empty($entities)) $sql.= ' AND s.entity IN ('.implode(',', $entities).')';
 
         $TRes = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 

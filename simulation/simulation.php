@@ -1110,7 +1110,7 @@ function _fiche(&$ATMdb, TSimulation &$simulation, $mode) {
 		,'ref'=>$simulation->reference
 		,'cristal_project' => $simulation->fk_projet_cristal
 		,'cristal_link' => $cristalLink
-		,'doc'=>($simulation->getId() > 0) ? $formfile->getDocumentsLink('financement', $filename, $filedir) : ''
+		,'doc'=>($simulation->getId() > 0) ? $formfile->getDocumentsLink('financement', $filename, $filedir, '\.pdf$') : ''
 		,'fk_soc'=>$simulation->fk_soc
 
 	    ,'fk_type_contrat'=>$form->combo('', 'fk_type_contrat', array_merge(array(''), $affaire->TContrat), $simulation->fk_type_contrat).(!empty($simulation->modifs['fk_type_contrat']) ? ' (Ancienne valeur : '.$affaire->TContrat[$simulation->modifs['fk_type_contrat']].')' : '')
@@ -1463,17 +1463,17 @@ function _liste_dossier(&$ATMdb, TSimulation &$simulation, $mode, $search_by_sir
 		}
 
 		// Obligé de mettre les 2 tests car les dossiers rachetés ne sont pas encore créés quand on clique sur "Calculer" dans le simulateur
-		$checkedrm1 = ($simulation->id > 0 && $dossierRachete->choice == 'prev' || empty($simulation->id) && ! empty($simulation->dossiers_rachetes_m1[$idDoss]['checked'])) ? true : false;
+		$checkedrm1 = ! isset($_REQUEST['calculate']) && $dossierRachete->choice == 'prev' || isset($_REQUEST['calculate']) && ! empty($simulation->dossiers_rachetes_m1[$idDoss]['checked']);
 		$checkbox_moreRM1 = 'solde="'.$soldeRM1.'" style="display: none;"';
 		$checkbox_moreRM1.= (in_array($idDoss, $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 
         // Obligé de mettre les 2 tests car les dossiers rachetés ne sont pas encore créés quand on clique sur "Calculer" dans le simulateur
-		$checkedr = ($simulation->id > 0 && $dossierRachete->choice == 'curr' || empty($simulation->id) && ! empty($simulation->dossiers_rachetes[$idDoss]['checked'])) ? true : false;
+		$checkedr = ! isset($_REQUEST['calculate']) && $dossierRachete->choice == 'curr' || isset($_REQUEST['calculate']) && ! empty($simulation->dossiers_rachetes[$idDoss]['checked']);
 		$checkbox_moreR = 'solde="'.$soldeR.'" style="display: none;"';
 		$checkbox_moreR.= (in_array($idDoss, $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 
         // Obligé de mettre les 2 tests car les dossiers rachetés ne sont pas encore créés quand on clique sur "Calculer" dans le simulateur
-		$checkedr1 = ($simulation->id > 0 && $dossierRachete->choice == 'next' || empty($simulation->id) && ! empty($simulation->dossiers_rachetes_p1[$idDoss]['checked'])) ? true : false;
+		$checkedr1 = ! isset($_REQUEST['calculate']) && $dossierRachete->choice == 'next' || isset($_REQUEST['calculate']) && ! empty($simulation->dossiers_rachetes_p1[$idDoss]['checked']);
 		$checkbox_moreR1 = 'solde="'.$soldeR1.'" style="display: none;"';
 		$checkbox_moreR1.= (in_array($idDoss, $TDossierUsed)) ? ' readonly="readonly" disabled="disabled" title="Dossier déjà utilisé dans une autre simulation pour ce client" ' : '';
 

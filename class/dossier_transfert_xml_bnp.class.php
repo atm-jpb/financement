@@ -67,7 +67,7 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
         $res = fputcsv($f, $THead, self::CSV_DELIMITER);
 
 		foreach($TAffaires as $affaire) {
-		    $codeMateriel = $descMateriel = $serialNumber = '';
+		    $descMateriel = $serialNumber = '';
             if(empty($affaire->TAsset)) $affaire->loadEquipement($PDOdb);
 
             if(! empty($affaire->TAsset[0])) {
@@ -77,7 +77,6 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
                 $p = new Product($db);
                 if(! empty($asset->fk_product)) {
                     $p->fetch($asset->fk_product);
-                    $codeMateriel = $p->ref;
                     $descMateriel = $p->label;
                 }
             }
@@ -86,17 +85,31 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
             $client = new Societe($db);
             $client->fetch($affaire->fk_soc);
 
+			$codeFamille = 'H'; // Bureautique (même codes famille, matériel et marque quand dans l'EDI
+			$codeMateriel = '';
+			$codeMarque = '';
+			if($dossier->entity == 2) { // info
+				$codeMateriel = '30021204';
+				$codeMarque = '321';
+			} else if(in_array($dossier->entity, array(3, 30))) { // telecom et veodis
+				$codeMateriel = '322020';
+				$codeMarque = 'D51';
+			} else {
+				$codeMateriel = '300121';
+				$codeMarque = '335';
+			}
+
             // Une ligne par facture ?
             foreach($TInvoice as $fk_invoice) {
                 $invoice = new Facture($db);
                 $invoice->fetch($fk_invoice);
 
                 $TData = array(
-                    $this->getTiersApporteur($conf->entity),
+                    $this->getTiersApporteur($dossier->entity),
                     $dossier->financement->reference,
                     $dossier->financementLeaser->reference,
                     '024',  // Produit financier
-                    $codeMateriel,
+					$codeMateriel,
                     str_replace('.', ',', $dossier->financementLeaser->montant),
                     $dossier->financementLeaser->reste,
                     str_replace('.', ',', $dossier->financementLeaser->echeance),
@@ -107,8 +120,8 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
                     '',  // Date livraison
                     date('d/m/Y', $dossier->financementLeaser->date_prochaine_echeance),
                     $descMateriel,
-                    '',  // Type matériel
-                    '',  // Modèle matériel
+					'',  // Type matériel
+					'',  // Modèle matériel
                     $serialNumber,
                     $client->idprof2,
                     '',  // IBAN
