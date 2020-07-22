@@ -1,4 +1,5 @@
 <?php
+$a = microtime(true);
 
 require '../config.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
@@ -45,6 +46,7 @@ if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv'
 elseif(! empty($action) || empty($user->rights->financement->alldossier->solde)) {
     setEventMessage('AnErrorOccured', 'errors');
 }
+$b = microtime(true);
 
 ?>
 <h3>Solder des dossiers</h3>
@@ -61,6 +63,7 @@ elseif(! empty($action) || empty($user->rights->financement->alldossier->solde))
     <input class="butActionDelete" type="reset" name="reset" value="Annuler" />
 </form>
 <br/>
+<p>Execution time : <?php echo ($b-$a); ?> sec</p>
 <div id="retours">
 </div>
 
@@ -70,19 +73,19 @@ llxFooter();
 
 function getUsefulData($TLine) {
     $TIndex = array(
-        'siren' => 0,
-        'code_client' => 2,
-        'entity' => 3
+        'siren' => 1,
+        'entity' => 2,
+        'code_client' => 3
     );
 
     $siren = trim($TLine[$TIndex['siren']]);
-    $code_client = trim($TLine[$TIndex['code_client']]);
     $entity = trim($TLine[$TIndex['entity']]);
+    $code_client = trim($TLine[$TIndex['code_client']]);
 
     return array(
         'siren' => $siren,
-        'code_client' => array($code_client),
-        'entity' => $entity
+        'entity' => $entity,
+        'code_client' => array($code_client)
     );
 }
 
@@ -100,7 +103,7 @@ function updateDossierSolde($TData) {
         // Societe customer code
         $sql = 'SELECT rowid';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
-        $sql.= ' WHERE entity = '.$db->escape($v['entity']);
+        $sql.= ' WHERE entity IN ('.$db->escape($v['entity']).')';
         $sql.= " AND siren = '".$db->escape($v['siren'])."'";
 
         $resql = $db->query($sql);

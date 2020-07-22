@@ -1171,7 +1171,7 @@ class modFinancement extends DolibarrModules
 		$extra->addExtraField('percent_relocation', '% relocation', 'double', 27, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		$extra->addExtraField('bonus_renta', 'Bonus renta', 'double', 30, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		$extra->addExtraField('non_cape_lrd', 'Soldes non capés LRD', 'boolean', 35, '24,8', 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
-		$extra->addExtraField('other_customer_code', 'Autres codes clients', 'varchar', 45, 255, 'societe', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
+		$extra->addExtraField('other_customer_code', 'Autres codes clients', 'varchar', 45, 255, 'societe', 0, 0, 'null', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 
 		$extra->addExtraField('date_debut_periode', 'Date début période', 'date', 10, '', 'facture_fourn', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);
 		$extra->addExtraField('date_fin_periode', 'Date fin période', 'date', 20, '', 'facture_fourn', 0, 0, 0, unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 1, '', '-1', '', '', 0);

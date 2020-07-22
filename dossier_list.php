@@ -46,6 +46,7 @@ $search_fac_materiel = GETPOST('search_fac_materiel');
 $sall = GETPOST('sall');
 $search_dossier = GETPOST('searchdossier');
 if(! empty($sall) && empty($search_dossier)) $search_dossier = $sall;
+$search_demat = GETPOST('search_demat', 'int');
 
 $toselect = GETPOST('toselect', 'array');
 $arrayofselected = is_array($toselect) ? $toselect : array();
@@ -71,9 +72,7 @@ $form = new Form($db);
 $strEntityShared = getEntity('fin_dossier', true);
 $TEntityShared = explode(',', $strEntityShared);
 
-$dao = new DaoMulticompany($db);
-$dao->getEntities();
-foreach($dao->entities as $mc_entity) if(in_array($mc_entity->id, $TEntityShared)) $TEntity[$mc_entity->id] = $mc_entity->label;
+$TEntity = TFinancementTools::build_array_entities($TEntityShared);
 
 if(GETPOST('envoiXML')) {
     setEventMessage('La génération et l\'envoi du fichier XML s\'est effectué avec succès');
@@ -152,7 +151,7 @@ $sql .= "(CASE WHEN fl.date_solde < '1970-01-01' OR fl.date_solde IS NULL THEN '
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_prochaine_echeance ELSE fl.date_prochaine_echeance END) as 'prochaine', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_debut ELSE fl.date_debut END) as 'date_start', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.date_fin ELSE fl.date_fin END) as 'date_end', ";
-$sql .= "GROUP_CONCAT(f.rowid, '-', f.ref) as TInvoiceData, fl.date_envoi, d.commentaire_conformite";
+$sql .= "GROUP_CONCAT(f.rowid, '-', f.ref) as TInvoiceData, fl.date_envoi, d.commentaire_conformite, d.demat";
 $sql .= ' FROM '.MAIN_DB_PREFIX.'fin_dossier d';
 $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (d.rowid=da.fk_fin_dossier)';
 $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire=a.rowid)';
@@ -199,8 +198,8 @@ if(! empty($reloc_customer_ok) && $reloc_customer_ok != -1) $sql .= " AND fc.rel
 if(! empty($reloc_leaser_ok) && $reloc_leaser_ok != -1) $sql .= " AND fl.relocOK = '".$db->escape($reloc_leaser_ok)."'";
 if(! empty($loyer_leaser_ok) && $loyer_leaser_ok != -1) $sql .= " AND fl.intercalaireOK = '".$db->escape($loyer_leaser_ok)."'";
 if(! empty($search_transfert)) $sql .= ' AND fl.transfert IN ('.implode(',', $search_transfert).')';
-
 if(! empty($search_fac_materiel)) $sql .= natural_search('f.ref', $search_fac_materiel);
+if($search_demat != '' && $search_demat != -1) $sql .= ' AND d.demat = '.$db->escape($search_demat);
 
 $sql .= ' GROUP BY d.rowid, fc.reference, fl.fk_soc, fl.reference, a.rowid, fc.relocOK, fl.relocOK, fl.intercalaireOK, fc.duree, fl.duree, fc.montant, fl.montant, fc.echeance, fl.echeance';
 $sql .= ', fc.date_prochaine_echeance, fl.date_prochaine_echeance, fc.date_debut, fl.date_debut, fc.date_fin, fl.date_fin, fl.date_debut, fl.reste, fl.terme, fl.transfert, fl.date_envoi, fl.date_solde';
@@ -432,7 +431,7 @@ print '<table class="tagtable liste">';
 if(! empty($fk_leaser)) {
     // Show entity
     print '<tr class="liste_titre">';
-    print '<td colspan="16">';
+    print '<td colspan="17">';
     print $langs->trans('DemandReasonTypeSRC_PARTNER').' : '.$TEntity[$conf->entity];
     print '</td>';
     print '</tr>';
@@ -464,6 +463,12 @@ if(empty($fk_leaser)) {
     print '</td>';
 }
 else {
+    $TDemat = array('Non', 'Oui');
+
+    print '<td>';
+    print Form::selectarray('search_demat', $TDemat, $search_demat, 1);
+    print '</td>';
+
     // Siren Client
     print '<td style="width: 90px;">';
     print '<input type="text" name="search_siren" value="'.$search_siren.'" size="8" />';
@@ -526,7 +531,8 @@ if(empty($fk_leaser)) {
     print_liste_field_titre('Nature', $_SERVER['PHP_SELF'], 'a.nature_financement', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Nature financement
 }
 else {
-    print_liste_field_titre('Siren<br/>Client', $_SERVER['PHP_SELF'], 'c.siren', '', $param, 'style="text-align: center; width: 100px;"', $sortfield, $sortorder);   // Nature financement
+    print_liste_field_titre('Démat', $_SERVER['PHP_SELF'], 'd.demat', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Contrat démat
+    print_liste_field_titre('Siren<br/>Client', $_SERVER['PHP_SELF'], 'c.siren', '', $param, 'style="text-align: center; width: 100px;"', $sortfield, $sortorder);   // Siren Client
 }
 print_liste_field_titre('Client', $_SERVER['PHP_SELF'], 'a.fk_soc', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Thirdparty
 if(empty($fk_leaser)) {
@@ -642,6 +648,14 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
         print '<td align="center">'.$affaire->TNatureFinancement[$obj->nature_financement].'</td>';
     }
     else {
+        // Contrat démat
+        $checked = '';
+        if(! empty($obj->demat)) $checked = 'checked="checked"';
+
+        print '<td align="center">';
+        print '<input type="checkbox" name="demat" disabled="disabled" '.$checked.'/>';
+        print '</td>';
+
         // Siren Client
         print '<td align="center">';
         print $socStatic->siren;
@@ -848,7 +862,7 @@ function _getExportXML($sql) {
         unset($TRes['fk_fin_dossier'], $TRes['fk_fin_affaire'], $TRes['fk_soc'], $TRes['refDosCli'], $TRes['fk_leaser'], $TRes['nature_financement'], $TRes['statut']);
         unset($TRes['prochaine'], $TRes['date_start'], $TRes['date_end'], $TRes['TInvoiceData'], $TRes['ref_affaire'], $TRes['nomLea'], $TRes['transfert']);
         unset($TRes['duree'], $TRes['Montant'], $TRes['echeance'], $TRes['relocClientOK'], $TRes['relocLeaserOK'],$TRes['intercalaireLeaserOK'], $TRes['date_envoi']);
-        unset($TRes['commentaire_conformite']);
+        unset($TRes['commentaire_conformite'], $TRes['demat']);
 
         $TRes['date_envoi'] = $date_envoi;  // Tout ça pour mettre cette colonne à la fin
 

@@ -120,6 +120,9 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
             case 29: // Alkia
                 return 'M000346678';
                 break;
+            case 34: // ABI 50
+                return 'M001105655';
+                break;
 			default:
 				return "M000355961";
 				break;
@@ -241,7 +244,12 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
                 $refPartenaire = "INGEMA01";    // OK
                 $numLot = "IMMA".date('ymd');
                 break;
-
+            case 34: // ABI 50
+                $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+                $nomFichier = "CPROMA0".$entity."IMMA".$date;
+                $refPartenaire = "AG50MA01";    // OK
+                $numLot = "AG50".date('Ymd');
+                break;
 			default:
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
 				$nomFichier = "CPROMA0".$entity."IMMA".$date;

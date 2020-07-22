@@ -25,7 +25,7 @@ class TFinancementTools {
 		return false;
 	}
 
-	static function build_array_entities() {
+	static function build_array_entities($entityShared=array()) {
 
 		global $mc;
 
@@ -33,6 +33,8 @@ class TFinancementTools {
 
 		$TEntities = array();
 		foreach($mc->dao->entities as $ent) {
+			if($ent->visible == '0') continue; // On ne prend pas les entités non visibles
+			if(!empty($entityShared) && !in_array($ent->id, $entityShared)) continue; // On ne prend pas les entités non passées en paramètre
 			$TEntities[$ent->id] = $ent->label;
 		}
 
@@ -203,8 +205,8 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 	$sqljoin.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_affaire a ON (da.fk_fin_affaire = a.rowid) ";
 	$sqljoin.= " LEFT JOIN ".MAIN_DB_PREFIX."societe scli ON (scli.rowid = a.fk_soc)";
 	$sqlwhere = " AND d.nature_financement = 'INTERNE'";
-	$sqlwhere.= " AND d.montant_solde = 0";
-	$sqlwhere.= " AND d.date_solde < '1970-00-00 00:00:00' ";
+	$sqlwhere.= " AND dfcli.montant_solde = 0";
+	$sqlwhere.= " AND (dfcli.date_solde < '1970-00-00 00:00:00' OR dfcli.date_solde IS NULL)";
 	//$sqlwhere.= " AND d.entity IN (".getEntity('fin_dossier', true).")";
 	$sqlwhere.= " AND d.entity = ".$conf->entity." ";
 	$sqlwhere.= " AND d.reference NOT LIKE '%old%' ";
@@ -280,6 +282,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= $sqljoin;
 		$sql.= " WHERE (fext.visa_renta_loyer_leaser = 0 OR fext.visa_renta_loyer_leaser IS NULL)";
 		$sql.= " AND d.renta_anomalie = 0";
+		$sql.= " AND YEAR(f.datef) >= 2020";
 		$sql.= $sqlwhere;
 
 		$PDOdb->Execute($sql);
@@ -302,7 +305,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 				$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type='LEASER')";
 				$sql.= " WHERE dfcli.reference LIKE '".$dossier->financement->reference."%'";
 				$sql.= " AND dfcli.montant_solde = 0";
-				$sql.= " AND dfcli.date_solde < '1970-00-00 00:00:00'";
+				$sql.= " AND (dfcli.date_solde < '1970-00-00 00:00:00' OR dfcli.date_solde IS NULL)";
 				$sql.= " AND dfcli.reference NOT LIKE '%old%'";
 				$TRes = $PDOdb->ExecuteAsArray($sql);
 				$total_echeances = $TRes[0]->total_echeances;
@@ -375,6 +378,7 @@ function get_liste_dossier_renta_negative(&$PDOdb,$id_dossier = 0,$visaauto = fa
 		$sql.= $sqljoin;
 		$sql.= " WHERE (fext.visa_renta_loyer_client = 0 OR fext.visa_renta_loyer_client IS NULL)";
 		$sql.= " AND d.renta_anomalie = 0";
+		$sql.= " AND YEAR(f.datef) >= 2020";
 		$sql.= $sqlwhere;
 
 		$PDOdb->Execute($sql);
@@ -942,4 +946,27 @@ function isSimilarInvoiceRefExists($ref, $entity) {
     }
 
     return true;
+}
+
+/**
+ * @param   int     $fk_soc
+ * @param   array   $TCustomerCodeToAdd
+ * @return  boolean
+ */
+function updateSocieteOtherCustomerCode($fk_soc, $TCustomerCodeToAdd) {
+    global $db;
+    if(! class_exists('Societe')) require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+
+    $soc = new Societe($db);
+    $res = $soc->fetch($fk_soc);
+    if($res <= 0) return false;
+
+    $TExistingCustomerCode = array();
+    if(! empty($soc->array_options['other_customer_code'])) $TExistingCustomerCode = explode(';', $soc->array_options['other_customer_code']);
+
+    $TExistingCustomerCode = array_unique(array_filter(array_merge($TCustomerCodeToAdd, $TExistingCustomerCode)));
+    $soc->array_options['other_customer_code'] = implode(';', $TExistingCustomerCode);
+
+    $res = $soc->insertExtraFields();// Le updateExtrafield n'insert pas si besoin
+    return $res > 0;
 }

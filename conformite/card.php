@@ -396,7 +396,34 @@ if ($simu->id > 0) {
     print '<tr>';
     print '<td>'.$langs->trans('RequiredFiles').'</td>';
     print '<td>'.$langs->trans('ListOfRequiredFiles').'</td>';
-    print '<td colspan="2"></td>';
+
+    // Contrat démat
+    if(! empty($d->rowid)) {
+        $checked = '';
+        if(! empty($d->demat)) $checked = 'checked="checked"';
+
+        print '<td style="vertical-align: top;">'.$langs->trans('DossierDemat').'</td>';
+        print '<td style="vertical-align: top;"><input type="checkbox" id="demat" name="demat" '.$checked.'/></td>';
+        ?>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $('input#demat').on('click', function() {
+                    $.ajax({
+                        url: "<?php echo dol_buildpath('/financement/script/interface.php', 1); ?>",
+                        data: {
+                            action: 'toggleDematCheckbox',
+                            fk_dossier: <?php echo $d->rowid; ?>
+                        },
+                        dataType: 'json',
+                        type: 'POST',
+                        async: false
+                    });
+                });
+            });
+        </script>
+        <?php
+    }
+    else print '<td colspan="2"></td>';
     print '</tr>';
 
     // Commentaire ADV

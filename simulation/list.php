@@ -62,9 +62,7 @@ $offset = $limit * $page;
 $strEntityShared = getEntity('fin_simulation', true);
 $TEntityShared = explode(',', $strEntityShared);
 
-$dao = new DaoMulticompany($db);
-$dao->getEntities();
-foreach($dao->entities as $mc_entity) if(in_array($mc_entity->id, $TEntityShared)) $TEntity[$mc_entity->id] = $mc_entity->label;
+$TEntity = TFinancementTools::build_array_entities($TEntityShared);
 
 /*
  * Action

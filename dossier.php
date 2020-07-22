@@ -96,6 +96,7 @@
 				$dossier->load($PDOdb, $id);
 				$dossier->set_values($_REQUEST);
 				$dossier->set_date('dateperso', $_REQUEST['dateperso']);
+				$dossier->demat = intval(isset($_REQUEST['demat']));
 				
 				if(isset($dossier->financement))$dossier->financement->set_values($_REQUEST);
 
@@ -903,17 +904,14 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 			,'okPourFacturation'=>$formRestricted->combo('', 'leaser[okPourFacturation]', $financementLeaser->TOkPourFacturation , $financementLeaser->okPourFacturation)
 			,'transfert'=>$formRestricted->combo('', 'leaser[transfert]', $financementLeaser->TTransfert , $financementLeaser->transfert)
 			,'xml_infos_transfert' => (!empty($affaire) && !empty($affaire->xml_fic_transfert)) ? ' - '.$affaire->xml_fic_transfert. ' - '.$affaire->get_date('xml_date_transfert') : ''
-			
-			//,'reinit'=>'<a href="'.$_SERVER['PHP_SELF'].'?action=regenerate-facture-leaser&id='.$dossier->getId().'">Lancer</a>'
 
 			,'echeancier'=>$dossier->echeancier($PDOdb,'LEASER')
 			
 			,'detail_fact' => dol_buildpath('/fourn/facture/list.php?search_refsupplier='.$financementLeaser->reference,1)
             ,'date_envoi'=>$formRestricted->calendrier('', 'leaser[date_envoi]', $financementLeaser->date_envoi, 10,255)
-
-			
+            ,'demat' => '<input type="checkbox" name="demat" '.(! empty($dossier->demat) ? 'checked="checked" ' : '').($mode == 'view' ? 'disabled="disabled" ' : '').'/>'
 	);
-	//print $financement->get_date('date_solde','d/m/Y',true);
+
 	if(isset($financement)) {
 		$TFinancement = array(
 			'montant'=>$formRestricted->texte('', 'montant', $financement->montant, 10,255,'','','à saisir') 
@@ -1020,22 +1018,6 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 	$soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
 
 	$soldepersointegrale = ($soldepersointegrale * ($conf->global->FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
-
-	//echo $soldepersointegrale;
-	//echo $sommeRealise." ".$sommeNoir." ".$sommeCouleur;
-	//pre($dossier->financement,true);exit;
-	//echo $dossier->getSolde($PDOdb, 'SRNRSAME');exit;
-	
-	//Calcul du Solde Renouvelant et Non Renouvelant CPRO 
-	/*$dossier->financement->capital_restant = $dossier->financement->montant;
-	$dossier->financement->total_loyer = $dossier->financement->montant;
-	for($i=0; $i<$dossier->financement->numero_prochaine_echeance;$i++){
-		$capital_amortit = $dossier->financement->amortissement_echeance( $i+1 ,$dossier->financement->capital_restant);
-		$part_interet = $dossier->financement->echeance - $capital_amortit;
-		$dossier->financement->capital_restant-=$capital_amortit;
-		
-		$dossier->financement->total_loyer -= $dossier->financement->echeance;
-	}*/
 
 	$e = new DaoMulticompany($db);
 	$e->getEntities();

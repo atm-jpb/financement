@@ -131,7 +131,7 @@ class Conformite extends TObjetStd
 
         $nbWait = $nbDelayed = 0;
 
-        $sql = 'SELECT rowid, date_cre';
+        $sql = "SELECT rowid, date_format(date_cre, '%Y-%m-%d') as date_cre";
         $sql.= ' FROM '.MAIN_DB_PREFIX.self::$tablename;
         $sql.= ' WHERE status = '.$db->escape($fk_status);
         $sql.= ' AND entity IN ('.getEntity('fin_simulation').')';
@@ -144,13 +144,15 @@ class Conformite extends TObjetStd
 
         while($obj = $db->fetch_object($resql)) {
             $nbWait++;
-            if(time() >= ($obj->date_cre + $conf->global->FINANCEMENT_DELAY_CONFORMITE * 86400)) $nbDelayed++;
+
+            $dateCre = strtotime($obj->date_cre);
+            if(time() >= ($dateCre + $conf->global->FINANCEMENT_DELAY_CONFORMITE * 86400)) $nbDelayed++;
         }
         $db->free($resql);
 
         $r = new WorkboardResponse;
         $r->warning_delay = $conf->global->FINANCEMENT_DELAY_CONFORMITE;
-        $r->label = $langs->trans('Conformite').' '.$langs->trans(self::$TStatus[$fk_status]);
+        $r->label = $langs->trans(self::$TStatus[$fk_status].'Short');
         $r->url = dol_buildpath('/financement/conformite/list.php', 1).'?search_status='.$fk_status;
         $r->img = img_picto('', 'object_simul@financement');
 

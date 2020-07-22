@@ -1,13 +1,6 @@
 <?php
 
 require '../config.php';
-require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
-dol_include_once('/multicompany/class/dao_multicompany.class.php');
-dol_include_once('/financement/lib/financement.lib.php');
-dol_include_once('/financement/class/affaire.class.php');
-dol_include_once('/financement/class/dossier.class.php');
-dol_include_once('/financement/class/dossier_integrale.class.php');
-dol_include_once('/financement/class/grille.class.php');
 
 set_time_limit(0);
 
@@ -71,16 +64,19 @@ llxFooter();
 function getUsefulData($TLine) {
     $TIndex = array(
         'siren' => 0,
+        'siret' => 1,
         'code_client' => 2,
         'entity' => 3
     );
 
     $siren = trim($TLine[$TIndex['siren']]);
+    $siret = trim($TLine[$TIndex['siret']]);
     $code_client = trim($TLine[$TIndex['code_client']]);
     $entity = trim($TLine[$TIndex['entity']]);
 
     return array(
         'siren' => $siren,
+        'siret' => $siret,
         'code_client' => array($code_client),
         'entity' => $entity
     );
@@ -98,46 +94,31 @@ function updateDossierSolde($TData) {
         $v['code_client'] = array_unique($v['code_client']);
 
         // Societe customer code
-        $sql = 'SELECT rowid';
-        $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
-        $sql.= ' WHERE entity = '.$db->escape($v['entity']);
-        $sql.= " AND siren = '".$db->escape($v['siren'])."'";
+        $sql = 'SELECT s.rowid';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'societe s';
+        $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe_extrafields se ON (se.fk_object = s.rowid)';
+        $sql.= ' WHERE s.entity = '.$db->escape($v['entity']);
+        $sql.= " AND (s.siren = '' OR s.siren is null)";
+
+        $str = "(s.code_client = '???' OR se.other_customer_code is not null AND ((locate(';???', se.other_customer_code) > 0 OR locate('???;', se.other_customer_code)) OR locate(';', se.other_customer_code) = 0 AND locate('???', se.other_customer_code) > 0))";
+        foreach($v['code_client'] as $k => $cc) $v['code_client'][$k] = str_replace('???', $cc, $str);
+
+        $sql.= ' AND ('.implode(' OR ', $v['code_client']).')';
 
         $resql = $db->query($sql);
         if($resql) {
-            if($obj = $db->fetch_object($resql)) {
-                $soc = new Societe($db);
-                $soc->fetch($obj->rowid);
-                $oldCodeClient = $soc->code_client;
-
-                $firstCustomerCode = array_shift($v['code_client']);
-                if(empty($soc->code_client)) $soc->code_client = $firstCustomerCode;
-                else if($soc->code_client != $firstCustomerCode) {
-                    $tmp = $soc->code_client;
-                    $soc->code_client = $firstCustomerCode;
+            while($obj = $db->fetch_object($resql)) {
+                $db->begin();
+                $sqlUpdate = 'UPDATE '.MAIN_DB_PREFIX."societe SET siren = '".$db->escape($v['siren'])."', siret = '".$db->escape($v['siret'])."' WHERE rowid = ".$db->escape($obj->rowid);
+                $res = $db->query($sqlUpdate);
+                if($res && false) {
+                    $db->commit();
+                    $nbUpdated++;
                 }
-
-                if($soc->code_client != $oldCodeClient) { // Ce test permet de ne pas faire un update pour rien
-                    $db->begin();
-                    $sqlUpdate = 'UPDATE '.MAIN_DB_PREFIX."societe SET code_client = '".$db->escape($soc->code_client)."' WHERE rowid = ".$db->escape($soc->id);
-                    $res = $db->query($sqlUpdate);
-                    if($res) {
-                        $db->commit();
-                        $nbUpdated++;
-                    }
-                    else $db->rollback();
-                }
-
-                if(isset($tmp)) $v['code_client'][] = $tmp;
-
-                if(! empty($v['code_client'])) {
-                    $TCustomerCode = array_unique($v['code_client']);
-                    updateSocieteOtherCustomerCode($soc->id, $TCustomerCode);
-                }
+                else $db->rollback();
             }
         }
 
-        unset($tmp, $firstCustomerCode, $oldCodeClient, $TCustomerCode, $TExistingCustomerCode);
         $db->free($resql);
     }
 

@@ -26,6 +26,7 @@ class TFin_dossier extends TObjetStd
         parent::add_champs('type_regul,month_regul', array('type' => 'int'));
         parent::add_champs('fk_statut_renta_neg_ano,fk_statut_dossier,commentaire_conformite', array('type' => 'chaine'));
         parent::add_champs('date_reception_papier,date_paiement,date_facture_materiel', array('type' => 'date', 'index' => true));
+        parent::add_champs('demat', array('type' => 'int', 'index' => true));
 
         parent::start();
         parent::_init_vars();

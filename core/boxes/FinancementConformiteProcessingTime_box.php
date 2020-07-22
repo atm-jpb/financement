@@ -106,13 +106,14 @@ class FinancementConformiteProcessingTime_box extends ModeleBoxes
         $db->free($resql);
 
         $conformiteProcessingTime = round($res / 86400, 2); // Affiché en jours
+        $icon = '';
+        if($conformiteProcessingTime >= 2) $icon = '&nbsp;'.img_picto('', 'statut8');   // Rouge si plus de 2 jours
 
         $r++;
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxConformiteProcessingTime'));
         $this->info_box_contents[$r][1] = array(
         	'td' => 'align="left"',
-            'text' => $form->textwithpicto($conformiteProcessingTime.' jour(s)', $langs->trans('BoxConformiteProcessingTimeDetails', $obj->nb, ($res/3600))),
-            'url' => dol_buildpath('/financement/simulation/list.php', 1)
+            'text' => $form->textwithpicto($conformiteProcessingTime.' jour(s)', $langs->trans('BoxConformiteProcessingTimeDetails', $obj->nb, ($res/3600))).$icon
         );
     }
 

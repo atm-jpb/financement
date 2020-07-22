@@ -51,36 +51,36 @@ class TSimulation extends TObjetStd
         }
 
         $this->TStatut = array(
-            'OK' => $langs->trans('Accord')
-            , 'WAIT' => $langs->trans('Etude')
-            , 'WAIT_LEASER' => $langs->trans('Etude_Leaser')
-            , 'WAIT_SELLER' => $langs->trans('Etude_Vendeur')
-            , 'WAIT_MODIF' => $langs->trans('Modif')
-            , 'WAIT_AP' => $langs->trans('AccordPrincipe')
-            , 'KO' => $langs->trans('Refus')
-            , 'SS' => $langs->trans('SansSuite')
+            'WAIT' => $langs->trans('Etude'),
+            'WAIT_LEASER' => $langs->trans('Etude_Leaser'),
+            'WAIT_SELLER' => $langs->trans('Etude_Vendeur'),
+            'WAIT_MODIF' => $langs->trans('Modif'),
+            'WAIT_AP' => $langs->trans('AccordPrincipe'),
+            'OK' => $langs->trans('Accord'),
+            'KO' => $langs->trans('Refus'),
+            'SS' => $langs->trans('SansSuite')
         );
 
         $this->TStatutIcons = array(
-            'OK' => 'super_ok',
             'WAIT' => 'wait',
             'WAIT_LEASER' => 'wait_leaser',
             'WAIT_SELLER' => 'wait_seller',
             'WAIT_MODIF' => 'edit',
             'WAIT_AP' => 'wait_ap',
+            'OK' => 'super_ok',
             'KO' => 'refus',
             'SS' => 'sans_suite'
         );
 
         $this->TStatutShort = array(
-            'OK' => $langs->trans('Accord')
-            , 'WAIT' => $langs->trans('Etude')
-            , 'WAIT_LEASER' => $langs->trans('Etude_Leaser_Short')
-            , 'WAIT_SELLER' => $langs->trans('Etude_Vendeur_Short')
-            , 'WAIT_MODIF' => $langs->trans('Modif')
-            , 'WAIT_AP' => $langs->trans('AccordPrincipe')
-            , 'KO' => $langs->trans('Refus')
-            , 'SS' => $langs->trans('SansSuite')
+            'WAIT' => $langs->trans('Etude'),
+            'WAIT_LEASER' => $langs->trans('Etude_Leaser_Short'),
+            'WAIT_SELLER' => $langs->trans('Etude_Vendeur_Short'),
+            'WAIT_MODIF' => $langs->trans('Modif'),
+            'WAIT_AP' => $langs->trans('AccordPrincipe'),
+            'OK' => $langs->trans('Accord'),
+            'KO' => $langs->trans('Refus'),
+            'SS' => $langs->trans('SansSuite')
         );
 
         $this->TTerme = array(
@@ -349,7 +349,7 @@ class TSimulation extends TObjetStd
         // Ajout des autres leasers de la liste (sauf le prio)
         foreach($grille as $TData) {
             // Le montant de LOC PURE change uniquement pour C'Pro Ouest & Copy Concept
-            if(($this->montant < 1000 && ! in_array($this->entity, array(5, 7)) || $this->montant < 500 && in_array($this->entity, array(5, 7))) && $TData['fk_leaser'] != 18495) continue;     // Spécifique LOC PURE
+            if(($this->montant < 1000 && ! in_array($this->entity, array(5, 7, 16)) || $this->montant < 500 && in_array($this->entity, array(5, 7, 16))) && $TData['fk_leaser'] != 18495) continue;     // Spécifique LOC PURE
 
             $simulationSuivi = new TSimulationSuivi;
             $simulationSuivi->leaser = new Fournisseur($db);
@@ -2189,7 +2189,7 @@ class TSimulation extends TObjetStd
         $this->TSimulationSuivi = array();
         $this->DossierRachete = array();
         $this->TSimulationSuiviHistorized = array();
-        $this->accord = 'WAIT';
+        $this->accord = 'DRAFT';
         $this->date_simul = time();
 
         // On vide les préconisations
@@ -2429,7 +2429,7 @@ class TSimulation extends TObjetStd
 
         $nbWait = $nbDelayed = 0;
 
-        $sql = 'SELECT rowid, date_cre';
+        $sql = "SELECT rowid, date_format(date_cre, '%Y-%m-%d') as date_cre";
         $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
         $sql.= " WHERE accord LIKE 'WAIT%'";
         $sql.= ' AND entity IN ('.getEntity('fin_simulation').')';
@@ -2442,7 +2442,9 @@ class TSimulation extends TObjetStd
 
         while($obj = $db->fetch_object($resql)) {
             $nbWait++;
-            if(time() >= ($obj->date_cre + $conf->global->FINANCEMENT_DELAY_DRAFT_SIMULATION * 86400)) $nbDelayed++;
+
+            $dateCre = strtotime($obj->date_cre);
+            if(time() >= ($dateCre + $conf->global->FINANCEMENT_DELAY_DRAFT_SIMULATION * 86400)) $nbDelayed++;
         }
         $db->free($resql);
 

@@ -60,19 +60,6 @@ class ActionsFinancement
         $this->results = $TRes;
     }
 
-//	function printSearchForm($parameters, &$object, &$action, $hookmanager) {
-//		global $langs, $hookmanager;
-//
-//		 $res = printSearchForm(DOL_URL_ROOT.'/custom/financement/dossier_list.php', DOL_URL_ROOT.'/custom/financement/dossier_list.php', img_picto('',dol_buildpath('/financement/img/object_financeico.png', 1), '', true).' '.$langs->trans("Dossiers"), 'searchdossier', 'searchdossier');
-//		 $res .= printSearchForm(DOL_URL_ROOT.'/compta/facture/list.php', DOL_URL_ROOT.'/compta/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Clients"), 'products', 'search_ref');
-//		 $res .= printSearchForm(DOL_URL_ROOT.'/fourn/facture/list.php', DOL_URL_ROOT.'/fourn/facture/list.php', img_object('','invoice').' '.$langs->trans("Factures Leasers"), 'products', 'search_ref');
-//		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation/list.php', DOL_URL_ROOT.'/custom/financement/simulation/list.php', img_object('','invoice').' Simulation', 'searchnumetude', 'searchnumetude');
-//		 $res .= printSearchForm(DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', DOL_URL_ROOT.'/custom/financement/simulation/simulation.php', img_object('','resource').' Matricule', 'search_matricule', 'search_matricule');
-//		 $hookmanager->resPrint.= $res;
-//
-//		 return 0;
-//	}
-
     function formObjectOptions($parameters, &$object, &$action, $hookmanager) {
         global $user, $db, $langs;
 
@@ -443,10 +430,7 @@ class ActionsFinancement
         }
 
         if(! empty($socSource->code_client)) {
-            if(empty($socTarget->array_options['options_other_customer_code'])) $socTarget->array_options['options_other_customer_code'] = $socSource->code_client;
-            else $socTarget->array_options['options_other_customer_code'] .= ';'.$socSource->code_client;
-
-            $socTarget->updateExtraField('other_customer_code');
+            updateSocieteOtherCustomerCode($socTarget->id, array($socSource->code_client));
         }
 
         TSimulation::replaceThirdparty($fk_soc_source, $fk_soc_target, $TEntityGroup);
