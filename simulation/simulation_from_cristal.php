@@ -266,7 +266,10 @@ function _get_socid($code_artis, &$TEntity = array(), $siret = '') {
     $sql.= ' WHERE s.entity IN ('.$db->escape($str_entities).')';
     if(! empty($code_artis)) {
         $sql.= " AND (s.code_client='".$db->escape($code_artis)."'";
-        $sql.= " OR locate('".$db->escape($code_artis)."', other_customer_code) <> 0)";
+        $sql.= " OR se.other_customer_code is not null ";
+        $sql.= " AND (locate(';".addslashes($code_artis)."', se.other_customer_code) > 0";   // ";..."
+        $sql.= " OR locate('".addslashes($code_artis).";', se.other_customer_code) > 0";   // "...;"
+        $sql.= " OR se.other_customer_code = '".addslashes($code_artis)."'))";  // "..."
     }
     if(! empty($siret)) $sql.= " AND siret='".$db->escape($siret)."'";
 
