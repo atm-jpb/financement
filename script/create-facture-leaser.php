@@ -22,6 +22,7 @@ if(empty($user->id)) {
 
 
 $ATMdb=new TPDOdb;
+$fk_dossier = GETPOST('fk_dossier', 'int');
 
 /*
  * Création des factures bon pour facturation
@@ -34,6 +35,7 @@ $Tab = array_merge($TabOui, $TabAuto, $TabManuel);*/
 $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'fin_dossier_financement';
 $sql.= " WHERE (date_solde < '1970-00-00 00:00:00' OR date_solde IS NULL)";
 $sql.= " AND okPourFacturation IN ('OUI', 'AUTO', 'MANUEL')";
+if(! is_null($fk_dossier)) $sql.= ' AND fk_fin_dossier = '.$fk_dossier;
 $Tab = TRequeteCore::_get_id_by_sql($ATMdb, $sql);
 
 foreach($Tab as $id) {
