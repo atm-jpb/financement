@@ -133,7 +133,7 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
 // Remove filters
 if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) {
     unset($search_ref_client, $search_ref_leaser, $search_entity, $search_nature, $search_thirdparty, $search_leaser, $reloc_customer_ok, $reloc_leaser_ok, $loyer_leaser_ok, $search_transfert, $search_dateEnvoi);
-    unset($search_dateStart, $search_fac_materiel, $search_siren, $sall);
+    unset($search_dateStart, $search_fac_materiel, $search_siren, $sall, $search_demat);
 }
 
 $sql = "SELECT d.rowid as fk_fin_dossier, e.label as entity_label, fc.reference as refDosCli, fl.fk_soc as fk_leaser, fl.reference as refDosLea, a.rowid as fk_fin_affaire, a.reference as ref_affaire, ";
@@ -271,6 +271,7 @@ if(! empty($search_dateStart)) {
 }
 if(! empty($fk_leaser)) $param .= '&fk_leaser='.urlencode($fk_leaser);
 if(! empty($search_fac_materiel)) $param .= '&search_fac_materiel='.urlencode($search_fac_materiel);
+if($search_demat != '' && $search_demat != -1) $param .= '&search_demat='.urlencode($search_demat);
 
 // List of mass actions available
 $arrayofmassactions =  array(
