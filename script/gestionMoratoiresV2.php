@@ -78,6 +78,9 @@ while($obj = $db->fetch_object($resql)) {
     $d->financementLeaser->date_solde = null;
     $d->financementLeaser->montant = abs($montant);
     $d->financementLeaser->echeance = $echeance;
-    if(! empty($commit)) $d->financementLeaser->save($PDOdb);
+    if(! empty($commit)) {
+        $d->financementLeaser->setEcheance(-1); // Essentiel pour regénérer la bonne facture !
+        $d->financementLeaser->save($PDOdb);
+    }
 
 }
