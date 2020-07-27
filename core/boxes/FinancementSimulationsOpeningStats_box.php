@@ -90,46 +90,41 @@ class FinancementSimulationsOpeningStats_box extends ModeleBoxes
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => '');
         $this->info_box_contents[$r+1][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationsOpeningStats'));
 
+        // Détails mois
         $TRes = array();
         $date = strtotime('first day of -1 year');
         for($i = 1 ; $i <= 13 ; $i++) { // 13 Pour prendre aussi le mois en cours
-            foreach($TEntity as $entity => $label) $TRes[$entity]['all'][date('Ym', $date)] = 0;
+            foreach($TEntity as $entity => $label) $TRes[$entity][date('Ym', $date)] = 0;
 
             $this->info_box_contents[$r][$i] = array('td' => 'align="left"', 'text' => date('Y', $date));
             $this->info_box_contents[$r+1][$i] = array('td' => 'align="left"', 'text' => $langs->trans('MonthShort'.date('m', $date)));
 
             $date = strtotime('+1 month', $date);
         }
-        $nextMonth = date('n');
-        $currentMonthLastDay = date('d', strtotime('+1 month -1 day', strtotime(date('Y-m-01'))));
-//        var_dump($currentMonthLastDay);exit;
 
-        for($i = $currentMonthLastDay ; $i >= 1 ; $i--) {
-            foreach($TEntity as $entity => $label) $TRes[$entity]['current'][date('W', strtotime(date('Y-m-'.$i)))] = 0;
+        // Détails mois en cours
+        $TWeek = array();
+        $ds = strtotime(date('Y-m-01'));    // 1er jour du mois en cours
+        $de = date('W', strtotime('+1 month -1 day', $ds));    // Dernier jour du mois en cours
+        $ds = date('W', $ds);
+
+        for($j = $ds ; $j <= $de ; $j++) {
+            foreach($TEntity as $entity => $label) $TWeek[$entity][$j] = 0;
+
+            $this->info_box_contents[$r][$i] = array('td' => 'align="left"', 'text' => date('Y', $date));
+            $this->info_box_contents[$r+1][$i] = array('td' => 'align="left"', 'text' => 'S'.$j);
+            $i++;
         }
+
         $r++;
 
-        // TODO: Données du mois en cours découpées par semaine
-        $sql = 'SELECT entity, extract(day from date_cre) as jourCreation, count(*) as nb';
-        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
-        $sql.= " WHERE date_cre >= '".date('Y-m-01')."'";
-        $sql.= ' GROUP BY entity, jourCreation';
-
-        $resql1 = $db->query($sql);
-        if(! $resql1) return;
-
-        while($obj1 = $db->fetch_object($resql1)) {
-            $TRes[$obj1->entity]['current'][date('W', strtotime(date('Y-m-'.$obj1->jourCreation)))] += $obj1->nb;
-        }
-        var_dump($TRes[1]['current'], array_sum($TRes[1]['current']));
-
-        // Données des 12 derniers mois
-        $sql = 'SELECT entity, extract(year from date_cre) as anneeCreation, extract(month from date_cre) as moisCreation, count(*) as nb';
+        // Data lines
+        $sql = 'SELECT entity, extract(year from date_cre) as anneeCreation, extract(month from date_cre) as moisCreation, extract(day from date_cre) as jourCreation, count(*) as nb';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
         $sql.= " WHERE date_cre >= '".date('Y-m', strtotime('-1 year'))."-01'"; // On prend toutes les simuls des 12 derniers mois
         $sql.= ' AND entity <> 0';
-        $sql.= ' GROUP BY entity, anneeCreation, moisCreation';
-        $sql.= ' ORDER BY entity, anneeCreation, moisCreation';
+        $sql.= ' GROUP BY entity, anneeCreation, moisCreation, jourCreation';
+        $sql.= ' ORDER BY entity, anneeCreation, moisCreation, jourCreation';
 
         $resql = $db->query($sql);
         if(! $resql) {
@@ -138,19 +133,33 @@ class FinancementSimulationsOpeningStats_box extends ModeleBoxes
 
         while($obj = $db->fetch_object($resql)) {
             $moisCreation = sprintf("%02d", $obj->moisCreation);
-            $TRes[$obj->entity]['all'][$obj->anneeCreation.$moisCreation] = $obj->nb;
+            $TRes[$obj->entity][$obj->anneeCreation.$moisCreation] += $obj->nb;
+
+            if($obj->anneeCreation == date('Y') && $obj->moisCreation == date('n')) {
+                $jourCreation = sprintf("%02d", $obj->jourCreation);
+                $numWeek = date('W', strtotime(date('Y-m-'.$jourCreation)));
+
+                $TWeek[$obj->entity][$numWeek] += $obj->nb;
+            }
         }
         $db->free($resql);
 
         foreach($TEntity as $entity => $label) {
-            if(array_sum($TRes[$entity]['all']) == 0) continue;    // Aucune simulation pour cette entité
+            if(array_sum($TRes[$entity]) == 0) continue;    // Aucune simulation pour cette entité
 
             $r++;
             $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $label);
 
             $i = 1;
-            foreach($TRes[$entity]['all'] as $k => $TEntityData) {
+            // Détails mois
+            foreach($TRes[$entity] as $TEntityData) {
                 $this->info_box_contents[$r][$i] = array('td' => 'align="center"', 'text' => '<span>'.$TEntityData.'</span>');
+                $i++;
+            }
+
+            // Détails mois en cours
+            foreach($TWeek[$entity] as $weekEntityData) {
+                $this->info_box_contents[$r][$i] = array('td' => 'align="center"', 'text' => '<span>'.$weekEntityData.'</span>');
                 $i++;
             }
         }
@@ -166,6 +175,15 @@ class FinancementSimulationsOpeningStats_box extends ModeleBoxes
 
             $this->info_box_contents[$r][$i] = array('td' => 'align="center"', 'text' => $sum);
             $date = strtotime('+1 month', $date);
+        }
+
+        // Totaux par semaine du mois en cours
+        for($j = $ds ; $j <= $de ; $j++) {
+            $sum = 0;
+            foreach($TEntity as $entity => $label) $sum += $TWeek[$entity][$j];
+
+            $this->info_box_contents[$r][$i] = array('td' => 'align="center"', 'text' => $sum);
+            $i++;
         }
     }
 
