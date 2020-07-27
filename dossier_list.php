@@ -87,18 +87,23 @@ if(GETPOST('envoiXML')) {
 
 // On fait rien si on ne sélectionne pas de dossiers...
 if(! empty($arrayofselected) && ! empty($fk_leaser)) {
+    $param = GETPOST('param');
+    $strToSelect = '';
+    foreach($arrayofselected as $select) $strToSelect .= '&toselect[]='.$select;
+    $param .= $strToSelect;
 
     if($massaction == 'generateXML') {
         $dt = TFinDossierTransfertXML::create($fk_leaser);
         $filePath = $dt->transfertXML($PDOdb, $arrayofselected);
 
         header("Location: ".dol_buildpath("/document.php?modulepart=financement&entity=".$conf->entity."&file=".$filePath, 2));
+        exit;
     }
     else if($massaction == 'generateXMLandupload') {
         $dt = TFinDossierTransfertXML::create($fk_leaser, true);
         $filePath = $dt->transfertXML($PDOdb, $arrayofselected);
 
-        header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser.'&envoiXML=ok');
+        header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser.$param.'&envoiXML=ok');
         exit;
     }
     elseif(in_array($massaction, array('setReady', 'setSent', 'setYes', 'setnottransfer'))) {
@@ -124,7 +129,6 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
             }
         }
 
-        $param = GETPOST('param');
         header('Location: '.$_SERVER['PHP_SELF'].'?fk_leaser='.$fk_leaser.$param);
         exit;
     }
@@ -769,7 +773,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     print '<td style="text-align: center;">';
     if(! empty($fk_leaser)) {
         $selected = 0;
-        if(in_array($obj->fk_fin_dossier, $arrayofselected)) $selected=1;
+        if(in_array($obj->fk_fin_affaire, $arrayofselected)) $selected=1;
         print '<input id="cb'.$obj->fk_fin_affaire.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->fk_fin_affaire.'" '.($selected ? 'checked="checked"' : '').'/>';
     }
     else print '&nbsp';
