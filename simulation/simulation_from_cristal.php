@@ -262,7 +262,7 @@ function _get_socid($code_artis, &$TEntity = array(), $siret = '') {
 
     $sql = 'SELECT s.rowid';
     $sql.= ' FROM '.MAIN_DB_PREFIX.'societe s';
-    $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe_extrafields se ON (se.fk_object = s.rowid)';
+    $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe_extrafields se ON (se.fk_object = s.rowid)';
     $sql.= ' WHERE s.entity IN ('.$db->escape($str_entities).')';
     if(! empty($code_artis)) {
         $sql.= " AND (s.code_client='".$db->escape($code_artis)."'";
