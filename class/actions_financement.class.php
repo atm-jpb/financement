@@ -541,6 +541,6 @@ class ActionsFinancement
         if(empty($user->rights->financement->admin->write)) $out = '';
 
         $this->resprints = $out;
-        return 0;
+        return 1;
     }
 }
