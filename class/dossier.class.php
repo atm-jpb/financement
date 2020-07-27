@@ -63,14 +63,14 @@ class TFin_dossier extends TObjetStd
         $this->date_facture_materiel = null;
     }
 
-    function loadReference(&$db, $reference, $annexe = false, $entity = null) {
+    function loadReference(TPDOdb &$db, $reference, $annexe = false, $entity = null) {
         $checkEntity = '';
         if(! is_null($entity) && ! empty($entity)) {
             if(is_numeric($entity)) $checkEntity .= ' AND entity = '.$entity;
             else if(is_array($entity)) $checkEntity .= ' AND entity IN ('.implode(',', $entity).')';
         }
 
-        $db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference='".$reference."'".$checkEntity);
+        $db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference='".$db->quote($reference)."'".$checkEntity);
 
         if($db->Get_line()) {
             return $this->load($db, $db->Get_field('rowid'), $annexe);
