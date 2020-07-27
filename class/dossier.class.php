@@ -63,17 +63,19 @@ class TFin_dossier extends TObjetStd
         $this->date_facture_materiel = null;
     }
 
-    function loadReference(TPDOdb &$db, $reference, $annexe = false, $entity = null) {
+    function loadReference(TPDOdb &$PDOdb, $reference, $annexe = false, $entity = null) {
+        global $db;
+
         $checkEntity = '';
         if(! is_null($entity) && ! empty($entity)) {
             if(is_numeric($entity)) $checkEntity .= ' AND entity = '.$entity;
             else if(is_array($entity)) $checkEntity .= ' AND entity IN ('.implode(',', $entity).')';
         }
 
-        $db->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference='".$db->quote($reference)."'".$checkEntity);
+        $PDOdb->Execute("SELECT rowid FROM ".$this->get_table()." WHERE reference='".$db->escape($reference)."'".$checkEntity);
 
-        if($db->Get_line()) {
-            return $this->load($db, $db->Get_field('rowid'), $annexe);
+        if($PDOdb->Get_line()) {
+            return $this->load($PDOdb, $PDOdb->Get_field('rowid'), $annexe);
         }
         else {
             $sql = 'SELECT fk_fin_dossier';
@@ -81,10 +83,10 @@ class TFin_dossier extends TObjetStd
             $sql.= ' LEFT JOIN '.$this->get_table().' d ON (df.fk_fin_dossier = d.rowid)';
             $sql.= " WHERE df.reference = '".$reference."'";
             $sql.= $checkEntity;
-            $db->Execute($sql);
+            $PDOdb->Execute($sql);
 
-            if($db->Get_line()) {
-                return $this->load($db, $db->Get_field('fk_fin_dossier'), $annexe);
+            if($PDOdb->Get_line()) {
+                return $this->load($PDOdb, $PDOdb->Get_field('fk_fin_dossier'), $annexe);
             }
             else {
                 return false;
