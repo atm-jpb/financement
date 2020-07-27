@@ -36,7 +36,6 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
         $title = $xml->appendChild($xml->createElement('ADLC'));
 
 		//Chargement des noeuds correspondant aux affaires
-		//print '<pre>';
 		foreach($TAffaires as $Affaire) {
 			$dossier = $Affaire->TLien[0]->dossier;	// Possible car 1 affaire = 1 dossier
 			$fin = $dossier->financement;
@@ -237,7 +236,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
         $truc = $this->getMontantFactureData($xml, $facture);
         $elem->appendChild($truc);
 
-        // Montants factures
+        // Facturant
         $truc = $this->getFacturantData($xml, $affaire);
         $elem->appendChild($truc);
 
@@ -268,10 +267,11 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 		return $elem;
 	}
 
-	function getFacturantData(&$xml, $affaire) {
-        $siret = $this->getSiretByAffaireRef($affaire->reference);
+    function getFacturantData(&$xml, $affaire) {
+        global $mysoc;
+        $siret = $mysoc->idprof2;
 
-		$elem = $xml->createElement('FACTURANT');
+        $elem = $xml->createElement('FACTURANT');
         $TData = array(
             'SIRETFCT' => $siret,  // Siret de l'entité identifiée par le préfixe de la référence de l'affaire
             'TAUXTVAFOU' => price2num(20),
@@ -282,8 +282,8 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
             $elem->appendChild($xml->createElement($code, $value));
         }
 
-		return $elem;
-	}
+        return $elem;
+    }
 
 	function getMaterielData(&$xml, $assetLink, $dossier, $facture, $affaire) {
         $elem = $xml->createElement('MATERIEL');
@@ -328,7 +328,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 
 	function getLivraisonMaterielData(&$xml, $facture, $affaire) {
 		$elem = $xml->createElement('LIVRAISON_MAT');
-		//pre($affaire,true);exit;
+
 		$client = $affaire->societe;
 		$add = explode("\n", $client->address);
 		$rue1 = $rue2 = '';
@@ -366,28 +366,4 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 
 		return $elem;
 	}
-
-	function getSiretByAffaireRef($ref) {
-	    global $mysoc;
-
-	    $TSiret = array(
-	        '001' => '43035549500028',   // GROUPE
-            '002' => '38122838600102',   // C'Pro
-            '003' => '38122838600151',   // ALLIANCE
-            '004' => '38122838600219',   // PIXEL
-            '005' => '41505052500021',   // C'Pro Info
-            '006' => '38122838600268',   // VDI
-            '011' => '38122838600268',   // MCII
-            '012' => '48084469500027',   // C'Pro Télécom
-            '013' => '52137069200035',   // C'Pro Networks
-            '015' => '34981660300022',   // TDP-IP
-            '016' => '31780275900041',   // SADOUX
-        );
-
-	    $TRef = explode('-', $ref);
-	    $prefix = $TRef[0];
-
-	    if(array_key_exists($prefix, $TSiret)) return $TSiret[$prefix];
-	    return $mysoc->idprof2;
-    }
 }
