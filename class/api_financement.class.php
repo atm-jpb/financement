@@ -180,10 +180,16 @@ class Financement extends DolibarrApi
         $object->leaser = new Societe($this->db);
         $object->leaser->fetch($object->financementLeaser->fk_soc);
 
-        $object->client->date_creation = date('Y-m-d', $object->client->date_creation);
-        $object->client->date_modification = date('Y-m-d', $object->client->date_modification);
-        $object->leaser->date_creation = date('Y-m-d', $object->leaser->date_creation);
-        $object->leaser->date_modification = date('Y-m-d', $object->leaser->date_modification);
+        if(! empty($object->client->date_creation)) $object->client->date_creation = date('Y-m-d', $object->client->date_creation);
+        else $object->client->date_creation = null;
+        if(! empty($object->client->date_modification)) $object->client->date_modification = date('Y-m-d', $object->client->date_modification);
+        else $object->client->date_modification = null;
+
+        if(! empty($object->leaser->date_creation)) $object->leaser->date_creation = date('Y-m-d', $object->leaser->date_creation);
+        else $object->leaser->date_creation = null;
+        if(! empty($object->leaser->date_modification)) $object->leaser->date_modification = date('Y-m-d', $object->leaser->date_modification);
+        else $object->leaser->date_modification = null;
+
 
         $apiThirdparties = new Thirdparties;
         $apiThirdparties->_cleanObjectDatas($object->client);
