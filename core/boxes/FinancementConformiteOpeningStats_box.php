@@ -77,7 +77,7 @@ class FinancementConformiteOpeningStats_box extends ModeleBoxes
         $TEntity = array();
         foreach($dao->entities as $mc_entity) $TEntity[$mc_entity->id] = $mc_entity->label;
 
-        $text = $langs->trans('BoxConformiteOpeningStatsTitle').' "'.$langs->trans(Conformite::$TStatus[$whichOne]).'"';
+        $text = $langs->trans('BoxConformiteOpeningStatsTitleWithStatus').' "'.$langs->trans(Conformite::$TStatus[$whichOne]).'"';
         $this->info_box_head = array(
             'text' => $text,
             'limit' => dol_strlen($text),
