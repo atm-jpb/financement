@@ -1798,12 +1798,13 @@ class TImport extends TObjetStd {
         if($this->artis == 'ouest') { // Artis OUEST
             $entity = 5;
         } else { // Artis AURA
-            if($data['organisation'] == '005') $entity = 2;
-            elseif($data['organisation'] == '010') $entity = 6;
-            elseif($data['organisation'] == '012') $entity = 3;
-            elseif($data['organisation'] == '015') $entity = 10;
-            elseif($data['organisation'] == '016') $entity = 10;
-			elseif($data['organisation'] == '014') $entity = 6;
+            if($data['organisation'] == '005') $entity = 2;         // Informatique
+            elseif($data['organisation'] == '010') $entity = 6;     // Copem
+            elseif($data['organisation'] == '012') $entity = 3;     // Télécom
+            elseif($data['organisation'] == '015') $entity = 10;    // TDP IP
+            elseif($data['organisation'] == '016') $entity = 10;    // TDP IP
+            elseif($data['organisation'] == '017') $entity = 30;    // VEODIS
+			elseif($data['organisation'] == '014') $entity = 6;     // Copem
         }
 
         return $entity;
