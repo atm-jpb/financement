@@ -332,6 +332,13 @@ BoxSimulationsOpeningStatsSecondColumn = mois en cours
 BoxSimulationsOpeningStats = Entité
 BoxSimulationsOpeningStatsDetails = Nb OK : %s<br/>Nb KO : %s
 
+#Box Conformite Opening Stats
+BoxConformiteOpeningStatsTitle = Financement - Evolution du nombre de conformité au statut
+BoxConformiteOpeningStatsFirstColumn = 12 derniers mois
+BoxConformiteOpeningStatsSecondColumn = mois en cours
+BoxConformiteOpeningStats = Entité
+BoxConformiteOpeningStatsDetails = Nb OK : %s<br/>Nb KO : %s
+
 #Contrôle qualité
 QualityControl=Contrôle qualité
 QualityControlRules=Règles du contrôle qualité
