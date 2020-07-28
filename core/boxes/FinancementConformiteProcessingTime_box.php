@@ -80,41 +80,39 @@ class FinancementConformiteProcessingTime_box extends ModeleBoxes
         }
 
 		$r = 0;
-
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => '');
         $this->info_box_contents[$r][1] = array('td' => 'align="left"', 'text' => $langs->trans('BoxConformiteProcessingTimeFirstColumn'));
+        $this->info_box_contents[$r][2] = array('td' => 'align="left"', 'text' => $langs->trans('BoxConformiteProcessingTimeSecondColumn'));
 
-        $res = 0;
+        $redIcon = '&nbsp;'.img_picto('', 'statut8');
+        $greenIcon = '&nbsp;'.img_picto('', 'statut4');
+        $TLine = array('compliant', 'invoice');
+        $TColumn = array('twelve', 'three');
 
-        $sql = 'SELECT count(*) as nb,';
-        $sql.= ' sum(unix_timestamp(c.date_conformeN2)) as sumConformeN2,';
-        $sql.= ' sum(unix_timestamp(dflea.date_envoi)) as sumDateEnvoi,';
-        $sql.= ' sum(unix_timestamp(dflea.date_envoi) - unix_timestamp(c.date_conformeN2)) as sum';
-        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_conformite c';
-        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON (s.rowid = c.fk_simulation)';
-        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (d.rowid = s.fk_fin_dossier)';
-        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type = 'LEASER')";
-        $sql.= " WHERE (c.date_conformeN2 is not null or c.date_conformeN2 > '1970-01-01')";
-        $sql.= " AND c.date_cre >= '".date('Y-m', strtotime('-3 month'))."-01'";    // 3 derniers mois
+        foreach($TLine as $line) {
+            $r++;
+            $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxConformiteProcessingTime'.ucfirst($line)));
 
-        $resql = $db->query($sql);
-        if(! $resql) {
-            return;
+            foreach($TColumn as $k => $column) {
+                $TRes = self::process($line, $column, $TRes);
+                $nbDay = round($TRes['calc'] / 24, 2);
+
+                if($line == 'compliant') {
+                    if($nbDay > 2) $icon = $redIcon;
+                    else $icon = $greenIcon;
+                }
+                else {
+                    if($nbDay > 14) $icon = $redIcon;
+                    else $icon = $greenIcon;
+                }
+
+                $help = $langs->trans('BoxConformiteProcessingTimeDetails', $TRes['nb'], $TRes['calc']);
+                $this->info_box_contents[$r][$k+1] = array(
+                    'td' => 'align="left"',
+                    'text' => $form->textwithpicto($nbDay.' jour(s)', $help).$icon
+                );
+            }
         }
-
-        if($obj = $db->fetch_object($resql)) $res = $obj->sum / $obj->nb;
-        $db->free($resql);
-
-        $conformiteProcessingTime = round($res / 86400, 2); // Affiché en jours
-        $icon = '';
-        if($conformiteProcessingTime >= 2) $icon = '&nbsp;'.img_picto('', 'statut8');   // Rouge si plus de 2 jours
-
-        $r++;
-        $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxConformiteProcessingTime'));
-        $this->info_box_contents[$r][1] = array(
-        	'td' => 'align="left"',
-            'text' => $form->textwithpicto($conformiteProcessingTime.' jour(s)', $langs->trans('BoxConformiteProcessingTimeDetails', $obj->nb, ($res/3600))).$icon
-        );
     }
 
     /**
@@ -127,5 +125,35 @@ class FinancementConformiteProcessingTime_box extends ModeleBoxes
      */
     public function showBox($head = null, $contents = null, $nooutput = 0) {
         parent::showBox($this->info_box_head, $this->info_box_contents, $nooutput);
+    }
+
+    private function process($type, $condition, &$TRes) {
+        global $db;
+
+        $TRes = array();
+
+        $sql = 'SELECT count(*) as nb,';
+        if($type == 'compliant') $sql.= ' sum(unix_timestamp(dflea.date_envoi) - unix_timestamp(c.date_conformeN2)) as sum';
+        else $sql.= ' sum(unix_timestamp(dflea.date_envoi) - unix_timestamp(d.date_facture_materiel)) as sum';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_conformite c';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON (s.rowid = c.fk_simulation)';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (d.rowid = s.fk_fin_dossier)';
+        $sql.= ' INNER JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type = 'LEASER')";
+
+        if($type == 'compliant') $sql.= " WHERE (c.date_conformeN2 is not null or c.date_conformeN2 > '1970-01-01')";
+        else $sql.= " WHERE (d.date_facture_materiel is not null or d.date_facture_materiel > '1970-01-01')";
+
+        if($condition == 'twelve') $sql.= " AND c.date_cre >= '".date('Y-m', strtotime('-1 year'))."-01'";    // 12 derniers mois
+        else $sql.= " AND c.date_cre >= '".date('Y-m', strtotime('-3 month'))."-01'";    // 3 derniers mois
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            return;
+        }
+
+        if($obj = $db->fetch_object($resql)) $TRes = array('calc' => $obj->sum / $obj->nb / 3600, 'nb' => $obj->nb);   // Convertie en heures
+        $db->free($resql);
+
+        return $TRes;
     }
 }

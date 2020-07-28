@@ -320,9 +320,11 @@ BoxSimulationsAutoAgreementRateDetails = Nb accords -30min : %s<br/>Nb accords :
 BoxSimulationsAutoAgreementRateTwoHoursDetails = Nb accords -2h : %s<br/>Nb accords : %s
 
 # Box Conformite processing time
-BoxConformiteProcessingTimeTitle = Financement - Délais de traitement des conformités sur les 3 derniers mois
-BoxConformiteProcessingTimeFirstColumn = Conforme N2 -> date d'envoi
-BoxConformiteProcessingTime = Délais moyen de traitement
+BoxConformiteProcessingTimeTitle = Financement - Délais de traitement des conformités
+BoxConformiteProcessingTimeFirstColumn = 12 derniers mois
+BoxConformiteProcessingTimeSecondColumn = 3 derniers mois
+BoxConformiteProcessingTimeCompliant = Conforme N2 -> date d'envoi
+BoxConformiteProcessingTimeInvoice = date facture mat -> date d'envoi
 BoxConformiteProcessingTimeDetails = Nb conformite : %s<br/>Délais moyen (en h) : %s
 
 #Box Simulation Opening Stats
