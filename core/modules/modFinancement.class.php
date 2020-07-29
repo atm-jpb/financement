@@ -1115,7 +1115,8 @@ class modFinancement extends DolibarrModules
 			array('file' => 'FinancementSimulationsAutoAgreementRate_box.php@financement', 'note' => '', 'enabledbydefaulton' => 'Home'),
 			array('file' => 'FinancementConformiteProcessingTime_box.php@financement', 'note' => '', 'enabledbydefaulton' => 'Home'),
 			array('file' => 'FinancementSimulationsOpeningStats_box.php@financement', 'note' => '', 'enabledbydefaulton' => 'Home'),
-			array('file' => 'FinancementConformiteOpeningStats_box.php@financement', 'note' => '', 'enabledbydefaulton' => 'Home')
+			array('file' => 'FinancementConformiteOpeningStats_box.php@financement', 'note' => '', 'enabledbydefaulton' => 'Home'),
+			array('file' => 'FinancementInvoicedTurnoverStats_box.php@financement', 'note' => '', 'enabledbydefaulton' => 'Home')
 		);
 
 		// Exports

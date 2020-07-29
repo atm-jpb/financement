@@ -330,18 +330,21 @@ BoxConformiteProcessingTimeDetails = Nb conformite : %s<br/>Délais moyen (en h)
 
 #Box Simulation Opening Stats
 BoxSimulationsOpeningStatsTitle = Financement - Evolution du nombre de simulation
-BoxSimulationsOpeningStatsFirstColumn = 12 derniers mois
-BoxSimulationsOpeningStatsSecondColumn = mois en cours
 BoxSimulationsOpeningStats = Entité
 BoxSimulationsOpeningStatsDetails = Nb OK : %s<br/>Nb KO : %s
 
 #Box Conformite Opening Stats
 BoxConformiteOpeningStatsTitle = Financement - Evolution du nombre de conformité
 BoxConformiteOpeningStatsTitleWithStatus = Financement - Evolution du nombre de conformité au statut
-BoxConformiteOpeningStatsFirstColumn = 12 derniers mois
-BoxConformiteOpeningStatsSecondColumn = mois en cours
 BoxConformiteOpeningStats = Entité
 BoxConformiteOpeningStatsDetails = Nb OK : %s<br/>Nb KO : %s
+
+#Box Invoiced Turnover Stats
+BoxInvoicedTurnoverStatsTitle = Financement - Evolution CA facturé
+BoxInvoicedTurnoverStatsFirstColumn = Moyenne des 12 derniers mois
+BoxInvoicedTurnoverStatsSecondColumn = mois en cours
+BoxInvoicedTurnoverStats = Entité
+BoxInvoicedTurnoverStatsDetails = Nb OK : %s<br/>Nb KO : %s
 
 #Contrôle qualité
 QualityControl=Contrôle qualité
