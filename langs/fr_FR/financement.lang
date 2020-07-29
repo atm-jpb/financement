@@ -305,6 +305,7 @@ BoxIndicatorsExternalFilesIntercalaire=Dossiers externes avec loyer intercalaire
 BoxIndicatorsQualityControl=Contrôles qualité
 
 #Box Simulation Acceptance Rate
+BoxIconGoal = Objectif : %s
 BoxSimulationsAcceptanceRateTitle = Financement - Taux d'acceptation des simulations
 BoxSimulationsAcceptanceRateFirstColumn = 12 derniers mois
 BoxSimulationsAcceptanceRateSecondColumn = mois en cours

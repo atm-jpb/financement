@@ -84,12 +84,15 @@ class FinancementConformiteProcessingTime_box extends ModeleBoxes
         $this->info_box_contents[$r][1] = array('td' => 'align="left"', 'text' => $langs->trans('BoxConformiteProcessingTimeFirstColumn'));
         $this->info_box_contents[$r][2] = array('td' => 'align="left"', 'text' => $langs->trans('BoxConformiteProcessingTimeSecondColumn'));
 
-        $redIcon = '&nbsp;'.img_picto('', 'statut8');
-        $greenIcon = '&nbsp;'.img_picto('', 'statut4');
         $TLine = array('compliant', 'invoice');
         $TColumn = array('twelve', 'three');
 
         foreach($TLine as $line) {
+            if($line == 'compliant') $goal = '2 jours';
+            else $goal = '14 jours';
+            $redIcon = '&nbsp;'.img_picto($langs->trans('BoxIconGoal', $goal), 'statut8');
+            $greenIcon = '&nbsp;'.img_picto($langs->trans('BoxIconGoal', $goal), 'statut4');
+
             $r++;
             $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxConformiteProcessingTime'.ucfirst($line)));
 
