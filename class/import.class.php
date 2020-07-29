@@ -433,6 +433,8 @@ class TImport extends TObjetStd {
         foreach ($data as $key => $value) {
             if($key == 'idprof2' || $key == 'idprof3') {
                 if($key == 'idprof2') {
+                    $value = preg_replace('/(\s)/', '', $value);    // On enlève les espaces avant d'enregistrer !
+
                     $socStatic = new Societe($db);
                     $socStatic->idprof2 = $value;
                     $socStatic->country_code = 'FR';
@@ -446,7 +448,7 @@ class TImport extends TObjetStd {
             $societe->{$key} = $value;
         }
 
-        $societe->idprof1 = substr($societe->idprof2,0,9);
+        if(! empty($societe->idprof2)) $societe->idprof1 = substr($societe->idprof2, 0, 9);
 
         // Mise à jour ou création
         if($socid > 0) {
