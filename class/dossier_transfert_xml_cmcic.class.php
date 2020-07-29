@@ -330,7 +330,8 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 		$elem = $xml->createElement('LIVRAISON_MAT');
 
 		$client = $affaire->societe;
-		$add = explode("\n", $client->address);
+		$address = preg_replace("/\r/", '', $client->address);
+		$add = explode("\n", $address);
 		$rue1 = $rue2 = '';
 		if(!empty($add[0])) $rue1 = substr($add[0], 0, 35);
         if(!empty($add[1])) $rue2 = substr($add[1], 0, 40);
