@@ -69,7 +69,7 @@ class FinancementConformiteOpeningStats_box extends ModeleBoxes
         dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
         $whichOne = GETPOST('compliant');   // Entier correspondant au statut de la conformité
-        if(empty($whichOne)) $whichOne = 2;
+        if(empty($whichOne)) $whichOne = 1;
 
         $form = new Form($db);
         $dao = new DaoMulticompany($db);
@@ -112,9 +112,9 @@ class FinancementConformiteOpeningStats_box extends ModeleBoxes
         $stringtoshow .= '<input type="hidden" name="DOL_AUTOSET_COOKIE" value="DOLUSERCOOKIE_box_'.$this->boxcode.':year,shownb,showtot">';
 
         $stringtoshow .= '<label for="compliantN1">';
-        $stringtoshow .= '<input type="radio" id="compliantN1" name="compliant" value="2"'.($whichOne == 2 ? ' checked="checked"' : '').' /> '.$langs->trans("ConformiteCompliantN1Button");
+        $stringtoshow .= '<input type="radio" id="compliantN1" name="compliant" value="1"'.($whichOne == 1 ? ' checked="checked"' : '').' /> '.$langs->trans("ConformiteWaitingForComplianceN1Short");
         $stringtoshow .= '</label> &nbsp; <label for="compliantN2">';
-        $stringtoshow .= '<input type="radio" id="compliantN2" name="compliant" value="5"'.($whichOne == 5 ? ' checked="checked"' : '').' /> '.$langs->trans("ConformiteCompliantN2");
+        $stringtoshow .= '<input type="radio" id="compliantN2" name="compliant" value="4"'.($whichOne == 4 ? ' checked="checked"' : '').' /> '.$langs->trans("ConformiteWaitingForComplianceN2Short");
         $stringtoshow .= '</label>';
         $stringtoshow .= '<input class="reposition inline-block valigntextbottom" type="image" alt="'.$langs->trans("Refresh").'" src="'.img_picto($langs->trans("Refresh"), 'refresh.png', '', '', 1).'">';
         $stringtoshow .= '</form>';
