@@ -394,6 +394,7 @@ ConfirmSelectThisLeaser=Etes-vous sûr(e) de vouloir sélectionner ce leaser ?
 
 SimuCheckSoldesAfterClone=Merci de vérifier les soldes des dossiers
 SelectAction = Sélectionner l'action
+Reloc = Relocation ?
 RelocCustomerOK = Relocation client OK ?
 RelocLeaserOK = Relocation leaser OK ?
 LoyerLeaserOK = Loyer intercalaire leaser OK ?

@@ -854,7 +854,7 @@ class modFinancement extends DolibarrModules
 								'titre'=>'Dossiers en relocation',
 								'mainmenu'=>'financement',
 								'leftmenu'=>'dossier_list',
-								'url'=>'/financement/dossier.php?reloc=1',
+								'url'=>'/financement/dossier_list.php?reloc=1',
 								'langs'=>'financement@financement',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 								'position'=>423,
 								'enabled'=>'$conf->financement->enabled && $user->rights->financement->alldossier->read',  // Define condition to show or hide menu entry. Use '$conf->financement->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.

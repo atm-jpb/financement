@@ -39,6 +39,7 @@ $search_transfert = GETPOST('search_transfert');
 if(isset($search_transfert) && $search_transfert !== '' && ! is_array($search_transfert)) $search_transfert = explode(',', $search_transfert);
 $search_dateEnvoi = dol_mktime(0, 0, 0, GETPOST('search_dateEnvoimonth'), GETPOST('search_dateEnvoiday'), GETPOST('search_dateEnvoiyear'));
 $search_dateStart = dol_mktime(0, 0, 0, GETPOST('search_dateStartmonth'), GETPOST('search_dateStartday'), GETPOST('search_dateStartyear'));
+$reloc = GETPOST('reloc', 'int');
 $reloc_customer_ok = GETPOST('reloc_customer_ok');
 $reloc_leaser_ok = GETPOST('reloc_leaser_ok');
 $loyer_leaser_ok = GETPOST('loyer_leaser_ok');
@@ -137,7 +138,7 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
 // Remove filters
 if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) {
     unset($search_ref_client, $search_ref_leaser, $search_entity, $search_nature, $search_thirdparty, $search_leaser, $reloc_customer_ok, $reloc_leaser_ok, $loyer_leaser_ok, $search_transfert, $search_dateEnvoi);
-    unset($search_dateStart, $search_fac_materiel, $search_siren, $sall, $search_demat);
+    unset($search_dateStart, $search_fac_materiel, $search_siren, $sall, $search_demat, $reloc);
 }
 
 $sql = "SELECT d.rowid as fk_fin_dossier, e.label as entity_label, fc.reference as refDosCli, fl.fk_soc as fk_leaser, fl.reference as refDosLea, a.rowid as fk_fin_affaire, a.reference as ref_affaire, ";
@@ -179,7 +180,7 @@ if(! empty($search_dossier)) {
     $sql .= " AND (fc.reference LIKE '%".$db->escape($search_dossier)."%' OR fl.reference LIKE '%".$db->escape($search_dossier)."%')";
 }
 
-if(GETPOST('reloc')) {
+if($reloc == 1) {
     $sql .= " AND (fc.reloc = 'OUI' OR fl.reloc = 'OUI')";
 }
 
@@ -260,6 +261,7 @@ if(! empty($search_siren)) $param .= '&search_siren='.urlencode($search_siren);
 if(! empty($search_thirdparty)) $param .= '&search_thirdparty='.urlencode($search_thirdparty);
 if(! empty($search_leaser)) $param .= '&search_leaser='.urlencode($search_leaser);
 if(! empty($search_transfert)) $param .= '&search_transfert='.urlencode(implode(',', $search_transfert));
+if(! empty($reloc) && $reloc != -1) $param .= '&reloc='.urlencode($reloc);
 if(! empty($reloc_customer_ok)) $param .= '&reloc_customer_ok='.urlencode($reloc_customer_ok);
 if(! empty($reloc_leaser_ok)) $param .= '&reloc_leaser_ok='.urlencode($reloc_leaser_ok);
 if(! empty($loyer_leaser_ok)) $param .= '&loyer_leaser_ok='.urlencode($loyer_leaser_ok);
@@ -401,6 +403,12 @@ if(empty($fk_leaser)) {
     print '<table class="tagtable liste">';
     print '<tr class="liste_titre">';
 
+    // Reloc ?
+    print '<td style="width: 200px;">';
+    print $langs->trans('Reloc').'&nbsp;';
+    print Form::selectarray('reloc', array('Non', 'Oui'), $reloc, 1, 0, 0, 'style="width: 75px;"');
+    print '</td>';
+
     // Reloc client ok ?
     print '<td style="width: 280px;">';
     print $langs->trans('RelocCustomerOK').'&nbsp;';
@@ -424,7 +432,7 @@ if(empty($fk_leaser)) {
     print '<tr class="liste_titre">';
 
     // Entity
-    print '<td colspan="3" style="min-width: 150px;">';
+    print '<td colspan="4" style="min-width: 150px;">';
     print '<span>'.$langs->trans('DemandReasonTypeSRC_PARTNER').' : </span>';
     print Form::multiselectarray('search_entity', $TEntity, $search_entity, 0, 0, '', 0, 1500);
     print '</td>';
