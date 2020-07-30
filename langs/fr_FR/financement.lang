@@ -344,6 +344,7 @@ BoxConformiteOpeningStatsDetails = Nb OK : %s<br/>Nb KO : %s
 BoxInvoicedTurnoverStatsTitle = Financement - Evolution CA facturé
 BoxInvoicedTurnoverStatsFirstColumn = Moyenne des 12 derniers mois
 BoxInvoicedTurnoverStatsSecondColumn = mois en cours
+BoxInvoicedTurnoverStatsThirdColumn = Nombre de dossier
 BoxInvoicedTurnoverStats = Entité
 BoxInvoicedTurnoverStatsDetails = Nb OK : %s<br/>Nb KO : %s
 

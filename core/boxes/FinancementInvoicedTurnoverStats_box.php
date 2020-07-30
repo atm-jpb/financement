@@ -89,9 +89,11 @@ class FinancementInvoicedTurnoverStats_box extends ModeleBoxes
 
         // Header
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxInvoicedTurnoverStats'));
-        $this->info_box_contents[$r][1] = array('td' => 'align="center"', 'text' => $langs->trans('BoxInvoicedTurnoverStatsFirstColumn'));
-        $this->info_box_contents[$r][2] = array('td' => 'align="center"', 'text' => $langs->trans('BoxInvoicedTurnoverStatsSecondColumn'));
-        foreach($TEntity as $e => $label) $TRes[$e] = array('twelve' => 0, 'curr' => 0);
+        $this->info_box_contents[$r][1] = array('td' => 'align="right"', 'text' => $langs->trans('BoxInvoicedTurnoverStatsFirstColumn'));
+        $this->info_box_contents[$r][2] = array('td' => 'align="right"', 'text' => $langs->trans('BoxInvoicedTurnoverStatsThirdColumn'));
+        $this->info_box_contents[$r][3] = array('td' => 'align="right"', 'text' => $langs->trans('BoxInvoicedTurnoverStatsSecondColumn'));
+        $this->info_box_contents[$r][4] = array('td' => 'align="right"', 'text' => $langs->trans('BoxInvoicedTurnoverStatsThirdColumn'));
+        foreach($TEntity as $e => $label) $TRes[$e] = array('twelve' => array('calc' => 0, 'nb' => 0), 'curr' => array('calc' => 0, 'nb' => 0));
 
         // Data lines
         $sql = 'SELECT entity, extract(year from dflea.date_envoi) as anneeCreation, extract(month from dflea.date_envoi) as moisCreation, count(*) as nb, sum(dflea.montant) as sum';
@@ -109,33 +111,45 @@ class FinancementInvoicedTurnoverStats_box extends ModeleBoxes
         }
 
         while($obj = $db->fetch_object($resql)) {
-            $TRes[$obj->entity]['twelve'] += round($obj->sum / $obj->nb, 2);
-            if($obj->anneeCreation == date('Y') && $obj->moisCreation == date('n')) $TRes[$obj->entity]['curr'] += $obj->sum;
+            $TRes[$obj->entity]['twelve']['calc'] += $obj->sum;
+            $TRes[$obj->entity]['twelve']['nb'] += $obj->nb;
+
+            if($obj->anneeCreation == date('Y') && $obj->moisCreation == date('n')) {
+                $TRes[$obj->entity]['curr']['calc'] += $obj->sum;
+                $TRes[$obj->entity]['curr']['nb'] += $obj->nb;
+            }
         }
+        $TRes[$obj->entity]['twelve']['calc'] /= 12;
         $db->free($resql);
 
         foreach($TEntity as $entity => $label) {
-            if(array_sum($TRes[$entity]) == 0) continue;    // Aucune données pour cette entité
+            if(array_sum($TRes[$entity]['twelve']) == 0) continue;    // Aucune données pour cette entité
 
-            if($TRes[$entity]['curr'] > $TRes[$entity]['twelve']) $icon = '&nbsp;'.img_picto('', 'statut4');
+            if($TRes[$entity]['curr']['calc'] >= $TRes[$entity]['twelve']['calc']) $icon = '&nbsp;'.img_picto('', 'statut4');
             else $icon = '&nbsp;'.img_picto('', 'statut8');
 
             $r++;
             $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $label);
-            $this->info_box_contents[$r][1] = array('td' => 'align="center"', 'text' => price($TRes[$entity]['twelve']));
-            $this->info_box_contents[$r][2] = array('td' => 'align="center"', 'text' => '<div class="inline-block">'.price($TRes[$entity]['curr']).'</div>'.$icon);
+            $this->info_box_contents[$r][1] = array('td' => 'align="right"', 'text' => price($TRes[$entity]['twelve']['calc'], 0, '', 1, -1, 0));
+            $this->info_box_contents[$r][2] = array('td' => 'align="center"', 'text' => $TRes[$entity]['twelve']['nb']);
+            $this->info_box_contents[$r][3] = array('td' => 'align="right"', 'text' => '<div class="inline-block">'.price($TRes[$entity]['curr']['calc'], 0, '', 1, -1, 0).'</div>'.$icon);
+            $this->info_box_contents[$r][4] = array('td' => 'align="center"', 'text' => $TRes[$entity]['curr']['nb']);
         }
 
         // Totaux
         $r++;
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('Total'));
 
-        $TData = array('twelve', 'curr');
+        $TData = array(1 => 'twelve', 3 => 'curr');
         foreach($TData as $i => $data) {
-            $sum = 0;
-            foreach($TEntity as $entity => $label) $sum += $TRes[$entity][$data];
+            $sum = $nb = 0;
+            foreach($TEntity as $entity => $label) {
+                $sum += $TRes[$entity][$data]['calc'];
+                $nb += $TRes[$entity][$data]['nb'];
+            }
 
-            $this->info_box_contents[$r][$i+1] = array('td' => 'align="center"', 'text' => price($sum));
+            $this->info_box_contents[$r][$i] = array('td' => 'align="right"', 'text' => price($sum, 0, '', 1, -1, 0));
+            $this->info_box_contents[$r][$i+1] = array('td' => 'align="center"', 'text' => $nb);
         }
     }
 
