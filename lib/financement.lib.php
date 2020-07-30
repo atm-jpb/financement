@@ -965,6 +965,12 @@ function updateSocieteOtherCustomerCode($fk_soc, $TCustomerCodeToAdd) {
     if(! empty($soc->array_options['other_customer_code'])) $TExistingCustomerCode = explode(';', $soc->array_options['other_customer_code']);
 
     $TExistingCustomerCode = array_unique(array_filter(array_merge($TCustomerCodeToAdd, $TExistingCustomerCode)));
+    foreach($TExistingCustomerCode as &$code) $code = trim($code);
+
+    // Pour éviter d'avoir des doublons de code entre les 2 champs : On enlève des autres codes clients le code client actuel
+    $TKey = array_keys($TExistingCustomerCode, trim($soc->code_client));
+    foreach($TKey as $key) unset($TExistingCustomerCode[$key]);
+
     $soc->array_options['other_customer_code'] = implode(';', $TExistingCustomerCode);
 
     $res = $soc->insertExtraFields();// Le updateExtrafield n'insert pas si besoin

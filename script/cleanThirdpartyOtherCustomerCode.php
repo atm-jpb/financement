@@ -20,7 +20,7 @@ if(! $resql) {
 }
 
 $nbRow = $db->num_rows($resql);
-$nbSetToNull = $NbUpdated = 0;
+$NbUpdated = 0;
 
 while($obj = $db->fetch_object($resql)) {
     if(! empty($debug)) {
@@ -35,44 +35,35 @@ while($obj = $db->fetch_object($resql)) {
 //        '31',
 //        '32'
     );
-    if(strpos($obj->other_customer_code, ';') === false && in_array($obj->other_customer_code, $TWrongCustomerCode)) {
-        $db->begin();
+    $db->begin();
+    $TExistingCustomerCode = array_unique(array_filter(explode(';', $obj->other_customer_code)));
+    foreach($TExistingCustomerCode as &$code) $code = trim($code);
 
-        $sqlUpdate = 'UPDATE '.MAIN_DB_PREFIX.'societe_extrafields SET other_customer_code = null WHERE fk_object = '.$obj->fk_object;
+    // Pour éviter d'avoir des doublons de code entre les 2 champs : On enlève des autres codes clients le code client actuel
+    $TWrongCustomerCode[] = trim($obj->code_client);
+    foreach($TWrongCustomerCode as $wrongCode) {
+        $TKey = array_keys($TExistingCustomerCode, $wrongCode);
+        foreach($TKey as $key) unset($TExistingCustomerCode[$key]);
+    }
+
+    if(empty($TExistingCustomerCode)) $sqlSetExtrafield = 'other_customer_code = null';
+    else {
+        $strCustomerCode = implode(';', $TExistingCustomerCode);
+        $sqlSetExtrafield = "other_customer_code = '".$db->escape($strCustomerCode)."'";
+    }
+
+    if($strCustomerCode != $obj->other_customer_code) {
+        $sqlUpdate = 'UPDATE '.MAIN_DB_PREFIX."societe_extrafields SET ".$sqlSetExtrafield." WHERE fk_object = ".$obj->fk_object;
 
         $resUpdate = $db->query($sqlUpdate);
         if(! $resUpdate || empty($commit)) $db->rollback();
         else {
             $db->commit();
-            $nbSetToNull++;
-        }
-    }
-    else {
-        $db->begin();
-        $TExistingCustomerCode = array_unique(array_filter(explode(';', $obj->other_customer_code)));
-
-        // Pour éviter d'avoir des doublons de code entre les 2 champs : On enlève des autres codes clients le code client actuel
-        $TKey = array_keys($TExistingCustomerCode, $obj->code_client);
-        foreach($TKey as $key) unset($TExistingCustomerCode[$key]);
-
-        if(empty($TExistingCustomerCode)) $sqlSetExtrafield = 'other_customer_code = null';
-        else {
-            $strCustomerCode = implode(';', $TExistingCustomerCode);
-            $sqlSetExtrafield= "other_customer_code = '".$db->escape($strCustomerCode)."'";
-        }
-
-        if($strCustomerCode != $obj->other_customer_code) {
-            $sqlUpdate = 'UPDATE '.MAIN_DB_PREFIX."societe_extrafields SET ".$sqlSetExtrafield." WHERE fk_object = ".$obj->fk_object;
-
-            $resUpdate = $db->query($sqlUpdate);
-            if(! $resUpdate || empty($commit)) $db->rollback();
-            else {
-                $db->commit();
-                $NbUpdated++;
-            }
+            $NbUpdated++;
         }
     }
     $db->free($resUpdate);
+    unset($strCustomerCode, $sqlSetExtrafield, $sqlUpdate, $resUpdate, $TExistingCustomerCode, $TKey, $key);
 }
 $db->free($resql);
 
@@ -81,5 +72,4 @@ $b = microtime(true);
 ?>
 <span>Total : <?php echo $nbRow; ?></span><br/>
 <span>Nb update : <?php echo $NbUpdated; ?></span><br/>
-<span>Nb set to null : <?php echo $nbSetToNull; ?></span><br/>
 <span>Execution time : <?php echo ($b-$a); ?> sec</span>
