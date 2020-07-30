@@ -1935,7 +1935,7 @@ class TImport extends TObjetStd {
             $sql.= " OR se.other_customer_code is not null ";
             $sql.= " AND (locate(';".addslashes($val)."', se.other_customer_code) > 0";   // ";..."
             $sql.= " OR locate('".addslashes($val).";', se.other_customer_code) > 0";   // "...;"
-            $sql.= " OR locate(';', se.other_customer_code) = 0 AND locate('".addslashes($val)."', se.other_customer_code) > 0))";
+            $sql.= " OR se.other_customer_code = '".addslashes($val)."'))";
         }
         if(!empty($entities)) $sql.= ' AND s.entity IN ('.implode(',', $entities).')';
 
