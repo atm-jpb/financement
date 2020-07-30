@@ -97,7 +97,7 @@ class FinancementConformiteProcessingTime_box extends ModeleBoxes
             $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxConformiteProcessingTime'.ucfirst($line)));
 
             foreach($TColumn as $k => $column) {
-                $TRes = self::process($line, $column, $TRes);
+                $TRes = self::process($line, $column);
                 $nbDay = round($TRes['calc'] / 24, 2);
 
                 if($line == 'compliant') {
@@ -130,7 +130,7 @@ class FinancementConformiteProcessingTime_box extends ModeleBoxes
         parent::showBox($this->info_box_head, $this->info_box_contents, $nooutput);
     }
 
-    private function process($type, $condition, &$TRes) {
+    private function process($type, $condition) {
         global $db;
 
         $TRes = array();
