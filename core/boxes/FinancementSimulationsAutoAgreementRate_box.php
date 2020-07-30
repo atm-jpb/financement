@@ -123,14 +123,15 @@ class FinancementSimulationsAutoAgreementRate_box extends ModeleBoxes
 
         $autoAgreementRate = round($TRes['auto'] / $TRes['all'] * 100, 2);
         $icon = '&nbsp;';
-        $goal = 80;
+        $goal = 60;
         if($autoAgreementRate >= $goal) $icon .= img_picto($langs->trans('BoxIconGoal', $goal.'%'), 'statut4'); // Vert
         else $icon .= img_picto($langs->trans('BoxIconGoal', $goal.'%'), 'statut8'); // Rouge
 
         $autoAgreementTwoHoursRate = round($TRes['twoHours'] / $TRes['all'] * 100, 2);
         $iconTwoHours = '&nbsp;';
-        if($autoAgreementTwoHoursRate >= $goal) $iconTwoHours .= img_picto($langs->trans('BoxIconGoal', $goal.'%'), 'statut4'); // Vert
-        else $iconTwoHours .= img_picto($langs->trans('BoxIconGoal', $goal.'%'), 'statut8'); // Rouge
+        $goalTwoHours = 70;
+        if($autoAgreementTwoHoursRate >= $goalTwoHours) $iconTwoHours .= img_picto($langs->trans('BoxIconGoal', $goalTwoHours.'%'), 'statut4'); // Vert
+        else $iconTwoHours .= img_picto($langs->trans('BoxIconGoal', $goalTwoHours.'%'), 'statut8'); // Rouge
 
         $r++;
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationsAutoAgreementRate'));
