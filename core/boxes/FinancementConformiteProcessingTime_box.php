@@ -88,10 +88,10 @@ class FinancementConformiteProcessingTime_box extends ModeleBoxes
         $TColumn = array('twelve', 'three');
 
         foreach($TLine as $line) {
-            if($line == 'compliant') $goal = '2 jours';
-            else $goal = '14 jours';
-            $redIcon = '&nbsp;'.img_picto($langs->trans('BoxIconGoal', $goal), 'statut8');
-            $greenIcon = '&nbsp;'.img_picto($langs->trans('BoxIconGoal', $goal), 'statut4');
+            if($line == 'compliant') $goal = 2;
+            else $goal = 10;
+            $redIcon = '&nbsp;'.img_picto($langs->trans('BoxIconGoal', $goal.' jours'), 'statut8');
+            $greenIcon = '&nbsp;'.img_picto($langs->trans('BoxIconGoal', $goal.' jours'), 'statut4');
 
             $r++;
             $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxConformiteProcessingTime'.ucfirst($line)));
@@ -100,14 +100,8 @@ class FinancementConformiteProcessingTime_box extends ModeleBoxes
                 $TRes = self::process($line, $column);
                 $nbDay = round($TRes['calc'] / 24, 2);
 
-                if($line == 'compliant') {
-                    if($nbDay > 2) $icon = $redIcon;
-                    else $icon = $greenIcon;
-                }
-                else {
-                    if($nbDay > 14) $icon = $redIcon;
-                    else $icon = $greenIcon;
-                }
+                if($nbDay >= $goal) $icon = $redIcon;
+                else $icon = $greenIcon;
 
                 $help = $langs->trans('BoxConformiteProcessingTimeDetails', $TRes['nb'], $TRes['calc']);
                 $this->info_box_contents[$r][$k+1] = array(
