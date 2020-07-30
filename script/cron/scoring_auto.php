@@ -95,7 +95,8 @@ while($obj = $db->fetch_object($resql)) {
                     print "\n";
                 }
                 $suivi->doActionDemander($PDOdb, $simulation);
-                $suivi->doActionAccepter($PDOdb, $simulation);
+                if($simulation->entity == 18) $suivi->doActionRefuser($PDOdb, $simulation);    // Spécifique ESUS
+                else $suivi->doActionAccepter($PDOdb, $simulation);
             }
             else {
                 // Action manuelle demandée !

@@ -2768,7 +2768,7 @@ class TSimulationSuivi extends TObjetStd
     }
 
     //Effectue l'action de passer au statut refusé la demande de financement leaser
-    function doActionRefuser(&$PDOdb, &$simulation) {
+    function doActionRefuser(&$PDOdb, &$simulation) {   // FIXME: Remove this useless parameter !!
         $this->statut = 'KO';
         $this->save($PDOdb);
     }
