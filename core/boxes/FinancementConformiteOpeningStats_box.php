@@ -68,8 +68,10 @@ class FinancementConformiteOpeningStats_box extends ModeleBoxes
         dol_include_once('/financement/class/conformite.class.php');
         dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
+        $valueN1 = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1;
+        $valueN2 = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2;
         $whichOne = GETPOST('compliant');   // Entier correspondant au statut de la conformité
-        if(empty($whichOne)) $whichOne = 1;
+        if(empty($whichOne)) $whichOne = $valueN1;
 
         $form = new Form($db);
         $dao = new DaoMulticompany($db);
@@ -112,9 +114,9 @@ class FinancementConformiteOpeningStats_box extends ModeleBoxes
         $stringtoshow .= '<input type="hidden" name="DOL_AUTOSET_COOKIE" value="DOLUSERCOOKIE_box_'.$this->boxcode.':year,shownb,showtot">';
 
         $stringtoshow .= '<label for="compliantN1">';
-        $stringtoshow .= '<input type="radio" id="compliantN1" name="compliant" value="1"'.($whichOne == 1 ? ' checked="checked"' : '').' /> '.$langs->trans("ConformiteWaitingForComplianceN1Short");
+        $stringtoshow .= '<input type="radio" id="compliantN1" name="compliant" value="'.$valueN1.'"'.($whichOne == $valueN1 ? ' checked="checked"' : '').' /> '.$langs->trans("ConformiteWaitingForComplianceN1Short");
         $stringtoshow .= '</label> &nbsp; <label for="compliantN2">';
-        $stringtoshow .= '<input type="radio" id="compliantN2" name="compliant" value="4"'.($whichOne == 4 ? ' checked="checked"' : '').' /> '.$langs->trans("ConformiteWaitingForComplianceN2Short");
+        $stringtoshow .= '<input type="radio" id="compliantN2" name="compliant" value="'.$valueN2.'"'.($whichOne == $valueN2 ? ' checked="checked"' : '').' /> '.$langs->trans("ConformiteWaitingForComplianceN2Short");
         $stringtoshow .= '</label>';
         $stringtoshow .= '<input class="reposition inline-block valigntextbottom" type="image" alt="'.$langs->trans("Refresh").'" src="'.img_picto($langs->trans("Refresh"), 'refresh.png', '', '', 1).'">';
         $stringtoshow .= '</form>';
@@ -157,13 +159,16 @@ class FinancementConformiteOpeningStats_box extends ModeleBoxes
         $r++;
 
         // Data lines
-        $sql = 'SELECT entity, extract(year from date_cre) as anneeCreation, extract(month from date_cre) as moisCreation, extract(day from date_cre) as jourCreation, count(*) as nb';
+        $sql = 'SELECT entity, count(*) as nb,';
+        if($whichOne == $valueN1) $sql.= ' extract(year from date_envoi) as annee, extract(month from date_envoi) as mois, extract(day from date_envoi) as jour';
+        else if($whichOne == $valueN2) $sql.= ' extract(year from date_attenteN2) as annee, extract(month from date_attenteN2) as mois, extract(day from date_attenteN2) as jour';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_conformite';
         $sql.= " WHERE date_cre >= '".date('Y-m', strtotime('-1 year'))."-01'"; // On prend toutes les conformités des 12 derniers mois
+        if($whichOne == $valueN1) $sql.= " AND date_envoi > '1970-01-01'";
+        else if($whichOne == $valueN2) $sql.= " AND date_attenteN2 > '1970-01-01'";
         $sql.= ' AND entity <> 0';
-        $sql.= ' AND status = '.$db->escape($whichOne);
-        $sql.= ' GROUP BY entity, anneeCreation, moisCreation, jourCreation';
-        $sql.= ' ORDER BY entity, anneeCreation, moisCreation, jourCreation';
+        $sql.= ' GROUP BY entity, annee, mois, jour';
+        $sql.= ' ORDER BY entity, annee, mois, jour';
 
         $resql = $db->query($sql);
         if(! $resql) {
@@ -171,12 +176,12 @@ class FinancementConformiteOpeningStats_box extends ModeleBoxes
         }
 
         while($obj = $db->fetch_object($resql)) {
-            $moisCreation = sprintf("%02d", $obj->moisCreation);
-            $TRes[$obj->entity][$obj->anneeCreation.$moisCreation] += $obj->nb;
+            $mois = sprintf("%02d", $obj->mois);
+            $TRes[$obj->entity][$obj->annee.$mois] += $obj->nb;
 
-            if($obj->anneeCreation == date('Y') && $obj->moisCreation == date('n')) {
-                $jourCreation = sprintf("%02d", $obj->jourCreation);
-                $numWeek = date('W', strtotime(date('Y-m-'.$jourCreation)));
+            if($obj->annee == date('Y') && $obj->mois == date('n')) {
+                $jour = sprintf("%02d", $obj->jour);
+                $numWeek = date('W', strtotime(date('Y-m-'.$jour)));
 
                 $TWeek[$obj->entity][$numWeek] += $obj->nb;
             }
