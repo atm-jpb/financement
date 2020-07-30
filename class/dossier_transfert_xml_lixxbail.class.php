@@ -120,6 +120,9 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
             case 29: // Alkia
                 return 'M000346678';
                 break;
+            case 30: // VEODIS
+                return 'M000344761';
+                break;
             case 34: // ABI 50
                 return 'M001105655';
                 break;
@@ -243,6 +246,12 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
                 $nomFichier = "CPROMA0".$entity."IMMA".$date;
                 $refPartenaire = "INGEMA01";    // OK
                 $numLot = "IMMA".date('ymd');
+                break;
+            case 30: // VEODIS
+                $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
+                $nomFichier = "CPROMA0".$entity."IMMA".$date;
+                $refPartenaire = "VEODMA01";    // OK
+                $numLot = "VEOD".date('ymd');
                 break;
             case 34: // ABI 50
                 $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
