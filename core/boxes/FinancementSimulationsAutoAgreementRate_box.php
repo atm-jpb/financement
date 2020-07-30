@@ -83,69 +83,37 @@ class FinancementSimulationsAutoAgreementRate_box extends ModeleBoxes
 
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => '');
         $this->info_box_contents[$r][1] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationsAutoAgreementRateFirstColumn'));
+        $this->info_box_contents[$r][2] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationsAutoAgreementRateSecondColumn'));
 
-        $TRes = array();
+        $TLine = array('auto', 'twoHours');
+        $TColumn = array('twelve', 'three');
 
-        $sql = 'SELECT accord, count(*) as nb';
-        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
-        $sql.= " WHERE accord = 'OK'";
-        $sql.= " AND date_cre >= '".date('Y-m', strtotime('-3 month'))."-01'";    // 3 derniers mois
-        $autoAgreement = ' AND unix_timestamp(date_accord) <= (unix_timestamp(date_cre) + 30*60)';  // Accords donnés en moins de 30 minutes
-        $autoAgreementTwoHours = ' AND unix_timestamp(date_accord) <= (unix_timestamp(date_cre) + 2*60*60)';  // Accords donnés en moins de 2 heures
-        $groupBy = ' GROUP BY accord';
+        foreach($TLine as $line) {
+            if($line == 'auto') $goal = 60;
+            else $goal = 70;
+            $redIcon = '&nbsp;'.img_picto($langs->trans('BoxIconGoal', $goal.'%'), 'statut8');
+            $greenIcon = '&nbsp;'.img_picto($langs->trans('BoxIconGoal', $goal.'%'), 'statut4');
 
-        // Auto agreement
-        $resql = $db->query($sql.$autoAgreement.$groupBy);
-        if(! $resql) {
-            return;
+            $r++;
+            $text = $langs->trans('BoxSimulationsAutoAgreementRate');
+            if($line == 'twoHours') $text = $langs->trans('BoxSimulationsAutoAgreementTwoHoursRate');
+            $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $text);
+
+            foreach($TColumn as $k => $column) {
+                $all = self::process($column);
+                $nb = self::process($column, $line);
+
+                $rate = round($nb / $all * 100, 2);
+                if($rate >= $goal) $icon = $greenIcon;
+                else $icon = $redIcon;
+
+                $this->info_box_contents[$r][$k+1] = array(
+                    'td' => 'align="left"',
+                    'text' => $form->textwithpicto($rate.'%', $langs->trans('BoxSimulationsAutoAgreementRateDetails', $nb, $all)).$icon
+                );
+            }
+            unset($all);
         }
-
-        while($obj = $db->fetch_object($resql)) $TRes['auto'] = $obj->nb;
-        $db->free($resql);
-
-        // Less than 2 hours
-        $resql = $db->query($sql.$autoAgreementTwoHours.$groupBy);
-        if(! $resql) {
-            return;
-        }
-
-        while($obj = $db->fetch_object($resql)) $TRes['twoHours'] = $obj->nb;
-        $db->free($resql);
-
-        // All
-        $resql = $db->query($sql.$groupBy);
-        if(! $resql) {
-            return;
-        }
-
-        while($obj = $db->fetch_object($resql)) $TRes['all'] = $obj->nb;
-        $db->free($resql);
-
-        $autoAgreementRate = round($TRes['auto'] / $TRes['all'] * 100, 2);
-        $icon = '&nbsp;';
-        $goal = 60;
-        if($autoAgreementRate >= $goal) $icon .= img_picto($langs->trans('BoxIconGoal', $goal.'%'), 'statut4'); // Vert
-        else $icon .= img_picto($langs->trans('BoxIconGoal', $goal.'%'), 'statut8'); // Rouge
-
-        $autoAgreementTwoHoursRate = round($TRes['twoHours'] / $TRes['all'] * 100, 2);
-        $iconTwoHours = '&nbsp;';
-        $goalTwoHours = 70;
-        if($autoAgreementTwoHoursRate >= $goalTwoHours) $iconTwoHours .= img_picto($langs->trans('BoxIconGoal', $goalTwoHours.'%'), 'statut4'); // Vert
-        else $iconTwoHours .= img_picto($langs->trans('BoxIconGoal', $goalTwoHours.'%'), 'statut8'); // Rouge
-
-        $r++;
-        $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationsAutoAgreementRate'));
-        $this->info_box_contents[$r][1] = array(
-            'td' => 'align="left"',
-            'text' => $form->textwithpicto($autoAgreementRate.'%', $langs->trans('BoxSimulationsAutoAgreementRateDetails', $TRes['auto'], $TRes['all'])).$icon
-        );
-
-        $r++;
-        $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationsAutoAgreementTwoHoursRate'));
-        $this->info_box_contents[$r][1] = array(
-            'td' => 'align="left"',
-            'text' => $form->textwithpicto($autoAgreementTwoHoursRate.'%', $langs->trans('BoxSimulationsAutoAgreementRateTwoHoursDetails', $TRes['twoHours'], $TRes['all'])).$iconTwoHours
-        );
     }
 
     /**
@@ -158,5 +126,28 @@ class FinancementSimulationsAutoAgreementRate_box extends ModeleBoxes
      */
     public function showBox($head = null, $contents = null, $nooutput = 0) {
         parent::showBox($this->info_box_head, $this->info_box_contents, $nooutput);
+    }
+
+    private function process($condition, $type = null) {
+        global $db;
+
+        $sql = 'SELECT accord, count(*) as nb';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
+        $sql.= " WHERE accord = 'OK'";
+
+        if($type == 'auto') $sql.= ' AND unix_timestamp(date_accord) <= (unix_timestamp(date_cre) + 30*60)';  // Accords donnés en moins de 30 minutes
+        else if($type == 'twoHours') $sql.= ' AND unix_timestamp(date_accord) <= (unix_timestamp(date_cre) + 2*60*60)';  // Accords donnés en moins de 2 heures
+
+        if($condition == 'twelve') $sql.= " AND date_cre >= '".date('Y-m', strtotime('-1 year'))."-01'";    // 12 derniers mois
+        else $sql.= " AND date_cre >= '".date('Y-m', strtotime('-3 month'))."-01'";    // 3 derniers mois
+
+        $resql = $db->query($sql);
+        if(! $resql) return -1;
+
+        while($obj = $db->fetch_object($resql)) {
+            return $obj->nb;
+        }
+
+        return 0;
     }
 }
