@@ -35,7 +35,6 @@ while($obj = $db->fetch_object($resql)) {
 //        '31',
 //        '32'
     );
-    $db->begin();
     $TExistingCustomerCode = array_unique(array_filter(explode(';', $obj->other_customer_code)));
     foreach($TExistingCustomerCode as &$code) $code = trim($code);
 
@@ -53,6 +52,7 @@ while($obj = $db->fetch_object($resql)) {
     }
 
     if($strCustomerCode != $obj->other_customer_code) {
+        $db->begin();
         $sqlUpdate = 'UPDATE '.MAIN_DB_PREFIX."societe_extrafields SET ".$sqlSetExtrafield." WHERE fk_object = ".$obj->fk_object;
 
         $resUpdate = $db->query($sqlUpdate);
