@@ -359,10 +359,6 @@ print '</tr>';
 
 // Print data
 for($i = 0 ; $i < min($num, $limit) ; $i++) {
-    // FIXME: à remplacer par la class "oddeven" dans les versions plus récentes de Dolibarr
-    if($i % 2 === 0) $class = 'impair';
-    else $class = 'pair';
-
     $obj = $db->fetch_object($resql);
 
     $soc = new Societe($db);
@@ -376,7 +372,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     $u = new User($db);
     if(! empty($obj->fk_user)) $u->fetch($obj->fk_user);
 
-    print '<tr class="'.$class.'">';
+    print '<tr>';
 
     // Reference
     print '<td align="left">';

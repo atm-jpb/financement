@@ -1066,14 +1066,8 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 				,'marge_reelle'=>$dossier->marge_reelle
 				,'soldeRBANK'=>$dossier->getSolde($PDOdb, 'SRBANK',$dossier->financementLeaser->numero_prochaine_echeance-1)
 				,'soldeNRBANK'=>$dossier->getSolde($PDOdb, 'SNRBANK',$dossier->financementLeaser->numero_prochaine_echeance-1)
-
-/* TODO remove
-				,'soldeRCPRO'=>($dossier->nature_financement == 'INTERNE') ? $dossier->getSolde($PDOdb, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time()) +1) : $dossier->getSolde($PDOdb, 'SRCPRO')//SRCPRO
-				,'soldeNRCPRO'=>($dossier->nature_financement == 'INTERNE') ? $dossier->getSolde($PDOdb, 'SRNRSAME',$dossier->_get_num_echeance_from_date(time()) +1) : $dossier->getSolde($PDOdb, 'SNRCPRO')//SNRCPRO
-*/
 				,'soldeRCPRO'=>$dossier->getSolde($PDOdb, 'SRCPRO', $current_periode)//SRCPRO
 				,'soldeNRCPRO'=>$dossier->getSolde($PDOdb, 'SNRCPRO', $current_periode)//SNRCPRO
-				
 				,'soldeperso'=>$soldeperso
 				,'soldepersodispo'=>$form->combo('', 'soldepersodispo', array('1' => 'Oui', '2' => 'Non'), ($dossier->soldepersodispo) ? $dossier->soldepersodispo : 1)
 				,'soldepersointegrale'=>$soldepersointegrale

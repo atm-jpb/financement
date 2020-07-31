@@ -28,7 +28,6 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
 	function generate(&$PDOdb, &$TAffaires, $andUpload=false){
 		global $conf, $db;
 
-		// TODO: Change filename
 		if(empty($conf->global->FINANCEMENT_MODE_PROD)) $name = 'UATFRCPROBNPADLC_'.date('Ymd');
         else $name = 'PRDFRCPROBNPADLC_'.date('Ymd');
         $name .= self::fileExtension;
