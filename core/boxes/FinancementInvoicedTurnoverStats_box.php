@@ -119,11 +119,11 @@ class FinancementInvoicedTurnoverStats_box extends ModeleBoxes
                 $TRes[$obj->entity]['curr']['nb'] += $obj->nb;
             }
         }
-        $TRes[$obj->entity]['twelve']['calc'] /= 12;
         $db->free($resql);
 
         foreach($TEntity as $entity => $label) {
             if(array_sum($TRes[$entity]['twelve']) == 0) continue;    // Aucune données pour cette entité
+            $TRes[$entity]['twelve']['calc'] /= 12; // On veut la moyenne par mois
 
             if($TRes[$entity]['curr']['calc'] >= $TRes[$entity]['twelve']['calc']) $icon = '&nbsp;'.img_picto('', 'statut4');
             else $icon = '&nbsp;'.img_picto('', 'statut8');
@@ -140,6 +140,8 @@ class FinancementInvoicedTurnoverStats_box extends ModeleBoxes
         $r++;
         $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('Total'));
 
+        $icon = '';
+        $max = 0;
         $TData = array(1 => 'twelve', 3 => 'curr');
         foreach($TData as $i => $data) {
             $sum = $nb = 0;
@@ -148,7 +150,12 @@ class FinancementInvoicedTurnoverStats_box extends ModeleBoxes
                 $nb += $TRes[$entity][$data]['nb'];
             }
 
-            $this->info_box_contents[$r][$i] = array('td' => 'align="right"', 'text' => price($sum, 0, '', 1, -1, 0));
+            // Icon
+            if(empty($max)) $max = $sum;
+            else if($max < $sum) $icon = '&nbsp;'.img_picto('', 'statut4');
+            else $icon = '&nbsp;'.img_picto('', 'statut8');
+
+            $this->info_box_contents[$r][$i] = array('td' => 'align="right"', 'text' => '<div class="inline-block">'.price($sum, 0, '', 1, -1, 0).'</div>'.$icon);
             $this->info_box_contents[$r][$i+1] = array('td' => 'align="center"', 'text' => $nb);
         }
     }
