@@ -56,7 +56,7 @@ class FinancementInvoicedTurnoverStats_box extends ModeleBoxes
      * 	@return		void
      */
     public function loadBox($max = 5) {
-        global $conf, $user, $langs, $db;
+        global $user, $langs, $db;
 
         $this->max = $max;
 
@@ -67,7 +67,6 @@ class FinancementInvoicedTurnoverStats_box extends ModeleBoxes
         dol_include_once('/financement/class/grille.class.php');
         dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
-        $form = new Form($db);
         $dao = new DaoMulticompany($db);
         $dao->getEntities();
         $TEntity = array();
