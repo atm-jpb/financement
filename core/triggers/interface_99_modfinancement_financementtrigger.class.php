@@ -117,7 +117,7 @@ class InterfaceFinancementtrigger
      * is inside directory core/triggers
      *
      * 	@param		string		$action		Event action code
-     * 	@param		Object		$object		Object
+     * 	@param		mixed		$object		Object
      * 	@param		User		$user		Object user
      * 	@param		Translate	$langs		Object langs
      * 	@param		conf		$conf		Object conf
@@ -155,6 +155,10 @@ class InterfaceFinancementtrigger
 				setEventMessage('Code postal invalide');
 				return -1;
 			}
+            dol_include_once('/financement/lib/financement.lib.php');
+
+            // Pour éviter d'avoir des doublons de code entre les 2 champs
+            updateSocieteOtherCustomerCode($object, $object->array_options['other_customer_code'], false);
 		}
 		else if($action == 'COMPANY_DELETE') {
 		    if(! class_exists('TSimulation')) dol_include_once('/financement/class/simulation.class.php');
