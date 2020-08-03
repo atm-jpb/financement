@@ -61,8 +61,8 @@ while($obj = $db->fetch_object($resql)) {
             $db->commit();
             $NbUpdated++;
         }
+        $db->free($resUpdate);
     }
-    $db->free($resUpdate);
     unset($strCustomerCode, $sqlSetExtrafield, $sqlUpdate, $resUpdate, $TExistingCustomerCode, $TKey, $key);
 }
 $db->free($resql);
