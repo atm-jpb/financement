@@ -183,7 +183,7 @@ function mergeThirdparty(Societe $object, Societe $soc_origin, $TEntityGroup = a
         }
 
         if(! empty($soc_origin->code_client)) {
-            updateSocieteOtherCustomerCode($object->id, array($soc_origin->code_client));
+            updateSocieteOtherCustomerCode($object, array($soc_origin->code_client));
         }
 
         TSimulation::replaceThirdparty($soc_origin->id, $object->id, $TEntityGroup);

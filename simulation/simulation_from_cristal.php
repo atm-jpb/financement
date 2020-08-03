@@ -85,7 +85,7 @@ if(empty($simu->rowid)) {
         if(! empty($code_artis) && $code_artis != $soc->code_client) {
             if(! empty($soc->code_client)) {
                 // On met le code client existant des les autres
-                updateSocieteOtherCustomerCode($soc->id, array($soc->code_client));
+                updateSocieteOtherCustomerCode($soc, array($soc->code_client));
             }
 
             $soc->code_client = $code_artis;

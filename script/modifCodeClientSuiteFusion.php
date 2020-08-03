@@ -135,7 +135,7 @@ function updateDossierSolde($TData) {
 
                 if(! empty($v['code_client'])) {
                     $TCustomerCode = array_unique($v['code_client']);
-                    updateSocieteOtherCustomerCode($soc->id, $TCustomerCode);
+                    updateSocieteOtherCustomerCode($soc, $TCustomerCode);
                 }
             }
         }

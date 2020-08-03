@@ -949,17 +949,13 @@ function isSimilarInvoiceRefExists($ref, $entity) {
 }
 
 /**
- * @param   int     $fk_soc
+ * @param   Societe $soc                    Object must be loaded
  * @param   array   $TCustomerCodeToAdd
+ * @param   boolean $process                true, it'll update extrafield ; false, it'll just update object attribute dynamically
  * @return  boolean
  */
-function updateSocieteOtherCustomerCode($fk_soc, $TCustomerCodeToAdd) {
-    global $db;
-    if(! class_exists('Societe')) require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
-
-    $soc = new Societe($db);
-    $res = $soc->fetch($fk_soc);
-    if($res <= 0) return false;
+function updateSocieteOtherCustomerCode(Societe &$soc, $TCustomerCodeToAdd, $process = true) {
+    if(empty($soc->id)) return false;
 
     $TExistingCustomerCode = array();
     if(! empty($soc->array_options['other_customer_code'])) $TExistingCustomerCode = explode(';', $soc->array_options['other_customer_code']);
@@ -973,6 +969,7 @@ function updateSocieteOtherCustomerCode($fk_soc, $TCustomerCodeToAdd) {
 
     $soc->array_options['other_customer_code'] = implode(';', $TExistingCustomerCode);
 
-    $res = $soc->insertExtraFields();// Le updateExtrafield n'insert pas si besoin
+    $res = 1;
+    if($process) $res = $soc->insertExtraFields();// Le updateExtrafield n'insert pas si besoin
     return $res > 0;
 }

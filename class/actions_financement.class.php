@@ -430,7 +430,7 @@ class ActionsFinancement
         }
 
         if(! empty($socSource->code_client)) {
-            updateSocieteOtherCustomerCode($socTarget->id, array($socSource->code_client));
+            updateSocieteOtherCustomerCode($socTarget, array($socSource->code_client));
         }
 
         TSimulation::replaceThirdparty($fk_soc_source, $fk_soc_target, $TEntityGroup);
