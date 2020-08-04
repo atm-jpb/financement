@@ -157,8 +157,9 @@ class InterfaceFinancementtrigger
 			}
             dol_include_once('/financement/lib/financement.lib.php');
 
-            // Pour éviter d'avoir des doublons de code entre les 2 champs
-            updateSocieteOtherCustomerCode($object, $object->array_options['other_customer_code'], false);
+            if(! empty($object->array_options['other_customer_code'])) {    // Pour éviter d'avoir des doublons de code entre les 2 champs
+                updateSocieteOtherCustomerCode($object, $object->array_options['other_customer_code'], false);
+            }
 		}
 		else if($action == 'COMPANY_DELETE') {
 		    if(! class_exists('TSimulation')) dol_include_once('/financement/class/simulation.class.php');
