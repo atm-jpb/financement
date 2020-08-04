@@ -58,7 +58,7 @@ class DossierRachete extends TObjetStd
     public $choice;
     public $type_solde;
 
-    function __construct() {
+    public function __construct() {
         parent::set_table(MAIN_DB_PREFIX.self::$tablename);
 
         // Foreign keys

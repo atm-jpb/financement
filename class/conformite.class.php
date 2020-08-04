@@ -4,14 +4,14 @@ class Conformite extends TObjetStd
 {
     public static $tablename = 'fin_conformite';
 
-    const STATUS_DRAFT = 0;
-    const STATUS_WAITING_FOR_COMPLIANCE_N1 = 1;
-    const STATUS_COMPLIANT_N1 = 2;
-    const STATUS_NOT_COMPLIANT_N1 = 3;
-    const STATUS_WAITING_FOR_COMPLIANCE_N2 = 4;
-    const STATUS_COMPLIANT_N2 = 5;
-    const STATUS_NOT_COMPLIANT_N2 = 6;
-    const STATUS_WITHOUT_FURTHER_ACTION = 7;
+    public const STATUS_DRAFT = 0;
+    public const STATUS_WAITING_FOR_COMPLIANCE_N1 = 1;
+    public const STATUS_COMPLIANT_N1 = 2;
+    public const STATUS_NOT_COMPLIANT_N1 = 3;
+    public const STATUS_WAITING_FOR_COMPLIANCE_N2 = 4;
+    public const STATUS_COMPLIANT_N2 = 5;
+    public const STATUS_NOT_COMPLIANT_N2 = 6;
+    public const STATUS_WITHOUT_FURTHER_ACTION = 7;
 
     public static $TStatus = array(
         0 => 'ConformiteDraft',
@@ -61,24 +61,24 @@ class Conformite extends TObjetStd
         $this->PDOdb = new TPDOdb;
     }
 
-    function create() {
+    public function create() {
         return $this->save($this->PDOdb);
     }
 
-    function update() { return $this->create(); }
+    public function update() { return $this->create(); }
 
-    function fetch($id) {
+    public function fetch($id) {
         $this->load($this->PDOdb, $id);
     }
 
-    function fetchBy($field, $value) {
+    public function fetchBy($field, $value) {
         return $this->loadBy($this->PDOdb, $value, $field);
     }
 
     /**
      * @return bool
      */
-    function sendMail($fk_soc) {
+    public function sendMail($fk_soc) {
         if(empty($fk_soc)) return false;
 
         global $conf, $db, $langs;
