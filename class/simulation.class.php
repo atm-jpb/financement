@@ -1374,7 +1374,7 @@ class TSimulation extends TObjetStd
         switchEntity($this->entity);    // $conf and $mysoc may be changed
 
         if(empty($TLeaserCat)) {
-            $sql = 'SELECT cf.fk_societe as fk_soc, cf.fk_categorie as fk_cat';
+            $sql = 'SELECT cf.fk_soc as fk_soc, cf.fk_categorie as fk_cat';
             $sql .= ' FROM llx_categorie_fournisseur cf';
             $sql .= ' LEFT JOIN llx_categorie c ON (c.rowid = cf.fk_categorie)';
             $sql .= ' LEFT JOIN llx_categorie c2 ON (c2.rowid = c.fk_parent)';
