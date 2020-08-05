@@ -317,7 +317,7 @@ print '<td>&nbsp;</td>';
 // Date reception dossier papier
 print '<td>&nbsp;</td>';
 
-print '<td>';
+print '<td style="white-space: nowrap;">';
 print '<input type="image" class="liste_titre" name="button_search" src="'.img_picto($langs->trans('Search'), 'search', '', false, 1).'" value="'.$langs->trans('Search').'" />';
 print '<input type="image" class="liste_titre" name="button_removefilter" src="'.img_picto($langs->trans('RemoveFilter'), 'searchclear', '', false, 1).'" value="'.$langs->trans('RemoveFilter').'" />';
 print '</td>';
@@ -329,13 +329,13 @@ print '<tr class="liste_titre">';
 print_liste_field_titre('Ref.', $_SERVER['PHP_SELF'], 's.reference', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Ref simulation
 print_liste_field_titre('Partenaire', $_SERVER['PHP_SELF'], 's.entity', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Entity
 print_liste_field_titre('Client', $_SERVER['PHP_SELF'], 's.fk_soc', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Thirdparty
-print_liste_field_titre($langs->trans('SirenClient'), $_SERVER['PHP_SELF'], 's.siren', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Thirdparty
+print_liste_field_titre($langs->trans('SirenClient'), $_SERVER['PHP_SELF'], 's.siren', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Siren
 print_liste_field_titre('Leaser', $_SERVER['PHP_SELF'], 's.fk_leaser', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Leaser
-print_liste_field_titre($langs->trans('Status'), $_SERVER['PHP_SELF'], 'c.status', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
-print_liste_field_titre($langs->trans('ConformiteDateWaitingForComplianceN1'), $_SERVER['PHP_SELF'], 'c.date_envoi', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
-print_liste_field_titre($langs->trans('ConformiteDateWaitingForComplianceN2'), $_SERVER['PHP_SELF'], 'c.date_attenteN2', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
-print_liste_field_titre($langs->trans('User'), $_SERVER['PHP_SELF'], 'u.login', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
-print_liste_field_titre($langs->trans('ConformiteCommentaire'), $_SERVER['PHP_SELF'], 'c.commentaire', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut simul
+print_liste_field_titre($langs->trans('Status'), $_SERVER['PHP_SELF'], 'c.status', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Statut conformite
+print_liste_field_titre($langs->trans('ConformiteDateWaitingForComplianceN1'), $_SERVER['PHP_SELF'], 'c.date_envoi', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Date envoi N1
+print_liste_field_titre($langs->trans('ConformiteDateWaitingForComplianceN2'), $_SERVER['PHP_SELF'], 'c.date_attenteN2', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Date envoi N2
+print_liste_field_titre($langs->trans('User'), $_SERVER['PHP_SELF'], 'u.login', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // User
+print_liste_field_titre($langs->trans('ConformiteCommentaire'), $_SERVER['PHP_SELF'], 'c.commentaire', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Commentaire conformite
 print_liste_field_titre($langs->trans('ConformiteDateReception'), $_SERVER['PHP_SELF'], 'c.date_reception_papier', '', $param, 'style="text-align: left;"', $sortfield, $sortorder);   // Date reception papier
 print '<td align="center">';
 print '<input type="checkbox" id="checkallactions" name="checkallactions" class="checkallactions" />';
