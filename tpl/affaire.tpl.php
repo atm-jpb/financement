@@ -135,7 +135,7 @@
 			
 			<table width="100%" class="border" style="margin-top:20px;">
 			<tr class="liste_titre"><td>Equipement numéro</td><td>Matériel</td><td>Facture matériel</td></tr>
-			<tr><td><a href="../asset/fiche.php?id=[asset.rowid]">[asset.serial_number; block=tr; strconv=no]</a> </td><td>[asset.produit;strconv=no]</td><td>[asset.facture;strconv=no]</td></tr>
+			<tr><td><a href="../assetatm/fiche.php?id=[asset.rowid]">[asset.serial_number; block=tr; strconv=no]</a> </td><td>[asset.produit;strconv=no]</td><td>[asset.facture;strconv=no]</td></tr>
 			<!--<tr><td width="20%">Coût copie Noire</td><td>[asset.copy_black; strconv=no; frm=0 000,00] &euro;</td></tr>
 			<tr><td width="20%">Coût copie Couleure</td><td>[asset.copy_color; strconv=no; frm=0 000,00] &euro;</td></tr>-->
 			</table>
