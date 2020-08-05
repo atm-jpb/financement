@@ -30,10 +30,10 @@ function getDataSimulations(&$PDOdb, $nb_month=12, $financee=false) {
 	$sql.= 'DATE_FORMAT(simu.date_simul, "%Y-%m") as mois, SUM(simu.montant) / 1000 as total ';
 	$sql.= 'FROM '.MAIN_DB_PREFIX.'fin_simulation simu ';
 	$sql.= 'LEFT JOIN '.MAIN_DB_PREFIX.'societe lea ON (lea.rowid = simu.fk_leaser) ';
-	$sql.= 'LEFT JOIN '.MAIN_DB_PREFIX.'categorie_fournisseur cf ON (cf.fk_societe = lea.rowid) ';
+	$sql.= 'LEFT JOIN '.MAIN_DB_PREFIX.'categorie_fournisseur cf ON (cf.fk_soc = lea.rowid) ';
 	$sql.= 'LEFT JOIN '.MAIN_DB_PREFIX.'categorie c ON (cf.fk_categorie = c.rowid) ';
 	$sql.= 'WHERE simu.accord = \'OK\' ';
-	$sql.= 'AND simu.date_simul > DATE_SUB(NOW(), INTERVAL '.$nb_month.' MONTH)';
+	$sql.= 'AND simu.date_simul > DATE_SUB(NOW(), INTERVAL '.$nb_month.' MONTH) ';
 	$sql.= 'AND c.fk_parent = 1 ';
 	if($financee) $sql.= 'AND simu.fk_fin_dossier > 0 '; // On ne prend que les catégories enfant de la catégorie "Leaser"
 	$sql.= 'GROUP BY c.label, mois ';
