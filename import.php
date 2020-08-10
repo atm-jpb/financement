@@ -116,7 +116,9 @@
 				
 				$imp = new TImport();
 				$imp->load($ATMdb,__get('id',0,'integer'));
-				$imp->getMapping($importFolderMapping.$imp->type_import.".mapping"); // Récupération du mapping
+				$typeImport = $imp->type_import;
+				if($typeImport == 'fichier_leaser') $typeImport .= '.default';
+				$imp->getMapping($importFolderMapping.$typeImport.".mapping"); // Récupération du mapping
 
 				$TidImportError = TRequeteCore::get_id_from_what_you_want($ATMdb,MAIN_DB_PREFIX."fin_import_error"
 																			,array('fk_import'=>$imp->getId()));
