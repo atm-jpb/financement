@@ -111,8 +111,10 @@ function updateDossierSolde(TPDOdb &$PDOdb, $TData) {
 
     $sql = 'UPDATE '.MAIN_DB_PREFIX.'fin_dossier_financement df';
     $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df2 USING (fk_fin_dossier)';
+    $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (df.fk_fin_dossier = d.rowid)';
     $sql.= " SET df2.date_solde = :date, df2.montant_solde = :montant";
     $sql.= " WHERE df.reference = :reference";
+    $sql.= ' AND d.entity IN ('.getEntity('fin_dossier').')';
 
     $stmt = $PDOdb->db->prepare($sql);
 
