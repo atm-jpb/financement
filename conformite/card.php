@@ -550,6 +550,12 @@ function createDossier(TPDOdb $PDOdb, TSimulation $s) {
     $d->financement->reste = $s->vr;
     $d->financement->periodicite = $s->opt_periodicite;
 
+    // Je veux être sûr que le dossier ne soit pas créé soldé
+    $d->financementLeaser->montant_solde = 0.00;
+    $d->financementLeaser->date_solde = null;
+    $d->financement->montant_solde = 0.00;
+    $d->financement->date_solde = null;
+
     $d->save($PDOdb);
 
     if($d->rowid > 0) {
