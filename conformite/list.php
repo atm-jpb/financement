@@ -16,6 +16,8 @@ dol_include_once('/financement/class/score.class.php');
 dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
+global $langs, $db, $conf;
+
 $langs->load('other');
 $langs->load('dict');
 $langs->load('mails');
@@ -137,22 +139,25 @@ if(! empty($arrayOfSelected)) {
                     });
                 }
 
-                $("div#updateDateReceptionDossier").dialog({
+                $('div#updateDateReceptionDossier').dialog({
                     modal: true,
                     minWidth: 400,
                     minHeight: 100,
                     buttons: [{
-                            text: "Ok",
-                            click: function() {
-                                updateDateReception();
-                                $(this).dialog('close');
+                        text: 'Ok',
+                        classes: 'meantToBeFocused',    // Just to set autofocus
+                        click: function () {
+                            updateDateReception();
+                            $(this).dialog('close');
 
-                                // On veut garder les filtres mais pas la massaction
-                                location.href = location.href.replace(/&(confirm)?massaction=(updateDateReception|Confirmer)/gm, '');
-                            }
-                        },
-                        { text: "<?php echo $langs->trans('Cancel'); ?>", click: function() { $(this).dialog('close'); }}
+                            // On veut garder les filtres mais pas la massaction
+                            location.href = location.href.replace(/&(confirm)?massaction=(updateDateReception|Confirmer)/gm, '');
+                        }
+                    },
+                    { text: "<?php echo $langs->trans('Cancel'); ?>", click: function () { $(this).dialog('close'); }}
                     ]
+                }).after(function () {
+                    $('button[classes=meantToBeFocused]').focus();
                 });
             });
         </script>
