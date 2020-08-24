@@ -1,6 +1,7 @@
 <?php
 
 require '../config.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/dossier.class.php');
@@ -18,6 +19,8 @@ llxHeader();
 
 if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv' && ! empty($user->rights->financement->alldossier->solde)) {
     $TData = array();
+    $uploadDir = DOL_DATA_ROOT.'/financement/updateDossierSolde';   // C'est volontaire de ne pas mettre l'entité dans le chemin
+    dol_add_file_process($uploadDir, 0, 1, 'fileToImport', '__file___'.date('Ymd-His'));
 
     $f = fopen($_FILES['fileToImport']['tmp_name'], 'r');
     $i = 0;
