@@ -20,9 +20,13 @@ llxHeader();
 if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv' && ! empty($user->rights->financement->alldossier->solde)) {
     $TData = array();
     $uploadDir = DOL_DATA_ROOT.'/financement/updateDossierSolde';   // C'est volontaire de ne pas mettre l'entité dans le chemin
-    dol_add_file_process($uploadDir, 0, 1, 'fileToImport', '__file___'.date('Ymd-His'));
+    $fileSuffix = date('_Ymd-His');
+    $filePath = $uploadDir.'/'.$_FILES['fileToImport']['name'].$fileSuffix;
 
-    $f = fopen($_FILES['fileToImport']['tmp_name'], 'r');
+    dol_add_file_process($uploadDir, 0, 1, 'fileToImport', '__file__'.$fileSuffix);
+
+    $f = fopen($filePath, 'r');
+
     $i = 0;
     while($TLine = fgetcsv($f, 2048, $delimiter, '"')) {
         $i++;
