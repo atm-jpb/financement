@@ -31,7 +31,6 @@ $sql.= ' INNER JOIN '.MAIN_DB_PREFIX."facture_fourn_extrafields fe on (fe.fk_obj
 $sql.= " WHERE df.date_solde > '1970-01-01' AND df.date_solde is not null"; // Dossiers soldés
 $sql.= ' AND df.montant_solde > 0.00 AND df.montant_solde is not null';     // Dossiers soldés
 $sql.= ' AND fe.date_debut_periode > df.date_solde';
-$sql.= ' AND not exists (select rowid from llx_facture_fourn where fk_facture_source = f.rowid)';   // Factures pour lesquelles il n'existe pas d'avoir
 $sql.= " AND date_format(f.datec, '%Y-%m-%d') = '2020-08-12'";
 if(! empty($fk_dossier)) $sql.= ' AND fk_fin_dossier = '.$fk_dossier;
 
@@ -52,6 +51,15 @@ $db->begin();
 while($obj = $db->fetch_object($resql)) {
     $facture = new FactureFournisseur($db);
     $facture->fetch($obj->rowid);
+
+    // On supprime tous les potentiels avoirs de la facture leaser
+    $TAvoir = $facture->getListIdAvoirFromInvoice();
+    foreach($TAvoir as $fk_creditNote) {
+        $a = new FactureFournisseur($db);
+        $a->fetch($fk_creditNote);
+
+        $a->delete($user);
+    }
 
     $facture->deleteObjectLinked();
     $res = $facture->delete($user);
