@@ -30,10 +30,9 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
 
 		if(empty($conf->global->FINANCEMENT_MODE_PROD)) $name = 'UATFRCPROBNPADLC_'.date('Ymd');
         else $name = 'PRDFRCPROBNPADLC_'.date('Ymd');
-        $name .= self::fileExtension;
 
         if(! file_exists($this->fileFullPath)) dol_mkdir($this->fileFullPath);
-        $f = fopen($this->fileFullPath.'/'.$name, 'w');
+        $f = fopen($this->fileFullPath.'/'.$name.self::fileExtension, 'w');
 
         $THead = array(
             'PRO_NB',           // Tiers apporteur
