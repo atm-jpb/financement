@@ -30,7 +30,7 @@ $sql.= ' INNER JOIN '.MAIN_DB_PREFIX."facture_fourn f on (ee.targettype = 'invoi
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX."facture_fourn_extrafields fe on (fe.fk_object = f.rowid)";
 $sql.= " WHERE df.date_solde > '1970-01-01' AND df.date_solde is not null"; // Dossiers soldés
 $sql.= ' AND df.montant_solde > 0.00 AND df.montant_solde is not null';     // Dossiers soldés
-$sql.= ' AND fe.date_debut_periode > df.date_solde';
+//$sql.= ' AND fe.date_debut_periode > df.date_solde';
 $sql.= " AND date_format(f.datec, '%Y-%m-%d') = '2020-08-12'";
 if(! empty($fk_dossier)) $sql.= ' AND fk_fin_dossier = '.$fk_dossier;
 
