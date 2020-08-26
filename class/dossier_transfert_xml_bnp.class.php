@@ -17,7 +17,7 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
     function upload($filename) {
 	    global $conf;
 
-        $dirname = $this->fileFullPath.$filename;
+        $dirname = $this->fileFullPath.$filename.self::fileExtension;
         if(empty($conf->global->FINANCEMENT_MODE_PROD)) {
             exec('sh bash/bnpxml_test.sh '.$dirname);
         } else {
@@ -136,7 +136,7 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
 
             if($andUpload) {
                 $affaire->xml_date_transfert = time();
-                $affaire->xml_fic_transfert = substr($name, 0, -4); // On enlève l'extension du nom du fichier
+                $affaire->xml_fic_transfert = $name;
                 $affaire->save($PDOdb);
             }
 		}
