@@ -23,7 +23,7 @@ if(! empty($workWithEntityGroups)) {
 $sql = "SELECT siren, group_concat(rowid) as data";
 $sql.= ' FROM '.MAIN_DB_PREFIX.'societe';
 $sql.= ' WHERE fournisseur = 0';    // On évite de prendre les Leaser !
-$sql.= ' LENGTH(siren) = 9';
+$sql.= ' AND LENGTH(siren) = 9';
 $sql.= " AND siren <> '000000000'";
 if(! empty($siren)) $sql.= " AND siren = '".$db->escape($siren)."'";
 if(! empty($workWithEntityGroups) && ! empty($TEntity)) $sql.= ' AND entity IN ('.implode(',', $TEntity).')';
