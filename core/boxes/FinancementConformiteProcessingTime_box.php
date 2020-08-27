@@ -140,8 +140,10 @@ class FinancementConformiteProcessingTime_box extends ModeleBoxes
         if($type == 'compliant') $sql.= " WHERE (c.date_conformeN2 is not null or c.date_conformeN2 > '1970-01-01')";
         else $sql.= " WHERE (d.date_facture_materiel is not null or d.date_facture_materiel > '1970-01-01')";
 
-        if($condition == 'twelve') $sql.= " AND c.date_cre >= '".date('Y-m', strtotime('-1 year'))."-01'";    // 12 derniers mois
-        else $sql.= " AND c.date_cre >= '".date('Y-m', strtotime('-3 month'))."-01'";    // 3 derniers mois
+        if($condition == 'twelve') {    // 12 derniers mois sans compter le mois en cours
+            $sql.= " AND c.date_cre BETWEEN '".date('Y-m', strtotime('-1 year'))."-01' AND '".date('Y-m-d', strtotime('last day of -1 month'))."'";
+        }
+        else $sql.= " AND c.date_cre BETWEEN '".date('Y-m', strtotime('-3 month'))."-01' AND '".date('Y-m-d', strtotime('last day of -1 month'))."'";   // 3 derniers mois sans compter le mois en cours
 
         $resql = $db->query($sql);
         if(! $resql) {

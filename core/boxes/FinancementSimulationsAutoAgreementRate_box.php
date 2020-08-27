@@ -138,8 +138,8 @@ class FinancementSimulationsAutoAgreementRate_box extends ModeleBoxes
         if($type == 'auto') $sql.= ' AND unix_timestamp(date_accord) <= (unix_timestamp(date_cre) + 30*60)';  // Accords donnés en moins de 30 minutes
         else if($type == 'twoHours') $sql.= ' AND unix_timestamp(date_accord) <= (unix_timestamp(date_cre) + 2*60*60)';  // Accords donnés en moins de 2 heures
 
-        if($condition == 'twelve') $sql.= " AND date_cre >= '".date('Y-m', strtotime('-1 year'))."-01'";    // 12 derniers mois
-        else $sql.= " AND date_cre >= '".date('Y-m', strtotime('-3 month'))."-01'";    // 3 derniers mois
+        if($condition == 'twelve') $sql.= " AND date_cre BETWEEN '".date('Y-m', strtotime('-1 year'))."-01' AND '".date('Y-m-d', strtotime('last day of -1 month'))."'";    // 12 derniers mois
+        else $sql.= " AND date_cre BETWEEN '".date('Y-m', strtotime('-3 month'))."-01' AND '".date('Y-m-d', strtotime('last day of -1 month'))."'";    // 3 derniers mois
 
         $resql = $db->query($sql);
         if(! $resql) return -1;

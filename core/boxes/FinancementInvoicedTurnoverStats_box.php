@@ -110,12 +110,13 @@ class FinancementInvoicedTurnoverStats_box extends ModeleBoxes
         }
 
         while($obj = $db->fetch_object($resql)) {
-            $TRes[$obj->entity]['twelve']['calc'] += $obj->sum;
-            $TRes[$obj->entity]['twelve']['nb'] += $obj->nb;
-
             if($obj->anneeCreation == date('Y') && $obj->moisCreation == date('n')) {
                 $TRes[$obj->entity]['curr']['calc'] += $obj->sum;
                 $TRes[$obj->entity]['curr']['nb'] += $obj->nb;
+            }
+            else {  // On ne compte pas le mois en cours dans les 12 derniers mois
+                $TRes[$obj->entity]['twelve']['calc'] += $obj->sum;
+                $TRes[$obj->entity]['twelve']['nb'] += $obj->nb;
             }
         }
         $db->free($resql);
