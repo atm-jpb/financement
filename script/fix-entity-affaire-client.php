@@ -15,7 +15,7 @@ $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_affaire a';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe s ON s.rowid = a.fk_soc';
 $sql.= " WHERE a.reference LIKE 'EXT%'";
 $sql.= ' AND a.entity <> s.entity';
-$sql.= ' AND (a.entity not in (1, 2, 3) or s.entity not in (1, 2, 3))';
+$sql.= ' AND (a.entity not in (1, 2, 3, 30) or s.entity not in (1, 2, 3, 30))';
 $sql.= ' AND (a.entity not in (5, 16) or s.entity not in (5, 16))';
 $sql.= ' AND (a.entity not in (20, 23) or s.entity not in (20, 23))';
 if(! empty($fk_affaire)) $sql.= ' AND a.rowid = '.$db->escape($fk_affaire);
@@ -29,7 +29,7 @@ if(! $resql) {
 
 $i = $j = 0;
 while($obj = $db->fetch_object($resql)) {
-    if(in_array($obj->entity, array(1, 2, 3)) && in_array($obj->entity_soc, array(1, 2, 3))) continue;  // FIXME: Useless with new constraints in SQL
+    if(in_array($obj->entity, array(1, 2, 3, 30)) && in_array($obj->entity_soc, array(1, 2, 3, 30))) continue;  // FIXME: Useless with new constraints in SQL
     if(in_array($obj->entity, array(5, 16)) && in_array($obj->entity_soc, array(5, 16))) continue;      // FIXME: Useless with new constraints in SQL
     if(in_array($obj->entity, array(20, 23)) && in_array($obj->entity_soc, array(20, 23))) continue;    // FIXME: Useless with new constraints in SQL
     $i++;
