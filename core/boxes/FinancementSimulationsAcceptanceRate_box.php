@@ -90,6 +90,7 @@ class FinancementSimulationsAcceptanceRate_box extends ModeleBoxes
         $sql = 'SELECT accord, count(*) as nb';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
         $sql.= " WHERE accord IN ('OK', 'KO')";
+        $sql.= ' AND entity IN ('.getEntity('fin_simulation').')';
         $lastTwelveMonth = " AND date_cre BETWEEN '".date('Y-m', strtotime('-1 year'))."-01' AND '".date('Y-m-d', strtotime('last day of -1 month'))."'";   // 12 derniers mois
         $lastMonth = ' AND extract(month from date_cre) = '.date('n');  // Mois en cours
         $groupBy = ' GROUP BY accord';
@@ -110,23 +111,29 @@ class FinancementSimulationsAcceptanceRate_box extends ModeleBoxes
         while($obj = $db->fetch_object($resql)) $TRes['last'][$obj->accord] = $obj->nb;
         $db->free($resql);
 
-        $lastTwelveMonthAcceptanceRate = round($TRes['lastTwelve']['OK'] / ($TRes['lastTwelve']['OK']+$TRes['lastTwelve']['KO']) * 100, 2);
-        $lastMonthAcceptanceRate = round($TRes['last']['OK'] / ($TRes['last']['OK']+$TRes['last']['KO']) * 100, 2);
+        if(! empty($TRes)) {
+            $lastTwelveMonthAcceptanceRate = round($TRes['lastTwelve']['OK'] / ($TRes['lastTwelve']['OK'] + $TRes['lastTwelve']['KO']) * 100, 2);
+            $lastMonthAcceptanceRate = round($TRes['last']['OK'] / ($TRes['last']['OK'] + $TRes['last']['KO']) * 100, 2);
 
-        if($lastMonthAcceptanceRate >= $lastTwelveMonthAcceptanceRate) $icon = img_picto('', 'statut4');    // Vert
-        else $icon = img_picto('', 'statut8');  // Rouge
+            if($lastMonthAcceptanceRate >= $lastTwelveMonthAcceptanceRate) $icon = img_picto('', 'statut4');    // Vert
+            else $icon = img_picto('', 'statut8');  // Rouge
 
-        $r++;
-        $this->info_box_contents[$r][0] = array('td' => 'align="left"', 'text' => $langs->trans('BoxSimulationAcceptanceRate'));
-        $this->info_box_contents[$r][1] = array(
-        	'td' => 'align="left"',
-            'text' => $form->textwithpicto($lastTwelveMonthAcceptanceRate.'%', $langs->trans('SimulationAcceptanceRateDetails', $TRes['lastTwelve']['OK'], $TRes['lastTwelve']['KO']))
-        );
+            $r++;
+            $this->info_box_contents[$r][0] = ['td' => 'align="left"', 'text' => $langs->trans('BoxSimulationAcceptanceRate')];
+            $this->info_box_contents[$r][1] = [
+                'td' => 'align="left"',
+                'text' => $form->textwithpicto($lastTwelveMonthAcceptanceRate.'%', $langs->trans('SimulationAcceptanceRateDetails', $TRes['lastTwelve']['OK'], $TRes['lastTwelve']['KO']))
+            ];
 
-        $this->info_box_contents[$r][2] = array(
-        	'td' => 'align="left"',
-            'text' => $form->textwithpicto($lastMonthAcceptanceRate.'%', $langs->trans('SimulationAcceptanceRateDetails', $TRes['last']['OK'], $TRes['last']['KO'])).'&nbsp;'.$icon
-        );
+            $this->info_box_contents[$r][2] = [
+                'td' => 'align="left"',
+                'text' => $form->textwithpicto($lastMonthAcceptanceRate.'%', $langs->trans('SimulationAcceptanceRateDetails', $TRes['last']['OK'], $TRes['last']['KO'])).'&nbsp;'.$icon
+            ];
+        }
+        else {
+            $this->info_box_contents = [];
+            $this->info_box_contents[0][0] = array('td' => 'align="left"', 'text' => $langs->trans("NoDataForThisEntity"));
+        }
     }
 
     /**

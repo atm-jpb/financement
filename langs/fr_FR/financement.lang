@@ -294,6 +294,7 @@ Status.RE_EXAMINATED=En ré-examen
 Status.MANUAL_APPROVAL_WITH_CONDITIONS_TO_CONFIRM=Accords manuel avec conditions à revalider
 
 #BoxIndicateurs
+NoDataForThisEntity = Aucunes données pour cette entité
 BoxIndicatorsTitle=Financement - Indicateurs
 BoxIndicatorsIndicator=Indicateur
 BoxIndicatorsNumber=Nombre

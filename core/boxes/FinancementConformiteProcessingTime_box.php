@@ -98,16 +98,23 @@ class FinancementConformiteProcessingTime_box extends ModeleBoxes
 
             foreach($TColumn as $k => $column) {
                 $TRes = self::process($line, $column);
-                $nbDay = round($TRes['calc'] / 24, 2);
+                if(! empty($TRes)) {
+                    $nbDay = round($TRes['calc'] / 24, 2);
 
-                if($nbDay >= $goal) $icon = $redIcon;
-                else $icon = $greenIcon;
+                    if($nbDay >= $goal) $icon = $redIcon;
+                    else $icon = $greenIcon;
 
-                $help = $langs->trans('BoxConformiteProcessingTimeDetails', $TRes['nb'], $TRes['calc']);
-                $this->info_box_contents[$r][$k+1] = array(
-                    'td' => 'align="left"',
-                    'text' => $form->textwithpicto($nbDay.' jour(s)', $help).$icon
-                );
+                    $help = $langs->trans('BoxConformiteProcessingTimeDetails', $TRes['nb'], $TRes['calc']);
+                    $this->info_box_contents[$r][$k + 1] = [
+                        'td' => 'align="left"',
+                        'text' => $form->textwithpicto($nbDay.' jour(s)', $help).$icon
+                    ];
+                }
+                else {    // Cas spécifique s'il n'y a pas de données à cause du getEntity
+                    $this->info_box_contents = [];
+                    $this->info_box_contents[0][0] = ['td' => 'align="left"', 'text' => $langs->trans("NoDataForThisEntity")];
+                    break;
+                }
             }
         }
     }
@@ -137,20 +144,25 @@ class FinancementConformiteProcessingTime_box extends ModeleBoxes
         $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier d ON (d.rowid = s.fk_fin_dossier)';
         $sql.= ' INNER JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type = 'LEASER')";
 
-        if($type == 'compliant') $sql.= " WHERE (c.date_conformeN2 is not null or c.date_conformeN2 > '1970-01-01')";
-        else $sql.= " WHERE (d.date_facture_materiel is not null or d.date_facture_materiel > '1970-01-01')";
+        $sql.= " WHERE dflea.date_envoi is not null and dflea.date_envoi > '1970-01-01'";
+        if($type == 'compliant') $sql.= " AND c.date_conformeN2 is not null AND c.date_conformeN2 > '1970-01-01'";
+        else $sql.= " AND d.date_facture_materiel is not null AND d.date_facture_materiel > '1970-01-01'";
 
         if($condition == 'twelve') {    // 12 derniers mois sans compter le mois en cours
             $sql.= " AND c.date_cre BETWEEN '".date('Y-m', strtotime('-1 year'))."-01' AND '".date('Y-m-d', strtotime('last day of -1 month'))."'";
         }
         else $sql.= " AND c.date_cre BETWEEN '".date('Y-m', strtotime('-3 month'))."-01' AND '".date('Y-m-d', strtotime('last day of -1 month'))."'";   // 3 derniers mois sans compter le mois en cours
 
+        $sql.= ' AND s.entity IN ('.getEntity('fin_simulation').')';
+
         $resql = $db->query($sql);
         if(! $resql) {
             return;
         }
 
-        if($obj = $db->fetch_object($resql)) $TRes = array('calc' => $obj->sum / $obj->nb / 3600, 'nb' => $obj->nb);   // Convertie en heures
+        if($obj = $db->fetch_object($resql)) {
+            if($obj->nb != 0) $TRes = array('calc' => $obj->sum / $obj->nb / 3600, 'nb' => $obj->nb);   // Convertie en heures
+        }
         $db->free($resql);
 
         return $TRes;

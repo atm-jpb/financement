@@ -98,7 +98,7 @@ class FinancementInvoicedTurnoverStats_box extends ModeleBoxes
         $sql = 'SELECT entity, extract(year from dflea.date_envoi) as anneeCreation, extract(month from dflea.date_envoi) as moisCreation, count(*) as nb, sum(dflea.montant) as sum';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_dossier d';
         $sql.= ' INNER JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dflea.fk_fin_dossier = d.rowid AND dflea.type = 'LEASER')";
-        $sql.= ' WHERE d.entity <> 0';
+        $sql.= ' WHERE d.entity IN ('.getEntity('fin_dossier').')';
         $sql.= ' AND dflea.date_envoi IS NOT NULL';
         $sql.= " AND dflea.date_envoi >= '".date('Y-m', strtotime('-1 year'))."-01'";
         $sql.= ' GROUP BY d.entity, anneeCreation, moisCreation';
@@ -108,6 +108,8 @@ class FinancementInvoicedTurnoverStats_box extends ModeleBoxes
         if(! $resql) {
         	return;
         }
+
+        $nbRow = $db->num_rows($resql);
 
         while($obj = $db->fetch_object($resql)) {
             if($obj->anneeCreation == date('Y') && $obj->moisCreation == date('n')) {
@@ -157,6 +159,12 @@ class FinancementInvoicedTurnoverStats_box extends ModeleBoxes
 
             $this->info_box_contents[$r][$i] = array('td' => 'align="right"', 'text' => '<div class="inline-block">'.price($sum, 0, '', 1, -1, 0).'</div>'.$icon);
             $this->info_box_contents[$r][$i+1] = array('td' => 'align="center"', 'text' => $nb);
+        }
+
+        // Cas spécifique s'il n'y a pas de données à cause du getEntity
+        if($nbRow == 0) {
+            $this->info_box_contents = [];
+            $this->info_box_contents[0][0] = array('td' => 'align="left"', 'text' => $langs->trans("NoDataForThisEntity"));
         }
     }
 

@@ -101,16 +101,23 @@ class FinancementSimulationsAutoAgreementRate_box extends ModeleBoxes
 
             foreach($TColumn as $k => $column) {
                 $all = self::process($column);
-                $nb = self::process($column, $line);
+                if(! empty($all)) {
+                    $nb = self::process($column, $line);
 
-                $rate = round($nb / $all * 100, 2);
-                if($rate >= $goal) $icon = $greenIcon;
-                else $icon = $redIcon;
+                    $rate = round($nb / $all * 100, 2);
+                    if($rate >= $goal) $icon = $greenIcon;
+                    else $icon = $redIcon;
 
-                $this->info_box_contents[$r][$k+1] = array(
-                    'td' => 'align="left"',
-                    'text' => $form->textwithpicto($rate.'%', $langs->trans('BoxSimulationsAutoAgreementRateDetails', $nb, $all)).$icon
-                );
+                    $this->info_box_contents[$r][$k + 1] = [
+                        'td' => 'align="left"',
+                        'text' => $form->textwithpicto($rate.'%', $langs->trans('BoxSimulationsAutoAgreementRateDetails', $nb, $all)).$icon
+                    ];
+                }
+                else {    // Cas spécifique s'il n'y a pas de données à cause du getEntity
+                    $this->info_box_contents = [];
+                    $this->info_box_contents[0][0] = ['td' => 'align="left"', 'text' => $langs->trans("NoDataForThisEntity")];
+                    break;
+                }
             }
             unset($all);
         }
@@ -134,6 +141,7 @@ class FinancementSimulationsAutoAgreementRate_box extends ModeleBoxes
         $sql = 'SELECT accord, count(*) as nb';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
         $sql.= " WHERE accord = 'OK'";
+        $sql.= ' AND entity IN ('.getEntity('fin_simulation').')';
 
         if($type == 'auto') $sql.= ' AND unix_timestamp(date_accord) <= (unix_timestamp(date_cre) + 30*60)';  // Accords donnés en moins de 30 minutes
         else if($type == 'twoHours') $sql.= ' AND unix_timestamp(date_accord) <= (unix_timestamp(date_cre) + 2*60*60)';  // Accords donnés en moins de 2 heures
@@ -144,7 +152,7 @@ class FinancementSimulationsAutoAgreementRate_box extends ModeleBoxes
         $resql = $db->query($sql);
         if(! $resql) return -1;
 
-        while($obj = $db->fetch_object($resql)) {
+        if($obj = $db->fetch_object($resql)) {
             return $obj->nb;
         }
 

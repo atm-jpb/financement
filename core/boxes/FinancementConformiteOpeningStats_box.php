@@ -166,7 +166,7 @@ class FinancementConformiteOpeningStats_box extends ModeleBoxes
         $sql.= " WHERE date_cre >= '".date('Y-m', strtotime('-1 year'))."-01'"; // On prend toutes les conformités des 12 derniers mois
         if($whichOne == $valueN1) $sql.= " AND date_envoi > '1970-01-01'";
         else if($whichOne == $valueN2) $sql.= " AND date_attenteN2 > '1970-01-01'";
-        $sql.= ' AND entity <> 0';
+        $sql.= ' AND entity IN ('.getEntity('fin_simulation').')';
         $sql.= ' GROUP BY entity, annee, mois, jour';
         $sql.= ' ORDER BY entity, annee, mois, jour';
 
@@ -174,6 +174,8 @@ class FinancementConformiteOpeningStats_box extends ModeleBoxes
         if(! $resql) {
         	return;
         }
+
+        $nbRow = $db->num_rows($resql);
 
         while($obj = $db->fetch_object($resql)) {
             $mois = sprintf("%02d", $obj->mois);
@@ -228,6 +230,16 @@ class FinancementConformiteOpeningStats_box extends ModeleBoxes
 
             $this->info_box_contents[$r][$i] = array('td' => 'align="center"', 'text' => $sum);
             $i++;
+        }
+
+        // Cas spécifique s'il n'y a pas de données à cause du getEntity
+        if($nbRow == 0) {
+            foreach($this->info_box_contents as $k => $v) {
+                if($k == 0) continue;
+                unset($this->info_box_contents[$k]);
+            }
+
+            $this->info_box_contents[1][0] = array('td' => 'align="left"', 'text' => $langs->trans("NoDataForThisEntity"));
         }
     }
 

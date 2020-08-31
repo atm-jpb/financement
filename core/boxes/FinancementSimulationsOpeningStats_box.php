@@ -122,7 +122,7 @@ class FinancementSimulationsOpeningStats_box extends ModeleBoxes
         $sql = 'SELECT entity, extract(year from date_cre) as anneeCreation, extract(month from date_cre) as moisCreation, extract(day from date_cre) as jourCreation, count(*) as nb';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
         $sql.= " WHERE date_cre >= '".date('Y-m', strtotime('-1 year'))."-01'"; // On prend toutes les simuls des 12 derniers mois
-        $sql.= ' AND entity <> 0';
+        $sql.= ' AND entity IN ('.getEntity('fin_simulation').')';
         $sql.= ' GROUP BY entity, anneeCreation, moisCreation, jourCreation';
         $sql.= ' ORDER BY entity, anneeCreation, moisCreation, jourCreation';
 
@@ -130,6 +130,8 @@ class FinancementSimulationsOpeningStats_box extends ModeleBoxes
         if(! $resql) {
         	return;
         }
+
+        $nbRow = $db->num_rows($resql);
 
         while($obj = $db->fetch_object($resql)) {
             $moisCreation = sprintf("%02d", $obj->moisCreation);
@@ -184,6 +186,12 @@ class FinancementSimulationsOpeningStats_box extends ModeleBoxes
 
             $this->info_box_contents[$r][$i] = array('td' => 'align="center"', 'text' => $sum);
             $i++;
+        }
+
+        // Cas spécifique s'il n'y a pas de données à cause du getEntity
+        if($nbRow == 0) {
+            $this->info_box_contents = [];
+            $this->info_box_contents[0][0] = array('td' => 'align="left"', 'text' => $langs->trans("NoDataForThisEntity"));
         }
     }
 
