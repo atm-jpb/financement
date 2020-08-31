@@ -21,7 +21,8 @@ if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv'
     $TData = array();
     $uploadDir = DOL_DATA_ROOT.'/financement/updateDossierSolde';   // C'est volontaire de ne pas mettre l'entité dans le chemin
     $fileSuffix = date('_Ymd-His');
-    $filePath = $uploadDir.'/'.$_FILES['fileToImport']['name'].$fileSuffix;
+    $fileName = dol_sanitizeFileName($_FILES['fileToImport']['name'].$fileSuffix);
+    $filePath = $uploadDir.'/'.$fileName;
 
     dol_add_file_process($uploadDir, 0, 1, 'fileToImport', '__file__'.$fileSuffix);
 
