@@ -1371,21 +1371,7 @@ function _liste_dossier(&$ATMdb, TSimulation &$simulation, $mode, $search_by_sir
             $soldeperso = 0;
         }
 
-        $dossier_for_integral = new TFin_dossier;
-        $dossier_for_integral->load($ATMdb2, $dossier->getId());
-        $dossier_for_integral->load_facture($ATMdb2, true);
-
-        $sommeRealise = $sommeNoir = $sommeCouleur = $sommeCopieSupCouleur = $sommeCopieSupNoir = 0;
-        list($sommeCopieSupNoir, $sommeCopieSupCouleur) = $dossier_for_integral->getSommesIntegrale($ATMdb2, true);
-
-        $decompteCopieSupNoir = $sommeCopieSupNoir * $dossier_for_integral->quote_part_noir;
-        $decompteCopieSupCouleur = $sommeCopieSupCouleur * $dossier_for_integral->quote_part_couleur;
-
-        $soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
-
-        if(! $dossier->getSolde($ATMdb2, 'perso')) {
-            $soldeperso = ($soldepersointegrale * ($conf->global->FINANCEMENT_PERCENT_RETRIB_COPIES_SUP / 100)); //On ne prend que 80% conformément  la règle de gestion
-        }
+        $soldeperso = $dossier->calculSoldePerso($ATMdb2);
 
         // Obligé de mettre les 2 tests car les dossiers rachetés ne sont pas encore créés quand on clique sur "Calculer" dans le simulateur
         $checkedrm1 = ! isset($_REQUEST['calculate']) && $dossierRachete->choice == 'prev' || isset($_REQUEST['calculate']) && ! empty($simulation->dossiers_rachetes_m1[$idDoss]['checked']);

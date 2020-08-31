@@ -1002,22 +1002,8 @@ function _fiche(&$PDOdb, TFin_dossier &$dossier, $mode) {
 		$dateperso = $dossier->get_date('dateperso','d/m/Y');
 		$soldeperso = $dossier->soldeperso;
 	}
-	
-	$dossier_for_integral = new TFin_dossier;
-	$dossier_for_integral->load($PDOdb, $dossier->getId());
-	$dossier_for_integral->load_facture($PDOdb,true);
-	//$dossier_for_integral->format_facture_integrale($PDOdb);
-	//pre($dossier_for_integral->TFacture,true);
-	$sommeRealise = $sommeNoir = $sommeCouleur = $sommeCopieSupCouleur = $sommeCopieSupNoir = 0;
-	//list($sommeRealise,$sommeNoir,$sommeCouleur) = $dossier_for_integral->getSommesIntegrale($PDOdb);
-	list($sommeCopieSupNoir,$sommeCopieSupCouleur) = $dossier_for_integral->getSommesIntegrale($PDOdb,true);
-	
-	$decompteCopieSupNoir = $sommeCopieSupNoir * $dossier_for_integral->quote_part_noir;
-	$decompteCopieSupCouleur = $sommeCopieSupCouleur * $dossier_for_integral->quote_part_couleur;
-	
-	$soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
 
-	$soldepersointegrale = ($soldepersointegrale * ($conf->global->FINANCEMENT_PERCENT_RETRIB_COPIES_SUP/100)); //On ne prend que 80% conformément  la règle de gestion
+	$soldepersointegrale = $dossier->calculSoldePerso($PDOdb);
 
 	$e = new DaoMulticompany($db);
 	$e->getEntities();

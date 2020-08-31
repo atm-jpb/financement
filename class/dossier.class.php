@@ -1893,6 +1893,8 @@ class TFin_dossier extends TObjetStd
     }
 
     /**
+     * Alors oui c'est le retrait copies sup qu'on calcule mais en BDD c'est soldeperso donc voilà !
+     *
      * @param TPDOdb $PDOdb
      * @return float
      */
