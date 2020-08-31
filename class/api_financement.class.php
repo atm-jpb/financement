@@ -6,10 +6,12 @@ define('INC_FROM_CRON_SCRIPT', true);
 require_once __DIR__.'/../config.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/api_thirdparties.class.php';
+dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
+dol_include_once('/financement/class/dossier_integrale.class.php');
 
 /**
  * API class for financement
@@ -145,6 +147,7 @@ class Financement extends DolibarrApi
         $e = $this->dossier->echeancier($PDOdb, 'CLIENT', 1, true, false);
         $iPeriodeClient = $this->dossier->financement->getiPeriode();
         $displaySolde = $this->dossier->get_display_solde();
+        $soldePerso = round($this->dossier->calculSoldePerso($this->PDOdb), 2);
 
         for($i = 1 ; $i <= $this->dossier->financement->duree ; $i++) {
             $solde = $this->dossier->getSolde($this->PDOdb, 'SRCPRO', $i);
@@ -157,7 +160,8 @@ class Financement extends DolibarrApi
                 'payment' => $solde,
                 'date_start' => date('Y-m-d', $date_start),
                 'date_end' => date('Y-m-d', $date_end),
-                'display' => ($displaySolde === 1)
+                'display' => ($displaySolde === 1),
+                'retraitCopies' => $soldePerso
             );
 
             unset($date_start, $date_end, $TDateStart, $solde);

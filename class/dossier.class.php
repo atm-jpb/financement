@@ -1892,6 +1892,38 @@ class TFin_dossier extends TObjetStd
         }
     }
 
+    /**
+     * @param TPDOdb $PDOdb
+     * @return float
+     */
+    public function calculSoldePerso(TPDOdb $PDOdb) {
+        global $conf;
+
+        $oldEntity = $conf->entity;
+        switchEntity($this->entity);
+
+        $dossier_for_integral = new TFin_dossier;
+        $dossier_for_integral->load($PDOdb, $this->rowid);
+        $dossier_for_integral->load_facture($PDOdb, true);
+
+        $sommeCopieSupCouleur = $sommeCopieSupNoir = 0;
+        [$sommeCopieSupNoir, $sommeCopieSupCouleur] = $dossier_for_integral->getSommesIntegrale($PDOdb, true);
+
+        $decompteCopieSupNoir = $sommeCopieSupNoir * $dossier_for_integral->quote_part_noir;
+        $decompteCopieSupCouleur = $sommeCopieSupCouleur * $dossier_for_integral->quote_part_couleur;
+
+        $soldepersointegrale = $decompteCopieSupCouleur + $decompteCopieSupNoir;
+
+        $soldeperso = 0;
+        if(! $this->soldeperso) {
+            $soldeperso = ($soldepersointegrale * ($conf->global->FINANCEMENT_PERCENT_RETRIB_COPIES_SUP / 100)); //On ne prend que 80% conformément  la règle de gestion
+        }
+
+        switchEntity($oldEntity);
+
+        return $soldeperso;
+    }
+
     function getSoldePersoIntegrale(&$PDOdb) {
         $soldepersointegrale = 0;
 
