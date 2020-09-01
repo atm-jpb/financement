@@ -1860,8 +1860,8 @@ class TSimulation extends TObjetStd
                 for($i = 0 ; $i <= $k ; $i++) $TSuivi[$i]->rang += 1;   // Pour éviter les -1 et les trous dans les rangs
             }
 
-            // Priorité au leaser concerné par le solde
-            if($k > 0 && $suivi->leaser->array_options['options_prio_solde'] == 1 && ! empty($catLeaserDossierSolde)) {
+            // Priorité au leaser concerné par le solde si diff_solde >= 150€
+            if($k > 0 && $suivi->leaser->array_options['options_prio_solde'] == 1 && ! empty($catLeaserDossierSolde) && abs($suivi->diff_solde) >= 150) {
                 $catLeaserSuivi = $this->getTCatLeaserFromLeaserId($suivi->fk_leaser);
 
                 $intersect = array_intersect(array_keys($catLeaserDossierSolde), array_keys($catLeaserSuivi));
@@ -2013,7 +2013,9 @@ class TSimulation extends TObjetStd
      * a. Pour chaque dossier racheté, calcul de la différence de solde R et NR par Leaser, applicable aux autres
      * b. Différence solde = Somme différence dossiers rachetés des autres leasers
      *
-     * @param TSuiviSimulation $suivi
+     * @param TPDOdb           $PDOdb
+     * @param TSimulationSuivi $suivi
+     * @return float
      */
     private function calcDiffSolde(&$PDOdb, &$suivi) {
         // Si déjà calculé alors je renvoi la valeur immédiatemment
