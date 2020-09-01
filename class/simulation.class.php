@@ -1860,8 +1860,8 @@ class TSimulation extends TObjetStd
                 for($i = 0 ; $i <= $k ; $i++) $TSuivi[$i]->rang += 1;   // Pour éviter les -1 et les trous dans les rangs
             }
 
-            // Priorité au leaser concerné par le solde si diff_solde >= 150€
-            if($k > 0 && $suivi->leaser->array_options['options_prio_solde'] == 1 && ! empty($catLeaserDossierSolde) && abs($suivi->diff_solde) >= 150) {
+            // Priorité au leaser concerné par le solde si diff_solde >= 150€ (paramétrable via la conf FINANCEMENT_PRIO_LEASER_MIN_DIFF_SOLDE)
+            if($k > 0 && $suivi->leaser->array_options['options_prio_solde'] == 1 && ! empty($catLeaserDossierSolde) && abs($suivi->diff_solde) >= $conf->global->FINANCEMENT_PRIO_LEASER_MIN_DIFF_SOLDE) {
                 $catLeaserSuivi = $this->getTCatLeaserFromLeaserId($suivi->fk_leaser);
 
                 $intersect = array_intersect(array_keys($catLeaserDossierSolde), array_keys($catLeaserSuivi));

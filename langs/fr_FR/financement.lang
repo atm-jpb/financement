@@ -53,6 +53,7 @@ FINANCEMENT_DEFAULT_EXTERNAL_RELOCATION_PERCENT=Pourcentage de commission par d�
 SetupShowSoldeMinTaux=Indisponibilité du solde dans la simulation si taux inférieur à X %%
 FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN=Enchaîner les appels EDI automatiques toutes les X minutes
 FINANCEMENT_DEFAULT_MAIL_RECIPIENT=Envoyer les accords de financement en copie à :
+FINANCEMENT_PRIO_LEASER_MIN_DIFF_SOLDE = Ne pas prioriser, dans l'aiguillage, le leaser concerné par le solde d'un dossier si la différence de solde est inférieure à X€
 
 # EDI
 FINANCEMENT_SHOW_RECETTE_BUTTON=Affiche un bouton dans la colonne "Actions" des suivis leaser pour forcer l'appel au webservice (si l'utilisateur courant est admin et entité 0)
