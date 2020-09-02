@@ -2145,7 +2145,7 @@ class TFin_dossier extends TObjetStd
     public static function howMany($typeContrat = null, $natureFinancement = null, $ongoing = true) {
         global $db;
 
-        $sql = 'SELECT count(*) as nb';
+        $sql = 'SELECT count(DISTINCT d.rowid) as nb';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_dossier d';
         $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_financement df ON (df.fk_fin_dossier = d.rowid)';
         $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (da.fk_fin_dossier = d.rowid)';
