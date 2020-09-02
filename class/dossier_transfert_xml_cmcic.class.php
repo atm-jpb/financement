@@ -233,7 +233,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
         }
 
         // Montants factures
-        $truc = $this->getMontantFactureData($xml, $facture);
+        $truc = $this->getMontantFactureData($xml, $dossier);
         $elem->appendChild($truc);
 
         // Facturant
@@ -250,13 +250,17 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
 		return $elem;
 	}
 
-	function getMontantFactureData(&$xml, $facture) {
+	function getMontantFactureData(&$xml, $dossier) {
+		$montant_ht = $dossier->financementLeaser->montant;
+		$montant_ttc = round($montant_ht * 1.20,2);
+		$montant_tva = $montant_ttc - $montant_ht;
+
 		$elem = $xml->createElement('MONTANTS_FAC');
         $TData = array(
             'MTESCFOU' => 0,
-            'MTHTFAC' => price2num($facture->total_ht),   // Montant HT
-            'MTTVAFAC' => price2num($facture->total_tva),  // Montant TVA
-            'MTRSTAFF' => price2num($facture->total_ttc),  // Montant TTC
+            'MTHTFAC' => price2num($montant_ht),   // Montant HT
+            'MTTVAFAC' => price2num($montant_tva),  // Montant TVA
+            'MTRSTAFF' => price2num($montant_ttc),  // Montant TTC
             'CDDEV' => 'EUR'
         );
 
