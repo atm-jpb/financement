@@ -76,6 +76,7 @@ class Conformite extends TObjetStd
     }
 
     /**
+     * @param int $fk_soc
      * @return bool
      */
     public function sendMail($fk_soc) {

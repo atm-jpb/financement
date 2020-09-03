@@ -2199,7 +2199,7 @@ class TSimulation extends TObjetStd
         $this->numero_accord = '';
 
         // On vide le stockage des anciennes valeurs
-        $this->modifs = '';
+        $this->modifs = array();
 
         // Pas d'appel auto aux EDI sur un clone
         $this->no_auto_edi = true;
