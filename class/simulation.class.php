@@ -2399,10 +2399,10 @@ class TSimulation extends TObjetStd
     }
 
     /**
-     * @param   $source     integer
-     * @param   $target     integer
-     * @param   $TEntity    array
-     * @return              bool
+     * @param int   $source
+     * @param int   $target
+     * @param array $TEntity
+     * @return bool
      */
     public static function replaceThirdparty($source, $target, $TEntity = array()) {
         if(empty($source) || empty($target)) return false;
@@ -2513,7 +2513,7 @@ class TSimulationSuivi extends TObjetStd
      * @param type $amount
      * @param type $fk_type_contrat
      * @param type $duree
-     * @return array || int if not found
+     * @return array|int if not found
      */
     public function getCoefLineLeaser($PDOdb, $amount, $fk_type_contrat, $duree, $periodicite) {
         if(! empty($this->TCoefLine[$amount])) return $this->TCoefLine[$amount];
@@ -2748,7 +2748,7 @@ class TSimulationSuivi extends TObjetStd
     }
 
     //Effectue l'action de passer au statut accepter la demande de financement leaser
-    function doActionAccepter(&$PDOdb, &$simulation) {
+    function doActionAccepter(&$PDOdb, TSimulation &$simulation) {
         global $db;
 
         $this->statut = 'OK';
