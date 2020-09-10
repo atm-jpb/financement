@@ -7,11 +7,13 @@ require_once __DIR__.'/../config.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/api_thirdparties.class.php';
 dol_include_once('/financement/lib/financement.lib.php');
+dol_include_once('/financement/class/conformite.class.php');
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/grille.class.php');
 dol_include_once('/financement/class/dossier_integrale.class.php');
+dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
 /**
  * API class for financement
@@ -36,17 +38,21 @@ class Financement extends DolibarrApi
      */
     public $simulation;
 
+    /** @var Conformite $conformite */
+    public $conformite;
+
     /**
      * Constructor
      *
      */
-    function __construct() {
+    public function __construct() {
         global $db, $langs;
         $langs->load('financement@financement');
 
         $this->db = $db;
         $this->PDOdb = new TPDOdb;
         $this->dossier = new TFin_dossier;
+        $this->conformite = new Conformite;
         $this->simulation = new TSimulation;
     }
 
@@ -170,7 +176,68 @@ class Financement extends DolibarrApi
         return $TRes;
     }
 
-    function _cleanObjectDatas($object) {
+    /**
+     * Get compliances
+     *
+     * Get a list of compliances
+     *
+     * @param int $entity
+     * @param int $limit
+     * @return  array
+     *
+     * @throws RestException
+     * @url     GET /compliances
+     */
+    public function conformiteList($entity = 0, $limit = 100) {
+        $dao = new DaoMulticompany($this->db);
+        $res = $dao->fetch($entity);
+        if($res <= 0) throw new RestException(400, 'Wrong value for entity filter');
+
+        $TEntity = array($entity);
+        $TRes = Conformite::getAll($TEntity, $limit);
+
+        foreach($TRes as $c) {
+            self::format($c);
+            self::cleanData($c);
+            parent::_cleanObjectDatas($c);
+        }
+
+        return $TRes;
+    }
+
+    /**
+     * Get properties of a compliance object
+     *
+     * Return compliance informations
+     *
+     * @param int $id
+     * @return Conformite
+     *
+     * @throws RestException
+     * @url     GET /compliances/{id}
+     */
+    public function getConformite($id) {
+        $res = $this->conformite->fetch($id);
+        if(! $res) throw new RestException(404, 'Compliance not found');
+
+        self::format($this->conformite);
+        self::cleanData($this->conformite);
+        parent::_cleanObjectDatas($this->conformite);
+
+        return $this->conformite;
+    }
+
+    /**
+     * @param int $id
+     *
+     * @throws RestException
+     * @url     GET /compliances/{id}/
+     */
+    public function setConformiteStatus($id) {
+
+    }
+
+    protected function _cleanObjectDatas($object) {
         parent::_cleanObjectDatas($object);
 
         $object->affaire = $object->TLien[0]->affaire;
@@ -226,7 +293,7 @@ class Financement extends DolibarrApi
     private static function cleanData(&$object) {
         unset($object->TNoSaveVars, $object->withChild, $object->to_delete, $object->debug, $object->TChildObjetStd, $object->unsetChildDeleted, $object->errors);
         unset($object->date_0, $object->champs_indexe);
-        unset($object->table, $object->TChamps, $object->TConstraint, $object->TList);
+        unset($object->table, $object->TChamps, $object->TConstraint, $object->TList, $object->PDOdb);
     }
 
     private static function formatData(TFin_dossier &$object) {
