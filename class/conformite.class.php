@@ -14,14 +14,14 @@ class Conformite extends TObjetStd
     public const STATUS_WITHOUT_FURTHER_ACTION = 7;
 
     public static $TStatus = array(
-        0 => 'ConformiteDraft',
-        1 => 'ConformiteWaitingForComplianceN1',
-        2 => 'ConformiteCompliantN1',
-        3 => 'ConformiteNotCompliantN1',
-        4 => 'ConformiteWaitingForComplianceN2',
-        5 => 'ConformiteCompliantN2',
-        6 => 'ConformiteNotCompliantN2',
-        7 => 'ConformiteWithoutFurtherAction'
+        self::STATUS_DRAFT => 'ConformiteDraft',
+        self::STATUS_WAITING_FOR_COMPLIANCE_N1 => 'ConformiteWaitingForComplianceN1',
+        self::STATUS_COMPLIANT_N1 => 'ConformiteCompliantN1',
+        self::STATUS_NOT_COMPLIANT_N1 => 'ConformiteNotCompliantN1',
+        self::STATUS_WAITING_FOR_COMPLIANCE_N2 => 'ConformiteWaitingForComplianceN2',
+        self::STATUS_COMPLIANT_N2 => 'ConformiteCompliantN2',
+        self::STATUS_NOT_COMPLIANT_N2 => 'ConformiteNotCompliantN2',
+        self::STATUS_WITHOUT_FURTHER_ACTION => 'ConformiteWithoutFurtherAction'
     );
 
     /**
@@ -59,6 +59,75 @@ class Conformite extends TObjetStd
         parent::start();
 
         $this->PDOdb = new TPDOdb;
+    }
+
+    /**
+     * @param string $statusLabel
+     * @return ?int
+     */
+    public static function getStatusFromLabel($statusLabel): ?int {
+        global $user;
+
+        $status = null;
+        switch($statusLabel) {
+            case 'draft':
+                if(! empty($user->rights->financement->conformite->create)) $status = self::STATUS_DRAFT;
+                break;
+            case 'notCompliantN1':
+                if(! empty($user->rights->financement->conformite->accept)) $status = self::STATUS_NOT_COMPLIANT_N1;
+                break;
+            case 'notCompliantN2':
+                if(! empty($user->rights->financement->conformite->accept)) $status = self::STATUS_NOT_COMPLIANT_N2;
+                break;
+            case 'compliantN1':
+                if(! empty($user->rights->financement->conformite->accept)) $status = self::STATUS_COMPLIANT_N1;
+                break;
+            case 'compliantN2':
+                if(! empty($user->rights->financement->conformite->accept)) $status = self::STATUS_COMPLIANT_N2;
+                break;
+            case 'waitN1':
+                if(! empty($user->rights->financement->conformite->validate)) $status = self::STATUS_WAITING_FOR_COMPLIANCE_N1;
+                break;
+            case 'waitN2':
+                if(! empty($user->rights->financement->conformite->validate)) $status = self::STATUS_WAITING_FOR_COMPLIANCE_N2;
+                break;
+            case 'withoutFurtherAction':
+                if(! empty($user->rights->financement->conformite->accept)) $status = self::STATUS_WITHOUT_FURTHER_ACTION;
+                break;
+            default:
+                break;
+        }
+
+        return $status;
+    }
+
+    /**
+     * @param int $status
+     * @return bool
+     */
+    public function setStatus($status) {
+        if(empty($status) || ! in_array($status, array_keys(self::$TStatus))) return false;
+
+        global $user;
+
+        switch($status) {
+            case self::STATUS_WAITING_FOR_COMPLIANCE_N1:
+                $this->date_envoi = time();
+                if($this->status === self::STATUS_DRAFT) $this->fk_user = $user->id;    // On save le user qui fait la demande
+                break;
+            case self::STATUS_COMPLIANT_N1:
+                $this->date_conformeN1 = time();
+                break;
+            case self::STATUS_WAITING_FOR_COMPLIANCE_N2:
+                $this->date_attenteN2 = time();
+                break;
+            case self::STATUS_COMPLIANT_N2:
+                $this->date_conformeN2 = time();
+                break;
+        }
+
+        $this->status = $status;
+        return $this->update();
     }
 
     public function create() {

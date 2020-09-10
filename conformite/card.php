@@ -132,50 +132,13 @@ if($action === 'save' && (! empty($user->rights->financement->conformite->create
 }
 elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     $statusLabel = GETPOST('status', 'alpha');
-    switch($statusLabel) {
-        case 'draft':
-            if(! empty($user->rights->financement->conformite->create)) $status = Conformite::STATUS_DRAFT;
-            break;
-        case 'notCompliantN1':
-            if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_NOT_COMPLIANT_N1;
-            break;
-        case 'notCompliantN2':
-            if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_NOT_COMPLIANT_N2;
-            break;
-        case 'compliantN1':
-            if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_COMPLIANT_N1;
-            $dateConformeN1 = time();
-            break;
-        case 'compliantN2':
-            if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_COMPLIANT_N2;
-            $dateConformeN2 = time();
-            break;
-        case 'waitN1':
-            if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1;
-            $fk_user = $user->id;   // On save le user qui fait la demande
-            $dateEnvoi = time();
-            break;
-        case 'waitN2':
-            if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2;
-            $dateAttenteN2 = time();
-            break;
-        case 'withoutFurtherAction':
-            if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_WITHOUT_FURTHER_ACTION;
-            break;
-        default:
-            break;
-    }
+
+    $status = Conformite::getStatusFromLabel($statusLabel);
 
     if(! is_null($status)) {
-        if(! is_null($fk_user) && $object->status === Conformite::STATUS_DRAFT) $object->fk_user = $fk_user;
-        if(! is_null($dateEnvoi)) $object->date_envoi = $dateEnvoi;
-        if(! is_null($dateAttenteN2)) $object->date_attenteN2 = $dateAttenteN2;
-        if(! is_null($dateConformeN1)) $object->date_conformeN1 = $dateConformeN1;
-        if(! is_null($dateConformeN2)) $object->date_conformeN2 = $dateConformeN2;
-        $object->status = $status;
-        $res = $object->update();
+        $res = $object->setStatus($status);
 
-        if($res > 0 && in_array($object->status, array(Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_COMPLIANT_N2, Conformite::STATUS_NOT_COMPLIANT_N1, conformite::STATUS_NOT_COMPLIANT_N2))) {
+        if($res > 0 && in_array($object->status, array(Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_COMPLIANT_N2, Conformite::STATUS_NOT_COMPLIANT_N1, Conformite::STATUS_NOT_COMPLIANT_N2))) {
             $resMail = $object->sendMail($simu->fk_soc);
             if($resMail) {
                 $u = new User($db);
