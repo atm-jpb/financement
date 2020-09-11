@@ -41,6 +41,9 @@ class Conformite extends TObjetStd
     public $date_conformeN1;
     public $date_attenteN2;
     public $date_conformeN2;
+    public $dateCalculSurfact;
+    public $montantSurfact;
+    public $tauxLeaser;
 
     public $PDOdb;
 
@@ -55,10 +58,18 @@ class Conformite extends TObjetStd
         parent::add_champs('date_envoi,date_reception_papier', array('type' => 'date', 'index' => true));
         parent::add_champs('date_conformeN1', array('type' => 'date', 'index' => true));
         parent::add_champs('date_attenteN2,date_conformeN2', array('type' => 'date', 'index' => true));
+        parent::add_champs('dateCalculSurfact', array('type' => 'date', 'index' => true));
+        parent::add_champs('montantSurfact,tauxLeaser', array('type' => 'float'));
 
         parent::start();
 
         $this->PDOdb = new TPDOdb;
+    }
+
+    public function init($entity, $fk_simulation): void {
+        $this->fk_simulation = $fk_simulation;
+        $this->status = self::STATUS_DRAFT;
+        $this->entity = $entity;
     }
 
     /**
@@ -103,10 +114,10 @@ class Conformite extends TObjetStd
 
     /**
      * @param int $status
-     * @return bool
+     * @return int
      */
-    public function setStatus($status) {
-        if(empty($status) || ! in_array($status, array_keys(self::$TStatus))) return false;
+    public function setStatus($status): int {
+        if(empty($status) || ! in_array($status, array_keys(self::$TStatus))) return -1;
 
         global $user;
 
@@ -128,6 +139,37 @@ class Conformite extends TObjetStd
 
         $this->status = $status;
         return $this->update();
+    }
+
+    public function calculSurfact(): float {
+        global $conf;
+
+        $surfact = 0;
+        $PDOdb = new TPDOdb;
+        $s = new TSimulation;
+        $s->load($PDOdb, $this->fk_simulation, false);
+        $s->load_suivi_simulation($PDOdb);
+
+        /** @var TSimulationSuivi $suivi */
+        foreach($s->TSimulationSuivi as $suivi) if($suivi->fk_leaser == $s->fk_leaser) break;
+
+
+        if($conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'same') {
+            if(! empty($suivi->montantfinanceleaser)) $surfact = $suivi->montantfinanceleaser - $s->montant;
+        }
+        elseif($conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'diff' && ! empty($conf->global->FINANCEMENT_SURFACT_PERCENT)) {
+            $surfact = $s->montant * $conf->global->FINANCEMENT_SURFACT_PERCENT/100;
+        }
+
+        if(! empty($surfact)) {
+            $this->montantSurfact = $surfact;
+            $this->dateCalculSurfact = time();
+            $this->tauxLeaser = $suivi->coeff_leaser;
+
+            return $this->update();
+        }
+
+        return false;
     }
 
     public function create() {

@@ -27,6 +27,8 @@ require('../config.php');
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 dol_include_once('/financement/lib/admin.lib.php');
 
+global $user, $langs, $db, $conf;
+
 if (!$user->rights->financement->admin->write) accessforbidden();
 
 $langs->load('financement@financement');
@@ -590,47 +592,8 @@ $var=true;
 </tr>
 <?php
 
-/*
-$var=! $var;
-print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
-print '<input type="hidden" name="action" value="setforcedate" />';
-print '<tr '.$bc[$var].'><td>';
-print $langs->trans("AmountValidationPercent");
-print '</td><td width="60" align="center">';
-print $form->selectyesno("forcedate",$conf->global->FINANCEMENT_PERCENT_VALID_AMOUNT,1);
-print '</td><td align="right">';
-print '<input type="submit" class="button" value="'.$langs->trans("Modify").'" />';
-print "</td></tr>\n";
-print '</form>';
-*/
 print '</table>';
 print '<br />';
-
-print_fiche_titre($langs->trans("EDI"), '', '');
-
-print '<table class="noborder" width="100%">';
-print '<tr class="liste_titre">';
-print '<td>'.$langs->trans("Parameter").'</td>';
-print '<td width="80">&nbsp;</td>';
-print '<td align="center">'.$langs->trans("Value").'</td>';
-print "</tr>\n";
-$var=true;
-
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN").'</td>';
-print '<td align="center" width="20">&nbsp;</td>';
-print '<td align="right" width="600">';
-print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-print '<input type="hidden" name="action" value="set_FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN">';
-print '<input type="number" name="FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN" value="'.$conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN.'" min="0" />';
-print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">';
-print '</form>';
-print '</td></tr>';
-
-print '</table>';
 
 dol_htmloutput_mesg($mesg);
 
