@@ -2509,10 +2509,10 @@ class TSimulationSuivi extends TObjetStd
      * retourne -2 si la durée est trouvée mais qu'aucune tranche de paramétrée
      * autrement renvoi le talbeau d'info
      *
-     * @param type $PDOdb
-     * @param type $amount
-     * @param type $fk_type_contrat
-     * @param type $duree
+     * @param TPDOdb $PDOdb
+     * @param float  $amount
+     * @param string $fk_type_contrat
+     * @param int    $duree
      * @return array|int if not found
      */
     public function getCoefLineLeaser($PDOdb, $amount, $fk_type_contrat, $duree, $periodicite) {

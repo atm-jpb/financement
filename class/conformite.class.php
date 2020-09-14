@@ -153,8 +153,8 @@ class Conformite extends TObjetStd
         /** @var TSimulationSuivi $suivi */
         foreach($s->TSimulationSuivi as $suivi) if($suivi->fk_leaser == $s->fk_leaser) break;
 
-
         if($conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'same') {
+            if(empty($suivi->montantfinanceleaser)) $s->calculMontantFinanceLeaser($PDOdb, $suivi);
             if(! empty($suivi->montantfinanceleaser)) $surfact = $suivi->montantfinanceleaser - $s->montant;
         }
         elseif($conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'diff' && ! empty($conf->global->FINANCEMENT_SURFACT_PERCENT)) {
@@ -162,9 +162,11 @@ class Conformite extends TObjetStd
         }
 
         if(! empty($surfact)) {
+            $coeffLine = $suivi->getCoefLineLeaser($PDOdb, $s->montant, $s->fk_type_contrat, $s->duree, $s->opt_periodicite);
+
             $this->montantSurfact = $surfact;
             $this->dateCalculSurfact = time();
-            $this->tauxLeaser = $suivi->coeff_leaser;
+            $this->tauxLeaser = $coeffLine['coeff'];
 
             return $this->update();
         }
