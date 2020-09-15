@@ -45,5 +45,9 @@ function financement_admin_prepare_head()
 	$head[$h][2] = 'accord_auto';
 	$h++;
 
+    $head[$h][0] = dol_buildpath('/financement/admin/surfact.php', 1);
+    $head[$h][1] = $langs->trans("Surfact");
+    $head[$h][2] = 'surfact';
+
     return $head;
 }

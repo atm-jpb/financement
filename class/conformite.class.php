@@ -14,14 +14,14 @@ class Conformite extends TObjetStd
     public const STATUS_WITHOUT_FURTHER_ACTION = 7;
 
     public static $TStatus = array(
-        0 => 'ConformiteDraft',
-        1 => 'ConformiteWaitingForComplianceN1',
-        2 => 'ConformiteCompliantN1',
-        3 => 'ConformiteNotCompliantN1',
-        4 => 'ConformiteWaitingForComplianceN2',
-        5 => 'ConformiteCompliantN2',
-        6 => 'ConformiteNotCompliantN2',
-        7 => 'ConformiteWithoutFurtherAction'
+        self::STATUS_DRAFT => 'ConformiteDraft',
+        self::STATUS_WAITING_FOR_COMPLIANCE_N1 => 'ConformiteWaitingForComplianceN1',
+        self::STATUS_COMPLIANT_N1 => 'ConformiteCompliantN1',
+        self::STATUS_NOT_COMPLIANT_N1 => 'ConformiteNotCompliantN1',
+        self::STATUS_WAITING_FOR_COMPLIANCE_N2 => 'ConformiteWaitingForComplianceN2',
+        self::STATUS_COMPLIANT_N2 => 'ConformiteCompliantN2',
+        self::STATUS_NOT_COMPLIANT_N2 => 'ConformiteNotCompliantN2',
+        self::STATUS_WITHOUT_FURTHER_ACTION => 'ConformiteWithoutFurtherAction'
     );
 
     /**
@@ -41,6 +41,9 @@ class Conformite extends TObjetStd
     public $date_conformeN1;
     public $date_attenteN2;
     public $date_conformeN2;
+    public $dateCalculSurfact;
+    public $montantSurfact;
+    public $tauxLeaser;
 
     public $PDOdb;
 
@@ -55,10 +58,120 @@ class Conformite extends TObjetStd
         parent::add_champs('date_envoi,date_reception_papier', array('type' => 'date', 'index' => true));
         parent::add_champs('date_conformeN1', array('type' => 'date', 'index' => true));
         parent::add_champs('date_attenteN2,date_conformeN2', array('type' => 'date', 'index' => true));
+        parent::add_champs('dateCalculSurfact', array('type' => 'date', 'index' => true));
+        parent::add_champs('montantSurfact,tauxLeaser', array('type' => 'float'));
 
         parent::start();
 
         $this->PDOdb = new TPDOdb;
+    }
+
+    public function init($entity, $fk_simulation): void {
+        $this->fk_simulation = $fk_simulation;
+        $this->status = self::STATUS_DRAFT;
+        $this->entity = $entity;
+    }
+
+    /**
+     * @param string $statusLabel
+     * @return ?int
+     */
+    public static function getStatusFromLabel($statusLabel): ?int {
+        global $user;
+
+        $status = null;
+        switch($statusLabel) {
+            case 'draft':
+                if(! empty($user->rights->financement->conformite->create)) $status = self::STATUS_DRAFT;
+                break;
+            case 'notCompliantN1':
+                if(! empty($user->rights->financement->conformite->accept)) $status = self::STATUS_NOT_COMPLIANT_N1;
+                break;
+            case 'notCompliantN2':
+                if(! empty($user->rights->financement->conformite->accept)) $status = self::STATUS_NOT_COMPLIANT_N2;
+                break;
+            case 'compliantN1':
+                if(! empty($user->rights->financement->conformite->accept)) $status = self::STATUS_COMPLIANT_N1;
+                break;
+            case 'compliantN2':
+                if(! empty($user->rights->financement->conformite->accept)) $status = self::STATUS_COMPLIANT_N2;
+                break;
+            case 'waitN1':
+                if(! empty($user->rights->financement->conformite->validate)) $status = self::STATUS_WAITING_FOR_COMPLIANCE_N1;
+                break;
+            case 'waitN2':
+                if(! empty($user->rights->financement->conformite->validate)) $status = self::STATUS_WAITING_FOR_COMPLIANCE_N2;
+                break;
+            case 'withoutFurtherAction':
+                if(! empty($user->rights->financement->conformite->accept)) $status = self::STATUS_WITHOUT_FURTHER_ACTION;
+                break;
+            default:
+                break;
+        }
+
+        return $status;
+    }
+
+    /**
+     * @param int $status
+     * @return int
+     */
+    public function setStatus($status): int {
+        if(empty($status) || ! in_array($status, array_keys(self::$TStatus))) return -1;
+
+        global $user;
+
+        switch($status) {
+            case self::STATUS_WAITING_FOR_COMPLIANCE_N1:
+                $this->date_envoi = time();
+                if($this->status === self::STATUS_DRAFT) $this->fk_user = $user->id;    // On save le user qui fait la demande
+                break;
+            case self::STATUS_COMPLIANT_N1:
+                $this->date_conformeN1 = time();
+                break;
+            case self::STATUS_WAITING_FOR_COMPLIANCE_N2:
+                $this->date_attenteN2 = time();
+                break;
+            case self::STATUS_COMPLIANT_N2:
+                $this->date_conformeN2 = time();
+                break;
+        }
+
+        $this->status = $status;
+        return $this->update();
+    }
+
+    public function calculSurfact(): float {
+        global $conf;
+
+        $surfact = 0;
+        $PDOdb = new TPDOdb;
+        $s = new TSimulation;
+        $s->load($PDOdb, $this->fk_simulation, false);
+        $s->load_suivi_simulation($PDOdb);
+
+        /** @var TSimulationSuivi $suivi */
+        foreach($s->TSimulationSuivi as $suivi) if($suivi->fk_leaser == $s->fk_leaser) break;
+
+        if($conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'same') {
+            if(empty($suivi->montantfinanceleaser)) $s->calculMontantFinanceLeaser($PDOdb, $suivi);
+            if(! empty($suivi->montantfinanceleaser)) $surfact = $suivi->montantfinanceleaser - $s->montant;
+        }
+        elseif($conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'diff' && ! empty($conf->global->FINANCEMENT_SURFACT_PERCENT)) {
+            $surfact = $s->montant * $conf->global->FINANCEMENT_SURFACT_PERCENT/100;
+        }
+
+        if(! empty($surfact)) {
+            $coeffLine = $suivi->getCoefLineLeaser($PDOdb, $s->montant, $s->fk_type_contrat, $s->duree, $s->opt_periodicite);
+
+            $this->montantSurfact = $surfact;
+            $this->dateCalculSurfact = time();
+            $this->tauxLeaser = $coeffLine['coeff'];
+
+            return $this->update();
+        }
+
+        return false;
     }
 
     public function create() {
