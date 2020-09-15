@@ -57,7 +57,7 @@ class Financement extends DolibarrApi
     }
 
     /**
-     * Get contracts
+     * Get contracts list
      *
      * Get a list of contracts
      *
@@ -177,7 +177,7 @@ class Financement extends DolibarrApi
     }
 
     /**
-     * Get compliances
+     * Get compliances list
      *
      * Get a list of compliances
      *
@@ -206,6 +206,29 @@ class Financement extends DolibarrApi
     }
 
     /**
+     * Create compliance object
+     *
+     * @param string $refSimulation
+     * @return int
+     *
+     * @throws RestException
+     * @url     POST /compliances
+     */
+    public function conformiteCreate($refSimulation) {
+        $this->simulation->loadBy($this->PDOdb, $refSimulation, 'reference');
+        if(empty($this->simulation->rowid)) throw new RestException(404, 'Simulation not found');
+
+        $this->conformite->fetchBy('fk_simulation', $this->simulation->rowid);
+        if(! empty($this->conformite->id)) throw new RestException(400, 'Compliance already exists');
+
+        $this->conformite->init($this->simulation->entity, $this->simulation->rowid);
+        $res = $this->conformite->create();
+        if($res === false) throw new RestException(400, 'Can\'t create compliance');
+
+        return $this->conformite->id;
+    }
+
+    /**
      * Get properties of a compliance object
      *
      * Return compliance informations
@@ -228,13 +251,47 @@ class Financement extends DolibarrApi
     }
 
     /**
+     * Update compliance status
+     *
      * @param int $id
+     * @return Conformite
      *
      * @throws RestException
-     * @url     GET /compliances/{id}/
+     * @url     PUT /compliances/{id}/setStatusWaitN1
      */
-    public function setConformiteStatus($id) {
+    public function setConformiteStatusWaitN1($id) {
+        $res = $this->conformite->fetch($id);
+        if(! $res) throw new RestException(404, 'Compliance not found');
 
+        $this->conformite->setStatus(Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1);
+
+        self::format($this->conformite);
+        self::cleanData($this->conformite);
+        parent::_cleanObjectDatas($this->conformite);
+
+        return $this->conformite;
+    }
+
+    /**
+     * Update compliance status
+     *
+     * @param int $id
+     * @return Conformite
+     *
+     * @throws RestException
+     * @url     PUT /compliances/{id}/setStatusWaitN2
+     */
+    public function setConformiteStatusWaitN2($id) {
+        $res = $this->conformite->fetch($id);
+        if(! $res) throw new RestException(404, 'Compliance not found');
+
+        $this->conformite->setStatus(Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2);
+
+        self::format($this->conformite);
+        self::cleanData($this->conformite);
+        parent::_cleanObjectDatas($this->conformite);
+
+        return $this->conformite;
     }
 
     protected function _cleanObjectDatas($object) {
@@ -327,6 +384,7 @@ class Financement extends DolibarrApi
             else if(in_array($k, $TBoolean)) {
                 $object->$k = ($object->$k == 'OUI');
             }
+            else if($type == 'text' && $object->$k === false) $object->$k = '';
         }
     }
 
