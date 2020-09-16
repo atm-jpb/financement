@@ -1,3 +1,4 @@
+
 [onshow;block=begin;when [view.mode]=='view']
 		
 		<div class="tabs">
@@ -134,12 +135,40 @@
 [onshow;block=end]
 			
 			<table width="100%" class="border" style="margin-top:20px;">
-			<tr class="liste_titre"><td>Equipement numéro</td><td>Matériel</td><td>Facture matériel</td></tr>
-			<tr><td><a href="../assetatm/fiche.php?id=[asset.rowid]">[asset.serial_number; block=tr; strconv=no]</a> </td><td>[asset.produit;strconv=no]</td><td>[asset.facture;strconv=no]</td></tr>
-			<!--<tr><td width="20%">Coût copie Noire</td><td>[asset.copy_black; strconv=no; frm=0 000,00] &euro;</td></tr>
-			<tr><td width="20%">Coût copie Couleure</td><td>[asset.copy_color; strconv=no; frm=0 000,00] &euro;</td></tr>-->
+                <tr class="liste_titre">
+                    <td>Equipement numéro</td>
+                    <td>Matériel</td>
+                    <td>Facture matériel</td>
+                </tr>
+                <tr>
+                    <td class="asset"><a href="../assetatm/fiche.php?id=[asset.rowid]">[asset.serial_number; block=tr; strconv=no]</a></td>
+                    <td class="product">[asset.produit;strconv=no]</td>
+                    <td class="facture">[asset.facture;strconv=no]</td>
+                </tr>
 			</table>
 
 <p align="center" style="font-size: 9px;">
 	Crée le [affaire.date_cre] - Mis à jour le [affaire.date_maj]
 </p>
+
+<div id="addMateriel" title="Création du matériel" style="display: none;">
+    <input type="hidden" id="affaireEntity" name="affaireEntity" value="[affaire.fk_entity; strconv=no]" />
+    <table>
+        <tr>
+            <td>Numéro de série :</td>
+            <td><input type="text" id="serialNumber" name="serialNumber" value="[asset.serial_number; strconv=no]" /></td>
+        </tr>
+        <tr>
+            <td>Libellé produit :</td>
+            <td><input type="text" id="libelleProduit" name="libelleProduit" /></td>
+        </tr>
+        <tr>
+            <td>Référence produit :</td>
+            <td><input type="text" id="refProduit" name="refProduit" /></td>
+        </tr>
+        <tr>
+            <td>Marque :</td>
+            <td><input type="text" id="marque" name="marque" /></td>
+        </tr>
+    </table>
+</div>

@@ -381,7 +381,7 @@ function _liste(&$ATMdb, &$affaire) {
 }
 
 function _fiche(&$ATMdb, &$affaire, $mode) {
-	global $db,$user,$conf;
+    global $db, $user, $conf, $langs;
 
     $result = restrictedArea($user, 'financement', $affaire->getID(), 'fin_affaire&societe', 'affaire', 'fk_soc', 'rowid');
 
@@ -423,14 +423,63 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 		$row = $link->asset->get_values();
 
 		// Lien produit
-		$row['produit'] = '';
-
 		if(!empty($link->asset->fk_product)) {
 			$product = new Product($db);
 			$product->fetch($link->asset->fk_product);
 
 			$row['produit'] = $product->getNomUrl(true).' '.$product->label;
 		}
+		else {
+		    // Bout de code permettant de créer à la main un matériel
+		    $row['produit'] = '<i class="fas fa-plus-circle" style="cursor: pointer;" title="'.$langs->trans('CreateMateriel').'"></i>';
+            $row['produit'] .= "<script type=\"text/javascript\">
+                                    $(document).ready(function() {
+                                        function createMateriel() {
+                                            let libelleProduit = $('#libelleProduit').val();
+                                            let serialNumber = $('#serialNumber').val();
+                                            let refProduit = $('#refProduit').val();
+                                            let marque = $('#marque').val();
+                                            let affaireEntity = $('#affaireEntity').val();
+
+                                            $.ajax({
+                                                url: '".dol_buildpath('/financement/script/interface.php', 1)."',
+                                                data: {
+                                                    json: 1,
+                                                    action: 'createMateriel',
+                                                    libelleProduit: libelleProduit,
+                                                    serialNumber: serialNumber,
+                                                    refProduit: refProduit,
+                                                    marque: marque,
+                                                    affaireEntity: affaireEntity
+                                                },
+                                                dataType: 'json',
+                                                type: 'POST',
+                                                async: false
+                                            });
+                                        }
+
+                                        $('i.fa-plus-circle').on('click', function() {
+                                            $('#serialNumber').val($(this).parents('tr').find('td.asset a').text());
+
+                                            $('div#addMateriel').dialog({
+                                                modal: true,
+                                                minWidth: 400,
+                                                minHeight: 100,
+                                                buttons: [{
+                                                    text: '".$langs->trans('Ok')."',
+                                                    click: function() {
+                                                        createMateriel();
+                                                        $(this).dialog('close');
+
+                                                        location.reload();
+                                                    }
+                                                }, { text: '".$langs->trans('Cancel')."', click: function () { $(this).dialog('close'); }}
+                                                ]
+                                            });
+                                        });
+                                    });
+                                </script>";
+        }
 
 		// Lien facture
 		$row['facture'] = '';
@@ -536,43 +585,42 @@ function _fiche(&$ATMdb, &$affaire, $mode) {
 
 	print $TBS->render('./tpl/affaire.tpl.php'
 		,array(
-			'dossier'=>$TDossier
-			,'asset'=>$TAsset
+			'dossier'=>$TDossier,
+            'asset'=>$TAsset
 		)
 		,array(
 			'affaire'=>array(
-				'id'=>$affaire->rowid
-				,'ref'=>$affaire->reference
-				,'entity'=>$entity_field
-				,'reference'=>$formRestricted->texte('', 'reference', $affaire->reference, 100,255,'','','à saisir')
-				,'nature_financement'=>$formRestricted->combo('', 'nature_financement', $affaire->TNatureFinancement , $affaire->nature_financement)
-				,'type_financement'=>$formRestricted->combo('', 'type_financement', $affaire->TTypeFinancement , $affaire->type_financement)
-				,'contrat'=>$formRestricted->combo('', 'contrat', $affaire->TContrat , $affaire->contrat)
-				,'type_materiel'=>$formRestricted->combo('', '', $affaire->TTypeMateriel , $affaire->type_materiel)
-				,'date_affaire'=>$formRestricted->calendrier('', 'date_affaire', $affaire->date_affaire,10)
-				,'montant'=>$formRestricted->texte('', 'montant', $affaire->montant, 20,255,'','','à saisir')
-				,'montant_ok'=>$affaire->somme_dossiers // somme des dossiers rattachés
-				,'solde'=>$affaire->solde // montant à financer - somme des dossiers
-				,'date_maj'=>$affaire->get_date('date_maj','d/m/Y à H:i:s')
-				,'date_cre'=>$affaire->get_date('date_cre','d/m/Y')
-				,'societe'=>$affaire->societe->nom
-				,'socid'=>$affaire->societe->id
-				,'societe'=>$mode == "edit" ? $affaire->societe->nom : $affaire->societe->getNomUrl(1)
-				,'montant_val'=>$affaire->montant
-				,'force_update'=>$formRestricted->checkbox1('', 'force_update', 1)
-				,'nature_financement_val'=>$affaire->nature_financement
-
-				,'addDossierButton'=>(($affaire->nature_financement!='') ? 1 : 0)
-				,'url_therefore'=>FIN_THEREFORE_AFFAIRE_URL
-			)
-			,'view'=>array(
-				'mode'=>$mode
-				,'otherDossier'=>$otherDossier
-				,'otherFactureMat'=>$otherFactureMat
-				,'otherSoc'=>$otherSoc
-				,'userRight'=>((int)$user->rights->financement->affaire->write)
-				,'financement_verouille'=>($affaire->TLien[0]->dossier->financementLeaser->okPourFacturation === 'AUTO' && $user->rights->financement->admin->write) ? 'verrouille' : ''
-				,'creer_affaire' => ($affaire->nature_financement && $affaire->montant && $affaire->type_financement && $affaire->contrat) ? 'ok' : 'ko'
+				'id'=>$affaire->rowid,
+                'ref'=>$affaire->reference,
+                'entity'=>$entity_field,
+                'fk_entity' => $affaire->entity,
+                'reference'=>$formRestricted->texte('', 'reference', $affaire->reference, 100,255,'','','à saisir'),
+                'nature_financement'=>$formRestricted->combo('', 'nature_financement', $affaire->TNatureFinancement , $affaire->nature_financement),
+                'type_financement'=>$formRestricted->combo('', 'type_financement', $affaire->TTypeFinancement , $affaire->type_financement),
+                'contrat'=>$formRestricted->combo('', 'contrat', $affaire->TContrat , $affaire->contrat),
+                'type_materiel'=>$formRestricted->combo('', '', $affaire->TTypeMateriel , $affaire->type_materiel),
+                'date_affaire'=>$formRestricted->calendrier('', 'date_affaire', $affaire->date_affaire,10),
+                'montant'=>$formRestricted->texte('', 'montant', $affaire->montant, 20,255,'','','à saisir'),
+                'montant_ok'=>$affaire->somme_dossiers, // somme des dossiers rattachés
+                'solde'=>$affaire->solde, // montant à financer - somme des dossiers
+                'date_maj'=>$affaire->get_date('date_maj','d/m/Y à H:i:s'),
+                'date_cre'=>$affaire->get_date('date_cre','d/m/Y'),
+                'socid'=>$affaire->societe->id,
+                'societe'=>$mode == "edit" ? $affaire->societe->nom : $affaire->societe->getNomUrl(1),
+                'montant_val'=>$affaire->montant,
+                'force_update'=>$formRestricted->checkbox1('', 'force_update', 1),
+                'nature_financement_val'=>$affaire->nature_financement,
+                'addDossierButton'=>(($affaire->nature_financement!='') ? 1 : 0),
+                'url_therefore'=>FIN_THEREFORE_AFFAIRE_URL
+			),
+            'view'=>array(
+				'mode'=>$mode,
+                'otherDossier'=>$otherDossier,
+                'otherFactureMat'=>$otherFactureMat,
+                'otherSoc'=>$otherSoc,
+                'userRight'=>((int)$user->rights->financement->affaire->write),
+                'financement_verouille'=>($affaire->TLien[0]->dossier->financementLeaser->okPourFacturation === 'AUTO' && $user->rights->financement->admin->write) ? 'verrouille' : '',
+                'creer_affaire' => ($affaire->nature_financement && $affaire->montant && $affaire->type_financement && $affaire->contrat) ? 'ok' : 'ko'
 			),
             'fac' => array(
                 'reference' => $facRef,

@@ -1,5 +1,6 @@
 <?php
 require '../config.php';
+require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/dossier.class.php');
 dol_include_once('/financement/class/affaire.class.php');
@@ -29,6 +30,15 @@ switch($action) {
         $fk_dossier = GETPOST('fk_dossier');
 
         print json_encode(toggleDematCheckbox($fk_dossier));
+        break;
+    case 'createMateriel':
+        $libelleProduit = GETPOST('libelleProduit');
+        $serialNumber = GETPOST('serialNumber');
+        $refProduit = GETPOST('refProduit');
+        $marque = GETPOST('marque');
+        $entity = GETPOST('affaireEntity');
+
+        print json_encode(createMateriel($libelleProduit, $serialNumber, $refProduit, $marque, $entity));
         break;
 }
 
@@ -89,4 +99,80 @@ function toggleDematCheckbox($fk_dossier) {
     if(! $resql) return false;
 
     return true;
+}
+
+/**
+ * @param string $libelleProduit
+ * @param string $serialNumber
+ * @param string $refProduit
+ * @param string $marque
+ * @param int $entity
+ * @return bool
+ */
+function createMateriel($libelleProduit, $serialNumber, $refProduit, $marque, $entity) {
+    if(empty($libelleProduit) || empty($serialNumber) || empty($refProduit) || empty($marque) || empty($entity)) return false;
+    global $db, $user;
+
+    $PDOdb = new TPDOdb;
+
+    $p = new Product($db);
+    $p->fetch('', $refProduit);
+
+    if(! empty($p->id)) return false;
+
+    $p->ref = $refProduit;
+    $p->label = $libelleProduit;
+    $p->type = Product::TYPE_PRODUCT;
+
+    $p->price_base_type = 'TTC';
+    $p->price_ttc = 0;
+    $p->price_min_ttc = 0;
+
+    $p->tva_tx = 20;
+    $p->tva_npr = 0;
+
+    $p->localtax1_tx = get_localtax($p->tva_tx, 1);
+    $p->localtax2_tx = get_localtax($p->tva_tx, 2);
+
+    $p->status = 1;
+    $p->status_buy = 1;
+    $p->description = $marque;
+    $p->customcode = '';
+    $p->country_id = 1;
+    $p->duration_value = 0;
+    $p->duration_unit = 0;
+    $p->seuil_stock_alerte = 0;
+    $p->weight = 0;
+    $p->weight_units = 0;
+    $p->length = 0;
+    $p->length_units = 0;
+    $p->surface = 0;
+    $p->surface_units = 0;
+    $p->volume = 0;
+    $p->volume_units = 0;
+    $p->finished = 1;
+
+    $res = $p->create($user);
+
+    if($res > 0) {
+        $TSerial = explode(' - ', $serialNumber);
+
+        foreach($TSerial as $serial) {
+            $asset = new TAsset;
+            $asset->loadReference($PDOdb, $serial);
+
+            $asset->fk_product = $p->id;
+            $asset->serial_number = $serial;
+
+            $asset->set_date('date_achat', date('Y-m-d'));
+            $asset->copy_color = 0;
+            $asset->entity = $entity;
+
+            $asset->save($PDOdb);
+        }
+
+        return true;
+    }
+
+    return false;
 }
