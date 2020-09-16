@@ -2921,6 +2921,15 @@ class TSimulationSuivi extends TObjetStd
 
         // Si on est sur de la location mandatée, il faut forcer ces paramètres pour l'envoi en EDI
         if(in_array($this->fk_leaser, $TLeaserMandate)) {
+            // Il ne suffit pas de changer le champ opt_periodicite pour que ça marche...
+            if($simulation->opt_periodicite !== 'TRIMESTRE') {
+                // FIXME: Non mais franchement... Virez moi ce truc là !!
+                $f = new TFin_financement;
+                $f->periodicite = $simulation->opt_periodicite; /// Vivement la refonte... FIXME: Kevin, c'est quand que tu vas mettre du refactoring dans ma vie ?
+
+                $duree = $simulation->duree * $f->getiPeriode();    // On ramène la durée au mois...
+                $simulation->duree = $duree / 3;    // ...Pour au final avoir du trimestre
+            }
             $simulation->opt_periodicite = 'TRIMESTRE';
             $simulation->terme = 1; // à échoir
             $simulation->opt_mode_reglement = 'PRE';
