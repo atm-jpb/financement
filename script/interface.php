@@ -118,43 +118,45 @@ function createMateriel($libelleProduit, $serialNumber, $refProduit, $marque, $e
     $p = new Product($db);
     $p->fetch('', $refProduit);
 
-    if(! empty($p->id)) return false;
+    // On en créé que si le produit n'existe pas
+    if(empty($p->id)) {
+        $p->ref = $refProduit;
+        $p->label = $libelleProduit;
+        $p->type = Product::TYPE_PRODUCT;
 
-    $p->ref = $refProduit;
-    $p->label = $libelleProduit;
-    $p->type = Product::TYPE_PRODUCT;
+        $p->price_base_type = 'TTC';
+        $p->price_ttc = 0;
+        $p->price_min_ttc = 0;
 
-    $p->price_base_type = 'TTC';
-    $p->price_ttc = 0;
-    $p->price_min_ttc = 0;
+        $p->tva_tx = 20;
+        $p->tva_npr = 0;
 
-    $p->tva_tx = 20;
-    $p->tva_npr = 0;
+        $p->localtax1_tx = get_localtax($p->tva_tx, 1);
+        $p->localtax2_tx = get_localtax($p->tva_tx, 2);
 
-    $p->localtax1_tx = get_localtax($p->tva_tx, 1);
-    $p->localtax2_tx = get_localtax($p->tva_tx, 2);
+        $p->status = 1;
+        $p->status_buy = 1;
+        $p->description = $marque;
+        $p->customcode = '';
+        $p->country_id = 1;
+        $p->duration_value = 0;
+        $p->duration_unit = 0;
+        $p->seuil_stock_alerte = 0;
+        $p->weight = 0;
+        $p->weight_units = 0;
+        $p->length = 0;
+        $p->length_units = 0;
+        $p->surface = 0;
+        $p->surface_units = 0;
+        $p->volume = 0;
+        $p->volume_units = 0;
+        $p->finished = 1;
 
-    $p->status = 1;
-    $p->status_buy = 1;
-    $p->description = $marque;
-    $p->customcode = '';
-    $p->country_id = 1;
-    $p->duration_value = 0;
-    $p->duration_unit = 0;
-    $p->seuil_stock_alerte = 0;
-    $p->weight = 0;
-    $p->weight_units = 0;
-    $p->length = 0;
-    $p->length_units = 0;
-    $p->surface = 0;
-    $p->surface_units = 0;
-    $p->volume = 0;
-    $p->volume_units = 0;
-    $p->finished = 1;
+        $p->create($user);
+    }
 
-    $res = $p->create($user);
-
-    if($res > 0) {
+    // Et comme ça s'il existe, on l'utilise
+    if(! empty($p->id)) {
         $TSerial = explode(' - ', $serialNumber);
 
         foreach($TSerial as $serial) {
