@@ -534,7 +534,7 @@ llxFooter();
 $db->close();
 
 function createDossier(TPDOdb $PDOdb, TSimulation $s) {
-    global $db, $langs;
+    global $db, $langs, $conf;
 
     // Création de l'affaire
     $a = new TFin_affaire;
@@ -569,6 +569,8 @@ function createDossier(TPDOdb $PDOdb, TSimulation $s) {
     $d->financement->reglement = $s->opt_mode_reglement;
     $d->financement->reste = $s->vr;
     $d->financement->periodicite = $s->opt_periodicite;
+    $d->financement->frais_dossier = $conf->global->FINANCEMENT_CONFORMITE_FRAIS_DOSSIER;
+    $d->financement->assurance = $conf->global->FINANCEMENT_CONFORMITE_ASSURANCE;
 
     // Je veux être sûr que le dossier ne soit pas créé soldé
     $d->financementLeaser->montant_solde = 0.00;

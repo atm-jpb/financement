@@ -111,6 +111,32 @@ print '</form>';
 print '</td>';
 print '</tr>';
 
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FinancementFraisDossier").'</td>';
+print '<td width="80" style="white-space: nowrap;">';
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_CONFORMITE_FRAIS_DOSSIER" />';
+print '<input type="number" name="FINANCEMENT_CONFORMITE_FRAIS_DOSSIER" min="0" value="'.$conf->global->FINANCEMENT_CONFORMITE_FRAIS_DOSSIER.'" />';
+print '&nbsp;';
+print '<input type="submit" class="button" value="'.$langs->trans("Enregistrer").'" />';
+print '</form>';
+print '</td>';
+print '</tr>';
+
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans("FinancementAssurance").'</td>';
+print '<td width="80" style="white-space: nowrap;">';
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
+print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+print '<input type="hidden" name="action" value="set_FINANCEMENT_CONFORMITE_ASSURANCE" />';
+print '<input type="number" name="FINANCEMENT_CONFORMITE_ASSURANCE" min="0" value="'.$conf->global->FINANCEMENT_CONFORMITE_ASSURANCE.'" />';
+print '&nbsp;';
+print '<input type="submit" class="button" value="'.$langs->trans("Enregistrer").'" />';
+print '</form>';
+print '</td>';
+print '</tr>';
+
 print '</table>';
 
 dol_fiche_end();

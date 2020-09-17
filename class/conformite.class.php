@@ -1,4 +1,5 @@
 <?php
+dol_include_once('/financement/lib/financement.lib.php');
 
 class Conformite extends TObjetStd
 {
@@ -180,7 +181,12 @@ class Conformite extends TObjetStd
             /** @var TFin_financement $f */
             $f = &$d->financementLeaser;
             $f->montant = $this->montantFinanceLeaser;
+            $f->duree = $d->financement->duree;
+            $f->reste = TFin_financement::getVR($s->fk_leaser);
+            $f->date_debut = getNextQuarter();
+
             if($conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'same') $f->echeance = $d->financement->echeance;
+            else $f->echeance = $this->montantFinanceLeaser * $tauxLeaser/100;
 
             return $f->save($PDOdb);
         }

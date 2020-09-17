@@ -57,8 +57,10 @@ surfactSameTerm = Loyers indentiques
 surfactDifferentTerm = Surfact
 FinancementSurfactCalculationMethod = Méthode de calcul de la surfact
 FinancementSurfactPercent = Pourcentage appliqué
+FinancementFraisDossier = Frais de dossier
+FinancementAssurance = Assurance
 MontantSurfact = Montant
-TauxLeaser = Taux leaser
+TauxLeaser = Coef leaser
 MontantFinanceLeaser = Montant financé leaser
 DateCalcul = Date du calcul
 
