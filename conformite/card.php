@@ -399,9 +399,9 @@ if ($simu->id > 0) {
     print '<tr>';
     print '<td style="padding: 0 0;">'.$langs->trans('ListOfRequiredFiles3').'</td>';
 
-    print '<td>Montant surfact :</td>';
+    print '<td>'.$langs->trans('MontantSurfact').'</td>';
     print '<td>';
-    if(! empty($object->montantSurfact)) print price($object->montantSurfact, 0, '', 1, 2, 2);
+    if(! empty($object->dateCalculSurfact)) print price($object->montantSurfact, 0, '', 1, 2, 2, 'auto');
     else print '&nbsp;';
     print '</td>';
     print '</tr>';
@@ -410,9 +410,9 @@ if ($simu->id > 0) {
     print '<tr>';
     print '<td style="padding: 0 0;">'.$langs->trans('ListOfRequiredFiles4').'</td>';
 
-    print '<td>Taux leaser :</td>';
+    print '<td>'.$langs->trans('TauxLeaser').'</td>';
     print '<td>';
-    if(! empty($object->tauxLeaser)) print price($object->tauxLeaser, 0, '', 1, 3, 3).' %';
+    if(! empty($object->dateCalculSurfact)) print price($object->tauxLeaser, 0, '', 1, 3, 3).' %';
     else print '&nbsp;';
     print '</td>';
     print '</tr>';
@@ -421,14 +421,25 @@ if ($simu->id > 0) {
     print '<tr>';
     print '<td style="padding: 0 0;">'.$langs->trans('ListOfRequiredFiles5').'</td>';
 
-    print '<td>Date du calcul :</td>';
+    print '<td>'.$langs->trans('MontantFinanceLeaser').'</td>';
+    print '<td>';
+    if(! empty($object->dateCalculSurfact)) print price($object->montantFinanceLeaser, 0, '', 1, 2, 2, 'auto');
+    else print '&nbsp;';
+    print '</td>';
+    print '</tr>';
+
+    // Required files
+    print '<tr>';
+    print '<td style="padding: 0 0;">'.$langs->trans('ListOfRequiredFiles6').'</td>';
+
+    print '<td>'.$langs->trans('DateCalcul').'</td>';
     print '<td>';
     if(! empty($object->dateCalculSurfact) && $object->dateCalculSurfact > 0) print date('d/m/Y', $object->dateCalculSurfact);
     else print '&nbsp;';
     print '</td>';
     print '</tr>';
 
-    for($i = 6 ; $i < 10 ; $i++) print '<tr><td style="padding: 0 0;">'.$langs->trans('ListOfRequiredFiles'.$i).'</td></tr>';
+    for($i = 7 ; $i < 10 ; $i++) print '<tr><td style="padding: 0 0;">'.$langs->trans('ListOfRequiredFiles'.$i).'</td></tr>';
 
 
     // Commentaire ADV

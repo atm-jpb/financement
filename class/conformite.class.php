@@ -43,6 +43,7 @@ class Conformite extends TObjetStd
     public $date_conformeN2;
     public $dateCalculSurfact;
     public $montantSurfact;
+    public $montantFinanceLeaser;
     public $tauxLeaser;
 
     public $PDOdb;
@@ -59,7 +60,7 @@ class Conformite extends TObjetStd
         parent::add_champs('date_conformeN1', array('type' => 'date', 'index' => true));
         parent::add_champs('date_attenteN2,date_conformeN2', array('type' => 'date', 'index' => true));
         parent::add_champs('dateCalculSurfact', array('type' => 'date', 'index' => true));
-        parent::add_champs('montantSurfact,tauxLeaser', array('type' => 'float'));
+        parent::add_champs('montantSurfact,montantFinanceLeaser,tauxLeaser', array('type' => 'float'));
 
         parent::start();
 
@@ -144,7 +145,6 @@ class Conformite extends TObjetStd
     public function calculSurfact(): float {
         global $conf;
 
-        $surfact = 0;
         $PDOdb = new TPDOdb;
         $s = new TSimulation;
         $s->load($PDOdb, $this->fk_simulation, false);
@@ -153,22 +153,36 @@ class Conformite extends TObjetStd
         /** @var TSimulationSuivi $suivi */
         foreach($s->TSimulationSuivi as $suivi) if($suivi->fk_leaser == $s->fk_leaser) break;
 
-        if($conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'same') {
+        $surfact = $tauxLeaser = 0;
+        if(! isLeaserLocPure($s->fk_leaser) && ! isLeaserAdosse($s->fk_leaser) && $conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'same') {
             if(empty($suivi->montantfinanceleaser)) $s->calculMontantFinanceLeaser($PDOdb, $suivi);
             if(! empty($suivi->montantfinanceleaser)) $surfact = $suivi->montantfinanceleaser - $s->montant;
         }
-        elseif($conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'diff' && ! empty($conf->global->FINANCEMENT_SURFACT_PERCENT)) {
+        elseif(! isLeaserLocPure($s->fk_leaser) && ! isLeaserAdosse($s->fk_leaser) && $conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'diff' && ! empty($conf->global->FINANCEMENT_SURFACT_PERCENT)) {
             $surfact = $s->montant * $conf->global->FINANCEMENT_SURFACT_PERCENT/100;
         }
 
         if(! empty($surfact)) {
             $coeffLine = $suivi->getCoefLineLeaser($PDOdb, $s->montant, $s->fk_type_contrat, $s->duree, $s->opt_periodicite);
+            $tauxLeaser = $coeffLine['coeff'];
+        }
+        $this->montantSurfact = $surfact;
+        $this->montantFinanceLeaser = $s->montant + $surfact;
+        $this->dateCalculSurfact = time();
+        $this->tauxLeaser = $tauxLeaser;
 
-            $this->montantSurfact = $surfact;
-            $this->dateCalculSurfact = time();
-            $this->tauxLeaser = $coeffLine['coeff'];
+        $res = $this->update();
 
-            return $this->update();
+        if($res >= 0) { // On met à jour le montant financé leaser du dossier qui est lié à la simulation
+            $d = new TFin_dossier;
+            $d->load($PDOdb, $s->fk_fin_dossier);
+
+            /** @var TFin_financement $f */
+            $f = &$d->financementLeaser;
+            $f->montant = $this->montantFinanceLeaser;
+            if($conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'same') $f->echeance = $d->financement->echeance;
+
+            return $f->save($PDOdb);
         }
 
         return false;

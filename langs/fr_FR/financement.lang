@@ -54,9 +54,13 @@ SetupShowSoldeMinTaux=Indisponibilité du solde dans la simulation si taux infé
 FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN=Enchaîner les appels EDI automatiques toutes les X minutes
 FINANCEMENT_DEFAULT_MAIL_RECIPIENT=Envoyer les accords de financement en copie à :
 surfactSameTerm = Loyers indentiques
-surfactDifferentTerm = Loyers différents
+surfactDifferentTerm = Surfact
 FinancementSurfactCalculationMethod = Méthode de calcul de la surfact
-FinancementSurfactPercent = Pourcentage appliqué sur le loyer
+FinancementSurfactPercent = Pourcentage appliqué
+MontantSurfact = Montant
+TauxLeaser = Taux leaser
+MontantFinanceLeaser = Montant financé leaser
+DateCalcul = Date du calcul
 
 # EDI
 FINANCEMENT_SHOW_RECETTE_BUTTON=Affiche un bouton dans la colonne "Actions" des suivis leaser pour forcer l'appel au webservice (si l'utilisateur courant est admin et entité 0)

@@ -973,3 +973,23 @@ function updateSocieteOtherCustomerCode(Societe &$soc, $TCustomerCodeToAdd, $pro
     if($process) $res = $soc->insertExtraFields();// Le updateExtrafield n'insert pas si besoin
     return $res > 0;
 }
+
+/**
+ * @param int $socid
+ * @return bool
+ */
+function isLeaserLocPure($socid) {
+    return $socid === 18495;
+}
+
+function isLeaserAdosse($socid) {
+    $TLeaserAdosse = [
+        19553,  // BNP
+        3214,   // CM CIC
+        21921,  // Grenke
+        19068,  // Lixxbail
+        30749  // Locam
+    ];
+
+    return in_array($socid, $TLeaserAdosse);
+}
