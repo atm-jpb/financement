@@ -997,7 +997,7 @@ function isLeaserAdosse($socid) {
 /**
  * @param ?int $date timestamp
  * @param bool $current true : Renvoie la date courante s'il s'agit du début d'un trimestre
- * @return false|string
+ * @return int|false
  */
 function getNextQuarter($date = null, $current = false) {
     if(is_null($date)) $date = time();
@@ -1005,5 +1005,5 @@ function getNextQuarter($date = null, $current = false) {
     if($current && in_array(date('dm', $date), ['0101', '0104', '0107', '0110'])) return date('Y-m-d', $date);
 
     $calc = (3 - ((date('n', $date) - 1) % 3));  // Get nb day to add
-    return date('Y-m-d', strtotime('first day of +'.$calc.' month', $date));  // Get next quarter
+    return strtotime('first day of +'.$calc.' month', $date);  // Get next quarter
 }
