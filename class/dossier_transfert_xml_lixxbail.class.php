@@ -257,7 +257,7 @@ class TFinTransfertLixxbail extends TFinDossierTransfertXML {
                 $name2 = "FP_207_MA01_CPRO".$entity."_".$date;
                 $nomFichier = "CPROMA0".$entity."IMMA".$date;
                 $refPartenaire = "AG50MA01";    // OK
-                $numLot = "AG50".date('Ymd');
+                $numLot = "AG50".date('ymd');
                 break;
 			default:
 				$name2 = "FP_207_MA01_CPRO".$entity."_".$date;
