@@ -317,10 +317,17 @@ class TSimulation extends TObjetStd
     public function generatePDF(TPDOdb $PDOdb) {
         global $db;
 
+        // Permet de générer correctement les PDFs même avec le symbole '&'
+        $TFieldToEncode = [
+            'type_materiel',
+            'commentaire'
+        ];
+        foreach($TFieldToEncode as $field) $this->$field = htmlspecialchars($this->$field);
+
         $this->gen_simulation_pdf($PDOdb, $db);
 
         // Uniquement pour les simuls d'ESUS et de ABS qui ont des dossiers à solder !
-        if(in_array($this->entity, array(18, 25, 28)) && empty($this->opt_no_case_to_settle)) {
+        if(in_array($this->entity, [18, 25, 28]) && empty($this->opt_no_case_to_settle)) {
             $this->gen_simulation_pdf_esus($PDOdb, $db);
         }
     }
