@@ -81,7 +81,7 @@ while($obj = $db->fetch_object($resql)) {
         if($suivi->date_demande < 0) $suivi->date_demande = null;   // DateTime with this string '0999-11-30 00:00:00' will provide a negative timestamp
 
         if(empty($suivi->date_demande)) {
-            if(isEDI($suivi) && ($k == 0 || $TSuivi[$k-1]->statut == 'KO' || $TSuivi[$k-1]->date_demande + $conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN*60 <= time() && $TSuivi[$k-1]->statut != 'ERR')) {
+            if($suivi->isEDI() && ($k == 0 || $TSuivi[$k-1]->statut == 'KO' || $TSuivi[$k-1]->date_demande + $conf->global->FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN*60 <= time() && $TSuivi[$k-1]->statut != 'ERR')) {
                 if($debug) {
                     var_dump('doActionDemander !!');
                     print "\n";
@@ -89,7 +89,7 @@ while($obj = $db->fetch_object($resql)) {
                 $suivi->doActionDemander($PDOdb, $simulation);
                 $nb_commit++;
             }
-            else if(! isEDI($suivi) && $suivi->fk_leaser == 18495 && $k == 0) {
+            else if(! $suivi->isEDI() && $suivi->fk_leaser == 18495 && $k == 0) {
                 if($debug)  {
                     var_dump('Qui a demandé une LOC PURE ?!');
                     print "\n";
@@ -118,15 +118,6 @@ while($obj = $db->fetch_object($resql)) {
 }
 $db->free($resql);
 
-function isEDI(TSimulationSuivi $suivi) {
-    global $db;
-
-    $leaser = new Societe($db);
-    $leaser->fetch($suivi->fk_leaser);
-    if(empty($leaser->array_options)) $leaser->fetch_optionals();
-
-    return (! empty($leaser->array_options['options_edi_leaser']) && in_array($leaser->array_options['options_edi_leaser'], array('BNP', 'LIXXBAIL', 'CMCIC', 'GRENKE')));
-}
 if($debug) {
     ?>
     <hr>

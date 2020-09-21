@@ -2477,6 +2477,14 @@ class TSimulation extends TObjetStd
 
 class TSimulationSuivi extends TObjetStd
 {
+    public static $TLeaserEDI = [
+        'BNP',
+        'LIXXBAIL',
+        'CMCIC',
+        'GRENKE',
+        'FRANFINANCE'
+    ];
+
     function __construct() {
         global $langs;
 
@@ -3265,5 +3273,15 @@ class TSimulationSuivi extends TObjetStd
             && $isNotEmptyNumAccordLeaser                       // Numéro accord leaser renseigné
             && $isDiffBelowMaxDiffPercentage                    // Différence de renta
             || ($isActive && $isLocPure && $isEmptyComment);    // LOC PURE
+    }
+
+    public function isEDI(): bool {
+        global $db;
+
+        $leaser = new Societe($db);
+        $leaser->fetch($this->fk_leaser);
+        if(empty($leaser->array_options)) $leaser->fetch_optionals();
+
+        return (! empty($leaser->array_options['options_edi_leaser']) && in_array($leaser->array_options['options_edi_leaser'], self::$TLeaserEDI));
     }
 }
