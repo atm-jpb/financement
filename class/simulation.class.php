@@ -318,11 +318,7 @@ class TSimulation extends TObjetStd
         global $db;
 
         // Permet de générer correctement les PDFs même avec le symbole '&'
-        $TFieldToEncode = [
-            'type_materiel',
-            'commentaire'
-        ];
-        foreach($TFieldToEncode as $field) $this->$field = htmlspecialchars($this->$field);
+        $this->encodeTextFields();
 
         $this->gen_simulation_pdf($PDOdb, $db);
 
@@ -2468,6 +2464,15 @@ class TSimulation extends TObjetStd
 
         return $r;
     }
+
+    public function encodeTextFields(): void {
+        $TFieldToEncode = [
+            'type_materiel',
+            'commentaire'
+        ];
+
+        foreach($TFieldToEncode as $field) $this->$field = htmlspecialchars($this->$field);
+    }
 }
 
 class TSimulationSuivi extends TObjetStd
@@ -2918,6 +2923,8 @@ class TSimulationSuivi extends TObjetStd
         $simulation->load($PDOdb, $this->fk_simulation);
         $old_entity = $conf->entity;
         switchEntity($simulation->entity);
+
+        $simulation->encodeTextFields();
 
         $TLeaserMandate = array(
             19483,  // Lixxbail
