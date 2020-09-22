@@ -6,6 +6,7 @@ define('INC_FROM_CRON_SCRIPT', true);
 require_once __DIR__.'/../config.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/api_thirdparties.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/conformite.class.php');
 dol_include_once('/financement/class/simulation.class.php');
@@ -80,7 +81,7 @@ class Financement extends DolibarrApi
             if(empty($TEntity)) throw new RestException(400, 'Wrong value for entity filter');
         }
 
-        $TDossier = array();
+        $TDossier = [];
         if(! is_null($id)) {
             $res = $this->dossier->load($this->PDOdb, $id, false);
             if($res === false) throw new RestException(404, 'Contract not found');
@@ -147,7 +148,7 @@ class Financement extends DolibarrApi
         }
         $this->dossier->load_affaire($this->PDOdb);
 
-        $TRes = array();
+        $TRes = [];
         if($this->dossier->nature_financement == 'EXTERNE') return $TRes;
 
         $e = $this->dossier->echeancier($PDOdb, 'CLIENT', 1, true, false);
@@ -161,14 +162,14 @@ class Financement extends DolibarrApi
             $date_start = mktime(null, null, null, $TDateStart[1], $TDateStart[0], $TDateStart[2]);
             $date_end = strtotime('+'.$iPeriodeClient.' month -1 day', $date_start);
 
-            $TRes[] = array(
+            $TRes[] = [
                 'period' => $i,
                 'payment' => $solde,
                 'date_start' => date('Y-m-d', $date_start),
                 'date_end' => date('Y-m-d', $date_end),
                 'display' => ($displaySolde === 1),
                 'retraitCopies' => $soldePerso
-            );
+            ];
 
             unset($date_start, $date_end, $TDateStart, $solde);
         }
@@ -193,7 +194,7 @@ class Financement extends DolibarrApi
         $res = $dao->fetch($entity);
         if($res <= 0) throw new RestException(400, 'Wrong value for entity filter');
 
-        $TEntity = array($entity);
+        $TEntity = [$entity];
         $TRes = Conformite::getAll($TEntity, $limit);
 
         foreach($TRes as $c) {
@@ -248,6 +249,70 @@ class Financement extends DolibarrApi
         parent::_cleanObjectDatas($this->conformite);
 
         return $this->conformite;
+    }
+
+    /**
+     * @param int    $id
+     * @param string $fileName
+     * @param string $fileContent
+     * @param string $fileEncoding
+     * @param bool   $overwriteIfExists
+     * @return string
+     *
+     * @throws RestException
+     * @url     POST /compliances/{id}/uploadDocument
+     */
+    public function conformiteUploadDoc($id, $fileName, $fileContent = '', $fileEncoding = '', $overwriteIfExists = false) {
+        if(! DolibarrApiAccess::$user->rights->ecm->upload) {
+            throw new RestException(401);
+        }
+
+        $res = $this->conformite->fetch($id);
+        if(! $res) throw new RestException(404, 'Compliance not found');
+        $refSimulation = TSimulation::getStaticRef($this->conformite->fk_simulation);
+
+        global $conf;
+
+        $oldEntity = $conf->entity;
+        switchEntity($this->conformite->entity);
+
+        $newFileContent = '';
+        if(empty($fileEncoding)) $newFileContent = $fileContent;
+        else if($fileEncoding === 'base64') $newFileContent = base64_decode($fileContent);
+
+        $fileName = dol_sanitizeFileName($fileName);
+        $uploadDir = $conf->financement->dir_output.'/'.dol_sanitizeFileName($refSimulation).'/conformite';
+
+        $destFile = $uploadDir.'/'.$fileName;
+        $destFileTmp = '/tmp/'.$fileName;
+
+        if(! dol_is_dir(dirname($destFile))) {
+            throw new RestException(401, 'Directory not exists : '.dirname($destFile));
+        }
+
+        if(! $overwriteIfExists && dol_is_file($destFile)) {
+            throw new RestException(500, "File with name '".$fileName."' already exists.");
+        }
+
+        $f = @fopen($destFileTmp, 'w');
+        if($f) {
+            fwrite($f, $newFileContent);
+            fclose($f);
+            @chmod($destFileTmp, octdec($conf->global->MAIN_UMASK));
+        }
+        else {
+            throw new RestException(500, "Failed to open file '".$destFileTmp."' for write");
+        }
+
+        $result = dol_move($destFileTmp, $destFile, 0, $overwriteIfExists, 1);
+        if (! $result)
+        {
+            throw new RestException(500, "Failed to move file into '".$destFile."'");
+        }
+
+        switchEntity($oldEntity);
+
+        return dol_basename($destFile);
     }
 
     /**
@@ -363,16 +428,16 @@ class Financement extends DolibarrApi
 
     private static function format($object) {
         // To format these fields too
-        $object->TChamps['date_cre'] = array('type' => 'date');
-        $object->TChamps['date_maj'] = array('type' => 'date');
+        $object->TChamps['date_cre'] = ['type' => 'date'];
+        $object->TChamps['date_maj'] = ['type' => 'date'];
 
-        $TBoolean = array(
+        $TBoolean = [
             'incident_paiement',
             'okPourFacturation',
             'reloc',
             'relocOK',
             'intercalaireOK'
-        );
+        ];
 
         foreach($object->TChamps as $k => $v) {
             $type = array_shift($v);
@@ -398,7 +463,7 @@ class Financement extends DolibarrApi
             return false;
         }
 
-        $TRes = array();
+        $TRes = [];
         while($obj = $this->db->fetch_object($resql)) $TRes[] = $obj->fk_object;
 
         return $TRes;
