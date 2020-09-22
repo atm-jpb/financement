@@ -53,6 +53,7 @@ FINANCEMENT_DEFAULT_EXTERNAL_RELOCATION_PERCENT=Pourcentage de commission par d�
 SetupShowSoldeMinTaux=Indisponibilité du solde dans la simulation si taux inférieur à X %%
 FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN=Enchaîner les appels EDI automatiques toutes les X minutes
 FINANCEMENT_DEFAULT_MAIL_RECIPIENT=Envoyer les accords de financement en copie à :
+FINANCEMENT_PRIO_LEASER_MIN_DIFF_SOLDE = Ne pas prioriser, dans l'aiguillage, le leaser concerné par le solde d'un dossier si la différence de solde est inférieure à X€
 surfactSameTerm = Loyers indentiques
 surfactDifferentTerm = Loyers différents
 FinancementSurfactCalculationMethod = Méthode de calcul de la surfact
@@ -84,6 +85,7 @@ FINANCEMENT_WSDL_FRANFINANCE_PROD=WSDL de <b>production</b> de FRANFINANCE
 FINANCEMENT_OUR_WSDL_GIVE_TO_FRANFINANCE=URL du WSDL du module financement pour FRANFINANCE
 FINANCEMENT_FRANFINANCE_USERNAME=FRANFINANCE paramètre username
 FINANCEMENT_FRANFINANCE_PASSWORD=FRANFINANCE paramètre password
+FINANCEMENT_FRANFINANCE_CODE_MATERIEL=FRANFINANCE code matériel
 
 SimulationSuiviInfoWebDemande=Demande faite (%s - %s)
 
@@ -206,6 +208,7 @@ leaserNotAllgood=Leaser du dossier différent
 ErrorCreatingLinkAffaireFactureMaterielAlreidyExist=Facture matériel déjà rattaché à une affaire
 ErrorMaterielNonFinance=Facture matériel pour un contrat non financé
 AssetWithWrongDossier=Matricule trouvé mais associé à un autre dossier
+CreateMateriel = Créer le matériel
 
 # IHM
 DataSaved=Données enregistrées avec succès

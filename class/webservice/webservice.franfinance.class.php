@@ -74,8 +74,7 @@ class WebServiceFranfinance extends WebService
 	public function getBody()
     {
         global $conf;
-//        print '<pre>';
-//        var_dump($this->simulation); exit;
+
         $sirenClient = substr($this->simulation->societe->idprof2, 0, 9);
         // Need pour avoir la fonction de calcul de la périodicité
         $f = new TFin_financement();
@@ -103,7 +102,7 @@ class WebServiceFranfinance extends WebService
         $data->demande->blocPlanFinancement->vr = $this->simulation->vr;
 
         $data->demande->blocMateriel = new stdClass();
-        $data->demande->blocMateriel->codeInseeMateriel = '300121';
+        $data->demande->blocMateriel->codeInseeMateriel = $conf->global->FINANCEMENT_FRANFINANCE_CODE_MATERIEL;
         $data->demande->blocMateriel->materielOccasion = false;
 //        $data->demande->blocMateriel->anneeMateriel = date("Y");
         $data->demande->blocMateriel->codeNiveauUtilisationMateriel = 'NEU';

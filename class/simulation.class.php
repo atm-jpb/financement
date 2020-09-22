@@ -317,10 +317,13 @@ class TSimulation extends TObjetStd
     public function generatePDF(TPDOdb $PDOdb) {
         global $db;
 
+        // Permet de générer correctement les PDFs même avec le symbole '&'
+        $this->encodeTextFields();
+
         $this->gen_simulation_pdf($PDOdb, $db);
 
         // Uniquement pour les simuls d'ESUS et de ABS qui ont des dossiers à solder !
-        if(in_array($this->entity, array(18, 25, 28)) && empty($this->opt_no_case_to_settle)) {
+        if(in_array($this->entity, [18, 25, 28]) && empty($this->opt_no_case_to_settle)) {
             $this->gen_simulation_pdf_esus($PDOdb, $db);
         }
     }
@@ -1860,8 +1863,8 @@ class TSimulation extends TObjetStd
                 for($i = 0 ; $i <= $k ; $i++) $TSuivi[$i]->rang += 1;   // Pour éviter les -1 et les trous dans les rangs
             }
 
-            // Priorité au leaser concerné par le solde
-            if($k > 0 && $suivi->leaser->array_options['options_prio_solde'] == 1 && ! empty($catLeaserDossierSolde)) {
+            // Priorité au leaser concerné par le solde si diff_solde >= 150€ (paramétrable via la conf FINANCEMENT_PRIO_LEASER_MIN_DIFF_SOLDE)
+            if($k > 0 && $suivi->leaser->array_options['options_prio_solde'] == 1 && ! empty($catLeaserDossierSolde) && abs($suivi->diff_solde) >= $conf->global->FINANCEMENT_PRIO_LEASER_MIN_DIFF_SOLDE) {
                 $catLeaserSuivi = $this->getTCatLeaserFromLeaserId($suivi->fk_leaser);
 
                 $intersect = array_intersect(array_keys($catLeaserDossierSolde), array_keys($catLeaserSuivi));
@@ -2013,7 +2016,9 @@ class TSimulation extends TObjetStd
      * a. Pour chaque dossier racheté, calcul de la différence de solde R et NR par Leaser, applicable aux autres
      * b. Différence solde = Somme différence dossiers rachetés des autres leasers
      *
+     * @param TPDOdb           $PDOdb
      * @param TSimulationSuivi $suivi
+     * @return float
      */
     private function calcDiffSolde(&$PDOdb, &$suivi) {
         // Si déjà calculé alors je renvoi la valeur immédiatemment
@@ -2459,10 +2464,27 @@ class TSimulation extends TObjetStd
 
         return $r;
     }
+
+    public function encodeTextFields(): void {
+        $TFieldToEncode = [
+            'type_materiel',
+            'commentaire'
+        ];
+
+        foreach($TFieldToEncode as $field) $this->$field = htmlspecialchars($this->$field);
+    }
 }
 
 class TSimulationSuivi extends TObjetStd
 {
+    public static $TLeaserEDI = [
+        'BNP',
+        'LIXXBAIL',
+        'CMCIC',
+        'GRENKE',
+        'FRANFINANCE'
+    ];
+
     function __construct() {
         global $langs;
 
@@ -2910,6 +2932,8 @@ class TSimulationSuivi extends TObjetStd
         $old_entity = $conf->entity;
         switchEntity($simulation->entity);
 
+        $simulation->encodeTextFields();
+
         $TLeaserMandate = array(
             19483,  // Lixxbail
             20113,  // BNP
@@ -2921,6 +2945,15 @@ class TSimulationSuivi extends TObjetStd
 
         // Si on est sur de la location mandatée, il faut forcer ces paramètres pour l'envoi en EDI
         if(in_array($this->fk_leaser, $TLeaserMandate)) {
+            // Il ne suffit pas de changer le champ opt_periodicite pour que ça marche...
+            if($simulation->opt_periodicite !== 'TRIMESTRE') {
+                // FIXME: Non mais franchement... Virez moi ce truc là !!
+                $f = new TFin_financement;
+                $f->periodicite = $simulation->opt_periodicite; /// Vivement la refonte... FIXME: Kevin, c'est quand que tu vas mettre du refactoring dans ma vie ?
+
+                $duree = $simulation->duree * $f->getiPeriode();    // On ramène la durée au mois...
+                $simulation->duree = $duree / 3;    // ...Pour au final avoir du trimestre
+            }
             $simulation->opt_periodicite = 'TRIMESTRE';
             $simulation->terme = 1; // à échoir
             $simulation->opt_mode_reglement = 'PRE';
@@ -3240,5 +3273,15 @@ class TSimulationSuivi extends TObjetStd
             && $isNotEmptyNumAccordLeaser                       // Numéro accord leaser renseigné
             && $isDiffBelowMaxDiffPercentage                    // Différence de renta
             || ($isActive && $isLocPure && $isEmptyComment);    // LOC PURE
+    }
+
+    public function isEDI(): bool {
+        global $db;
+
+        $leaser = new Societe($db);
+        $leaser->fetch($this->fk_leaser);
+        if(empty($leaser->array_options)) $leaser->fetch_optionals();
+
+        return (! empty($leaser->array_options['options_edi_leaser']) && in_array($leaser->array_options['options_edi_leaser'], self::$TLeaserEDI));
     }
 }
