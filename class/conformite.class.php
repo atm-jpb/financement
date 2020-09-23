@@ -188,7 +188,14 @@ class Conformite extends TObjetStd
             if($conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'same') $f->echeance = $d->financement->echeance;
             else $f->echeance = $this->montantFinanceLeaser * $tauxLeaser/100;
 
-            return $f->save($PDOdb);
+            $resLeaser = $f->save($PDOdb);
+
+            $d->financement->frais_dossier = $conf->global->FINANCEMENT_CONFORMITE_FRAIS_DOSSIER;
+            $d->financement->assurance = $conf->global->FINANCEMENT_CONFORMITE_ASSURANCE;
+
+            $resClient = $d->financement->save($PDOdb);
+
+            return $resLeaser && $resClient;    // Si un des 2 updates fail, on revoit false
         }
 
         return false;
