@@ -151,6 +151,9 @@ class Conformite extends TObjetStd
         $s->load($PDOdb, $this->fk_simulation, false);
         $s->load_suivi_simulation($PDOdb);
 
+        $oldEntity = $conf->entity;
+        switchEntity($s->entity);
+
         /** @var TSimulationSuivi $suivi */
         foreach($s->TSimulationSuivi as $suivi) if($suivi->fk_leaser == $s->fk_leaser) break;
 
@@ -195,8 +198,12 @@ class Conformite extends TObjetStd
 
             $resClient = $d->financement->save($PDOdb);
 
+            switchEntity($oldEntity);
+
             return $resLeaser && $resClient;    // Si un des 2 updates fail, on revoit false
         }
+
+        switchEntity($oldEntity);
 
         return false;
     }
