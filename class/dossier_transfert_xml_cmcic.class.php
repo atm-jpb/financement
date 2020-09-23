@@ -316,7 +316,7 @@ class TFinTransfertCMCIC extends TFinDossierTransfertXML {
         $TData = array(
             'LIBMAT' => substr($p->label, 0, 60),
             'NOSEROBJ' => substr($assetLink->asset->serial_number, 0, 20),
-            'MTHTUNIT' => price2num($facture->total_ht),
+            'MTHTUNIT' => price2num($dossier->financementLeaser->montant),
             'MTFTECG' => 0,
             'REFEXTFOU' => 'N',
 //            'COMM_FIN' => 'N',    // Facultatif
