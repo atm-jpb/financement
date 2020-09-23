@@ -164,7 +164,7 @@ class Financement extends DolibarrApi
 
             $TRes[] = [
                 'period' => $i,
-                'payment' => $solde,
+                'payment' => round($solde, 2),
                 'date_start' => date('Y-m-d', $date_start),
                 'date_end' => date('Y-m-d', $date_end),
                 'display' => ($displaySolde === 1),
