@@ -441,8 +441,9 @@ function _fiche(&$PDOdb, &$doliDB, &$dossier, &$TBS) {
 	// 2019.12.11 : MKO, revu avec E. Roussard, modification règle de dispo
 	if($facIntegral->cout_unit_noir == 0 || $facIntegral->cout_unit_coul == 0) $avenantOK = false; // Non dispo si cout vendu à 0
 	if($facIntegral->cout_unit_noir_tech == 0 || $facIntegral->cout_unit_coul_tech == 0) $avenantOK = false; // Non dispo si cout tech à 0
-	if($facIntegral->cout_unit_noir_loyer + $facIntegral->cout_unit_noir_mach + $facIntegral->cout_unit_noir_tech == 0) $avenantOK = false; // Non dispo si somme à 0
-	if($facIntegral->cout_unit_coul_loyer + $facIntegral->cout_unit_coul_mach + $facIntegral->cout_unit_coul_tech == 0) $avenantOK = false; // Non dispo si somme à 0
+	$totalCoutNoir = $facIntegral->cout_unit_noir_loyer + $facIntegral->cout_unit_noir_mach + $facIntegral->cout_unit_noir_tech;
+	$totalCoutCouleur = $facIntegral->cout_unit_coul_loyer + $facIntegral->cout_unit_coul_mach + $facIntegral->cout_unit_coul_tech;
+	if($totalCoutNoir == 0 && $totalCoutCouleur == 0) $avenantOK = false;
 
     if($dossier->type_regul != 3) $avenantOK = false;
 
