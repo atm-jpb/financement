@@ -973,3 +973,37 @@ function updateSocieteOtherCustomerCode(Societe &$soc, $TCustomerCodeToAdd, $pro
     if($process) $res = $soc->insertExtraFields();// Le updateExtrafield n'insert pas si besoin
     return $res > 0;
 }
+
+/**
+ * @param int $socid
+ * @return bool
+ */
+function isLeaserLocPure($socid) {
+    return $socid === 18495;
+}
+
+function isLeaserAdosse($socid) {
+    $TLeaserAdosse = [
+        19553,  // BNP
+        3214,   // CM CIC
+        21921,  // Grenke
+        19068,  // Lixxbail
+        30749  // Locam
+    ];
+
+    return in_array($socid, $TLeaserAdosse);
+}
+
+/**
+ * @param ?int $date timestamp
+ * @param bool $current true : Renvoie la date courante s'il s'agit du début d'un trimestre
+ * @return int|false
+ */
+function getNextQuarter($date = null, $current = false) {
+    if(is_null($date)) $date = time();
+
+    if($current && in_array(date('dm', $date), ['0101', '0104', '0107', '0110'])) return date('Y-m-d', $date);
+
+    $calc = (3 - ((date('n', $date) - 1) % 3));  // Get nb day to add
+    return strtotime('first day of +'.$calc.' month', $date);  // Get next quarter
+}

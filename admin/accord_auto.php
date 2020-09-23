@@ -15,19 +15,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * 	\defgroup   financement     Module Financement
- *  \brief      Module financement pour C'PRO
- *  \file       /financement/core/modules/modFinancement.class.php
- *  \ingroup    Financement
- *  \brief      Description and activation file for module financement
- */
-
-require('../config.php');
+require '../config.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 dol_include_once('/financement/lib/admin.lib.php');
 
-if (!$user->rights->financement->admin->write) accessforbidden();
+global $user, $langs, $db, $conf, $bc;
+
+if (! $user->rights->financement->admin->write) accessforbidden();
 
 $langs->load('financement@financement');
 $langs->load("admin");
@@ -52,6 +46,7 @@ if(substr($action,0,4) == 'set_') {
 
 if ($action == 'setvalue')
 {
+    $error = 0;
     $res = dolibarr_set_const($db, $key, $value, 'chaine', 0, '', $conf->entity);
     if(!$res > 0) $error++;
 
@@ -116,8 +111,8 @@ print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
 print '<input type="hidden" name="action" value="set_FINANCEMENT_MAX_DIFF_RENTA" />';
 print '<tr '.$bc[$var].'>';
 print '<td>'.$langs->trans("FinancementMaxDiffRenta").'</td>';
-print '<td width="80">';
-print '<input type="number" name="FINANCEMENT_MAX_DIFF_RENTA" min="0" value="'.$conf->global->FINANCEMENT_MAX_DIFF_RENTA.'" />%';
+print '<td width="80" style="white-space: nowrap;">';
+print '<input type="number" name="FINANCEMENT_MAX_DIFF_RENTA" min="0" value="'.$conf->global->FINANCEMENT_MAX_DIFF_RENTA.'" /> %';
 print '</td><td>';
 print '<input type="submit" class="button" value="'.$langs->trans("Enregistrer").'" />';
 print '</td>';
@@ -125,9 +120,6 @@ print '</tr>';
 print '</form>';
 
 print '</table>';
-
-
-dol_htmloutput_mesg($mesg);
 
 dol_fiche_end();
 

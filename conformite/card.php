@@ -18,6 +18,8 @@ dol_include_once('/financement/class/affaire.class.php');
 dol_include_once('/financement/class/conformite.class.php');
 dol_include_once('/multicompany/class/dao_multicompany.class.php');
 
+global $langs, $user, $db, $conf;
+
 $langs->load('dict');
 $langs->load('mails');
 $langs->load('other');
@@ -31,9 +33,9 @@ $upload = GETPOST('sendit', '', 2);
 
 // Security check
 $socid='';
-if (! empty($user->societe_id)) {
+if (! empty($user->socid)) {
     $action = '';
-    $socid = $user->societe_id;
+    $socid = $user->socid;
 }
 $result = restrictedArea($user, 'financement', $fk_simu, 'fin_simulation&societe', 'conformite', 'fk_soc', 'rowid');
 
@@ -90,11 +92,10 @@ else {
     header('Location: list.php');
     exit;
 }
+$baseUrl = $_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu;
 
 if(empty($id) && ! empty($user->rights->financement->conformite->create)) {    // Dans le cas d'une création
-    $object->fk_simulation = $fk_simu;
-    $object->status = Conformite::STATUS_DRAFT;
-    $object->entity = $simu->entity;
+    $object->init($simu->entity, $fk_simu);
     $res = $object->create();
 
     if($res > 0) {
@@ -124,58 +125,18 @@ if($action === 'save' && (! empty($user->rights->financement->conformite->create
         setEventMessage($langs->trans('ConformiteUpdated'));
     }
 
-    $url = $_SERVER['PHP_SELF'];
-    $url.= '?fk_simu='.$fk_simu;
-    $url.= '&id='.$id;
-    header('Location: '.$url);
+    header('Location: '.$baseUrl);
     exit;
 }
 elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     $statusLabel = GETPOST('status', 'alpha');
-    switch($statusLabel) {
-        case 'draft':
-            if(! empty($user->rights->financement->conformite->create)) $status = Conformite::STATUS_DRAFT;
-            break;
-        case 'notCompliantN1':
-            if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_NOT_COMPLIANT_N1;
-            break;
-        case 'notCompliantN2':
-            if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_NOT_COMPLIANT_N2;
-            break;
-        case 'compliantN1':
-            if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_COMPLIANT_N1;
-            $dateConformeN1 = time();
-            break;
-        case 'compliantN2':
-            if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_COMPLIANT_N2;
-            $dateConformeN2 = time();
-            break;
-        case 'waitN1':
-            if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1;
-            $fk_user = $user->id;   // On save le user qui fait la demande
-            $dateEnvoi = time();
-            break;
-        case 'waitN2':
-            if(! empty($user->rights->financement->conformite->validate)) $status = Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2;
-            $dateAttenteN2 = time();
-            break;
-        case 'withoutFurtherAction':
-            if(! empty($user->rights->financement->conformite->accept)) $status = Conformite::STATUS_WITHOUT_FURTHER_ACTION;
-            break;
-        default:
-            break;
-    }
+
+    $status = Conformite::getStatusFromLabel($statusLabel);
 
     if(! is_null($status)) {
-        if(! is_null($fk_user) && $object->status === Conformite::STATUS_DRAFT) $object->fk_user = $fk_user;
-        if(! is_null($dateEnvoi)) $object->date_envoi = $dateEnvoi;
-        if(! is_null($dateAttenteN2)) $object->date_attenteN2 = $dateAttenteN2;
-        if(! is_null($dateConformeN1)) $object->date_conformeN1 = $dateConformeN1;
-        if(! is_null($dateConformeN2)) $object->date_conformeN2 = $dateConformeN2;
-        $object->status = $status;
-        $res = $object->update();
+        $res = $object->setStatus($status);
 
-        if($res > 0 && in_array($object->status, array(Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_COMPLIANT_N2, Conformite::STATUS_NOT_COMPLIANT_N1, conformite::STATUS_NOT_COMPLIANT_N2))) {
+        if($res > 0 && in_array($object->status, array(Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_COMPLIANT_N2, Conformite::STATUS_NOT_COMPLIANT_N1, Conformite::STATUS_NOT_COMPLIANT_N2))) {
             $resMail = $object->sendMail($simu->fk_soc);
             if($resMail) {
                 $u = new User($db);
@@ -191,10 +152,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
         }
     }
 
-    $url = $_SERVER['PHP_SELF'];
-    $url.= '?fk_simu='.$fk_simu;
-    $url.= '&id='.$id;
-    header('Location: '.$url);
+    header('Location: '.$baseUrl);
     exit;
 }
 elseif($action === 'confirm_createDossier' && !empty($user->rights->financement->alldossier->write) && $confirm === 'yes') {
@@ -202,16 +160,13 @@ elseif($action === 'confirm_createDossier' && !empty($user->rights->financement-
         createDossier($PDOdb, $simu);
     }
 
-    $url = $_SERVER['PHP_SELF'];
-    $url.= '?fk_simu='.$fk_simu;
-    $url.= '&id='.$id;
-    header('Location: '.$url);
+    header('Location: '.$baseUrl);
     exit;
 }
 elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($object->id) && ! empty($_FILES['userfile'])) {
     dol_add_file_process($upload_dir, 0, 1, 'userfile');
 
-    header('Location: '.$_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid.'&id='.$object->id);
+    header('Location: '.$baseUrl);
     exit;
 }
 elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->rights->financement->conformite->delete)) {
@@ -250,7 +205,13 @@ elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->
         }
     }
 
-    header('Location: '.$_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid.'&id='.$object->id);
+    header('Location: '.$baseUrl);
+    exit;
+}
+elseif($action === 'confirm_calculateSurfact' && ! empty($user->rights->financement->conformite->validate)) {
+    $object->calculSurfact();
+
+    header('Location: '.$baseUrl);
     exit;
 }
 
@@ -263,26 +224,27 @@ print '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/
 if($action === 'delete' && ! empty($user->rights->financement->conformite->delete)) {
     $urlfile = GETPOST('urlfile');
 
-    $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
+    $url = $baseUrl;
     if(! empty($urlfile)) $url .= '&urlfile='.urlencode($urlfile);
 
     print $form->formconfirm($url, $langs->trans('DeleteFile'), $langs->trans('ConfirmDeleteFile'), 'confirm_deleteFile', '', '', 1);
 }
 elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COMPLIANT_N1 && ! empty($user->rights->financement->alldossier->write)) {
-    $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
-
-    print $form->formconfirm($url, $langs->trans('ConformiteCreateDossier'), $langs->trans('ConformiteConfirmCreateDossier'), 'confirm_createDossier', '', '', 1);
+    print $form->formconfirm($baseUrl, $langs->trans('ConformiteCreateDossier'), $langs->trans('ConformiteConfirmCreateDossier'), 'confirm_createDossier', '', '', 1);
 }
 elseif($action === 'setStatus') {
     $statusLabel = GETPOST('status', 'alpha');
     if(in_array($statusLabel, array('waitN1', 'waitN2')) && ! empty($user->rights->financement->conformite->validate) ||
         in_array($statusLabel, array('compliantN1', 'compliantN2', 'notCompliantN1', 'notCompliantN2', 'withoutFurtherAction')) && ! empty($user->rights->financement->conformite->accept))
     {
-        $url = $_SERVER['PHP_SELF'].'?fk_simu='.$fk_simu.'&id='.$object->id;
+        $url = $baseUrl;
         if(! empty($statusLabel)) $url .= '&status='.$statusLabel;
 
         print $form->formconfirm($url, $langs->trans('ConformiteSetStatus'), $langs->trans('ConformiteConfirmSetStatus'), 'confirm_setStatus', '', '', 1);
     }
+}
+elseif($action === 'calculateSurfact' && ! empty($user->rights->financement->conformite->validate)) {
+    print $form->formconfirm($baseUrl, $langs->trans('ConformiteCalculateSurfact'), $langs->trans('ConformiteConfirmCalculateSurfact'), 'confirm_calculateSurfact', '', '', 1);
 }
 
 if ($simu->id > 0) {
@@ -394,8 +356,8 @@ if ($simu->id > 0) {
 
     // Required files
     print '<tr>';
-    print '<td>'.$langs->trans('RequiredFiles').'</td>';
-    print '<td>'.$langs->trans('ListOfRequiredFiles').'</td>';
+    print '<td rowspan="9">'.$langs->trans('RequiredFiles').'</td>';
+    print '<td style="padding: 0 0;">'.$langs->trans('ListOfRequiredFiles1').'</td>';
 
     // Contrat démat
     if(! empty($d->rowid)) {
@@ -425,6 +387,60 @@ if ($simu->id > 0) {
     }
     else print '<td colspan="2"></td>';
     print '</tr>';
+
+    // Required files
+    print '<tr>';
+    print '<td style="padding: 0 0;">'.$langs->trans('ListOfRequiredFiles2').'</td>';
+
+    print '<td colspan="2" style="padding-left: 120px; font-size: medium; font-weight: bold; text-decoration: underline;">Surfact :</td>';
+    print '</tr>';
+
+    // Required files
+    print '<tr>';
+    print '<td style="padding: 0 0;">'.$langs->trans('ListOfRequiredFiles3').'</td>';
+
+    print '<td>'.$langs->trans('MontantSurfact').'</td>';
+    print '<td>';
+    if(! empty($object->dateCalculSurfact)) print price($object->montantSurfact, 0, '', 1, 2, 2, 'auto');
+    else print '&nbsp;';
+    print '</td>';
+    print '</tr>';
+
+    // Required files
+    print '<tr>';
+    print '<td style="padding: 0 0;">'.$langs->trans('ListOfRequiredFiles4').'</td>';
+
+    print '<td>'.$langs->trans('TauxLeaser').'</td>';
+    print '<td>';
+    if(! empty($object->dateCalculSurfact)) print price($object->tauxLeaser, 0, '', 1, 3, 3).' %';
+    else print '&nbsp;';
+    print '</td>';
+    print '</tr>';
+
+    // Required files
+    print '<tr>';
+    print '<td style="padding: 0 0;">'.$langs->trans('ListOfRequiredFiles5').'</td>';
+
+    print '<td>'.$langs->trans('MontantFinanceLeaser').'</td>';
+    print '<td>';
+    if(! empty($object->dateCalculSurfact)) print price($object->montantFinanceLeaser, 0, '', 1, 2, 2, 'auto');
+    else print '&nbsp;';
+    print '</td>';
+    print '</tr>';
+
+    // Required files
+    print '<tr>';
+    print '<td style="padding: 0 0;">'.$langs->trans('ListOfRequiredFiles6').'</td>';
+
+    print '<td>'.$langs->trans('DateCalcul').'</td>';
+    print '<td>';
+    if(! empty($object->dateCalculSurfact) && $object->dateCalculSurfact > 0) print date('d/m/Y', $object->dateCalculSurfact);
+    else print '&nbsp;';
+    print '</td>';
+    print '</tr>';
+
+    for($i = 7 ; $i < 10 ; $i++) print '<tr><td style="padding: 0 0;">'.$langs->trans('ListOfRequiredFiles'.$i).'</td></tr>';
+
 
     // Commentaire ADV
     print '<tr>';
@@ -482,30 +498,34 @@ else {
 print '<div class="tabsAction">';
 
 if(in_array($object->status, array(Conformite::STATUS_DRAFT, Conformite::STATUS_NOT_COMPLIANT_N1)) && ! empty($user->rights->financement->conformite->validate)) {
-    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=confirm_setStatus&status=waitN1&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN1Button').'</a>';
+    print '<a class="butAction" href="'.$baseUrl.'&action=confirm_setStatus&status=waitN1&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN1Button').'</a>';
     if($object->status === Conformite::STATUS_NOT_COMPLIANT_N1) {
-        print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
+        print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
     }
 }
 elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1 && ! empty($user->rights->financement->conformite->accept)) {
-    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=compliantN1">'.$langs->trans('ConformiteCompliantN1Button').'</a>';
-    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliantN1">'.$langs->trans('ConformiteNotCompliantN1').'</a>';
-    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
+    print '<a class="butAction" href="'.$baseUrl.'&action=setStatus&status=compliantN1">'.$langs->trans('ConformiteCompliantN1Button').'</a>';
+    print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=notCompliantN1">'.$langs->trans('ConformiteNotCompliantN1').'</a>';
+    print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
 }
 elseif(in_array($object->status, array(Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_NOT_COMPLIANT_N2)) && ! empty($user->rights->financement->conformite->validate)) {
-    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=confirm_setStatus&status=waitN2&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN2Button').'</a>';
-    if($object->status === Conformite::STATUS_COMPLIANT_N1 && empty($simu->fk_fin_dossier) && ! empty($user->rights->financement->alldossier->write) && ! in_array($object->entity, $TEntityCreateDossier)) {
-        print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=createDossier">'.$langs->trans('ConformiteCreateDossier').'</a>';
+    print '<a class="butAction" href="'.$baseUrl.'&action=confirm_setStatus&status=waitN2&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN2Button').'</a>';
+    if($object->status === Conformite::STATUS_COMPLIANT_N1) {
+        print '<a class="butAction" href="'.$baseUrl.'&action=calculateSurfact">'.$langs->trans('ConformiteCalculateSurfactButton').'</a>';
+
+        if(empty($simu->fk_fin_dossier) && ! empty($user->rights->financement->alldossier->write) && ! in_array($object->entity, $TEntityCreateDossier)) {
+            print '<a class="butAction" href="'.$baseUrl.'&action=createDossier">'.$langs->trans('ConformiteCreateDossier').'</a>';
+        }
     }
-    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
+    print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
 }
 elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2 && ! empty($user->rights->financement->conformite->accept)) {
-    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=compliantN2">'.$langs->trans('ConformiteCompliantN2').'</a>';
-    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=notCompliantN2">'.$langs->trans('ConformiteNotCompliantN2').'</a>';
-    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
+    print '<a class="butAction" href="'.$baseUrl.'&action=setStatus&status=compliantN2">'.$langs->trans('ConformiteCompliantN2').'</a>';
+    print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=notCompliantN2">'.$langs->trans('ConformiteNotCompliantN2').'</a>';
+    print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
 }
 elseif($object->status === Conformite::STATUS_COMPLIANT_N2 && ! empty($user->rights->financement->conformite->accept)) {
-    print '<a class="butActionDelete" href="'.$_SERVER['PHP_SELF'].'?id='.$id.'&fk_simu='.$fk_simu.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
+    print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
 }
 
 print '</div>';
@@ -514,7 +534,7 @@ llxFooter();
 $db->close();
 
 function createDossier(TPDOdb $PDOdb, TSimulation $s) {
-    global $db, $langs;
+    global $db, $langs, $conf;
 
     // Création de l'affaire
     $a = new TFin_affaire;
@@ -549,6 +569,8 @@ function createDossier(TPDOdb $PDOdb, TSimulation $s) {
     $d->financement->reglement = $s->opt_mode_reglement;
     $d->financement->reste = $s->vr;
     $d->financement->periodicite = $s->opt_periodicite;
+    $d->financement->frais_dossier = $conf->global->FINANCEMENT_CONFORMITE_FRAIS_DOSSIER;
+    $d->financement->assurance = $conf->global->FINANCEMENT_CONFORMITE_ASSURANCE;
 
     // Je veux être sûr que le dossier ne soit pas créé soldé
     $d->financementLeaser->montant_solde = 0.00;

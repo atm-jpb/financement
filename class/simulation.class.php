@@ -1904,7 +1904,7 @@ class TSimulation extends TObjetStd
      * a. on part de l’échéance client, on retrouve le coeff leaser, on calcule le montant finançable leaser
      * b. Surfact = Montant finançable leaser - montant financé client
      *
-     * @param TSuiviSimulation $suivi
+     * @param TSimulationSuivi $suivi
      */
     private function calcSurfact(&$PDOdb, &$suivi) {
         // Si déjà calculé alors je renvoi la valeur immédiatemment
@@ -1926,7 +1926,7 @@ class TSimulation extends TObjetStd
      * a. % de surfact + à définir par Leaser (1% BNP pour commencer)
      * b. Surfact+ = Montant finançable leaser * % surfact+
      *
-     * @param TSuiviSimulation $suivi
+     * @param TSimulationSuivi $suivi
      */
     private function calcSurfactPlus(&$PDOdb, &$suivi) {
         // Si déjà calculé alors je renvoi la valeur immédiatemment
@@ -1951,7 +1951,7 @@ class TSimulation extends TObjetStd
      * a. % de comm à définir par Leaser
      * b. Comm = Montant finançable leaser * % comm
      *
-     * @param TSuiviSimulation $suivi
+     * @param TSimulationSuivi $suivi
      */
     private function calcComm(&$PDOdb, &$suivi) {
         // Si déjà calculé alors je renvoi la valeur immédiatemment
@@ -1981,7 +1981,7 @@ class TSimulation extends TObjetStd
      * b. % moyen intercalaire C’Pro à définir pour C’Pro (par entité)
      * c. Intercalaire = Loyer * % moyen intercalaire * % intercalaire Leaser sauf si calage sur simulation
      *
-     * @param TSuiviSimulation $suivi
+     * @param TSimulationSuivi $suivi
      */
     private function calcIntercalaire(&$PDOdb, &$suivi) {
         global $conf;
@@ -2056,7 +2056,7 @@ class TSimulation extends TObjetStd
      * a. % de pv à définir par Leaser
      * b. PV = (Surfact + Surfact+) * % pv
      *
-     * @param TSuiviSimulation $suivi
+     * @param TSimulationSuivi $suivi
      */
     private function calcPrimeVolume(&$PDOdb, &$suivi) {
         // Si déjà calculé alors je renvoi la valeur immédiatemment
@@ -2076,7 +2076,7 @@ class TSimulation extends TObjetStd
      * c. Simulation d’un dossier avec les paramètres de la simulation
      * d. Turn over = Solde du dossier simulé à durée théorique du dossier sauf si case administration cochée
      *
-     * @param TSuiviSimulation $suivi
+     * @param TSimulationSuivi $suivi
      */
     private function calcTurnOver(&$PDOdb, &$suivi) {
         global $conf;
@@ -2531,10 +2531,10 @@ class TSimulationSuivi extends TObjetStd
      * retourne -2 si la durée est trouvée mais qu'aucune tranche de paramétrée
      * autrement renvoi le talbeau d'info
      *
-     * @param type $PDOdb
-     * @param type $amount
-     * @param type $fk_type_contrat
-     * @param type $duree
+     * @param TPDOdb $PDOdb
+     * @param float  $amount
+     * @param string $fk_type_contrat
+     * @param int    $duree
      * @return array|int if not found
      */
     public function getCoefLineLeaser($PDOdb, $amount, $fk_type_contrat, $duree, $periodicite) {

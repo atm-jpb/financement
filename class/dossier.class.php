@@ -2607,9 +2607,7 @@ class TFin_financement extends TObjetStd
             $this->set_date('date_prochaine_echeance', $dossier->getDateDebutPeriode($echeance - 1, 'CLIENT'));
         }
 
-        parent::save($ATMdb);
-
-        return true;
+        return parent::save($ATMdb);
     }
 
     /**

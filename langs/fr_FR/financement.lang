@@ -54,6 +54,16 @@ SetupShowSoldeMinTaux=Indisponibilité du solde dans la simulation si taux infé
 FINANCEMENT_EDI_SCORING_AUTO_EVERY_X_MIN=Enchaîner les appels EDI automatiques toutes les X minutes
 FINANCEMENT_DEFAULT_MAIL_RECIPIENT=Envoyer les accords de financement en copie à :
 FINANCEMENT_PRIO_LEASER_MIN_DIFF_SOLDE = Ne pas prioriser, dans l'aiguillage, le leaser concerné par le solde d'un dossier si la différence de solde est inférieure à X€
+surfactSameTerm = Loyers indentiques
+surfactDifferentTerm = Surfact
+FinancementSurfactCalculationMethod = Méthode de calcul de la surfact
+FinancementSurfactPercent = Pourcentage appliqué
+FinancementFraisDossier = Frais de dossier
+FinancementAssurance = Assurance
+MontantSurfact = Montant
+TauxLeaser = Coef leaser
+MontantFinanceLeaser = Montant financé leaser
+DateCalcul = Date du calcul
 
 # EDI
 FINANCEMENT_SHOW_RECETTE_BUTTON=Affiche un bouton dans la colonne "Actions" des suivis leaser pour forcer l'appel au webservice (si l'utilisateur courant est admin et entité 0)
@@ -424,6 +434,15 @@ Conformite = Conformité
 ConformiteList = Liste des conformités
 RequiredFiles = Fichiers obligatoires
 ListOfRequiredFiles = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>Contrat + scan des CGV + mandat SEPA</li><li>Accord de financement</li><li>Facture matériel</li><li>PV de livraison</li><li>RIB</li><li>CNI (recto verso)</li><li>Copie societe.com ou KBIS pour les dossiers >50k€</li><li>Mail de déro la cas échéant</li><li>Pouvoir de signature le cas échéant</li></ul>
+ListOfRequiredFiles1 = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>Contrat + scan des CGV + mandat SEPA</li></ul>
+ListOfRequiredFiles2 = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>Accord de financement</li></ul>
+ListOfRequiredFiles3 = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>Facture matériel</li></ul>
+ListOfRequiredFiles4 = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>PV de livraison</li></ul>
+ListOfRequiredFiles5 = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>RIB</li></ul>
+ListOfRequiredFiles6 = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>CNI (recto verso)</li></ul>
+ListOfRequiredFiles7 = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>Copie societe.com ou KBIS pour les dossiers >50k€</li></ul>
+ListOfRequiredFiles8 = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>Mail de déro la cas échéant</li></ul>
+ListOfRequiredFiles9 = <ul style="padding-left: 20px; margin-top: 0px; margin-bottom: 0px;"><li>Pouvoir de signature le cas échéant</li></ul>
 DossierDemat = Contrat démat
 ConformiteStatus = Statut conformité
 ConformiteDraft = Brouillon
@@ -457,6 +476,9 @@ ConformiteDateWaitingForComplianceN1 = Date envoi N1
 ConformiteDateCompliantN1 = Date conforme N1
 ConformiteDateWaitingForComplianceN2 = Date envoi N2
 ConformiteDateCompliantN2 = Date conforme N2
+ConformiteCalculateSurfact = Calculer la surfact
+ConformiteConfirmCalculateSurfact = Êtes-vous sûr(e) de vouloir calculer la surfact pour cette conformité ?
+ConformiteCalculateSurfactButton = Calculer la surfact
 NumAccord = Numéro accord
 DossierDateSending = Date d'envoi du dossier
 FactureMaterielDate = Date de la facture matériel
