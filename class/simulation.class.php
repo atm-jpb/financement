@@ -2473,6 +2473,10 @@ class TSimulation extends TObjetStd
 
         foreach($TFieldToEncode as $field) $this->$field = htmlspecialchars($this->$field);
     }
+
+    public static function getStaticRef($id) {
+        return 'S'.str_pad($id, 6, '0', STR_PAD_LEFT);
+    }
 }
 
 class TSimulationSuivi extends TObjetStd

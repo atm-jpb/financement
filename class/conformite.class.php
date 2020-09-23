@@ -49,7 +49,7 @@ class Conformite extends TObjetStd
 
     public $PDOdb;
 
-    function __construct() {
+    public function __construct() {
         parent::set_table(MAIN_DB_PREFIX.self::$tablename);
 
         // Foreign keys
@@ -215,7 +215,7 @@ class Conformite extends TObjetStd
     public function update() { return $this->create(); }
 
     public function fetch($id) {
-        $this->load($this->PDOdb, $id);
+        return $this->load($this->PDOdb, $id);
     }
 
     public function fetchBy($field, $value) {
@@ -308,5 +308,32 @@ class Conformite extends TObjetStd
         $r->nbtodolate = $nbDelayed;
 
         return $r;
+    }
+
+    public static function getAll($TEntity, $limit = null) {
+        global $db, $conf;
+
+        if(empty($TEntity)) $TEntity[] = $conf->entity;
+
+        $sql = 'SELECT rowid';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.'fin_conformite';
+        $sql.= ' WHERE entity IN ('.implode(',', $TEntity).')';
+        if(! empty($limit)) $sql .= ' LIMIT '.$db->escape($limit);
+
+        $resql = $db->query($sql);
+        if(! $resql) {
+            dol_print_error($db);
+            exit;
+        }
+
+        $TRes = array();
+        while($obj = $db->fetch_object($resql)) {
+            $c = new Conformite;
+            $c->fetch($obj->rowid);
+
+            $TRes[] = $c;
+        }
+
+        return $TRes;
     }
 }
