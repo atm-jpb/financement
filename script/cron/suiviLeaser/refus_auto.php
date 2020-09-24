@@ -25,12 +25,14 @@ $user->fetch(1035); // Admin_financement
 $user->getrights();
 $langs->load('financement@financement');
 
-// On veut toutes les simul qui sont prêtes à un potentiel accord auto
-$sql = 'SELECT rowid';
-$sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation';
+// On veut toutes les simul qui sont prêtes à un potentiel refus auto
+$sql = "SELECT ss.fk_simulation, count(*) as total, sum(case ss.statut when 'KO' then 1 else 0 end) as nbKO";
+$sql.= ' FROM '.MAIN_DB_PREFIX.'fin_simulation_suivi ss';
+$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_simulation s ON (ss.fk_simulation = s.rowid)';
 $sql.= " WHERE accord = 'WAIT'";    // Toutes les simulations "En étude"
-$subquery = 'SELECT DISTINCT fk_simulation FROM '.MAIN_DB_PREFIX."fin_simulation_suivi WHERE statut = 'KO'";    // On prend toutes les simuls qui ont au moins 1 refus
-$sql.= ' AND rowid IN ('.$subquery.')';
+$sql.= ' AND s.entity = 18';    // Uniquement pour l'entité ESUS
+$sql.= ' GROUP BY ss.fk_simulation';
+$sql.= ' HAVING total = nbKO';
 
 if($debug) {
     print '<p>'.$sql.'</p><br />'."\n";
@@ -45,25 +47,13 @@ if(! $resql) {
 $nb_commit = $nb_rollback = $nb_ignored = 0;
 $nb_record = $db->num_rows($resql);
 if($debug) {
-    print '<span>Nb record : ' . $nb_record . '</span><br />'."\n";
+    print '<span>Nb record : '.$nb_record.'</span><br />'."\n";
 }
 
 while($obj = $db->fetch_object($resql)) {
     $simulation = new TSimulation;
-    $simulation->load($PDOdb, $obj->rowid);
+    $simulation->load($PDOdb, $obj->fk_simulation);
 
-    if(empty($simulation->TSimulationSuivi)) {
-        if($debug) {
-            print '<pre><span style="background-color: #ff0000">&nbsp;&nbsp;&nbsp;</span> Simulation sans suivi Leaser !</pre>'."\n";
-        }
-        $nb_rollback++;
-        continue;
-    }
-
-    $TSuiviStatut = array_unique(array_map(function($suivi) { return $suivi->statut; }, $simulation->TSimulationSuivi));
-
-    if(count($TSuiviStatut) === 1 && array_shift($TSuiviStatut) === 'KO') {
-        $simulation->accord = 'KO';
-        $simulation->save($PDOdb);
-    }
+    $simulation->accord = 'KO';
+    $simulation->save($PDOdb);
 }
