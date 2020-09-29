@@ -56,4 +56,12 @@ while($obj = $db->fetch_object($resql)) {
 
     $simulation->accord = 'KO';
     $simulation->save($PDOdb);
+    $simulation->generatePDF($PDOdb);
+
+    $simulation->send_mail_vendeur();
+
+    // Oui c'est un test inutile vu que toutes les simuls sont sur ESUS... Mais je pense à l'avenir là :)
+    if(in_array($simulation->entity, [18, 25, 28]) && empty($simulation->opt_no_case_to_settle)) {
+        $simulation->send_mail_vendeur_esus();
+    }
 }
