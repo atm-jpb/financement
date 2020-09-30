@@ -208,7 +208,7 @@ elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->
     header('Location: '.$baseUrl);
     exit;
 }
-elseif($action === 'confirm_calculateSurfact' && ! empty($user->rights->financement->conformite->validate)) {
+elseif($action === 'confirm_calculateSurfact' && $confirm === 'yes' && ! empty($user->rights->financement->conformite->validate)) {
     $object->calculSurfact();
 
     header('Location: '.$baseUrl);
