@@ -157,6 +157,9 @@ class Conformite extends TObjetStd
         /** @var TSimulationSuivi $suivi */
         foreach($s->TSimulationSuivi as $suivi) if($suivi->fk_leaser == $s->fk_leaser) break;
 
+        // Cas spécifique Lixxbail Mandaté ne fait pas de 22T
+        if($s->fk_leaser == 19483 && $s->duree == 22) $s->duree = 21;
+
         $surfact = $tauxLeaser = 0;
         if(! isLeaserLocPure($s->fk_leaser) && ! isLeaserAdosse($s->fk_leaser) && $conf->global->FINANCEMENT_SURFACT_CALCULATION_METHOD === 'same') {
             if(empty($suivi->montantfinanceleaser)) $s->calculMontantFinanceLeaser($PDOdb, $suivi);
@@ -184,7 +187,7 @@ class Conformite extends TObjetStd
             /** @var TFin_financement $f */
             $f = &$d->financementLeaser;
             $f->montant = $this->montantFinanceLeaser;
-            $f->duree = $d->financement->duree;
+            $f->duree = $s->duree;
             $f->reste = TFin_financement::getVR($s->fk_leaser);
             $f->date_debut = getNextQuarter();
 
