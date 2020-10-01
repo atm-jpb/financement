@@ -497,7 +497,7 @@ else {
 
 print '<div class="tabsAction">';
 
-if(in_array($object->status, array(Conformite::STATUS_DRAFT, Conformite::STATUS_NOT_COMPLIANT_N1)) && ! empty($user->rights->financement->conformite->validate)) {
+if(in_array($object->status, [Conformite::STATUS_DRAFT, Conformite::STATUS_NOT_COMPLIANT_N1]) && ! empty($user->rights->financement->conformite->validate)) {
     print '<a class="butAction" href="'.$baseUrl.'&action=confirm_setStatus&status=waitN1&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN1Button').'</a>';
     if($object->status === Conformite::STATUS_NOT_COMPLIANT_N1) {
         print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
@@ -508,7 +508,7 @@ elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1 && ! emp
     print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=notCompliantN1">'.$langs->trans('ConformiteNotCompliantN1').'</a>';
     print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
 }
-elseif(in_array($object->status, array(Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_NOT_COMPLIANT_N2)) && ! empty($user->rights->financement->conformite->validate)) {
+elseif(in_array($object->status, [Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_NOT_COMPLIANT_N2]) && ! empty($user->rights->financement->conformite->validate)) {
     print '<a class="butAction" href="'.$baseUrl.'&action=confirm_setStatus&status=waitN2&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN2Button').'</a>';
     if($object->status === Conformite::STATUS_COMPLIANT_N1) {
         print '<a class="butAction" href="'.$baseUrl.'&action=calculateSurfact">'.$langs->trans('ConformiteCalculateSurfactButton').'</a>';
@@ -523,6 +523,7 @@ elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N2 && ! emp
     print '<a class="butAction" href="'.$baseUrl.'&action=setStatus&status=compliantN2">'.$langs->trans('ConformiteCompliantN2').'</a>';
     print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=notCompliantN2">'.$langs->trans('ConformiteNotCompliantN2').'</a>';
     print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
+    print '<a class="butAction" href="'.$baseUrl.'&action=calculateSurfact">'.$langs->trans('ConformiteCalculateSurfactButton').'</a>';
 }
 elseif($object->status === Conformite::STATUS_COMPLIANT_N2 && ! empty($user->rights->financement->conformite->accept)) {
     print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
