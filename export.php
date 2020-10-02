@@ -26,7 +26,7 @@ $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_dossier_affaire da ON (dr.fk_dossier =
 $sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'fin_affaire a ON (da.fk_fin_affaire = a.rowid)';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe cli ON (a.fk_soc = cli.rowid)';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX."fin_dossier_financement dflea ON (dr.fk_dossier = dflea.fk_fin_dossier AND dflea.type = 'LEASER')";
-$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'llx_societe lea ON (dflea.fk_soc = lea.rowid)';
+$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'societe lea ON (dflea.fk_soc = lea.rowid)';
 $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe slea ON (s.fk_leaser = slea.rowid)';
 $sql.= ' WHERE s.entity IN ('.getEntity('fin_simulation', true).')';
 $sql.= " AND s.accord = 'OK'";
