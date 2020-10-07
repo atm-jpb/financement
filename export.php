@@ -46,6 +46,7 @@ $THead = [
     'client',
     'partenaire',
     'num_dossier_client',
+    'leaser_solde',
     'num_dossier_leaser',
     'montant_vendeur',
     'montant_leaser',
