@@ -18,7 +18,7 @@ $PDOdb = new TPDOdb;
 llxHeader();
 
 if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv' && ! empty($user->rights->financement->alldossier->solde)) {
-    $TData = array();
+    $TData = $TError = [];
 
     $f = fopen($_FILES['fileToImport']['tmp_name'], 'r');
     $i = 0;
@@ -31,13 +31,20 @@ if($action == 'import' && substr($_FILES['fileToImport']['name'], -4) === '.csv'
         }
     }
 
-    $upd = updateDossierSolde($TData);
+    $upd = updateDossierSolde($TData, $TError);
 
     setEventMessage($upd.' mise à jour effectuées sur '.count($TData).' lignes dans le fichier');
+
     ?>
     <script type="text/javascript">
         $(document).ready(function() {
             $('div#retours').append('<p>Fichier "<?php echo $_FILES['fileToImport']['name']; ?>" : <?php echo $upd.'/'.count($TData); ?></p>');
+            <?php
+            if(! empty($TError)) {
+                print "$('div#retours').append('<p>Clients non trouvés :</p>');";
+                foreach($TError as $siren => $TCustomerCode) print "$('div#retours').append('<p>".$siren."</p>');";
+            }
+            ?>
         });
     </script>
     <?php
@@ -69,28 +76,29 @@ elseif(! empty($action) || empty($user->rights->financement->alldossier->solde))
 llxFooter();
 
 function getUsefulData($TLine) {
-    $TIndex = array(
+    $TIndex = [
         'siren' => 0,
         'code_client' => 2,
         'entity' => 3
-    );
+    ];
 
     $siren = trim($TLine[$TIndex['siren']]);
     $code_client = trim($TLine[$TIndex['code_client']]);
     $entity = trim($TLine[$TIndex['entity']]);
 
-    return array(
+    return [
         'siren' => $siren,
-        'code_client' => array($code_client),
+        'code_client' => [$code_client],
         'entity' => $entity
-    );
+    ];
 }
 
 /**
- * @param   array     $TData
+ * @param array $TData
+ * @param array $TError
  * @return  int
  */
-function updateDossierSolde($TData) {
+function updateDossierSolde($TData, &$TError) {
     global $db;
     $nbUpdated = 0;
 
@@ -134,6 +142,9 @@ function updateDossierSolde($TData) {
                     $TCustomerCode = array_unique($v['code_client']);
                     updateSocieteOtherCustomerCode($soc, $TCustomerCode);
                 }
+            }
+            else {
+                $TError[$v['siren']] = $v['code_client'];
             }
         }
 
