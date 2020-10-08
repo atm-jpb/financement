@@ -1086,11 +1086,13 @@ class TImport extends TObjetStd {
 
     function importSoldeClient(&$ATMdb, $data) {
         // Si solde à 0, on n'importe pas la donnée, inutile
+
         if(empty($data['solde'])) return false;
+        if(empty($data['code_client'])) return false;
 
         $entity = 1;    // Uniquement Rhône-Alpes ce sert de cette fonctionnalité
         // Recherche si tiers existant dans la base via code client Artis
-        $socid = $this->_recherche_client($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key_client']], true, true, $entity);
+        $socid = $this->_recherche_client($ATMdb, $this->mapping['search_key'], $data[$this->mapping['search_key']], true, true, $entity);
 
         // Mise à jour du solde sur la fiche client en fonction de l'entité
         if($socid > 0) {
