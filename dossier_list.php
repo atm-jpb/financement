@@ -33,6 +33,7 @@ $search_entity = GETPOST('search_entity');
 if(! empty($search_entity) && ! is_array($search_entity)) $search_entity = explode(',', $search_entity);
 $search_nature = GETPOST('search_nature');
 $search_siren = GETPOST('search_siren');
+$search_siret = GETPOST('search_siret');
 $search_thirdparty = GETPOST('search_thirdparty');
 $search_leaser = GETPOST('search_leaser');
 $search_transfert = GETPOST('search_transfert');
@@ -138,11 +139,11 @@ if(! empty($arrayofselected) && ! empty($fk_leaser)) {
 // Remove filters
 if(GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x','alpha') || GETPOST('button_removefilter','alpha')) {
     unset($search_ref_client, $search_ref_leaser, $search_entity, $search_nature, $search_thirdparty, $search_leaser, $reloc_customer_ok, $reloc_leaser_ok, $loyer_leaser_ok, $search_transfert, $search_dateEnvoi);
-    unset($search_dateStart, $search_fac_materiel, $search_siren, $sall, $search_demat, $reloc);
+    unset($search_dateStart, $search_fac_materiel, $search_siren, $search_siret, $sall, $search_demat, $reloc);
 }
 
 $sql = "SELECT d.rowid as fk_fin_dossier, e.label as entity_label, fc.reference as refDosCli, fl.fk_soc as fk_leaser, fl.reference as refDosLea, a.rowid as fk_fin_affaire, a.reference as ref_affaire, ";
-$sql .= "a.nature_financement, a.fk_soc, c.nom as nomCli, l.nom as nomLea, c.siren as sirenCli, fl.date_debut as date_debut_leaser, fl.reste as vr, fl.terme, fl.transfert, ";
+$sql .= "a.nature_financement, a.fk_soc, c.nom as nomCli, l.nom as nomLea, c.siren as sirenCli, c.siret as siretCli, fl.date_debut as date_debut_leaser, fl.reste as vr, fl.terme, fl.transfert, ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.duree ELSE fl.duree END) as 'duree', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.montant ELSE fl.montant END) as 'Montant', ";
 $sql .= "(CASE WHEN a.nature_financement = 'INTERNE' THEN fc.echeance ELSE fl.echeance END) as 'echeance', ";
@@ -188,6 +189,7 @@ if(! empty($search_ref_client)) $sql .= natural_search('fc.reference', $search_r
 if(! empty($search_ref_leaser)) $sql .= natural_search('fl.reference', $search_ref_leaser);
 if(! empty($search_nature) && $search_nature != -1) $sql .= natural_search('a.nature_financement', $search_nature);
 if(! empty($search_siren)) $sql .= natural_search('c.siren', $search_siren);
+if(! empty($search_siret)) $sql .= natural_search('c.siret', $search_siret);
 if(! empty($search_thirdparty)) $sql .= natural_search('c.nom', $search_thirdparty);
 if(! empty($search_leaser)) $sql .= natural_search('l.nom', $search_leaser);
 if(! empty($search_dateEnvoi)) $sql .= " AND DATE_FORMAT(fl.date_envoi, '%Y-%m-%d') = '".date('Y-m-d', $search_dateEnvoi)."'";
@@ -258,6 +260,7 @@ if(empty($fk_leaser) && ! empty($search_entity)) $param .= '&search_entity='.url
 if(! empty($search_ref_leaser)) $param .= '&search_ref_leaser='.urlencode($search_ref_leaser);
 if(! empty($search_nature)) $param .= '&search_nature='.urlencode($search_nature);
 if(! empty($search_siren)) $param .= '&search_siren='.urlencode($search_siren);
+if(! empty($search_siret)) $param .= '&search_siret='.urlencode($search_siret);
 if(! empty($search_thirdparty)) $param .= '&search_thirdparty='.urlencode($search_thirdparty);
 if(! empty($search_leaser)) $param .= '&search_leaser='.urlencode($search_leaser);
 if(! empty($search_transfert)) $param .= '&search_transfert='.urlencode(implode(',', $search_transfert));
@@ -486,6 +489,11 @@ else {
     print '<td style="width: 90px;">';
     print '<input type="text" name="search_siren" value="'.$search_siren.'" size="8" />';
     print '</td>';
+
+    // Siret Client
+    print '<td style="width: 90px;">';
+    print '<input type="text" name="search_siret" value="'.$search_siret.'" size="8" />';
+    print '</td>';
 }
 
 // Thirdparty
@@ -546,6 +554,7 @@ if(empty($fk_leaser)) {
 else {
     print_liste_field_titre('Démat', $_SERVER['PHP_SELF'], 'd.demat', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Contrat démat
     print_liste_field_titre('Siren<br/>Client', $_SERVER['PHP_SELF'], 'c.siren', '', $param, 'style="text-align: center; width: 100px;"', $sortfield, $sortorder);   // Siren Client
+    print_liste_field_titre('Siret<br/>Client', $_SERVER['PHP_SELF'], 'c.siret', '', $param, 'style="text-align: center; width: 100px;"', $sortfield, $sortorder);   // Siret Client
 }
 print_liste_field_titre('Client', $_SERVER['PHP_SELF'], 'a.fk_soc', '', $param, 'style="text-align: center;"', $sortfield, $sortorder);   // Thirdparty
 if(empty($fk_leaser)) {
@@ -609,6 +618,7 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
     $socStatic->id = $obj->fk_soc;
     $socStatic->name = $obj->nomCli;
     $socStatic->siren = $obj->sirenCli;
+    $socStatic->siret = $obj->siretCli;
 
     if(! empty($obj->fk_leaser)) {
         $leaserStatic = new Societe($db);
@@ -672,6 +682,11 @@ for($i = 0 ; $i < min($num, $limit) ; $i++) {
         // Siren Client
         print '<td align="center">';
         print $socStatic->siren;
+        print '</td>';
+
+        // Siret Client
+        print '<td align="center">';
+        print $socStatic->siret;
         print '</td>';
     }
 
@@ -875,7 +890,7 @@ function _getExportXML($sql) {
         unset($TRes['fk_fin_dossier'], $TRes['fk_fin_affaire'], $TRes['fk_soc'], $TRes['refDosCli'], $TRes['fk_leaser'], $TRes['nature_financement'], $TRes['statut']);
         unset($TRes['prochaine'], $TRes['date_start'], $TRes['date_end'], $TRes['TInvoiceData'], $TRes['ref_affaire'], $TRes['nomLea'], $TRes['transfert']);
         unset($TRes['duree'], $TRes['Montant'], $TRes['echeance'], $TRes['relocClientOK'], $TRes['relocLeaserOK'],$TRes['intercalaireLeaserOK'], $TRes['date_envoi']);
-        unset($TRes['commentaire_conformite'], $TRes['demat']);
+        unset($TRes['commentaire_conformite'], $TRes['demat'], $TRes['siretCli']);
 
         $TRes['date_envoi'] = $date_envoi;  // Tout ça pour mettre cette colonne à la fin
 
