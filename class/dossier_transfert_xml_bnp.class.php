@@ -29,7 +29,7 @@ class TFinTransfertBNP extends TFinDossierTransfertXML {
 		global $conf, $db;
 
 		if(empty($conf->global->FINANCEMENT_MODE_PROD)) $name = 'UATFRCPROBNPADLC_'.date('Ymd_His');
-        else $name = 'PRDFRCPROBNPADLC_'.date('Ymd_His');
+        else $name = 'IN_PRDFRCPROBNPADLC_'.date('Ymd_His');
 
         if(! file_exists($this->fileFullPath)) dol_mkdir($this->fileFullPath);
         $f = fopen($this->fileFullPath.'/'.$name.self::fileExtension, 'w');
