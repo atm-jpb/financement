@@ -1,6 +1,7 @@
 <?php
 
 require '../config.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/propal/class/propal.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/propal.lib.php';
@@ -10,6 +11,8 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formmail.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
+
+
 dol_include_once('/financement/lib/financement.lib.php');
 dol_include_once('/financement/class/simulation.class.php');
 dol_include_once('/financement/class/grille.class.php');
@@ -30,6 +33,7 @@ $confirm = GETPOST('confirm', 'alpha');
 $id = GETPOST('id', 'int');
 $fk_simu = GETPOST('fk_simu', 'int');
 $upload = GETPOST('sendit', '', 2);
+$enterContractAndDate = GETPOST('enterContractAndDate','alpha');
 
 // Security check
 $socid='';
@@ -74,6 +78,7 @@ else if(! empty($fk_simu)) {
 
 $simu = new TSimulation;
 $simu->load($PDOdb, $fk_simu, false);
+
 if ($simu->rowid > 0) {
     $soc->fetch($simu->fk_soc);
     $leaser->fetch($simu->fk_leaser);
@@ -114,11 +119,14 @@ if(empty($id) && ! empty($user->rights->financement->conformite->create)) {    /
  * Actions
  */
 if($action === 'save' && (! empty($user->rights->financement->conformite->create) || ! empty($user->rights->financement->conformite->validate))) {
-    if(isset($_REQUEST['commentaire'])) $commentaire = GETPOST('commentaire');
+
+
+	if(isset($_REQUEST['commentaire'])) $commentaire = GETPOST('commentaire');
     if(isset($_REQUEST['commentaire_adv'])) $commentaire_adv = GETPOST('commentaire_adv');
 
     if(! is_null($commentaire) && ! empty($user->rights->financement->conformite->validate)) $object->commentaire = $commentaire;
     if(! is_null($commentaire_adv) && ! empty($user->rights->financement->conformite->create)) $object->commentaire_adv = $commentaire_adv;
+
     $res = $object->update();
 
     if($res > 0) {
@@ -128,6 +136,46 @@ if($action === 'save' && (! empty($user->rights->financement->conformite->create
     header('Location: '.$baseUrl);
     exit;
 }
+
+
+if($action === 'confirm_insert_NumContract_And_Date' && (! empty($user->rights->financement->conformite->create) || ! empty($user->rights->financement->conformite->validate))) {
+
+	if ($object->status == Conformite::STATUS_COMPLIANT_N1){
+
+		if(isset($_REQUEST['editClientContract'])) $editClientContract = GETPOST('editClientContract');
+		if(isset($_REQUEST['editStartingdate'])) $editStartingdate = GETPOST('editStartingdate');
+
+		$findosfin = new TFin_financement;
+
+		$sql = "select * from ".MAIN_DB_PREFIX."fin_dossier_financement";
+		$sql .= " WHERE `fk_fin_dossier` = ".$simu->fk_fin_dossier." AND type = 'CLIENT'";
+		$result = $db->query($sql);
+		if ($result){
+			$num = $db->num_rows($result);
+			if ($num ) {
+				$obj = $db->fetch_object($result);
+				if (!empty($obj->rowid)) {
+					$findosfin->load($PDOdb,$obj->rowid);
+				}
+				if(! is_null($editClientContract) && ! empty($user->rights->financement->conformite->validate)){
+					$findosfin->reference = $editClientContract;
+				}
+				if(! is_null($editStartingdate) && ! empty($user->rights->financement->conformite->create)){
+					$findosfin->date_debut = $editStartingdate;
+				}
+				$res = $findosfin->save($PDOdb);
+					if($res > 0) {
+						setEventMessage($langs->trans('ConformiteContratDateUpdated'));
+					}else{
+						setEventMessage($langs->trans('ErrorConformiteContratDateUpdated'));
+					}
+			}
+		}
+		header('Location: '.$baseUrl);
+		exit;
+	}
+}
+
 elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     $statusLabel = GETPOST('status', 'alpha');
 
@@ -163,10 +211,12 @@ elseif($action === 'confirm_createDossier' && !empty($user->rights->financement-
     header('Location: '.$baseUrl);
     exit;
 }
-elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($object->id) && ! empty($_FILES['userfile'])) {
-    dol_add_file_process($upload_dir, 0, 1, 'userfile');
 
-    header('Location: '.$baseUrl);
+elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($object->id) && ! empty($_FILES['userfile'])) {
+
+	dol_add_file_process($upload_dir, 0, 1, 'userfile');
+
+    header('Location: '.$baseUrl."&enterContractAndDate=1");
     exit;
 }
 elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->rights->financement->conformite->delete)) {
@@ -249,7 +299,7 @@ elseif($action === 'calculateSurfact' && ! empty($user->rights->financement->con
 
 if ($simu->id > 0) {
     $head = simulation_prepare_head($simu, $object);
-    dol_fiche_head($head, 'conformite', $langs->trans('Simulation'), 0, 'simulation');
+   dol_fiche_head($head, 'conformite', $langs->trans('Simulation'), 0, 'simulation');
 
     // Construit liste des fichiers
     $filearray = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview\.png)$', 'date', SORT_DESC, 1);
@@ -263,6 +313,7 @@ if ($simu->id > 0) {
     // Ref
     print '<tr><td width="20%">'.$langs->trans('Ref').'</td><td width="30%">';
     print $simu->reference.'&nbsp;';
+    print_r($simu->accord);
     if($simu->accord === 'OK') print get_picto('super_'.$simu->accord);
     else print get_picto($simu->accord);
     print '</td>';
@@ -482,14 +533,22 @@ if ($simu->id > 0) {
 
     print '</div>';
 
+
     $url = $_SERVER['PHP_SELF'].'?fk_simu='.$simu->rowid;
     if(! empty($id)) $url .= '&id='.$id;
 
     $perm = ! empty($user->rights->financement->conformite->create);
-    $formfile->form_attach_new_file($url, '', 0, 0, $perm, 50, '', '', 1, '', 0);
+	$enterContractAndDate ?_setContractAndDateN2($action,$object,$fk_simu,$id) : $formfile->form_attach_new_file($url, '', 0, 0, $perm, 50, '', '', 1, '', 0); ;
+
+
 
     $filepath = dol_sanitizeFileName($simu->reference).'/conformite/';
     $formfile->list_of_documents($filearray, $object, 'financement', '', 0, $filepath);
+
+
+
+
+
 }
 else {
     print $langs->trans("ErrorUnknown");
@@ -508,6 +567,7 @@ elseif($object->status === Conformite::STATUS_WAITING_FOR_COMPLIANCE_N1 && ! emp
     print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=notCompliantN1">'.$langs->trans('ConformiteNotCompliantN1').'</a>';
     print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
 }
+
 elseif(in_array($object->status, [Conformite::STATUS_COMPLIANT_N1, Conformite::STATUS_NOT_COMPLIANT_N2]) && ! empty($user->rights->financement->conformite->validate)) {
     print '<a class="butAction" href="'.$baseUrl.'&action=confirm_setStatus&status=waitN2&confirm=yes">'.$langs->trans('ConformiteWaitingForComplianceN2Button').'</a>';
     print '<a class="butActionDelete" href="'.$baseUrl.'&action=setStatus&status=withoutFurtherAction">'.$langs->trans('ConformiteWithoutFurtherAction').'</a>';
@@ -593,4 +653,37 @@ function createDossier(TPDOdb $PDOdb, TSimulation $s) {
         setEventMessage($langs->trans('ConformiteDossierCreated', $d->rowid));
     }
     else setEventMessage($langs->trans('ConformiteDossierCreationError'), 'errors');
+}
+
+
+function _setContractAndDateN2($action ,$object,$fk_simu,$id){
+	global $langs;
+
+	if ($object->status == Conformite::STATUS_COMPLIANT_N1) {
+
+		// object déjà renseigné ? action ou pas ?
+		print load_fiche_titre($langs->trans('AddContractAndDateTitle'), null, null);
+		print '<form ' . $_SERVER['PHP_SELF'] . '?fk_simu=' . $fk_simu . '&id=' . $id . '" method="POST" class="notoptoleftroright">';
+		print '	<input type="hidden" name="action" value="confirm_insert_NumContract_And_Date">';
+		// print '<input type="hidden" name="token" value="'.newToken().'">';
+		print ' <table class="valid centpercent">';
+		print ' <tbody><tr class="validtitre"><td class="validtitre" colspan="3">' . img_picto('', 'recent') . $langs->trans('LabelImportantNumContractAndDate') . '</td></tr>';
+		print '<tr class="valid"><td class="valid" colspan="3">';
+		print '<table class="paddingtopbottomonly centpercent">';
+		print '<tbody>';
+		print '<tr>';
+		print '		<td>' . $langs->trans('InputNumContractConformite') . '</td>';
+		print '		<td class="left"><input type="text" class="flat" id="editClientContract" name="editClientContract" value=""></td>';
+		print '</tr>';
+		print '<tr>';
+		print '			<td>' . $langs->trans('InputDateConformite') . '</td>';
+		print '			<td class="left"><input type="date" class="flat" id="editStartingdate" name="editStartingdate" value=""></td>';
+		print '</tr>';
+		print '</tbody></table>';
+		print '</td></tr>';
+		print '<tr class="valid">';
+		print '<td class="valid center"><input class="button valignmiddle" type="submit" value="Valider"></td></tr>';
+		print '</tbody></table>';
+		print '</form>';
+	}
 }

@@ -20,23 +20,23 @@ class ActionsFinancement
         $this->errors = array();
     }
 
-    function doActions($parameters, &$object, &$action, $hookmanager) {
-        global $user;
+	function doActions($parameters, &$object, &$action, $hookmanager) {
+		global $user;
 
-        if(in_array('propalcard', explode(':', $parameters['context']))) {
-            // Nouvelle regle, uniquement accessible aux admin
-            // 2017.07.27 MKO : activation de l'accès aux autres
-            //if(empty($user->rights->financement->admin->write)) accessforbidden();
+		if(in_array('propalcard', explode(':', $parameters['context']))) {
+			// Nouvelle regle, uniquement accessible aux admin
+			// 2017.07.27 MKO : activation de l'accès aux autres
+			//if(empty($user->rights->financement->admin->write)) accessforbidden();
 
-            if($object->fin_validite < strtotime(date('Y-m-d')) && empty($user->rights->financement->integrale->see_past_propal)) {
-                dol_include_once('/core/lib/security.lib.php');
-                $mess = 'Vous ne pouvez consulter une proposition dont la date de fin de validité est dépassée.';
-                accessforbidden($mess, 1);
-            }
-        }
+			if($object->fin_validite < strtotime(date('Y-m-d')) && empty($user->rights->financement->integrale->see_past_propal)) {
+				dol_include_once('/core/lib/security.lib.php');
+				$mess = 'Vous ne pouvez consulter une proposition dont la date de fin de validité est dépassée.';
+				accessforbidden($mess, 1);
+			}
+		}
 
-        return 0;
-    }
+		return 0;
+	}
 
     public function addSearchEntry($parameters, &$object, &$action, $hookmanager) {
         $TRes = array(
