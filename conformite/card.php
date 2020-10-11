@@ -34,6 +34,7 @@ $id = GETPOST('id', 'int');
 $fk_simu = GETPOST('fk_simu', 'int');
 $upload = GETPOST('sendit', '', 2);
 $enterContractAndDate = GETPOST('enterContractAndDate','alpha');
+$NoErrorDownload = true;
 
 // Security check
 $socid='';
@@ -118,7 +119,7 @@ if(empty($id) && ! empty($user->rights->financement->conformite->create)) {    /
 /*
  * Actions
  */
-if($action === 'save' && (! empty($user->rights->financement->conformite->create) || ! empty($user->rights->financement->conformite->validate))) {
+if($action 		=== 'save' && (! empty($user->rights->financement->conformite->create) || ! empty($user->rights->financement->conformite->validate))) {
 
 
 	if(isset($_REQUEST['commentaire'])) $commentaire = GETPOST('commentaire');
@@ -136,9 +137,7 @@ if($action === 'save' && (! empty($user->rights->financement->conformite->create
     header('Location: '.$baseUrl);
     exit;
 }
-
-
-if($action === 'confirm_insert_NumContract_And_Date' && (! empty($user->rights->financement->conformite->create) || ! empty($user->rights->financement->conformite->validate))) {
+if($action 		=== 'confirm_insert_NumContract_And_Date' && (! empty($user->rights->financement->conformite->create) || ! empty($user->rights->financement->conformite->validate))) {
 
 	if ($object->status == Conformite::STATUS_COMPLIANT_N1){
 
@@ -149,6 +148,7 @@ if($action === 'confirm_insert_NumContract_And_Date' && (! empty($user->rights->
 
 		$sql = "select * from ".MAIN_DB_PREFIX."fin_dossier_financement";
 		$sql .= " WHERE `fk_fin_dossier` = ".$simu->fk_fin_dossier." AND type = 'CLIENT'";
+
 		$result = $db->query($sql);
 		if ($result){
 			$num = $db->num_rows($result);
@@ -165,9 +165,9 @@ if($action === 'confirm_insert_NumContract_And_Date' && (! empty($user->rights->
 				}
 				$res = $findosfin->save($PDOdb);
 					if($res > 0) {
-						setEventMessage($langs->trans('ConformiteContratDateUpdated'));
+						setEventMessage($langs->trans('ConformiteContratDateUpdated',$editClientContract,$editStartingdate));
 					}else{
-						setEventMessage($langs->trans('ErrorConformiteContratDateUpdated'));
+						setEventMessage($langs->trans('ErrorConformiteContratDateUpdated'),'errors');
 					}
 			}
 		}
@@ -175,8 +175,7 @@ if($action === 'confirm_insert_NumContract_And_Date' && (! empty($user->rights->
 		exit;
 	}
 }
-
-elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
+elseif($action 	=== 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     $statusLabel = GETPOST('status', 'alpha');
 
     $status = Conformite::getStatusFromLabel($statusLabel);
@@ -190,7 +189,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
                 $u = new User($db);
                 $u->fetch($object->fk_user);
 
-                setEventMessage('Email envoyé à : '.$u->email);
+                setEventMessage($langs->trans('mailSendedTo',$u->email));
             }
 
             if($object->status === Conformite::STATUS_COMPLIANT_N1 && ! in_array($object->entity, $TEntityCreateDossier)) {
@@ -203,7 +202,7 @@ elseif($action === 'confirm_setStatus' && ! empty($id) && $confirm === 'yes') {
     header('Location: '.$baseUrl);
     exit;
 }
-elseif($action === 'confirm_createDossier' && !empty($user->rights->financement->alldossier->write) && $confirm === 'yes') {
+elseif($action 	=== 'confirm_createDossier' && !empty($user->rights->financement->alldossier->write) && $confirm === 'yes') {
     if(! in_array($object->entity, $TEntityCreateDossier)) {
         createDossier($PDOdb, $simu);
     }
@@ -211,15 +210,36 @@ elseif($action === 'confirm_createDossier' && !empty($user->rights->financement-
     header('Location: '.$baseUrl);
     exit;
 }
-
 elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($object->id) && ! empty($_FILES['userfile'])) {
 
-	dol_add_file_process($upload_dir, 0, 1, 'userfile');
+	$NoErrorDownload = dol_add_file_process($upload_dir, 0, 1, 'userfile');
 
-    header('Location: '.$baseUrl."&enterContractAndDate=1");
+	$sql = "SELECT max(rowid) as lastId FROM ".MAIN_DB_PREFIX.'ecm_files ';
+	$res = $db->query($sql);
+	if ($res){
+		$obj = $db->fetch_object($res);
+		include_once DOL_DOCUMENT_ROOT.'/ecm/class/ecmfiles.class.php';
+		$ecmfile=new EcmFiles($db);
+		$ecmfile->fetch($obj->lastId);
+		$ecmfile->src_object_id = $simu->rowid;
+		$ecmfile->src_object_type = "Conformite";
+		$ecmfile->update($user);
+	}else{
+		setEventMessage($langs->trans('ecmFileObjectTypeUpdateError'),"errors");
+	}
+
+
+
+	if ($NoErrorDownload){
+
+		// insert object_type et id conformité
+		header('Location: '.$baseUrl."&enterContractAndDate=1");
+	}else{
+		header('Location: '.$baseUrl);
+	}
     exit;
 }
-elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->rights->financement->conformite->delete)) {
+elseif($action 	=== 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->rights->financement->conformite->delete)) {
     $urlfile = GETPOST('urlfile', 'alpha');
 
     if (GETPOST('section')) $file = $upload_dir.'/'.$urlfile;
@@ -248,6 +268,10 @@ elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->
             }
         }
 
+        // on retire la correspondance num Contrat et date debut dans le cas suivant
+		// reset reference and date_debut si object->status = 2  et si le fichier est lié à la conformité actuelle
+
+
         if ($ret) {
             setEventMessage($langs->trans("FileWasRemoved", $urlfile));
         } else {
@@ -258,7 +282,7 @@ elseif($action === 'confirm_deleteFile' && $confirm === 'yes' && ! empty($user->
     header('Location: '.$baseUrl);
     exit;
 }
-elseif($action === 'confirm_calculateSurfact' && $confirm === 'yes' && ! empty($user->rights->financement->conformite->validate)) {
+elseif($action 	=== 'confirm_calculateSurfact' && $confirm === 'yes' && ! empty($user->rights->financement->conformite->validate)) {
     $object->calculSurfact();
 
     header('Location: '.$baseUrl);
@@ -278,6 +302,7 @@ if($action === 'delete' && ! empty($user->rights->financement->conformite->delet
     if(! empty($urlfile)) $url .= '&urlfile='.urlencode($urlfile);
 
     print $form->formconfirm($url, $langs->trans('DeleteFile'), $langs->trans('ConfirmDeleteFile'), 'confirm_deleteFile', '', '', 1);
+
 }
 elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COMPLIANT_N1 && ! empty($user->rights->financement->alldossier->write)) {
     print $form->formconfirm($baseUrl, $langs->trans('ConformiteCreateDossier'), $langs->trans('ConformiteConfirmCreateDossier'), 'confirm_createDossier', '', '', 1);
@@ -313,7 +338,6 @@ if ($simu->id > 0) {
     // Ref
     print '<tr><td width="20%">'.$langs->trans('Ref').'</td><td width="30%">';
     print $simu->reference.'&nbsp;';
-    print_r($simu->accord);
     if($simu->accord === 'OK') print get_picto('super_'.$simu->accord);
     else print get_picto($simu->accord);
     print '</td>';
@@ -538,9 +562,12 @@ if ($simu->id > 0) {
     if(! empty($id)) $url .= '&id='.$id;
 
     $perm = ! empty($user->rights->financement->conformite->create);
-	$enterContractAndDate ?_setContractAndDateN2($action,$object,$fk_simu,$id) : $formfile->form_attach_new_file($url, '', 0, 0, $perm, 50, '', '', 1, '', 0); ;
 
-
+	($enterContractAndDate == '1'
+		&& !_IsRefAndDatesetted($PDOdb,$object,$simu)
+		&& ($NoErrorDownload)
+		&& ($object->status == Conformite::STATUS_COMPLIANT_N1 )
+	) ? _setContractAndDateN2($action,$object,$fk_simu,$id) : $formfile->form_attach_new_file($url, '', 0, 0, $perm, 50, '', '', 1, '', 0);
 
     $filepath = dol_sanitizeFileName($simu->reference).'/conformite/';
     $formfile->list_of_documents($filearray, $object, 'financement', '', 0, $filepath);
@@ -686,4 +713,33 @@ function _setContractAndDateN2($action ,$object,$fk_simu,$id){
 		print '</tbody></table>';
 		print '</form>';
 	}
+}
+
+/**
+ * @param $object
+ * @param $simu
+ * @return bool
+ */
+function _IsRefAndDatesetted($PDOdb,$object,$simu){
+  global $langs,$user,$db;
+
+	if ($object->status == Conformite::STATUS_COMPLIANT_N1){
+
+		$findosfin = new TFin_financement;
+
+		$sql = "select * from ".MAIN_DB_PREFIX."fin_dossier_financement";
+		$sql .= " WHERE `fk_fin_dossier` = ".$simu->fk_fin_dossier." AND type = 'CLIENT'";
+		$result = $db->query($sql);
+		if ($result){
+			$num = $db->num_rows($result);
+			if ($num ) {
+				$obj = $db->fetch_object($result);
+				if (!empty($obj->rowid)) {
+					$findosfin->load($PDOdb,$obj->rowid);
+				}
+				return 	$findosfin->reference != '' && !is_null($findosfin->date_debut);
+			}
+		}
+	}
+	return 0;
 }

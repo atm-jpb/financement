@@ -499,3 +499,9 @@ DossierInternesActifs = Internes
 DossierInternesIntegralActifs = Intégral
 DossierInternesForfaitGlobalActifs = Forfait global
 DossierInternesLocSimpleActifs = Loc simple
+
+#t2321
+ecmFileObjectTypeUpdateError = Erreur lors de la mise à jour sur la liaison src_object_type.
+ConformiteContratDateUpdated = Enregistrement du numéro de contrat $s / date : $s
+ErrorConformiteContratDateUpdated = Erreur lors de l'enregistrement du numéro de contrat / date de début
+mailSendedTo = Email envoyé à : $s
