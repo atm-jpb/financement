@@ -213,7 +213,7 @@ elseif($action 	=== 'confirm_createDossier' && !empty($user->rights->financement
 elseif(! empty($upload) && ! empty($conf->global->MAIN_UPLOAD_DOC) && ! empty($object->id) && ! empty($_FILES['userfile'])) {
 
 	$NoErrorDownload = dol_add_file_process($upload_dir, 0, 1, 'userfile');
-
+	// because hook in core is obvious  ... and time to make it is short
 	$sql = "SELECT max(rowid) as lastId FROM ".MAIN_DB_PREFIX.'ecm_files ';
 	$res = $db->query($sql);
 	if ($res){
@@ -302,6 +302,8 @@ if($action === 'delete' && ! empty($user->rights->financement->conformite->delet
     if(! empty($urlfile)) $url .= '&urlfile='.urlencode($urlfile);
 
     print $form->formconfirm($url, $langs->trans('DeleteFile'), $langs->trans('ConfirmDeleteFile'), 'confirm_deleteFile', '', '', 1);
+
+
 
 }
 elseif($action === 'createDossier' && $object->status === Conformite::STATUS_COMPLIANT_N1 && ! empty($user->rights->financement->alldossier->write)) {
@@ -726,7 +728,6 @@ function _IsRefAndDatesetted($PDOdb,$object,$simu){
 	if ($object->status == Conformite::STATUS_COMPLIANT_N1){
 
 		$findosfin = new TFin_financement;
-
 		$sql = "select * from ".MAIN_DB_PREFIX."fin_dossier_financement";
 		$sql .= " WHERE `fk_fin_dossier` = ".$simu->fk_fin_dossier." AND type = 'CLIENT'";
 		$result = $db->query($sql);
